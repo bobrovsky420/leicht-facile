@@ -1,11 +1,11 @@
-# Technical report — `project name`
+# Technical report - Leicht·Facile
 
 A deeper write-up than the README: what you built, how it works, and what the
 numbers say.
 
-- **Track:** `Track 2B — project name`
+- **Track:** Track 2B - Leicht·Facile
 - **Event:** Online
-- **Team:** `team name` — `member`, `member`, `member`
+- **Team:** Röstigraben Bridgers - `member`, `member`, `member`
 - **Demo:** `link to video`
 
 ## 1. Summary

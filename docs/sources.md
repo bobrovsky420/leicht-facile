@@ -77,12 +77,40 @@ topic is covered in the evaluation by the BAG pair above.
 | [zh.ch](https://www.zh.ch/de/nutzungshinweise.html) | Viewing, download and printing for personal use only; any further use needs consent | Manifest and fetch script only; no texts in the repository or dataset |
 | [be.ch](https://www.be.ch/de/tools/rechtliches.html) | Written consent required in advance for any reproduction | Same as Zürich. Bern is a hackathon partner: ask for consent if we want to publish the dataset. |
 | [admin.ch](https://www.admin.ch/de/rechtliches) | Rights reserved by the federal authorities | Web pages and fact sheets: manifest only unless article 5 clearly applies |
+| [sg.ch](https://www.sg.ch/content/dam/sgch/kanton-stgallen/personalhandbuch/Legal_Disclaimer.pdf) | Reuse with full attribution for private use; other use needs written permission | Same as Zürich |
 | [ahv-iv.ch](https://www.ahv-iv.ch/de/Merkblätter) | Even partial reprints need written consent of the Informationsstelle AHV/IV | Not used |
 | Federal voting explanations | Plausibly a report of an authority under article 5, not confirmed | Confirm before committing the text or publishing it in a dataset |
 
-Consequence for the optional Hugging Face dataset (plan decision D-G): without consent
-from the publishers, the dataset can contain only the manifest, our model outputs and
-metrics, plus article-5 texts. The report states this.
+None of the sources above uses an open licence such as CC BY.
+
+### Development and evaluation: no consent needed
+
+Developing, testing and evaluating against these pages needs no consent from the
+publishers, as long as neither the texts nor our rewrites of them are published.
+Our reading of the Copyright Act (not legal advice):
+
+- The repository contains only URLs. Linking to a public page is not reproduction.
+- The application fetches a page when a user, including a judge, submits it. The copy
+  on that machine is temporary and technically required (article 24a).
+- Evaluation runs on locally cached copies (`data/cache/`, git-ignored) for scientific
+  research, with lawful access to the pages (article 24d).
+- Showing a draft to the jury on their own machine is not publication.
+
+### Where consent would be needed
+
+Anything public needs either consent or an article-5 text:
+
+| Artifact | Rule |
+|----------|------|
+| Demo video | Article-5 texts as the main material. Protected pages only as short excerpts that illustrate how the tool works (quotation right, article 25). |
+| Example jobs in `data/examples/` | Article-5 texts or synthetic letters written by the team, since the repository is public. |
+| Test fixtures in `tests/fixtures/` | Article-5 texts or synthetic letters, including recorded model outputs. |
+| Technical report | Metrics and tables freely; short quoted excerpts with the source named. |
+| Hugging Face dataset (plan decision D-G) | Manifest, metrics, and article-5 texts with our outputs on them. Our rewrites of protected pages are adaptations and stay out unless the publisher consents. |
+
+A practical risk comes with live fetching: judging happens after the deadline, and
+pages can change, move or go offline. The application reports a failed fetch clearly,
+and the article-5 example jobs serve as the fallback.
 
 ## 5. Findings that affect the design
 
