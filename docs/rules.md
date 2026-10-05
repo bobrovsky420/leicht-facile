@@ -79,7 +79,7 @@ official Swiss rule set for Einfache Sprache exists yet.
 | NUM-05 | Durations in words and digits: `1 Stunde und 30 Minuten` | `1.5 h`, `1½ Stunden`, `90 min` | info |
 | NUM-06 | Percent written out | `%` → `Prozent` | warn |
 | NUM-07 | Amounts as `500 Franken` or `CHF 500`, no decimals when zero | `CHF 500.00`, `Fr. 500.-`, `500.00 CHF` | info |
-| NUM-08 | Phone numbers spaced, no country code: `044 123 45 67` | `+41 44 …`, `0041`, `044/123 45 67`, unspaced digits | warn |
+| NUM-08 | Phone numbers spaced, no country code: `044 123 45 67` | `+41 44 …`, `0041`, `044/123 45 67`, unspaced digits | warn (under review: official Zürich and Bern pages use `+41`, see [sources.md](sources.md) §5) |
 
 ### Swiss spelling
 

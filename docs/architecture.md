@@ -1,7 +1,7 @@
 # Leicht·Facile - design and architecture
 
 Status: design, 5 October 2026. Hack Apertus online hackathon, Track 2B.
-Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements).
+Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements) , [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration) and [sources.md](sources.md) (reference pairs, demo documents and their licences).
 Items marked **[verify]** are assumptions to confirm against the live endpoint on day 1 (see §12).
 
 ## 1. What it is
@@ -19,6 +19,13 @@ The design rests on one rule:
 
 That split is the answer to the "purposeful use of AI" criterion, and it stops the
 model from grading its own homework on things a script can check exactly.
+
+Leicht·Facile is not a translator, and the job cannot be done with one chatbot
+prompt. "Rewrite this in Leichte Sprache" yields text with no fact contract, no
+provenance, no omission log and no independent check; that is the C0 baseline in §9.
+The pipeline exists to add exactly those four things, plus a review workflow and an
+audit trail. [use-case-canton.md §4](use-case-canton.md) lays out the comparison
+from the administration's point of view.
 
 ### Goals
 
@@ -399,13 +406,19 @@ evaluation harness runs. Syllables for readability come from `pyphen` with the
 ### Dataset
 
 `data/pairs/manifest.jsonl`: one row per document pair - id, canton, language,
-level, URL of the standard-language page, URL of the official easy-language page,
-licence note. `scripts/fetch_pairs.py` downloads and caches the texts under
+level, role (`eval` or `example`), URL of the standard-language page, URL of the
+official easy-language page, licence note, rough fact count. `scripts/fetch_pairs.py` downloads and caches the texts under
 `data/cache/` (git-ignored). Texts are committed only where the licence clearly
 allows redistribution; otherwise the manifest and the fetch script are the dataset.
 Target: 20-40 pairs across Zürich, Bern, St. Gallen, Fribourg (DE and FR) and Ticino
 (IT). St. Gallen and Bern are hackathon partners, which makes their pages a natural
 test set.
+
+These reference pairs measure the pipeline; they are not the demo. The demo uses
+documents that have no easy-language version yet, such as the Federal Council's
+explanations for a past vote. Pairs used as few-shot examples in the prompts are
+excluded from evaluation. The shortlist, the demo candidates and the licence terms of
+each publisher are in [sources.md](sources.md).
 
 For additional German training or calibration data, DEplain (professionally written
 plain-German parallel corpus) is a candidate; its licence must be checked before any
