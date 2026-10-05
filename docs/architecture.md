@@ -1,7 +1,7 @@
 # Leicht·Facile - design and architecture
 
 Status: design, 5 October 2026. Hack Apertus online hackathon, Track 2B.
-Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements) , [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration) and [sources.md](sources.md) (reference pairs, demo documents and their licences).
+Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
 Items marked **[verify]** are assumptions to confirm against the live endpoint on day 1 (see §12).
 
 ## 1. What it is
