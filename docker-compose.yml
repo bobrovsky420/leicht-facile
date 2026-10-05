@@ -1,0 +1,53 @@
+# Default: the app only, talking to a remote Apertus endpoint (CSCS, Swiss cloud,
+# Hugging Face) configured in .env.
+#
+# On-premise / air-gapped: `docker compose --profile local-llm up` adds a vLLM server
+# with Apertus 1.5 8B on one NVIDIA GPU. Point the app at it in .env:
+#   LLM_BASE_URL=http://vllm:8000/v1
+#   LLM_API_KEY=local            (any value; vLLM is started without a key)
+#   LLM_NAME=swiss-ai/Apertus-v1.5-8B
+#   LLM_THINKING_MODE=chat-template
+
+services:
+  app:
+    build: .
+    image: leicht-facile:latest
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - appdata:/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  vllm:
+    profiles: ["local-llm"]
+    image: ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64
+    entrypoint: ["vllm", "serve"]
+    command:
+      - swiss-ai/Apertus-v1.5-8B
+      - --served-model-name=swiss-ai/Apertus-v1.5-8B
+      - --chat-template-content-format=string
+      - --reasoning-parser=apertus
+      - --max-model-len=32768
+      - --gpu-memory-utilization=0.9
+      - --host=0.0.0.0
+      - --port=8000
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  appdata:
+  hf-cache:

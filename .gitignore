@@ -28,3 +28,12 @@ build/
 
 # Local planning notes
 PLAN.md
+
+# Leicht·Facile runtime data and tool caches
+data/cache/
+data/*.sqlite
+data/*.db
+eval/results/
+out/
+.pytest_cache/
+.ruff_cache/

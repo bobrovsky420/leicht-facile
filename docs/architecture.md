@@ -69,7 +69,7 @@ flowchart TB
         UI["Review UI<br/>(server-rendered HTML + small JS)"]
     end
 
-    subgraph app["leicht-facile container (FastAPI, Python 3.12)"]
+    subgraph app["leicht-facile container (FastAPI, Python 3.14)"]
         API["HTTP API"]
         Q["Job runner<br/>(single worker thread)"]
         ING["Ingest<br/>PDF · HTML · text · image"]
@@ -320,8 +320,33 @@ the standard library - the schema is small.
 - **Configuration** from the template's variables: `LLM_BASE_URL`, `LLM_API_KEY`,
   `LLM_NAME`; plus `LLM_JUDGE_NAME` (defaults to `LLM_NAME`) and
   `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
-  `…-thinking` model names) | `chat-template` (local vLLM:
-  `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) | `off`.
+  `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
+  (local vLLM: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
+  `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`.
+- **Endpoint profiles** (documented in `.env.example`):
+  1. CSCS inference API, the hackathon default;
+  2. local vLLM from the `local-llm` compose profile, for on-premise and air-gapped
+     deployments;
+  3. the Public AI gateway (`https://api.publicai.co/v1`), for development and
+     evaluation with public documents. It serves all four Apertus 1.5 variants
+     (`swiss-ai/apertus-v1.5-8b`, `-70b`, each with a `-thinking` variant, 262k
+     context) at USD 0.10/0.20 per million input/output tokens for the 8B and
+     0.82/2.92 for the 70B, with USD 2 of starter credit. It is run by Metagov Inc.,
+     a US nonprofit, under Massachusetts law, and routes requests to compute partners
+     including CSCS, AWS, Exoscale and Cudo. It requires a `User-Agent` header, which
+     the client always sends. Not a sovereign deployment: never used for documents
+     with personal data;
+  4. the Hugging Face inference router, for development only. It serves only the
+     older Apertus 1 models (`swiss-ai/Apertus-8B-Instruct-2509` through Public AI,
+     `…-70B-Instruct-2509` through Featherless). No Hugging Face provider serves
+     Apertus 1.5, so its results are never reported as Apertus 1.5 numbers.
+
+  All facts on third-party endpoints were checked on 5 October 2026.
+- **Reasoning removal.** A thinking model's reasoning is taken from the separate
+  `reasoning_content` field when the server provides one (vLLM with
+  `--reasoning-parser apertus`), and otherwise cut from the text, whether wrapped in
+  `<|inner_prefix|> … <|inner_suffix|>` or `<think> … </think>`. Output cut off by
+  `max_tokens` while still reasoning is flagged as truncated.
 - **Structured output.** Neither the CSCS docs nor the vLLM guide document
   `response_format`, so JSON is enforced the robust way: the schema is in the
   prompt, the response is stripped of any leaked reasoning tokens
@@ -329,9 +354,10 @@ the standard library - the schema is small.
   with pydantic. On failure the validation error is fed back once for a repair.
   If the endpoint turns out to accept `response_format={"type":"json_object"}`
   **[verify]**, it is used in addition, never instead.
-- **Reliability.** Exponential backoff on 429/5xx, per-call timeout, `max_tokens`
-  sized generously for thinking models (reasoning can be several times longer than
-  the visible answer).
+- **Reliability.** Retries on 429, 5xx and connection errors with exponential
+  backoff and jitter, honouring `Retry-After`; other 4xx errors are not retried.
+  Per-call timeout, and `max_tokens` sized generously for thinking models (reasoning
+  can be several times longer than the visible answer).
 - **Usage log.** Every call records model, tokens in/out, latency and stage; jobs
   show totals, and the evaluation reports cost per page using a configurable
   CHF-per-million-tokens table.
@@ -459,17 +485,24 @@ responses, and metadata with per-instance licensing.
 
 `make run` → `docker compose up --build`. The Makefile first checks that `.env`
 exists and names `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME`, and prints a short
-help text otherwise. The image is built from `python:3.12-slim`, installs pinned
-requirements and the three spaCy models at **build** time, and copies the vendored UI
-assets. At **runtime** the container needs exactly one outbound connection:
-`LLM_BASE_URL`. The app listens on `:8000`, with two pre-computed example jobs so the
-UI is not empty before the first live run (clearly labelled as examples).
+help text otherwise. The image is built from `python:3.14-slim` (the project supports
+Python 3.12 and later) and installs the locked dependencies from `uv.lock` with `uv`
+at **build** time, including the spaCy models as pinned wheel URLs. German is in the
+image now; the French and Italian models are added when those languages ship. The
+vendored UI assets are copied in the same way. At **runtime** the container needs
+exactly one outbound connection: `LLM_BASE_URL`. It runs as a non-root user, keeps
+its data in the named volume `appdata` (mounted at `/data`), and has a Docker health
+check on `/healthz`. The app listens on `:8000`, with two pre-computed example jobs
+so the UI is not empty before the first live run (clearly labelled as examples).
+
+`make check-llm` lists the endpoint's models and makes one short call from inside the
+container; it is the first thing to run once `.env` holds a key.
 
 ### The three target architectures
 
 | Architecture | How Leicht·Facile meets it |
 |--------------|----------------------------|
-| a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving `swiss-ai/Apertus-v1.5-8B` on one GPU; the app points at `http://vllm:8000/v1`. The 70B judge is optional and can be the 8B in a pinch. |
+| a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` serving `swiss-ai/Apertus-v1.5-8B` on one GPU, with the Apertus reasoning parser and `--max-model-len 32768`; the app points at `http://vllm:8000/v1` with `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. **[verify]** on a GPU host: the compose file validates, but the service has not been started yet. |
 | b) Air-gapped | Same as (a) with images and weights pulled in advance; spaCy models and UI assets are inside the image; no telemetry, no CDN, no package installs at runtime. A `make bundle` target saves the images to a tarball. |
 | c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (CSCS, Swisscom AI Platform, Infomaniak). The hackathon demo itself runs against CSCS in Lugano. |
 
@@ -493,10 +526,11 @@ at runtime.
 ## 11. Repository layout
 
 ```text
-Makefile                  make run · make smoke · make eval · make bundle
+Makefile                  make run · check-llm · test · lint · smoke · eval · bundle
 docker-compose.yml        app (+ profile local-llm: vllm)
 Dockerfile
-.env.example
+pyproject.toml, uv.lock   dependencies (uv), Python 3.12+; .python-version pins 3.14
+.env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face
 README.md                 Track 2B challenge text (template)
 technical_report.md       the report (template, to fill)
 docs/
