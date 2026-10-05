@@ -27,6 +27,16 @@ Best candidates for slide 1:
 - **DE-3** / **FR-3**: short, but every key word is a false friend (Verfügung,
   Eröffnung, notification).
 
+A light moment for the pitch, after the number or before the demo:
+
+- **Behindertengleichstellungsgesetz (BehiG)**: the law that requires accessible
+  information has a 32-letter name and an abbreviation, and fails its own rules
+  (LEX-01, LEX-02, GRAM-05). Its full title is a genitive chain: *Bundesgesetz über
+  die Beseitigung von Benachteiligungen von Menschen mit Behinderungen*. The French
+  side is no better: *Loi fédérale sur l'élimination des inégalités frappant les
+  personnes handicapées (LHand)*. Punchline: "Even the law needs Leicht·Facile."
+  Easy version: *Gesetz für gleiche Rechte von Menschen mit Behinderungen*.
+
 The judges are expert readers. The point is not that they fail, but that they need a
 second look; the target group often never gets past the first.
 
@@ -71,6 +81,7 @@ at the top are the most interesting: the code checker cannot see them, only the 
 | Prämienverbilligung | Long compound, abstract noun | LEX-01, GRAM-05 |
 | Rechtsmittelbelehrung | Legal jargon; `Rechtsmittel` is unknown | LEX-01, SEM-04 |
 | Ergänzungsleistungen (EL) | Abstract compound, usually abbreviated | LEX-01, LEX-02 |
+| Behindertengleichstellungsgesetz (BehiG) | 32 letters plus an abbreviation; the name of the law that requires easy access fails the easy-language rules itself | LEX-01, LEX-02, GRAM-05 |
 | Kostengutsprache | Swiss administrative term; `Gutsprache` is unknown | LEX-01, LEX-03 |
 | innert, gemäss, ggf., bzw. | Bureaucratic prepositions and abbreviations | LEX-02 |
 | Art. 14 Abs. 1 lit. b ELG | A chain of abbreviations | LEX-02 |
