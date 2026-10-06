@@ -225,6 +225,9 @@ def _split_lower(word: str, max_letters: int, lang: str) -> list[str] | None:
     return parts
 
 
+_FEMININE = "innen"
+
+
 def split_compound(word: str, max_letters: int = 0, lang: str = "de") -> list[str] | None:
     """Split a compound into parts; parts longer than max_letters are split again.
 
@@ -234,9 +237,21 @@ def split_compound(word: str, max_letters: int = 0, lang: str = "de") -> list[st
     letters = word.replace(MEDIOPUNKT, "")
     if not letters.isalpha() or len(letters) < 2 * _MIN_PART:
         return None
-    parts = _split_lower(letters.lower(), max_letters, lang)
+    lower = letters.lower()
+    stem, ending = lower, ""
+    if lang == "de" and lower.endswith(_FEMININE) and len(lower) > len(_FEMININE) + _MIN_PART:
+        head = lower[: -len(_FEMININE)]
+        if is_known(head, lang) or _best_split(head, lang):
+            # The feminine plural is an ending, not a part: split the stem and keep the
+            # ending on it (Sozial·arbeiterinnen), never Schweizer·innen, which reads as
+            # gender typography, or Schweize·rinnen (seen on the CSCS dev drafts).
+            stem, ending = head, _FEMININE
+            if max_letters and len(stem) <= max_letters:
+                return None  # long only by its ending: schreiberinnen is no compound
+    parts = _split_lower(stem, max_letters, lang)
     if not parts:
         return None
+    parts[-1] += ending
     first = letters[: len(parts[0])]
     return [first, *parts[1:]]
 

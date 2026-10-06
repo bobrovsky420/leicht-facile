@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import pytest
 
+from leichtfacile.eval.score import kept_code_splits
 from leichtfacile.rules import check_draft
-from leichtfacile.rules.mediopunkt import apply_mediopunkt
+from leichtfacile.rules.mediopunkt import GLOSSARY, apply_mediopunkt
 from leichtfacile.rules.readability import readability, words
 from leichtfacile.rules.values import extract_values
 from leichtfacile.schemas import Block, Draft, GlossaryEntry, RuleFindings
@@ -232,3 +233,17 @@ def test_the_baselines_keep_the_prompts_text_as_written(store, endpoint, sleeps)
     for job_id in (p0, zh):
         rules = store.get_artifact(job_id, "rules", RuleFindings, version=1)
         assert "LEX-01" in {f.rule_id for f in rules.findings}  # the rule still reports it
+
+
+def test_the_eval_counts_splits_of_earlier_rounds_that_the_final_version_keeps() -> None:
+    first, edits = apply_mediopunkt(draft())
+    # A repair rewrites one block without the split word and keeps the others as given;
+    # its own version records no edit.
+    blocks = [*first.blocks]
+    blocks[0] = blocks[0].model_copy(update={"text": "Was ist das Papier?"})
+    final = first.model_copy(update={"version": 2, "blocks": blocks, "code_edits": []})
+    assert kept_code_splits(final, final.code_edits) == 0
+    kept = kept_code_splits(final, edits)
+    assert kept == len({(e.block_id, e.after) for e in edits}) - 1  # the police block is gone
+    glossary = [e for e in edits if e.block_id == GLOSSARY]
+    assert glossary and kept_code_splits(final, glossary) == len(glossary)

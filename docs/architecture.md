@@ -221,7 +221,8 @@ longer than the level's limit is split (`Kranken·versicherungs·police`), in th
 and in the glossary terms, and a capital after an existing dot is lowered. Nouns only;
 adjectives and verbs keep their LEX-01 warning, because their fix is another word. Words
 with a digit, web and e-mail addresses and the word in front of a number (a street with
-its house number) are never touched, so no value changes, and the split is the one
+its house number) are never touched, so no value changes; the feminine ending `-innen`
+stays on its stem (`Sozial·arbeiterinnen`, never `Schweizer·innen`); and the split is the one
 LEX-01 proposes, so the rule is silent on the result. The edits are
 recorded on the draft version (`code_edits`), shown on the review page and reported in
 the evaluation. The same step runs after every repair round, before the check: the 8B
@@ -696,7 +697,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
 | Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
-| Compounds split by code | Words that got their Mediopunkt from code in the final version, per 100 blocks (P1 and P2) | The cheap, deterministic part of the LEX gain, kept apart from the model's |
+| Compounds split by code | Words that got their Mediopunkt from code in the final version, after the write stage or in any repair round, per 100 blocks (P1 and P2) | The cheap, deterministic part of the LEX gain, kept apart from the model's |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |

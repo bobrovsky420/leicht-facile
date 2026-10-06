@@ -32,6 +32,9 @@ from leichtfacile.rules.lexicon import (
         ("Einkommensgrenze", "Einkommens·grenze"),
         ("Ostermundigenstrasse", "Ostermundigen·strasse"),  # not Ostermundi·gens·trasse
         ("Familiennamensänderung", "Familien·namens·änderung"),
+        # -innen is an ending: the stem is split, never the ending (CSCS dev drafts)
+        ("Sozialarbeiterinnen", "Sozial·arbeiterinnen"),
+        ("Dachrinnen", "Dach·rinnen"),  # no feminine stem: rinnen is the head
     ],
 )
 def test_compound_split(word: str, expected: str) -> None:
@@ -40,7 +43,15 @@ def test_compound_split(word: str, expected: str) -> None:
 
 @pytest.mark.parametrize(
     "word",
-    ["Verantwortlichkeiten", "Informationen", "Schweizerische", "Sistierung", "Organisationen"],
+    [
+        "Verantwortlichkeiten",
+        "Informationen",
+        "Schweizerische",
+        "Sistierung",
+        "Organisationen",
+        "Schweizerinnen",  # not Schweizer·innen or Schweize·rinnen
+        "Assistentinnen",
+    ],
 )
 def test_derived_words_are_not_split(word: str) -> None:
     assert with_mediopunkt(word, 13) is None
@@ -55,10 +66,14 @@ def test_derived_words_are_not_split(word: str) -> None:
         ("Organisationen", None),  # too long, no compound
         ("Gesuch", None),
         ("E-Mail-Krankenversicherung", "E-Mail-Kranken·versicherung"),  # hyphens stay
+        ("Gemeindeschreiberinnen", "Gemeinde·schreiberinnen"),  # the ending stays on
+        ("Steuerberaterinnen", None),  # long only by its ending: no wrong joint
     ],
 )
 def test_mediopunkt_suggestion(word: str, expected: str | None) -> None:
     assert mediopunkt_suggestion(word, 13) == expected
+    if expected:
+        assert mediopunkt_suggestion(expected, 13) is None  # a second run changes nothing
 
 
 def test_lowercase_after_mediopunkt() -> None:

@@ -370,6 +370,73 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as P1
 
 The headline sentence that follows from case B is the owner's decision (D-M, G3).
 
+### Mediopunkt by code: P2 on the dev pairs on CSCS (6 October 2026, night)
+
+The 10 German dev pairs under P2 twice, once without the step (`apply_mediopunkt`
+replaced by a no-op, results in `eval/results-cscs-nomp`) and once with it
+(`eval/results-cscs`, `--redo`; the rows before it are kept in `eval/results-cscs-v2`).
+The second run started after the first had finished, so both replayed the same
+Understand and Write answers from the LLM cache and started from the same write answer;
+the judge and repair calls ran fresh on both sides (the judge sees the split text).
+All 10 pairs reached review on both sides, `be-pregnancy-counselling-de` included.
+
+Two pairs are left out of the comparison. `zh-oral-health-de`: its cached Understand
+answer failed to parse in the first run and was dropped from the cache, as designed, so
+the second run started from a different fact sheet. `sg-el-costs-de`: its write answer
+has 3 blocks; with the step, the judge flagged 39 problems after the first repair round
+instead of 24, the loop stopped and kept the 3-block version (judge noise and the
+choice of the best version, not the split). With it, the rule errors would read 8.5
+against 3.3 per 100 blocks, all of it from that one pair.
+
+Means over the other 8 pairs, final version:
+
+| | Without the step | With the step |
+|---|---|---|
+| LEX-01 warnings / 100 blocks | 34.7 | 4.8 |
+| All warnings / 100 blocks | 78.8 | 51.0 |
+| Rule errors / 100 blocks | 4.3 | 3.7 |
+| Words split by code / 100 blocks | 0 | 33.6 |
+| Repair rounds | 1.75 | 2.0 |
+| Rounds with only warnings left | 0 | 0 |
+| Fact coverage | 69 % | 73 % |
+| Hard facts kept | 68 % | 79 % |
+| Readability | 48.2 | 48.4 |
+
+- **The step does what it should.** LEX-01 falls from 35 to 5 warnings per 100 blocks,
+  the same as the rescoring of the stored drafts (change log, below). The 11 warnings
+  left in the 10 final drafts are there by design: adjectives (`selbstbestimmtes`, `handschriftlich`,
+  `Weiterführende`), street names in front of a house number and the truncated
+  `Familienplanungs-`. The errors are the same rules on both sides (LEN-01, GRAM-01).
+- **It saves no repair round, and cannot on these pages.** No job on either side ever
+  reached zero blocking problems, so the round that sends the warnings (LEX-01 among
+  them) never ran; 15 of 16 jobs stopped on "no progress" with missing or distorted
+  facts and judge findings left. The rounds are bounded by the facts, not by the style.
+- **It costs no facts.** The first write answer of each pair, split and unsplit, gives
+  the same fact coverage and the same values (kind, canonical form, text) on all 10
+  pairs. The differences in the table come from the fresh judge and repair calls, the
+  run-to-run noise of the loop; they are no effect of the step.
+- **Seconds per job** read 22 against 38 only because the first run replayed 14 judge
+  calls from the cache and the second 4.
+- **The 53 distinct words split by code, read by hand:** 48 right, 5 wrong joints.
+  `Assistent·innen` and `Schweizer·innen` split off the feminine ending, which reads as
+  gender typography; fixed: the splitter treats `-innen` as an ending when the rest is
+  a word, splits only that stem (`Sozial·arbeiterinnen`) and leaves `Schweizerinnen`
+  alone, while `Dach·rinnen` stays a compound; a word long only by its ending
+  (`Steuerberaterinnen`) is not split, because the short stem invites wrong joints
+  (`Schrei·berinnen`). `Kostengut·sprache` (known, above),
+  `Kostenvoran·schlag` and `Leistungser·bringende` stay: `Voranschlag` and
+  `erbringende` are too rare in the word list to count as parts. The stored drafts
+  keep the old splits; the final run uses the fixed splitter.
+- **The evaluation's count was too low.** Each version records only the edits made on
+  it, and a repair round keeps the dot it is given, so counting the final version's
+  edits gave 10 words per 100 blocks instead of 33.6. The evaluation now counts the
+  edits of every version up to the final one whose word the final version still has
+  (`eval.score.kept_code_splits`).
+
+The full dev split under P2 with the step (10 of 10 pairs): fact coverage 58 percent,
+hard facts kept 63 percent, 3.0 rule errors and 47.5 warnings per 100 blocks, no
+invented values.
+
 ## Change log
 
 | Version | Date | Change |
@@ -384,3 +451,4 @@ The headline sentence that follows from case B is the owner's decision (D-M, G3)
 | 6 | 2026-10-06 | No template change. Code: a sentence with a topic word of the examples (`Hund`, `Parkkarte`, `Impfausweis`, `chien`, `carte de stationnement`, ...) that the source does not contain, or with one of the examples' own values, is sent back once and dropped from the second answer; two more JSON repairs (a list or object closed with the wrong bracket, a unicode escape with too few digits), both seen on the CSCS 8B; a core answer written as a bare sentence instead of an object is read as its text; an empty block `{}` is dropped; a write answer cut off at the token limit is written again as two halves (8 jobs failed this way in the first evaluation run on CSCS); an omission or glossary entry written as a block of that kind is hoisted into its list (the 70B writer). |
 | 6 | 2026-10-06 | No change to our templates. New German template `baseline_zh.md`: the Canton of Zurich's Leichte Sprache prompt, verbatim, as the second baseline P0-ZH in two variants (`complete`, `condensed`); its rendering was checked character for character against their own prompt assembly (`create_prompt` in `app_core.py`). |
 | 6 | 2026-10-06 | No template change. Code: the Mediopunkt is written by code after the write stage and after every repair round, in P1 and P2 (`rules/mediopunkt.py`, docs/rules.md "Edits made by code"), and LEX-01 no longer exempts a compound because it is in the glossary. Reason: in the owner's first CSCS job through the web UI the 8B kept `Krankenversicherungspolice` and `Sozialversicherungsstelle` unsplit through two repair rounds. The repair prompt therefore no longer carries LEX-01 lines for compound nouns. Rescored without model calls on the final drafts already in the CSCS store (97 German P1 and P2 jobs, 3453 blocks): LEX-01 warnings per 100 blocks fall from 39.1 to 3.0 (P1, 8B), 31.9 to 3.1 (P2, 8B) and 27.0 to 2.2 (P2, 70B), all warnings per 100 blocks from 77.9 to 42.0, 66.7 to 38.0 and 53.8 to 29.3; 30 to 41 words per 100 blocks get the dot, 157 of the 1177 in glossary terms. Reading splits by hand found two wrong joints in the first 25: `Ostermundi·gens·trasse`, fixed in the splitter (a nested split now counts by its weakest part, giving `Ostermundigen·strasse`) and by leaving the word in front of a house number alone; and `Kostengut·sprache` for `Kosten·gutsprache`, which stays, because the splitter does not know the Swiss term. The next 25 had none. What the step saves in repair rounds shows only in the next `--redo` rerun on CSCS, which is still open. |
+| 6 | 2026-10-06 | No template change. Code: the compound splitter treats the feminine ending `-innen` as an ending (`Sozial·arbeiterinnen`, never `Schweizer·innen`), and the evaluation counts the splits of earlier rounds that the final version keeps. The dev rerun on CSCS with and without the step is in "Mediopunkt by code" above: LEX-01 from 35 to 5 warnings per 100 blocks, no repair round saved, no fact lost. |

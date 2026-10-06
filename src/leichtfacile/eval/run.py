@@ -175,7 +175,14 @@ def _score(
     judge_report = store.get_artifact(job.id, "judge", JudgeReport, version=draft.version)
     if judge_report is None and judge_all and factsheet is not None:
         judge_report = _score_judge(store, orchestrator, job.id, standard, factsheet, draft, judge)
-    row = score_output(job, draft, standard, easy, factsheet, judge_report)
+    # every version up to the final one: a split made in an earlier round stays in it
+    edits = [
+        edit
+        for version in store.versions(job.id, "draft")
+        if version <= draft.version
+        for edit in store.get_artifact(job.id, "draft", Draft, version=version).code_edits
+    ]
+    row = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
     if summary:
         row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
     return row

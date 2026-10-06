@@ -8,6 +8,7 @@ cost of the model calls that produced the output.
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from typing import Any
 
@@ -15,8 +16,16 @@ from leichtfacile.eval.calibrate import source_as_draft
 from leichtfacile.eval.metrics import compression_ratio, sari_document
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.document import fact_coverage, foreign_values
+from leichtfacile.rules.mediopunkt import GLOSSARY
 from leichtfacile.rules.values import extract_values, hard_value_found, hard_values
-from leichtfacile.schemas import Draft, FactSheet, Job, JudgeReport, SourceDocument
+from leichtfacile.schemas import (
+    CodeEdit,
+    Draft,
+    FactSheet,
+    Job,
+    JudgeReport,
+    SourceDocument,
+)
 
 WORDS_PER_PAGE = 250
 # USD per million input and output tokens at Public AI list prices, checked
@@ -86,6 +95,19 @@ def score_source(standard: SourceDocument) -> dict[str, Any]:
     return {"setup": "SOURCE", **text_metrics(source_as_draft(standard, "A2"), standard)}
 
 
+def kept_code_splits(final: Draft, edits: list[CodeEdit]) -> int:
+    """Edits made by code on any version up to `final` whose split word is still in it.
+    A repair gets the split text and mostly keeps the dot, and each version records only
+    the edits made on it, so the final version's own edits miss the earlier rounds'."""
+    texts = {"blocks": final.text(), GLOSSARY: "\n".join(g.term for g in final.glossary)}
+    kept = set()
+    for edit in edits:
+        text = texts[GLOSSARY if edit.block_id == GLOSSARY else "blocks"]
+        if re.search(rf"(?<!\w){re.escape(edit.after)}(?!\w)", text):
+            kept.add((edit.block_id, edit.after))
+    return len(kept)
+
+
 def score_output(
     job: Job,
     draft: Draft,
@@ -93,12 +115,16 @@ def score_output(
     easy: SourceDocument,
     factsheet: FactSheet | None,
     judge: JudgeReport | None,
+    code_edits: list[CodeEdit] | None = None,
 ) -> dict[str, Any]:
+    """`code_edits`: the edits of every version up to `draft` (default: its own only)."""
     row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard)}
-    # Compounds split by code on the final version (rules/mediopunkt.py, P1 and P2 only):
-    # the deterministic share of the LEX improvement, reported next to the LEX family.
-    row["code_splits"] = len(draft.code_edits)
-    row["mediopunkt_per_100"] = round(100 * len(draft.code_edits) / max(1, len(draft.blocks)), 2)
+    # Compounds split by code that stand in the final version (rules/mediopunkt.py, P1 and
+    # P2 only): the deterministic share of the LEX improvement, reported next to the LEX
+    # family.
+    splits = kept_code_splits(draft, draft.code_edits if code_edits is None else code_edits)
+    row["code_splits"] = splits
+    row["mediopunkt_per_100"] = round(100 * splits / max(1, len(draft.blocks)), 2)
     if factsheet is not None:
         coverage = fact_coverage(draft, factsheet, draft.lang)
         row["facts_checkable"] = len(coverage.checkable)
