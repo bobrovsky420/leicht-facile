@@ -1,4 +1,4 @@
-.PHONY: run stop check-env check-llm test lint format smoke calibrate day1 eval bundle
+.PHONY: run stop check-env check-llm test lint format smoke calibrate day1 eval eval-70b bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
 # Results of one endpoint stay together: `make eval RESULTS=eval/results-cscs`.
@@ -64,14 +64,24 @@ calibrate:
 day1: check-env
 	uv run python scripts/day1_checks.py
 
-# Evaluation: conditions C0, C1, C2 on the held-out pairs, then the report tables.
+# Evaluation: conditions C0, C0-ZH (the Canton of Zurich's prompt, German only), C1 and
+# C2 on the held-out pairs, then the report tables.
 # Responses are cached (LLM_CACHE=1), so an interrupted run resumes cheaply.
 eval: check-env
 	uv run python -m leichtfacile eval fetch --role all
 	uv run python -m leichtfacile eval reference --role all --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0 --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0-ZH-complete --lang de --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0-ZH-condensed --lang de --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C1 --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2 --results $(RESULTS)
+	uv run python -m leichtfacile eval report --results $(RESULTS) --out eval/report.md
+
+# The 70B comparison: C2 with the 70B writer (every stage on the 70B) and the hybrid
+# (the 70B reads, the 8B writes), then the report tables again.
+eval-70b: check-env
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2 --writer swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2 --understand swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
 	uv run python -m leichtfacile eval report --results $(RESULTS) --out eval/report.md
 
 bundle:

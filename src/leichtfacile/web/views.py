@@ -301,6 +301,8 @@ STEP_WHO = {
 }
 STEPS_BY_CONDITION = {
     "C0": ("baseline", "check", "review"),
+    "C0-ZH-complete": ("baseline", "check", "review"),
+    "C0-ZH-condensed": ("baseline", "check", "review"),
     "C1": ("understand", "write", "check", "review"),
     "C2": ("understand", "write", "check", "judge", "repair", "review"),
 }

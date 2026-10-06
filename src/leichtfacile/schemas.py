@@ -8,7 +8,7 @@ model never has to produce bookkeeping fields such as ids of the job or versions
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,7 +33,13 @@ DraftOrigin = Literal["write", "repair", "baseline", "review"]
 FactStatus = Literal["present", "missing", "distorted"]
 DecisionKind = Literal["approved", "edited", "rejected"]
 JobStatus = Literal["queued", "running", "needs_review", "done", "failed"]
-Condition = Literal["C0", "C1", "C2"]
+Condition = Literal["C0", "C0-ZH-complete", "C0-ZH-condensed", "C1", "C2"]
+CONDITIONS: tuple[str, ...] = get_args(Condition)
+# Single-prompt baselines: no fact sheet, no judge, no repair. C0 is one sentence; the
+# C0-ZH pair is the Canton of Zurich's Leichte Sprache prompt (THIRD_PARTY_NOTICES.md)
+# with its "keep everything" or its "essentials only" instruction.
+ZH_CONDITIONS: frozenset[str] = frozenset({"C0-ZH-complete", "C0-ZH-condensed"})
+BASELINE_CONDITIONS: frozenset[str] = frozenset({"C0"}) | ZH_CONDITIONS
 
 LANGS: tuple[Lang, ...] = ("de", "fr", "it")
 LEVELS: tuple[Level, ...] = ("A2", "B1")
@@ -306,6 +312,7 @@ class PipelineSummary(Artifact):
     rounds: int = 0
     stop_reason: str = ""
     writer_model: str = ""
+    understand_model: str | None = None  # only when it differs from the writer
     judge_model: str | None = None
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     blocking_findings: list[int] = Field(default_factory=list)  # per draft version
@@ -320,6 +327,7 @@ class JobConfig(Artifact):
     level: Level = "A2"
     condition: Condition = "C2"
     writer_model: str | None = None  # None: LLM_NAME
+    understand_model: str | None = None  # None: LLM_UNDERSTAND_NAME, else the writer
     judge_model: str | None = None  # None: LLM_JUDGE_NAME
     use_judge: bool = True  # C2 only: False repairs on rule findings alone
     max_repair_rounds: int = Field(default=3, ge=0, le=10)  # 0: no repair

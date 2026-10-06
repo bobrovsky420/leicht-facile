@@ -19,6 +19,7 @@ from collections import Counter
 from pathlib import Path
 
 from leichtfacile import __version__
+from leichtfacile.schemas import CONDITIONS
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -51,9 +52,13 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument("input", help="file path or http(s) URL")
     simplify.add_argument("--lang", choices=["de", "fr", "it"])
     simplify.add_argument("--level", choices=["A2", "B1"], default="A2")
-    simplify.add_argument("--condition", choices=["C0", "C1", "C2"], default="C2")
+    simplify.add_argument("--condition", choices=list(CONDITIONS), default="C2")
     simplify.add_argument("--out", type=Path, default=Path("out"), help="output folder")
     simplify.add_argument("--writer", help="writer model (default: LLM_NAME)")
+    simplify.add_argument(
+        "--understand",
+        help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
+    )
     simplify.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
     simplify.add_argument("--no-judge", action="store_true", help="C2 without the judge")
     simplify.add_argument("--no-repair", action="store_true", help="C2 without repair rounds")
@@ -236,6 +241,7 @@ def _simplify(args: argparse.Namespace) -> int:
         level=args.level,
         condition=args.condition,
         writer_model=args.writer,
+        understand_model=args.understand,
         judge_model=args.judge,
         use_judge=not args.no_judge,
         max_repair_rounds=0 if args.no_repair else settings.max_repair_rounds,

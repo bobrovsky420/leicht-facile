@@ -42,6 +42,7 @@
   "index.title_field.placeholder": "Erscheint in der Liste der Entwürfe",
   "index.models": "Modelle",
   "index.models.writer": "Schreibmodell",
+  "index.models.understand": "Lesemodell (Faktenblatt)",
   "index.models.judge": "Prüfmodell",
   "index.models.hint": "Leer lassen für die eingestellten Modelle. Jeder Modellname, den der Endpunkt anbietet, funktioniert.",
   "index.submit": "Entwurf erstellen",
@@ -60,6 +61,8 @@
   "level.A2": "A2: Leichte Sprache, FALC",
   "level.B1": "B1: Einfache Sprache, langage clair",
   "condition.C0": "Vergleichsbasis: ein Prompt",
+  "condition.C0-ZH-complete": "Vergleichsbasis: Prompt des Kantons Zürich, alles behalten",
+  "condition.C0-ZH-condensed": "Vergleichsbasis: Prompt des Kantons Zürich, nur das Wichtigste",
   "condition.C1": "Faktenblatt, Entwurf und Regelprüfung",
   "condition.C2": "Vollständiger Ablauf mit Beurteilung und Überarbeitung",
 
@@ -179,8 +182,11 @@
   "review.title": "Prüfung: {title}",
   "review.actions": "Aktionen",
   "review.reader_view": "Leseansicht",
+  "review.view": "Ansicht",
+  "review.view.review": "Prüfen",
   "review.export": "Export",
   "review.export.json": "Prüfprotokoll (JSON)",
+  "review.reader.hint": "Der Text, wie ihn Leserinnen und Leser bekommen, mit Ihren Entscheiden: abgelehnte Blöcke fehlen, Änderungen sind eingesetzt.",
   "review.facts_present": "{present} von {total} Fakten vorhanden",
   "review.cost": "{tokens} Tokens, {time} Modellzeit",
   "review.versions_label": "Versionen des Entwurfs",
@@ -225,6 +231,7 @@
   "review.measures": "Kennzahlen",
   "review.run": "Lauf",
   "review.run.writer": "Schreibmodell:",
+  "review.run.understand": "Lesemodell:",
   "review.run.judge": "Prüfmodell:",
   "review.rerun_from": "Neu starten ab",
   "review.rerun.write": "Neu schreiben",
@@ -267,5 +274,7 @@
   "js.saved_complete.one": "{n} Entscheid gespeichert, Prüfung abgeschlossen.",
   "js.saved_complete.other": "{n} Entscheide gespeichert, Prüfung abgeschlossen.",
   "js.not_saved": "Nicht gespeichert: {detail}",
-  "js.no_answer": "Nicht gespeichert: Der Server hat nicht geantwortet."
+  "js.no_answer": "Nicht gespeichert: Der Server hat nicht geantwortet.",
+  "js.reader_unsaved": "Enthält Entscheide, die noch nicht gespeichert sind. Der Export verwendet die zuletzt gespeicherte Prüfung.",
+  "js.reader_failed": "Die Leseansicht konnte nicht geladen werden."
 }

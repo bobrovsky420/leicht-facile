@@ -42,6 +42,7 @@
   "index.title_field.placeholder": "Shown in the list of drafts",
   "index.models": "Models",
   "index.models.writer": "Writer",
+  "index.models.understand": "Reader (fact sheet)",
   "index.models.judge": "Judge",
   "index.models.hint": "Leave empty for the configured models. Any model name the endpoint lists works.",
   "index.submit": "Create draft",
@@ -60,6 +61,8 @@
   "level.A2": "A2: Leichte Sprache, FALC",
   "level.B1": "B1: Einfache Sprache, langage clair",
   "condition.C0": "Baseline: one prompt",
+  "condition.C0-ZH-complete": "Baseline: the Canton of Zurich's prompt, keep everything",
+  "condition.C0-ZH-condensed": "Baseline: the Canton of Zurich's prompt, essentials only",
   "condition.C1": "Fact sheet, draft and rule check",
   "condition.C2": "Full pipeline with judge and repair",
 
@@ -179,8 +182,11 @@
   "review.title": "Review: {title}",
   "review.actions": "Actions",
   "review.reader_view": "Reader view",
+  "review.view": "View",
+  "review.view.review": "Review",
   "review.export": "Export",
   "review.export.json": "Audit bundle (JSON)",
+  "review.reader.hint": "The text as a reader gets it, with your decisions: rejected blocks left out, edits in place.",
   "review.facts_present": "{present} of {total} facts present",
   "review.cost": "{tokens} tokens, {time} of model time",
   "review.versions_label": "Draft versions",
@@ -225,6 +231,7 @@
   "review.measures": "Measures",
   "review.run": "Run",
   "review.run.writer": "Writer:",
+  "review.run.understand": "Reader:",
   "review.run.judge": "Judge:",
   "review.rerun_from": "Run again from",
   "review.rerun.write": "Write again",
@@ -267,5 +274,7 @@
   "js.saved_complete.one": "Saved {n} decision, review complete.",
   "js.saved_complete.other": "Saved {n} decisions, review complete.",
   "js.not_saved": "Not saved: {detail}",
-  "js.no_answer": "Not saved: the server did not answer."
+  "js.no_answer": "Not saved: the server did not answer.",
+  "js.reader_unsaved": "Includes decisions that are not saved yet. The export uses the last saved review.",
+  "js.reader_failed": "The reader view could not be loaded."
 }

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from leichtfacile.eval.dataset import MANIFEST
+from leichtfacile.schemas import CONDITIONS
 
 
 def add_eval_parser(sub: argparse._SubParsersAction) -> None:
@@ -40,8 +41,12 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 
     run = evsub.add_parser("run", help="run a condition over the pairs (needs the endpoint)")
     common(run)
-    run.add_argument("--condition", choices=["C0", "C1", "C2"], required=True)
+    run.add_argument("--condition", choices=list(CONDITIONS), required=True)
     run.add_argument("--writer", help="writer model (default: LLM_NAME)")
+    run.add_argument(
+        "--understand",
+        help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
+    )
     run.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
     run.add_argument("--judge-all", action="store_true", help="also judge C0 and C1 outputs")
     run.add_argument("--limit", type=int, help="at most this many pairs")
@@ -135,7 +140,8 @@ def _run(args: argparse.Namespace) -> int:
     llm = LLMClient.from_settings(settings)
     path = run_condition(
         pairs, args.condition, settings=settings, llm=llm, results_dir=args.results,
-        writer=args.writer, judge=args.judge, judge_all=args.judge_all, redo=args.redo,
+        writer=args.writer, understand=args.understand, judge=args.judge,
+        judge_all=args.judge_all, redo=args.redo,
     )  # fmt: skip
     print(f"results: {path}")
     return 0

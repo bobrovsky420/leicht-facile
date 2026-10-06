@@ -18,7 +18,8 @@ from leichtfacile.eval.day1 import (
 from leichtfacile.eval.report import render_report
 from leichtfacile.eval.run import reference_rows, run_condition
 from leichtfacile.llm.client import LLMClient
-from leichtfacile.schemas import Segment, SourceDocument, SourceInfo
+from leichtfacile.schemas import FactSheet, Segment, SourceDocument, SourceInfo
+from leichtfacile.store import Store
 from tests.conftest import FakeEndpoint, chat_response, make_settings
 from tests.pipeline import fixtures as fx
 
@@ -130,6 +131,27 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert "C2: full pipeline with judge and repair" in report
 
 
+def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sleeps) -> None:
+    """Another model for the Understand stage: its own results file, named in the row and
+    in the report, so it is never mixed with the plain writer's run."""
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    settings = make_settings(llm_max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    reader = "swiss-ai/Apertus-v1.5-70B"
+    path = run_condition(
+        pairs, "C1", settings=settings, llm=llm, results_dir=results, understand=reader
+    )
+    assert path.name == "C1_swiss-ai-apertus-v1-5-8b_understand-swiss-ai-apertus-v1-5-70b.jsonl"
+    (row,) = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    assert row["status"] == "needs_review", row.get("error")
+    assert row["writer"] == settings.llm_name and row["understand"] == reader
+    assert [b["model"] for b in endpoint.chat_bodies()] == [reader + "-thinking", settings.llm_name]
+    label = f"C1: fact sheet + draft + rule check ({settings.llm_name}, understand {reader})"
+    assert label in render_report(results, role="eval")
+
+
 BASELINE_TEXT = (
     "Der Kanton bezahlt einen Teil von Ihrer Kranken·kasse.\n"
     "Schicken Sie das Gesuch bis 31. März 2026 an die Gemeinde.\n"
@@ -206,3 +228,27 @@ def test_day1_checks_against_the_fake_endpoint(llm, endpoint) -> None:
     assert check_image(llm)["supported"] is True
     endpoint.push(*[chat_response(str(i)) for i in range(8)])
     assert check_parallel(llm)["succeeded"] == 8
+
+
+def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    """No C1 or C2 job yet: the scoring fact sheet comes from one Understand call, and code
+    completes it with the source's values as in the pipeline. Without that, a baseline
+    run first would be measured against fewer facts than one run after the others."""
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    no_facts = {**fx.UNDERSTAND, "facts": []}
+    endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(no_facts)))
+    settings = make_settings(llm_max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    path = run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    assert row["status"] == "needs_review", row.get("error")
+    store = Store(results / "store.sqlite")
+    (job,) = store.list_jobs(limit=10)
+    fs = store.get_artifact(job.id, "score_factsheet", FactSheet)
+    store.close()
+    assert fs is not None and fs.facts and all(f.origin == "code" for f in fs.facts)
+    assert {f.value_norm for f in fs.facts} == {"2026-03-31", "20", "0441234567"}
+    assert row["fact_coverage"] == 1.0  # the baseline text keeps all three

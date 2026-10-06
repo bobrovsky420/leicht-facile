@@ -60,6 +60,11 @@ The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_U
 local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.
 Without `make`: `docker compose up --build`.
 
+Model tiers: by default the 8B reads, writes and repairs, and the 70B judges.
+`LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
+`LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
+the 8B write. `eval/report.md` compares the three.
+
 In the browser, paste a text, upload a PDF or enter a URL (or click one of the two
 example letters), choose language and level (A2 Leichte Sprache or B1 Einfache
 Sprache), and follow the stages to the review page.
@@ -94,9 +99,11 @@ Done:
   layout, readability).
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions C0, C1 and
   C2, SARI, readability, fact coverage, cost and latency.
-- Evaluation on the CSCS endpoint: 23 held-out pairs under C0, C1 and C2, the 70B
-  writer on 5 pairs; results in `eval/report.md` and the technical report.
-- 811 tests, no network needed. The whole pipeline ran on a laptop GPU with a local
+- Evaluation on the CSCS endpoint: 23 held-out pairs under C0, C1 and C2, C2 also
+  with the 70B writer and with the 70B reading for the 8B; results in
+  `eval/report.md` and the technical report.
+- 825 tests, no network needed; CI runs them, the linter and a start of the Docker
+  image on every push. The whole pipeline ran on a laptop GPU with a local
   4-bit Apertus 1.5 8B (llama.cpp), and `make run` and `make smoke` against CSCS.
 
 Pending: the example jobs, the French and Italian rule sets and prompts, image input for scanned

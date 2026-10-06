@@ -29,6 +29,7 @@ from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.rules.values import HARD_KINDS, Value, extract_values, matches, parse_value_norm
 from leichtfacile.schemas import (
+    ZH_CONDITIONS,
     Block,
     CoreAnswer,
     CoreQuestions,
@@ -850,6 +851,68 @@ def baseline(
     blocks = text_to_blocks(result.text, source.lang)
     draft = Draft(doc_id=source.id, lang=source.lang, level=level, origin="baseline", blocks=blocks)
     return draft, [result]
+
+
+# -- baseline with the Canton of Zurich's prompt (conditions C0-ZH-*) ------------------
+
+ZH_VARIANTS = ("complete", "condensed")
+ZH_TAG = "leichtesprache"
+ZH_NO_TAGS_NOTE = f"C0-ZH: the answer had no <{ZH_TAG}> tags; the whole answer was used"
+_ZH_TAGGED = re.compile(rf"<{ZH_TAG}>(.*?)</{ZH_TAG}>", re.DOTALL)
+
+
+def zh_variant(condition: str) -> str:
+    """The completeness instruction of a C0-ZH condition: `complete` or `condensed`."""
+    variant = condition.rsplit("-", 1)[-1]
+    if condition not in ZH_CONDITIONS or variant not in ZH_VARIANTS:
+        raise ValueError(f"not a C0-ZH condition: {condition!r}")
+    return variant
+
+
+def zh_answer_text(answer: str) -> tuple[str, bool]:
+    """Post-processing as in Zurich's app: the parts between the <leichtesprache> tags
+    joined with a line break, stripped, and ß written as ss. Their app reports an error
+    when the tags are missing; here the whole answer is used and the flag says so. Their
+    `strip_markdown` is not applied: it deletes every underscore, so web and e-mail
+    addresses would break (docs/prompts.md)."""
+    parts = _ZH_TAGGED.findall(answer)
+    text = "\n".join(parts).strip() if parts else answer.strip()
+    return text.replace("ß", "ss"), bool(parts)
+
+
+def baseline_zh(
+    llm: LLMClient,
+    source: SourceDocument,
+    *,
+    level: Level,
+    variant: str,
+    model: str | None = None,
+) -> tuple[Draft, list[LLMResult], list[str]]:
+    """The Canton of Zurich's Leichte Sprache prompt (simply-simplify-language v1.6.0,
+    THIRD_PARTY_NOTICES.md) as a single-prompt baseline: their system message, rules and
+    completeness line verbatim, with the model settings of C0. Returns the draft, the
+    model call and the notes for the summary (an answer without the tags)."""
+    if variant not in ZH_VARIANTS:
+        raise ValueError(f"unknown C0-ZH variant {variant!r}; use one of {ZH_VARIANTS}")
+    s = STAGES["baseline"]
+    thinking = thinking_for(llm, "baseline")
+    context = {"variant": variant, "text": source.text()}
+    messages = [
+        {"role": part, "content": render(source.lang, "baseline_zh", part=part, **context)}
+        for part in ("system", "user")
+    ]
+    result = llm.complete(
+        messages,
+        model=model,
+        thinking=thinking,
+        temperature=s.temperature,
+        max_tokens=s.max_tokens_thinking if thinking else s.max_tokens,
+        stage="baseline_zh",
+    )
+    text, tagged = zh_answer_text(result.text)
+    blocks = text_to_blocks(text, source.lang)
+    draft = Draft(doc_id=source.id, lang=source.lang, level=level, origin="baseline", blocks=blocks)
+    return draft, [result], [] if tagged else [ZH_NO_TAGS_NOTE]
 
 
 _HEADING_RE = re.compile(r"^#{1,6}\s+(.*)$|^\*\*(.+?)\*\*:?$")

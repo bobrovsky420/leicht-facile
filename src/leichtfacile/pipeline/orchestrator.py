@@ -1,7 +1,8 @@
 """Runs a job through the pipeline and stores every artifact (docs/architecture.md §4).
 
-Conditions (§9): C0 is the single-prompt baseline; C1 is understand, write and the rule
-check; C2 adds the judge and the repair loop. Every stage stores its result before the
+Conditions (§9): C0 and the C0-ZH pair are single-prompt baselines (one sentence, or the
+Canton of Zurich's prompt); C1 is understand, write and the rule check; C2 adds the judge
+and the repair loop. Every stage stores its result before the
 next starts, so a failed job resumes from the last good stage.
 """
 
@@ -20,10 +21,12 @@ from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
 from leichtfacile.schemas import (
+    BASELINE_CONDITIONS,
     Draft,
     FactSheet,
     Finding,
     Job,
+    JobConfig,
     JudgeReport,
     PipelineSummary,
     RuleFindings,
@@ -156,7 +159,7 @@ class Orchestrator:
                 raise PipelineError("the job has no source document")
             if job.config.lang and job.config.lang != source.lang:
                 source = source.model_copy(update={"lang": job.config.lang})
-            if job.config.condition == "C0":
+            if job.config.condition in BASELINE_CONDITIONS:
                 self._run_baseline(job, source)
             else:
                 self._run_pipeline(job, source)
@@ -182,12 +185,22 @@ class Orchestrator:
     # -- conditions -------------------------------------------------------------------
 
     def _run_baseline(self, job: Job, source: SourceDocument) -> None:
+        self._notes: list[str] = []
         draft = self.store.get_artifact(job.id, "draft", Draft, version=1)
         if draft is None:
             self._set(job.id, stage="baseline")
-            draft, results = stages.baseline(
-                self.llm, source, level=job.config.level, model=job.config.writer_model
-            )
+            if job.config.condition == "C0":
+                draft, results = stages.baseline(
+                    self.llm, source, level=job.config.level, model=job.config.writer_model
+                )
+            else:  # the Canton of Zurich's prompt, complete or condensed
+                draft, results, self._notes = stages.baseline_zh(
+                    self.llm,
+                    source,
+                    level=job.config.level,
+                    variant=stages.zh_variant(job.config.condition),
+                    model=job.config.writer_model,
+                )
             self._record(job.id, results)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         rules = self._check(job, draft, source, None)
@@ -199,7 +212,7 @@ class Orchestrator:
         if factsheet is None:
             self._set(job.id, stage="understand")
             factsheet, results = stages.understand(
-                self.llm, source, level=cfg.level, model=cfg.writer_model
+                self.llm, source, level=cfg.level, model=self._understand_model(cfg)
             )
             self._record(job.id, results)
             factsheet = stages.complete_factsheet(factsheet, source)
@@ -342,12 +355,17 @@ class Orchestrator:
             if history
             else [blocking_count(r, None) for r in rules]
         )
+        writer = self.llm.resolve_model(job.config.writer_model, False)[0]
+        reader = self.llm.resolve_model(self._understand_model(job.config), False)[0]
         summary = PipelineSummary(
             condition=job.config.condition,
             final_version=final.version,
             rounds=rounds,
             stop_reason=reason,
-            writer_model=self.llm.resolve_model(job.config.writer_model, False)[0],
+            writer_model=writer,
+            understand_model=reader
+            if job.config.condition not in BASELINE_CONDITIONS and reader != writer
+            else None,
             judge_model=(job.config.judge_model or self.settings.judge_name)
             if job.config.condition == "C2" and job.config.use_judge
             else None,
@@ -358,6 +376,11 @@ class Orchestrator:
         self.store.put_artifact(job.id, "summary", summary)
 
     # -- helpers ----------------------------------------------------------------------
+
+    def _understand_model(self, cfg: JobConfig) -> str | None:
+        """The Understand stage's model: the job's, else LLM_UNDERSTAND_NAME, else the
+        job's writer (None: LLM_NAME). The hybrid lets the 70B read and the 8B write."""
+        return cfg.understand_model or self.settings.llm_understand_name or cfg.writer_model
 
     def _maybe_stop(self, stage: str) -> None:
         if getattr(self, "_stop_after", None) == stage:

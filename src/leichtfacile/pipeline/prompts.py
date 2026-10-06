@@ -13,7 +13,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "llm" / "prompts"
-STAGES = ("understand", "write", "judge", "repair", "baseline")
+STAGES = ("understand", "write", "judge", "repair", "baseline", "baseline_zh")
 
 
 class PromptNotAvailable(LookupError):
@@ -31,6 +31,11 @@ _env = Environment(
 
 def available_languages() -> list[str]:
     return sorted(p.name for p in PROMPTS_DIR.iterdir() if p.is_dir() and (p / "write.md").exists())
+
+
+def has_prompt(lang: str, stage: str) -> bool:
+    """Whether a template exists: the Zurich baseline (`baseline_zh`) is German only."""
+    return (PROMPTS_DIR / lang / f"{stage}.md").exists()
 
 
 # The level as the prompts use it after "in": German needs the dative.

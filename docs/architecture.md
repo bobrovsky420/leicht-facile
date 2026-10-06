@@ -118,7 +118,7 @@ container; the only outbound connection is `LLM_BASE_URL`.
 | D2 | All model access goes through one OpenAI-compatible client configured by `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`. | The hackathon endpoint, local vLLM and Swiss cloud providers all speak the same protocol. "Sovereign deployment" becomes a change of one variable. |
 | D3 | The pipeline is a sequence of explicit stages with typed, persisted artifacts (pydantic models stored as JSON). | Every intermediate result is visible in the UI, re-runnable in isolation, and usable for evaluation and ablations. |
 | D4 | Countable rules live in code (spaCy morphology + regex). Apertus only judges what needs meaning. | Exact, free, reproducible; removes self-grading bias on the easy half of the rules. |
-| D5 | Writer and judge are separate model instances; by default 8B writes, 70B (thinking) judges. | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. Both are a config switch. |
+| D5 | Writer and judge are separate model instances; by default 8B writes, 70B (thinking) judges. `LLM_UNDERSTAND_NAME` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
 | D6 | Each language is simplified from its own original. | Simplifying a translation compounds errors; three fact sheets also allow a cross-language consistency check. |
 | D7 | Storage is SQLite plus JSON files on a mounted volume. | Zero operations, works air-gapped, trivially backed up. |
 | D8 | The evaluation harness is a first-class module with a fixed dataset manifest and three conditions (baseline, pipeline without repair, full pipeline). | "Technical rigour" is judged on the comparison, not the demo. |
@@ -171,8 +171,10 @@ artifact, because every later step is checked against it.
 - `omit_candidates[]`: passages the model considers droppable, with reasons - the
   reviewer sees these.
 
-Model: `LLM_NAME` (8B), thinking on, temperature 0.1. Output is JSON; see §6 for
-how JSON is enforced.
+Model: `LLM_NAME` (8B), thinking on, temperature 0.1. `LLM_UNDERSTAND_NAME` gives this
+stage another model while the writer stays the 8B: on CSCS the 70B found more facts
+with a third of the 8B's reasoning, but the 8B writer then kept fewer of them
+(docs/prompts.md). Output is JSON; see §6 for how JSON is enforced.
 
 **Code completes the fact sheet.** After the call, code adds a fact for every date,
 amount, phone number, e-mail address, web address, percentage and time in the source
@@ -317,7 +319,7 @@ could be trained from them - in effect distilling the 70B judge's standard into 
 | Stage | Role of Apertus | Model (default) | Thinking | Temp. | Output |
 |-------|-----------------|-----------------|----------|-------|--------|
 | Ingest (scans only) | Read a photographed or scanned letter (image input) | 8B | off | 0.0 | segments |
-| Understand | Extract facts, core answers, hard terms | 8B | on | 0.1 | `FactSheet` JSON |
+| Understand | Extract facts, core answers, hard terms | 8B (`LLM_UNDERSTAND_NAME` overrides) | on | 0.1 | `FactSheet` JSON |
 | Plan & write | Reorder, simplify, explain, record omissions | 8B | off (configurable) | 0.3 | `Draft` JSON |
 | Meaning check | Judge fact fidelity, hallucinations, semantic rules | 70B-thinking | on | 0.0 | `JudgeReport` JSON |
 | Repair | Rewrite flagged blocks | 8B | off | 0.2 | blocks |
@@ -368,13 +370,14 @@ ReviewState
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
 PipelineSummary
-  condition, final_version, rounds, stop_reason, writer_model, judge_model?,
+  condition, final_version, rounds, stop_reason, writer_model, understand_model?
+  (only when another model read the source), judge_model?,
   prompt_versions {stage: hash}, blocking_findings[] (per draft version)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
-  config: {lang, level, condition (C0|C1|C2), writer_model, judge_model, use_judge,
-           max_repair_rounds}
+  config: {lang, level, condition (C0|C1|C2), writer_model, understand_model,
+           judge_model, use_judge, max_repair_rounds}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?
 ```
@@ -388,8 +391,8 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
 - **Configuration** from the template's variables: `LLM_BASE_URL`, `LLM_API_KEY`,
-  `LLM_NAME`; plus `LLM_JUDGE_NAME` (defaults to `LLM_NAME`) and
-  `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
+  `LLM_NAME`; plus `LLM_JUDGE_NAME` and `LLM_UNDERSTAND_NAME` (both default to
+  `LLM_NAME`) and `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
   `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
   (local vLLM: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
   `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
@@ -484,7 +487,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `judge_model`, `title` |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `understand_model`, `judge_model`, `title` |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `review`, `summary` |
@@ -519,8 +522,14 @@ what Apertus did and teal what code did, the same colours as the diagram in §3.
 - **Review page** (`/jobs/{id}` once a draft exists): a summary strip (status,
   language and level, condition, errors and warnings, facts present, tokens and model
   time), the draft versions as pills with the blocking problems left after each one,
-  a reader view (`/jobs/{id}/preview`, the HTML export shown inline) and the export
-  menu, then three panes:
+  a Review / Reader view switch and the export menu, then three framed panes that
+  scroll on their own. On a window at least 1101 px wide and 600 px high the page
+  fits the window, footer included, and only the panes scroll; smaller windows stack
+  the panes and scroll the page. The reader view replaces the panes in the same window with the
+  HTML export of the decisions on screen, unsaved ones included (`POST
+  /jobs/{id}/preview` renders it and stores nothing; `GET /jobs/{id}/preview` shows
+  the saved review and is the fallback without JavaScript). The keys are off while it
+  is shown. The panes:
   1. **Source** - segments in order; clicking a draft block highlights the source
      sentences it came from. Sentences left out are struck through with the reason as
      a tooltip; sentences neither used nor listed as left out are outlined (FACT-04).
@@ -529,11 +538,12 @@ what Apertus did and teal what code did, the same colours as the diagram in §3.
      findings, undecided), approve / edit / reject per block as a segmented control,
      "approve all undecided", the decided count and "review complete". Keys: j and k
      move between blocks, a, e and r decide. Unsaved decisions warn before leaving.
-  3. **Side panel** - the five core questions from the fact sheet (click to see the
-     source sentences), the fact checklist (present / missing / distorted, from code
-     and judge; click to see the blocks that carry a fact), document findings,
-     omissions with reasons, glossary, measures (sentence length, readability,
-     passive, facts found) and the run summary with the rerun and delete actions.
+  3. **Checks** - collapsible cards: the five core questions from the fact sheet
+     (click to see the source sentences), the fact checklist (present / missing /
+     distorted, from code and judge; click to see the blocks that carry a fact),
+     document findings, omissions with reasons, glossary, measures (sentence length,
+     readability, passive, facts found) and the run summary with the rerun and delete
+     actions.
 
 Styling is one vendored classless stylesheet (water.css, MIT) plus a small
 `app.css` and `app.js`: no CDN, no build step, nothing that breaks air-gapped.
@@ -623,11 +633,28 @@ use beyond evaluation.
 | Code | Condition | Purpose |
 |------|-----------|---------|
 | C0 | Single prompt: "rewrite this in Leichte Sprache" | Baseline; what a naive user gets |
+| C0-ZH | Single prompt: the Canton of Zurich's Leichte Sprache prompt, verbatim (`simply-simplify-language` v1.6.0, MIT, THIRD_PARTY_NOTICES.md), as `complete` (keep everything) and `condensed` (essentials only, their default); German only | Baseline; the best public Swiss prompt on the same model |
 | C1 | Understand → write → rule check, no judge, no repair | Value of the fact sheet and structure |
 | C2 | Full pipeline with judge and repair | Value of checking and repairing |
 
-Each run with the 8B writer; C2 also with the 70B writer where budget allows. The
-judge is always the 70B-thinking model, so C1 and C2 are judged by the same instrument.
+Each run with the 8B writer; C2 also with the 70B writer (every stage on the 70B) and
+with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
+runs both. The judge is always the 70B-thinking model, so C1 and C2 are judged by the
+same instrument; in the 70B-writer run it grades its own model's drafts, which the
+report notes. Result (6 October 2026, 23 pairs): the 70B everywhere writes cleaner
+easy language (1.4 against 4.3 errors per 100 blocks) but keeps fewer facts (78
+against 84 percent coverage) at 1.8 times the price per page; the hybrid keeps the
+fewest (66 percent). The 8B writer stays the default; docs/prompts.md has the tables.
+
+C0-ZH runs with the settings of C0 (no thinking, temperature 0.3, 6000 tokens) and
+with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags
+is taken and ß becomes ss. Their Markdown stripping is not applied, because it deletes
+the underscores of web and e-mail addresses. An answer without the tags is used whole
+and noted in the job summary. The prompt file is a Jinja template whose licence note
+is a comment; docs/prompts.md has the details. On the 20 German eval pairs (CSCS, 6
+October 2026) the complete variant kept 95 percent of the hard facts (fact coverage
+91 percent) with 15.4 rule errors per 100 blocks, the condensed variant 77 percent at
+8.7 errors; C2 on the 8B kept 80 percent (84) with 4.3 errors.
 
 ### Metrics
 
@@ -734,6 +761,7 @@ pyproject.toml, uv.lock   dependencies (uv), Python 3.12+; .python-version pins 
 .env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                 project overview, quick start, status; Track 2B challenge text (template)
 technical_report.md       the report (PDF: RoestigrabenBridgers_Report.pdf)
+THIRD_PARTY_NOTICES.md    the Canton of Zurich's prompt (MIT) used as baseline C0-ZH
 docs/
   architecture.md         this document
   rules.md                rule catalogue → implemented by src/leichtfacile/rules
@@ -746,7 +774,8 @@ src/leichtfacile/
   store.py                SQLite access
   examples.py             example jobs: import on start, build
   llm/                    client.py, json_out.py, reasoning.py, cache.py
-  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, examples/
+  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, examples/;
+                          de/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, de.py, document.py, layout.py, values.py, lexicon.py,

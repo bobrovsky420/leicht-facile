@@ -19,7 +19,10 @@ from leichtfacile.eval.score import score_output, score_reference, score_source
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.orchestrator import Orchestrator
+from leichtfacile.pipeline.prompts import has_prompt
 from leichtfacile.schemas import (
+    BASELINE_CONDITIONS,
+    ZH_CONDITIONS,
     Draft,
     FactSheet,
     JobConfig,
@@ -37,8 +40,15 @@ def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
-def results_file(results_dir: Path, condition: str, writer: str) -> Path:
-    return results_dir / f"{condition}_{slug(writer)}.jsonl"
+def results_file(
+    results_dir: Path, condition: str, writer: str, understand: str | None = None
+) -> Path:
+    """One file per condition and model setup; a hybrid (another model for the
+    Understand stage) gets its own file."""
+    name = f"{condition}_{slug(writer)}"
+    if understand and understand != writer:
+        name += f"_understand-{slug(understand)}"
+    return results_dir / f"{name}.jsonl"
 
 
 _OK = ("needs_review", "done")
@@ -84,21 +94,29 @@ def run_condition(
     llm: LLMClient,
     results_dir: Path = RESULTS,
     writer: str | None = None,
+    understand: str | None = None,
     judge: str | None = None,
     judge_all: bool = False,
     redo: bool = False,
 ) -> Path:
     """Run one condition on every pair that has no result yet (all of them with `redo`,
-    after a prompt change; the old rows are replaced)."""
+    after a prompt change; the old rows are replaced). `understand` names another model
+    for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)."""
     results_dir.mkdir(parents=True, exist_ok=True)
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
     writer_name = writer or settings.llm_name
-    out = results_file(results_dir, condition, writer_name)
+    reader_name = understand or settings.llm_understand_name or writer_name
+    if condition in BASELINE_CONDITIONS or reader_name == writer_name:
+        reader_name = None  # no Understand stage, or the writer reads too
+    out = results_file(results_dir, condition, writer_name, reader_name)
     done = set() if redo else _done(out)
     for pair in pairs:
         if pair.id in done:
             log.info("%s %s: done already", condition, pair.id)
+            continue
+        if condition in ZH_CONDITIONS and not has_prompt(pair.lang, "baseline_zh"):
+            log.info("%s %s: no Zurich prompt for '%s', skipped", condition, pair.id, pair.lang)
             continue
         standard, easy = load_pair(pair)
         config = JobConfig(
@@ -106,6 +124,7 @@ def run_condition(
             level=pair.level,
             condition=condition,  # type: ignore[arg-type]
             writer_model=writer,
+            understand_model=understand,
             judge_model=judge,
             max_repair_rounds=settings.max_repair_rounds,
         )
@@ -118,6 +137,7 @@ def run_condition(
             "role": pair.role,
             "lang": pair.lang,
             "writer": writer_name,
+            **({"understand": reader_name} if reader_name else {}),
             "job_id": job.id,
             "status": job.status,
         }
@@ -172,7 +192,12 @@ def _reference_factsheet(
             if fs is not None:
                 return fs
     standard = store.get_artifact(job_id, "source", SourceDocument)
-    fs, _ = stages.understand(orch.llm, standard, level=pair.level)
+    fs, _ = stages.understand(
+        orch.llm, standard, level=pair.level, model=orch.settings.llm_understand_name
+    )
+    # Completed by code as in the pipeline, so a baseline scored before any C1 or C2 job
+    # exists is held to the same facts as one scored after them.
+    fs = stages.complete_factsheet(fs, standard)
     store.put_artifact(job_id, "score_factsheet", fs)
     return fs
 
