@@ -486,19 +486,40 @@ running when the service stopped are queued again on start.
 
 ### Review UI
 
-Server-rendered (Jinja2) pages: a start page with the submission form and the job
-list, a progress page that polls the job, and the review page with three panes:
+Server-rendered (Jinja2) pages. Every page works without JavaScript; `app.js` adds
+polling, highlighting and keyboard comfort on top. Throughout the UI, purple marks
+what Apertus did and teal what code did, the same colours as the diagram in §3.
 
-1. **Source** - segments in order; clicking a draft block highlights the source
-   sentences it came from. Sentences left out are struck through with the reason as a
-   tooltip; sentences neither used nor listed as left out are outlined (FACT-04).
-2. **Draft** - blocks with a colour mark for findings (none / warning / error), the
-   findings with their suggestions, and approve / edit / reject per block; "approve
-   all undecided" and "review complete" for the whole draft.
-3. **Side panel** - the fact checklist (present / missing / distorted, from code and
-   judge; click to see the blocks that carry a fact), document findings, omissions
-   with reasons, glossary, measures (sentence length, readability, passive, facts
-   found), the version switcher and the run summary.
+- **Start page** (`/`): the submission form with three source tabs (pasted text, web
+  address, file), the two team-written example letters from `data/examples/sources/`
+  as one-click fills, language, level and pipeline condition, optional writer and
+  judge model overrides, the endpoint status from `/healthz`, and the list of jobs.
+- **Progress page** (`/jobs/{id}` while the job is queued or running): the stages of
+  the chosen condition as a stepper (done / running / pending / skipped / failed, with
+  one line of facts per stage such as "14 facts, 14 must survive" or "draft v1: 10
+  errors, 9 warnings"), the elapsed time and tokens, and the intermediate artifacts as
+  soon as they exist: the fact sheet with the core questions and the facts that must
+  survive, then the latest draft with the blocks that have findings marked, then the
+  model calls per stage. The page polls the fragment at `/jobs/{id}/progress` every
+  two seconds and reloads when the job reaches review or fails.
+- **Review page** (`/jobs/{id}` once a draft exists): a summary strip (status,
+  language and level, condition, errors and warnings, facts present, tokens and model
+  time), the draft versions as pills with the blocking problems left after each one,
+  a reader view (`/jobs/{id}/preview`, the HTML export shown inline) and the export
+  menu, then three panes:
+  1. **Source** - segments in order; clicking a draft block highlights the source
+     sentences it came from. Sentences left out are struck through with the reason as
+     a tooltip; sentences neither used nor listed as left out are outlined (FACT-04).
+  2. **Draft** - blocks with a colour mark for findings (none / warning / error), the
+     findings with their suggestions and a code / judge badge, filters (all, with
+     findings, undecided), approve / edit / reject per block as a segmented control,
+     "approve all undecided", the decided count and "review complete". Keys: j and k
+     move between blocks, a, e and r decide. Unsaved decisions warn before leaving.
+  3. **Side panel** - the five core questions from the fact sheet (click to see the
+     source sentences), the fact checklist (present / missing / distorted, from code
+     and judge; click to see the blocks that carry a fact), document findings,
+     omissions with reasons, glossary, measures (sentence length, readability,
+     passive, facts found) and the run summary with the rerun and delete actions.
 
 Styling is one vendored classless stylesheet (water.css, MIT) plus a small
 `app.css` and `app.js`: no CDN, no build step, nothing that breaks air-gapped.

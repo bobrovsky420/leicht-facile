@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import (
     SEVERITY_RANK,
     Block,
+    CoreAnswer,
     Decision,
     Draft,
     Fact,
@@ -27,8 +29,29 @@ STAGE_LABELS = {
     "write": "Apertus writes the easy-language draft",
     "check": "Code checks the rules and the facts",
     "judge": "A second Apertus model checks meaning and facts",
+    "repair": "Apertus repairs the flagged blocks",
     "baseline": "Apertus rewrites the text with one prompt (baseline)",
+    "review": "A person reviews the draft",
 }
+
+CORE_LABELS = (
+    ("what", "What is it about?"),
+    ("must_do", "What must you do?"),
+    ("deadline", "By when?"),
+    ("cost", "What does it cost?"),
+    ("contact", "Who can you ask?"),
+)
+
+CONDITION_LABELS = {
+    "C0": "Baseline: one prompt",
+    "C1": "Fact sheet, draft and rule check",
+    "C2": "Full pipeline with judge and repair",
+}
+
+LANG_NAMES = {"de": "German", "fr": "French", "it": "Italian"}
+
+
+# -- the review page ------------------------------------------------------------------
 
 
 @dataclass
@@ -71,6 +94,21 @@ class FactRow:
 
 
 @dataclass
+class CoreRow:
+    key: str
+    label: str
+    answer: CoreAnswer
+
+
+@dataclass
+class VersionRow:
+    version: int
+    blocking: int | None  # blocking problems left after that version, when known
+    final: bool
+    current: bool
+
+
+@dataclass
 class ReviewView:
     job: Job
     source: SourceDocument
@@ -79,6 +117,7 @@ class ReviewView:
     final_version: int | None
     rows: list[BlockRow]
     facts: list[FactRow]
+    core: list[CoreRow]
     doc_issues: list[Issue]
     factsheet: FactSheet | None
     summary: PipelineSummary | None
@@ -89,6 +128,7 @@ class ReviewView:
     omitted_segments: dict[str, str]
     tokens_in: int
     tokens_out: int
+    seconds: float  # model time over all calls
 
     @property
     def counts(self) -> dict[str, int]:
@@ -101,6 +141,36 @@ class ReviewView:
             if issue.severity in out:
                 out[issue.severity] += 1
         return out
+
+    @property
+    def fact_counts(self) -> dict[str, int]:
+        out = {"present": 0, "missing": 0, "distorted": 0, "unchecked": 0, "total": 0}
+        for f in self.facts:
+            if f.fact.must_keep:
+                out[f.status] += 1
+                out["total"] += 1
+        return out
+
+    @property
+    def decided(self) -> int:
+        return sum(1 for r in self.rows if r.decision is not None)
+
+    @property
+    def blocks_with_issues(self) -> int:
+        return sum(1 for r in self.rows if r.worst is not None)
+
+    @property
+    def version_rows(self) -> list[VersionRow]:
+        blocking = self.summary.blocking_findings if self.summary else []
+        return [
+            VersionRow(
+                version=v,
+                blocking=blocking[i] if i < len(blocking) else None,
+                final=v == self.final_version,
+                current=v == self.draft.version,
+            )
+            for i, v in enumerate(self.versions)
+        ]
 
 
 def review_view(store: Store, job: Job, version: int | None = None) -> ReviewView | None:
@@ -159,6 +229,7 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
                 rows[d.block_id].decision = d
 
     fact_rows: list[FactRow] = []
+    core_rows: list[CoreRow] = []
     if factsheet:
         coverage = fact_coverage(draft, factsheet, draft.lang)
         judged = {c.fact_id: c for c in judge.fact_checks} if judge else {}
@@ -181,6 +252,7 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
                     judge_note=check.note if check else "",
                 )
             )
+        core_rows = core_questions(factsheet)
     omitted = {}
     for o in draft.omissions:
         for s in o.segment_ids:
@@ -198,6 +270,7 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
         final_version=final_version,
         rows=list(rows.values()),
         facts=fact_rows,
+        core=core_rows,
         doc_issues=doc_issues,
         factsheet=factsheet,
         summary=summary,
@@ -208,4 +281,238 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
         omitted_segments=omitted,
         tokens_in=sum(u.tokens_in for u in usage),
         tokens_out=sum(u.tokens_out for u in usage),
+        seconds=sum(u.latency_ms for u in usage) / 1000,
     )
+
+
+def core_questions(factsheet: FactSheet) -> list[CoreRow]:
+    return [CoreRow(key, label, getattr(factsheet.core, key)) for key, label in CORE_LABELS]
+
+
+# -- the progress page ----------------------------------------------------------------
+
+# Title, description and who does the work (the model, code, or the reviewer).
+STEP_INFO: dict[str, tuple[str, str, str]] = {
+    "baseline": ("Rewrite", "Apertus rewrites the text with one prompt", "apertus"),
+    "understand": ("Read", "Apertus reads the document and writes the fact sheet", "apertus"),
+    "write": ("Write", "Apertus writes the easy-language draft", "apertus"),
+    "check": ("Check", "Code checks the rules and every fact value", "code"),
+    "judge": ("Judge", "A second Apertus model checks meaning and facts", "apertus"),
+    "repair": ("Repair", "Apertus rewrites only the flagged blocks", "apertus"),
+    "review": ("Review", "A person approves, edits and exports", "human"),
+}
+STEPS_BY_CONDITION = {
+    "C0": ("baseline", "check", "review"),
+    "C1": ("understand", "write", "check", "review"),
+    "C2": ("understand", "write", "check", "judge", "repair", "review"),
+}
+
+
+@dataclass
+class Step:
+    key: str
+    title: str
+    description: str
+    who: str  # apertus, code, human
+    state: str  # pending, running, done, skipped, failed
+    detail: str = ""
+
+
+@dataclass
+class StageUsage:
+    stage: str
+    calls: int = 0
+    cached: int = 0
+    tokens_in: int = 0
+    tokens_out: int = 0
+    seconds: float = 0.0
+
+
+@dataclass
+class ProgressView:
+    job: Job
+    steps: list[Step]
+    factsheet: FactSheet | None
+    draft: Draft | None
+    rules: RuleFindings | None
+    summary: PipelineSummary | None
+    usage: list[StageUsage]
+    elapsed_s: float
+    block_marks: dict[str, str] = field(default_factory=dict)  # block id -> worst severity
+    core: list[CoreRow] = field(default_factory=list)
+
+    @property
+    def current(self) -> Step | None:
+        return next((s for s in self.steps if s.state in ("running", "failed")), None)
+
+    @property
+    def tokens(self) -> int:
+        return sum(u.tokens_in + u.tokens_out for u in self.usage)
+
+    @property
+    def live(self) -> bool:
+        return self.job.status in ("queued", "running")
+
+
+def progress_view(store: Store, job: Job, now: datetime | None = None) -> ProgressView:
+    keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["C2"])
+    names = store.artifact_names(job.id)
+    drafts = names.get("draft", [])
+    factsheet = store.get_artifact(job.id, "factsheet", FactSheet)
+    draft = store.get_artifact(job.id, "draft", Draft, version=drafts[-1]) if drafts else None
+    rules = None
+    if draft is not None:
+        rules = store.get_artifact(job.id, "rules", RuleFindings, version=draft.version)
+    judge_v1 = store.get_artifact(job.id, "judge", JudgeReport, version=1)
+    rules_v1 = store.get_artifact(job.id, "rules", RuleFindings, version=1)
+    summary = store.get_artifact(job.id, "summary", PipelineSummary)
+
+    stage = job.stage or ""
+    stage_key = stage.split(" ")[0]
+    in_loop = len(drafts) > 1 or stage_key == "repair"
+    if job.status in ("needs_review", "done"):
+        current = "review"
+    elif job.status == "queued":
+        current = None
+    else:
+        current = stage_key if stage_key in keys else keys[0]
+        if current in ("check", "judge") and in_loop and "repair" in keys:
+            current = "repair"
+    idx = keys.index(current) if current in keys else -1
+
+    steps: list[Step] = []
+    for i, key in enumerate(keys):
+        title, description, who = STEP_INFO[key]
+        if idx < 0 or i > idx:
+            state = "pending"
+        elif i < idx or job.status == "done":
+            state = "done"
+        elif job.status == "failed":
+            state = "failed"
+        else:
+            state = "running"
+        steps.append(Step(key, title, description, who, state))
+
+    for step in steps:
+        _add_detail(step, store, job, drafts, factsheet, draft, rules_v1, judge_v1, summary)
+        if step.state == "failed" and job.error:
+            step.detail = job.error
+    if job.status == "queued" and steps:
+        steps[0].detail = "waiting for the worker"
+
+    block_marks: dict[str, str] = {}
+    if rules:
+        for f in rules.findings:
+            if f.block_id and f.severity != "info":
+                worst = block_marks.get(f.block_id)
+                if worst is None or SEVERITY_RANK[f.severity] < SEVERITY_RANK[worst]:
+                    block_marks[f.block_id] = f.severity
+
+    by_stage: dict[str, StageUsage] = {}
+    for u in job.usage:
+        row = by_stage.setdefault(u.stage.split(" ")[0], StageUsage(u.stage.split(" ")[0]))
+        row.calls += 1
+        row.cached += int(u.cached)
+        row.tokens_in += u.tokens_in
+        row.tokens_out += u.tokens_out
+        row.seconds += u.latency_ms / 1000
+
+    now = now or datetime.now(UTC)
+    end = now if job.status in ("queued", "running") else job.updated_at
+    elapsed = (_aware(end) - _aware(job.created_at)).total_seconds()
+    return ProgressView(
+        job=job,
+        steps=steps,
+        factsheet=factsheet,
+        draft=draft,
+        rules=rules,
+        summary=summary,
+        usage=list(by_stage.values()),
+        elapsed_s=max(elapsed, 0.0),
+        block_marks=block_marks,
+        core=core_questions(factsheet) if factsheet else [],
+    )
+
+
+def _add_detail(
+    step: Step,
+    store: Store,
+    job: Job,
+    drafts: list[int],
+    factsheet: FactSheet | None,
+    draft: Draft | None,
+    rules_v1: RuleFindings | None,
+    judge_v1: JudgeReport | None,
+    summary: PipelineSummary | None,
+) -> None:
+    """One line per step from the artifacts that exist so far."""
+    stage = job.stage or ""
+    stage_key = stage.split(" ")[0]
+    if step.key == "understand" and factsheet:
+        keep = sum(1 for f in factsheet.facts if f.must_keep)
+        step.detail = f"{len(factsheet.facts)} facts, {keep} must survive"
+    elif step.key in ("write", "baseline") and drafts:
+        first = draft if draft and draft.version == 1 else None
+        first = first or store.get_artifact(job.id, "draft", Draft, version=1)
+        if first:
+            step.detail = f"{len(first.blocks)} blocks"
+            if first.omissions:
+                step.detail += f", {len(first.omissions)} things left out with a reason"
+    elif step.key == "check" and rules_v1:
+        errors = sum(1 for f in rules_v1.findings if f.severity == "error")
+        warns = sum(1 for f in rules_v1.findings if f.severity == "warn")
+        step.detail = f"draft v1: {errors} errors, {warns} warnings"
+    elif step.key == "judge":
+        if judge_v1:
+            present = sum(1 for c in judge_v1.fact_checks if c.status == "present")
+            step.detail = (
+                f"{present} of {len(judge_v1.fact_checks)} facts present, "
+                f"{len(judge_v1.unsupported)} unsupported statements"
+            )
+        elif step.state == "done":
+            step.state = "skipped"
+            step.detail = _note(summary, "judge") or "not run"
+    elif step.key == "repair":
+        if step.state == "running":
+            if stage_key == "repair":
+                step.detail = f"round {stage.split(' ')[-1]}"
+            else:
+                step.detail = "checking the repaired draft"
+        elif summary and step.state == "done":
+            if summary.rounds == 0:
+                step.state = "skipped"
+                step.detail = f"not needed: {summary.stop_reason}"
+            else:
+                rounds = "round" if summary.rounds == 1 else "rounds"
+                step.detail = f"{summary.rounds} {rounds}, {summary.stop_reason}"
+                per_version = ", ".join(
+                    f"v{v}: {b}" for v, b in zip(drafts, summary.blocking_findings, strict=False)
+                )
+                if per_version:
+                    step.detail += f". Blocking problems left: {per_version}"
+    elif step.key == "review":
+        if job.status == "needs_review":
+            step.detail = "ready for your review"
+        elif job.status == "done":
+            step.detail = "review complete"
+
+
+def _note(summary: PipelineSummary | None, word: str) -> str:
+    if summary is None:
+        return ""
+    return next((n for n in summary.notes if word in n), "")
+
+
+def _aware(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+def format_duration(seconds: float) -> str:
+    seconds = int(round(seconds))
+    if seconds < 60:
+        return f"{seconds} s"
+    minutes, rest = divmod(seconds, 60)
+    if minutes < 60:
+        return f"{minutes} min {rest:02d} s"
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours} h {minutes:02d} min"

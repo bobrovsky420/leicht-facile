@@ -34,6 +34,21 @@ def examples_dir() -> Path:
     return Path(os.environ.get("EXAMPLES_DIR", "data/examples"))
 
 
+def example_sources(folder: Path | None = None) -> list[dict[str, str]]:
+    """The team-written example texts offered on the start page: id, title and text."""
+    folder = (folder or examples_dir()) / "sources"
+    out = []
+    for path in sorted(folder.glob("*.txt")) + sorted(folder.glob("*.md")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        title = lines[0].lstrip("#").strip() if lines else path.stem
+        out.append({"id": path.stem, "title": title, "text": text})
+    return out
+
+
 def import_bundle(store: Store, bundle: dict[str, Any], *, job_id: str | None = None) -> str | None:
     """Recreate a job from its audit bundle. Returns the job id, or None if it exists."""
     job_data = bundle["job"]

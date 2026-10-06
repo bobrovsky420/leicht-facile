@@ -1,22 +1,21 @@
 {% extends "base.html" %}
 {% block title %}{{ job.title or job.id }} - Leicht·Facile{% endblock %}
 {% block content %}
-<h1>{{ job.title or job.id }}</h1>
-<div id="job-status" data-job="{{ job.id }}" data-status="{{ job.status }}">
-{% if job.status == "failed" %}
-  <p class="error" role="alert">The job failed: {{ job.error }}</p>
-  <p>Stages that finished are kept. Run the job again from where it stopped, or from the start.</p>
-  <form method="post" action="/jobs/{{ job.id }}/rerun" class="inline">
-    <input type="hidden" name="stage" value="understand">
-    <button type="submit">Run again from the start</button>
-  </form>
-{% else %}
-  <p class="progress"><span class="spinner" aria-hidden="true"></span>
-    <span id="stage-text">{{ stage_labels.get((job.stage or '').split(' ')[0], job.stage or "Waiting for the worker") }}</span></p>
-  <p class="hint">The page updates by itself. A typical page takes a few minutes: the model reads, writes, checks and repairs.</p>
-{% endif %}
+<section class="review-head">
+  <p class="crumbs"><a href="/">Drafts</a></p>
+  <h1>{{ job.title or job.id }}</h1>
+  <p class="chips">
+    <span class="chip status status-{{ job.status }}">{{ job.status | replace('_', ' ') }}</span>
+    {% if job.config.lang %}<span class="chip">{{ lang_names.get(job.config.lang, job.config.lang) }}, {{ job.config.level }}</span>{% endif %}
+    <span class="chip" title="{{ condition_labels.get(job.config.condition, '') }}">{{ job.config.condition }}</span>
+  </p>
+</section>
+
+<div id="progress" data-job="{{ job.id }}" data-status="{{ job.status }}">
+{% include "_progress.html" %}
 </div>
-<form method="post" action="/jobs/{{ job.id }}/delete" class="inline">
-  <button type="submit" class="secondary">Delete</button>
+
+<form method="post" action="/jobs/{{ job.id }}/delete" class="inline danger-zone">
+  <button type="submit" class="secondary">Delete this draft</button>
 </form>
 {% endblock %}

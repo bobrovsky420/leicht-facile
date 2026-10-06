@@ -57,8 +57,9 @@ The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_U
 local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.
 Without `make`: `docker compose up --build`.
 
-In the browser, paste a text, upload a PDF or enter a URL, choose language and level
-(A2 Leichte Sprache or B1 Einfache Sprache), and follow the stages to the review page.
+In the browser, paste a text, upload a PDF or enter a URL (or click one of the two
+example letters), choose language and level (A2 Leichte Sprache or B1 Einfache
+Sprache), and follow the stages to the review page.
 
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
