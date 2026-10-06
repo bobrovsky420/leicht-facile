@@ -222,7 +222,9 @@ class Finding(Artifact):
     block_id: str | None  # None: the finding concerns the whole document
     rule_id: str
     severity: Severity
-    message: str
+    message: str  # English (rules/messages.py); the UI translates by key and params
+    message_key: str | None = None  # the template's key; None in older artifacts
+    message_params: dict[str, str | int | float] = Field(default_factory=dict)
     evidence: str = ""
     suggestion: str | None = None
     fact_id: str | None = None  # FACT-01, FACT-02, FACT-05: the fact concerned

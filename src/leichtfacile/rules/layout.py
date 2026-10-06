@@ -6,6 +6,7 @@ import re
 from collections.abc import Iterator
 
 from leichtfacile.rules.base import PARAMS, Context, Hit, rule, sev
+from leichtfacile.rules.messages import hit
 
 # A sentence ends at . ! ? followed by a space and a capital letter or a digit. Dots in
 # dates (4. Februar), times (9.00) and amounts (1'500.-) do not end a sentence.
@@ -22,7 +23,7 @@ _SENTENCE_END_RE = re.compile(r"(?<![\d\s])[.!?](?=\s+[A-ZÄÖÜ\"])")
 def lay_01(lines: list[str], ctx: Context) -> Iterator[Hit]:
     for n, line in enumerate(lines, 1):
         if _SENTENCE_END_RE.search(line.strip()):
-            yield Hit(f"Line {n} has more than one sentence.", evidence=line.strip())
+            yield hit("LAY-01", line=n, evidence=line.strip())
 
 
 @rule(
@@ -36,7 +37,7 @@ def lay_02(lines: list[str], ctx: Context) -> Iterator[Hit]:
     limit = ctx.params.max_line_chars
     for n, line in enumerate(lines, 1):
         if len(line) > limit:
-            yield Hit(f"Line {n} has {len(line)} characters; at most {limit}.", evidence=line)
+            yield hit("LAY-02", line=n, chars=len(line), limit=limit, evidence=line)
 
 
 def wrap_sentence(sentence: str, width: int = PARAMS["A2"].max_line_chars) -> list[str]:

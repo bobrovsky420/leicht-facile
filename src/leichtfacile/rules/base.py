@@ -57,15 +57,18 @@ def params_for(lang: str | None, level: str) -> LevelParams:
 
 @dataclass(frozen=True)
 class Hit:
-    """One occurrence found by a check; the checker turns it into a Finding."""
+    """One occurrence found by a check, built by `messages.hit()`; the checker turns it
+    into a Finding."""
 
-    message: str
+    message: str  # English, from the template `key` in messages.py
     evidence: str = ""
     suggestion: str | None = None
     severity: Severity | None = None  # overrides the rule's severity for this level
     fact_id: str | None = None
     segment_ids: tuple[str, ...] = ()
     block_id: str | None = None  # document-scope checks name the block, if any
+    key: str | None = None  # the message template; the UI translates by it
+    params: dict[str, str | int | float] = field(default_factory=dict)  # its placeholders
 
 
 @dataclass

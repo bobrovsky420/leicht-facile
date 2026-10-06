@@ -7,6 +7,10 @@ a key missing in another catalog falls back to English, and a test makes sure ev
 shipped catalog has exactly the English keys. Adding French or Italian means adding
 `fr.json` or `it.json`; nothing else changes.
 
+The rule checker's findings are translated as well: `rules/messages.py` holds their
+English templates, the English catalog takes them over under `finding.<key>`, and the
+other catalogs translate them (`finding.LEN-01`, `finding.LEN-02.sub`, ...).
+
 A key with a count has the variants `<key>.one` and `<key>.other`, chosen by
 `PLURAL_ONE`. Keys under `js.` (and the job statuses) are sent to the browser for
 `app.js`, which picks the plural variant with `Intl.PluralRules`.
@@ -21,6 +25,8 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
+from leichtfacile.rules.messages import MESSAGES
+
 LOCALES_DIR = Path(__file__).parent / "locales"
 DEFAULT_LANG = "en"
 COOKIE = "ui_lang"
@@ -32,8 +38,15 @@ PLURAL_ONE: dict[str, frozenset[int]] = {"fr": frozenset({0, 1})}
 def catalogs() -> dict[str, dict[str, str]]:
     """All catalogs by language code, English first."""
     found = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in LOCALES_DIR.glob("*.json")}
+    # The checker's messages: English from the rules package, translations from the files.
+    found[DEFAULT_LANG] = {**found[DEFAULT_LANG], **finding_texts()}
     order = sorted(found, key=lambda code: (code != DEFAULT_LANG, code))
     return {code: found[code] for code in order}
+
+
+def finding_texts() -> dict[str, str]:
+    """The English templates of the rule checker's messages as catalog entries."""
+    return {f"finding.{key}": text for key, text in MESSAGES.items()}
 
 
 def ui_languages() -> dict[str, str]:
@@ -82,14 +95,26 @@ class Translator:
         self._fallback = all_catalogs[DEFAULT_LANG]
 
     def __call__(self, key: str, /, n: int | None = None, **params: object) -> str:
+        key = self.variant(key, n)
         if n is not None:
-            form = "one" if n in PLURAL_ONE.get(self.lang, frozenset({1})) else "other"
-            key = f"{key}.{form}"
             params["n"] = n
         text = self._texts.get(key) or self._fallback.get(key)
         if text is None:
             return key
         return text.format(**params) if params else text
+
+    def variant(self, key: str, n: int | None = None) -> str:
+        """The catalog key for a count: `<key>.one` or `<key>.other`; without a count,
+        the key itself."""
+        if n is None:
+            return key
+        form = "one" if n in PLURAL_ONE.get(self.lang, frozenset({1})) else "other"
+        return f"{key}.{form}"
+
+    def has(self, key: str, n: int | None = None) -> bool:
+        """Whether a text exists for the key, in this language or in English."""
+        key = self.variant(key, n)
+        return key in self._texts or key in self._fallback
 
     def get(self, key: str, default: str) -> str:
         """The text for a key built from data (a status, a fact kind), else `default`."""

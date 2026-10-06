@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 from leichtfacile.rules.base import Context, Hit, declare, rule, sev
+from leichtfacile.rules.messages import hit
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
@@ -107,8 +108,11 @@ def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     for fact in coverage.missing:
         target = parse_value_norm(fact.value_norm, fact.kind, ctx.lang)
         expected = display_value(target, ctx.lang) if target else fact.value_norm
-        yield Hit(
-            f"Fact {fact.id} is missing or changed: {fact.text} (expected {expected}).",
+        yield hit(
+            "FACT-01",
+            fact=fact.id,
+            text=fact.text,
+            expected=expected,
             evidence=fact.text,
             fact_id=fact.id,
         )
@@ -127,11 +131,7 @@ def fact_02(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     referenced = {fid for b in doc.draft.blocks for fid in b.fact_ids}
     for fact in doc.factsheet.must_keep():
         if fact.id not in referenced:
-            yield Hit(
-                f"No block conveys fact {fact.id}: {fact.text}",
-                evidence=fact.text,
-                fact_id=fact.id,
-            )
+            yield hit("FACT-02", fact=fact.id, text=fact.text, evidence=fact.text, fact_id=fact.id)
 
 
 @rule(
@@ -151,12 +151,15 @@ def fact_03(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         valid = [s for s in block.segment_ids if s in known]
         if not valid:
             unknown = [s for s in block.segment_ids if s not in known]
-            detail = f" (unknown ids: {', '.join(unknown)})" if unknown else ""
-            yield Hit(
-                f"The block names no source sentence{detail}.",
-                evidence=block.text,
-                block_id=block.id,
-            )
+            if unknown:
+                yield hit(
+                    "FACT-03.unknown",
+                    ids=", ".join(unknown),
+                    evidence=block.text,
+                    block_id=block.id,
+                )
+            else:
+                yield hit("FACT-03", evidence=block.text, block_id=block.id)
 
 
 @rule(
@@ -186,12 +189,18 @@ def fact_04(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     by_id = doc.source.by_id()
     for ids in runs:
         first = by_id[ids[0]].text
-        label = ids[0] if len(ids) == 1 else f"{ids[0]} to {ids[-1]}"
-        yield Hit(
-            f"Source sentences {label} are neither used nor listed as omitted.",
-            evidence=first[:160],
-            segment_ids=tuple(ids),
-        )
+        if len(ids) == 1:
+            yield hit(
+                "FACT-04.single", sentence=ids[0], evidence=first[:160], segment_ids=tuple(ids)
+            )
+        else:
+            yield hit(
+                "FACT-04",
+                first=ids[0],
+                last=ids[-1],
+                evidence=first[:160],
+                segment_ids=tuple(ids),
+            )
 
 
 @rule(
@@ -209,8 +218,10 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     for fact in doc.factsheet.facts:
         unknown = [s for s in fact.segment_ids if s not in by_id]
         if unknown:
-            yield Hit(
-                f"Fact {fact.id} cites unknown source sentences: {', '.join(unknown)}.",
+            yield hit(
+                "FACT-05.unknown",
+                fact=fact.id,
+                ids=", ".join(unknown),
                 evidence=fact.text,
                 fact_id=fact.id,
             )
@@ -221,30 +232,17 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         in_cited = any(matches(target, v) for v in extract_values(cited, ctx.lang))
         if in_cited:
             continue
-        if any(matches(target, v) for v in all_values):
-            message = (
-                f"Fact {fact.id}: the value {fact.value_norm} is in the source, "
-                "but not in the cited sentences."
-            )
-        else:
-            message = (
-                f"Fact {fact.id}: the value {fact.value_norm} is not in the source. "
-                "The fact sheet may be wrong."
-            )
-        yield Hit(message, evidence=fact.text, fact_id=fact.id)
+        yield hit(
+            "FACT-05.cited" if any(matches(target, v) for v in all_values) else "FACT-05",
+            fact=fact.id,
+            value=fact.value_norm,
+            evidence=fact.text,
+            fact_id=fact.id,
+        )
 
 
 # -- values the source does not contain (FACT-06) ------------------------------------
 
-KIND_LABELS = {
-    "date": "date",
-    "amount": "amount",
-    "phone": "phone number",
-    "email": "e-mail address",
-    "url": "web address",
-    "percent": "percentage",
-    "time": "time",
-}
 # Kinds for which the source's only value is suggested in place of a foreign one: a
 # document with one phone number means that one. The only date or amount in a
 # document (a law's date, a fee) would turn an invented sentence into a wrong one.
@@ -349,10 +347,9 @@ def fact_06(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.source:
         return
     for item in foreign_values(doc.draft, doc.source, doc.factsheet, ctx.lang):
-        label = KIND_LABELS[item.value.kind]
-        yield Hit(
-            f"The {label} {item.value.text} is not in the source. "
-            "Remove it or take the value from the source.",
+        yield hit(
+            f"FACT-06.{item.value.kind}",  # one message per kind: the date, the amount, ...
+            value=item.value.text,
             evidence=item.value.text,
             suggestion=item.suggestion,
             block_id=item.block_id,
@@ -373,16 +370,14 @@ def lay_03(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     blocks = doc.draft.blocks
     headings = [b for b in blocks if b.kind == "heading"]
     if len(blocks) > 6 and len(headings) < len(blocks) / 8:
-        noun = "heading" if len(headings) == 1 else "headings"
-        yield Hit(
-            f"{len(headings)} {noun} for {len(blocks)} blocks: add headings, "
-            "ideally as the reader's questions.",
-        )
+        yield hit("LAY-03.few", n=len(headings), blocks=len(blocks))
     for b in headings:
         n = len(b.text.split())
         if n > ctx.params.max_heading_words:
-            yield Hit(
-                f"Heading with {n} words; at most {ctx.params.max_heading_words}.",
+            yield hit(
+                "LAY-03",
+                words=n,
+                limit=ctx.params.max_heading_words,
                 evidence=b.text,
                 block_id=b.id,
             )
@@ -405,14 +400,18 @@ def read_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if result.score is None:
         return
     name = FORMULAS.get(ctx.lang, result.formula)
+    score = f"{result.score:.0f}"
     if ctx.lang == "de" and result.score < ctx.params.readability_target:
-        yield Hit(
-            f"{name} readability {result.score:.0f} is below the target "
-            f"{ctx.params.readability_target:.0f} for {ctx.level}.",
+        yield hit(
+            "READ-01.below",
+            formula=name,
+            score=score,
+            target=f"{ctx.params.readability_target:.0f}",
+            level=ctx.level,
             severity="warn",
         )
     else:
-        yield Hit(f"{name} readability {result.score:.0f}.")
+        yield hit("READ-01", formula=name, score=score)
 
 
 declare(

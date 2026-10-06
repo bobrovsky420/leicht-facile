@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 from leichtfacile.rules.document import display_value, fact_coverage
+from leichtfacile.rules.messages import recover
 from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import (
     SEVERITY_RANK,
@@ -18,6 +19,7 @@ from leichtfacile.schemas import (
     Draft,
     Fact,
     FactSheet,
+    Finding,
     Job,
     JudgeReport,
     PipelineSummary,
@@ -171,6 +173,28 @@ class ReviewView:
         ]
 
 
+def finding_text(t: Translator, finding: Finding) -> str:
+    """A rule finding's message in the interface language: the catalog text for
+    `finding.<message_key>`, filled with the finding's values. A finding stored before
+    the keys existed gets key and values read off its English text; the stored text
+    stands in when that fails or the catalogs have no text for the key."""
+    key, params = finding.message_key, dict(finding.message_params)
+    if not key:
+        recovered = recover(finding.rule_id, finding.message)
+        if recovered is None:
+            return finding.message
+        key, params = recovered
+    n = params.pop("n", None)  # a count picks the .one or .other variant
+    count = int(n) if n is not None else None
+    key = f"finding.{key}"
+    if not t.has(key, count):
+        return finding.message
+    try:
+        return t(key, n=count, **params)
+    except (KeyError, IndexError):  # the template and the stored values drifted apart
+        return finding.message
+
+
 def review_view(
     store: Store, job: Job, version: int | None = None, t: Translator = ENGLISH
 ) -> ReviewView | None:
@@ -193,7 +217,7 @@ def review_view(
     rows = {b.id: BlockRow(b) for b in draft.blocks}
     doc_issues: list[Issue] = []
     for f in rules.findings if rules else []:
-        issue = Issue("rule", f.rule_id, f.severity, f.message, f.suggestion)
+        issue = Issue("rule", f.rule_id, f.severity, finding_text(t, f), f.suggestion)
         if f.block_id in rows:
             rows[f.block_id].issues.append(issue)
         else:

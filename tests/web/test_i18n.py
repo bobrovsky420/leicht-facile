@@ -11,12 +11,31 @@ import pytest
 from fastapi.testclient import TestClient
 
 from leichtfacile.llm.client import LLMClient
-from leichtfacile.schemas import LANGS, Condition, FactKind, FactStatus, JobStatus
+from leichtfacile.rules.messages import MESSAGES
+from leichtfacile.schemas import (
+    LANGS,
+    Block,
+    Condition,
+    Draft,
+    FactKind,
+    FactStatus,
+    Finding,
+    JobStatus,
+    RuleFindings,
+)
 from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
 from leichtfacile.web.i18n import COOKIE, Translator, catalogs, pick_language, ui_languages
 from leichtfacile.web.jobs import Submission, SubmissionError, create_job
-from leichtfacile.web.views import CORE_KEYS, STEP_WHO, STOP_KEYS, progress_view, stop_reason
+from leichtfacile.web.views import (
+    CORE_KEYS,
+    STEP_WHO,
+    STOP_KEYS,
+    finding_text,
+    progress_view,
+    review_view,
+    stop_reason,
+)
 from tests.conftest import FakeEndpoint, make_settings
 
 WEB = Path(__file__).resolve().parents[2] / "src" / "leichtfacile" / "web"
@@ -78,6 +97,7 @@ def test_keys_built_from_data_exist() -> None:
         + [f"lang.{lang}" for lang in LANGS]
         + [f"condition.{c}" for c in get_args(Condition)]
         + [f"condition.short.{c}" for c in get_args(Condition)]
+        + [f"finding.{k}" for k in MESSAGES]
         + [f"core.{k}" for k in CORE_KEYS]
         + [f"step.{k}.{part}" for k in STEP_WHO for part in ("title", "desc")]
         + [f"who.{w}" for w in set(STEP_WHO.values())]
@@ -168,3 +188,57 @@ def test_progress_and_errors_in_german(tmp_path) -> None:
     assert error.text(Translator("de")) == (
         "Das Dokument ist auf Italienisch. Diese Version schreibt Deutsch und Französisch."
     )
+
+
+def test_rule_findings_follow_the_interface_language(tmp_path) -> None:
+    de, en = Translator("de"), Translator("en")
+    finding = Finding(
+        block_id="b001",
+        rule_id="LEN-01",
+        severity="warn",
+        message="The sentence has 14 words; the limit for A2 is 12.",
+        message_key="LEN-01",
+        message_params={"words": 14, "limit": 12, "level": "A2"},
+    )
+    assert finding_text(de, finding) == "Der Satz hat 14 Wörter; die Grenze für A2 ist 12."
+    assert finding_text(en, finding) == finding.message
+    few = Finding(
+        block_id=None,
+        rule_id="LAY-03",
+        severity="info",
+        message="1 heading for 12 blocks: add headings, ideally as the reader's questions.",
+        message_key="LAY-03.few",
+        message_params={"n": 1, "blocks": 12},
+    )
+    assert finding_text(de, few).startswith("1 Überschrift für 12 Blöcke")
+    assert finding_text(en, few) == few.message
+    # Findings stored before the keys existed: the English text is read back, if it fits.
+    old = Finding(
+        block_id="b001",
+        rule_id="LEN-02",
+        severity="error",
+        message="Subordinate clause ('die'): 3 clauses in one sentence. At most 1 for A2: "
+        "one statement per sentence.",
+    )
+    assert finding_text(de, old) == (
+        "Nebensatz ('die'): 3 Teilsätze in einem Satz. Höchstens 1 für A2: eine Aussage pro Satz."
+    )
+    legacy = Finding(block_id="b001", rule_id="LEN-01", severity="warn", message="legacy text")
+    assert finding_text(de, legacy) == "legacy text"
+    assert finding_text(de, legacy.model_copy(update={"message_key": "LEN-99"})) == "legacy text"
+
+    # The review page builds its issues from the stored findings, in the reviewer's language.
+    settings = make_settings(data_dir=tmp_path)
+    store = Store(tmp_path / "jobs.sqlite")
+    job = create_job(store, settings, Submission(text=LETTER))
+    blocks = [Block(id="b001", kind="sentence", text="Ein Satz.")]
+    store.put_artifact(
+        job.id, "draft", Draft(doc_id=job.id, lang="de", level="A2", blocks=blocks), 1
+    )
+    rules = RuleFindings(draft_version=1, level="A2", findings=[finding, few])
+    store.put_artifact(job.id, "rules", rules, 1)
+    view = review_view(store, job, t=de)
+    assert view.rows[0].issues[0].message == "Der Satz hat 14 Wörter; die Grenze für A2 ist 12."
+    assert view.doc_issues[0].message.startswith("1 Überschrift für 12 Blöcke")
+    assert review_view(store, job).rows[0].issues[0].message == finding.message
+    store.close()

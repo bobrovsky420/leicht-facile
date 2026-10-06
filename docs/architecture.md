@@ -354,7 +354,7 @@ Draft  (one per version)
 
 RuleFindings  (one per draft version)
   draft_version, level
-  findings[]: {block_id?, rule_id, severity, message, evidence, suggestion?, fact_id?, segment_ids[]}
+  findings[]: {block_id?, rule_id, severity, message, message_key?, message_params, evidence, suggestion?, fact_id?, segment_ids[]}
   metrics: {blocks, sentences, words, avg_words, max_words, pct_passive, pct_genitive,
             pct_subordinate, readability, readability_formula, facts_total, facts_found,
             fact_coverage}
@@ -560,8 +560,14 @@ DE switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
 `UI_LANG`, else the browser's `Accept-Language`, else English. Adding French or
 Italian means adding `fr.json` or `it.json`: the switcher, the language choice and the
 tests pick it up, and a test fails until the catalog has every English key with the
-same placeholders. Model output and the rule checker's messages are not translated:
-they stay in the language they were produced in.
+same placeholders. The rule checker's findings follow the switch too: a check reports
+the key of its message and the values for its placeholders (`rules/messages.py` holds
+the English templates; `message_key` and `message_params` travel with the Finding),
+the English catalog takes the templates over as `finding.<key>`, and the other
+catalogs translate them. A finding from an artifact written before the keys existed
+gets key and values read back off its English text with the rule's templates, and
+keeps the stored text when none fits. Model output (the judge's notes) is not
+translated: it stays in the language it was produced in.
 
 ### CLI
 
@@ -783,8 +789,8 @@ src/leichtfacile/
                           de/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
-  rules/                  base.py, de.py, document.py, layout.py, values.py, lexicon.py,
-                          readability.py, styleguide.py, checker.py, nlp.py
+  rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
+                          lexicon.py, readability.py, styleguide.py, checker.py, nlp.py
   web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
                           static/ (vendored), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py

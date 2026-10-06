@@ -136,6 +136,8 @@ class RuleChecker:
                 rule_id=rule_id,
                 severity=hit.severity or spec.severity_for(ctx.level),
                 message=hit.message,
+                message_key=hit.key,
+                message_params=dict(hit.params),
                 evidence=hit.evidence,
                 suggestion=hit.suggestion,
                 fact_id=hit.fact_id,
