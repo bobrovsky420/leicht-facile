@@ -396,7 +396,9 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
      the client always sends. Not a sovereign deployment: never used for documents
      with personal data. The routing checked on 6 October 2026 (from the gateway's
      response headers) decides the profile's settings: the 8B goes to Juelich's
-     Blablador (vLLM) and thinks through the chat template; the 70B goes to
+     Blablador (vLLM) and thinks through the chat template, but only in about two
+     of three identical calls, so comparisons of thinking against no thinking are
+     left to the CSCS endpoint; the 70B goes to
      Infomaniak (`Apertus-v1.5-70B`) and ignores the thinking switch; the
      `-thinking` names are not used, because `apertus-v1.5-8b-thinking` serves the
      older Apertus 1 8B through Featherless. The gateway's response cache ignores
