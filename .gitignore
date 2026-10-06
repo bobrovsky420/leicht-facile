@@ -29,9 +29,6 @@ build/
 .idea/
 .vscode/
 
-# Local planning notes
-PLAN.md
-
 # Leicht·Facile runtime data and tool caches
 data/cache/
 data/*.sqlite

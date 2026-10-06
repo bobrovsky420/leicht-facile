@@ -24,3 +24,6 @@ working here and can only be relaxed by an explicit instruction from the owner.
   root; do not create a `track_2b/` subfolder.
 - Design lives in `docs/architecture.md`, the rule specification in `docs/rules.md`.
   Keep both in sync with the code.
+- The plan (order, dates, gates, cuts) lives in `PLAN.md`. Update it when something is
+  implemented (tick its box, add a line to §11 Progress log) and when something new is
+  planned (add the item to its work package, the schedule or the open decisions).
