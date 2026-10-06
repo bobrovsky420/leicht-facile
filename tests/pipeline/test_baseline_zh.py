@@ -70,6 +70,8 @@ def test_old_c_names_are_accepted_as_aliases() -> None:
     assert canonical_condition("other") == "other"
     assert JobConfig(condition="C1").condition == "P1"  # type: ignore[arg-type]
     assert JobConfig.model_validate({"condition": "C0"}).condition == "P0"
+    summary = PipelineSummary.model_validate({"condition": "C2", "final_version": 1})
+    assert summary.condition == "P2"  # a summary stored before the rename still loads
     with pytest.raises(ValueError):
         zh_variant("P0")
 

@@ -15,12 +15,19 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
-# Dependencies first, so code changes do not invalidate this layer.
+# The base image's pip is never used (uv installs everything) and its vendored
+# urllib3, msgpack and setuptools are what vulnerability scanners flag.
+RUN python -m pip uninstall --yes pip
+
+# Dependencies first, so code changes do not invalidate this layer. The uv cache
+# is a build-time mount, so it speeds up rebuilds without ending up in the image.
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --no-install-project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
 COPY src ./src
-RUN uv sync --frozen --no-dev --no-editable
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-editable
 
 # Example documents and pre-computed example jobs (team-written texts only).
 COPY data/examples ./data/examples

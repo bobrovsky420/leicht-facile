@@ -134,10 +134,16 @@ LEX-01:
     - Die Prämienverbilligung hilft Ihnen.
     - Die Ergänzungsleistungen kommen jeden Monat.
     - Die Prämien·Verbilligung hilft Ihnen.
+    # A glossary entry explains the compound but does not make it shorter.
+    - text: Die Krankenversicherungspolice kommt per Post.
+      glossary: [Krankenversicherungspolice]
   negative:
     - Die Prämien·verbilligung hilft Ihnen.
     - Die Kranken·kasse bezahlt.
     - Sie wohnen im Kanton Zürich.
+    # A long word that is no compound needs no note once it is explained.
+    - text: Die Organisationen helfen Ihnen.
+      glossary: [Organisationen]
 
 LEX-02:
   positive:

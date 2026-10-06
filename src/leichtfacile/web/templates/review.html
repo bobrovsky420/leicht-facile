@@ -39,6 +39,7 @@
       <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}>v{{ row.version }}{% if row.blocking is not none %} <span class="vcount" title="{{ t('review.blocking_title') }}">{{ row.blocking }}</span>{% endif %}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}</a>
     {% endfor %}
     {% if v.summary %}<span class="hint">{{ t('review.rounds', n=v.summary.rounds, reason=stop_reason(t, v.summary.stop_reason)) }}{% if v.version_rows | length > 1 %} {{ t('review.blocking_hint') }}{% endif %}</span>{% endif %}
+    {% if v.code_splits %}<span class="hint" title="{{ t('review.code_splits_title') }}">{{ t('review.code_splits', n=v.code_splits) }}</span>{% endif %}
   </nav>
 </section>
 

@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 from leichtfacile.rules import RULES, check_draft
-from leichtfacile.schemas import Block, Draft
+from leichtfacile.schemas import Block, Draft, GlossaryEntry
 
 LANGS = ("de", "fr")
 HERE = Path(__file__).parent
@@ -35,6 +35,7 @@ def _rule_ids(lang: str, case: dict) -> set[str]:
         lang=lang,
         level=case.get("level", "A2"),
         blocks=[Block(id="b001", kind=case.get("kind", "sentence"), text=case["text"])],
+        glossary=[GlossaryEntry(term=t, explanation="...") for t in case.get("glossary", [])],
     )
     return {f.rule_id for f in check_draft(draft).findings if f.block_id == "b001"}
 

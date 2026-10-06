@@ -20,6 +20,7 @@ from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     Draft,
@@ -227,6 +228,7 @@ class Orchestrator:
             )
             self._record(job.id, results)
             draft = stages.link_facts(draft, factsheet)
+            draft, _ = apply_mediopunkt(draft)  # P1 and P2 only; a baseline measures the prompt
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop("write")
         rules = self._check(job, draft, source, factsheet)
@@ -268,6 +270,7 @@ class Orchestrator:
                 break
             self._record(job.id, results)
             new_draft = stages.link_facts(new_draft, factsheet)
+            new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
             self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
             new_rules = self._check(job, new_draft, source, factsheet)
             if self._judge_again(judge, rules):

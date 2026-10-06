@@ -95,6 +95,10 @@ def score_output(
     judge: JudgeReport | None,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard)}
+    # Compounds split by code on the final version (rules/mediopunkt.py, P1 and P2 only):
+    # the deterministic share of the LEX improvement, reported next to the LEX family.
+    row["code_splits"] = len(draft.code_edits)
+    row["mediopunkt_per_100"] = round(100 * len(draft.code_edits) / max(1, len(draft.blocks)), 2)
     if factsheet is not None:
         coverage = fact_coverage(draft, factsheet, draft.lang)
         row["facts_checkable"] = len(coverage.checkable)

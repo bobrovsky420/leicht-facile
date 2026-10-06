@@ -16,21 +16,25 @@ from collections.abc import Sequence
 
 # -- tokens ----------------------------------------------------------------------------
 #
-# Words keep internal hyphens, Mediopunkt and apostrophes (e-mail, sorge·recht, geht's),
-# numbers keep their separators (4.2.2020, 9.00, 1,5, 1'500), and every other character
-# that is not a space is a token of its own. French and Italian split an elided article
-# or preposition from the next word (l' information, dell' anno), as the Moses tokenizer
-# does. Typographic apostrophes become ASCII ones and soft hyphens are dropped.
-_TOKEN_RE = re.compile(r"\w+(?:(?:[-\u2010\u2011\u00b7']|(?<=\d)[.,](?=\d))\w+)*|[^\w\s]")
+# Words keep internal hyphens and apostrophes (e-mail, geht's), numbers keep their
+# separators (4.2.2020, 9.00, 1,5, 1'500), and every other character that is not a space
+# is a token of its own. French and Italian split an elided article or preposition from
+# the next word (l' information, dell' anno), as the Moses tokenizer does. Typographic
+# apostrophes become ASCII ones, soft hyphens are dropped, and so is the Mediopunkt:
+# Sorge·recht is the word Sorgerecht of the source, typography is not content. Without
+# this, a compound the pipeline splits by code (rules/mediopunkt.py) would count as a
+# word deleted and a word added in SARI.
+_TOKEN_RE = re.compile(r"\w+(?:(?:[-\u2010\u2011']|(?<=\d)[.,](?=\d))\w+)*|[^\w\s]")
 _ELISION_TOKEN_RE = re.compile(
-    r"[^\W\d_]+'(?=\w)|\w+(?:(?:[-\u2010\u2011\u00b7]|(?<=\d)[.,'](?=\d))\w+)*|[^\w\s]"
+    r"[^\W\d_]+'(?=\w)|\w+(?:(?:[-\u2010\u2011]|(?<=\d)[.,'](?=\d))\w+)*|[^\w\s]"
 )
 _ELISION_LANGS = ("fr", "it")
+_DROPPED = str.maketrans("", "", "\u00ad\u00b7")
 
 
 def tokenize(text: str, lang: str = "de") -> list[str]:
     """Lowercased tokens with punctuation split off, for SARI and token overlap."""
-    text = unicodedata.normalize("NFC", text).replace("\u00ad", "").replace("\u2019", "'")
+    text = unicodedata.normalize("NFC", text).translate(_DROPPED).replace("\u2019", "'")
     pattern = _ELISION_TOKEN_RE if lang in _ELISION_LANGS else _TOKEN_RE
     return pattern.findall(text.lower())
 

@@ -160,6 +160,11 @@ class ReviewView:
         return sum(1 for r in self.rows if r.worst is not None)
 
     @property
+    def code_splits(self) -> int:
+        """Words of this version that code split with a Mediopunkt (rules/mediopunkt.py)."""
+        return len(self.draft.code_edits)
+
+    @property
     def version_rows(self) -> list[VersionRow]:
         blocking = self.summary.blocking_findings if self.summary else []
         return [

@@ -25,6 +25,7 @@ from leichtfacile.pipeline.models import (
 )
 from leichtfacile.pipeline.prompts import examples, level_name, render
 from leichtfacile.rules.document import KnownValues
+from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.rules.values import HARD_KINDS, Value, extract_values, matches, parse_value_norm
@@ -560,7 +561,9 @@ def write(
 
 
 def _sentence_key(text: str) -> str:
-    return " ".join(text.lower().split()).rstrip(".!?:")
+    # Without the Mediopunkt: a repair that writes Krankenversicherung repeats the
+    # Kranken·versicherung sentence code split earlier (rules/mediopunkt.py).
+    return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?:")
 
 
 def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
@@ -774,7 +777,7 @@ def apply_repairs(
         return f"{base}.{n}"
 
     def key(text: str) -> str:
-        return " ".join(text.lower().split()).rstrip(".!?")
+        return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?")
 
     # A repair must not repeat a sentence that is already in the draft elsewhere.
     kept = {key(b.text) for b in draft.blocks if b.id not in repairs}
@@ -824,6 +827,7 @@ def apply_repairs(
             "version": draft.version + 1,
             "parent_version": draft.version,
             "origin": "repair",
+            "code_edits": [],  # each version records the edits made on it
         }
     )
 

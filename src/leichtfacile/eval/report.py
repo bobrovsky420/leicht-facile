@@ -121,13 +121,25 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
             f"| {_fmt(_mean(group, 'usd_per_page'), 4)} "
             f"| {_fmt(_mean(group, 'latency_s_per_page'))} |"
         )
-    out += ["", "Rule findings (errors and warnings) per 100 blocks, by family:", ""]
-    out.append("| Setup | " + " | ".join(LANGUAGE_FAMILIES) + " |")
-    out.append("|---|" + "---|" * len(LANGUAGE_FAMILIES))
+    out += [
+        "",
+        'Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is '
+        "the compounds split by code in the final version, per 100 blocks (P1 and P2 only; "
+        "the baselines and the reference measure the text as written):",
+        "",
+    ]
+    columns = [*LANGUAGE_FAMILIES]
+    columns.insert(columns.index("LEX") + 1, "LEX by code")
+    out.append("| Setup | " + " | ".join(columns) + " |")
+    out.append("|---|" + "---|" * len(columns))
     for name, group in groups:
         cells = []
-        for family in LANGUAGE_FAMILIES:
-            values = [r.get("by_family_per_100", {}).get(family, 0.0) for r in group]
+        for column in columns:
+            if column == "LEX by code":
+                splits = [r["mediopunkt_per_100"] for r in group if "mediopunkt_per_100" in r]
+                cells.append(_fmt(mean(splits)) if splits else "-")
+                continue
+            values = [r.get("by_family_per_100", {}).get(column, 0.0) for r in group]
             cells.append(_fmt(mean(values)) if values else "-")
         out.append(f"| {name} | " + " | ".join(cells) + " |")
     rich = [r for r in rows if (r.get("hard_facts_total") or 0) >= 3]

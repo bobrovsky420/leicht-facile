@@ -68,7 +68,7 @@ sentence limits follow from the calibration on the official French pages (below)
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, not in glossary; the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`); an uppercase letter after the dot is flagged | warn |
+| LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, in the glossary or not (an entry explains the word, it does not make it shorter); the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`) and is written into the draft by code in P1 and P2 (nouns only, see "Edits made by code" below); a long word that is no compound is a note, none if it is in the glossary; an uppercase letter after the dot is flagged | warn |
 | LEX-02 | No abbreviations except common ones | a list of dotted abbreviations (`z. B.`, `bzw.`, `ggf.`, `ca.`, `Art. 5`, ...), abbreviated weekday ranges (`Mo-Fr`), capital clusters and mixed-case law abbreviations (`KVG`, `BehiG`); allowlist: `WC`, `SBB`, `PDF`, `AHV`, `IV`, `CHF`, `SMS`, `TV`; an abbreviation explained in the text (`(EL)` after the full term) or in the glossary is only `info` | warn |
 | LEX-03 | No foreign words, anglicisms, jargon | content word with a Zipf frequency below 2.5 (wordfreq, German), unless it is a compound of common words or in the glossary | info |
 | LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded); `%` is NUM-06, quotation marks are CH-02 | warn |
@@ -235,8 +235,26 @@ What the calibration changed, and why:
 - GRAM-05 warns only in nominal style (light verb, `zur`/`bei der`, genitive or `von`
   attribute); an abstract noun on its own is a note. Everyday words with a nominal
   suffix (`Behinderung`, `Unter·stützung`) are not flagged.
-- LEX-01 warns for compounds that can take a Mediopunkt; a long word that is no
-  compound (`Organisationen`) gets a note.
+- LEX-01 warns for compounds that can take a Mediopunkt, in the glossary or not: an
+  entry explains the word but does not make it shorter. A long word that is no
+  compound (`Organisationen`) gets a note, and none when it is in the glossary.
+
+Edits made by code (6 October 2026): the Mediopunkt is the one rule whose fix the
+pipeline writes itself. The 8B writer does not apply the split a repair round gives it,
+and it puts long compounds in the glossary, which used to exempt them (job
+`287fea3aadd2` on CSCS kept `Krankenversicherungspolice` and `Sozialversicherungsstelle`
+through two rounds). So after the write stage and after every repair round, before the
+check, `rules/mediopunkt.py` splits every compound noun with a part longer than the
+level's limit, in the blocks and in the glossary terms, and lowers a capital after an
+existing dot. Nouns only (spaCy NOUN or PROPN): for an adjective, a participle or a verb
+(`zivilrechtlichen`, `anspruchsberechtigt`) the fix is another word, so they keep the
+warning. Words with a digit, web and e-mail addresses are never touched, so no value of
+the fact contract changes, and neither is a word in front of a number (a street with its house number: the splitter does not know street names). Word and syllable counts do not change (one word in 1196 splits on the CSCS drafts, Audio·deskription, lost a syllable in the hyphenation patterns); the readability index moves by up to 0.6 points in a few drafts only because spaCy's parser places a sentence boundary differently once a token changes.
+The split is the one LEX-01 proposes, so rule and step agree and the rule is silent on
+the result. Every change is recorded on the draft version (`code_edits`: block, word
+before and after), shown on the review page and reported in the evaluation next to the
+LEX family as "LEX by code". The step runs in P1 and P2 only; the baselines measure
+the prompt alone, and the CLI `check` checks a text as it is.
 - NUM-04 accepts full hours (`17 Uhr`) and `8.30 bis 11.30 Uhr`, as the Bern and
   Zürich pages write them.
 - NUM-08 accepts the spaced international format (`+41 44 123 45 67`), which the

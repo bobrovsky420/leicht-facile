@@ -197,6 +197,16 @@ class GlossaryEntry(Artifact):
     explanation: str
 
 
+class CodeEdit(Artifact):
+    """A word the pipeline changed by code, not by the model (rules/mediopunkt.py):
+    `Krankenversicherungspolice` to `Kranken·versicherungs·police`."""
+
+    block_id: str  # a block id, or "glossary" for a glossary term
+    rule_id: str  # the rule the edit satisfies, LEX-01
+    before: str
+    after: str
+
+
 class Draft(Artifact):
     doc_id: str
     lang: Lang
@@ -207,6 +217,7 @@ class Draft(Artifact):
     blocks: list[Block]
     omissions: list[Omission] = Field(default_factory=list)
     glossary: list[GlossaryEntry] = Field(default_factory=list)
+    code_edits: list[CodeEdit] = Field(default_factory=list)  # made on this version
 
     def by_id(self) -> dict[str, Block]:
         return {b.id: b for b in self.blocks}
@@ -330,6 +341,12 @@ class PipelineSummary(Artifact):
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     blocking_findings: list[int] = Field(default_factory=list)  # per draft version
     notes: list[str] = Field(default_factory=list)  # stages that failed and were skipped
+
+    @field_validator("condition", mode="before")
+    @classmethod
+    def _old_condition_names(cls, value: object) -> object:
+        # Summaries stored before 6 October 2026 say C0 to C2 (the eval stores do).
+        return canonical_condition(value) if isinstance(value, str) else value
 
 
 # -- jobs --------------------------------------------------------------------------

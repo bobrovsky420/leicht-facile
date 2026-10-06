@@ -104,7 +104,7 @@ def test_sari_document_scores_the_whole_document():
         (
             "Das Sorge·recht per E-Mail: geht's?",
             "de",
-            ["das", "sorge·recht", "per", "e-mail", ":", "geht's", "?"],
+            ["das", "sorgerecht", "per", "e-mail", ":", "geht's", "?"],  # the dot is typography
         ),
         (
             "L\u2019information de l'État coûte 1'500 francs.",

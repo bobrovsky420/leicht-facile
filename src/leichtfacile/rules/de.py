@@ -19,8 +19,9 @@ from leichtfacile.rules.lexicon import (
     MEDIOPUNKT,
     is_common_compound,
     is_known,
+    lowercase_after_mediopunkt,
+    mediopunkt_suggestion,
     split_compound,
-    with_mediopunkt,
     zipf,
 )
 from leichtfacile.rules.messages import hit
@@ -746,33 +747,27 @@ def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
         if t.like_url or t.like_email or not any(ch.isalpha() for ch in t.text):
             continue
-        parts = re.split(r"[·-]", t.text)
-        if MEDIOPUNKT in t.text:
-            after = t.text.split(MEDIOPUNKT)[1:]
-            upper = [p for p in after if p[:1].isupper()]
-            if upper:
-                yield hit(
-                    "LEX-01.lowercase",
-                    found=t.text,
-                    evidence=t.text,
-                    suggestion=t.text.split(MEDIOPUNKT)[0]
-                    + "".join(MEDIOPUNKT + p[:1].lower() + p[1:] for p in after),
-                )
-        long_parts = [p for p in parts if _alpha(p) > limit]
-        if not long_parts or ctx.in_glossary(t.text):
+        lowered = lowercase_after_mediopunkt(t.text)
+        if lowered:
+            yield hit("LEX-01.lowercase", found=t.text, evidence=t.text, suggestion=lowered)
+        long_parts = [p for p in re.split(r"[·-]", t.text) if _alpha(p) > limit]
+        if not long_parts:
             continue
-        split = with_mediopunkt(long_parts[0], limit) if long_parts[0].isalpha() else None
+        # The same split the pipeline writes by code (rules/mediopunkt.py). A glossary
+        # entry explains the word but does not make it shorter, so a compound is flagged
+        # whether it is in the glossary or not; only a long word that cannot be split
+        # needs no note when it is explained.
+        split = mediopunkt_suggestion(t.text, limit)
         if split:
-            suggestion = t.text.replace(long_parts[0], split, 1) if len(parts) > 1 else split
             yield hit(
                 "LEX-01",
                 found=t.text,
                 letters=_alpha(long_parts[0]),
                 limit=limit,
                 evidence=t.text,
-                suggestion=suggestion,
+                suggestion=split,
             )
-        else:  # no compound: a Mediopunkt cannot help, only a shorter word
+        elif not ctx.in_glossary(t.text):  # no compound: only a shorter word helps
             yield hit(
                 "LEX-01.no_compound",
                 found=t.text,

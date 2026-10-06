@@ -216,6 +216,19 @@ to the first, and a heading left without content goes too: small models repeat a
 under every heading it answers (the deadline under "What must you do?" and again under
 "By when?").
 
+Then code writes the Mediopunkt (`rules/mediopunkt.py`): every compound noun with a part
+longer than the level's limit is split (`Kranken·versicherungs·police`), in the blocks
+and in the glossary terms, and a capital after an existing dot is lowered. Nouns only;
+adjectives and verbs keep their LEX-01 warning, because their fix is another word. Words
+with a digit, web and e-mail addresses and the word in front of a number (a street with
+its house number) are never touched, so no value changes, and the split is the one
+LEX-01 proposes, so the rule is silent on the result. The edits are
+recorded on the draft version (`code_edits`), shown on the review page and reported in
+the evaluation. The same step runs after every repair round, before the check: the 8B
+does not apply the split it is given in a repair, and a warning alone costs a polish
+round. P1 and P2 only; the baselines measure the prompt alone ([rules.md](rules.md),
+"Edits made by code").
+
 ### 4.4 Rule check (code)
 
 Runs on every block, in milliseconds, no model. Produces `RuleFindings`: per-block
@@ -281,6 +294,8 @@ contains (the check of FACT-06) is sent back once with the values named; the sec
 answer is used as it is, and FACT-06 flags what remains.
 Then:
 
+- code writes the Mediopunkt into the new version as after the write stage (§4.3), so
+  that the check, the judge, the reviewer and the exports see the same text;
 - rule checks rerun on the new version;
 - the judge reruns only if a fact or an invented statement was involved; otherwise its
   findings for the blocks the repair did not touch are carried over;
@@ -648,6 +663,11 @@ in schemas.py maps them). On screen the code carries a short label, "P2: full".
 | P1 | Understand → write → rule check, no judge, no repair | Value of the fact sheet and structure |
 | P2 | Full pipeline with judge and repair | Value of checking and repairing |
 
+P1 and P2 include the one edit code makes to the text, the Mediopunkt in long compound
+nouns (§4.3); the baselines do not, as Zurich's own Markdown stripping stays out of
+P0-ZH. The report shows the compounds split by code per 100 blocks next to the LEX
+family, so the deterministic share of the LEX improvement is visible.
+
 Each run with the 8B writer; P2 also with the 70B writer (every stage on the 70B) and
 with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
 runs both. The judge is always the 70B-thinking model, so P1 and P2 are judged by the
@@ -676,6 +696,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
 | Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
+| Compounds split by code | Words that got their Mediopunkt from code in the final version, per 100 blocks (P1 and P2) | The cheap, deterministic part of the LEX gain, kept apart from the model's |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
@@ -686,7 +707,9 @@ Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).
 Every output is scored the same way: language rules recomputed on the final text, fact
 coverage against one fact sheet per pair, readability, document-level SARI (a port of
-the original `SARI.py`, checked bit for bit), judge statistics where a judge ran.
+the original `SARI.py`, checked bit for bit; its tokenizer drops the Mediopunkt, so
+`Kranken·kasse` is the source's `Krankenkasse` and a split by code is not a deleted and
+an added word), judge statistics where a judge ran.
 Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
 protected pages); `python -m leichtfacile eval report` renders the tables for the
 technical report from aggregates only. If the dataset is published, it follows
@@ -699,7 +722,10 @@ responses, and metadata with per-instance licensing.
 
 `make run` → `docker compose up --build`. The Makefile first checks that `.env`
 exists and names `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME`, and prints a short
-help text otherwise. The image is built from `python:3.14-slim` (the project supports
+help text otherwise. Next to Compose it starts `scripts/open_browser.sh`, which polls
+`/healthz` from the host and opens http://localhost:8000 in the default browser
+(Windows, macOS, Linux desktops, WSL); without a desktop it prints the address, and
+`OPEN_BROWSER=0` turns it off. The helper is stopped with Compose. The image is built from `python:3.14-slim` (the project supports
 Python 3.12 and later) and installs the locked dependencies from `uv.lock` with `uv`
 at **build** time, including the spaCy models as pinned wheel URLs. German and French
 are in the image; the Italian model is added when Italian ships. The

@@ -9,6 +9,7 @@ known words, allowing the usual linking elements (Ergänzungs·leistungen).
 
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 
 import wordfreq
@@ -183,7 +184,10 @@ def _best_split(word: str, lang: str) -> tuple[float, int, str, float] | None:
                 inner = _best_split(stem, lang)  # the modifier may be a compound itself
                 if inner is None:
                     continue
-                z_left = inner[0] - 0.5
+                # Its weakest part, not its score: with the score (which carries the head
+                # bonus) a chain of short common parts beats a known place name
+                # (Ostermundi·gens·trasse instead of Ostermundigen·strasse).
+                z_left = inner[3] - 0.5
             # Prefer frequent parts; a small bonus for a longer head keeps the
             # split at the main joint (Kranken·versicherung, not Krankenver·sicherung).
             weakest = min(z_left, z_right)
@@ -240,6 +244,42 @@ def split_compound(word: str, max_letters: int = 0, lang: str = "de") -> list[st
 def with_mediopunkt(word: str, max_letters: int = 0, lang: str = "de") -> str | None:
     parts = split_compound(word, max_letters, lang)
     return MEDIOPUNKT.join(parts) if parts else None
+
+
+_PART_RE = re.compile(f"([{MEDIOPUNKT}-])")  # keeps the separators
+
+
+def letters(text: str) -> int:
+    return sum(ch.isalpha() for ch in text)
+
+
+def mediopunkt_suggestion(word: str, max_letters: int, lang: str = "de") -> str | None:
+    """The word with every part longer than max_letters split with a Mediopunkt, or None
+    when no part is too long or none of the long parts is a compound of known words.
+
+    Rule LEX-01 proposes this text and the deterministic step rules/mediopunkt.py writes
+    it, so rule and step cannot disagree: Krankenversicherungspolice becomes
+    Kranken·versicherungs·police, Prämien·verbilligungsgesuch keeps its first part and
+    gets Prämien·verbilligungs·gesuch, Organisationen stays (no compound).
+    """
+    pieces = _PART_RE.split(word)
+    changed = False
+    for i, piece in enumerate(pieces):
+        if piece.isalpha() and letters(piece) > max_letters:
+            split = with_mediopunkt(piece, max_letters, lang)
+            if split:
+                pieces[i] = split
+                changed = True
+    return "".join(pieces) if changed else None
+
+
+def lowercase_after_mediopunkt(word: str) -> str | None:
+    """Prämien·Verbilligung -> Prämien·verbilligung; None when nothing changes."""
+    if MEDIOPUNKT not in word:
+        return None
+    first, *rest = word.split(MEDIOPUNKT)
+    fixed = MEDIOPUNKT.join([first, *(p[:1].lower() + p[1:] for p in rest)])
+    return fixed if fixed != word else None
 
 
 def is_common_compound(word: str, lang: str = "de", min_zipf: float = 3.0) -> bool:
