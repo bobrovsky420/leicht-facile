@@ -1,4 +1,4 @@
-"""FastAPI application. For now: a landing page and the health check.
+"""FastAPI application: pages, JSON API, health check, and the job runner.
 
 Run with `uvicorn leichtfacile.web.app:create_app --factory`.
 """
@@ -6,51 +6,62 @@ Run with `uvicorn leichtfacile.web.app:create_app --factory`.
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from leichtfacile import __version__
 from leichtfacile.config import Settings, get_settings
+from leichtfacile.examples import load_examples
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.pipeline.orchestrator import Orchestrator
+from leichtfacile.pipeline.runner import JobRunner
+from leichtfacile.store import Store
+from leichtfacile.web import api, pages
 
 log = logging.getLogger(__name__)
-
-_INDEX = """<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leicht·Facile</title>
-<style>
-  body { font: 18px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 3rem auto;
-         padding: 0 1rem; color: #1b1b1b; background: #fff; }
-  code { background: #f2f2f2; padding: 0 .25rem; }
-</style>
-</head>
-<body>
-<h1>Leicht·Facile</h1>
-<p>The service is running (version {version}).</p>
-<p>The review interface comes in a later version.
-Health and model endpoint status: <a href="/healthz"><code>/healthz</code></a>.</p>
-</body>
-</html>
-"""
+STATIC_DIR = Path(__file__).parent / "static"
+DATABASE_NAME = "leichtfacile.sqlite"
 
 
-def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    llm: LLMClient | None = None,
+    store: Store | None = None,
+    *,
+    load_examples_on_start: bool = True,
+) -> FastAPI:
     settings = settings or get_settings()
     logging.getLogger("leichtfacile").setLevel(settings.log_level.upper())
     llm = llm or LLMClient.from_settings(settings)
+    store = store or Store(settings.data_dir / DATABASE_NAME)
+    orchestrator = Orchestrator(store, llm, settings)
+    runner = JobRunner(orchestrator)
 
-    app = FastAPI(title="Leicht·Facile", version=__version__)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if load_examples_on_start:
+            load_examples(store)
+        runner.start()
+        resumed = runner.resume_pending()
+        if resumed:
+            log.info("resumed %d unfinished jobs", resumed)
+        yield
+        runner.stop()
+
+    app = FastAPI(title="Leicht·Facile", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.llm = llm
+    app.state.store = store
+    app.state.orchestrator = orchestrator
+    app.state.runner = runner
 
-    @app.get("/", response_class=HTMLResponse)
-    def index() -> str:
-        return _INDEX.replace("{version}", __version__)
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.include_router(api.router)
+    app.include_router(pages.router)
 
     @app.get("/healthz")
     def healthz() -> dict:

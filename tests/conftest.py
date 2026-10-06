@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -21,6 +23,8 @@ def make_settings(**overrides: Any) -> Settings:
         "llm_base_url": BASE_URL,
         "llm_api_key": "test-key",
         "llm_name": MODEL,
+        # Never the repository's data/ folder: every test gets a fresh directory.
+        "data_dir": Path(tempfile.mkdtemp(prefix="leichtfacile-test-")),
     }
     values.update(overrides)
     return Settings(_env_file=None, **values)  # type: ignore[call-arg]

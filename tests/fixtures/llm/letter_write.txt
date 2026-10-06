@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    {"kind": "heading", "text": "Was müssen Sie tun?", "fact_ids": [], "segment_ids": []},
+    {"kind": "sentence", "text": "Sie schicken ein Antragsformular an die Sozialversicherungsstelle.", "fact_ids": ["f007"], "segment_ids": ["s0007"]},
+    {"kind": "sentence", "text": "Das Formular müssen Sie bis 31. März 2027 einreichen.", "fact_ids": ["f001"], "segment_ids": ["s0007"]},
+    {"kind": "heading", "text": "Was brauchen Sie?", "fact_ids": [], "segment_ids": []},
+    {"kind": "list_item", "text": "Ihr Antragsformular", "fact_ids": [], "segment_ids": ["s0007"]},
+    {"kind": "list_item", "text": "Eine Kopie Ihrer Steuerveranlagung", "fact_ids": [], "segment_ids": ["s0004"]},
+    {"kind": "sentence", "text": "Sie rufen die Sozialversicherungsstelle an.", "fact_ids": ["f002"], "segment_ids": ["s0016"]},
+    {"kind": "sentence", "text": "Das Amt ist von Montag bis Freitag von 8.30 bis 11.30 Uhr erreichbar.", "fact_ids": ["f008"], "segment_ids": ["s0016"]},
+    {"kind": "sentence", "text": "Sie können auch eine E-Mail schreiben an ipv@musterwil.example.", "fact_ids": ["f10"], "segment_ids": ["s0016"]},
+    {"kind": "sentence", "text": "Mehr Informationen finden Sie auf www.musterwil.example/ipv.", "fact_ids": ["f11"], "segment_ids": ["s0017"]}
+  ],
+  "omissions": [
+    {"what": "Gesetzesartikel", "why": "Für die Leserin nicht nötig", "segment_ids": ["s0003"]}
+  ],
+  "glossary": [
+    {"term": "Prämienverbilligung", "explanation": "Der Kanton bezahlt einen Teil von Ihrer Krankenkassenprämie, damit Sie weniger bezahlen."}
+  ]
+}

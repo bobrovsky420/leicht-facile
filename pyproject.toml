@@ -14,6 +14,13 @@ dependencies = [
     "httpx>=0.28",
     "spacy>=3.8.16,<3.9",
     "de-core-news-md",
+    "fr-core-news-md",
+    "trafilatura>=2.3",
+    "pdfplumber>=0.11.10",
+    "pyphen>=0.18",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.32",
+    "wordfreq>=3.1.1",
 ]
 
 [project.scripts]
@@ -21,12 +28,15 @@ leichtfacile = "leichtfacile.cli:main"
 
 [dependency-groups]
 dev = [
+    "fpdf2>=2.8.9",
     "pytest>=8.4",
+    "pyyaml>=6.0.3",
     "ruff>=0.13",
 ]
 
 [tool.uv.sources]
 de-core-news-md = { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" }
+fr-core-news-md = { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" }
 
 [build-system]
 requires = ["hatchling>=1.27"]

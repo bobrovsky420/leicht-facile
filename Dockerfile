@@ -22,6 +22,9 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
 RUN uv sync --frozen --no-dev --no-editable
 
+# Example documents and pre-computed example jobs (team-written texts only).
+COPY data/examples ./data/examples
+
 RUN useradd --create-home --uid 10001 app \
     && mkdir -p /data \
     && chown app /data

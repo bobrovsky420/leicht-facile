@@ -1,4 +1,4 @@
-.PHONY: run stop check-env check-llm test lint format smoke eval bundle
+.PHONY: run stop check-env check-llm test lint format smoke calibrate day1 eval bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
 
@@ -37,11 +37,30 @@ format:
 	uv run ruff format .
 	uv run ruff check --fix .
 
-# Placeholders until the pipeline and the evaluation harness exist.
-smoke: check-llm
+# One document through the full pipeline in the container, against the live endpoint.
+# Succeeds when the job reaches review; the artifacts land in the volume under /data/out.
+smoke: check-env
+	docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
 
-eval:
-	@echo "make eval: the evaluation harness is not implemented yet."; exit 1
+# Rule checker on the official easy-language pages (no model needed).
+calibrate:
+	uv run python -m leichtfacile eval fetch --role all
+	uv run python -m leichtfacile eval calibrate --role all --lang de
+	uv run python -m leichtfacile eval calibrate --role all --lang fr
+
+# Day-1 questions about the endpoint (docs/architecture.md §12).
+day1: check-env
+	uv run python scripts/day1_checks.py
+
+# Evaluation: conditions C0, C1, C2 on the held-out pairs, then the report tables.
+# Responses are cached (LLM_CACHE=1), so an interrupted run resumes cheaply.
+eval: check-env
+	uv run python -m leichtfacile eval fetch --role all
+	uv run python -m leichtfacile eval reference --role all
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C1
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2
+	uv run python -m leichtfacile eval report --out eval/report.md
 
 bundle:
 	@echo "make bundle: the air-gapped image bundle is not implemented yet."; exit 1

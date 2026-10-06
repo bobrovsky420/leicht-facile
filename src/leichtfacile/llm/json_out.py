@@ -75,6 +75,12 @@ def complete_json[T: BaseModel](
     for attempt in range(max_repairs + 1):
         result = client.complete(conversation, **kwargs)
         results.append(result)
+        if result.truncated:
+            # A cut-off answer still contains complete inner objects that would parse;
+            # it is never used, and asking again for the same answer does not help.
+            raise LLMOutputError(
+                f"model output for {schema.__name__} was cut off at max_tokens", results
+            )
         try:
             return schema.model_validate(extract_json(result.text)), results
         except (JSONExtractionError, ValidationError) as exc:

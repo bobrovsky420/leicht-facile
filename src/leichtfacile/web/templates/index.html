@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="intro">
+  <h1>New draft</h1>
+  <p>Paste a text, give the address of a web page, or upload a PDF or HTML file.
+  Apertus reads the document, extracts the facts that must survive, and writes a draft.
+  Code then checks the easy-language rules and every deadline, amount and phone number.</p>
+</section>
+
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" action="/jobs" enctype="multipart/form-data" class="new-job">
+  <fieldset>
+    <legend>Document</legend>
+    <label for="text">Pasted text</label>
+    <textarea id="text" name="text" rows="8" placeholder="Paste the official text here">{{ form.text or "" }}</textarea>
+    <label for="url">or a web address</label>
+    <input id="url" name="url" type="url" placeholder="https://www.zh.ch/de/..." value="{{ form.url or '' }}">
+    <label for="file">or a file (PDF with a text layer, HTML or plain text)</label>
+    <input id="file" name="file" type="file" accept=".pdf,.html,.htm,.txt,.md">
+    <label for="title">Title (optional)</label>
+    <input id="title" name="title" type="text" value="{{ form.title or '' }}">
+  </fieldset>
+  <fieldset class="options">
+    <legend>Options</legend>
+    <label for="lang">Language</label>
+    <select id="lang" name="lang">
+      <option value="auto">Detect</option>
+      <option value="de" {% if form.lang == 'de' %}selected{% endif %}>German</option>
+      <option value="fr" {% if form.lang == 'fr' %}selected{% endif %}>French</option>
+      <option value="it" disabled>Italian (follows)</option>
+    </select>
+    <label for="level">Level</label>
+    <select id="level" name="level">
+      <option value="A2" {% if form.level != 'B1' %}selected{% endif %}>A2: Leichte Sprache, FALC</option>
+      <option value="B1" {% if form.level == 'B1' %}selected{% endif %}>B1: Einfache Sprache, langage clair</option>
+    </select>
+    <label for="condition">Pipeline</label>
+    <select id="condition" name="condition">
+      <option value="C2" {% if form.condition not in ('C0', 'C1') %}selected{% endif %}>Full: fact sheet, draft, rule check, judge, repair</option>
+      <option value="C1" {% if form.condition == 'C1' %}selected{% endif %}>Fact sheet, draft and rule check only</option>
+      <option value="C0" {% if form.condition == 'C0' %}selected{% endif %}>Baseline: one prompt, for comparison</option>
+    </select>
+  </fieldset>
+  <button type="submit">Create draft</button>
+  <p class="hint">Writer model: <code>{{ settings.llm_name }}</code>. Judge model: <code>{{ settings.judge_name }}</code>.</p>
+</form>
+
+<section>
+  <h2>Drafts</h2>
+  {% if jobs %}
+  <table class="jobs">
+    <thead><tr><th>Document</th><th>Pipeline</th><th>Level</th><th>Status</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for j in jobs %}
+      <tr>
+        <td><a href="/jobs/{{ j.id }}">{{ j.title or j.id }}</a></td>
+        <td>{{ j.config.condition }}</td>
+        <td>{{ j.config.level }}</td>
+        <td><span class="status status-{{ j.status }}">{{ j.status | replace('_', ' ') }}</span></td>
+        <td>{{ j.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No drafts yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Review: {{ job.title or job.id }} - Leicht·Facile{% endblock %}
+{% block body_class %}wide{% endblock %}
+{% block content %}
+{% set counts = v.counts %}
+<section class="review-head">
+  <h1>{{ job.title or job.id }}</h1>
+  <p class="facts-line">
+    <span class="status status-{{ job.status }}">{{ job.status | replace('_', ' ') }}</span>
+    Pipeline {{ job.config.condition }}, level {{ v.draft.level }}.
+    Draft version {{ v.draft.version }}{% if v.final_version == v.draft.version %} (final){% endif %}.
+    <span class="count count-error">{{ counts.error }} errors</span>
+    <span class="count count-warn">{{ counts.warn }} warnings</span>
+    {% if v.summary %}{{ v.summary.rounds }} repair round{{ '' if v.summary.rounds == 1 else 's' }}: {{ v.summary.stop_reason }}.{% endif %}
+    {{ v.tokens_in + v.tokens_out }} tokens.
+  </p>
+  {% if v.versions | length > 1 %}
+  <nav class="versions" aria-label="Draft versions">Versions:
+    {% for n in v.versions %}
+      {% if n == v.draft.version %}<strong>v{{ n }}</strong>{% else %}<a href="?version={{ n }}">v{{ n }}</a>{% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
+  <nav class="exports" aria-label="Export">
+    Export:
+    <a href="/api/jobs/{{ job.id }}/export?format=md&version={{ v.draft.version }}">Markdown</a>
+    <a href="/api/jobs/{{ job.id }}/export?format=html&version={{ v.draft.version }}">HTML</a>
+    <a href="/api/jobs/{{ job.id }}/export?format=json">Audit bundle (JSON)</a>
+  </nav>
+</section>
+
+<div class="review-grid">
+  <section class="pane source" aria-label="Source document">
+    <h2>Source</h2>
+    {% set ns = namespace(para=None) %}
+    {% for seg in v.source.segments %}
+      {% if seg.kind == "heading" %}
+        <h3 class="seg seg-heading" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}"><span class="sid">{{ seg.id }}</span>{{ seg.text }}</h3>
+      {% else %}
+        {% set state = "used" if seg.id in v.used_segments else ("omitted" if seg.id in v.omitted_segments else "unused") %}
+        <p class="seg seg-{{ seg.kind }} {{ state }}{% if ns.para is not none and seg.para != ns.para %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}"
+           {% if state == "omitted" %}title="Left out: {{ v.omitted_segments[seg.id] }}"{% elif state == "unused" %}title="Neither used nor listed as left out"{% endif %}>
+          <span class="sid">{{ seg.id }}</span>{% if seg.kind == "list_item" %}&bull; {% endif %}{{ seg.text }}
+        </p>
+      {% endif %}
+      {% set ns.para = seg.para %}
+    {% endfor %}
+  </section>
+
+  <section class="pane draft" aria-label="Draft">
+    <h2>Draft <span class="hint">click a block to see its source</span></h2>
+    <form id="review-form" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">
+    {% for row in v.rows %}
+      {% set b = row.block %}
+      <article class="block kind-{{ b.kind }}{% if row.worst %} sev-{{ row.worst }}{% endif %}" id="blk-{{ b.id }}"
+               data-block="{{ b.id }}" data-segments="{{ b.segment_ids | join(' ') }}" data-facts="{{ b.fact_ids | join(' ') }}" tabindex="0">
+        <div class="block-line">
+          <span class="bid">{{ b.id }}</span>
+          <span class="block-text">{{ b.text }}</span>
+        </div>
+        {% if row.issues %}
+        <details class="issues" {% if row.worst == "error" %}open{% endif %}>
+          <summary>{{ row.issues | length }} finding{{ '' if row.issues | length == 1 else 's' }}</summary>
+          <ul>
+          {% for i in row.issues %}
+            <li class="issue sev-{{ i.severity }}"><span class="rid">{{ i.rule_id }}</span>{% if i.source == "judge" %}<span class="judge">judge</span>{% endif %}
+              {{ i.message }}{% if i.suggestion %} <span class="suggestion">Suggestion: {{ i.suggestion }}</span>{% endif %}</li>
+          {% endfor %}
+          </ul>
+        </details>
+        {% endif %}
+        <div class="decision" role="radiogroup" aria-label="Decision for {{ b.id }}">
+          {% set d = row.decision.decision if row.decision else "" %}
+          <label><input type="radio" name="d-{{ b.id }}" value="approved" {% if d == "approved" %}checked{% endif %}> Approve</label>
+          <label><input type="radio" name="d-{{ b.id }}" value="edited" {% if d == "edited" %}checked{% endif %}> Edit</label>
+          <label><input type="radio" name="d-{{ b.id }}" value="rejected" {% if d == "rejected" %}checked{% endif %}> Reject</label>
+          <textarea name="t-{{ b.id }}" rows="2" aria-label="Edited text for {{ b.id }}" {% if d != "edited" %}hidden{% endif %}>{{ row.decision.text if row.decision and row.decision.text else b.text }}</textarea>
+        </div>
+      </article>
+    {% endfor %}
+      <div class="save-bar">
+        <button type="button" id="approve-all" class="secondary">Approve all undecided</button>
+        <label><input type="checkbox" name="completed" {% if v.review and v.review.completed %}checked{% endif %}> Review complete</label>
+        <button type="submit">Save review</button>
+        <span id="save-status" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <aside class="pane panel" aria-label="Checks">
+    {% if v.facts %}
+    <section>
+      <h2>Facts</h2>
+      <ul class="fact-list">
+      {% for f in v.facts %}
+        <li class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" tabindex="0">
+          <span class="fid">{{ f.fact.id }}</span>
+          <span class="fstatus">{{ f.status }}</span>
+          {{ f.fact.text }}
+          {% if f.expected %}<span class="expected">Value: {{ f.expected }}</span>{% endif %}
+          {% if f.judge_note %}<span class="note">Judge: {{ f.judge_note }}</span>{% endif %}
+          {% if not f.fact.must_keep %}<span class="note">Background only</span>{% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+      <p class="hint">Code checks every value exactly. The judge checks the meaning.</p>
+    </section>
+    {% endif %}
+
+    {% if v.doc_issues %}
+    <section>
+      <h2>Document findings</h2>
+      <ul class="doc-issues">
+      {% for i in v.doc_issues %}
+        <li class="issue sev-{{ i.severity }}"><span class="rid">{{ i.rule_id }}</span> {{ i.message }}</li>
+      {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if v.draft.omissions %}
+    <section>
+      <h2>Left out</h2>
+      <ul class="omissions">
+      {% for o in v.draft.omissions %}
+        <li data-segments="{{ o.segment_ids | join(' ') }}" tabindex="0"><strong>{{ o.what }}</strong>: {{ o.why }}</li>
+      {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if v.draft.glossary %}
+    <section>
+      <h2>Glossary</h2>
+      <dl class="glossary">
+      {% for g in v.draft.glossary %}<dt>{{ g.term }}</dt><dd>{{ g.explanation }}</dd>{% endfor %}
+      </dl>
+    </section>
+    {% endif %}
+
+    {% if v.rules %}
+    <section>
+      <h2>Measures</h2>
+      <table class="metrics">
+        <tr><th>Sentences</th><td>{{ v.rules.metrics.sentences }}</td></tr>
+        <tr><th>Words per sentence</th><td>{{ v.rules.metrics.avg_words }} (max {{ v.rules.metrics.max_words }})</td></tr>
+        <tr><th>Readability ({{ v.rules.metrics.readability_formula }})</th><td>{{ v.rules.metrics.readability if v.rules.metrics.readability is not none else "-" }}</td></tr>
+        <tr><th>Passive</th><td>{{ v.rules.metrics.pct_passive }} %</td></tr>
+        <tr><th>Facts found by code</th><td>{% if v.rules.metrics.fact_coverage is not none %}{{ v.rules.metrics.facts_found }} of {{ v.rules.metrics.facts_total }}{% else %}-{% endif %}</td></tr>
+      </table>
+    </section>
+    {% endif %}
+
+    {% if v.summary %}
+    <section>
+      <h2>Run</h2>
+      <p class="hint">Writer: <code>{{ v.summary.writer_model }}</code>{% if v.summary.judge_model %}. Judge: <code>{{ v.summary.judge_model }}</code>{% endif %}.
+      Errors per version: {{ v.summary.blocking_findings | join(', ') }}.</p>
+      <form method="post" action="/jobs/{{ job.id }}/rerun" class="inline">
+        <select name="stage" aria-label="Run again from">
+          <option value="write">Write again</option>
+          <option value="understand">Read and write again</option>
+        </select>
+        <button type="submit" class="secondary">Run again</button>
+      </form>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

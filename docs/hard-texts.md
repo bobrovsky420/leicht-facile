@@ -12,10 +12,14 @@ repository (`tests/fixtures/`, glossary seeds) and on slides without consent.
 Idea: open the pitch with one real-sounding official sentence, full screen, and ask
 the audience to read it.
 
+Language: the pitch, the slides and the demo video are in English (narration, slide
+text, captions). German and French appear on screen only as illustrations: the hard
+sentences, the tool output and the two hook questions below.
+
 1. Slide: one sentence from §4, nothing else.
    *"Können Sie das lesen? Haben Sie es sofort verstanden?"* /
    *"Pouvez-vous lire ceci ? L'avez-vous compris tout de suite ?"*
-2. Slide: *"Sie sind nicht allein."* plus the number from §2.
+2. Slide: *"You are not alone."* plus the number from §2.
 3. Slide: the same content as Leicht·Facile output (A2), side by side with the source.
 
 Best candidates for slide 1:
@@ -49,8 +53,16 @@ Slide 3 must show real tool output, not the illustrative rewrites in §4.
 | **844'000** people aged 16-65 (15%) with low skills in reading, numeracy and adaptive problem solving | PIAAC 2023 (OECD), [SBFI press release, 23 October 2025](https://www.sbfi.admin.ch/de/newnsb/JrHo0f0D4ssv3Nu8Ee678) | Preferred: newest official figure |
 | About **800'000** adults (about 1 in 6) who cannot read and write well enough for everyday tasks (Illettrismus) | ALL survey 2003, widely quoted, for example by [SRF](https://www.srf.ch/news/schweiz/funktionaler-analphabetismus-es-ist-nie-zu-spaet-wenn-erwachsene-lesen-lernen) and [swissinfo](https://www.swissinfo.ch/ger/wenn-mann-oder-frau--buchstaeblich--ueberfordert-ist/43497674) | Only as the rounded, familiar number |
 
-Suggested wording: *"Rund 840'000 Erwachsene in der Schweiz haben Mühe mit Lesen.
-Quelle: PIAAC 2023."* / *"Environ 840 000 adultes en Suisse ont de la peine à lire."*
+Suggested wording: *"About 844,000 adults in Switzerland struggle with reading.
+Source: PIAAC 2023."* As an on-screen illustration: *"Rund 840'000 Erwachsene in der
+Schweiz haben Mühe mit Lesen."* / *"Environ 840 000 adultes en Suisse ont de la peine
+à lire."*
+
+Key message, the same in every deliverable (video, pitch, README, report): these
+people must not be excluded. Official letters decide their money, their deadlines and
+their rights, and they have the same right to understand them. Short form for slides
+and the end card: *"No one left out."* Never stop at the number alone: say what it
+means for the people behind it.
 
 Caveats for the slide:
 

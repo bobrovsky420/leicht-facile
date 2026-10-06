@@ -1,6 +1,6 @@
 # Leicht·Facile - design and architecture
 
-Status: design, 5 October 2026. Hack Apertus online hackathon, Track 2B.
+Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12). Hack Apertus online hackathon, Track 2B.
 Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
 Items marked **[verify]** are assumptions to confirm against the live endpoint on day 1 (see §12).
 
@@ -133,19 +133,26 @@ a failure resumes from the last good stage.
 
 | Input | Method | Output |
 |-------|--------|--------|
-| HTML URL | `trafilatura` main-content extraction, keeping headings and lists | `SourceDocument` |
-| PDF with text layer | `pdfplumber`, page by page; headings by font size heuristics | `SourceDocument` |
-| PDF without text layer, photo | Rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). **[verify]** image input through the CSCS API; otherwise local vLLM only. | `SourceDocument` with `segments` produced by the model |
-| Pasted text | Paragraph split | `SourceDocument` |
+| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
+| PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). **[verify]** image input through the CSCS API (day-1 check 4); otherwise local vLLM only. | - |
+| Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
-Segmentation: paragraphs → sentences with the spaCy sentencizer for the document
-language. Each segment gets a stable id (`s0001`, …), a kind (`heading`, `paragraph`,
-`list_item`, `table_cell`) and its heading path. Language is detected with
-`lingua-py`; the user can override it.
+All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
+removed, the dot-like characters PDFs deliver in compounds (`Merk•blatt`) turned into
+the Mediopunkt, typographic apostrophes in numbers (`1’500`) into `'`.
+
+Segmentation: paragraphs → sentences with spaCy's rule-based sentencizer for the
+document language, plus a merge step for German abbreviations and ordinal dates
+(`31. März`, `Art. 5 Abs. 2`, `z. B.`). Each segment gets a stable id (`s0001`, …), a
+kind (`heading`, `paragraph`, `list_item`, `table_cell`), its heading path, the index
+of its paragraph (`para`) and, for headings, the level. The language is detected from
+stopword frequencies for German, French and Italian, which needs no extra model for
+three languages; the user can override it.
 
 Chunking is not needed for understanding - Apertus 1.5 has a 262,144-token context -
-but documents over ~3,000 words are **written** section by section (sharing one fact
-sheet), to keep output quality and allow parallel calls.
+but documents over 3,000 words are **written** section by section (sharing one fact
+sheet), to keep output quality.
 
 ### 4.2 Understand (Apertus)
 
@@ -167,6 +174,12 @@ artifact, because every later step is checked against it.
 Model: `LLM_NAME` (8B), thinking on, temperature 0.1. Output is JSON; see §6 for
 how JSON is enforced.
 
+**Code completes the fact sheet.** After the call, code adds a fact for every date,
+amount, phone number, e-mail address, web address, percentage and time in the source
+that no fact carries (`origin: code`). Values in passages the model marked as
+droppable become background facts; all others must be kept. The first local test run
+showed why: the model listed 3 facts for a letter with 11 checkable values.
+
 ### 4.3 Plan and write (Apertus)
 
 Easy language is not a sentence-by-sentence translation, so the prompt asks for a
@@ -175,9 +188,10 @@ one idea per sentence, then write. Inputs:
 
 1. The style guide for language and level (generated from [rules.md](rules.md), so
    prompt and checker never disagree).
-2. Two or three short example pairs from cantonal pages in the same language
-   (standard → easy), to anchor Swiss conventions: `ss` not `ß`, the Mediopunkt
-   (`Sorge·recht`), `Velo`, `parkieren`, `500'000`.
+2. Two short example pairs (standard → easy) written by the team, to anchor Swiss
+   conventions: `ss` not `ß`, the Mediopunkt (`Kranken·kasse`), `1'200 Franken`, dates
+   and times. Cantonal pages may not be reproduced in a public repository
+   ([sources.md](sources.md) §4), so they are not used as examples.
 3. The source segments with ids.
 4. The fact sheet.
 
@@ -185,7 +199,18 @@ Output: `Draft` - blocks (`heading` | `sentence` | `list_item`), each with the
 `fact_ids` it conveys and the `segment_ids` it was derived from (this is the
 provenance the UI shows), plus `omissions[]` with reasons and a `glossary[]`.
 
-Model: `LLM_NAME` (8B), thinking on, temperature 0.3.
+Model: `LLM_NAME` (8B), temperature 0.3, thinking off by default. In the first local
+tests, writing with thinking took 24 minutes and produced a paraphrase of the original,
+while writing without thinking took 28 seconds and produced easy language (question
+headings, `Sie`, no passive); `LLM_THINKING_STAGES` switches thinking per stage, and
+the day-1 checks on the CSCS endpoint decide the final setting.
+
+Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
+block to every fact whose exact value it contains, so fact bookkeeping does not depend
+on the model. A sentence that repeats an earlier one is dropped and its references go
+to the first, and a heading left without content goes too: small models repeat a fact
+under every heading it answers (the deadline under "What must you do?" and again under
+"By when?").
 
 ### 4.4 Rule check (code)
 
@@ -203,7 +228,17 @@ score, share of passive sentences, …). The full catalogue is in
 - **fact coverage**: every `must_keep` fact with a normalised value must appear in the
   draft in some accepted surface form (`4. Februar 2020`, `4.2.2020`, …). This is an
   exact check and the single most important automatic test;
-- readability: Amstad (German Flesch) for DE, Kandel-Moles for FR, Gulpease for IT.
+- readability: Amstad (German Flesch) for DE, Kandel-Moles for FR, Gulpease for IT;
+- the fact sheet itself: a value the model wrote into the fact sheet must appear in the
+  source sentences it cites (FACT-05).
+
+Each rule is registered in code once (`rules/base.py`), with its id, severity per level
+and the instruction for the writer prompt; the style guide is rendered from that
+registry, and a test keeps the registry and [rules.md](rules.md) in sync. German has
+30 rules of its own (`rules/de.py`) and French 27 (`rules/fr.py`, ids ending in `-FR`),
+both calibrated on the official easy-language pages; 11 rules for facts, layout and
+readability apply to every language. Italian texts get only those until their rule set
+ships.
 
 ### 4.5 Meaning check (Apertus as judge)
 
@@ -221,15 +256,31 @@ assumed (§9).
 
 ### 4.6 Repair (Apertus)
 
-Only flagged blocks are sent back, each with its findings (rule and judge) and the
-facts it must convey. The model returns replacement blocks with the same ids. Then:
+Only flagged blocks are sent back, each with its findings (rule and judge, with the
+checker's suggestion where there is one) and the facts it must keep. The model returns
+one to three sentences per flagged block and new sentences for missing facts, each
+placed after a named block. A round first asks only for what blocks the draft (rule
+errors, missing fact values, the judge's problems), with at most 5 missing facts at a
+time, the most important kinds first; the warnings get one round once nothing blocking
+is left. Code drops a repaired or added sentence that repeats one already in the draft,
+also when an addition lands before the block it repeats. The judge's meaning findings
+on headings are not sent for repair: a small model turns the question heading into a
+statement.
+Then:
 
-- rule checks rerun on changed blocks;
-- the judge reruns only if a fact-related or hallucination finding was involved;
-- stop when no `error`-level findings remain, or after `MAX_REPAIR_ROUNDS` (3).
+- rule checks rerun on the new version;
+- the judge reruns only if a fact or an invented statement was involved; otherwise its
+  findings for the blocks the repair did not touch are carried over;
+- the loop stops when no blocking finding remains (rule errors, missing fact values,
+  facts the judge found missing or distorted, invented statements), when a round brings
+  no progress, when only warnings are left after the first round, or after
+  `MAX_REPAIR_ROUNDS` (3).
 
-All draft versions are kept, so the UI and the evaluation can show the effect of
-each round. Model: `LLM_NAME`, temperature 0.2.
+Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH) and fact errors are
+repaired; provenance and bookkeeping findings (FACT-02 to FACT-05) and layout go to the
+reviewer. All draft versions are kept; the version with the fewest blocking findings
+is marked final, and the reviewer can switch to any other version. Model: `LLM_NAME`,
+thinking off, temperature 0.2.
 
 ### 4.7 Review (human) and export (code)
 
@@ -256,7 +307,7 @@ could be trained from them - in effect distilling the 70B judge's standard into 
 |-------|-----------------|-----------------|----------|-------|--------|
 | Ingest (scans only) | Read a photographed or scanned letter (image input) | 8B | off | 0.0 | segments |
 | Understand | Extract facts, core answers, hard terms | 8B | on | 0.1 | `FactSheet` JSON |
-| Plan & write | Reorder, simplify, explain, record omissions | 8B | on | 0.3 | `Draft` JSON |
+| Plan & write | Reorder, simplify, explain, record omissions | 8B | off (configurable) | 0.3 | `Draft` JSON |
 | Meaning check | Judge fact fidelity, hallucinations, semantic rules | 70B-thinking | on | 0.0 | `JudgeReport` JSON |
 | Repair | Rewrite flagged blocks | 8B | off | 0.2 | blocks |
 | Cross-language check (stretch) | Compare DE/FR/IT fact sheets | 70B | on | 0.0 | diff report |
@@ -266,52 +317,60 @@ The rule checker, ingestion, fact coverage, readability and export use no model.
 
 ## 5. Data model
 
-All artifacts are pydantic models serialised as JSON; the schemas double as the JSON
-schemas sent to the model.
+All artifacts are pydantic models (`src/leichtfacile/schemas.py`) serialised as JSON.
+The model answers in its own, leniently parsed shapes (`pipeline/models.py`), which
+code turns into these artifacts.
 
 ```text
 SourceDocument
   id, lang (de|fr|it), title, source {type, uri, fetched_at, license_note}
-  segments[]: {id, kind, text, heading_path[], page?}
+  segments[]: {id, kind, text, heading_path[], heading_level?, para, page?}
 
 FactSheet
   doc_id, doc_type, audience
   core: {what, must_do, deadline, cost, contact}  each {text|null, segment_ids[]}
-  facts[]: {id, kind, text, value_norm?, segment_ids[], must_keep}
+  facts[]: {id, kind, text, value_norm?, segment_ids[], must_keep, origin (model|code)}
   hard_terms[]: {term, explanation, segment_ids[]}
   omit_candidates[]: {segment_ids[], reason}
 
 Draft  (one per version)
-  doc_id, lang, level (A2|B1), version, parent_version?
+  doc_id, lang, level (A2|B1), version, parent_version?, origin (write|repair|baseline|review)
   blocks[]: {id, kind (heading|sentence|list_item), text, fact_ids[], segment_ids[]}
   omissions[]: {what, why, segment_ids[]}
   glossary[]: {term, explanation}
 
-RuleFindings
-  draft_version
-  findings[]: {block_id, rule_id, severity, message, evidence, suggestion?}
-  metrics: {blocks, avg_words, max_words, pct_passive, readability, fact_coverage}
+RuleFindings  (one per draft version)
+  draft_version, level
+  findings[]: {block_id?, rule_id, severity, message, evidence, suggestion?, fact_id?, segment_ids[]}
+  metrics: {blocks, sentences, words, avg_words, max_words, pct_passive, pct_genitive,
+            pct_subordinate, readability, readability_formula, facts_total, facts_found,
+            fact_coverage}
 
-JudgeReport
+JudgeReport  (one per judged draft version)
   draft_version, model
   fact_checks[]: {fact_id, status (present|missing|distorted), block_ids[], note}
   unsupported[]: {block_id, note}
-  semantic_findings[]: {block_id, rule_id, note}
+  semantic_findings[]: {block_id, rule_id (SEM-01..05), note}
 
 ReviewState
-  draft_version
+  draft_version, completed
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
+PipelineSummary
+  condition, final_version, rounds, stop_reason, writer_model, judge_model?,
+  prompt_versions {stage: hash}, blocking_findings[] (per draft version)
+
 Job
-  id, status (queued|running|needs_review|done|failed), stage, created_at
-  config: {lang, level, writer_model, judge_model, max_repair_rounds}
-  usage[]: {stage, model, tokens_in, tokens_out, latency_ms}
+  id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
+  config: {lang, level, condition (C0|C1|C2), writer_model, judge_model, use_judge,
+           max_repair_rounds}
+  usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?
 ```
 
-Storage: one SQLite database (`jobs`, `artifacts`, `llm_calls`, `llm_cache`
-tables) in the mounted volume; artifact JSON stored as text columns. No ORM beyond
-the standard library - the schema is small.
+Storage: one SQLite database (`DATA_DIR/leichtfacile.sqlite`) with the tables `jobs`,
+`artifacts` (job, name, version, JSON) and `llm_calls`; the response cache is a second
+file (`llm_cache.sqlite`). Standard library only, no ORM.
 
 ## 6. The LLM client
 
@@ -342,6 +401,13 @@ the standard library - the schema is small.
      Apertus 1.5, so its results are never reported as Apertus 1.5 numbers.
 
   All facts on third-party endpoints were checked on 5 October 2026.
+- **Thinking per stage.** `LLM_THINKING_STAGES` (default `understand,judge`) names
+  the stages that use the thinking model. When the reasoning of a thinking call runs
+  out of tokens before the answer, the stage is answered once more without thinking;
+  both calls are counted in the usage log.
+- **Graceful degradation.** A failing judge or repair round does not fail the job:
+  the reviewer gets the best draft so far with its rule and fact checks, and the job
+  summary names the step that failed.
 - **Reasoning removal.** A thinking model's reasoning is taken from the separate
   `reasoning_content` field when the server provides one (vLLM with
   `--reasoning-parser apertus`), and otherwise cut from the text, whether wrapped in
@@ -364,8 +430,16 @@ the standard library - the schema is small.
 - **Cache.** Responses are cached by hash of (model, messages, parameters) in SQLite
   when `LLM_CACHE=1`. It speeds up development and makes evaluation reruns cheap. The
   repository ships with an empty cache: the live run must work from the endpoint.
+- **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`, which
+  is needed to see the reasoning markers) also print `<|assistant_end|>`; every
+  `<|...|>` token is removed from answers.
 - **Tool calling is not used.** The thinking variants are served with tool use
   disabled, and the pipeline has no need for it.
+- **A local endpoint for development without a key.** llama.cpp's `llama-server`
+  speaks the same protocol. With the community conversion
+  `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (text only, 4-bit, unofficial) and
+  `LLM_THINKING_MODE=chat-template` it serves Apertus v1.5 8B on an 8 GB laptop GPU;
+  see §10. Results from it are never reported as CSCS numbers.
 
 Privacy: document text is never written to logs above `DEBUG`.
 
@@ -375,39 +449,50 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text; options `lang`, `level`, `writer_model`, `judge_model` |
-| `GET /api/jobs/{id}` | Status, current stage, usage, links to artifacts |
-| `GET /api/jobs/{id}/artifacts/{name}` | `source`, `factsheet`, `draft@v`, `rules@v`, `judge@v`, `review` |
-| `POST /api/jobs/{id}/review` | Submit block decisions |
-| `POST /api/jobs/{id}/export?format=md\|html\|json\|docx` | Build and download the export |
-| `POST /api/jobs/{id}/rerun?from=stage` | Re-run from a stage (used after prompt changes) |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `judge_model`, `title` |
+| `GET /api/jobs` | The latest jobs |
+| `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
+| `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `review`, `summary` |
+| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete |
+| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|json` | Download: Markdown, HTML, or the JSON audit bundle |
+| `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again |
 | `DELETE /api/jobs/{id}` | Remove a job and its artifacts |
 | `GET /healthz` | Liveness; also checks the LLM endpoint's `/v1/models` |
 
 Jobs execute on a single worker thread with a queue; the UI polls status. That is
-enough for a reviewer's workload and avoids a message broker.
+enough for a reviewer's workload and avoids a message broker. Jobs that were queued or
+running when the service stopped are queued again on start.
 
 ### Review UI
 
-Three panes, server-rendered (Jinja2) with a small amount of plain JavaScript:
+Server-rendered (Jinja2) pages: a start page with the submission form and the job
+list, a progress page that polls the job, and the review page with three panes:
 
-1. **Source** - segments in order; the ones linked to the selected draft block are
-   highlighted.
-2. **Draft** - blocks grouped under their headings; each with a colour mark for
-   findings (none / warn / error) and the approve / edit / reject controls.
-3. **Side panel** - the fact checklist (present / missing / distorted, click to jump to
-   the block), findings for the selected block with the suggestion, omissions with
-   reasons, glossary, and the version switcher (draft v1 → v3 to see the repair
-   rounds).
+1. **Source** - segments in order; clicking a draft block highlights the source
+   sentences it came from. Sentences left out are struck through with the reason as a
+   tooltip; sentences neither used nor listed as left out are outlined (FACT-04).
+2. **Draft** - blocks with a colour mark for findings (none / warning / error), the
+   findings with their suggestions, and approve / edit / reject per block; "approve
+   all undecided" and "review complete" for the whole draft.
+3. **Side panel** - the fact checklist (present / missing / distorted, from code and
+   judge; click to see the blocks that carry a fact), document findings, omissions
+   with reasons, glossary, measures (sentence length, readability, passive, facts
+   found), the version switcher and the run summary.
 
-The UI must work without any CDN: CSS and JS are vendored, so the air-gapped profile
-has no broken assets.
+Styling is one vendored classless stylesheet (water.css, MIT) plus a small
+`app.css` and `app.js`: no CDN, no build step, nothing that breaks air-gapped.
 
 ### CLI
 
-`python -m leichtfacile simplify <input> --lang de --level A2 --out out/` runs the
-pipeline without the web app, and `python -m leichtfacile eval …` runs the harness
-(§9). Both share the same stage code.
+| Command | Purpose |
+|---------|---------|
+| `python -m leichtfacile serve` | The web application |
+| `python -m leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
+| `python -m leichtfacile ingest <file\|url> [--section]` | Print the segments |
+| `python -m leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
+| `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after]` | The pipeline without the web app; all artifacts and exports go to `--out` |
+| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report` | The evaluation harness (§9) |
+| `python -m leichtfacile examples build` | Build the example jobs shown on first start |
 
 ## 8. Languages and levels
 
@@ -421,24 +506,36 @@ pipeline without the web app, and `python -m leichtfacile eval …` runs the har
 | Swiss conventions | `ss` for `ß`, `500'000`, `9.00 Uhr`, `044 123 45 67`, Helvetisms | `CHF`, `1 500 francs`, Swiss terms (`septante`, `nonante`) | `fr.` / `CHF`, Ticino terms |
 
 Thresholds differ per level (A2 ≤ 12 words per sentence, B1 ≤ 15 by our choice -
-there is no official B1 rule set); both are configuration in `rules.md`.
+there is no official B1 rule set); both are configuration in `rules.md`. French gets
+15 and 18 words: it needs about a quarter more words than German for the same content,
+as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 
-German comes first in the build order; French and Italian are added once the German
-evaluation harness runs. Syllables for readability come from `pyphen` with the
-`de_CH`, `fr`, `it` dictionaries.
+| Status | German | French | Italian |
+|---|--------|--------|---------|
+| Checker rules | 30 + 11 shared | 27 + 11 shared | 11 shared |
+| Prompts and few-shot examples | yes | yes | no; jobs are refused |
+| Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | - |
+
+German came first in the build order. French followed on 6 October 2026, before the
+CSCS key arrived: rules, prompts, examples and the web form. Italian stays a stretch
+goal. Syllables for readability come from `pyphen` with the `de_CH`, `fr`, `it`
+dictionaries.
 
 ## 9. Evaluation
 
 ### Dataset
 
-`data/pairs/manifest.jsonl`: one row per document pair - id, canton, language,
-level, role (`eval` or `example`), URL of the standard-language page, URL of the
-official easy-language page, licence note, rough fact count. `scripts/fetch_pairs.py` downloads and caches the texts under
-`data/cache/` (git-ignored). Texts are committed only where the licence clearly
-allows redistribution; otherwise the manifest and the fetch script are the dataset.
-Target: 20-40 pairs across Zürich, Bern, St. Gallen, Fribourg (DE and FR) and Ticino
-(IT). St. Gallen and Bern are hackathon partners, which makes their pages a natural
-test set.
+`data/pairs/manifest.jsonl`: one row per document pair - `id`, `publisher`, `canton`,
+`lang`, `level`, `role`, `topic`, `url_standard`, `url_easy`, `section_standard` and
+`section_easy` (a heading when only one section of a page corresponds), approximate
+word counts, `facts_estimate`, `licence_note` and `notes`. It holds 35 verified pairs:
+30 German (20 `eval`, 10 `dev`) from Zürich, Bern, St. Gallen, Luzern, Basel-Stadt,
+Graubünden, Zug and three federal offices, and 5 French (3 `eval`, 2 `dev`). `dev`
+pairs are for prompt development and checker calibration; `eval` pairs are held out
+for the final numbers. `python -m leichtfacile eval fetch` (or
+`scripts/fetch_pairs.py`) downloads and caches the texts under `data/cache/pairs/`
+(git-ignored). The publishers do not allow reproduction, so the manifest and the
+fetch command are the dataset.
 
 These reference pairs measure the pipeline; they are not the demo. The demo uses
 documents that have no easy-language version yet, such as the Federal Council's
@@ -472,10 +569,17 @@ judge is always the 70B-thinking model, so C1 and C2 are judged by the same inst
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs | Is the judge trustworthy? |
-| Cost and speed | Tokens, latency and estimated CHF per page, 8B vs. 70B | Value, cost & scalability |
+| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
+| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages and times found in the output (exact, code, no model) | A fact measure that does not depend on any model, comparable with the official version |
 
-Outputs land in `eval/results/*.jsonl`; `python -m leichtfacile eval report`
-renders the tables for the technical report. If the dataset is published, it follows
+Two rows need no model and frame the conditions: SOURCE (the standard-language
+original, checked as if it were a draft) and REF (the official easy-language version).
+Every output is scored the same way: language rules recomputed on the final text, fact
+coverage against one fact sheet per pair, readability, document-level SARI (a port of
+the original `SARI.py`, checked bit for bit), judge statistics where a judge ran.
+Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
+protected pages); `python -m leichtfacile eval report` renders the tables for the
+technical report from aggregates only. If the dataset is published, it follows
 the Hugging Face `HackApertus/online_hack_template` layout: test cases, model
 responses, and metadata with per-instance licensing.
 
@@ -487,13 +591,16 @@ responses, and metadata with per-instance licensing.
 exists and names `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME`, and prints a short
 help text otherwise. The image is built from `python:3.14-slim` (the project supports
 Python 3.12 and later) and installs the locked dependencies from `uv.lock` with `uv`
-at **build** time, including the spaCy models as pinned wheel URLs. German is in the
-image now; the French and Italian models are added when those languages ship. The
+at **build** time, including the spaCy models as pinned wheel URLs. German and French
+are in the image; the Italian model is added when Italian ships. The
 vendored UI assets are copied in the same way. At **runtime** the container needs
 exactly one outbound connection: `LLM_BASE_URL`. It runs as a non-root user, keeps
 its data in the named volume `appdata` (mounted at `/data`), and has a Docker health
 check on `/healthz`. The app listens on `:8000`, with two pre-computed example jobs
 so the UI is not empty before the first live run (clearly labelled as examples).
+The example jobs are audit bundles in `data/examples/jobs/`, built from the team's
+sample documents with `python -m leichtfacile examples build` once an endpoint is
+available, and imported into the store on start.
 
 `make check-llm` lists the endpoint's models and makes one short call from inside the
 container; it is the first thing to run once `.env` holds a key.
@@ -509,7 +616,25 @@ container; it is the first thing to run once `.env` holds a key.
 Hardware for (a)/(b), to be measured and stated precisely in the report: the 8B
 model in bf16 needs roughly 16 GB for the weights plus KV cache, so a 24 GB GPU with
 a reduced `--max-model-len` is realistic; the FP8 build (`onprem-ai/Apertus-v1.5-8B-FP8`,
-keeps image input) halves that. The 70B is served with tensor parallelism over four
+keeps image input) is 11.42 GB against 18.44 GB for the full multimodal checkpoint.
+
+A smaller on-premise option was tested on 5-6 October 2026: llama.cpp (`llama-server`,
+Vulkan build b9637) with the community 4-bit text-only conversion
+`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (5.06 GB) on a laptop GPU (RTX 4060, 8 GB),
+16k context with an 8-bit KV cache. It generated about 37 tokens per second at short
+context and about 17 near 16k; Understand took about 1.5 minutes and Write, with
+thinking, about 12 minutes for a 400-word letter. It runs the whole pipeline
+including thinking mode (`LLM_THINKING_MODE=chat-template`, `llama-server -sp`), but
+it has no image input and is an unofficial conversion, so it serves development and
+small offices, not the evaluation. `docker compose --profile local-llm-small up` adds
+this server as a `llamacpp` service (official `ghcr.io/ggml-org/llama.cpp:server-cuda`
+image, weights downloaded on first start); it is served under the alias
+`apertus-v1.5-8b-q4-llamacpp`, so its results can never be mistaken for the official
+model. Tested on 6 October 2026 with that image (llama.cpp b11429, CUDA) on the same
+laptop: the model starts in 6 seconds from the named volume and takes 5.9 GB of GPU
+memory. Mounting the model file from a Windows folder instead stalls the start for
+many minutes (memory-mapped reads through Docker Desktop's file sharing); the named
+volume avoids that. The 70B is served with tensor parallelism over four
 GPUs in the official guide; FP8/NVFP4 builds reduce that. The business argument of
 the stretch goal (§4.8) is precisely that a fine-tuned 8B makes the 70B unnecessary
 at runtime.
@@ -521,48 +646,63 @@ at runtime.
 - No authentication in the prototype; it is meant to run behind the organisation's
   reverse proxy. Noted as a limitation.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API.
+- The server fetches the URLs users submit, so a URL that resolves to a private,
+  loopback or link-local address is refused (server-side request forgery);
+  `ALLOW_PRIVATE_URLS=1` lifts this for an intranet that needs internal pages.
 - No document text in logs above `DEBUG`; the LLM cache can be disabled.
 
 ## 11. Repository layout
 
 ```text
-Makefile                  make run · check-llm · test · lint · smoke · eval · bundle
+Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval
 docker-compose.yml        app (+ profile local-llm: vllm)
 Dockerfile
 pyproject.toml, uv.lock   dependencies (uv), Python 3.12+; .python-version pins 3.14
-.env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face
-README.md                 Track 2B challenge text (template)
-technical_report.md       the report (template, to fill)
+.env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
+README.md                 project overview, quick start, status; Track 2B challenge text (template)
+technical_report.md       the report (PDF: RoestigrabenBridgers_Report.pdf)
 docs/
   architecture.md         this document
   rules.md                rule catalogue → implemented by src/leichtfacile/rules
-  prompts.md              prompt design notes and versions (to come)
+  prompts.md              prompt design notes and change log
+  sources.md, use-case-canton.md, hard-texts.md
 src/leichtfacile/
-  __main__.py, cli.py     `simplify`, `eval`, `serve`
+  __main__.py, cli.py     serve, check-llm, ingest, check, simplify, eval, examples
   config.py               env → settings (pydantic-settings)
   schemas.py              artifacts (§5)
   store.py                SQLite access
-  llm/client.py           §6
-  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md (+ examples/)
-  ingest/                 html.py, pdf.py, image.py, text.py, segment.py, detect.py
-  pipeline/               understand.py, write.py, judge.py, repair.py, orchestrator.py
-  rules/                  base.py, de.py, fr.py, it.py, facts.py, readability.py, styleguide.py
-  web/                    app.py, routes/, templates/, static/ (vendored)
-  export/                 markdown.py, html.py, docx.py, bundle.py
-  eval/                   dataset.py, conditions.py, metrics.py, run.py, report.py
-scripts/fetch_pairs.py
+  examples.py             example jobs: import on start, build
+  llm/                    client.py, json_out.py, reasoning.py, cache.py
+  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, examples/
+  ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
+  pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
+  rules/                  base.py, de.py, document.py, layout.py, values.py, lexicon.py,
+                          readability.py, styleguide.py, checker.py, nlp.py
+  web/                    app.py, api.py, pages.py, jobs.py, views.py, templates/, static/ (vendored)
+  export/                 markdown.py, html.py, bundle.py
+  eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
+                          day1.py, cli.py
+scripts/                  fetch_pairs.py, day1_checks.py
 data/
   pairs/manifest.jsonl    URLs + licence notes (committed)
-  examples/               two pre-computed jobs for the UI
+  examples/               team-written sample documents; example job bundles
   cache/                  fetched texts, LLM cache (git-ignored)
-tests/                    rules (golden sentences), schema parsing (recorded outputs), smoke
+eval/results/             evaluation outputs (git-ignored)
+tests/                    rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
+                          eval, web
 ```
 
 `data/` stays well under the 100 MB limit because texts and caches are not committed.
 
 ## 12. Day-1 verification checklist
 
-Assumptions to confirm as soon as the CSCS key arrives, in this order:
+Assumptions to confirm as soon as the CSCS key arrives, in this order. `make day1`
+(`scripts/day1_checks.py`) runs checks 1-5 and writes `eval/results/day1_checks.json`;
+check 6 is `python -m leichtfacile eval run --condition C0 --limit 10`. Checks 2 and 3
+were rehearsed against the local llama.cpp endpoint (§10): thinking switches per request
+through `chat_template_kwargs`, the reasoning arrives inline between `<|inner_prefix|>`
+and `<|inner_suffix|>` and is stripped, and the answer ends with a control token that the
+client removes.
 
 1. `GET {LLM_BASE_URL}/v1/models` lists `swiss-ai/Apertus-v1.5-8B`, `…-8B-thinking`,
    `…-70B`, `…-70B-thinking`; the base URL host issued for the hackathon

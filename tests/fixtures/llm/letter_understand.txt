@@ -1,0 +1,22 @@
+{
+  "doc_type": "Merkblatt",
+  "audience": "Personen mit bescheidenen wirtschaftlichen Verhältnissen",
+  "core": {
+    "what": {"text": "Der Kanton bezahlt einen Teil der Krankenkassenprämie.", "segment_ids": ["s0003"]},
+    "must_do": {"text": "Ein Antragsformular vollständig ausgefüllt und unterzeichnet bis 31. März 2027 einreichen.", "segment_ids": ["s0007"]},
+    "deadline": {"text": "Bis 31. März 2027.", "segment_ids": ["s0007"]},
+    "cost": {"text": null, "segment_ids": []},
+    "contact": {"text": "Telefonnummer 044 123 45 67.", "segment_ids": ["s0016"]}
+  },
+  "facts": [
+    {"id": "f01", "kind": "deadline", "text": "Das Gesuch muss bis 31. März 2027 bei der Sozialversicherungsstelle sein.", "value_norm": "2027-03-31", "segment_ids": ["s0007"], "must_keep": true},
+    {"id": "f02", "kind": "contact", "text": "Die Sozialversicherungsstelle ist telefonisch unter 044 123 45 67 erreichbar.", "value_norm": "0441234567", "segment_ids": ["s0016"], "must_keep": true},
+    {"id": "f03", "kind": "condition", "text": "Nur wer am 1. Januar 2027 in Musterwil wohnt und ein Einkommen von CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet) hat, kann ein Gesuch stellen.", "value_norm": null, "segment_ids": ["s0005", "s0004"], "must_keep": true}
+  ],
+  "hard_terms": [
+    {"term": "Prämienverbilligung", "explanation": "Der Kanton bezahlt einen Teil von Ihrer Krankenkassenprämie, damit Sie weniger bezahlen.", "segment_ids": ["s0003"]}
+  ],
+  "omit_candidates": [
+    {"segment_ids": ["s0012"], "reason": "Gesetzesartikel, für die Leserin nicht nötig"}
+  ]
+}

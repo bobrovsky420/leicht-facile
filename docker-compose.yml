@@ -7,6 +7,15 @@
 #   LLM_API_KEY=local            (any value; vLLM is started without a key)
 #   LLM_NAME=swiss-ai/Apertus-v1.5-8B
 #   LLM_THINKING_MODE=chat-template
+#
+# Small offices: `docker compose --profile local-llm-small up` adds a llama.cpp server
+# with a community 4-bit text-only conversion of Apertus 1.5 8B (unofficial, no image
+# input) that fits a GPU with 8 GB. The weights (5 GB) are downloaded on first start.
+#   LLM_BASE_URL=http://llamacpp:8080/v1
+#   LLM_API_KEY=local
+#   LLM_NAME=apertus-v1.5-8b-q4-llamacpp
+#   LLM_THINKING_MODE=chat-template
+#   LLM_TIMEOUT_S=1800
 
 services:
   app:
@@ -48,6 +57,46 @@ services:
               capabilities: [gpu]
     restart: unless-stopped
 
+  llamacpp:
+    profiles: ["local-llm-small"]
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    command:
+      - -hf
+      - Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF
+      - -ngl
+      - "99"
+      - -c
+      - "16384"
+      - -fa
+      - "on"
+      - -ctk
+      - q8_0
+      - -ctv
+      - q8_0
+      - --jinja
+      - -sp                       # keep the reasoning markers, the client strips them
+      - -np
+      - "1"
+      - --alias
+      - apertus-v1.5-8b-q4-llamacpp
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    environment:
+      LLAMA_CACHE: /models
+    volumes:
+      - llamacpp-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
 volumes:
   appdata:
   hf-cache:
+  llamacpp-models:

@@ -1,0 +1,263 @@
+# Golden sentences for the French rules (docs/rules.md, "Test plan for the checker").
+# For every rule: sentences that must trigger it (positive) and sentences that must not
+# (negative). Each entry is one block; an entry may be a mapping with `text`, `kind`
+# (sentence | list_item | heading) and `level` (A2 | B1, default A2).
+# All sentences are written by the team for these tests.
+
+LEN-01-FR:
+  positive:
+    - "Vous pouvez remplir le formulaire au guichet de votre commune ou sur internet et nous l'envoyer par la poste."
+    - "Si vous avez gagné moins de 30 000 francs l'année passée, vous recevez peut-être de l'argent du canton."
+  negative:
+    - "Vous recevez une lettre."
+    - "Appelez-nous au 022 123 45 67."
+    - "Le délai se termine le 31 mars 2026."
+    - {text: "Si vous avez gagné moins de 30 000 francs l'année passée, vous recevez peut-être de l'argent du canton.", level: B1}
+
+LEN-02-FR:
+  positive:
+    - "Vous recevez de l'argent parce que vous gagnez peu."
+    - "C'est le formulaire que vous devez remplir."
+    - "Pour recevoir l'argent, vous devez faire une demande."
+    - "Vous allez au bureau et vous montrez votre passeport."
+    - {text: "Vous recevez de l'argent parce que vous gagnez peu, si vous envoyez le formulaire.", level: B1}
+  negative:
+    - "Vous recevez de l'argent."
+    - "Vous pouvez téléphoner ou écrire un e-mail."
+    - "Est-ce que vous avez des questions ?"
+    - {text: "Vous recevez de l'argent parce que vous gagnez peu.", level: B1}
+
+LEN-03-FR:
+  positive:
+    - "Vous devez apporter votre passeport, votre carte d'assurance et une photo."
+    - "Vous pouvez payer en ligne, par la poste ou au guichet."
+  negative:
+    - "Vous devez apporter votre passeport et une photo."
+    - "Vous pouvez téléphoner ou écrire."
+
+GRAM-01-FR:
+  positive:
+    - "Le formulaire est contrôlé par l'office."
+    - "Le formulaire doit être envoyé avant le 31 mars."
+    - "La demande a été acceptée."
+    - "Le formulaire sera envoyé par la poste."
+  negative:
+    - "Le bureau est fermé le lundi."
+    - "Vous êtes venu hier."
+    - "L'office contrôle le formulaire."
+    - "Il sera content."
+
+GRAM-03-FR:
+  positive:
+    - "Il faut que vous envoyiez le formulaire."
+    - "Vous pourriez recevoir de l'argent."
+    - "Nous envoyons une facture pour que vous puissiez payer."
+    - "Il faudrait payer avant la fin du mois."
+  negative:
+    - "Vous devez envoyer le formulaire."
+    - "Vous pouvez recevoir de l'argent."
+    - "Soyez à l'heure."
+    - "Vous payez soit en ligne, soit au guichet."
+
+GRAM-04-FR:
+  positive:
+    - "Vous recevrez une lettre."
+    - "Le Conseil fédéral décida de changer la loi."
+    - "Nous enverrons la décision en avril."
+  negative:
+    - "Vous allez recevoir une lettre."
+    - "Vous avez reçu une lettre."
+    - "Vous entrez dans le bureau."
+    - "Vous déclarez vos revenus."
+    - "Il habitait à Genève."
+    - "Il est interdit de fumer."
+
+GRAM-05-FR:
+  positive:
+    - "Le versement de la prestation intervient chaque mois."
+    - "La prolongation du délai coûte 20 francs."
+  negative:
+    - "Vous recevez l'argent chaque mois."
+    - "Vous recevez une information par la poste."
+    - "Le service des votations répond à vos questions."
+
+GRAM-06-FR:
+  positive:
+    - "Il est content."
+    - "Le canton et le service envoient une lettre. Il répond aux questions."
+  negative:
+    - "Le canton envoie une lettre. Il répond aux questions."
+    - "Il faut payer avant le 31 mars."
+
+GRAM-07-FR:
+  positive:
+    - "Selon le canton, l'aide est de 500 francs."
+    - "D'après la commune, le bureau ferme à midi."
+  negative:
+    - "Le canton paie 500 francs."
+
+GRAM-08-FR:
+  positive:
+    - "Il convient de remplir le formulaire."
+    - "Il y a lieu de payer avant le 31 mars."
+    - "Il incombe au requérant de payer les frais."
+  negative:
+    - "Vous devez remplir le formulaire."
+    - "Il faut payer avant le 31 mars."
+
+NEG-01-FR:
+  positive:
+    - "Vous ne pouvez pas partir sans payer."
+    - "Ce n'est pas impossible."
+    - "Ce n'est pas inutile de demander."
+  negative:
+    - "Vous ne recevez pas d'argent."
+    - "Vous n'avez jamais rien reçu."
+    - "Vous ne recevez ni lettre ni argent."
+    - "Vous ne pouvez pas non plus payer en ligne."
+    - "Vous pouvez partir sans rien payer."
+    - "Je ne dois pas écrire sur le formulaire si ce n'est pas demandé."
+
+NEG-02-FR:
+  positive:
+    - "Vous ne recevez pas d'argent."
+    - "Vous n'avez jamais rien reçu."
+  negative:
+    - "Vous recevez de l'argent."
+    - "Vous recevez plus d'argent."
+    - "Une personne vient chez vous."
+
+LEX-01-FR:
+  positive:
+    - "Vous devez faire une demande de naturalisation."
+    - "Les renseignements sont gratuits."
+    - "Le cas échéant, appelez-nous."
+    - "Vous payez un émolument de 40 francs."
+  negative:
+    - "Vous recevez une information."
+    - "Le formulaire est sur internet."
+
+LEX-02-FR:
+  positive:
+    - "Envoyez le formulaire, p. ex. par la poste."
+    - "Vous trouvez les règles dans l'art. 5 de la loi."
+    - "Le bureau est ouvert lu-ve."
+    - "La LAVS règle les rentes."
+  negative:
+    - "Vous payez 50 francs à l'AVS."
+    - "Les CFF vendent les billets."
+    - {text: "ÉLECTION DU PROCUREUR GÉNÉRAL", kind: heading}
+    - "Votez OUI ou NON."
+
+LEX-03-FR:
+  positive:
+    - "Les frais susmentionnés sont payés."
+    - "Vous devez payer un émolument."
+  negative:
+    - "Vous recevez une lettre de la commune."
+
+LEX-04-FR:
+  positive:
+    - "Vous payez (avec une carte) au guichet."
+    - "Vous pouvez téléphoner et/ou écrire."
+    - "Apportez votre passeport; nous faisons une copie."
+  negative:
+    - "Vous trouvez le formulaire sur www.ge.ch/formulaires."
+    - "Vous payez avec une carte au guichet."
+
+LEX-05-FR:
+  positive:
+    - "Les employé·e·s reçoivent une lettre."
+    - "Chaque citoyen(ne) peut voter."
+    - "Les étudiant.e.s paient moins."
+  negative:
+    - "Les employées et les employés reçoivent une lettre."
+    - "Les personnes qui travaillent ici reçoivent une lettre."
+
+LEX-06-FR:
+  positive:
+    - "Le requérant doit payer les frais."
+    - "Les personnes concernées reçoivent une lettre."
+    - "L'assuré envoie le formulaire."
+  negative:
+    - "Vous payez les frais."
+    - "Vous êtes assuré."
+
+NUM-01-FR:
+  positive:
+    - "Vous avez deux semaines."
+    - "C'est la troisième lettre."
+    - "Vous payez cinquante francs."
+  negative:
+    - "Vous avez 2 semaines."
+    - "C'est la première lettre."
+    - "Un vélo neuf coûte cher."
+    - "Le prix augmente de 10 pour cent."
+
+NUM-02-FR:
+  positive:
+    - "Vous recevez 1500 francs."
+    - "Le canton a 250000 habitants."
+  negative:
+    - "Vous recevez 1 500 francs."
+    - "En 2026, le prix change."
+    - "Le bureau est à 1204 Genève."
+    - "Vous recevez 1'500 francs."
+
+NUM-03-FR:
+  positive:
+    - "Le délai se termine le 31.03.2026."
+    - "Payez avant le 2026-04-30."
+    - "Le délai est prolongé au 15.09 si vous payez."
+  negative:
+    - "Le délai se termine le 31 mars 2026."
+    - "Le prix monte de 1.50 francs."
+
+NUM-04-FR:
+  positive:
+    - "Le bureau ouvre à 09:00."
+    - "Le bureau est ouvert de 8h-12h."
+    - "Le bureau ouvre à 8h30."
+  negative:
+    - "Le bureau ouvre à 9 h 00."
+    - "Le bureau est ouvert de 9 h à 12 h."
+    - "Le formulaire coûte 9.50 francs."
+
+NUM-05-FR:
+  positive:
+    - "La séance dure 1,5 h."
+    - "Le cours dure 90 min."
+  negative:
+    - "La séance dure 1 heure et 30 minutes."
+
+NUM-06-FR:
+  positive:
+    - "Le prix augmente de 10 %."
+    - "Vous payez 5% de moins."
+  negative:
+    - "Le prix augmente de 10 pour cent."
+
+NUM-07-FR:
+  positive:
+    - "La taxe coûte CHF 120.00."
+    - "La taxe coûte 120.- francs."
+    - "La taxe coûte 120 CHF."
+  negative:
+    - "La taxe coûte 120 francs."
+    - "La taxe coûte CHF 120."
+
+NUM-08-FR:
+  positive:
+    - "Appelez le 0221234567."
+    - "Appelez le 022/123 45 67."
+  negative:
+    - "Appelez le 022 123 45 67."
+    - "Appelez le +41 22 123 45 67."
+
+CH-03-FR:
+  positive:
+    - "Il y a soixante-dix places."
+    - "Le prix est de quatre-vingt-dix francs."
+  negative:
+    - "Il y a septante places."
+    - "Il y a 70 places."

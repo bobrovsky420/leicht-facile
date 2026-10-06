@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     llm_judge_name: str | None = None
     llm_thinking_mode: ThinkingMode = "model-suffix"
     llm_thinking_suffix: str = "-thinking"
+    # Stages that use the thinking model. Writing without thinking was faster and closer
+    # to easy language in the first local tests (docs/prompts.md); the day-1 checks
+    # on the CSCS endpoint decide the final setting.
+    llm_thinking_stages: str = "understand,judge"
     llm_timeout_s: float = Field(default=300.0, gt=0)
     llm_max_retries: int = Field(default=4, ge=0)
     llm_cache: bool = False
@@ -46,6 +50,10 @@ class Settings(BaseSettings):
     @property
     def judge_name(self) -> str:
         return self.llm_judge_name or self.llm_name
+
+    @property
+    def thinking_stages(self) -> set[str]:
+        return {s.strip() for s in self.llm_thinking_stages.split(",") if s.strip()}
 
 
 @lru_cache(maxsize=1)

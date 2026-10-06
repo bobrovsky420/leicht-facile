@@ -1,0 +1,22 @@
+{
+ "understand": {
+  "thinking": true,
+  "temperature": 0.1,
+  "finish_reason": "stop",
+  "tokens_in": 1829,
+  "tokens_out": 3603,
+  "latency_ms": 102546,
+  "reasoning_chars": 9527,
+  "prompt_version": "a0224c698e87"
+ },
+ "write": {
+  "thinking": false,
+  "temperature": 0.3,
+  "finish_reason": "stop",
+  "tokens_in": 3709,
+  "tokens_out": 536,
+  "latency_ms": 18917,
+  "reasoning_chars": 0,
+  "prompt_version": "e44d14589893"
+ }
+}

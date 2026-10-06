@@ -22,3 +22,10 @@ from leichtfacile.llm.reasoning import split_reasoning
 )
 def test_split_reasoning(text, answer, reasoning):
     assert split_reasoning(text) == (answer, reasoning)
+
+
+def test_control_tokens_are_removed_from_the_answer():
+    text = "<|inner_prefix|>17 + 25 = 42<|inner_suffix|>42<|assistant_end|>"
+    answer, reasoning = split_reasoning(text)
+    assert answer == "42"
+    assert reasoning == "17 + 25 = 42"
