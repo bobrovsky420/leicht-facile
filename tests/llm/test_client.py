@@ -194,6 +194,12 @@ def test_judge_defaults_to_writer_model():
     assert make_settings(llm_judge_name=other).judge_name == other
 
 
+def test_understand_defaults_to_writer_model():
+    assert make_settings().understand_name == MODEL
+    other = "swiss-ai/Apertus-v1.5-70B"
+    assert make_settings(llm_understand_name=other).understand_name == other
+
+
 # -- streaming (the default outside the tests) ----------------------------------------
 
 

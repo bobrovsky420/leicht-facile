@@ -53,6 +53,7 @@ class Submission:
     level: str = "A2"
     condition: str = "C2"
     writer_model: str | None = None
+    understand_model: str | None = None
     judge_model: str | None = None
     title: str | None = None
 
@@ -141,6 +142,7 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
         level=sub.level,  # type: ignore[arg-type]
         condition=sub.condition,  # type: ignore[arg-type]
         writer_model=sub.writer_model or None,
+        understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
         max_repair_rounds=settings.max_repair_rounds,
     )

@@ -54,6 +54,7 @@ async def post_job(
     level: Annotated[str, Form()] = "A2",
     condition: Annotated[str, Form()] = "C2",
     writer_model: Annotated[str | None, Form()] = None,
+    understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,
     title: Annotated[str | None, Form()] = None,
 ) -> dict:
@@ -68,6 +69,7 @@ async def post_job(
         level=level,
         condition=condition,
         writer_model=writer_model,
+        understand_model=understand_model,
         judge_model=judge_model,
         title=title,
     )

@@ -80,6 +80,9 @@
       <label for="writer_model">{{ t('index.models.writer') }}
         <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm_name }}">
       </label>
+      <label for="understand_model">{{ t('index.models.understand') }}
+        <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.understand_name }}">
+      </label>
       <label for="judge_model">{{ t('index.models.judge') }}
         <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.judge_name }}">
       </label>

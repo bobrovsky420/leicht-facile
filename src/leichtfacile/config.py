@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr
     llm_name: str
     llm_judge_name: str | None = None
+    # The Understand stage's model, when it should differ from the writer (the hybrid:
+    # the 70B reads, the 8B writes; docs/prompts.md compares the tiers). Empty: the
+    # writer's model.
+    llm_understand_name: str | None = None
     llm_thinking_mode: ThinkingMode = "model-suffix"
     llm_thinking_suffix: str = "-thinking"
     # Stages that use the thinking model. Writing without thinking was faster and closer
@@ -62,6 +66,10 @@ class Settings(BaseSettings):
     @property
     def judge_name(self) -> str:
         return self.llm_judge_name or self.llm_name
+
+    @property
+    def understand_name(self) -> str:
+        return self.llm_understand_name or self.llm_name
 
     @property
     def thinking_stages(self) -> set[str]:

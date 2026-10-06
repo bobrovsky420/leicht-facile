@@ -75,6 +75,8 @@ def create_app(
             "model": settings.llm_name,
             "judge_model": settings.judge_name,
         }
+        if settings.llm_understand_name:
+            status["understand_model"] = settings.understand_name
         try:
             models = llm.list_models()
         except Exception as exc:  # any failure is reported, never raised
@@ -87,6 +89,8 @@ def create_app(
                 model_listed=settings.llm_name in models,
                 judge_model_listed=settings.judge_name in models,
             )
+            if settings.llm_understand_name:
+                status["understand_model_listed"] = settings.understand_name in models
         return {"status": "ok", "version": __version__, "llm": status}
 
     return app
