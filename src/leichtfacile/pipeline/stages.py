@@ -73,6 +73,7 @@ def thinking_for(llm: LLMClient, stage: str) -> bool:
 log = logging.getLogger(__name__)
 LONG_DOCUMENT_WORDS = 3000  # longer sources are written section by section
 SECTION_WORDS = 1500
+MIN_SECTION_SEGMENTS = 6  # a cut-off answer for fewer sentences is an error
 JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05"}
 
 
@@ -136,6 +137,27 @@ _STATIC_CONTEXT: dict[str, dict[str, str]] = {
 }  # fmt: skip
 _QUOTED = re.compile(r'"([^"\n]{12,})"')
 COPY_LIMIT = 2  # sentences from the examples that make an answer a copy
+# Words of the examples' topics (a resident parking permit, a dog tax). A sentence with
+# one of them, in a document that has none, is example content even in paraphrase: on
+# CSCS the 8B wrote "Sie melden neue Hunde bei der Einwohnerkontrolle an" into a page
+# about EL costs, with only 2 of 12 sentences verbatim (6 October 2026). Matched on
+# lowercased text without the Mediopunkt; "hundert" is not a dog.
+EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
+    "de": (
+        r"\bhund(?:e|es|en|s)?\b",
+        r"\bhundesteuer",
+        r"\b(?:anwohner)?parkkarte",
+        r"\bimpfausweis",
+        r"\bfrontscheibe",
+        r"\bwindschutzscheibe",
+    ),
+    "fr": (
+        r"\bchiens?\b",
+        r"\bcarte de stationnement",
+        r"\bpare-brise",
+        r"\bcarnet de vaccination",
+    ),
+}
 
 
 def _example_key(text: str) -> str:
@@ -161,11 +183,49 @@ def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
     return sum(1 for t in texts if _example_key(t) in keys)
 
 
+@lru_cache(maxsize=8)
+def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
+    return tuple(re.compile(p) for p in EXAMPLE_TOPIC_WORDS.get(lang, ()))
+
+
+@lru_cache(maxsize=16)
+def example_values(lang: str, stage: str) -> tuple[Value, ...]:
+    """The dates, amounts, phone numbers, addresses and times of a prompt's examples."""
+    context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
+    if stage == "write":
+        context["examples"] = examples(lang)
+    text = render(lang, stage, **context)
+    return tuple(v for v in extract_values(text, lang) if v.kind in HARD_KINDS)
+
+
+def topic_sentences(
+    texts: list[str], lang: str, source_text: str, stage: str = "write"
+) -> list[str]:
+    """The texts about the examples' topics, or with one of the examples' values (their
+    phone numbers, dates, amounts and hours), that the source does not have. In the
+    first evaluation run on CSCS the examples' phone number and date stood in 4 of 19
+    C2 drafts, in sentences without a topic word (6 October 2026)."""
+    source = _example_key(source_text)
+    patterns = [p for p in _topic_patterns(lang) if not p.search(source)]
+    source_values = extract_values(source_text, lang)
+    foreign = [
+        v for v in example_values(lang, stage) if not any(matches(v, s) for s in source_values)
+    ]
+
+    def topical(text: str) -> bool:
+        if any(p.search(_example_key(text)) for p in patterns):
+            return True
+        return any(matches(e, v) for v in extract_values(text, lang) for e in foreign)
+
+    return [t for t in texts if topical(t)]
+
+
 def _copy_check(lang: str, stage: str, texts_of):
     """A `check` for complete_json: an answer whose sentences are mostly from the prompt's
     examples (COPY_LIMIT or more, and more than half of them) is sent back once with a
-    message in the document's language. A generic sentence or two that an honest draft
-    shares with an example ("Sie haben dafür 14 Tage Zeit.") is no copy."""
+    message in the document's language; a second copy fails the stage. A generic
+    sentence or two that an honest draft shares with an example ("Sie haben dafür 14
+    Tage Zeit.") is no copy."""
 
     def check(out) -> str | None:
         texts = texts_of(out)
@@ -176,6 +236,43 @@ def _copy_check(lang: str, stage: str, texts_of):
         return None
 
     return check
+
+
+def _topic_check(lang: str, stage: str, texts_of, source_text: str):
+    """A soft `check` for complete_json: an answer with sentences about the examples'
+    topics, in a document that has none, is sent back once; what the second answer
+    still has, the stage drops (`drop_topical`). One such sentence is not worth a
+    failed stage: on CSCS two C1 jobs failed over a single one (6 October 2026)."""
+
+    def check(out) -> str | None:
+        topical = topic_sentences(texts_of(out), lang, source_text, stage)
+        if topical:
+            log.warning("stage %s: %d sentences about the examples' topics", stage, len(topical))
+            return label(lang, "copied_example", count=len(topical))
+        return None
+
+    return check
+
+
+def _soft_checks(*checks):
+    """One soft check from several: the first message wins."""
+
+    def check(out) -> str | None:
+        for c in checks:
+            message = c(out)
+            if message is not None:
+                return message
+        return None
+
+    return check
+
+
+def drop_topical(texts: list[str], lang: str, source_text: str, stage: str) -> set[str]:
+    """The texts a stage drops from the answer it uses: still about the examples' topics."""
+    dropped = set(topic_sentences(texts, lang, source_text, stage))
+    if dropped:
+        log.warning("dropping %d sentences about the examples' topics", len(dropped))
+    return dropped
 
 
 def _understand_texts(out: UnderstandOut) -> list[str]:
@@ -234,7 +331,11 @@ def understand(
         UnderstandOut,
         model,
         check=_copy_check(source.lang, "understand", _understand_texts),
+        soft_check=_topic_check(source.lang, "understand", _understand_texts, source.text()),
     )
+    dropped = drop_topical(_understand_texts(out), source.lang, source.text(), "understand")
+    if dropped:
+        out.facts = [f for f in out.facts if f.text not in dropped]
     return to_factsheet(out, source.id), results
 
 
@@ -376,10 +477,13 @@ def write(
     glossary: dict[str, GlossaryEntry] = {}
     results: list[LLMResult] = []
     known_facts = factsheet.fact_ids()
-    for title, segments in sections:
+    pending = list(sections)
+    sectioned = len(sections) > 1
+    while pending:
+        title, segments = pending.pop(0)
         in_section = {s.id for s in segments}
         fact_ids = None
-        if len(sections) > 1:
+        if sectioned:
             fact_ids = [f.id for f in factsheet.facts if set(f.segment_ids) & in_section]
         prompt = render(
             lang,
@@ -388,15 +492,40 @@ def write(
             level=level,
             style_guide=style_guide(lang, level),
             examples=examples(lang),
-            section=title if len(sections) > 1 else "",
+            section=title if sectioned else "",
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
             source=r.source_lines(segments),
         )
-        out, res = _call(
-            llm, "write", prompt, WriteOut, model, check=_copy_check(lang, "write", _write_texts)
-        )
+        try:
+            out, res = _call(
+                llm,
+                "write",
+                prompt,
+                WriteOut,
+                model,
+                check=_copy_check(lang, "write", _write_texts),
+                soft_check=_topic_check(lang, "write", _write_texts, source.text()),
+            )
+        except LLMOutputError as exc:
+            results += exc.results
+            cut_off = bool(exc.results) and exc.results[-1].truncated
+            if not cut_off or len(segments) < 2 * MIN_SECTION_SEGMENTS:
+                raise
+            # The answer for this many sentences did not fit max_tokens (a cut-off
+            # answer is never used: its last objects are incomplete). The part is
+            # written again as two halves; on CSCS 8 jobs failed this way on pages the
+            # splitter had left whole (6 October 2026).
+            half = len(segments) // 2
+            log.warning("write: answer cut off for %d sentences; writing two halves", len(segments))
+            halves = [segments[:half], segments[half:]]
+            pending[:0] = [(_section_title(part, lang), part) for part in halves]
+            sectioned = True
+            continue
         results += res
+        dropped = drop_topical(_write_texts(out), lang, source.text(), "write")
         for b in out.blocks:
+            if b.text in dropped:
+                continue
             blocks.append(
                 Block(
                     id=f"b{len(blocks) + 1:03d}",
@@ -608,8 +737,19 @@ def repair(
         RepairOut,
         model,
         check=_copy_check(lang, "repair", _repair_texts),
-        soft_check=_foreign_check(lang, known, _repair_texts),
+        soft_check=_soft_checks(
+            _topic_check(lang, "repair", _repair_texts, source.text()),
+            _foreign_check(lang, known, _repair_texts),
+        ),
     )
+    dropped = drop_topical(_repair_texts(out), lang, source.text(), "repair")
+    if dropped:
+        for item in out.repairs:
+            item.texts = [t for t in item.texts if t not in dropped]
+        out.repairs = [item for item in out.repairs if item.texts]
+        for add in out.additions:
+            add.texts = [t for t in add.texts if t not in dropped]
+        out.additions = [add for add in out.additions if add.texts]
     return apply_repairs(draft, out, request, factsheet), results
 
 

@@ -65,7 +65,9 @@ Sprache), and follow the stages to the review page.
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
 official easy-language pages, no model needed), `make day1` (endpoint checks),
-`make eval` (conditions C0, C1, C2 on the reference pairs).
+`make eval` (conditions C0, C1, C2 on the reference pairs; `RESULTS=eval/results-cscs`
+keeps one endpoint's results together). `python -m leichtfacile eval sample` writes the
+hand-labelling sheets for the judge and `eval kappa` scores a filled sheet.
 
 ## Sovereign deployment
 
@@ -90,11 +92,12 @@ Done:
   layout, readability).
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions C0, C1 and
   C2, SARI, readability, fact coverage, cost and latency.
-- 404 tests, no network needed. The whole pipeline ran on a laptop GPU with a local
-  4-bit Apertus 1.5 8B (llama.cpp).
+- Evaluation on the CSCS endpoint: 23 held-out pairs under C0, C1 and C2, the 70B
+  writer on 5 pairs; results in `eval/report.md` and the technical report.
+- 811 tests, no network needed. The whole pipeline ran on a laptop GPU with a local
+  4-bit Apertus 1.5 8B (llama.cpp), and `make run` and `make smoke` against CSCS.
 
-Pending: the evaluation runs against the CSCS endpoint (the endpoint checks passed on
-6 October: all four Apertus 1.5 models, thinking, JSON, image input), the example jobs, the French and Italian rule sets and prompts, image input for scanned
+Pending: the example jobs, the French and Italian rule sets and prompts, image input for scanned
 letters, and the air-gapped bundle (`make bundle`).
 
 ## Documentation

@@ -38,8 +38,14 @@ on-premise, air-gapped or on a Swiss cloud.
 contract, no provenance, no omission log and no independent check. That prompt is our
 baseline condition C0; the full pipeline is C2.
 
-**Headline result.** **[pending]** fact coverage, invented statements and rule
-violations of C2 against C0 on the held-out German pairs.
+**Headline result.** On the 20 held-out German pairs, run on the CSCS endpoint, the
+full pipeline keeps 80 percent of the source's countable facts (dates, amounts,
+phone numbers, addresses) against 70 percent in the official easy-language versions,
+with 4.3 rule errors per 100 blocks against 2.7 in the official versions and 22.0 for
+the one-prompt baseline, which keeps 100 percent of the facts because it hardly
+simplifies (readability 50, 95 warnings per 100 blocks). Values that the source does
+not contain: 0.1 per 100 blocks in the pipeline's drafts, 2.2 in the official
+versions, which add contact details of their own.
 
 The team name is meant as a bridge between authorities and the people they write to,
 not between languages: each language version is simplified from its own original.
@@ -117,7 +123,9 @@ organisation's reverse proxy.
 
 Hardware for (a) and (b): the 8B in bf16 needs about 16 GB for the weights plus KV
 cache, so a 24 GB GPU with a reduced context is realistic; the FP8 build is 11.4 GB.
-**[pending]** a measured run of the vLLM profile on a GPU host. Measured so far: on a
+No GPU host with vLLM was reachable during the hackathon, so the vLLM profile is
+validated by `docker compose config` only and the figures above come from the model
+card; we say so rather than guess. Measured so far: on a
 laptop RTX 4060 (8 GB) with llama.cpp and a community 4-bit conversion, about 37
 tokens per second at short context and 17 near 16k; Understand took about 1.5 minutes
 and Write with thinking about 12 minutes for a 400-word letter.
@@ -225,27 +233,52 @@ and REF (the official easy-language version written by professionals).
   `SARI.py`, checked bit for bit).
 - *Cost and speed*: tokens, latency and estimated cost per page of 250 words.
 
-**[pending]** results on the 20 held-out German pairs:
+Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026 (means over
+pairs; `eval/report.md` has the full tables, including warnings, words per sentence,
+tokens and latency):
 
-| Setup | Fact coverage | Hard facts kept | Invented / 100 blocks | Rule errors / 100 blocks | Amstad | SARI |
-|-------|---------------|-----------------|-----------------------|--------------------------|--------|------|
-| SOURCE | | | - | | | - |
-| REF (official) | | | - | | | |
-| C0 baseline | | | | | | |
-| C1 | | | | | | |
-| C2 (ours) | | | | | | |
+| Setup | Fact coverage | Hard facts kept | Invented values / 100 blocks | Judge: unsupported / 100 blocks | Rule errors / 100 blocks | Amstad | SARI | USD / page | Seconds / page |
+|-------|---------------|-----------------|------------------------------|---------------------------------|--------------------------|--------|------|------------|----------------|
+| SOURCE | - | 100 % | 0.0 | - | 31.3 | 36 | - | - | - |
+| REF (official) | - | 70 % | 2.2 | - | 2.7 | 62 | - | - | - |
+| C0 baseline, 8B | 98 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
+| C1, 8B | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
+| C2 (ours), 8B | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
+| C2, 70B writer (5 pairs) | 68 % | 71 % | 0.7 | 6.0 | 2.0 | 58 | 42.2 | 0.0141 | 19.6 |
 
-**[pending]** 8B vs. 70B writer on a subset: quality, tokens, latency, cost per page.
+Reading the table: the baseline keeps everything because it rewrites little (7.7
+words per sentence, 95 warnings per 100 blocks, SARI rewards its closeness to the
+source); the pipeline simplifies as far as the official versions do on sentence
+length (6.8 words against 6.1) and keeps more of the countable facts than they do,
+at a readability still below theirs (51 against 62). C1 shows what the judge and the
+repair loop add: from 72 to 84 percent fact coverage, from 9.9 to 4.3 errors, and
+from 3.2 to 0.1 invented values per 100 blocks. On the 14 fact-rich pairs (at least 3
+hard facts) C2 keeps 77 percent of the hard facts, the official versions 60. The 3
+French pairs: C2 73 percent fact coverage, 4.6 errors per 100 blocks, readability 75
+(official: 85), no invented values. All 23 pairs completed under every condition;
+the run also surfaced five answer shapes of the models that the parser now repairs,
+and 31 streams the server cut that the client retried.
+
+**8B against 70B writer** on the first 5 German pairs: the 70B writes cleaner easy
+language (2.0 errors per 100 blocks, readability 58) but keeps fewer facts (68 against
+84 percent coverage on these pairs) at a third more cost per page (USD 0.014 against
+0.011 at Public AI list prices) and similar latency, because the judge and repair
+rounds dominate both. The 8B stays the default writer; the 70B stays the judge.
 
 **Judge reliability.** The judge is measured, not assumed: agreement (Cohen's κ)
-between the judge and hand labels on 30 (fact, draft) items. **[pending]**
+between the judge and hand labels on 30 (fact, draft) items. `eval sample` draws the
+items from the C2 outputs, stratified by the judge's verdict, plus 30 blocks half
+flagged as unsupported and half passed, and writes the sheets without the verdicts;
+`eval kappa` scores a filled sheet. **[pending]** the labelled result.
 
 **Checker calibration.** Official easy-language pages are written by professionals,
 so the checker should raise almost no errors on them; each error is a real deviation
-or a false positive to fix. **[pending]** errors per 100 blocks on the reference
-pages, recorded in [docs/rules.md](docs/rules.md).
+or a false positive to fix. On the 30 official German pages (3,468 blocks) the checker
+went from 12.6 to 2.0 errors per 100 blocks during calibration, on the 5 French pages
+(544 blocks) from 5.3 to 2.2; the remaining errors are mostly genuine deviations of
+the professional texts, recorded in [docs/rules.md](docs/rules.md).
 
-**Tests.** 404 automated tests run without network: golden sentences for every rule
+**Tests.** 798 automated tests run without network: golden sentences for every rule
 (at least two that trigger it, one that must not), the team's hard texts, the client
 against a fake OpenAI-compatible endpoint, the orchestrator with recorded model
 outputs, the evaluation metrics, and the web API.

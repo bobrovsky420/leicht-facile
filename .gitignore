@@ -10,6 +10,9 @@
 *.ckpt
 *.pt
 
+# Labelling sheets quote the reference pages (docs/sources.md)
+eval/labels/
+
 # Python
 __pycache__/
 *.py[cod]

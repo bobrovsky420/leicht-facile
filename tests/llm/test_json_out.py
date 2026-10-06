@@ -221,3 +221,17 @@ def test_an_unusable_answer_leaves_the_cache(endpoint, make_client, tmp_path):
     sheet, results = complete_json(client, messages, FactSheet)
     assert len(results) == 1 and results[0].usage.cached is True
     cache.close()
+
+
+def test_extract_json_closes_a_list_before_a_mismatched_brace():
+    text = '{"core": {"deadline": {"text": "x", "segment_ids": ["s0087", "s0088" } }, "facts": []}'
+    assert extract_json(text, top_keys=("core", "facts")) == {
+        "core": {"deadline": {"text": "x", "segment_ids": ["s0087", "s0088"]}}, "facts": []
+    }  # fmt: skip
+    assert extract_json('{"a": [1, 2}') == {"a": [1, 2]}  # also at the end
+    assert extract_json('{"a": {"b": 1]}') == {"a": {"b": 1}}  # a bracket for a brace
+
+
+def test_extract_json_drops_a_broken_unicode_escape():
+    text = '{"texts": ["Masques d\'hygi\\u00ene", "m\\u00e9dicaments"]}'
+    assert extract_json(text) == {"texts": ["Masques d'hygine", "médicaments"]}

@@ -1,6 +1,8 @@
 .PHONY: run stop check-env check-llm test lint format smoke calibrate day1 eval bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
+# Results of one endpoint stay together: `make eval RESULTS=eval/results-cscs`.
+RESULTS ?= eval/results
 
 # The recipes need a POSIX shell. On Windows, make falls back to cmd.exe unless
 # sh.exe is on PATH, so use the one from Git for Windows (override GIT_SH_DIR if
@@ -48,8 +50,9 @@ format:
 
 # One document through the full pipeline in the container, against the live endpoint.
 # Succeeds when the job reaches review; the artifacts land in the volume under /data/out.
+# MSYS_NO_PATHCONV keeps Git Bash on Windows from turning /data/out into a C: path.
 smoke: check-env
-	docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
+	MSYS_NO_PATHCONV=1 docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
 
 # Rule checker on the official easy-language pages (no model needed).
 calibrate:
@@ -65,11 +68,11 @@ day1: check-env
 # Responses are cached (LLM_CACHE=1), so an interrupted run resumes cheaply.
 eval: check-env
 	uv run python -m leichtfacile eval fetch --role all
-	uv run python -m leichtfacile eval reference --role all
-	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0
-	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C1
-	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2
-	uv run python -m leichtfacile eval report --out eval/report.md
+	uv run python -m leichtfacile eval reference --role all --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C0 --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C1 --results $(RESULTS)
+	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition C2 --results $(RESULTS)
+	uv run python -m leichtfacile eval report --results $(RESULTS) --out eval/report.md
 
 bundle:
 	@echo "make bundle: the air-gapped image bundle is not implemented yet."; exit 1

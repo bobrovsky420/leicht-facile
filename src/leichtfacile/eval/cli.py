@@ -51,6 +51,20 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     run.add_argument("--results", type=Path, default=Path("eval/results"))
     run.set_defaults(handler=_run)
 
+    smp = evsub.add_parser("sample", help="hand-labelling sheets for the judge (no model)")
+    smp.add_argument("--results", type=Path, default=Path("eval/results"))
+    smp.add_argument("--condition", default="C2", choices=["C0", "C1", "C2"])
+    smp.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
+    smp.add_argument("--facts", type=int, default=30, help="(fact, draft) items")
+    smp.add_argument("--blocks", type=int, default=30, help="blocks, half of them flagged")
+    smp.add_argument("--seed", type=int, default=1)
+    smp.add_argument("--out", type=Path, default=Path("eval/labels"))
+    smp.set_defaults(handler=_sample)
+
+    kap = evsub.add_parser("kappa", help="agreement between the judge and a filled sheet")
+    kap.add_argument("sheet", type=Path, help="judge_facts.jsonl or judge_blocks.jsonl")
+    kap.set_defaults(handler=_kappa)
+
     rep = evsub.add_parser("report", help="Markdown tables from the results")
     rep.add_argument("--results", type=Path, default=Path("eval/results"))
     rep.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
@@ -124,6 +138,31 @@ def _run(args: argparse.Namespace) -> int:
         writer=args.writer, judge=args.judge, judge_all=args.judge_all, redo=args.redo,
     )  # fmt: skip
     print(f"results: {path}")
+    return 0
+
+
+def _sample(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.labels import sample_items, write_sheets
+
+    fact_items, block_items = sample_items(
+        args.results, condition=args.condition, role=args.role, facts=args.facts,
+        blocks=args.blocks, seed=args.seed,
+    )  # fmt: skip
+    paths = write_sheets(args.out, fact_items, block_items)
+    print(
+        f"{len(fact_items)} fact items and {len(block_items)} block items: {paths[0]}, {paths[2]}"
+    )
+    print(
+        "Fill the label field (facts: present, missing, distorted; blocks: supported, "
+        "unsupported), then run `eval kappa <sheet>`."
+    )
+    return 0
+
+
+def _kappa(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.labels import kappa_report, render_kappa
+
+    print(render_kappa(kappa_report(args.sheet)))
     return 0
 
 

@@ -45,6 +45,9 @@ _MISSING_COMMA_KEYS = re.compile(r'([\]}"])(\s+)("[A-Za-z_]\w*"\s*:)')
 # ends the JSON string early; the closing quote becomes the German one.
 _LOW_QUOTE = re.compile('\u201e([^"\n]{1,120})"')
 _KEY_AT = re.compile(r'"([A-Za-z_]\w*)"\s*:')
+# A unicode escape with fewer than four hex digits (hygi\u00ene for hygi\u00e8ne): the
+# character is lost either way; the escape goes, the string stays usable.
+_BROKEN_UNICODE = re.compile(r"\\u(?![0-9a-fA-F]{4})[0-9a-fA-F]{0,3}")
 # A list that belongs at the top level, written as a pseudo-block inside "blocks"
 # ({"kind": "omissions": [...]}): the key is restored here and WriteOut hoists the list.
 _NESTED_LIST = re.compile(r'\{\s*"kind"\s*:\s*"(omissions|glossary)"\s*:\s*\[')
@@ -78,18 +81,20 @@ def repair_json(text: str, top_keys: Iterable[str] = ()) -> str:
     text = _NESTED_LIST.sub(r'{"\1": [', text)
     text = _LOW_QUOTE.sub("\u201e\\1\u201c", text)
     text = _MISSING_COMMA_KEYS.sub(r"\1,\2\3", text)
+    text = _BROKEN_UNICODE.sub("", text)
     return close_containers(text, top_keys)
 
 
 def close_containers(text: str, top_keys: Iterable[str]) -> str:
-    """Close the objects and lists a model forgot to close before a top-level key.
+    """Close the objects and lists a model forgot to close.
 
-    `{"core": {"what": {...}, "facts": [...]}` lacks the brace that ends `core`; the
-    answer's top-level keys (the schema's fields) show where it belongs.
+    Before a top-level key: `{"core": {"what": {...}, "facts": [...]}` lacks the brace
+    that ends `core`, and the answer's top-level keys (the schema's fields) show where
+    it belongs. Before a closer of the other kind: `"segment_ids": ["s0087", "s0088" }`
+    lacks the bracket that ends the list, so the list is closed first; a closer that
+    then has no container left is dropped.
     """
     keys = set(top_keys)
-    if not keys:
-        return text
     out: list[str] = []
     stack: list[str] = []
     in_string = escape = False
@@ -121,7 +126,13 @@ def close_containers(text: str, top_keys: Iterable[str]) -> str:
             in_string = True
         elif ch in "{[":
             stack.append(ch)
-        elif ch in "}]" and stack:
+        elif ch in "}]":
+            wanted = "{" if ch == "}" else "["
+            if stack and stack[-1] != wanted:
+                out.append("]" if stack.pop() == "[" else "}")
+            if not stack or stack[-1] != wanted:
+                i += 1
+                continue  # nothing of that kind is open: the closer is spurious
             stack.pop()
         out.append(ch)
         i += 1

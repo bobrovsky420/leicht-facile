@@ -205,7 +205,9 @@ while writing without thinking took 28 seconds and produced easy language (quest
 headings, `Sie`, no passive); `LLM_THINKING_STAGES` switches thinking per stage, and
 the day-1 checks on the CSCS endpoint decide the final setting.
 
-Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
+An answer cut off at `max_tokens` is never used (its last objects are incomplete);
+the part of the document it was for is written again as two halves, down to six
+sentences. Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
 block to every fact whose exact value it contains, so fact bookkeeping does not depend
 on the model. A sentence that repeats an earlier one is dropped and its references go
 to the first, and a heading left without content goes too: small models repeat a fact
@@ -437,7 +439,8 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   prompt, the response is stripped of any leaked reasoning tokens
   (`<|inner_prefix|> … <|inner_suffix|>`) and code fences, parsed (the slips of a
   small model are repaired in code: a run of ids written as a range, a trailing or a
-  missing comma) and validated with pydantic. On failure the validation error, or the
+  missing comma, a list or object closed with the wrong bracket, a unicode escape
+  with too few digits) and validated with pydantic. On failure the validation error, or the
   syntax error with its position, is fed back once for a repair. An answer that copies
   the prompt's own example (4 of 12 dev drafts on the Public AI 8B were the JSON form
   itself, 6 October 2026) is recognised by code and sent back once in the same way.
@@ -637,7 +640,7 @@ judge is always the 70B-thinking model, so C1 and C2 are judged by the same inst
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
-| Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs | Is the judge trustworthy? |
+| Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages and times found in the output (exact, code, no model) | A fact measure that does not depend on any model, comparable with the official version |
 

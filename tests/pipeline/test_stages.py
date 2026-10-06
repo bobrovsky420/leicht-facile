@@ -38,6 +38,9 @@ def test_lenient_understand_parsing() -> None:
     assert [f.kind for f in fs.facts] == ["deadline", "amount", "contact"]
     assert fs.facts[0].segment_ids == ["s0003"]  # a string became a list
     assert fs.facts[2].must_keep is True  # default
+    # A core answer written as a bare sentence is its text, without sources.
+    bare = UnderstandOut.model_validate({**fx.UNDERSTAND, "core": {"what": "Nur ein Satz."}})
+    assert bare.core.what.text == "Nur ein Satz." and bare.core.what.segment_ids == []
 
 
 def test_understand_without_the_facts_list_is_an_empty_fact_sheet() -> None:
@@ -366,9 +369,9 @@ def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, s
     ])  # fmt: skip
     request = RepairRequest({"b001": ["  - SEM-03: Welches Amt?"]}, [])
     leaked = {
-        "repairs": [{"id": "b001", "texts": ["Rufen Sie das Amt an: 031 987 65 43."]}],
+        "repairs": [{"id": "b001", "texts": ["Rufen Sie das Amt an: 044 215 21 51."]}],
         "additions": [],
-    }  # the phone number of the prompt's own example
+    }  # a number in neither the letter nor the examples
     fixed = {
         "repairs": [{"id": "b001", "texts": ["Rufen Sie das Amt an: 044 123 45 67."]}],
         "additions": [],
@@ -377,9 +380,105 @@ def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, s
     new_draft, results = repair(llm, fx.letter(), fs, draft, request)
     assert len(results) == 2
     feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
-    assert "031 987 65 43" in feedback and "nicht im Dokument" in feedback
+    assert "044 215 21 51" in feedback and "nicht im Dokument" in feedback
     assert new_draft.blocks[0].text.endswith("044 123 45 67.")
     # The second answer is used as it is: FACT-06 flags what remains.
     endpoint.push(chat_response(fx.as_json(leaked)), chat_response(fx.as_json(leaked)))
     new_draft, results = repair(llm, fx.letter(), fs, draft, request)
-    assert len(results) == 2 and "031 987 65 43" in new_draft.blocks[0].text
+    assert len(results) == 2 and "044 215 21 51" in new_draft.blocks[0].text
+
+
+def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import topic_sentences, write
+    from tests.conftest import chat_response, make_settings
+
+    assert topic_sentences(["Melden Sie neue Hunde an."], "de", "Prämien.") == [
+        "Melden Sie neue Hunde an."
+    ]
+    assert topic_sentences(["Melden Sie den Hund an."], "de", "Hunde sind anzumelden.") == []
+    assert topic_sentences(["Das kostet hundert Franken."], "de", "") == []
+    # The examples' own values, in a sentence without a topic word.
+    leak = "Rufen Sie an: 031 987 65 43."
+    assert topic_sentences([leak], "de", "Telefon 044 123 45 67.") == [leak]
+    assert topic_sentences([leak], "de", "Telefon 031 987 65 43.") == []
+    assert topic_sentences(["Bezahlen Sie bis 30. April 2026."], "de", "Prämien.") == [
+        "Bezahlen Sie bis 30. April 2026."
+    ]
+    assert topic_sentences(["Bis 31. März 2026."], "de", "Frist: 31.3.2026.") == []
+    assert topic_sentences(["Payez jusqu'au 30 avril 2026."], "fr", "Les impôts.") == [
+        "Payez jusqu'au 30 avril 2026."
+    ]
+    assert topic_sentences(["Annoncez votre chien."], "fr", "Les impôts.") == [
+        "Annoncez votre chien."
+    ]
+
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    paraphrased = {
+        **fx.WRITE,
+        "blocks": [
+            *fx.WRITE["blocks"],
+            {"kind": "sentence", "text": "Sie melden neue Hunde bei der Einwohnerkontrolle an.",
+             "segment_ids": ["s0002"]},
+        ],
+    }  # fmt: skip
+    endpoint.push(chat_response(fx.as_json(paraphrased)), chat_response(fx.as_json(fx.WRITE)))
+    draft, results = write(llm, fx.letter(), fs, level="A2")
+    assert len(results) == 2
+    assert "Hund" not in " ".join(b.text for b in draft.blocks)
+    assert "Beispiel" in endpoint.chat_bodies()[1]["messages"][-1]["content"]
+    # A second answer with the same sentence is used without it: no stage fails over one.
+    endpoint.push(chat_response(fx.as_json(paraphrased)), chat_response(fx.as_json(paraphrased)))
+    draft, results = write(llm, fx.letter(), fs, level="A2")
+    assert len(results) == 2 and "Hund" not in " ".join(b.text for b in draft.blocks)
+    assert len(draft.blocks) == len(fx.WRITE["blocks"])
+
+
+def test_write_output_drops_empty_blocks() -> None:
+    from leichtfacile.pipeline.models import WriteOut
+
+    out = WriteOut.model_validate({"blocks": [{}, {"kind": "sentence", "text": "Ein Satz."}, ""]})
+    assert [b.text for b in out.blocks] == ["Ein Satz."]
+
+
+def test_a_write_answer_cut_off_is_written_again_as_two_halves(
+    endpoint, sleeps, monkeypatch
+) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.llm.json_out import LLMOutputError
+    from leichtfacile.pipeline import stages
+    from tests.conftest import chat_response, make_settings
+
+    monkeypatch.setattr(stages, "MIN_SECTION_SEGMENTS", 2)
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    cut = fx.as_json(fx.WRITE)[:80]  # the start of an answer that hit max_tokens
+    endpoint.push(
+        chat_response(cut, finish_reason="length"),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.WRITE)),
+    )
+    draft, results = stages.write(llm, fx.letter(), fs, level="A2")
+    assert len(results) == 3 and draft.blocks
+    prompts = [b["messages"][0]["content"] for b in endpoint.chat_bodies()]
+    assert "[s0001]" in prompts[1] and "[s0004]" not in prompts[1]
+    assert "[s0004]" in prompts[2] and "[s0001]" not in prompts[2]
+    # Below the minimum size the cut-off stays an error.
+    monkeypatch.setattr(stages, "MIN_SECTION_SEGMENTS", 10)
+    endpoint.push(chat_response(cut, finish_reason="length"))
+    with pytest.raises(LLMOutputError):
+        stages.write(llm, fx.letter(), fs, level="A2")
+
+
+def test_write_output_hoists_entries_written_as_blocks_of_that_kind() -> None:
+    from leichtfacile.pipeline.models import WriteOut
+
+    out = WriteOut.model_validate({"blocks": [
+        {"kind": "sentence", "text": "Ein Satz."},
+        {"kind": "omissions", "what": "Gesetz", "why": "unnötig", "segment_ids": ["s0058"]},
+        {"kind": "glossary", "term": "Notruf", "explanation": "Die Nummer für Hilfe."},
+    ]})  # fmt: skip
+    assert [b.text for b in out.blocks] == ["Ein Satz."]
+    assert [o.what for o in out.omissions] == ["Gesetz"]
+    assert [g.term for g in out.glossary] == ["Notruf"]

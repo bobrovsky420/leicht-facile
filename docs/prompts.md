@@ -54,6 +54,13 @@ thinking.
   recognises it (`stages.example_keys`: the sentences of the rendered prompt without
   its document, normalised) and sends it back once with a message in the document's
   language; a second copy fails the stage. Understand, write and repair are checked.
+  A sentence about the examples' topics (a dog, a parking permit), or with one of the
+  examples' values (their phone numbers, dates, amounts and hours, read from the
+  rendered prompts), in a document that has none is example content too, so
+  paraphrases are caught: the answer is sent back
+  once, and the sentences a second answer still has are dropped in code, since one
+  such sentence is not worth a failed stage. On CSCS the 8B wrote dog-tax sentences
+  into a page about EL costs with only 2 of 12 sentences verbatim.
 - **Values not in the document.** A repair answer with a date, amount, phone number,
   e-mail address, web address, percentage or time that neither the source nor the
   fact sheet contains (the check of rule FACT-06) is sent back once with the values
@@ -226,6 +233,38 @@ fixes: the copy guard also counts sentences with the examples' topic words (`Hun
 contain, or the write stage gets the same soft check for foreign values at the price of
 a second write call when it fires.
 
+### Full evaluation on CSCS (6 October 2026)
+
+`make eval RESULTS=eval/results-cscs`: C0, C1 and C2 on the 23 held-out pairs (20
+German, 3 French), thinking for Understand and the judge, then C2 with the 70B writer
+on the first 5 German pairs. 23 of 23 pairs completed under every condition after the
+reruns of failed pairs (the harness reruns them with the cache on, and unusable answers
+no longer stay cached). The first pass had failed 7 C0 scorings, 9 C1 and 6 C2 jobs,
+every one on an answer shape the code now handles: core answers written as bare
+sentences, an omission or glossary entry written as a block of that kind, an empty
+block, a list closed with a brace, and 8 write answers cut off at the token limit on
+pages of 65 to 185 sentences, which are now written again as two halves. The server cut
+31 of about 350 streams; the client retried them all.
+
+German means over 20 pairs, 8B writer:
+
+| Setup | Fact coverage | Hard facts kept | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 | Readability | SARI |
+|-------|---------------|-----------------|-----------------------|--------------------------|--------------|-------------|------|
+| REF | - | 70 % | 2.2 | - | 2.7 | 62 | - |
+| C0 | 98 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 |
+| C1 | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 |
+| C2 | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 |
+| C2, 70B writer (5 pairs) | 68 % | 71 % | 0.7 | 6.0 | 2.0 | 58 | 42.2 |
+
+What the run says about the prompts and guards: the C1 drafts carried 3.2 invented
+values per 100 blocks, nearly all the examples' phone number, date and hours in
+sentences without a topic word; the example-value rule (above) brought C2 down to 0.1,
+two office hours on one page. The judge flags 6.9 unsupported blocks per 100 in C2
+(9 percent distorted facts on the fact-rich pairs), which is what the hand labelling
+(`eval sample`) has to check. Every C2 job stopped with "a repair round brought no
+progress" after 1.8 rounds on average: the repair prompt is the next lever for fact
+coverage. The 70B writes cleaner (2.0 errors, readability 58) but keeps fewer facts.
+
 ## Change log
 
 | Version | Date | Change |
@@ -237,3 +276,4 @@ a second write call when it fires.
 | 4 | 2026-10-06 | French templates for all five stages, with French JSON examples and two French few-shot pairs on the same topics as the German ones. The words code writes around the items come from a table per language (`pipeline/labels.py`). No change to the German templates. |
 | 5 | 2026-10-06 | Write prompt (German and French): the JSON form moved before the style examples, its intro says the values come from another document; the document comes last, followed by the instruction to write about it. Reason: on the Public AI 8B without thinking, 4 of 12 dev drafts were the JSON form itself. Code: an answer that copies the examples is sent back once; the omissions or glossary list written as a pseudo-block inside blocks is hoisted. No change to the other templates. |
 | 6 | 2026-10-06 | Repair prompt (German and French): every value in the answer comes from the fact sheet or the original's sentences, the values of the JSON form belong to another document, and no value is invented for a fact without one. Code: a repair answer with a value that neither the source nor the fact sheet contains is sent back once with the values named (the check of rule FACT-06); the second answer is used as it is. Reason: the examples' phone number stood in 8 of 12 dev drafts, put there by repair additions. No change to the other templates. |
+| 6 | 2026-10-06 | No template change. Code: a sentence with a topic word of the examples (`Hund`, `Parkkarte`, `Impfausweis`, `chien`, `carte de stationnement`, ...) that the source does not contain, or with one of the examples' own values, is sent back once and dropped from the second answer; two more JSON repairs (a list or object closed with the wrong bracket, a unicode escape with too few digits), both seen on the CSCS 8B; a core answer written as a bare sentence instead of an object is read as its text; an empty block `{}` is dropped; a write answer cut off at the token limit is written again as two halves (8 jobs failed this way in the first evaluation run on CSCS); an omission or glossary entry written as a block of that kind is hoisted into its list (the 70B writer). |

@@ -91,6 +91,14 @@ class RefOut(LLMOut):
 
     _ids = field_validator("segment_ids", mode="before")(_segment_ids)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _bare_sentence(cls, data: Any) -> Any:
+        # The 8B sometimes answers a core question with the sentence alone ("Keine
+        # Fristen angegeben.") instead of {text, segment_ids}: five validation errors
+        # per answer on CSCS (6 October 2026).
+        return {"text": data} if isinstance(data, str) else data
+
     @field_validator("text", mode="before")
     @classmethod
     def _text(cls, v: Any) -> str | None:
@@ -226,6 +234,16 @@ class GlossaryOut(LLMOut):
     explanation: str
 
 
+def _entry_kind(kind: Any) -> str | None:
+    """ "omissions" for a block of kind omission(s), "glossary" for glossary, else None."""
+    name = str(kind or "").strip().lower()
+    if name in ("omission", "omissions", "auslassung", "auslassungen", "omis"):
+        return "omissions"
+    if name in ("glossary", "glossar", "glossaire", "term"):
+        return "glossary"
+    return None
+
+
 class WriteOut(LLMOut):
     _list_field = "blocks"
 
@@ -243,13 +261,20 @@ class WriteOut(LLMOut):
         blocks: list[Any] = []
         hoisted: dict[str, list[Any]] = {}
         for b in data["blocks"]:
+            if not b or (isinstance(b, dict) and not any(b.values())):
+                continue  # an empty block, {} (seen on CSCS, 6 October 2026)
             if isinstance(b, dict) and "text" not in b and ("omissions" in b or "glossary" in b):
                 for key in ("omissions", "glossary"):
                     if isinstance(b.get(key), list):
                         hoisted.setdefault(key, []).extend(b[key])
+            elif isinstance(b, dict) and "text" not in b and _entry_kind(b.get("kind")):
+                # One omission or glossary entry written as a block of that kind (the
+                # 70B on CSCS, 6 October 2026).
+                entry = {k: v for k, v in b.items() if k != "kind"}
+                hoisted.setdefault(_entry_kind(b.get("kind")), []).append(entry)
             else:
                 blocks.append(b)
-        if not hoisted:
+        if not hoisted and len(blocks) == len(data["blocks"]):
             return data
         out = {**data, "blocks": blocks}
         for key, items in hoisted.items():
