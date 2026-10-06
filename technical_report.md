@@ -266,9 +266,9 @@ outputs, the evaluation metrics, and the web API.
   judge. Many easy-language pages carry few such facts, so coverage is reported on the
   fact-rich subset as well.
 - **Not yet supported:** scanned PDFs and photos (Apertus 1.5 reads images, and the
-  day-1 check on the Public AI gateway confirmed image input through the API on 6
-  October 2026, but the ingest step for images is not built), DOCX export, the
-  air-gapped image bundle.
+  day-1 checks on CSCS and on the Public AI gateway confirmed image input through the
+  API on 6 October 2026, but the ingest step for images is not built), DOCX export,
+  the air-gapped image bundle.
 - **Live pages change.** Evaluation uses cached copies with a fetch date; a page
   submitted live may have moved or changed.
 - **Rule NUM-08** (phone numbers without `+41`) is under review: official Zürich pages

@@ -340,4 +340,9 @@ def _retry_delay(exc: Exception, attempt: int) -> float:
 def _describe(exc: Exception) -> str:
     status = getattr(exc, "status_code", None)
     name = type(exc).__name__
-    return f"{name} {status}" if status else name
+    if status:
+        return f"{name} {status}"
+    cause = exc.__cause__  # a connection error wraps the transport error that says why
+    if cause is not None:
+        return f"{name} ({type(cause).__name__}: {str(cause)[:80]})"
+    return name

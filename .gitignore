@@ -32,8 +32,10 @@ PLAN.md
 # Leicht·Facile runtime data and tool caches
 data/cache/
 data/*.sqlite
+data/*.sqlite-*
 data/*.db
 eval/results/
+eval/results-*/
 out/
 .pytest_cache/
 .ruff_cache/

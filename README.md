@@ -92,8 +92,8 @@ Done:
 - 404 tests, no network needed. The whole pipeline ran on a laptop GPU with a local
   4-bit Apertus 1.5 8B (llama.cpp).
 
-Pending: the runs against the CSCS endpoint (endpoint checks, evaluation numbers,
-example jobs), the French and Italian rule sets and prompts, image input for scanned
+Pending: the evaluation runs against the CSCS endpoint (the endpoint checks passed on
+6 October: all four Apertus 1.5 models, thinking, JSON, image input), the example jobs, the French and Italian rule sets and prompts, image input for scanned
 letters, and the air-gapped bundle (`make bundle`).
 
 ## Documentation

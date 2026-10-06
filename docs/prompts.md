@@ -15,7 +15,7 @@ can always be traced to the exact prompt that produced it.
 |--------|-----|
 | Instructions in the language of the document | The model reads and writes German for German documents and French for French ones; instructions in the same language avoid another language leaking into fact texts, omission reasons and glossary entries that the reviewers read. The French templates (`prompts/fr/`) follow the German ones line by line, with French JSON examples and two French few-shot pairs on the same topics. The few words code adds around the items (fact sheet headings, "Vorschlag:" or "Suggestion :", the problem lines of a repair round) come from one table per language (`pipeline/labels.py`). Italian has no templates yet. |
 | A concrete JSON example in each prompt instead of the JSON schema | Small models copy a filled example more reliably than they follow a schema, and the example is a fraction of the tokens. The pydantic models still validate every answer; the validation error goes back to the model once (`llm/json_out.py`). |
-| Lenient parsing of the answer (`pipeline/models.py`) | An 8B model gets details wrong that do not matter: `s4` instead of `s0004`, `Deadline` instead of `deadline`, a string where a list was asked for. These are normalised; only real problems (no blocks, an empty text) count as invalid. A complete answer without the `facts` list, seen on a page with nothing countable, is read as a fact sheet with no model facts; code completion adds the countable values. On long pages the 8B abbreviates a run of ids as a range (`"s0064" bis "s0087"`), which is not JSON: the parser writes the range out and repairs trailing and missing commas, and an answer that is still broken is reported with the position of the error, never replaced by an object from inside it. |
+| Lenient parsing of the answer (`pipeline/models.py`) | An 8B model gets details wrong that do not matter: `s4` instead of `s0004`, `Deadline` instead of `deadline`, a string where a list was asked for. These are normalised; only real problems (no blocks, an empty text) count as invalid. A complete answer without the `facts` list, seen on a page with nothing countable, is read as a fact sheet with no model facts; code completion adds the countable values. On long pages the 8B abbreviates a run of ids as a range (`"s0064" bis "s0087"`), which is not JSON: the parser writes the range out, repairs trailing and missing commas, closes an object the model forgot to close before a top-level key (the schema's fields say where) and turns the straight quote that ends a German quotation inside a string into the closing German one; an answer that is still broken is reported with the position of the error, never replaced by an object from inside it. |
 | The style guide is generated from the rule registry (`rules/styleguide.py`) | The writer is asked for exactly what the checker checks, with the thresholds of the chosen level. The guide changes when a rule changes; no second copy can drift. |
 | Few-shot examples written by the team, on topics outside the evaluation set | The cantonal pages may not be reproduced in a public repository (docs/sources.md §4). Two short synthetic pairs show the style: a decision on a resident parking permit and a dog-tax letter. The JSON examples in the prompts use the dog tax too. In local runs, details of examples on nearby topics leaked into drafts ("Steueramt", "Gemeinde" for the Sozialversicherungsstelle); examples on distant topics make such a leak obvious and keep the evaluation clean. A test checks that the examples break no `error` rule. On the Public AI 8B without thinking, 4 of 12 dev drafts were the write prompt's JSON example itself, word for word (6 October); the form now comes before the style examples and the document last, and code recognises an answer that copies the examples (below). |
 | Sentence ids in the source (`[s0004]`) and block ids in drafts (`[b007]`) | Provenance and fact references are by id; the model cites, code verifies that the ids exist (FACT-03, FACT-05). |
@@ -151,6 +151,30 @@ they are rewritten ("Rufen Sie die DISG an: 031 987 65 43."). The judge did not 
 them. A code rule that every date, amount, phone number, e-mail and web address in a
 draft must appear in the source (the mirror of FACT-01) would catch every such value
 exactly; it is the next rule to add.
+
+### On CSCS (official Apertus 1.5 8B and 70B, thinking for Understand and Judge)
+
+The hackathon key arrived on 6 October 2026. The same three dev pairs as above, C2 with
+the default thinking stages (`Apertus-v1.5-8B-thinking` for Understand, `-70B-thinking`
+for the judge), against the gateway run without thinking:
+
+| Pair | Fact coverage | Hard facts kept | Errors / 100 | Readability | Judge: present |
+|------|---------------|-----------------|--------------|-------------|----------------|
+| zh-blue-algae-de | 0.29 to 0.89 | 0.29 to 0.71 | 0.0 to 2.4 | 70 to 63 | 1.00 to 0.78 |
+| zh-voting-de | 1.00 to 1.00 | 1.00 to 1.00 | 10.7 to 19.0 | 57 to 59 | 1.00 to 0.56 |
+| lu-cost-approval-de | 0.00 to 1.00 | 0.00 to 0.71 | 0.0 to 0.0 | 70 to 37 | 0.30 to 0.71 |
+
+Thinking earns its time where it matters: the fact sheets are better (the model finds
+the values itself, so fewer facts come from code completion) and the drafts keep them:
+fact coverage 0.43 to 0.96 and hard facts kept 0.43 to 0.81 on average. The price is
+style: the drafts are longer and harder to read (readability 66 to 53, rule errors 3.6
+to 7.1 and warnings 55 to 89 per 100 blocks), so the repair rounds have more to do. The
+thinking judge reports distortions the no-thinking judge did not (7 to 22 percent of
+the facts) and more unsupported blocks. A C2 job takes 45 to 90 seconds on CSCS, less
+than the gateway needed without thinking. The thinking stages stay as they are for the
+evaluation; the style gap is the repair loop's job. Two slips of the thinking 8B on long fact sheets showed up here:
+a missing comma after a list and an object never closed before the next top-level key;
+both are repaired in code now (`llm/json_out.py`).
 
 ## Change log
 

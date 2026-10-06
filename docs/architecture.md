@@ -135,7 +135,7 @@ a failure resumes from the last good stage.
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Day-1 check 4 passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); not checked on CSCS yet. | - |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Day-1 check 4 passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -739,8 +739,8 @@ tests/                    rules (golden sentences, hard texts), ingest, pipeline
 ## 12. Day-1 verification checklist
 
 Assumptions to confirm against the live endpoint, in this order. Run on the Public AI
-gateway on 6 October 2026 (results below); to be repeated on CSCS when the key
-arrives. `make day1`
+gateway on 6 October 2026 and, when the key arrived the same day, on CSCS (both
+results below). `make day1`
 (`scripts/day1_checks.py`) runs checks 1-5 and writes `eval/results/day1_checks.json`;
 check 6 is `python -m leichtfacile eval run --condition C0 --limit 10`. Checks 2 and 3
 were rehearsed against the local llama.cpp endpoint (§10): thinking switches per request
@@ -773,16 +773,15 @@ at Juelich. The CSCS key had not arrived. Full output in
 1. **Models.** All four Apertus 1.5 names are listed, in lowercase
    (`swiss-ai/apertus-v1.5-8b`, `-8b-thinking`, `-70b`, `-70b-thinking`), next to the
    Apertus 1 names (`apertus-8b-instruct`, `-70b-instruct`) and three unrelated
-   models. The `-thinking` names are not used on this gateway (§6). Open for CSCS: the
-   host and the capitalised names.
+   models. The `-thinking` names are not used on this gateway (§6). The host and the
+   capitalised names: see CSCS below.
 2. **Thinking.** The 8B answered the arithmetic question without any reasoning (4
    output tokens). Fourteen further calls on the same day with `enable_thinking`
    through the chat template, short and long prompts, with and without JSON mode,
    returned no reasoning either, after three calls in the morning had reasoned in two
    cases. On this gateway thinking is unreliable to absent for the 8B and off for the
    70B, so Public AI runs are, in effect, runs without thinking at every stage and are
-   labelled that way. The reasoning format of the `-thinking` models stays open for
-   CSCS.
+   labelled that way. The reasoning format of the `-thinking` models: see CSCS below.
 3. **JSON.** 20 of 20 Understand answers on the sample letter parsed and validated
    without `response_format`, and 20 of 20 with `{"type": "json_object"}`; nothing
    truncated. JSON mode is accepted by the vLLM backend and changes neither the
@@ -798,7 +797,7 @@ at Juelich. The CSCS key had not arrived. Full output in
    20 tokens per second exceeds. The client now streams every response (§6), so the
    limit no longer applies.
 4. **Image input.** Works: the 8B read a rendered letter (PNG as base64 `image_url`)
-   and answered "Man muss bis zum 31. März 2026 handeln." Open for CSCS.
+   and answered "Man muss bis zum 31. März 2026 handeln." The same on CSCS, below.
 5. **Parallel calls.** 8 short calls at once: all succeeded, no 429, 1.4 to 2.2
    seconds each, no rate-limit headers. Decision D-F: there is headroom; the
    evaluation can run several pairs at once, section-parallel writing stays optional.
@@ -813,6 +812,41 @@ at Juelich. The CSCS key had not arrived. Full output in
 
 One cost figure from the gateway's headers: an Understand call on the 400-word sample
 letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
+
+### Results on CSCS, 6 October 2026
+
+`make day1` with profile A, the hackathon key, the same afternoon. Full output in
+`eval/results/day1_checks_cscs.json` (the Public AI run is kept as
+`day1_checks_publicai.json`).
+
+1. **Models and host.** `https://api.inference.cscs.ch/v1` lists `swiss-ai/Apertus-v1.5-8B`,
+   `-8B-thinking`, `-70B` and `-70B-thinking` in that spelling, next to the Apertus 1
+   models (`Apertus-8B-Instruct-2509`, `-70B-`) and six models of other makers. A short
+   call answers in about 100 milliseconds.
+2. **Thinking.** `LLM_THINKING_MODE=model-suffix` works as designed: the `-thinking`
+   models reason, and the reasoning arrives in the `reasoning` field of every streamed
+   chunk (the newer vLLM name; the client reads `reasoning_content` too), never inline.
+   The budget is the price: for the 400-word sample letter the 8B wrote 3,000 to 17,000
+   characters of reasoning per Understand call, 1,800 to 7,000 output tokens in total,
+   in 12 to 90 seconds at about 150 tokens per second; without thinking the same
+   call is about 1,000 tokens and 10 seconds.
+3. **JSON.** 19 of 20 Understand answers with thinking parsed and validated without
+   `response_format` (the twentieth call failed on the connection, below) and 20 of 20
+   with `{"type": "json_object"}`; medians 36 and 38 seconds. Decision D-B stands:
+   `response_format` is not used.
+4. **Image input.** Works on CSCS too: the 8B read the rendered letter and answered
+   "bis zum 31. März 2026".
+5. **Parallel calls.** 8 short calls at once, all in 98 to 104 milliseconds, no 429.
+   Decision D-F stands.
+6. **Connection drops.** About one in four long thinking calls ends with the server
+   closing the stream (`peer closed connection without sending complete message body`,
+   `incomplete chunked`), after seconds to a minute of generation; 10 of the 40 calls of
+   check 3 needed retries and one failed after five attempts. The rate is the same for
+   sequential and for eight parallel calls, so it is not our load. The client retries
+   such drops; profile A sets `LLM_MAX_RETRIES=8`, which makes a hard failure rare, at the
+   price of repeated generation time.
+7. **Baseline.** C0 on the eval pairs runs on CSCS with `make eval`; the Public AI
+   baseline above was the first reading.
 
 ## 13. Risks and mitigations
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -38,7 +38,13 @@ _ID_RANGE = re.compile(
 _MAX_RANGE = 500
 _TRAILING_COMMA = re.compile(r",\s*([}\]])")
 _MISSING_COMMA_OBJECTS = re.compile(r"}\s*\n(\s*){")
-_MISSING_COMMA_KEYS = re.compile(r'"\s*\n(\s*)"([A-Za-z_]\w*)"\s*:')
+# A value (closing quote, bracket or brace) followed by the next key without a comma,
+# on the same line or the next ("s0095"] "must_keep": ...).
+_MISSING_COMMA_KEYS = re.compile(r'([\]}"])(\s+)("[A-Za-z_]\w*"\s*:)')
+# A German quotation inside a string closed with a straight quote („muss zeigen"), which
+# ends the JSON string early; the closing quote becomes the German one.
+_LOW_QUOTE = re.compile('\u201e([^"\n]{1,120})"')
+_KEY_AT = re.compile(r'"([A-Za-z_]\w*)"\s*:')
 # A list that belongs at the top level, written as a pseudo-block inside "blocks"
 # ({"kind": "omissions": [...]}): the key is restored here and WriteOut hoists the list.
 _NESTED_LIST = re.compile(r'\{\s*"kind"\s*:\s*"(omissions|glossary)"\s*:\s*\[')
@@ -64,13 +70,62 @@ def _expand_range(m: re.Match[str]) -> str:
     return ", ".join(f'"{prefix}{n:0{len(first)}d}"' for n in range(lo, hi + 1))
 
 
-def repair_json(text: str) -> str:
+def repair_json(text: str, top_keys: Iterable[str] = ()) -> str:
     """Fix the slips of small models in otherwise well-formed JSON (see the patterns)."""
     text = _ID_RANGE.sub(_expand_range, text)
     text = _TRAILING_COMMA.sub(r"\1", text)
     text = _MISSING_COMMA_OBJECTS.sub(r"},\n\1{", text)
     text = _NESTED_LIST.sub(r'{"\1": [', text)
-    return _MISSING_COMMA_KEYS.sub(r'",\n\1"\2":', text)
+    text = _LOW_QUOTE.sub("\u201e\\1\u201c", text)
+    text = _MISSING_COMMA_KEYS.sub(r"\1,\2\3", text)
+    return close_containers(text, top_keys)
+
+
+def close_containers(text: str, top_keys: Iterable[str]) -> str:
+    """Close the objects and lists a model forgot to close before a top-level key.
+
+    `{"core": {"what": {...}, "facts": [...]}` lacks the brace that ends `core`; the
+    answer's top-level keys (the schema's fields) show where it belongs.
+    """
+    keys = set(top_keys)
+    if not keys:
+        return text
+    out: list[str] = []
+    stack: list[str] = []
+    in_string = escape = False
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if in_string:
+            out.append(ch)
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            i += 1
+            continue
+        if ch == '"':
+            m = _KEY_AT.match(text, i)
+            if m and m.group(1) in keys and len(stack) > 1:
+                closers = "".join("}" if o == "{" else "]" for o in reversed(stack[1:]))
+                j = len(out) - 1
+                while j >= 0 and out[j].isspace():
+                    j -= 1
+                if j >= 0 and out[j] == ",":
+                    out.insert(j, closers)  # before the comma that already separates
+                else:
+                    out.insert(j + 1, closers + ",")
+                del stack[1:]
+            in_string = True
+        elif ch in "{[":
+            stack.append(ch)
+        elif ch in "}]" and stack:
+            stack.pop()
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
 
 def _near(text: str, pos: int) -> str:
@@ -78,7 +133,7 @@ def _near(text: str, pos: int) -> str:
     return " ".join(window.split())
 
 
-def extract_json(text: str) -> Any:
+def extract_json(text: str, top_keys: Iterable[str] = ()) -> Any:
     """Parse the first JSON object or array in a model answer.
 
     A value that starts like an answer (it has a key) but breaks further on is repaired,
@@ -101,7 +156,7 @@ def extract_json(text: str) -> Any:
                 if not _KEY.search(candidate, i, exc.pos):
                     continue  # a brace in prose, not the answer: scan on
                 try:
-                    value, _ = decoder.raw_decode(repair_json(candidate[i:]))
+                    value, _ = decoder.raw_decode(repair_json(candidate[i:], top_keys))
                     return value
                 except json.JSONDecodeError:
                     broken = broken or (candidate, exc)
@@ -152,7 +207,7 @@ def complete_json[T: BaseModel](
             )
         cause: Exception | None = None
         try:
-            out = schema.model_validate(extract_json(result.text))
+            out = schema.model_validate(extract_json(result.text, schema.model_fields))
         except (JSONExtractionError, ValidationError) as exc:
             cause = exc
             error: str | None = str(exc)[:_MAX_ERROR_CHARS]

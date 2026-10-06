@@ -148,3 +148,38 @@ def test_extract_json_restores_a_list_written_as_a_block():
     assert extract_json(text) == {
         "blocks": [{"kind": "sentence", "text": "a"}, {"omissions": [{"what": "x"}]}]
     }
+
+
+def test_extract_json_repairs_a_missing_comma_after_a_list_or_object():
+    text = '{"a": ["s0094", "s0095"] "must_keep": true, "b": {"x": 1} "c": "d" "e": 2}'
+    assert extract_json(text) == {
+        "a": ["s0094", "s0095"], "must_keep": True, "b": {"x": 1}, "c": "d", "e": 2
+    }  # fmt: skip
+
+
+def test_extract_json_closes_a_german_quotation_inside_a_string():
+    text = '{"note": "nur als \u201emuss zeigen" formuliert. Im Original ist es eine Pflicht."}'
+    assert extract_json(text) == {
+        "note": "nur als \u201emuss zeigen\u201c formuliert. Im Original ist es eine Pflicht."
+    }
+
+
+def test_extract_json_closes_the_object_a_model_forgot_to_close():
+    text = '{"core": {"what": {"text": "a"}, "facts": [{"text": "f"}], "hard_terms": []}'
+    assert extract_json(text, top_keys=("core", "facts", "hard_terms")) == {
+        "core": {"what": {"text": "a"}}, "facts": [{"text": "f"}], "hard_terms": []
+    }  # fmt: skip
+    text = '{"blocks": [{"text": "a"}, "omissions": []}'
+    assert extract_json(text, top_keys=("blocks", "omissions")) == {
+        "blocks": [{"text": "a"}], "omissions": []
+    }  # fmt: skip
+    text = '{"blocks": [{"text": "a"}]\n"omissions": []}'  # no comma either
+    assert extract_json(text, top_keys=("blocks", "omissions"))["omissions"] == []
+    with pytest.raises(JSONExtractionError):  # without the keys the break is reported
+        extract_json('{"core": {"what": {"text": "a"}, "facts": []}')
+    # Keys inside strings and well-formed answers are left alone.
+    good = '{"core": {"note": "say \\"facts\\": here"}, "facts": []}'
+    assert extract_json(good, top_keys=("core", "facts")) == {
+        "core": {"note": 'say "facts": here'},
+        "facts": [],
+    }
