@@ -159,10 +159,12 @@ where a list was asked for) and validated with pydantic. On failure the validati
 error goes back to the model once. Output cut off while still reasoning is reported as
 truncated.
 
-**Reliability.** Retries on 429, 5xx and connection errors with exponential backoff,
-jitter and `Retry-After`; a response cache keyed by model, messages and parameters
-for development and evaluation reruns; every call is logged with stage, model, tokens
-and latency, so each job shows its cost.
+**Reliability.** Responses are streamed, so a proxy in front of the endpoint cannot
+cut a long answer (Cloudflare in front of the Public AI gateway does so after about
+100 seconds); retries on 429, 5xx, connection errors and broken streams with
+exponential backoff, jitter and `Retry-After`; a response cache keyed by model,
+messages and parameters for development and evaluation reruns; every call is logged
+with stage, model, tokens and latency, so each job shows its cost.
 
 **Other models.** No other language model is used at runtime or in the evaluation.
 The rule checker uses spaCy's `de_core_news_md` (a small statistical parser for
@@ -262,8 +264,10 @@ outputs, the evaluation metrics, and the web API.
   (dates, amounts, contacts); obligations and conditions without a value rely on the
   judge. Many easy-language pages carry few such facts, so coverage is reported on the
   fact-rich subset as well.
-- **Not yet supported:** scanned PDFs and photos (Apertus 1.5 reads images, but image
-  input through the CSCS API is unverified), DOCX export, the air-gapped image bundle.
+- **Not yet supported:** scanned PDFs and photos (Apertus 1.5 reads images, and the
+  day-1 check on the Public AI gateway confirmed image input through the API on 6
+  October 2026, but the ingest step for images is not built), DOCX export, the
+  air-gapped image bundle.
 - **Live pages change.** Evaluation uses cached copies with a fetch date; a page
   submitted live may have moved or changed.
 - **Rule NUM-08** (phone numbers without `+41`) is under review: official Zürich pages

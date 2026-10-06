@@ -21,6 +21,23 @@ T = TypeVar("T", bound=BaseModel)
 
 _FENCE = re.compile(r"```(?:json|JSON)?\s*\n?(.*?)```", re.DOTALL)
 _MAX_ERROR_CHARS = 2000
+_KEY = re.compile(r'"\s*:')  # a key: the value that broke was the answer, not prose
+# Slips of a small model in otherwise well-formed JSON. On long pages the 8B abbreviates
+# a run of ids as a range ("s0064" bis "s0087", "s0045" ... "s0057"), which JSON has no
+# syntax for; the list is written out. Range markers: ..., the ellipsis, a hyphen or an
+# en dash (as escapes), bis, to, à.
+_ID_RANGE = re.compile(
+    r"""
+    "([a-z]{1,2})(\d{2,4})"            # the first id: prefix and number
+    \s*(?:\.\.\.|\u2026|\u2013|-|bis|to|à|jusqu'à)\s*
+    "\1(\d{2,4})"                      # the last id, same prefix
+    """,
+    re.VERBOSE,
+)
+_MAX_RANGE = 500
+_TRAILING_COMMA = re.compile(r",\s*([}\]])")
+_MISSING_COMMA_OBJECTS = re.compile(r"}\s*\n(\s*){")
+_MISSING_COMMA_KEYS = re.compile(r'"\s*\n(\s*)"([A-Za-z_]\w*)"\s*:')
 
 
 class JSONExtractionError(ValueError):
@@ -35,20 +52,61 @@ class LLMOutputError(RuntimeError):
         self.results = results
 
 
+def _expand_range(m: re.Match[str]) -> str:
+    prefix, first, last = m.group(1), m.group(2), m.group(3)
+    lo, hi = int(first), int(last)
+    if hi < lo or hi - lo > _MAX_RANGE:
+        return m.group(0)
+    return ", ".join(f'"{prefix}{n:0{len(first)}d}"' for n in range(lo, hi + 1))
+
+
+def repair_json(text: str) -> str:
+    """Fix the slips of small models in otherwise well-formed JSON (see the patterns)."""
+    text = _ID_RANGE.sub(_expand_range, text)
+    text = _TRAILING_COMMA.sub(r"\1", text)
+    text = _MISSING_COMMA_OBJECTS.sub(r"},\n\1{", text)
+    return _MISSING_COMMA_KEYS.sub(r'",\n\1"\2":', text)
+
+
+def _near(text: str, pos: int) -> str:
+    window = text[max(0, pos - 60) : pos] + " <<<here>>> " + text[pos : pos + 40]
+    return " ".join(window.split())
+
+
 def extract_json(text: str) -> Any:
-    """Parse the first JSON object or array in a model answer."""
+    """Parse the first JSON object or array in a model answer.
+
+    A value that starts like an answer (it has a key) but breaks further on is repaired,
+    and if that fails the syntax error is reported with its position. It is never
+    skipped: skipping it would return an object from inside it, and the error that
+    follows would blame the wrong thing.
+    """
     answer, _ = split_reasoning(text)
     candidates = [m.group(1) for m in _FENCE.finditer(answer)] + [answer]
     decoder = json.JSONDecoder()
+    broken: tuple[str, json.JSONDecodeError] | None = None
     for candidate in candidates:
         for i, ch in enumerate(candidate):
             if ch not in "{[":
                 continue
             try:
                 value, _ = decoder.raw_decode(candidate, i)
-            except json.JSONDecodeError:
-                continue
-            return value
+                return value
+            except json.JSONDecodeError as exc:
+                if not _KEY.search(candidate, i, exc.pos):
+                    continue  # a brace in prose, not the answer: scan on
+                try:
+                    value, _ = decoder.raw_decode(repair_json(candidate[i:]))
+                    return value
+                except json.JSONDecodeError:
+                    broken = broken or (candidate, exc)
+                    break  # the answer is broken: no object from inside it
+    if broken:
+        candidate, exc = broken
+        raise JSONExtractionError(
+            f"invalid JSON: {exc.msg} at line {exc.lineno}, column {exc.colno}, near: "
+            + _near(candidate, exc.pos)
+        )
     raise JSONExtractionError("no JSON object or array found in the model answer")
 
 

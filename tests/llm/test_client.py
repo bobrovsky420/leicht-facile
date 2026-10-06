@@ -5,7 +5,14 @@ import pytest
 
 from leichtfacile.llm.cache import ResponseCache
 from leichtfacile.llm.client import LLMError, Usage
-from tests.conftest import MODEL, chat_response, error_response, make_settings
+from tests.conftest import (
+    MODEL,
+    broken_sse_response,
+    chat_response,
+    error_response,
+    make_settings,
+    sse_response,
+)
 
 MSG = [{"role": "user", "content": "Hallo"}]
 
@@ -185,3 +192,71 @@ def test_judge_defaults_to_writer_model():
     assert make_settings().judge_name == MODEL
     other = "swiss-ai/Apertus-v1.5-70B"
     assert make_settings(llm_judge_name=other).judge_name == other
+
+
+# -- streaming (the default outside the tests) ----------------------------------------
+
+
+def test_streaming_collects_text_reasoning_and_usage(endpoint, make_client):
+    endpoint.push(
+        sse_response("42", reasoning_content="17 plus 25 ergibt 42.", prompt_tokens=12,
+                     completion_tokens=3)
+    )  # fmt: skip
+    client = make_client(make_settings(llm_stream=True))
+    result = client.complete(MSG, thinking=True, stage="judge")
+
+    assert result.text == "42"
+    assert result.reasoning == "17 plus 25 ergibt 42."
+    assert result.finish_reason == "stop"
+    assert (result.usage.tokens_in, result.usage.tokens_out) == (12, 3)
+    body = endpoint.chat_bodies()[0]
+    assert body["stream"] is True
+    assert body["stream_options"] == {"include_usage": True}
+
+
+def test_streaming_inline_reasoning_split_across_chunks(endpoint, make_client):
+    endpoint.push(sse_response("<|inner_prefix|>Ich rechne.<|inner_suffix|>\n42", pieces=9))
+    result = make_client(make_settings(llm_stream=True)).complete(MSG, thinking=True)
+    assert result.text == "42"
+    assert result.reasoning == "Ich rechne."
+
+
+def test_streaming_truncation_is_flagged(endpoint, make_client):
+    endpoint.push(sse_response("<|inner_prefix|>Ich rechne noch", finish_reason="length"))
+    result = make_client(make_settings(llm_stream=True)).complete(MSG, thinking=True)
+    assert result.truncated
+    assert result.text == ""
+    assert result.reasoning == "Ich rechne noch"
+
+
+def test_streaming_retries_a_gateway_timeout_before_the_first_chunk(endpoint, make_client, sleeps):
+    endpoint.push(error_response(504), sse_response("ok"))
+    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    assert result.text == "ok"
+    assert len(sleeps) == 1
+
+
+def test_streaming_retries_a_stream_that_breaks(endpoint, make_client, sleeps):
+    endpoint.push(broken_sse_response(), sse_response("ok"))
+    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    assert result.text == "ok"
+    assert len(sleeps) == 1
+
+
+def test_streaming_without_usage_counts_zero_tokens(endpoint, make_client):
+    endpoint.push(sse_response("ok", usage=False))
+    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    assert result.text == "ok"
+    assert (result.usage.tokens_in, result.usage.tokens_out) == (0, 0)
+
+
+def test_streaming_results_are_cached(endpoint, make_client, tmp_path):
+    cache = ResponseCache(tmp_path / "cache.sqlite")
+    client = make_client(make_settings(llm_stream=True), cache=cache)
+    endpoint.push(sse_response("Antwort", reasoning_content="r"))
+    first = client.complete(MSG)
+    second = client.complete(MSG)
+    assert len(endpoint.chat_bodies()) == 1
+    assert (second.text, second.reasoning, second.usage.cached) == ("Antwort", "r", True)
+    assert first.usage.cached is False
+    cache.close()

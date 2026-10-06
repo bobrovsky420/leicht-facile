@@ -6,10 +6,14 @@ import json
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 
 from leichtfacile.llm.client import LLMClient
-from leichtfacile.llm.json_out import LLMOutputError, complete_json, extract_json
+from leichtfacile.llm.json_out import (
+    JSONExtractionError,
+    LLMOutputError,
+    complete_json,
+    extract_json,
+)
 from leichtfacile.pipeline.models import UnderstandOut, WriteOut
 from leichtfacile.pipeline.stages import complete_factsheet, link_facts, to_factsheet
 from leichtfacile.rules import check_draft
@@ -75,12 +79,13 @@ def test_recorded_write_answer_and_the_missing_phone_number(factsheet, source) -
     assert result.metrics.pct_passive == 0.0
 
 
-def test_a_fragment_of_a_cut_off_answer_is_no_fact_sheet() -> None:
+def test_a_cut_off_answer_is_reported_as_broken_not_read_as_a_fragment() -> None:
     raw = (FIXTURES / "letter_understand.txt").read_text(encoding="utf-8")
     half = raw[: len(raw) // 2]
-    # The first complete inner object parses, but it is not a fact sheet.
-    with pytest.raises(ValidationError):
-        UnderstandOut.model_validate(extract_json(half))
+    # The first complete inner object would parse, but it is not the answer: the
+    # parser reports the break with its position instead.
+    with pytest.raises(JSONExtractionError, match="invalid JSON"):
+        extract_json(half)
 
 
 def test_a_cut_off_answer_is_never_used(endpoint, sleeps) -> None:

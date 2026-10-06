@@ -40,6 +40,19 @@ def test_lenient_understand_parsing() -> None:
     assert fs.facts[2].must_keep is True  # default
 
 
+def test_understand_without_the_facts_list_is_an_empty_fact_sheet() -> None:
+    # Seen on a page with nothing countable: everything there except `facts`.
+    complete = {k: v for k, v in fx.UNDERSTAND.items() if k != "facts"}
+    out = UnderstandOut.model_validate(complete)
+    assert out.facts == []
+    assert out.core.deadline.text == "Bis 31. März 2026."
+    # A fragment of an answer is still no fact sheet.
+    with pytest.raises(ValueError):
+        UnderstandOut.model_validate({"core": fx.UNDERSTAND["core"]})
+    with pytest.raises(ValueError):
+        UnderstandOut.model_validate({"doc_type": "Merkblatt", "audience": "alle"})
+
+
 def test_write_output_rejects_empty_drafts_and_strips_markdown() -> None:
     with pytest.raises(ValueError):
         WriteOut.model_validate({"blocks": []})

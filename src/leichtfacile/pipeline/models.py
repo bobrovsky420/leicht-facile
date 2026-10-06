@@ -163,6 +163,22 @@ class UnderstandOut(LLMOut):
     hard_terms: list[TermOut] = Field(default_factory=list)
     omit_candidates: list[OmitOut] = Field(default_factory=list)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _facts_left_out(cls, data: Any) -> Any:
+        # A complete answer without the facts list is a fact sheet with no model facts:
+        # on a page with nothing countable, the 8B wrote doc_type, core, hard_terms and
+        # omit_candidates and left `facts` out, twice (6 October 2026). Code completion
+        # adds every countable value anyway. A fragment without the lists still fails.
+        if (
+            isinstance(data, dict)
+            and data.get("facts") is None
+            and "core" in data
+            and ("hard_terms" in data or "omit_candidates" in data)
+        ):
+            return {**data, "facts": []}
+        return data
+
 
 # -- write ----------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
@@ -23,6 +24,9 @@ def make_settings(**overrides: Any) -> Settings:
         "llm_base_url": BASE_URL,
         "llm_api_key": "test-key",
         "llm_name": MODEL,
+        # The fake endpoint answers with plain JSON; streaming tests switch this on and
+        # push `sse_response` bodies instead.
+        "llm_stream": False,
         # Never the repository's data/ folder: every test gets a fresh directory.
         "data_dir": Path(tempfile.mkdtemp(prefix="leichtfacile-test-")),
     }
@@ -113,3 +117,75 @@ def make_client(endpoint: FakeEndpoint, sleeps: list[float]) -> Callable[..., LL
         )
 
     return factory
+
+
+def _pieces(text: str, count: int) -> list[str]:
+    size = max(1, math.ceil(len(text) / count))
+    return [text[i : i + size] for i in range(0, len(text), size)] or [""]
+
+
+def _chunk(delta: dict[str, Any], finish_reason: str | None = None) -> dict[str, Any]:
+    return {
+        "id": "chatcmpl-test",
+        "object": "chat.completion.chunk",
+        "created": 0,
+        "model": MODEL,
+        "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+    }
+
+
+def sse_response(
+    content: str | None,
+    *,
+    reasoning_content: str | None = None,
+    finish_reason: str = "stop",
+    prompt_tokens: int = 11,
+    completion_tokens: int = 7,
+    usage: bool = True,
+    pieces: int = 3,
+) -> httpx.Response:
+    """A streamed chat completion: reasoning and text in a few chunks, the finish
+    reason, then the usage chunk that `stream_options.include_usage` asks for."""
+    events = []
+    if reasoning_content:
+        events += [_chunk({"reasoning_content": p}) for p in _pieces(reasoning_content, pieces)]
+    events += [_chunk({"content": p}) for p in _pieces(content or "", pieces)]
+    events.append(_chunk({}, finish_reason))
+    if usage:
+        events.append(
+            {
+                "id": "chatcmpl-test",
+                "object": "chat.completion.chunk",
+                "created": 0,
+                "model": MODEL,
+                "choices": [],
+                "usage": {
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": prompt_tokens + completion_tokens,
+                },
+            }
+        )
+    body = "".join(f"data: {json.dumps(e, ensure_ascii=False)}\n\n" for e in events)
+    return httpx.Response(
+        200, content=(body + "data: [DONE]\n\n").encode("utf-8"),
+        headers={"content-type": "text/event-stream"},
+    )  # fmt: skip
+
+
+class _BrokenStream(httpx.SyncByteStream):
+    """A response body that breaks after its first chunk: the connection dropped."""
+
+    def __init__(self, head: bytes) -> None:
+        self.head = head
+
+    def __iter__(self):
+        yield self.head
+        raise httpx.ReadError("connection lost")
+
+
+def broken_sse_response() -> httpx.Response:
+    head = f"data: {json.dumps(_chunk({'content': 'Teil'}))}\n\n".encode()
+    return httpx.Response(
+        200, stream=_BrokenStream(head), headers={"content-type": "text/event-stream"}
+    )

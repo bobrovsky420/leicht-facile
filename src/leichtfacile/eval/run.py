@@ -41,14 +41,26 @@ def results_file(results_dir: Path, condition: str, writer: str) -> Path:
     return results_dir / f"{condition}_{slug(writer)}.jsonl"
 
 
-def _done(path: Path) -> set[str]:
+_OK = ("needs_review", "done")
+
+
+def _rows(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
-        return set()
-    return {
-        json.loads(line)["pair_id"]
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line
-    }
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def _done(path: Path) -> set[str]:
+    """Pairs with a usable result. Failed runs and failed scorings run again next time."""
+    return {r["pair_id"] for r in _rows(path) if r.get("status") in _OK}
+
+
+def _write_row(path: Path, row: dict[str, Any]) -> None:
+    """Add the row, replacing an earlier row of the same pair (a failed run)."""
+    rows = [r for r in _rows(path) if r["pair_id"] != row["pair_id"]] + [row]
+    path.write_text(
+        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
+    )
 
 
 def reference_rows(pairs: list[Pair], results_dir: Path = RESULTS) -> Path:
@@ -107,28 +119,44 @@ def run_condition(
             "job_id": job.id,
             "status": job.status,
         }
-        if job.status not in ("needs_review", "done"):
+        if job.status not in _OK:
             row["error"] = job.error
         else:
-            summary = store.get_artifact(job.id, "summary", PipelineSummary)
-            draft = store.get_artifact(
-                job.id, "draft", Draft, version=summary.final_version if summary else None
-            )
-            factsheet = store.get_artifact(job.id, "factsheet", FactSheet) or _reference_factsheet(
-                store, orchestrator, pair, job.id
-            )
-            judge_report = store.get_artifact(job.id, "judge", JudgeReport, version=draft.version)
-            if judge_report is None and judge_all and factsheet is not None:
-                judge_report = _score_judge(
-                    store, orchestrator, job.id, standard, factsheet, draft, judge
-                )
-            row.update(score_output(job, draft, standard, easy, factsheet, judge_report))
-            if summary:
-                row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
-        with out.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            try:
+                row.update(_score(store, orchestrator, job, pair, standard, easy, judge, judge_all))
+            except Exception as exc:  # a scoring call failed: the run goes on, the pair reruns
+                log.warning("%s %s: scoring failed: %s", condition, pair.id, exc)
+                row["status"] = "scoring_failed"
+                row["error"] = f"{type(exc).__name__}: {exc}"[:500]
+        _write_row(out, row)
         log.info("%s %s: %s", condition, pair.id, row.get("status"))
     return out
+
+
+def _score(
+    store: Store,
+    orchestrator: Orchestrator,
+    job: Any,
+    pair: Pair,
+    standard: SourceDocument,
+    easy: SourceDocument,
+    judge: str | None,
+    judge_all: bool,
+) -> dict[str, Any]:
+    summary = store.get_artifact(job.id, "summary", PipelineSummary)
+    draft = store.get_artifact(
+        job.id, "draft", Draft, version=summary.final_version if summary else None
+    )
+    factsheet = store.get_artifact(job.id, "factsheet", FactSheet) or _reference_factsheet(
+        store, orchestrator, pair, job.id
+    )
+    judge_report = store.get_artifact(job.id, "judge", JudgeReport, version=draft.version)
+    if judge_report is None and judge_all and factsheet is not None:
+        judge_report = _score_judge(store, orchestrator, job.id, standard, factsheet, draft, judge)
+    row = score_output(job, draft, standard, easy, factsheet, judge_report)
+    if summary:
+        row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
+    return row
 
 
 def _reference_factsheet(

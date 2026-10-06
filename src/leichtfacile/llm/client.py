@@ -3,6 +3,7 @@
 All of them speak the OpenAI chat-completions protocol, so the deployment target is a
 matter of configuration (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`). This module adds
 what the pipeline needs on top of the SDK: thinking-mode handling, reasoning removal,
+streaming (so that a proxy in front of the endpoint cannot time out a long answer),
 retries with backoff, a usage record per call and an optional response cache.
 
 Privacy: document text is never logged above DEBUG. Log lines carry model, stage,
@@ -34,6 +35,8 @@ _RETRYABLE = (
     openai.RateLimitError,
     openai.InternalServerError,
     openai.APIConnectionError,  # includes APITimeoutError
+    httpx.HTTPError,  # a stream that breaks after the headers arrived
+    httpx.StreamError,
 )
 _BACKOFF_BASE_S = 1.0
 _BACKOFF_MAX_S = 30.0
@@ -67,6 +70,17 @@ class LLMResult:
         return self.finish_reason == "length"
 
 
+@dataclass(frozen=True)
+class _Reply:
+    """What a chat completion contains, the same for a streamed and a plain response."""
+
+    content: str
+    reasoning: str | None  # from a separate field of the response, if the server has one
+    finish_reason: str | None
+    tokens_in: int
+    tokens_out: int
+
+
 class LLMClient:
     def __init__(
         self,
@@ -81,6 +95,7 @@ class LLMClient:
         self._cache = cache
         self._usage_sink = usage_sink
         self._sleep = sleep
+        self._warned_no_usage = False
         self._client = openai.OpenAI(
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key.get_secret_value(),
@@ -143,20 +158,15 @@ class LLMClient:
                 return LLMResult(hit["text"], hit["reasoning"], hit["finish_reason"], usage)
 
         started = time.perf_counter()
-        response = self._create_with_retries(name, messages, params, stage)
+        reply = self._create_with_retries(name, messages, params, stage)
         latency_ms = int((time.perf_counter() - started) * 1000)
 
-        choice = response.choices[0]
-        message = choice.message
-        answer, inline_reasoning = split_reasoning(message.content or "")
-        field_reasoning = _reasoning_field(message)
-        reasoning = "\n\n".join(r for r in (field_reasoning, inline_reasoning) if r) or None
+        answer, inline_reasoning = split_reasoning(reply.content)
+        reasoning = "\n\n".join(r for r in (reply.reasoning, inline_reasoning) if r) or None
 
-        tokens_in = getattr(response.usage, "prompt_tokens", 0) or 0
-        tokens_out = getattr(response.usage, "completion_tokens", 0) or 0
-        usage = Usage(stage, name, tokens_in, tokens_out, latency_ms)
+        usage = Usage(stage, name, reply.tokens_in, reply.tokens_out, latency_ms)
         self._record(usage)
-        if choice.finish_reason == "length":
+        if reply.finish_reason == "length":
             log.warning(
                 "LLM output truncated (stage=%s, model=%s, max_tokens=%d)",
                 stage,
@@ -164,7 +174,7 @@ class LLMClient:
                 max_tokens,
             )
 
-        result = LLMResult(answer, reasoning, choice.finish_reason, usage)
+        result = LLMResult(answer, reasoning, reply.finish_reason, usage)
         if self._cache and key:
             self._cache.put(
                 key,
@@ -172,9 +182,9 @@ class LLMClient:
                 {
                     "text": answer,
                     "reasoning": reasoning,
-                    "finish_reason": choice.finish_reason,
-                    "tokens_in": tokens_in,
-                    "tokens_out": tokens_out,
+                    "finish_reason": reply.finish_reason,
+                    "tokens_in": reply.tokens_in,
+                    "tokens_out": reply.tokens_out,
                 },
             )
         return result
@@ -187,37 +197,105 @@ class LLMClient:
 
     def _create_with_retries(
         self, name: str, messages: list[Message], params: dict[str, Any], stage: str
-    ) -> Any:
+    ) -> _Reply:
         attempts = self.settings.llm_max_retries + 1
         for attempt in range(1, attempts + 1):
             try:
-                return self._client.chat.completions.create(
-                    model=name,
-                    messages=messages,  # type: ignore[arg-type]
-                    **params,
-                )
+                return self._request(name, messages, params)
             except _RETRYABLE as exc:
-                if attempt == attempts:
-                    raise LLMError(
-                        f"LLM call failed after {attempts} attempts "
-                        f"(stage={stage}, model={name}): {_describe(exc)}"
-                    ) from exc
-                delay = _retry_delay(exc, attempt)
-                log.warning(
-                    "LLM call failed (stage=%s, model=%s, attempt %d/%d): %s; retrying in %.1fs",
-                    stage,
-                    name,
-                    attempt,
-                    attempts,
-                    _describe(exc),
-                    delay,
-                )
-                self._sleep(delay)
+                self._retry_or_raise(exc, attempt, attempts, name, stage)
             except openai.APIStatusError as exc:
                 raise LLMError(
                     f"LLM request rejected (stage={stage}, model={name}): {_describe(exc)}"
                 ) from exc
+            except openai.APIError as exc:
+                # An error event inside a stream (a gateway reporting an upstream
+                # failure): retried like a 5xx.
+                self._retry_or_raise(exc, attempt, attempts, name, stage)
         raise AssertionError("unreachable")
+
+    def _retry_or_raise(
+        self, exc: Exception, attempt: int, attempts: int, name: str, stage: str
+    ) -> None:
+        if attempt == attempts:
+            raise LLMError(
+                f"LLM call failed after {attempts} attempts "
+                f"(stage={stage}, model={name}): {_describe(exc)}"
+            ) from exc
+        delay = _retry_delay(exc, attempt)
+        log.warning(
+            "LLM call failed (stage=%s, model=%s, attempt %d/%d): %s; retrying in %.1fs",
+            stage,
+            name,
+            attempt,
+            attempts,
+            _describe(exc),
+            delay,
+        )
+        self._sleep(delay)
+
+    def _request(self, name: str, messages: list[Message], params: dict[str, Any]) -> _Reply:
+        """One request, streamed unless `LLM_STREAM=0`.
+
+        Streaming makes the endpoint send the answer as it is generated, so a proxy in
+        front of it (Cloudflare in front of the Public AI gateway cuts a response after
+        about 100 seconds) never waits for a long answer. The token counts come with the
+        last chunk (`stream_options.include_usage`).
+        """
+        if not self.settings.llm_stream:
+            response = self._client.chat.completions.create(
+                model=name,
+                messages=messages,  # type: ignore[arg-type]
+                **params,
+            )
+            choice = response.choices[0]
+            return _Reply(
+                choice.message.content or "",
+                _reasoning_field(choice.message),
+                choice.finish_reason,
+                getattr(response.usage, "prompt_tokens", 0) or 0,
+                getattr(response.usage, "completion_tokens", 0) or 0,
+            )
+
+        content: list[str] = []
+        reasoning: list[str] = []
+        finish_reason: str | None = None
+        tokens_in = tokens_out = 0
+        saw_usage = False
+        stream = self._client.chat.completions.create(
+            model=name,
+            messages=messages,  # type: ignore[arg-type]
+            stream=True,
+            stream_options={"include_usage": True},
+            **params,
+        )
+        with stream:
+            for chunk in stream:
+                usage = getattr(chunk, "usage", None)
+                if usage is not None:
+                    tokens_in = getattr(usage, "prompt_tokens", 0) or 0
+                    tokens_out = getattr(usage, "completion_tokens", 0) or 0
+                    saw_usage = True
+                for choice in chunk.choices or []:
+                    delta = choice.delta
+                    if delta is not None:
+                        if delta.content:
+                            content.append(delta.content)
+                        piece = _reasoning_piece(delta)
+                        if piece:
+                            reasoning.append(piece)
+                    if choice.finish_reason:
+                        finish_reason = choice.finish_reason
+        if not saw_usage and not self._warned_no_usage:
+            self._warned_no_usage = True
+            log.warning("the endpoint sends no usage with its streams; token counts are 0")
+        return _Reply(
+            "".join(content),
+            "".join(reasoning).strip() or None,
+            finish_reason,
+            tokens_in,
+            tokens_out,
+        )
 
     def _record(self, usage: Usage) -> None:
         log.info("llm_call %s", asdict(usage))
@@ -232,6 +310,18 @@ def _reasoning_field(message: Any) -> str | None:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return None
+
+
+def _reasoning_piece(delta: Any) -> str:
+    """The reasoning in one streamed chunk, unstripped: the pieces are joined later."""
+    extra = getattr(delta, "model_extra", None) or {}
+    for field in ("reasoning_content", "reasoning"):
+        value = extra.get(field)
+        if value is None:
+            value = getattr(delta, field, None)
+        if isinstance(value, str) and value:
+            return value
+    return ""
 
 
 def _retry_delay(exc: Exception, attempt: int) -> float:

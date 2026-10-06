@@ -88,3 +88,37 @@ def test_complete_json_gives_up_after_repair(endpoint, make_client):
     with pytest.raises(LLMOutputError) as info:
         complete_json(make_client(), [{"role": "user", "content": "x"}], FactSheet)
     assert len(info.value.results) == 2
+
+
+def test_extract_json_writes_id_ranges_out():
+    text = (
+        '{"a": ["s0045" ... "s0048"], "b": ["s0064" bis "s0066"], "c": ["f01"-"f03"], '
+        '"d": ["s0001" à "s0002"], "e": ["s0010", "s0012" ... "s0013"]}'
+    )
+    assert extract_json(text) == {
+        "a": ["s0045", "s0046", "s0047", "s0048"],
+        "b": ["s0064", "s0065", "s0066"],
+        "c": ["f01", "f02", "f03"],
+        "d": ["s0001", "s0002"],
+        "e": ["s0010", "s0012", "s0013"],
+    }
+
+
+def test_extract_json_repairs_commas():
+    text = '{"facts": [{"kind": "a"}\n {"kind": "b"},],\n "x": "y"\n "z": 1,}'
+    assert extract_json(text) == {"facts": [{"kind": "a"}, {"kind": "b"}], "x": "y", "z": 1}
+
+
+def test_extract_json_never_returns_a_fragment_of_a_broken_answer():
+    text = '{"doc_type": "x", "core": {"what": {"text": "a"}}, "facts": [1 2]}'
+    with pytest.raises(JSONExtractionError, match="delimiter.*near"):
+        extract_json(text)
+
+
+def test_complete_json_feeds_the_syntax_error_back(endpoint, make_client):
+    broken = '{"facts": [{"kind": "a", "value": "1"} {"kind": "b", "value": "2"}]}'
+    endpoint.push(chat_response(broken), chat_response(VALID))
+    sheet, results = complete_json(make_client(), [{"role": "user", "content": "x"}], FactSheet)
+    assert len(results) == 2 and sheet.facts[0].kind == "deadline"
+    feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
+    assert "delimiter" in feedback and "<<<here>>>" in feedback

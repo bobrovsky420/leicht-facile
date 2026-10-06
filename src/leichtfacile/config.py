@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # to easy language in the first local tests (docs/prompts.md); the day-1 checks
     # on the CSCS endpoint decide the final setting.
     llm_thinking_stages: str = "understand,judge"
+    # Streamed responses: the endpoint sends the answer as it is generated, so a proxy in
+    # front of it cannot time out a long answer (Cloudflare in front of the Public AI
+    # gateway does so after about 100 seconds). Off only for a server without streaming.
+    llm_stream: bool = True
     llm_timeout_s: float = Field(default=300.0, gt=0)
     llm_max_retries: int = Field(default=4, ge=0)
     llm_cache: bool = False

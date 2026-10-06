@@ -117,6 +117,43 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert "C2: full pipeline with judge and repair" in report
 
 
+BASELINE_TEXT = (
+    "Der Kanton bezahlt einen Teil von Ihrer Kranken·kasse.\n"
+    "Schicken Sie das Gesuch bis 31. März 2026 an die Gemeinde.\n"
+    "Das kostet 20 Franken. Fragen? Rufen Sie an: 044 123 45 67."
+)
+
+
+def _rows(path):
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+
+def test_a_failed_scoring_call_marks_the_pair_and_reruns_it(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    settings = make_settings(llm_max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+
+    # C0 needs a fact sheet for scoring; the model answers with a fragment, twice.
+    endpoint.push(
+        chat_response(BASELINE_TEXT), chat_response('{"core": {}}'), chat_response('{"core": {}}')
+    )
+    path = run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    assert row["status"] == "scoring_failed"
+    assert "UnderstandOut" in row["error"]
+
+    # The pair runs again next time, and the failed row is replaced, not duplicated.
+    endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(fx.UNDERSTAND)))
+    run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    assert row["status"] == "needs_review", row.get("error")
+    assert row["fact_coverage"] == 1.0
+    assert endpoint.chat_bodies()[-1]["messages"][0]["content"].startswith("Sie bereiten")
+
+
 def test_report_has_one_section_per_language(tmp_path) -> None:
     rows = [
         {"setup": "REF", "pair_id": "a-de", "role": "eval", "lang": "de", "errors_per_100": 2.0},

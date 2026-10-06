@@ -135,7 +135,7 @@ a failure resumes from the last good stage.
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). **[verify]** image input through the CSCS API (day-1 check 4); otherwise local vLLM only. | - |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Day-1 check 4 passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); not checked on CSCS yet. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -426,14 +426,23 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
 - **Structured output.** Neither the CSCS docs nor the vLLM guide document
   `response_format`, so JSON is enforced the robust way: the schema is in the
   prompt, the response is stripped of any leaked reasoning tokens
-  (`<|inner_prefix|> … <|inner_suffix|>`) and code fences, parsed, and validated
-  with pydantic. On failure the validation error is fed back once for a repair.
-  If the endpoint turns out to accept `response_format={"type":"json_object"}`
-  **[verify]**, it is used in addition, never instead.
-- **Reliability.** Retries on 429, 5xx and connection errors with exponential
-  backoff and jitter, honouring `Retry-After`; other 4xx errors are not retried.
-  Per-call timeout, and `max_tokens` sized generously for thinking models (reasoning
-  can be several times longer than the visible answer).
+  (`<|inner_prefix|> … <|inner_suffix|>`) and code fences, parsed (the slips of a
+  small model are repaired in code: a run of ids written as a range, a trailing or a
+  missing comma) and validated with pydantic. On failure the validation error, or the
+  syntax error with its position, is fed back once for a repair.
+  The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
+  but it made no difference in the day-1 check (§12), so it is not used.
+- **Streaming.** Every response is streamed (`LLM_STREAM`, on by default): the
+  endpoint sends the answer as it is generated and the client assembles it, with the
+  token counts from the last chunk (`stream_options.include_usage`). Without it, a
+  proxy in front of the endpoint can cut a long answer: Cloudflare in front of the
+  Public AI gateway does so after about 100 seconds, which lost 3 of 6 evaluation
+  pairs to 504 errors on 6 October 2026. A stream that breaks is retried like any
+  other failure. `LLM_STREAM=0` is for a server that cannot stream.
+- **Reliability.** Retries on 429, 5xx, connection errors and broken streams with
+  exponential backoff and jitter, honouring `Retry-After`; other 4xx errors are not
+  retried. Per-call timeout, and `max_tokens` sized generously for thinking models
+  (reasoning can be several times longer than the visible answer).
 - **Usage log.** Every call records model, tokens in/out, latency and stage; jobs
   show totals, and the evaluation reports cost per page using a configurable
   CHF-per-million-tokens table.
@@ -706,7 +715,9 @@ tests/                    rules (golden sentences, hard texts), ingest, pipeline
 
 ## 12. Day-1 verification checklist
 
-Assumptions to confirm as soon as the CSCS key arrives, in this order. `make day1`
+Assumptions to confirm against the live endpoint, in this order. Run on the Public AI
+gateway on 6 October 2026 (results below); to be repeated on CSCS when the key
+arrives. `make day1`
 (`scripts/day1_checks.py`) runs checks 1-5 and writes `eval/results/day1_checks.json`;
 check 6 is `python -m leichtfacile eval run --condition C0 --limit 10`. Checks 2 and 3
 were rehearsed against the local llama.cpp endpoint (§10): thinking switches per request
@@ -729,6 +740,56 @@ client removes.
 6. Baseline quality: C0 on 10 German pairs. This decides whether the A2 level is
    realistic for the 8B model or whether B1 becomes the primary target with A2 as the
    stretch.
+
+### Results on the Public AI gateway, 6 October 2026
+
+`make day1` with profile C (§6): the 8B `swiss-ai/apertus-v1.5-8b`, served by vLLM
+at Juelich. The CSCS key had not arrived. Full output in
+`eval/results/day1_checks.json`.
+
+1. **Models.** All four Apertus 1.5 names are listed, in lowercase
+   (`swiss-ai/apertus-v1.5-8b`, `-8b-thinking`, `-70b`, `-70b-thinking`), next to the
+   Apertus 1 names (`apertus-8b-instruct`, `-70b-instruct`) and three unrelated
+   models. The `-thinking` names are not used on this gateway (§6). Open for CSCS: the
+   host and the capitalised names.
+2. **Thinking.** The 8B answered the arithmetic question without any reasoning (4
+   output tokens). Fourteen further calls on the same day with `enable_thinking`
+   through the chat template, short and long prompts, with and without JSON mode,
+   returned no reasoning either, after three calls in the morning had reasoned in two
+   cases. On this gateway thinking is unreliable to absent for the 8B and off for the
+   70B, so Public AI runs are, in effect, runs without thinking at every stage and are
+   labelled that way. The reasoning format of the `-thinking` models stays open for
+   CSCS.
+3. **JSON.** 20 of 20 Understand answers on the sample letter parsed and validated
+   without `response_format`, and 20 of 20 with `{"type": "json_object"}`; nothing
+   truncated. JSON mode is accepted by the vLLM backend and changes neither the
+   backend nor the answer: a side-by-side pair gave the same fact sheet with 995
+   against 1,102 output tokens in 47 against 52 seconds. Decision D-B: `response_format`
+   is not used; the example in the prompt, lenient parsing and one repair round are
+   enough. The medians of the two runs (46 against 9 seconds) differ because the
+   backend's speed varied with load during the run, from about 20 to about 120 output
+   tokens per second. Three of the twenty long calls got a 504 from the gateway and
+   succeeded on the retry after 30 seconds. The C0 baseline run later lost 3 of 6
+   pairs to the same 504 after five attempts each: Cloudflare in front of the gateway
+   cuts any response that takes longer than about 100 seconds, which a long page at
+   20 tokens per second exceeds. The client now streams every response (§6), so the
+   limit no longer applies.
+4. **Image input.** Works: the 8B read a rendered letter (PNG as base64 `image_url`)
+   and answered "Man muss bis zum 31. März 2026 handeln." Open for CSCS.
+5. **Parallel calls.** 8 short calls at once: all succeeded, no 429, 1.4 to 2.2
+   seconds each, no rate-limit headers. Decision D-F: there is headroom; the
+   evaluation can run several pairs at once, section-parallel writing stays optional.
+6. **Baseline.** C0 (one prompt, 8B without thinking) on the first 10 held-out German
+   pairs, 6 October 2026: 16.1 errors and 85 warnings per 100 blocks against 2.7 and
+   27 for the official easy-language versions and 31.3 and 146 for the sources; 7.1
+   words per sentence (official: 6.1); readability 46 (official: 62, sources: 36);
+   90 percent of the hard facts kept (the official versions keep 70). The findings
+   are mostly sentence length (LEN 33 per 100 blocks) and vocabulary (LEX 47:
+   abbreviations, long compounds without Mediopunkt). One prompt does not reach A2;
+   decision D-E (A2 or B1 as the primary level) waits for C2 on the dev split.
+
+One cost figure from the gateway's headers: an Understand call on the 400-word sample
+letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
 
 ## 13. Risks and mitigations
 
