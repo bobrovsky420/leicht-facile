@@ -364,6 +364,13 @@ outputs, the evaluation metrics, and the web API.
   preference pairs for a LoRA on the 8B writer with the official Apertus fine-tuning
   recipes, so that a small on-premise model reaches the 70B judge's standard.
 - DOCX export (writers work in Word) and an air-gapped image bundle.
+- A second use case ([docs/use-case-decisions.md](docs/use-case-decisions.md)):
+  easy-language letters that go out together with decisions of child and adult
+  protection authorities and courts. The appeal period runs from notification (10 days
+  for involuntary placement), the decision may never leave the authority, and the case
+  worker who drafted it is the natural reviewer. Needed: the person the letter speaks
+  to, identifiers and postal addresses as exact facts, a fixed notice that the decision
+  prevails, judge checks for neutrality and advice.
 - A pilot with a cantonal easy-language office and target-group testing of the
   drafts.
 - Beyond the public sector: insurers, pension funds and utilities send some of the

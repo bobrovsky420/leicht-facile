@@ -1,7 +1,7 @@
 # Leicht·Facile - design and architecture
 
 Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12). Hack Apertus online hackathon, Track 2B.
-Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
+Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
 Items marked **[verify]** are assumptions to confirm against the live endpoint on day 1 (see §12).
 
 ## 1. What it is
@@ -60,6 +60,15 @@ municipality, or an organisation such as Pro Infirmis' Büro für Leichte Sprach
 4. Approve or edit each block, then export (Markdown, HTML, JSON with provenance).
 5. Optionally, send the approved text to a target-group test. That step is outside
    the tool but the export is formatted for it (one sentence per line, ≤ 85 characters).
+
+Second user, partly planned ([use-case-decisions.md](use-case-decisions.md)): the case
+worker of a child and adult protection authority (KESB), or a court clerk, who drafted
+a decision and reviews an easy-language letter that goes out together with it. The
+workflow is the same. The review is mandatory, and the decision stays the only legally
+binding text. Not built yet: a field for the person the letter speaks to; identifiers
+and postal addresses as exact facts; a document type "decision" whose operative part
+and appeal instructions are must-keep facts; a fixed notice in the export that the
+decision prevails; judge checks for neutrality and advice.
 
 ## 3. Architecture overview
 
@@ -780,6 +789,9 @@ at runtime.
 
 - Documents contain personal data. In production the model endpoint is inside the
   organisation, so content never leaves. The hackathon demo uses public documents only.
+  Decisions of child and adult protection authorities and courts are the most
+  sensitive case: before anonymisation they name a person and describe their health,
+  family and finances ([use-case-decisions.md](use-case-decisions.md) §2).
 - No authentication in the prototype; it is meant to run behind the organisation's
   reverse proxy. Noted as a limitation.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API.

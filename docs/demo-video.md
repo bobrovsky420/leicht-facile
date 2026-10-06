@@ -59,5 +59,8 @@ one idea per shot, English captions burned in.
       ([hard-texts.md](hard-texts.md) §2).
 - [ ] French: show it beyond the opening only if the French rules and prompts work by
       recording day.
+- [ ] Product scene (0:46-1:30): the premium-reduction letter or a KESB decision
+      written by the team ([use-case-decisions.md](use-case-decisions.md)); decide
+      after a test run on 8 October.
 - [ ] Recording finished by 14 October; two days for edits before the deadline
       (16 October 2026, 12:00 CEST).
