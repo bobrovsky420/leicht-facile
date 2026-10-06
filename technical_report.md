@@ -17,7 +17,8 @@ are filled in from `make eval`.
 
 **Problem.** About 844'000 adults in Switzerland aged 16 to 65 (15%) have low reading
 skills (PIAAC 2023). People with intellectual disabilities, people learning a national
-language and people with dementia need easy language too. Federal and cantonal
+language and people with dementia need easy language too. None of them should be
+excluded from the official letters that decide their money, deadlines and rights. Federal and cantonal
 accessibility law asks authorities to publish important information in Leichte
 Sprache, FALC or lingua facile, but each version is written by hand by a small number
 of trained writers, and every deadline, amount and phone number must be checked

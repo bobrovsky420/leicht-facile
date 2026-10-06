@@ -6,6 +6,10 @@ no deadline, amount or phone number got lost. It is a drafting assistant for the
 professionals who write easy language, not a replacement for them or for the review
 by readers from the target group.
 
+About 844'000 adults in Switzerland have low reading skills (PIAAC 2023). None of them
+should be excluded from the official letters that decide their money, deadlines and
+rights.
+
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers.
 Technical report: [technical_report.md](technical_report.md) (PDF:
 `RoestigrabenBridgers_Report.pdf`). Demo video: *link follows*.
@@ -100,6 +104,7 @@ letters, and the air-gapped bundle (`make bundle`).
 - [docs/sources.md](docs/sources.md): reference pairs, demo documents, licences
 - [docs/use-case-canton.md](docs/use-case-canton.md): a walkthrough for a cantonal administration
 - [docs/hard-texts.md](docs/hard-texts.md): hard words and sentences for tests and the presentation
+- [docs/demo-video.md](docs/demo-video.md): script and storyboard for the demo video
 
 ## Licence
 
