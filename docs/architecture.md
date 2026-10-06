@@ -429,7 +429,9 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   (`<|inner_prefix|> … <|inner_suffix|>`) and code fences, parsed (the slips of a
   small model are repaired in code: a run of ids written as a range, a trailing or a
   missing comma) and validated with pydantic. On failure the validation error, or the
-  syntax error with its position, is fed back once for a repair.
+  syntax error with its position, is fed back once for a repair. An answer that copies
+  the prompt's own example (4 of 12 dev drafts on the Public AI 8B were the JSON form
+  itself, 6 October 2026) is recognised by code and sent back once in the same way.
   The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
   but it made no difference in the day-1 check (§12), so it is not used.
 - **Streaming.** Every response is streamed (`LLM_STREAM`, on by default): the

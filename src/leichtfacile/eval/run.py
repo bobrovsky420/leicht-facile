@@ -86,14 +86,16 @@ def run_condition(
     writer: str | None = None,
     judge: str | None = None,
     judge_all: bool = False,
+    redo: bool = False,
 ) -> Path:
-    """Run one condition on every pair that has no result yet."""
+    """Run one condition on every pair that has no result yet (all of them with `redo`,
+    after a prompt change; the old rows are replaced)."""
     results_dir.mkdir(parents=True, exist_ok=True)
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
     writer_name = writer or settings.llm_name
     out = results_file(results_dir, condition, writer_name)
-    done = _done(out)
+    done = set() if redo else _done(out)
     for pair in pairs:
         if pair.id in done:
             log.info("%s %s: done already", condition, pair.id)

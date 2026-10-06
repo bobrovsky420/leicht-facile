@@ -12,14 +12,8 @@ Votre méthode :
    - "segment_ids" : les phrases du document d'où vient le bloc, par exemple ["s0004"]. Chaque bloc, sauf les titres, a besoin d'au moins une phrase.
 5. Ce que vous laissez de côté dans le document, écrivez-le dans "omissions", avec une raison courte.
 6. Expliquez les mots difficiles dont vous avez besoin dans "glossary". Prenez les explications de la fiche de faits.
-{% if section %}
-Le document est long. Écrivez maintenant seulement cette partie : {{ section }}. Vous écrirez les autres parties plus tard.
-{% endif %}
-Exemples en {{ level_name }}. Ils montrent seulement le style. Ne reprenez aucun contenu des exemples.
 
-{{ examples }}
-
-Répondez seulement avec un objet JSON, sans autre texte. La forme est la suivante (les valeurs sont seulement un exemple) :
+Répondez seulement avec un objet JSON, sans autre texte. La forme est la suivante. Les valeurs sont seulement un exemple tiré d'un autre document (taxe des chiens) ; ne reprenez aucune phrase de cet exemple :
 
 {
   "blocks": [
@@ -39,6 +33,14 @@ Répondez seulement avec un objet JSON, sans autre texte. La forme est la suivan
   ]
 }
 
+Exemples en {{ level_name }}. Ils montrent seulement le style. Ne reprenez aucun contenu des exemples.
+
+{{ examples }}
+
+{% if section %}
+Le document est long. Écrivez maintenant seulement cette partie : {{ section }}. Vous écrirez les autres parties plus tard.
+
+{% endif %}
 La fiche de faits :
 
 {{ factsheet }}
@@ -46,3 +48,5 @@ La fiche de faits :
 Le document. Chaque ligne est une phrase avec son numéro :
 
 {{ source }}
+
+Écrivez maintenant la version en {{ level_name }} de ce document, avec ses faits et ses numéros de phrases. Répondez seulement avec l'objet JSON.

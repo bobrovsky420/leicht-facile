@@ -45,6 +45,9 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     run.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
     run.add_argument("--judge-all", action="store_true", help="also judge C0 and C1 outputs")
     run.add_argument("--limit", type=int, help="at most this many pairs")
+    run.add_argument(
+        "--redo", action="store_true", help="run pairs again even when they have a result"
+    )
     run.add_argument("--results", type=Path, default=Path("eval/results"))
     run.set_defaults(handler=_run)
 
@@ -118,7 +121,7 @@ def _run(args: argparse.Namespace) -> int:
     llm = LLMClient.from_settings(settings)
     path = run_condition(
         pairs, args.condition, settings=settings, llm=llm, results_dir=args.results,
-        writer=args.writer, judge=args.judge, judge_all=args.judge_all,
+        writer=args.writer, judge=args.judge, judge_all=args.judge_all, redo=args.redo,
     )  # fmt: skip
     print(f"results: {path}")
     return 0

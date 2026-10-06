@@ -291,3 +291,62 @@ def test_a_bare_list_is_read_as_the_main_list() -> None:
     assert judge.fact_checks[0].fact_id == "f01" and judge.fact_checks[0].block_ids == ["b002"]
     with pytest.raises(ValueError):
         JudgeOut.model_validate({"text": "a fragment", "segment_ids": ["s0001"]})
+
+
+def test_write_output_hoists_a_list_written_as_a_block() -> None:
+    out = WriteOut.model_validate(
+        {"blocks": [{"kind": "sentence", "text": "a"}, {"omissions": [{"what": "x", "why": "y"}]}]}
+    )
+    assert [b.text for b in out.blocks] == ["a"]
+    assert out.omissions[0].what == "x"
+
+
+def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
+    from leichtfacile.pipeline.stages import _example_key, copied_sentences, example_keys
+
+    keys = example_keys("de", "write")
+    assert _example_key("Die Hunde·steuer kostet 120 Franken pro Hund.") in keys  # JSON example
+    assert _example_key("Bringen Sie den Impf·ausweis von Ihrem Hund mit.") in keys  # few-shot
+    assert _example_key("fact_ids") not in keys
+    for lang, stage in (
+        ("fr", "write"),
+        ("de", "understand"),
+        ("fr", "understand"),
+        ("de", "repair"),
+        ("fr", "repair"),
+    ):
+        assert example_keys(lang, stage)  # fmt: skip
+    assert copied_sentences(["Die Hundesteuer kostet 120 Franken pro Hund"], "de", "write") == 1
+    assert copied_sentences(["Das Gesuch muss bis 31. März 2026 da sein."], "de", "write") == 0
+
+
+COPIED_WRITE = {
+    "blocks": [
+        {"kind": "heading", "text": "Was müssen Sie tun?"},
+        {"kind": "sentence", "text": "Sie melden Ihren Hund bei der Einwohner·kontrolle an.",
+         "fact_ids": ["f03"], "segment_ids": ["s0005"]},
+        {"kind": "sentence", "text": "Die Hunde·steuer kostet 120 Franken pro Hund.",
+         "fact_ids": ["f02"], "segment_ids": ["s0002"]},
+        {"kind": "sentence", "text": "Sie bezahlen bis zum 30. April 2026.",
+         "fact_ids": ["f01"], "segment_ids": ["s0003"]},
+    ],
+}  # fmt: skip
+
+
+def test_a_draft_that_copies_the_example_is_sent_back_once(endpoint, sleeps) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import write
+    from tests.conftest import chat_response, make_settings
+
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    endpoint.push(chat_response(fx.as_json(COPIED_WRITE)), chat_response(fx.as_json(fx.WRITE)))
+    draft, results = write(llm, fx.letter(), fs, level="A2")
+    assert len(results) == 2
+    assert "Hund" not in " ".join(b.text for b in draft.blocks)
+    feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
+    assert "Beispiel" in feedback and "3 Sätze" in feedback
+    # One example heading in an otherwise real draft is no copy.
+    endpoint.push(chat_response(fx.as_json(fx.WRITE)))
+    draft, results = write(llm, fx.letter(), fs, level="A2")
+    assert len(results) == 1

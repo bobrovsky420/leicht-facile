@@ -122,3 +122,29 @@ def test_complete_json_feeds_the_syntax_error_back(endpoint, make_client):
     assert len(results) == 2 and sheet.facts[0].kind == "deadline"
     feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
     assert "delimiter" in feedback and "<<<here>>>" in feedback
+
+
+def test_complete_json_check_sends_its_message_back_once(endpoint, make_client):
+    endpoint.push(chat_response(VALID), chat_response(VALID.replace("2027", "2028")))
+    sheet, results = complete_json(
+        make_client(), [{"role": "user", "content": "x"}], FactSheet,
+        check=lambda s: "nicht das Jahr 2027" if s.facts[0].value.startswith("2027") else None,
+    )  # fmt: skip
+    assert sheet.facts[0].value == "2028-03-31" and len(results) == 2
+    assert "nicht das Jahr 2027" in endpoint.chat_bodies()[1]["messages"][-1]["content"]
+
+
+def test_complete_json_check_gives_up_after_the_repair(endpoint, make_client):
+    endpoint.push(chat_response(VALID), chat_response(VALID))
+    with pytest.raises(LLMOutputError, match="nicht das Jahr"):
+        complete_json(
+            make_client(), [{"role": "user", "content": "x"}], FactSheet,
+            check=lambda s: "nicht das Jahr 2027",
+        )  # fmt: skip
+
+
+def test_extract_json_restores_a_list_written_as_a_block():
+    text = '{"blocks": [{"kind": "sentence", "text": "a"}, {"kind": "omissions": [{"what": "x"}]}]}'
+    assert extract_json(text) == {
+        "blocks": [{"kind": "sentence", "text": "a"}, {"omissions": [{"what": "x"}]}]
+    }

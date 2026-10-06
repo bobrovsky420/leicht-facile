@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -38,6 +39,9 @@ _MAX_RANGE = 500
 _TRAILING_COMMA = re.compile(r",\s*([}\]])")
 _MISSING_COMMA_OBJECTS = re.compile(r"}\s*\n(\s*){")
 _MISSING_COMMA_KEYS = re.compile(r'"\s*\n(\s*)"([A-Za-z_]\w*)"\s*:')
+# A list that belongs at the top level, written as a pseudo-block inside "blocks"
+# ({"kind": "omissions": [...]}): the key is restored here and WriteOut hoists the list.
+_NESTED_LIST = re.compile(r'\{\s*"kind"\s*:\s*"(omissions|glossary)"\s*:\s*\[')
 
 
 class JSONExtractionError(ValueError):
@@ -65,6 +69,7 @@ def repair_json(text: str) -> str:
     text = _ID_RANGE.sub(_expand_range, text)
     text = _TRAILING_COMMA.sub(r"\1", text)
     text = _MISSING_COMMA_OBJECTS.sub(r"},\n\1{", text)
+    text = _NESTED_LIST.sub(r'{"\1": [', text)
     return _MISSING_COMMA_KEYS.sub(r'",\n\1"\2":', text)
 
 
@@ -125,9 +130,15 @@ def complete_json[T: BaseModel](
     schema: type[T],
     *,
     max_repairs: int = 1,
+    check: Callable[[T], str | None] | None = None,
     **kwargs: Any,
 ) -> tuple[T, list[LLMResult]]:
-    """Call the model and return a validated instance of `schema` plus all raw results."""
+    """Call the model and return a validated instance of `schema` plus all raw results.
+
+    `check` looks at an answer that validated and returns a message when it still cannot
+    be used (an answer that copies the prompt's own example); the message goes back to
+    the model like a validation error.
+    """
     conversation = list(messages)
     results: list[LLMResult] = []
     for attempt in range(max_repairs + 1):
@@ -139,22 +150,28 @@ def complete_json[T: BaseModel](
             raise LLMOutputError(
                 f"model output for {schema.__name__} was cut off at max_tokens", results
             )
+        cause: Exception | None = None
         try:
-            return schema.model_validate(extract_json(result.text)), results
+            out = schema.model_validate(extract_json(result.text))
         except (JSONExtractionError, ValidationError) as exc:
-            error = str(exc)[:_MAX_ERROR_CHARS]
-            if attempt == max_repairs:
-                raise LLMOutputError(
-                    f"model output did not validate as {schema.__name__}: {error}", results
-                ) from exc
-            conversation = [
-                *conversation,
-                {"role": "assistant", "content": result.text},
-                {
-                    "role": "user",
-                    "content": "Your answer could not be used. Error:\n"
-                    + error
-                    + "\nReturn the corrected JSON object only, no other text.",
-                },
-            ]
+            cause = exc
+            error: str | None = str(exc)[:_MAX_ERROR_CHARS]
+        else:
+            error = check(out) if check else None
+            if error is None:
+                return out, results
+        if attempt == max_repairs:
+            raise LLMOutputError(
+                f"model output did not validate as {schema.__name__}: {error}", results
+            ) from cause
+        conversation = [
+            *conversation,
+            {"role": "assistant", "content": result.text},
+            {
+                "role": "user",
+                "content": "Your answer could not be used. Error:\n"
+                + error
+                + "\nReturn the corrected JSON object only, no other text.",
+            },
+        ]
     raise AssertionError("unreachable")

@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 
 from leichtfacile.llm.client import LLMClient, LLMResult
 from leichtfacile.llm.json_out import LLMOutputError, complete_json
@@ -74,7 +75,7 @@ SECTION_WORDS = 1500
 JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05"}
 
 
-def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None):
+def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None, check=None):
     """Call the model for a stage. When the reasoning of a thinking call runs out of
     tokens before the answer, the stage is answered once more without thinking."""
     s = STAGES[stage]
@@ -85,6 +86,7 @@ def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None):
             llm,
             messages,
             schema,
+            check=check,
             model=model,
             thinking=thinking,
             temperature=s.temperature,
@@ -99,6 +101,7 @@ def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None):
             llm,
             messages,
             schema,
+            check=check,
             model=model,
             thinking=False,
             temperature=s.temperature,
@@ -106,6 +109,78 @@ def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None):
             stage=stage,
         )
         return out, exc.results + results
+
+
+# -- the prompt's own examples ---------------------------------------------------------
+
+# Rendering a template without its document gives the static text: the instructions,
+# the JSON example and (for write) the few-shot pairs.
+_STATIC_CONTEXT: dict[str, dict[str, str]] = {
+    "understand": {"source": ""},
+    "write": {"level": "A2", "style_guide": "", "section": "", "factsheet": "", "source": ""},
+    "repair": {
+        "level": "A2", "style_guide": "", "flagged": "", "missing": "", "factsheet": "",
+        "draft": "", "source": "",
+    },
+}  # fmt: skip
+_QUOTED = re.compile(r'"([^"\n]{12,})"')
+COPY_LIMIT = 2  # sentences from the examples that make an answer a copy
+
+
+def _example_key(text: str) -> str:
+    return " ".join(text.lower().replace("·", "").split()).rstrip(".!?:")
+
+
+@lru_cache(maxsize=16)
+def example_keys(lang: str, stage: str) -> frozenset[str]:
+    """The sentences of a prompt's own examples, normalised, to recognise an answer that
+    copies them. On the Public AI 8B, 4 of 12 dev drafts were the write prompt's JSON
+    example, word for word (6 October 2026)."""
+    context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
+    if stage == "write":
+        context["examples"] = examples(lang)
+    text = render(lang, stage, **context)
+    keys = {_example_key(line) for line in text.splitlines()}
+    keys |= {_example_key(q) for q in _QUOTED.findall(text)}
+    return frozenset(k for k in keys if len(k) >= 12)
+
+
+def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
+    keys = example_keys(lang, stage)
+    return sum(1 for t in texts if _example_key(t) in keys)
+
+
+def _copy_check(lang: str, stage: str, texts_of):
+    """A `check` for complete_json: an answer whose sentences are mostly from the prompt's
+    examples (COPY_LIMIT or more, and more than half of them) is sent back once with a
+    message in the document's language. A generic sentence or two that an honest draft
+    shares with an example ("Sie haben dafür 14 Tage Zeit.") is no copy."""
+
+    def check(out) -> str | None:
+        texts = texts_of(out)
+        copies = copied_sentences(texts, lang, stage)
+        if copies >= COPY_LIMIT and copies * 2 > len(texts):
+            log.warning("stage %s: the answer copies %d sentences of the example", stage, copies)
+            return label(lang, "copied_example", count=copies)
+        return None
+
+    return check
+
+
+def _understand_texts(out: UnderstandOut) -> list[str]:
+    # Facts only: the short core answers ("120 francs par chien.") can coincide with the
+    # example for a document on the same topic; a copied fact sheet repeats its facts.
+    return [f.text for f in out.facts]
+
+
+def _write_texts(out: WriteOut) -> list[str]:
+    return [b.text for b in out.blocks if b.kind != "heading"]
+
+
+def _repair_texts(out: RepairOut) -> list[str]:
+    return [t for item in out.repairs for t in item.texts] + [
+        t for add in out.additions for t in add.texts
+    ]
 
 
 # -- understand -----------------------------------------------------------------------
@@ -120,7 +195,14 @@ def understand(
         level_name=level_name(source.lang, level),
         source=r.source_text(source),
     )
-    out, results = _call(llm, "understand", prompt, UnderstandOut, model)
+    out, results = _call(
+        llm,
+        "understand",
+        prompt,
+        UnderstandOut,
+        model,
+        check=_copy_check(source.lang, "understand", _understand_texts),
+    )
     return to_factsheet(out, source.id), results
 
 
@@ -278,7 +360,9 @@ def write(
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
             source=r.source_lines(segments),
         )
-        out, res = _call(llm, "write", prompt, WriteOut, model)
+        out, res = _call(
+            llm, "write", prompt, WriteOut, model, check=_copy_check(lang, "write", _write_texts)
+        )
         results += res
         for b in out.blocks:
             blocks.append(
@@ -484,7 +568,9 @@ def repair(
         draft=r.draft_lines(draft, refs=False, marked=set(request.problems)),
         source=r.cited_source(source, cited),
     )
-    out, results = _call(llm, "repair", prompt, RepairOut, model)
+    out, results = _call(
+        llm, "repair", prompt, RepairOut, model, check=_copy_check(lang, "repair", _repair_texts)
+    )
     return apply_repairs(draft, out, request, factsheet), results
 
 

@@ -150,7 +150,8 @@ the chosen level, and two short example pairs written by the team (cantonal page
 not be reproduced, and no evaluation pair leaks into a prompt). The repair prompt
 receives only the flagged blocks, their findings with the checker's suggestion, and
 the facts they must keep. Every prompt is identified by a hash of its template, stored
-with each result.
+with each result. A small model sometimes returns the prompt's own JSON example instead
+of a draft; code recognises an answer that copies the examples and asks once more.
 
 **Structured output.** The answer is stripped of reasoning (from `reasoning_content`,
 or inline `<|inner_prefix|> ... <|inner_suffix|>` or `<think>` tokens), control tokens

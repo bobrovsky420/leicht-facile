@@ -223,11 +223,11 @@ UNDERSTAND_FR = {
 WRITE_FR = {
     "blocks": [
         {"kind": "heading", "text": "Que devez-vous faire ?"},
-        {"kind": "sentence", "text": "La taxe coûte 120 francs par chien.",
+        {"kind": "sentence", "text": "La taxe est de 120 francs pour chaque chien.",
          "fact_ids": ["f01"], "segment_ids": ["s0002"]},
         {"kind": "sentence", "text": "Le formulaire est contrôlé par la commune.",
          "segment_ids": ["s0003"]},
-        {"kind": "sentence", "text": "Téléphonez au contrôle des habitants : 032 987 65 43.",
+        {"kind": "sentence", "text": "Pour des questions, appelez le 032 987 65 43.",
          "segment_ids": ["s0004"]},
     ],
     "omissions": [],

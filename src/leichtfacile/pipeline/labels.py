@@ -31,6 +31,9 @@ LABELS: dict[str, dict[str, str]] = {
         "unsupported": "Das steht nicht im Original.",
         "distorted": "Tatsache {fact_id} ist falsch: {note} Richtig ist: {fact}",
         "section": "die Sätze {first} bis {last}",
+        "copied_example": "Die Antwort enthält {count} Sätze aus dem Beispiel in der Anleitung "
+        "(Hunde·steuer). Das Beispiel zeigt nur die Form. Schreiben Sie über das Dokument "
+        "unten, mit seinen Tatsachen und Satznummern.",
     },
     "fr": {
         "core_what": "De quoi s'agit-il ?",
@@ -57,6 +60,9 @@ LABELS: dict[str, dict[str, str]] = {
         "unsupported": "Ce n'est pas dans l'original.",
         "distorted": "Le fait {fact_id} est faux : {note} Correct : {fact}",
         "section": "les phrases {first} à {last}",
+        "copied_example": "La réponse contient {count} phrases de l'exemple dans les "
+        "instructions (taxe des chiens). L'exemple montre seulement la forme. Écrivez sur le "
+        "document plus bas, avec ses faits et ses numéros de phrases.",
     },
 }
 

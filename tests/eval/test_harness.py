@@ -110,6 +110,19 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     # Resumable: a second run does nothing for a pair that has a result.
     run_condition(pairs, "C2", settings=settings, llm=llm, results_dir=results)
     assert len(path.read_text(encoding="utf-8").splitlines()) == 1
+    assert len(endpoint.chat_bodies()) == 5
+
+    # After a prompt change, `redo` runs the pair again and replaces its row.
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    run_condition(pairs, "C2", settings=settings, llm=llm, results_dir=results, redo=True)
+    assert len(path.read_text(encoding="utf-8").splitlines()) == 1
+    assert len(endpoint.chat_bodies()) == 10
 
     report = render_report(results, role="eval")
     assert "Original (standard language)" in report

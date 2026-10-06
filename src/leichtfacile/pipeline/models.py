@@ -233,6 +233,29 @@ class WriteOut(LLMOut):
     omissions: list[OmissionOut] = Field(default_factory=list)
     glossary: list[GlossaryOut] = Field(default_factory=list)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _hoist_lists(cls, data: Any) -> Any:
+        # The omissions or glossary list written as a pseudo-block inside blocks (seen
+        # on 6 October 2026; llm/json_out.py restores the key first).
+        if not isinstance(data, dict) or not isinstance(data.get("blocks"), list):
+            return data
+        blocks: list[Any] = []
+        hoisted: dict[str, list[Any]] = {}
+        for b in data["blocks"]:
+            if isinstance(b, dict) and "text" not in b and ("omissions" in b or "glossary" in b):
+                for key in ("omissions", "glossary"):
+                    if isinstance(b.get(key), list):
+                        hoisted.setdefault(key, []).extend(b[key])
+            else:
+                blocks.append(b)
+        if not hoisted:
+            return data
+        out = {**data, "blocks": blocks}
+        for key, items in hoisted.items():
+            out[key] = list(data.get(key) or []) + items
+        return out
+
     @field_validator("blocks")
     @classmethod
     def _not_empty(cls, v: list[BlockOut]) -> list[BlockOut]:

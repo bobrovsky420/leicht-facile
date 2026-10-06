@@ -17,7 +17,7 @@ can always be traced to the exact prompt that produced it.
 | A concrete JSON example in each prompt instead of the JSON schema | Small models copy a filled example more reliably than they follow a schema, and the example is a fraction of the tokens. The pydantic models still validate every answer; the validation error goes back to the model once (`llm/json_out.py`). |
 | Lenient parsing of the answer (`pipeline/models.py`) | An 8B model gets details wrong that do not matter: `s4` instead of `s0004`, `Deadline` instead of `deadline`, a string where a list was asked for. These are normalised; only real problems (no blocks, an empty text) count as invalid. A complete answer without the `facts` list, seen on a page with nothing countable, is read as a fact sheet with no model facts; code completion adds the countable values. On long pages the 8B abbreviates a run of ids as a range (`"s0064" bis "s0087"`), which is not JSON: the parser writes the range out and repairs trailing and missing commas, and an answer that is still broken is reported with the position of the error, never replaced by an object from inside it. |
 | The style guide is generated from the rule registry (`rules/styleguide.py`) | The writer is asked for exactly what the checker checks, with the thresholds of the chosen level. The guide changes when a rule changes; no second copy can drift. |
-| Few-shot examples written by the team, on topics outside the evaluation set | The cantonal pages may not be reproduced in a public repository (docs/sources.md §4). Two short synthetic pairs show the style: a decision on a resident parking permit and a dog-tax letter. The JSON examples in the prompts use the dog tax too. In local runs, details of examples on nearby topics leaked into drafts ("Steueramt", "Gemeinde" for the Sozialversicherungsstelle); examples on distant topics make such a leak obvious and keep the evaluation clean. A test checks that the examples break no `error` rule. |
+| Few-shot examples written by the team, on topics outside the evaluation set | The cantonal pages may not be reproduced in a public repository (docs/sources.md §4). Two short synthetic pairs show the style: a decision on a resident parking permit and a dog-tax letter. The JSON examples in the prompts use the dog tax too. In local runs, details of examples on nearby topics leaked into drafts ("Steueramt", "Gemeinde" for the Sozialversicherungsstelle); examples on distant topics make such a leak obvious and keep the evaluation clean. A test checks that the examples break no `error` rule. On the Public AI 8B without thinking, 4 of 12 dev drafts were the write prompt's JSON example itself, word for word (6 October); the form now comes before the style examples and the document last, and code recognises an answer that copies the examples (below). |
 | Sentence ids in the source (`[s0004]`) and block ids in drafts (`[b007]`) | Provenance and fact references are by id; the model cites, code verifies that the ids exist (FACT-03, FACT-05). |
 | Plan first, then write | Easy language reorders content by what the reader needs; the write prompt asks for the reader's questions as headings before the text. The thinking models do the planning in their reasoning. |
 | The judge reports, it never rewrites | Its answer is a list of findings with fact and block ids; repairs go back to the writer. This keeps the judge an independent instrument for the evaluation. |
@@ -48,6 +48,12 @@ thinking.
   listed 3 facts for a letter with 11 checkable values.
 - **Fact linking.** A block that contains a fact's exact value is linked to that fact by
   code, so FACT-02 does not depend on the model's bookkeeping.
+- **Copied examples.** An answer whose sentences are mostly from the prompt's own
+  examples (the JSON form, the few-shot pairs: two or more, and more than half of
+  them) is not a draft of the document. Code
+  recognises it (`stages.example_keys`: the sentences of the rendered prompt without
+  its document, normalised) and sends it back once with a message in the document's
+  language; a second copy fails the stage. Understand, write and repair are checked.
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`) also
   print `<|assistant_end|>`; the client strips every `<|...|>` token from answers.
 
@@ -121,6 +127,31 @@ faire ?" and "Jusqu'à quand ?"), an addition that repeats a later repaired bloc
 dropped, and the judge's findings on headings are not sent for repair (a repair had
 turned the question heading into a statement).
 
+### On the Public AI gateway (official Apertus 1.5 8B, no thinking)
+
+C2 on the 12 dev pairs (10 German, 2 French), 6 October 2026, 70B judge without
+thinking (the gateway ignores the switch). With prompt version 4, four of the ten
+German drafts were the write prompt's JSON example word for word; the repair rounds
+then patched dog-tax sentences with corrections. Version 5 of the write prompt and the
+code guard against copied examples removed that. Means over the German pairs, version
+4 against 5: invented blocks per 100 from 20.6 to 3.7, rule errors per 100 blocks from
+5.1 to 2.3 (official texts: 1.6), warnings from 77 to 56 (official: 28), fact coverage
+from 45 to 54 percent, hard facts kept from 55 to 61 percent (the official versions
+keep 43), readability 55 (official: 64), about USD 0.006 and 60 seconds per page. All
+12 pairs reached review; French: fact coverage 100 percent, no rule errors, readability
+80 (official: 82).
+
+Two weaknesses remain and decide the next prompt work. First, fact coverage: on the
+fact-rich pages the writer leaves out half of the countable values, and the repair
+round that should add them ends with "no progress" on 9 of 12 pairs. Second, values
+from the examples leak into real drafts through the repair additions: the example's
+phone number `031 987 65 43` (French: `032 987 65 43`) stood in 4 of the 12 final
+drafts, the example's office in 3, in sentences the guard does not recognise because
+they are rewritten ("Rufen Sie die DISG an: 031 987 65 43."). The judge did not flag
+them. A code rule that every date, amount, phone number, e-mail and web address in a
+draft must appear in the source (the mirror of FACT-01) would catch every such value
+exactly; it is the next rule to add.
+
 ## Change log
 
 | Version | Date | Change |
@@ -130,3 +161,4 @@ turned the question heading into a statement).
 | 2 | 2026-10-06 | The examples name no office ("das Amt" instead of "Steuer·amt"), and the write prompt says that names of offices, addresses and numbers come only from the document: in a local run the writer called the Sozialversicherungsstelle "Steueramt", the office of the tax example. Code no longer lets a repair repeat a sentence that is already in the draft. |
 | 3 | 2026-10-06 | All examples (few-shot pairs and the JSON examples of every prompt) moved to topics that are not in the evaluation set: a resident parking permit and a dog tax. The repair prompt makes adding the missing facts the first task, each with its value and fact id. Code: a repair round first asks only for the blocking problems (rule errors, missing facts, the judge's problems), at most 5 missing facts at a time, the most important kinds first; the warnings get one round once nothing blocking is left. |
 | 4 | 2026-10-06 | French templates for all five stages, with French JSON examples and two French few-shot pairs on the same topics as the German ones. The words code writes around the items come from a table per language (`pipeline/labels.py`). No change to the German templates. |
+| 5 | 2026-10-06 | Write prompt (German and French): the JSON form moved before the style examples, its intro says the values come from another document; the document comes last, followed by the instruction to write about it. Reason: on the Public AI 8B without thinking, 4 of 12 dev drafts were the JSON form itself. Code: an answer that copies the examples is sent back once; the omissions or glossary list written as a pseudo-block inside blocks is hoisted. No change to the other templates. |
