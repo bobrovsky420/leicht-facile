@@ -73,7 +73,7 @@ def _take(rng: random.Random, pools: dict[str, list[Item]], total: int) -> list[
 def sample_items(
     results_dir: Path,
     *,
-    condition: str = "C2",
+    condition: str = "P2",
     role: str | None = "eval",
     facts: int = 30,
     blocks: int = 30,

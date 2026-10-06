@@ -107,7 +107,7 @@ the test readers need.
 
 A translator turns sentence A into sentence B. Pasting the letter into a chatbot
 with "rewrite this in Leichte Sprache" does exactly that. It is also the baseline
-condition C0 in the evaluation. For an administration that has to publish the result
+condition P0 in the evaluation. For an administration that has to publish the result
 and defend it, that approach falls short in ways no prompt can fix:
 
 | What the office needs | One chatbot prompt | Leicht·Facile |
@@ -126,7 +126,7 @@ which rules them out for letters containing personal data. Leicht·Facile runs o
 canton's own infrastructure against an Apertus endpoint.
 
 The claim is measured, not asserted: the evaluation compares the single-prompt
-baseline (C0) with the full pipeline (C2) on the same documents and reports fact
+baseline (P0) with the full pipeline (P2) on the same documents and reports fact
 coverage, invented statements and rule violations for both. See
 [architecture.md §9](architecture.md#9-evaluation).
 

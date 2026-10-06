@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from leichtfacile.eval.dataset import MANIFEST
-from leichtfacile.schemas import CONDITIONS
+from leichtfacile.schemas import CONDITIONS, canonical_condition
 
 
 def add_eval_parser(sub: argparse._SubParsersAction) -> None:
@@ -41,14 +41,16 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 
     run = evsub.add_parser("run", help="run a condition over the pairs (needs the endpoint)")
     common(run)
-    run.add_argument("--condition", choices=list(CONDITIONS), required=True)
+    run.add_argument(
+        "--condition", type=canonical_condition, choices=list(CONDITIONS), required=True
+    )
     run.add_argument("--writer", help="writer model (default: LLM_NAME)")
     run.add_argument(
         "--understand",
         help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
     )
     run.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
-    run.add_argument("--judge-all", action="store_true", help="also judge C0 and C1 outputs")
+    run.add_argument("--judge-all", action="store_true", help="also judge P0 and P1 outputs")
     run.add_argument("--limit", type=int, help="at most this many pairs")
     run.add_argument(
         "--redo", action="store_true", help="run pairs again even when they have a result"
@@ -58,7 +60,9 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 
     smp = evsub.add_parser("sample", help="hand-labelling sheets for the judge (no model)")
     smp.add_argument("--results", type=Path, default=Path("eval/results"))
-    smp.add_argument("--condition", default="C2", choices=["C0", "C1", "C2"])
+    smp.add_argument(
+        "--condition", type=canonical_condition, default="P2", choices=["P0", "P1", "P2"]
+    )
     smp.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
     smp.add_argument("--facts", type=int, default=30, help="(fact, draft) items")
     smp.add_argument("--blocks", type=int, default=30, help="blocks, half of them flagged")

@@ -41,8 +41,9 @@ Technical report: [technical_report.md](technical_report.md) (PDF:
 no omission log and no independent check, and the chatbots people reach for run on
 foreign clouds. Leicht·Facile adds exactly those four things, a review workflow and
 an audit trail, and runs on infrastructure the organisation controls. The evaluation
-measures the difference: the single prompt is the baseline condition C0, the full
-pipeline is C2 ([docs/use-case-canton.md](docs/use-case-canton.md) §4).
+measures the difference: the single prompt is the baseline condition P0, the full
+pipeline is P2 (P as in pipeline, not a language level;
+[docs/use-case-canton.md](docs/use-case-canton.md) §4).
 
 ## Quick start
 
@@ -72,7 +73,7 @@ Sprache), and follow the stages to the review page.
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
 official easy-language pages, no model needed), `make day1` (endpoint checks),
-`make eval` (conditions C0, C1, C2 on the reference pairs; `RESULTS=eval/results-cscs`
+`make eval` (conditions P0, P1, P2 on the reference pairs; `RESULTS=eval/results-cscs`
 keeps one endpoint's results together). `python -m leichtfacile eval sample` writes the
 hand-labelling sheets for the judge and `eval kappa` scores a filled sheet.
 
@@ -97,9 +98,9 @@ Done:
 - German rule checker: 42 deterministic rules with golden tests; 7 meaning rules for
   the judge. French and Italian texts get the language-independent rules (facts,
   layout, readability).
-- Evaluation harness: 35 reference pairs (30 German, 5 French), conditions C0, C1 and
-  C2, SARI, readability, fact coverage, cost and latency.
-- Evaluation on the CSCS endpoint: 23 held-out pairs under C0, C1 and C2, C2 also
+- Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P1 and
+  P2, SARI, readability, fact coverage, cost and latency.
+- Evaluation on the CSCS endpoint: 23 held-out pairs under P0, P1 and P2, P2 also
   with the 70B writer and with the 70B reading for the 8B; results in
   `eval/report.md` and the technical report.
 - 825 tests, no network needed; CI runs them, the linter and a start of the Docker

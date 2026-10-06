@@ -2,8 +2,8 @@
 
 Usage: uv run python scripts/day1_checks.py [--runs 20] [--doc PATH]
 Reads the endpoint from .env, prints a JSON report and writes it to
-eval/results/day1_checks.json. Check 6 (C0 baseline on German pairs) runs separately:
-uv run python -m leichtfacile eval run --condition C0 --limit 10
+eval/results/day1_checks.json. Check 6 (P0 baseline on German pairs) runs separately:
+uv run python -m leichtfacile eval run --condition P0 --limit 10
 """
 
 from __future__ import annotations

@@ -13,25 +13,26 @@ from statistics import mean
 from typing import Any
 
 from leichtfacile.eval.score import LANGUAGE_FAMILIES
+from leichtfacile.schemas import canonical_condition
 
 ORDER = {
     "SOURCE": 0,
     "REF": 1,
-    "C0": 2,
-    "C0-ZH-complete": 3,
-    "C0-ZH-condensed": 4,
-    "C1": 5,
-    "C2": 6,
+    "P0": 2,
+    "P0-ZH-complete": 3,
+    "P0-ZH-condensed": 4,
+    "P1": 5,
+    "P2": 6,
 }
 LANGUAGES = {"de": "German", "fr": "French", "it": "Italian"}
 LABELS = {
     "SOURCE": "Original (standard language)",
     "REF": "Official easy-language version",
-    "C0": "C0: one prompt",
-    "C0-ZH-complete": "C0-ZH complete: Zurich's prompt, keep everything",
-    "C0-ZH-condensed": "C0-ZH condensed: Zurich's prompt, essentials only",
-    "C1": "C1: fact sheet + draft + rule check",
-    "C2": "C2: full pipeline with judge and repair",
+    "P0": "P0 baseline: one prompt",
+    "P0-ZH-complete": "P0-ZH complete: Zurich's prompt, keep everything",
+    "P0-ZH-condensed": "P0-ZH condensed: Zurich's prompt, essentials only",
+    "P1": "P1 no judge: fact sheet + draft + rule check",
+    "P2": "P2 full: pipeline with judge and repair",
 }
 
 
@@ -40,7 +41,10 @@ def load_rows(results_dir: Path) -> list[dict[str, Any]]:
     for path in sorted(results_dir.glob("*.jsonl")):
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.strip():
-                rows.append(json.loads(line))
+                row = json.loads(line)
+                if "setup" in row:  # rows written before the P names
+                    row["setup"] = canonical_condition(row["setup"])
+                rows.append(row)
     return rows
 
 

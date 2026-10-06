@@ -51,7 +51,7 @@ def run_job(client: TestClient, app, **form) -> str:
 def test_submit_review_and_export(app_env) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = run_job(client, app, text=LETTER, condition="C1", title="Brief")
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Brief")
 
     job = client.get(f"/api/jobs/{job_id}").json()
     assert job["status"] == "needs_review", job["error"]
@@ -117,7 +117,7 @@ def test_bad_submissions_are_rejected(app_env) -> None:
 def test_review_validation(app_env) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = run_job(client, app, text=LETTER, condition="C1")
+    job_id = run_job(client, app, text=LETTER, condition="P1")
     unknown = {"draft_version": 1, "decisions": [{"block_id": "b999", "decision": "approved"}]}
     assert client.post(f"/api/jobs/{job_id}/review", json=unknown).status_code == 400
     empty_edit = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "edited"}]}
@@ -128,7 +128,7 @@ def test_form_submission_redirects_and_lists_the_job(app_env) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response(fx.BASELINE_TEXT))
     response = client.post(
-        "/jobs", data={"text": LETTER, "condition": "C0"}, follow_redirects=False
+        "/jobs", data={"text": LETTER, "condition": "P0"}, follow_redirects=False
     )
     assert response.status_code == 303
     assert app.state.runner.wait_idle(30)
@@ -141,7 +141,7 @@ def test_form_submission_redirects_and_lists_the_job(app_env) -> None:
 def test_failed_job_shows_the_error_and_can_run_again(app_env) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response("kein JSON"), chat_response("immer noch kein JSON"))
-    job_id = run_job(client, app, text=LETTER, condition="C1")
+    job_id = run_job(client, app, text=LETTER, condition="P1")
     page = client.get(f"/jobs/{job_id}")
     assert "The job failed" in page.text and "LLMOutputError" in page.text
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
@@ -154,7 +154,7 @@ def test_failed_job_shows_the_error_and_can_run_again(app_env) -> None:
 def test_example_bundles_are_imported_once(app_env, tmp_path) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = run_job(client, app, text=LETTER, condition="C1", title="Brief")
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Brief")
     bundle = build_bundle(app.state.store, app.state.store.get_job(job_id))
     bundle["job"]["id"] = "example-brief"
     folder = tmp_path / "examples"
@@ -177,7 +177,7 @@ def test_document_text_never_reaches_the_logs_above_debug(app_env, caplog) -> No
     sentinel = "Zebrastreifenmeldung4711"
     caplog.set_level(logging.INFO)
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    run_job(client, app, text=LETTER + f"\nDie {sentinel} ist wichtig.\n", condition="C1")
+    run_job(client, app, text=LETTER + f"\nDie {sentinel} ist wichtig.\n", condition="P1")
     leaked = [r for r in caplog.records if r.levelno > logging.DEBUG and sentinel in r.getMessage()]
     assert leaked == []
     assert any("llm_call" in r.getMessage() for r in caplog.records)
@@ -241,7 +241,7 @@ def test_a_french_letter_runs_through_the_french_prompts_and_rules(app_env) -> N
         chat_response(json.dumps(UNDERSTAND_FR, ensure_ascii=False)),
         chat_response(json.dumps(WRITE_FR, ensure_ascii=False)),
     )
-    job_id = run_job(client, app, text=LETTRE, lang="fr", condition="C1", title="Taxe")
+    job_id = run_job(client, app, text=LETTRE, lang="fr", condition="P1", title="Taxe")
     job = client.get(f"/api/jobs/{job_id}").json()
     assert job["status"] == "needs_review", job["error"]
     assert job["config"]["lang"] == "fr"

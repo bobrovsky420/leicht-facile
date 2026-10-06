@@ -52,7 +52,7 @@ async def post_job(
     file: Annotated[UploadFile | None, File()] = None,
     lang: Annotated[str | None, Form()] = None,
     level: Annotated[str, Form()] = "A2",
-    condition: Annotated[str, Form()] = "C2",
+    condition: Annotated[str, Form()] = "P2",
     writer_model: Annotated[str | None, Form()] = None,
     understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,

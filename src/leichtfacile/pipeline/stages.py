@@ -205,7 +205,7 @@ def topic_sentences(
     """The texts about the examples' topics, or with one of the examples' values (their
     phone numbers, dates, amounts and hours), that the source does not have. In the
     first evaluation run on CSCS the examples' phone number and date stood in 4 of 19
-    C2 drafts, in sentences without a topic word (6 October 2026)."""
+    P2 drafts, in sentences without a topic word (6 October 2026)."""
     source = _example_key(source_text)
     patterns = [p for p in _topic_patterns(lang) if not p.search(source)]
     source_values = extract_values(source_text, lang)
@@ -243,7 +243,7 @@ def _topic_check(lang: str, stage: str, texts_of, source_text: str):
     """A soft `check` for complete_json: an answer with sentences about the examples'
     topics, in a document that has none, is sent back once; what the second answer
     still has, the stage drops (`drop_topical`). One such sentence is not worth a
-    failed stage: on CSCS two C1 jobs failed over a single one (6 October 2026)."""
+    failed stage: on CSCS two P1 jobs failed over a single one (6 October 2026)."""
 
     def check(out) -> str | None:
         topical = topic_sentences(texts_of(out), lang, source_text, stage)
@@ -828,7 +828,7 @@ def apply_repairs(
     )
 
 
-# -- baseline (condition C0) --------------------------------------------------------
+# -- baseline (condition P0) --------------------------------------------------------
 
 
 def baseline(
@@ -853,19 +853,19 @@ def baseline(
     return draft, [result]
 
 
-# -- baseline with the Canton of Zurich's prompt (conditions C0-ZH-*) ------------------
+# -- baseline with the Canton of Zurich's prompt (conditions P0-ZH-*) ------------------
 
 ZH_VARIANTS = ("complete", "condensed")
 ZH_TAG = "leichtesprache"
-ZH_NO_TAGS_NOTE = f"C0-ZH: the answer had no <{ZH_TAG}> tags; the whole answer was used"
+ZH_NO_TAGS_NOTE = f"P0-ZH: the answer had no <{ZH_TAG}> tags; the whole answer was used"
 _ZH_TAGGED = re.compile(rf"<{ZH_TAG}>(.*?)</{ZH_TAG}>", re.DOTALL)
 
 
 def zh_variant(condition: str) -> str:
-    """The completeness instruction of a C0-ZH condition: `complete` or `condensed`."""
+    """The completeness instruction of a P0-ZH condition: `complete` or `condensed`."""
     variant = condition.rsplit("-", 1)[-1]
     if condition not in ZH_CONDITIONS or variant not in ZH_VARIANTS:
-        raise ValueError(f"not a C0-ZH condition: {condition!r}")
+        raise ValueError(f"not a P0-ZH condition: {condition!r}")
     return variant
 
 
@@ -890,10 +890,10 @@ def baseline_zh(
 ) -> tuple[Draft, list[LLMResult], list[str]]:
     """The Canton of Zurich's Leichte Sprache prompt (simply-simplify-language v1.6.0,
     THIRD_PARTY_NOTICES.md) as a single-prompt baseline: their system message, rules and
-    completeness line verbatim, with the model settings of C0. Returns the draft, the
+    completeness line verbatim, with the model settings of P0. Returns the draft, the
     model call and the notes for the summary (an answer without the tags)."""
     if variant not in ZH_VARIANTS:
-        raise ValueError(f"unknown C0-ZH variant {variant!r}; use one of {ZH_VARIANTS}")
+        raise ValueError(f"unknown P0-ZH variant {variant!r}; use one of {ZH_VARIANTS}")
     s = STAGES["baseline"]
     thinking = thinking_for(llm, "baseline")
     context = {"variant": variant, "text": source.text()}

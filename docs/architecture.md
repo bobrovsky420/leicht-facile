@@ -22,7 +22,7 @@ model from grading its own homework on things a script can check exactly.
 
 Leicht·Facile is not a translator, and the job cannot be done with one chatbot
 prompt. "Rewrite this in Leichte Sprache" yields text with no fact contract, no
-provenance, no omission log and no independent check; that is the C0 baseline in §9.
+provenance, no omission log and no independent check; that is the P0 baseline in §9.
 The pipeline exists to add exactly those four things, plus a review workflow and an
 audit trail. [use-case-canton.md §4](use-case-canton.md) lays out the comparison
 from the administration's point of view.
@@ -241,7 +241,7 @@ score, share of passive sentences, …). The full catalogue is in
   an error and goes to repair; for a phone number, e-mail or web address the source's
   only one is suggested, if it has exactly one. On the 12 dev pairs of 6 October the
   rule found the examples' phone numbers in 8 final drafts, the examples' amount and
-  date in 3, and an e-mail address with a dropped letter; the C0 drafts had none.
+  date in 3, and an e-mail address with a dropped letter; the P0 drafts had none.
 
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that
@@ -376,7 +376,7 @@ PipelineSummary
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
-  config: {lang, level, condition (C0|C1|C2), writer_model, understand_model,
+  config: {lang, level, condition (P0|P1|P2), writer_model, understand_model,
            judge_model, use_judge, max_repair_rounds}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?
@@ -630,23 +630,28 @@ use beyond evaluation.
 
 ### Conditions
 
+The codes are P0 to P2, P as in pipeline: next to the levels A2 and B1, the letter C
+would read as a CEFR level. They were C0 to C2 until 6 October 2026; stored jobs,
+result rows and command lines with the old names still work (`canonical_condition`
+in schemas.py maps them). On screen the code carries a short label, "P2: full".
+
 | Code | Condition | Purpose |
 |------|-----------|---------|
-| C0 | Single prompt: "rewrite this in Leichte Sprache" | Baseline; what a naive user gets |
-| C0-ZH | Single prompt: the Canton of Zurich's Leichte Sprache prompt, verbatim (`simply-simplify-language` v1.6.0, MIT, THIRD_PARTY_NOTICES.md), as `complete` (keep everything) and `condensed` (essentials only, their default); German only | Baseline; the best public Swiss prompt on the same model |
-| C1 | Understand → write → rule check, no judge, no repair | Value of the fact sheet and structure |
-| C2 | Full pipeline with judge and repair | Value of checking and repairing |
+| P0 | Single prompt: "rewrite this in Leichte Sprache" | Baseline; what a naive user gets |
+| P0-ZH | Single prompt: the Canton of Zurich's Leichte Sprache prompt, verbatim (`simply-simplify-language` v1.6.0, MIT, THIRD_PARTY_NOTICES.md), as `complete` (keep everything) and `condensed` (essentials only, their default); German only | Baseline; the best public Swiss prompt on the same model |
+| P1 | Understand → write → rule check, no judge, no repair | Value of the fact sheet and structure |
+| P2 | Full pipeline with judge and repair | Value of checking and repairing |
 
-Each run with the 8B writer; C2 also with the 70B writer (every stage on the 70B) and
+Each run with the 8B writer; P2 also with the 70B writer (every stage on the 70B) and
 with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
-runs both. The judge is always the 70B-thinking model, so C1 and C2 are judged by the
+runs both. The judge is always the 70B-thinking model, so P1 and P2 are judged by the
 same instrument; in the 70B-writer run it grades its own model's drafts, which the
 report notes. Result (6 October 2026, 23 pairs): the 70B everywhere writes cleaner
 easy language (1.4 against 4.3 errors per 100 blocks) but keeps fewer facts (78
 against 84 percent coverage) at 1.8 times the price per page; the hybrid keeps the
 fewest (66 percent). The 8B writer stays the default; docs/prompts.md has the tables.
 
-C0-ZH runs with the settings of C0 (no thinking, temperature 0.3, 6000 tokens) and
+P0-ZH runs with the settings of P0 (no thinking, temperature 0.3, 6000 tokens) and
 with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags
 is taken and ß becomes ss. Their Markdown stripping is not applied, because it deletes
 the underscores of web and e-mail addresses. An answer without the tags is used whole
@@ -654,7 +659,7 @@ and noted in the job summary. The prompt file is a Jinja template whose licence 
 is a comment; docs/prompts.md has the details. On the 20 German eval pairs (CSCS, 6
 October 2026) the complete variant kept 95 percent of the hard facts (fact coverage
 91 percent) with 15.4 rule errors per 100 blocks, the condensed variant 77 percent at
-8.7 errors; C2 on the 8B kept 80 percent (84) with 4.3 errors.
+8.7 errors; P2 on the 8B kept 80 percent (84) with 4.3 errors.
 
 ### Metrics
 
@@ -663,7 +668,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
-| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for C0 and the official versions |
+| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
@@ -761,7 +766,7 @@ pyproject.toml, uv.lock   dependencies (uv), Python 3.12+; .python-version pins 
 .env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                 project overview, quick start, status; Track 2B challenge text (template)
 technical_report.md       the report (PDF: RoestigrabenBridgers_Report.pdf)
-THIRD_PARTY_NOTICES.md    the Canton of Zurich's prompt (MIT) used as baseline C0-ZH
+THIRD_PARTY_NOTICES.md    the Canton of Zurich's prompt (MIT) used as baseline P0-ZH
 docs/
   architecture.md         this document
   rules.md                rule catalogue → implemented by src/leichtfacile/rules
@@ -803,7 +808,7 @@ Assumptions to confirm against the live endpoint, in this order. Run on the Publ
 gateway on 6 October 2026 and, when the key arrived the same day, on CSCS (both
 results below). `make day1`
 (`scripts/day1_checks.py`) runs checks 1-5 and writes `eval/results/day1_checks.json`;
-check 6 is `python -m leichtfacile eval run --condition C0 --limit 10`. Checks 2 and 3
+check 6 is `python -m leichtfacile eval run --condition P0 --limit 10`. Checks 2 and 3
 were rehearsed against the local llama.cpp endpoint (§10): thinking switches per request
 through `chat_template_kwargs`, the reasoning arrives inline between `<|inner_prefix|>`
 and `<|inner_suffix|>` and is stripped, and the answer ends with a control token that the
@@ -821,7 +826,7 @@ client removes.
    a local-vLLM-only feature.
 5. Rate limits and concurrency (the docs do not state them) - determines whether
    section-parallel writing is worth it.
-6. Baseline quality: C0 on 10 German pairs. This decides whether the A2 level is
+6. Baseline quality: P0 on 10 German pairs. This decides whether the A2 level is
    realistic for the 8B model or whether B1 becomes the primary target with A2 as the
    stretch.
 
@@ -852,7 +857,7 @@ at Juelich. The CSCS key had not arrived. Full output in
    enough. The medians of the two runs (46 against 9 seconds) differ because the
    backend's speed varied with load during the run, from about 20 to about 120 output
    tokens per second. Three of the twenty long calls got a 504 from the gateway and
-   succeeded on the retry after 30 seconds. The C0 baseline run later lost 3 of 6
+   succeeded on the retry after 30 seconds. The P0 baseline run later lost 3 of 6
    pairs to the same 504 after five attempts each: Cloudflare in front of the gateway
    cuts any response that takes longer than about 100 seconds, which a long page at
    20 tokens per second exceeds. The client now streams every response (§6), so the
@@ -862,14 +867,14 @@ at Juelich. The CSCS key had not arrived. Full output in
 5. **Parallel calls.** 8 short calls at once: all succeeded, no 429, 1.4 to 2.2
    seconds each, no rate-limit headers. Decision D-F: there is headroom; the
    evaluation can run several pairs at once, section-parallel writing stays optional.
-6. **Baseline.** C0 (one prompt, 8B without thinking) on the first 10 held-out German
+6. **Baseline.** P0 (one prompt, 8B without thinking) on the first 10 held-out German
    pairs, 6 October 2026: 16.1 errors and 85 warnings per 100 blocks against 2.7 and
    27 for the official easy-language versions and 31.3 and 146 for the sources; 7.1
    words per sentence (official: 6.1); readability 46 (official: 62, sources: 36);
    90 percent of the hard facts kept (the official versions keep 70). The findings
    are mostly sentence length (LEN 33 per 100 blocks) and vocabulary (LEX 47:
    abbreviations, long compounds without Mediopunkt). One prompt does not reach A2;
-   decision D-E (A2 or B1 as the primary level) waits for C2 on the dev split.
+   decision D-E (A2 or B1 as the primary level) waits for P2 on the dev split.
 
 One cost figure from the gateway's headers: an Understand call on the 400-word sample
 letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
@@ -906,7 +911,7 @@ letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
    sequential and for eight parallel calls, so it is not our load. The client retries
    such drops; profile A sets `LLM_MAX_RETRIES=8`, which makes a hard failure rare, at the
    price of repeated generation time.
-7. **Baseline.** C0 on the eval pairs runs on CSCS with `make eval`; the Public AI
+7. **Baseline.** P0 on the eval pairs runs on CSCS with `make eval`; the Public AI
    baseline above was the first reading.
 
 ## 13. Risks and mitigations
@@ -926,9 +931,9 @@ letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
 
 | Dates | Deliverable |
 |-------|-------------|
-| Oct 5-6 | Repo, Docker, `make run` with a health check; LLM client; day-1 checks; C0 baseline on 10 German pairs |
+| Oct 5-6 | Repo, Docker, `make run` with a health check; LLM client; day-1 checks; P0 baseline on 10 German pairs |
 | Oct 7-8 | Understand, write, rule checker (DE), repair loop; artifacts visible via API |
-| Oct 9-10 | Judge; evaluation harness; first C0 / C1 / C2 numbers; dataset manifest at 20+ pairs |
+| Oct 9-10 | Judge; evaluation harness; first P0 / P1 / P2 numbers; dataset manifest at 20+ pairs |
 | Oct 11-12 | Review UI; export; French and Italian rules and prompts |
 | Oct 13 | 8B vs. 70B comparison; judge reliability labelling (30 items); LoRA only if compute exists |
 | Oct 14-15 | Technical report (≤ 6 pages), demo video (≤ 2 min), clean-checkout test of `make run`, repo set to public |

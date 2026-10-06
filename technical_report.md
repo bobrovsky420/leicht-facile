@@ -36,7 +36,8 @@ on-premise, air-gapped or on a Swiss cloud.
 
 **Why not one prompt.** "Rewrite this in Leichte Sprache" gives text with no fact
 contract, no provenance, no omission log and no independent check. That prompt is our
-baseline condition C0; the full pipeline is C2.
+baseline condition P0; the full pipeline is P2 (P as in pipeline, not a language
+level).
 
 **Headline result.** On the 20 held-out German pairs, run on the CSCS endpoint, the
 full pipeline keeps 80 percent of the source's countable facts (dates, amounts,
@@ -149,7 +150,7 @@ and Write with thinking about 12 minutes for a 400-word letter.
 | Write | 8B | on | 0.3 | 16000 |
 | Judge | 70B | on | 0.0 | 12000 |
 | Repair | 8B | off | 0.2 | 8000 |
-| Baseline C0 | 8B | off | 0.3 | 6000 |
+| Baseline P0 | 8B | off | 0.3 | 6000 |
 
 **Prompts** ([docs/prompts.md](docs/prompts.md)). German instructions for German
 documents. Each prompt shows one filled JSON example instead of the JSON schema; small
@@ -212,10 +213,10 @@ writer:
 
 | Code | Condition | Measures the value of |
 |------|-----------|-----------------------|
-| C0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | Baseline: what a user gets from a chatbot |
-| C0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim, on the same model (`complete`: keep everything; `condensed`: essentials only, their default); German only | Baseline: the best public Swiss prompt |
-| C1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning and provenance |
-| C2 | Full pipeline with judge and repair | Checking and repairing |
+| P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | Baseline: what a user gets from a chatbot |
+| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim, on the same model (`complete`: keep everything; `condensed`: essentials only, their default); German only | Baseline: the best public Swiss prompt |
+| P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning and provenance |
+| P2 | Full pipeline with judge and repair | Checking and repairing |
 
 Two reference rows need no model: SOURCE (the original, scored as if it were a draft)
 and REF (the official easy-language version written by professionals).
@@ -243,33 +244,33 @@ tokens and latency):
 |-------|---------------|-----------------|------------------------------|---------------------------------|--------------------------|--------|------|------------|----------------|
 | SOURCE | - | 100 % | 0.0 | - | 31.3 | 36 | - | - | - |
 | REF (official) | - | 70 % | 2.2 | - | 2.7 | 62 | - | - | - |
-| C0 baseline, 8B | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
-| C0-ZH complete: Zurich's prompt, 8B | 91 % | 95 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
-| C0-ZH condensed: Zurich's prompt, 8B | 75 % | 77 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
-| C1, 8B | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
-| C2 (ours), 8B | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
-| C2, 70B everywhere | 78 % | 75 % | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
-| C2, hybrid: 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
+| P0 baseline, 8B | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
+| P0-ZH complete: Zurich's prompt, 8B | 91 % | 95 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
+| P0-ZH condensed: Zurich's prompt, 8B | 75 % | 77 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
+| P1, 8B | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
+| P2 (ours), 8B | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
+| P2, 70B everywhere | 78 % | 75 % | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
+| P2, hybrid: 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
 
 Reading the table: the baseline keeps everything because it rewrites little (7.7
 words per sentence, 95 warnings per 100 blocks, SARI rewards its closeness to the
 source); the pipeline simplifies as far as the official versions do on sentence
 length (6.8 words against 6.1) and keeps more of the countable facts than they do,
-at a readability still below theirs (51 against 62). C1 shows what the judge and the
+at a readability still below theirs (51 against 62). P1 shows what the judge and the
 repair loop add: from 72 to 84 percent fact coverage, from 9.9 to 4.3 errors, and
 from 3.2 to 0.1 invented values per 100 blocks. On the 14 fact-rich pairs (at least 3
-hard facts) C2 keeps 77 percent of the hard facts, the official versions 60. The 3
-French pairs: C2 73 percent fact coverage, 4.6 errors per 100 blocks, readability 75
+hard facts) P2 keeps 77 percent of the hard facts, the official versions 60. The 3
+French pairs: P2 73 percent fact coverage, 4.6 errors per 100 blocks, readability 75
 (official: 85), no invented values. All 23 pairs completed under every condition;
 the run also surfaced five answer shapes of the models that the parser now repairs,
 and 31 streams the server cut that the client retried.
 
 **The best public Swiss prompt as the second baseline.** A one-sentence baseline can be
 called a strawman, so the Canton of Zurich's Leichte Sprache prompt (39 rules and clause
-recipes, from its open-source app, verbatim) runs on the same 8B model as C0-ZH. Its
+recipes, from its open-source app, verbatim) runs on the same 8B model as P0-ZH. Its
 complete variant, which asks to keep every piece of information, keeps 95 percent of
 the hard facts and 91 percent fact coverage, 7 points above the pipeline, with 15.4
-rule errors per 100 blocks against 4.3, the same sentence length as C2 (6.8 words) and
+rule errors per 100 blocks against 4.3, the same sentence length as P2 (6.8 words) and
 a lower readability (47 against 51). Its condensed variant, the app's default, keeps 77
 percent of the hard facts at 8.7 errors. Neither baseline invents values on these
 pages. The difference the pipeline makes is not only the error rate: a fact a single
@@ -293,7 +294,7 @@ cache count as 0 s.
 
 **Judge reliability.** The judge is measured, not assumed: agreement (Cohen's κ)
 between the judge and hand labels on 30 (fact, draft) items. `eval sample` draws the
-items from the C2 outputs, stratified by the judge's verdict, plus 30 blocks half
+items from the P2 outputs, stratified by the judge's verdict, plus 30 blocks half
 flagged as unsupported and half passed, and writes the sheets without the verdicts;
 `eval kappa` scores a filled sheet. **[pending]** the labelled result.
 
@@ -341,8 +342,8 @@ outputs, the evaluation metrics, and the web API.
 - **Run:** `cp .env.example .env`, set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`,
   then `make run` and open http://localhost:8000. `make check-llm` makes one call to
   the endpoint; `make smoke` runs a bundled example letter through the full pipeline.
-- **Numbers:** `make eval` fetches the pairs, scores the references, runs C0, C0-ZH,
-  C1 and C2 with the response cache on (an interrupted run resumes), and writes the
+- **Numbers:** `make eval` fetches the pairs, scores the references, runs P0, P0-ZH,
+  P1 and P2 with the response cache on (an interrupted run resumes), and writes the
   report tables. `make calibrate` runs the checker on the official pages without a model.
 - **CI:** GitHub Actions runs the linter, the test suite and a start of the Docker
   image against an unreachable endpoint on every push (`.github/workflows/ci.yml`).

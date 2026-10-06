@@ -104,7 +104,7 @@ def load_examples(store: Store, folder: Path | None = None) -> list[str]:
 
 
 def build_examples(
-    level: str = "A2", condition: str = "C2", folder: Path | None = None
+    level: str = "A2", condition: str = "P2", folder: Path | None = None
 ) -> list[Path]:
     """Run the pipeline on every example source and write the bundles (needs the endpoint)."""
     from leichtfacile.config import get_settings

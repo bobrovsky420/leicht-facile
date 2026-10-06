@@ -77,6 +77,7 @@ def test_keys_built_from_data_exist() -> None:
         + [f"fact.{s}" for s in (*get_args(FactStatus), "unchecked")]
         + [f"lang.{lang}" for lang in LANGS]
         + [f"condition.{c}" for c in get_args(Condition)]
+        + [f"condition.short.{c}" for c in get_args(Condition)]
         + [f"core.{k}" for k in CORE_KEYS]
         + [f"step.{k}.{part}" for k in STEP_WHO for part in ("title", "desc")]
         + [f"who.{w}" for w in set(STEP_WHO.values())]
@@ -156,7 +157,7 @@ def test_the_browser_language_applies_without_a_choice(client) -> None:
 def test_progress_and_errors_in_german(tmp_path) -> None:
     settings = make_settings(data_dir=tmp_path)
     store = Store(tmp_path / "jobs.sqlite")
-    job = create_job(store, settings, Submission(text=LETTER, condition="C2"))
+    job = create_job(store, settings, Submission(text=LETTER, condition="P2"))
     view = progress_view(store, job, t=Translator("de"))
     assert [s.title for s in view.steps][:2] == ["Lesen", "Schreiben"]
     assert view.steps[0].detail == "wartet auf den Worker"

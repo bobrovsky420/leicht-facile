@@ -19,7 +19,7 @@ from collections import Counter
 from pathlib import Path
 
 from leichtfacile import __version__
-from leichtfacile.schemas import CONDITIONS
+from leichtfacile.schemas import CONDITIONS, canonical_condition
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -52,7 +52,9 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument("input", help="file path or http(s) URL")
     simplify.add_argument("--lang", choices=["de", "fr", "it"])
     simplify.add_argument("--level", choices=["A2", "B1"], default="A2")
-    simplify.add_argument("--condition", choices=list(CONDITIONS), default="C2")
+    simplify.add_argument(
+        "--condition", type=canonical_condition, choices=list(CONDITIONS), default="P2"
+    )
     simplify.add_argument("--out", type=Path, default=Path("out"), help="output folder")
     simplify.add_argument("--writer", help="writer model (default: LLM_NAME)")
     simplify.add_argument(
@@ -60,8 +62,8 @@ def main(argv: list[str] | None = None) -> int:
         help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
     )
     simplify.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
-    simplify.add_argument("--no-judge", action="store_true", help="C2 without the judge")
-    simplify.add_argument("--no-repair", action="store_true", help="C2 without repair rounds")
+    simplify.add_argument("--no-judge", action="store_true", help="P2 without the judge")
+    simplify.add_argument("--no-repair", action="store_true", help="P2 without repair rounds")
     simplify.add_argument(
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )

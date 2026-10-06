@@ -1,5 +1,5 @@
-"""The Canton of Zurich's Leichte Sprache prompt as a baseline (conditions C0-ZH-complete
-and C0-ZH-condensed, THIRD_PARTY_NOTICES.md)."""
+"""The Canton of Zurich's Leichte Sprache prompt as a baseline (conditions P0-ZH-complete
+and P0-ZH-condensed, THIRD_PARTY_NOTICES.md)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,14 @@ from leichtfacile.eval.run import results_file, run_condition
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline.prompts import has_prompt, prompt_versions, render
 from leichtfacile.pipeline.stages import ZH_NO_TAGS_NOTE, zh_answer_text, zh_variant
-from leichtfacile.schemas import BASELINE_CONDITIONS, CONDITIONS, Draft, PipelineSummary
+from leichtfacile.schemas import (
+    BASELINE_CONDITIONS,
+    CONDITIONS,
+    Draft,
+    JobConfig,
+    PipelineSummary,
+    canonical_condition,
+)
 from leichtfacile.store import Store
 from tests.conftest import MODEL, chat_response, make_settings
 from tests.pipeline.test_orchestrator import new_job, orchestrator
@@ -48,12 +55,23 @@ def store(tmp_path) -> Store:
 
 
 def test_conditions_and_variants() -> None:
-    assert CONDITIONS == ("C0", "C0-ZH-complete", "C0-ZH-condensed", "C1", "C2")
-    assert {"C0", "C0-ZH-complete", "C0-ZH-condensed"} == BASELINE_CONDITIONS
-    assert zh_variant("C0-ZH-complete") == "complete"
-    assert zh_variant("C0-ZH-condensed") == "condensed"
+    assert CONDITIONS == ("P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2")
+    assert {"P0", "P0-ZH-complete", "P0-ZH-condensed"} == BASELINE_CONDITIONS
+    assert zh_variant("P0-ZH-complete") == "complete"
+    assert zh_variant("P0-ZH-condensed") == "condensed"
+
+
+def test_old_c_names_are_accepted_as_aliases() -> None:
+    """The conditions were C0 to C2 until 6 October 2026: stored jobs, result rows and
+    command lines with the old names still resolve."""
+    assert canonical_condition("C2") == "P2"
+    assert canonical_condition("C0-ZH-complete") == "P0-ZH-complete"
+    assert canonical_condition("P1") == "P1"
+    assert canonical_condition("other") == "other"
+    assert JobConfig(condition="C1").condition == "P1"  # type: ignore[arg-type]
+    assert JobConfig.model_validate({"condition": "C0"}).condition == "P0"
     with pytest.raises(ValueError):
-        zh_variant("C0")
+        zh_variant("P0")
 
 
 def test_prompt_is_zurichs_in_both_parts_and_variants() -> None:
@@ -93,7 +111,7 @@ def test_answer_text_as_in_zurichs_app() -> None:
 
 def test_c0_zh_sends_zurichs_messages_and_keeps_the_tagged_text(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(ZH_ANSWER))
-    job_id = new_job(store, condition="C0-ZH-complete")
+    job_id = new_job(store, condition="P0-ZH-complete")
     orchestrator(store, endpoint, sleeps).run(job_id)
 
     job = store.get_job(job_id)
@@ -105,7 +123,7 @@ def test_c0_zh_sends_zurichs_messages_and_keeps_the_tagged_text(store, endpoint,
     user = body["messages"][1]["content"]
     assert COMPLETE_LINE in user
     assert user.rstrip().endswith("Rechtsgrundlage ist Art. 5 des Einführungsgesetzes.")
-    assert body["model"] == MODEL  # the settings of C0: no thinking
+    assert body["model"] == MODEL  # the settings of P0: no thinking
     assert body["temperature"] == 0.3 and body["max_tokens"] == 6000
 
     draft = store.get_artifact(job_id, "draft", Draft)
@@ -115,7 +133,7 @@ def test_c0_zh_sends_zurichs_messages_and_keeps_the_tagged_text(store, endpoint,
     assert "Bahnhofstrasse" in draft.text() and "ß" not in draft.text()
     assert all(not b.segment_ids for b in draft.blocks)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.condition == "C0-ZH-complete"
+    assert summary.condition == "P0-ZH-complete"
     assert summary.notes == []
     assert summary.judge_model is None and summary.understand_model is None
     assert len(summary.prompt_versions["baseline_zh"]) == 12
@@ -123,7 +141,7 @@ def test_c0_zh_sends_zurichs_messages_and_keeps_the_tagged_text(store, endpoint,
 
 def test_c0_zh_condensed_uses_an_untagged_answer_and_says_so(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response("Sie haben wenig Geld? Dann hilft der Kanton."))
-    job_id = new_job(store, condition="C0-ZH-condensed")
+    job_id = new_job(store, condition="P0-ZH-condensed")
     orchestrator(store, endpoint, sleeps).run(job_id)
 
     assert store.get_job(job_id).status == "needs_review"
@@ -136,8 +154,8 @@ def test_c0_zh_condensed_uses_an_untagged_answer_and_says_so(store, endpoint, sl
 
 
 def test_results_file_names_the_variant(tmp_path) -> None:
-    path = results_file(tmp_path, "C0-ZH-condensed", "swiss-ai/Apertus-v1.5-8B")
-    assert path.name == "C0-ZH-condensed_swiss-ai-apertus-v1-5-8b.jsonl"
+    path = results_file(tmp_path, "P0-ZH-condensed", "swiss-ai/Apertus-v1.5-8B")
+    assert path.name == "P0-ZH-condensed_swiss-ai-apertus-v1-5-8b.jsonl"
 
 
 def test_run_skips_pairs_without_zurichs_prompt(tmp_path, endpoint, sleeps) -> None:
@@ -148,7 +166,7 @@ def test_run_skips_pairs_without_zurichs_prompt(tmp_path, endpoint, sleeps) -> N
     settings = make_settings(llm_max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     path = run_condition(
-        [french], "C0-ZH-complete", settings=settings, llm=llm, results_dir=tmp_path / "r"
+        [french], "P0-ZH-complete", settings=settings, llm=llm, results_dir=tmp_path / "r"
     )
     assert not path.exists() and endpoint.chat_bodies() == []
 
@@ -157,15 +175,15 @@ def test_report_orders_zurichs_baselines_between_c0_and_c1(tmp_path) -> None:
     rows = [
         {"setup": s, "pair_id": "a-de", "role": "eval", "lang": "de", "writer": "m",
          "status": "needs_review"}
-        for s in ("C1", "C0-ZH-condensed", "C2", "C0-ZH-complete", "C0")
+        for s in ("P1", "P0-ZH-condensed", "P2", "P0-ZH-complete", "P0")
     ]  # fmt: skip
     (tmp_path / "x.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
     report = render_report(tmp_path, role="eval")
     labels = [
-        "C0: one prompt (m)",
-        "C0-ZH complete: Zurich's prompt, keep everything (m)",
-        "C0-ZH condensed: Zurich's prompt, essentials only (m)",
-        "C1: fact sheet + draft + rule check (m)",
+        "P0 baseline: one prompt (m)",
+        "P0-ZH complete: Zurich's prompt, keep everything (m)",
+        "P0-ZH condensed: Zurich's prompt, essentials only (m)",
+        "P1 no judge: fact sheet + draft + rule check (m)",
     ]
     positions = [report.index(label) for label in labels]
     assert positions == sorted(positions)

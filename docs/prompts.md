@@ -23,8 +23,8 @@ can always be traced to the exact prompt that produced it.
 | Plan first, then write | Easy language reorders content by what the reader needs; the write prompt asks for the reader's questions as headings before the text. The thinking models do the planning in their reasoning. |
 | The judge reports, it never rewrites | Its answer is a list of findings with fact and block ids; repairs go back to the writer. This keeps the judge an independent instrument for the evaluation. |
 | Repair sees only the flagged blocks, their problems and the facts they must keep | Smaller prompt, and the rest of the draft cannot be damaged. The rule findings come with the checker's suggestion ("Vorschlag: 31. März 2026"), which is usually right. |
-| The baseline prompt (C0) is one sentence | It is what a user types into a chatbot: "Schreiben Sie diesen Text in Leichter Sprache:", in French "Écrivez ce texte en FALC :". |
-| The second baseline (C0-ZH) is the Canton of Zurich's prompt, verbatim | A juror can call a one-sentence baseline a strawman; the best public Swiss prompt on the same model is the fair comparison. `prompts/de/baseline_zh.md` holds the system message, the user template, the rule list and the two completeness lines of `simply-simplify-language` v1.6.0 (Canton of Zurich, MIT, THIRD_PARTY_NOTICES.md) without a change; the licence note is a Jinja comment and never reaches the model. Two variants: `complete` (keep every fact, our task) and `condensed` (essentials only, their default for Leichte Sprache). Settings as C0: no thinking, temperature 0.3, 6000 tokens. Post-processing as in their app: the text between the `<leichtesprache>` tags, ß written as ss. Their `strip_markdown` is not applied: it deletes every underscore and would break web and e-mail addresses, so applying it would measure their regex, not their prompt. An answer without the tags is used whole and noted in the job summary. German only: their app has no French prompt. |
+| The baseline prompt (P0) is one sentence | It is what a user types into a chatbot: "Schreiben Sie diesen Text in Leichter Sprache:", in French "Écrivez ce texte en FALC :". |
+| The second baseline (P0-ZH) is the Canton of Zurich's prompt, verbatim | A juror can call a one-sentence baseline a strawman; the best public Swiss prompt on the same model is the fair comparison. `prompts/de/baseline_zh.md` holds the system message, the user template, the rule list and the two completeness lines of `simply-simplify-language` v1.6.0 (Canton of Zurich, MIT, THIRD_PARTY_NOTICES.md) without a change; the licence note is a Jinja comment and never reaches the model. Two variants: `complete` (keep every fact, our task) and `condensed` (essentials only, their default for Leichte Sprache). Settings as P0: no thinking, temperature 0.3, 6000 tokens. Post-processing as in their app: the text between the `<leichtesprache>` tags, ß written as ss. Their `strip_markdown` is not applied: it deletes every underscore and would break web and e-mail addresses, so applying it would measure their regex, not their prompt. An answer without the tags is used whole and noted in the job summary. German only: their app has no French prompt. |
 
 ## Stage settings
 
@@ -34,7 +34,7 @@ can always be traced to the exact prompt that produced it.
 | write | off | 0.3 | 8000 / 16000 |
 | judge | on | 0.0 | 6000 / 12000 |
 | repair | off | 0.2 | 6000 / 12000 |
-| baseline (C0, C0-ZH) | off | 0.3 | 6000 / 12000 |
+| baseline (P0, P0-ZH) | off | 0.3 | 6000 / 12000 |
 
 `LLM_THINKING_STAGES` overrides the first column. Thinking models need a generous
 `max_tokens`: the reasoning can be several times longer than the answer. When the
@@ -150,7 +150,7 @@ turned the question heading into a statement).
 
 ### On the Public AI gateway (official Apertus 1.5 8B, no thinking)
 
-C2 on the 12 dev pairs (10 German, 2 French), 6 October 2026, 70B judge without
+P2 on the 12 dev pairs (10 German, 2 French), 6 October 2026, 70B judge without
 thinking (the gateway ignores the switch). With prompt version 4, four of the ten
 German drafts were the write prompt's JSON example word for word; the repair rounds
 then patched dog-tax sentences with corrections. Version 5 of the write prompt and the
@@ -180,7 +180,7 @@ had passed.
 
 ### On CSCS (official Apertus 1.5 8B and 70B, thinking for Understand and Judge)
 
-The hackathon key arrived on 6 October 2026. The same three dev pairs as above, C2 with
+The hackathon key arrived on 6 October 2026. The same three dev pairs as above, P2 with
 the default thinking stages (`Apertus-v1.5-8B-thinking` for Understand, `-70B-thinking`
 for the judge), against the gateway run without thinking:
 
@@ -196,15 +196,15 @@ fact coverage 0.43 to 0.96 and hard facts kept 0.43 to 0.81 on average. The pric
 style: the drafts are longer and harder to read (readability 66 to 53, rule errors 3.6
 to 7.1 and warnings 55 to 89 per 100 blocks), so the repair rounds have more to do. The
 thinking judge reports distortions the no-thinking judge did not (7 to 22 percent of
-the facts) and more unsupported blocks. A C2 job takes 45 to 90 seconds on CSCS, less
+the facts) and more unsupported blocks. A P2 job takes 45 to 90 seconds on CSCS, less
 than the gateway needed without thinking. The thinking stages stay as they are for the
 evaluation; the style gap is the repair loop's job. Two slips of the thinking 8B on long fact sheets showed up here:
 a missing comma after a list and an object never closed before the next top-level key;
 both are repaired in code now (`llm/json_out.py`).
 
-### Repair guard: C2 on the dev pairs on CSCS (6 October 2026, late)
+### Repair guard: P2 on the dev pairs on CSCS (6 October 2026, late)
 
-The 12 dev pairs again, C2 with thinking for Understand and the judge, repair prompt
+The 12 dev pairs again, P2 with thinking for Understand and the judge, repair prompt
 version 6 and the guard against values the document does not contain; the LLM cache
 was on, so the pairs already run on CSCS reused their fact sheets, drafts and judge
 reports and only the repair rounds ran fresh.
@@ -237,11 +237,11 @@ a second write call when it fires.
 
 ### Full evaluation on CSCS (6 October 2026)
 
-`make eval RESULTS=eval/results-cscs`: C0, C1 and C2 on the 23 held-out pairs (20
-German, 3 French), thinking for Understand and the judge, then C2 with the 70B writer
+`make eval RESULTS=eval/results-cscs`: P0, P1 and P2 on the 23 held-out pairs (20
+German, 3 French), thinking for Understand and the judge, then P2 with the 70B writer
 on the first 5 German pairs. 23 of 23 pairs completed under every condition after the
 reruns of failed pairs (the harness reruns them with the cache on, and unusable answers
-no longer stay cached). The first pass had failed 7 C0 scorings, 9 C1 and 6 C2 jobs,
+no longer stay cached). The first pass had failed 7 P0 scorings, 9 P1 and 6 P2 jobs,
 every one on an answer shape the code now handles: core answers written as bare
 sentences, an omission or glossary entry written as a block of that kind, an empty
 block, a list closed with a brace, and 8 write answers cut off at the token limit on
@@ -253,29 +253,29 @@ German means over 20 pairs, 8B writer:
 | Setup | Fact coverage | Hard facts kept | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 | Readability | SARI |
 |-------|---------------|-----------------|-----------------------|--------------------------|--------------|-------------|------|
 | REF | - | 70 % | 2.2 | - | 2.7 | 62 | - |
-| C0 | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 |
-| C1 | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 |
-| C2 | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 |
-| C2, 70B writer (5 pairs) | 68 % | 71 % | 0.7 | 6.0 | 2.0 | 58 | 42.2 |
+| P0 | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 |
+| P1 | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 |
+| P2 | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 |
+| P2, 70B writer (5 pairs) | 68 % | 71 % | 0.7 | 6.0 | 2.0 | 58 | 42.2 |
 
-C0's fact coverage read 98 percent in this run's first scoring: the 13 pairs scored
-before any C1 or C2 job existed were measured against a fact sheet without code
+P0's fact coverage read 98 percent in this run's first scoring: the 13 pairs scored
+before any P1 or P2 job existed were measured against a fact sheet without code
 completion (fewer facts). The scoring now completes that sheet as the pipeline does,
-and the rescoring from the cache against the stored C2 sheets (6 October, evening)
-gives 93 percent; no other C0 number changed.
+and the rescoring from the cache against the stored P2 sheets (6 October, evening)
+gives 93 percent; no other P0 number changed.
 
-What the run says about the prompts and guards: the C1 drafts carried 3.2 invented
+What the run says about the prompts and guards: the P1 drafts carried 3.2 invented
 values per 100 blocks, nearly all the examples' phone number, date and hours in
-sentences without a topic word; the example-value rule (above) brought C2 down to 0.1,
-two office hours on one page. The judge flags 6.9 unsupported blocks per 100 in C2
+sentences without a topic word; the example-value rule (above) brought P2 down to 0.1,
+two office hours on one page. The judge flags 6.9 unsupported blocks per 100 in P2
 (9 percent distorted facts on the fact-rich pairs), which is what the hand labelling
-(`eval sample`) has to check. Every C2 job stopped with "a repair round brought no
+(`eval sample`) has to check. Every P2 job stopped with "a repair round brought no
 progress" after 1.8 rounds on average: the repair prompt is the next lever for fact
 coverage. The 70B writes cleaner (2.0 errors, readability 58) but keeps fewer facts.
 
 ### The three model tiers on the eval split (CSCS, 6 October 2026)
 
-C2 on the 23 held-out pairs (20 German, 3 French) in three settings: the 8B writer
+P2 on the 23 held-out pairs (20 German, 3 French) in three settings: the 8B writer
 (the default: the 8B for Understand, Write and Repair), every stage on the 70B
 (`--writer swiss-ai/Apertus-v1.5-70B`) and the hybrid with the 70B for Understand
 only (`--understand swiss-ai/Apertus-v1.5-70B`, in production `LLM_UNDERSTAND_NAME`).
@@ -303,7 +303,7 @@ German means over the 20 pairs (`make eval-70b` reproduces the two extra runs):
   per job) and its repair rounds are shorter. It generates at about 68 tokens per
   second against 155 for the 8B, but the Understand call takes 19 s against 92 s and
   the Write call 27 s against 10 s; summed over the mean fresh call times per stage, a
-  C2 job is about 85 s on the 70B and about 150 s on the 8B, because the 8B-thinking's
+  P2 job is about 85 s on the 70B and about 150 s on the 8B, because the 8B-thinking's
   reasoning in Understand dominates. The seconds per page in eval/report.md undercount
   all runs, because cached calls count as 0 s (the 8B run reused 76 percent of its
   Understand calls from the cache, the hybrid all of them).
@@ -330,26 +330,26 @@ instead of one; the hybrid is documented as tested and not better.
 
 ### Zurich's prompt as the second baseline (CSCS, 6 October 2026)
 
-C0-ZH (`baseline_zh.md`, both variants) and C0 on the 20 German eval pairs and the 10
-German dev pairs, 8B without thinking, scored against the same fact sheets as C1 and C2
-(the stored C2 job of each pair). All 90 jobs reached review in about two minutes per
+P0-ZH (`baseline_zh.md`, both variants) and P0 on the 20 German eval pairs and the 10
+German dev pairs, 8B without thinking, scored against the same fact sheets as P1 and P2
+(the stored P2 job of each pair). All 90 jobs reached review in about two minutes per
 30 jobs; every answer carried the `<leichtesprache>` tags. Means over pairs:
 
 | Split | Setup | Fact coverage | Hard facts kept | Errors / 100 | Warnings / 100 | Words / sentence | Readability | SARI | Invented values / 100 | Tokens / page |
 |---|---|---|---|---|---|---|---|---|---|---|
-| eval (20) | C0 | 93 % | 100 % | 22.0 | 95.0 | 7.7 | 50 | 44.5 | 0.0 | 982 |
-| eval (20) | C0-ZH complete | 91 % | 95 % | 15.4 | 85.6 | 6.8 | 47 | 43.2 | 0.0 | 2374 |
-| eval (20) | C0-ZH condensed | 75 % | 77 % | 8.7 | 74.7 | 6.1 | 48 | 41.7 | 0.0 | 2199 |
-| eval (20) | C2, 8B | 84 % | 80 % | 4.3 | 58.4 | 6.8 | 51 | 40.6 | 0.1 | 21711 |
-| dev (10) | C0 | 74 % | 83 % | 26.1 | 108.0 | 8.3 | 49 | 42.0 | 0.0 | 936 |
-| dev (10) | C0-ZH complete | 75 % | 87 % | 26.2 | 114.0 | 8.3 | 43 | 39.8 | 0.0 | 1979 |
-| dev (10) | C0-ZH condensed | 74 % | 81 % | 13.0 | 94.4 | 6.6 | 47 | 41.2 | 0.1 | 1861 |
-| dev (9 of 10) | C2, 8B, run of 6 Oct afternoon | 61 % | 61 % | 2.8 | 57.3 | 6.8 | 52 | 40.5 | 2.1 | 18235 |
+| eval (20) | P0 | 93 % | 100 % | 22.0 | 95.0 | 7.7 | 50 | 44.5 | 0.0 | 982 |
+| eval (20) | P0-ZH complete | 91 % | 95 % | 15.4 | 85.6 | 6.8 | 47 | 43.2 | 0.0 | 2374 |
+| eval (20) | P0-ZH condensed | 75 % | 77 % | 8.7 | 74.7 | 6.1 | 48 | 41.7 | 0.0 | 2199 |
+| eval (20) | P2, 8B | 84 % | 80 % | 4.3 | 58.4 | 6.8 | 51 | 40.6 | 0.1 | 21711 |
+| dev (10) | P0 | 74 % | 83 % | 26.1 | 108.0 | 8.3 | 49 | 42.0 | 0.0 | 936 |
+| dev (10) | P0-ZH complete | 75 % | 87 % | 26.2 | 114.0 | 8.3 | 43 | 39.8 | 0.0 | 1979 |
+| dev (10) | P0-ZH condensed | 74 % | 81 % | 13.0 | 94.4 | 6.6 | 47 | 41.2 | 0.1 | 1861 |
+| dev (9 of 10) | P2, 8B, run of 6 Oct afternoon | 61 % | 61 % | 2.8 | 57.3 | 6.8 | 52 | 40.5 | 2.1 | 18235 |
 
-- **Zurich's complete prompt beats our one-sentence C0 on every quality column** and
+- **Zurich's complete prompt beats our one-sentence P0 on every quality column** and
   keeps slightly fewer facts (95 against 100 percent of the hard facts): it is the
-  fairer baseline, and the strawman objection to C0 is answered.
-- **Against C2 on the eval split:** C2 has a quarter of the rule errors (4.3 against
+  fairer baseline, and the strawman objection to P0 is answered.
+- **Against P2 on the eval split:** P2 has a quarter of the rule errors (4.3 against
   15.4), fewer warnings, the same sentence length and better readability; the complete
   prompt keeps more facts (91 against 84 percent coverage, 95 against 80 percent of the
   hard facts; on the 14 fact-rich pairs 93 against 73, the official versions 60). By
@@ -359,12 +359,12 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as C1
   hard facts** (77 percent kept, 69 on the fact-rich pairs) and nobody is told. That is
   the silent loss in numbers.
 - **Neither baseline invents values** on these pages (0.0 per 100 blocks). The invented
-  values of C1 and C2 were mostly values from our own prompt examples (above), which the
+  values of P1 and P2 were mostly values from our own prompt examples (above), which the
   code guards now catch.
-- **Cost.** The Zurich prompt costs 2.4 times the tokens of C0 (its rules are about
-  1,900 input tokens per call) and still a hundredth of C2.
+- **Cost.** The Zurich prompt costs 2.4 times the tokens of P0 (its rules are about
+  1,900 input tokens per call) and still a hundredth of P2.
 - **Dev split.** The dev pages are harder (the official versions keep 43 percent of
-  the hard facts); the single prompts keep 81 to 87 percent. The stored C2 dev rows are
+  the hard facts); the single prompts keep 81 to 87 percent. The stored P2 dev rows are
   from the run of 6 October afternoon, before the FACT-06 and example-value guards (9 of
   10 pairs), and are rerun with `--redo` after the Friday prompt work.
 
@@ -382,4 +382,4 @@ The headline sentence that follows from case B is the owner's decision (D-M, G3)
 | 5 | 2026-10-06 | Write prompt (German and French): the JSON form moved before the style examples, its intro says the values come from another document; the document comes last, followed by the instruction to write about it. Reason: on the Public AI 8B without thinking, 4 of 12 dev drafts were the JSON form itself. Code: an answer that copies the examples is sent back once; the omissions or glossary list written as a pseudo-block inside blocks is hoisted. No change to the other templates. |
 | 6 | 2026-10-06 | Repair prompt (German and French): every value in the answer comes from the fact sheet or the original's sentences, the values of the JSON form belong to another document, and no value is invented for a fact without one. Code: a repair answer with a value that neither the source nor the fact sheet contains is sent back once with the values named (the check of rule FACT-06); the second answer is used as it is. Reason: the examples' phone number stood in 8 of 12 dev drafts, put there by repair additions. No change to the other templates. |
 | 6 | 2026-10-06 | No template change. Code: a sentence with a topic word of the examples (`Hund`, `Parkkarte`, `Impfausweis`, `chien`, `carte de stationnement`, ...) that the source does not contain, or with one of the examples' own values, is sent back once and dropped from the second answer; two more JSON repairs (a list or object closed with the wrong bracket, a unicode escape with too few digits), both seen on the CSCS 8B; a core answer written as a bare sentence instead of an object is read as its text; an empty block `{}` is dropped; a write answer cut off at the token limit is written again as two halves (8 jobs failed this way in the first evaluation run on CSCS); an omission or glossary entry written as a block of that kind is hoisted into its list (the 70B writer). |
-| 6 | 2026-10-06 | No change to our templates. New German template `baseline_zh.md`: the Canton of Zurich's Leichte Sprache prompt, verbatim, as the second baseline C0-ZH in two variants (`complete`, `condensed`); its rendering was checked character for character against their own prompt assembly (`create_prompt` in `app_core.py`). |
+| 6 | 2026-10-06 | No change to our templates. New German template `baseline_zh.md`: the Canton of Zurich's Leichte Sprache prompt, verbatim, as the second baseline P0-ZH in two variants (`complete`, `condensed`); its rendering was checked character for character against their own prompt assembly (`create_prompt` in `app_core.py`). |

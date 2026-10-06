@@ -99,7 +99,7 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     )
     settings = make_settings(llm_max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
-    path = run_condition(pairs, "C2", settings=settings, llm=llm, results_dir=results)
+    path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
     (row,) = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     assert row["status"] == "needs_review", row.get("error")
     assert row["fact_coverage"] == 1.0
@@ -109,7 +109,7 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert row["judge_distorted"] == 0.0
 
     # Resumable: a second run does nothing for a pair that has a result.
-    run_condition(pairs, "C2", settings=settings, llm=llm, results_dir=results)
+    run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
     assert len(path.read_text(encoding="utf-8").splitlines()) == 1
     assert len(endpoint.chat_bodies()) == 5
 
@@ -121,14 +121,14 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
         chat_response(fx.as_json(fx.REPAIR)),
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    run_condition(pairs, "C2", settings=settings, llm=llm, results_dir=results, redo=True)
+    run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results, redo=True)
     assert len(path.read_text(encoding="utf-8").splitlines()) == 1
     assert len(endpoint.chat_bodies()) == 10
 
     report = render_report(results, role="eval")
     assert "Original (standard language)" in report
     assert "Official easy-language version" in report
-    assert "C2: full pipeline with judge and repair" in report
+    assert "P2 full: pipeline with judge and repair" in report
 
 
 def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sleeps) -> None:
@@ -141,14 +141,15 @@ def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sl
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     reader = "swiss-ai/Apertus-v1.5-70B"
     path = run_condition(
-        pairs, "C1", settings=settings, llm=llm, results_dir=results, understand=reader
+        pairs, "P1", settings=settings, llm=llm, results_dir=results, understand=reader
     )
-    assert path.name == "C1_swiss-ai-apertus-v1-5-8b_understand-swiss-ai-apertus-v1-5-70b.jsonl"
+    assert path.name == "P1_swiss-ai-apertus-v1-5-8b_understand-swiss-ai-apertus-v1-5-70b.jsonl"
     (row,) = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     assert row["status"] == "needs_review", row.get("error")
     assert row["writer"] == settings.llm_name and row["understand"] == reader
     assert [b["model"] for b in endpoint.chat_bodies()] == [reader + "-thinking", settings.llm_name]
-    label = f"C1: fact sheet + draft + rule check ({settings.llm_name}, understand {reader})"
+    models = f"{settings.llm_name}, understand {reader}"
+    label = f"P1 no judge: fact sheet + draft + rule check ({models})"
     assert label in render_report(results, role="eval")
 
 
@@ -171,18 +172,18 @@ def test_a_failed_scoring_call_marks_the_pair_and_reruns_it(
     settings = make_settings(llm_max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
 
-    # C0 needs a fact sheet for scoring; the model answers with a fragment, twice.
+    # P0 needs a fact sheet for scoring; the model answers with a fragment, twice.
     endpoint.push(
         chat_response(BASELINE_TEXT), chat_response('{"core": {}}'), chat_response('{"core": {}}')
     )
-    path = run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    path = run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)
     (row,) = _rows(path)
     assert row["status"] == "scoring_failed"
     assert "UnderstandOut" in row["error"]
 
     # The pair runs again next time, and the failed row is replaced, not duplicated.
     endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(fx.UNDERSTAND)))
-    run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)
     (row,) = _rows(path)
     assert row["status"] == "needs_review", row.get("error")
     assert row["fact_coverage"] == 1.0
@@ -233,7 +234,7 @@ def test_day1_checks_against_the_fake_endpoint(llm, endpoint) -> None:
 def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
     pair_env, tmp_path, endpoint, sleeps
 ) -> None:
-    """No C1 or C2 job yet: the scoring fact sheet comes from one Understand call, and code
+    """No P1 or P2 job yet: the scoring fact sheet comes from one Understand call, and code
     completes it with the source's values as in the pipeline. Without that, a baseline
     run first would be measured against fewer facts than one run after the others."""
     pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
@@ -242,7 +243,7 @@ def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
     endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(no_facts)))
     settings = make_settings(llm_max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
-    path = run_condition(pairs, "C0", settings=settings, llm=llm, results_dir=results)
+    path = run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)
     (row,) = _rows(path)
     assert row["status"] == "needs_review", row.get("error")
     store = Store(results / "store.sqlite")

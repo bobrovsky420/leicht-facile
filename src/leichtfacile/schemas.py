@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Literal, get_args
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Lang = Literal["de", "fr", "it"]
 Level = Literal["A2", "B1"]
@@ -33,13 +33,24 @@ DraftOrigin = Literal["write", "repair", "baseline", "review"]
 FactStatus = Literal["present", "missing", "distorted"]
 DecisionKind = Literal["approved", "edited", "rejected"]
 JobStatus = Literal["queued", "running", "needs_review", "done", "failed"]
-Condition = Literal["C0", "C0-ZH-complete", "C0-ZH-condensed", "C1", "C2"]
+# P as in pipeline: the letter C would read as a CEFR level next to A2 and B1.
+Condition = Literal["P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2"]
 CONDITIONS: tuple[str, ...] = get_args(Condition)
-# Single-prompt baselines: no fact sheet, no judge, no repair. C0 is one sentence; the
-# C0-ZH pair is the Canton of Zurich's Leichte Sprache prompt (THIRD_PARTY_NOTICES.md)
+# The conditions were called C0 to C2 until 6 October 2026; stored jobs, result rows
+# and old command lines still say so.
+CONDITION_ALIASES: dict[str, str] = {f"C{c[1:]}": c for c in CONDITIONS}
+
+
+def canonical_condition(name: str) -> str:
+    """The current name of a condition: `C2` becomes `P2`; unknown names pass through."""
+    return CONDITION_ALIASES.get(name, name)
+
+
+# Single-prompt baselines: no fact sheet, no judge, no repair. P0 is one sentence; the
+# P0-ZH pair is the Canton of Zurich's Leichte Sprache prompt (THIRD_PARTY_NOTICES.md)
 # with its "keep everything" or its "essentials only" instruction.
-ZH_CONDITIONS: frozenset[str] = frozenset({"C0-ZH-complete", "C0-ZH-condensed"})
-BASELINE_CONDITIONS: frozenset[str] = frozenset({"C0"}) | ZH_CONDITIONS
+ZH_CONDITIONS: frozenset[str] = frozenset({"P0-ZH-complete", "P0-ZH-condensed"})
+BASELINE_CONDITIONS: frozenset[str] = frozenset({"P0"}) | ZH_CONDITIONS
 
 LANGS: tuple[Lang, ...] = ("de", "fr", "it")
 LEVELS: tuple[Level, ...] = ("A2", "B1")
@@ -325,12 +336,17 @@ class PipelineSummary(Artifact):
 class JobConfig(Artifact):
     lang: Lang | None = None  # None: detect from the source
     level: Level = "A2"
-    condition: Condition = "C2"
+    condition: Condition = "P2"
     writer_model: str | None = None  # None: LLM_NAME
     understand_model: str | None = None  # None: LLM_UNDERSTAND_NAME, else the writer
     judge_model: str | None = None  # None: LLM_JUDGE_NAME
-    use_judge: bool = True  # C2 only: False repairs on rule findings alone
+    use_judge: bool = True  # P2 only: False repairs on rule findings alone
     max_repair_rounds: int = Field(default=3, ge=0, le=10)  # 0: no repair
+
+    @field_validator("condition", mode="before")
+    @classmethod
+    def _old_condition_names(cls, value: object) -> object:
+        return canonical_condition(value) if isinstance(value, str) else value
 
 
 class UsageRecord(Artifact):

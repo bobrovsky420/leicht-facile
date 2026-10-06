@@ -33,7 +33,7 @@ CORE_KEYS = ("what", "must_do", "deadline", "cost", "contact")
 # The pipeline's stop reasons (orchestrator.py) and their catalog keys.
 STOP_KEYS = {
     "baseline": "stop.baseline",
-    "C1": "stop.c1",
+    "P1": "stop.p1",
     "no problems left": "stop.no_problems",
     "only warnings left": "stop.only_warnings",
     "no blocking problems left": "stop.no_blocking",
@@ -300,11 +300,11 @@ STEP_WHO = {
     "review": "human",
 }
 STEPS_BY_CONDITION = {
-    "C0": ("baseline", "check", "review"),
-    "C0-ZH-complete": ("baseline", "check", "review"),
-    "C0-ZH-condensed": ("baseline", "check", "review"),
-    "C1": ("understand", "write", "check", "review"),
-    "C2": ("understand", "write", "check", "judge", "repair", "review"),
+    "P0": ("baseline", "check", "review"),
+    "P0-ZH-complete": ("baseline", "check", "review"),
+    "P0-ZH-condensed": ("baseline", "check", "review"),
+    "P1": ("understand", "write", "check", "review"),
+    "P2": ("understand", "write", "check", "judge", "repair", "review"),
 }
 
 
@@ -357,7 +357,7 @@ class ProgressView:
 def progress_view(
     store: Store, job: Job, now: datetime | None = None, t: Translator = ENGLISH
 ) -> ProgressView:
-    keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["C2"])
+    keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["P2"])
     names = store.artifact_names(job.id)
     drafts = names.get("draft", [])
     factsheet = store.get_artifact(job.id, "factsheet", FactSheet)

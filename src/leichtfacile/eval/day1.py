@@ -6,7 +6,7 @@ endpoint can answer. Run with `uv run python scripts/day1_checks.py` once .env e
 3. How reliable is JSON output, with and without response_format?
 4. Does the endpoint accept image input?
 5. What happens with parallel calls (rate limits, latency spread)?
-6. Baseline quality: C0 on German pairs (run separately: `eval run --condition C0`).
+6. Baseline quality: P0 on German pairs (run separately: `eval run --condition P0`).
 """
 
 from __future__ import annotations
@@ -194,7 +194,7 @@ def run_all(llm: LLMClient, doc: SourceDocument, *, json_runs: int = 20) -> dict
             report[name] = check()
         except Exception as exc:  # report and continue with the next check
             report[name] = {"failed": f"{type(exc).__name__}: {exc}"[:300]}
-    report["6_baseline"] = "run: uv run python -m leichtfacile eval run --condition C0 --limit 10"
+    report["6_baseline"] = "run: uv run python -m leichtfacile eval run --condition P0 --limit 10"
     return report
 
 

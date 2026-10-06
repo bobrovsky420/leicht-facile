@@ -1,7 +1,7 @@
 """Runs a job through the pipeline and stores every artifact (docs/architecture.md §4).
 
-Conditions (§9): C0 and the C0-ZH pair are single-prompt baselines (one sentence, or the
-Canton of Zurich's prompt); C1 is understand, write and the rule check; C2 adds the judge
+Conditions (§9): P0 and the P0-ZH pair are single-prompt baselines (one sentence, or the
+Canton of Zurich's prompt); P1 is understand, write and the rule check; P2 adds the judge
 and the repair loop. Every stage stores its result before the
 next starts, so a failed job resumes from the last good stage.
 """
@@ -189,7 +189,7 @@ class Orchestrator:
         draft = self.store.get_artifact(job.id, "draft", Draft, version=1)
         if draft is None:
             self._set(job.id, stage="baseline")
-            if job.config.condition == "C0":
+            if job.config.condition == "P0":
                 draft, results = stages.baseline(
                     self.llm, source, level=job.config.level, model=job.config.writer_model
                 )
@@ -231,8 +231,8 @@ class Orchestrator:
         self._maybe_stop("write")
         rules = self._check(job, draft, source, factsheet)
         self._maybe_stop("check")
-        if cfg.condition == "C1":
-            self._summary(job, source, draft, rules=[rules], judge=None, rounds=0, reason="C1")
+        if cfg.condition == "P1":
+            self._summary(job, source, draft, rules=[rules], judge=None, rounds=0, reason="P1")
             return
 
         self._notes: list[str] = []
@@ -367,7 +367,7 @@ class Orchestrator:
             if job.config.condition not in BASELINE_CONDITIONS and reader != writer
             else None,
             judge_model=(job.config.judge_model or self.settings.judge_name)
-            if job.config.condition == "C2" and job.config.use_judge
+            if job.config.condition == "P2" and job.config.use_judge
             else None,
             prompt_versions=prompt_versions(source.lang),
             blocking_findings=blocking,

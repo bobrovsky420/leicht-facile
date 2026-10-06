@@ -11,7 +11,14 @@ from urllib.parse import urlsplit
 from leichtfacile.config import Settings
 from leichtfacile.ingest.errors import IngestError
 from leichtfacile.pipeline.prompts import available_languages
-from leichtfacile.schemas import LANGS, LEVELS, Job, JobConfig, SourceDocument
+from leichtfacile.schemas import (
+    LANGS,
+    LEVELS,
+    Job,
+    JobConfig,
+    SourceDocument,
+    canonical_condition,
+)
 from leichtfacile.store import Store
 from leichtfacile.web.i18n import ENGLISH, Translator
 
@@ -51,7 +58,7 @@ class Submission:
     file_data: bytes | None = None
     lang: str | None = None  # None or "auto": detect
     level: str = "A2"
-    condition: str = "C2"
+    condition: str = "P2"
     writer_model: str | None = None
     understand_model: str | None = None
     judge_model: str | None = None
@@ -127,7 +134,8 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
 def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
     if sub.level not in LEVELS:
         raise SubmissionError("unknown_level", level=sub.level)
-    if sub.condition not in ("C0", "C1", "C2"):
+    condition = canonical_condition(sub.condition)
+    if condition not in ("P0", "P1", "P2"):
         raise SubmissionError("unknown_condition", condition=sub.condition)
     allow = os.environ.get("ALLOW_PRIVATE_URLS", "").lower() in ("1", "true", "yes")
     source = ingest_submission(sub, allow_private_urls=allow)
@@ -140,7 +148,7 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
     config = JobConfig(
         lang=source.lang,
         level=sub.level,  # type: ignore[arg-type]
-        condition=sub.condition,  # type: ignore[arg-type]
+        condition=condition,  # type: ignore[arg-type]
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,

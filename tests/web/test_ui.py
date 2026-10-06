@@ -51,7 +51,7 @@ def queued_job(store, settings, **options):
 
 def run_c1(client, app, endpoint) -> str:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "C1", "title": "Brief"})
+    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1", "title": "Brief"})
     assert response.status_code == 201, response.text
     assert app.state.runner.wait_idle(30)
     return response.json()["id"]
@@ -75,7 +75,7 @@ def test_form_passes_model_overrides_to_the_job(env) -> None:
         "/jobs",
         data={
             "text": LETTER,
-            "condition": "C0",
+            "condition": "P0",
             "writer_model": " my-writer ",
             "understand_model": " my-reader ",
             "judge_model": "",
@@ -91,7 +91,7 @@ def test_form_passes_model_overrides_to_the_job(env) -> None:
 
 def test_progress_page_lists_the_stages_of_a_queued_job(env) -> None:
     client, _, store, settings, _ = env
-    job = queued_job(store, settings, condition="C2")
+    job = queued_job(store, settings, condition="P2")
     page = client.get(f"/jobs/{job.id}")
     assert page.status_code == 200
     for title in ("Read", "Write", "Check", "Judge", "Repair", "Review"):
@@ -107,7 +107,7 @@ def test_progress_page_lists_the_stages_of_a_queued_job(env) -> None:
 
 def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
     _, _, store, settings, _ = env
-    job = queued_job(store, settings, condition="C2")
+    job = queued_job(store, settings, condition="P2")
     store.update_job(job.id, status="running", stage="write")
     factsheet = FactSheet(
         doc_id="x",
@@ -140,7 +140,7 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
 def test_failed_job_marks_the_failed_step_with_the_error(env) -> None:
     client, app, _, _, endpoint = env
     endpoint.push(chat_response("kein JSON"), chat_response("immer noch kein JSON"))
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "C1"})
+    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1"})
     job_id = response.json()["id"]
     assert app.state.runner.wait_idle(30)
     page = client.get(f"/jobs/{job_id}")

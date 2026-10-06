@@ -184,7 +184,7 @@ def _score(
 def _reference_factsheet(
     store: Store, orch: Orchestrator, pair: Pair, job_id: str
 ) -> FactSheet | None:
-    """A fact sheet to score outputs without one (C0): reuse another condition's, or make one.
+    """A fact sheet to score outputs without one (P0): reuse another condition's, or make one.
     Calls made here are scoring calls and are not counted as the condition's cost."""
     for other in store.list_jobs(limit=1000):
         if other.title == pair.id and other.id != job_id:
@@ -195,7 +195,7 @@ def _reference_factsheet(
     fs, _ = stages.understand(
         orch.llm, standard, level=pair.level, model=orch.settings.llm_understand_name
     )
-    # Completed by code as in the pipeline, so a baseline scored before any C1 or C2 job
+    # Completed by code as in the pipeline, so a baseline scored before any P1 or P2 job
     # exists is held to the same facts as one scored after them.
     fs = stages.complete_factsheet(fs, standard)
     store.put_artifact(job_id, "score_factsheet", fs)

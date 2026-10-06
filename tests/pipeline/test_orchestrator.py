@@ -46,7 +46,7 @@ def test_c2_runs_understand_write_judge_and_repair(store, endpoint, sleeps) -> N
         chat_response(fx.as_json(fx.REPAIR)),
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    job_id = new_job(store, condition="C2")
+    job_id = new_job(store, condition="P2")
     orchestrator(store, endpoint, sleeps).run(job_id)
 
     job = store.get_job(job_id)
@@ -88,7 +88,7 @@ def test_c2_runs_understand_write_judge_and_repair(store, endpoint, sleeps) -> N
 
 def test_c1_stops_after_the_rule_check(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert store.get_job(job_id).status == "needs_review"
     assert store.artifact_names(job_id).keys() == {
@@ -102,7 +102,7 @@ def test_c1_stops_after_the_rule_check(store, endpoint, sleeps) -> None:
 
 def test_c0_baseline_has_no_provenance(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.BASELINE_TEXT))
-    job_id = new_job(store, condition="C0")
+    job_id = new_job(store, condition="P0")
     orchestrator(store, endpoint, sleeps).run(job_id)
     draft = store.get_artifact(job_id, "draft", Draft)
     assert draft.origin == "baseline"
@@ -117,7 +117,7 @@ def test_c0_baseline_has_no_provenance(store, endpoint, sleeps) -> None:
 
 def test_failed_stage_resumes_without_repeating_earlier_stages(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), error_response(400))
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orch = orchestrator(store, endpoint, sleeps)
     orch.run(job_id)
     job = store.get_job(job_id)
@@ -133,7 +133,7 @@ def test_failed_stage_resumes_without_repeating_earlier_stages(store, endpoint, 
 
 def test_stop_after_write(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C2")
+    job_id = new_job(store, condition="P2")
     orchestrator(store, endpoint, sleeps).run(job_id, stop_after="write")
     job = store.get_job(job_id)
     assert job.status == "needs_review" and job.stage == "stopped after write"
@@ -145,7 +145,7 @@ def test_invalid_json_gets_one_repair_round(store, endpoint, sleeps) -> None:
         chat_response("Hier ist das Faktenblatt: {kaputt"),
         chat_response(fx.as_json(fx.UNDERSTAND)),
     )
-    job_id = new_job(store, condition="C2")
+    job_id = new_job(store, condition="P2")
     orchestrator(store, endpoint, sleeps).run(job_id, stop_after="understand")
     assert store.get_artifact(job_id, "factsheet", FactSheet) is not None
     second = endpoint.chat_bodies()[1]["messages"]
@@ -154,7 +154,7 @@ def test_invalid_json_gets_one_repair_round(store, endpoint, sleeps) -> None:
 
 def test_no_judge_and_no_repair_switches(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C2", use_judge=False, max_repair_rounds=0)
+    job_id = new_job(store, condition="P2", use_judge=False, max_repair_rounds=0)
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert store.get_job(job_id).status == "needs_review"
     names = store.artifact_names(job_id)
@@ -164,7 +164,7 @@ def test_no_judge_and_no_repair_switches(store, endpoint, sleeps) -> None:
 
 def test_rerun_from_write_deletes_later_artifacts(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orch = orchestrator(store, endpoint, sleeps)
     orch.run(job_id)
     orch.rerun(job_id, "write")

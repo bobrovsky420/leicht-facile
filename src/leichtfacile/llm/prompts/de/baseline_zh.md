@@ -6,7 +6,7 @@
   Canton of Zurich / Department of Justice and Home Affairs / Office for Statistics and
   Data / Team Data; the licence text is in THIRD_PARTY_NOTICES.md.
 
-  Used as the single-prompt baseline C0-ZH (docs/architecture.md section 9). Rendered
+  Used as the single-prompt baseline P0-ZH (docs/architecture.md section 9). Rendered
   twice per call: part="system" gives the system message, part="user" the user message;
   variant="complete" or "condensed" picks the completeness line of their app. This
   comment never reaches the model.

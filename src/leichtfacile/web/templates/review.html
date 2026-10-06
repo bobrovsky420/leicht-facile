@@ -25,7 +25,7 @@
   <p class="chips">
     <span class="chip status status-{{ job.status }}">{{ t('status.' ~ job.status) }}</span>
     <span class="chip">{{ t.get('lang.' ~ v.draft.lang, v.draft.lang) }}, {{ v.draft.level }}</span>
-    <span class="chip" title="{{ t.get('condition.' ~ job.config.condition, '') }}">{{ job.config.condition }}</span>
+    <span class="chip" title="{{ t.get('condition.' ~ job.config.condition, '') }}">{{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
     <span class="chip {{ 'chip-err' if counts.error else 'chip-ok' }}">{{ t('count.errors', n=counts.error) }}</span>
     <span class="chip {{ 'chip-warn' if counts.warn else '' }}">{{ t('count.warnings', n=counts.warn) }}</span>
     {% if fc.total %}
@@ -217,7 +217,7 @@
         <select name="stage" aria-label="{{ t('review.rerun_from') }}">
           <option value="write">{{ t('review.rerun.write') }}</option>
           <option value="understand">{{ t('review.rerun.understand') }}</option>
-          {% if job.config.condition == 'C2' %}<option value="judge">{{ t('review.rerun.judge') }}</option>{% endif %}
+          {% if job.config.condition == 'P2' %}<option value="judge">{{ t('review.rerun.judge') }}</option>{% endif %}
         </select>
         <button type="submit" class="secondary">{{ t('review.rerun') }}</button>
       </form>

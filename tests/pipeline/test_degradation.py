@@ -36,7 +36,7 @@ def new_job(store: Store, **config) -> str:
 
 def test_thinking_follows_the_configured_stages(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orchestrator(store, endpoint, sleeps, llm_thinking_stages="write").run(job_id)
     models = [b["model"] for b in endpoint.chat_bodies()]
     assert not models[0].endswith("-thinking")  # understand
@@ -49,7 +49,7 @@ BIG = "swiss-ai/Apertus-v1.5-70B"
 def test_understand_can_run_on_another_model(store, endpoint, sleeps) -> None:
     """The hybrid: LLM_UNDERSTAND_NAME reads (with thinking), LLM_NAME writes."""
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orchestrator(store, endpoint, sleeps, llm_understand_name=BIG).run(job_id)
     assert [b["model"] for b in endpoint.chat_bodies()] == [BIG + "-thinking", MODEL]
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
@@ -58,14 +58,14 @@ def test_understand_can_run_on_another_model(store, endpoint, sleeps) -> None:
 
 def test_understand_follows_the_job_writer_unless_overridden(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1", writer_model=BIG)
+    job_id = new_job(store, condition="P1", writer_model=BIG)
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert [b["model"] for b in endpoint.chat_bodies()] == [BIG + "-thinking", BIG]
     assert store.get_artifact(job_id, "summary", PipelineSummary).understand_model is None
 
     # The job's own understand model wins over LLM_UNDERSTAND_NAME.
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="C1", understand_model="other-reader")
+    job_id = new_job(store, condition="P1", understand_model="other-reader")
     orchestrator(store, endpoint, sleeps, llm_understand_name=BIG).run(job_id)
     assert [b["model"] for b in endpoint.chat_bodies()][2:] == ["other-reader-thinking", MODEL]
     assert store.get_artifact(job_id, "summary", PipelineSummary).understand_model == "other-reader"
@@ -77,7 +77,7 @@ def test_runaway_reasoning_falls_back_to_an_answer_without_thinking(store, endpo
         chat_response(fx.as_json(fx.UNDERSTAND)),  # at once without thinking, no repair round
         chat_response(fx.as_json(fx.WRITE)),
     )
-    job_id = new_job(store, condition="C1")
+    job_id = new_job(store, condition="P1")
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
@@ -95,7 +95,7 @@ def test_a_failing_judge_leaves_a_reviewable_draft(store, endpoint, sleeps) -> N
         chat_response("wieder kein JSON"),  # judge: invalid twice
         chat_response(fx.as_json(fx.REPAIR)),  # the rule findings still get repaired
     )
-    job_id = new_job(store, condition="C2", max_repair_rounds=1)
+    job_id = new_job(store, condition="P2", max_repair_rounds=1)
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
@@ -112,7 +112,7 @@ def test_a_failing_repair_keeps_the_drafts(store, endpoint, sleeps) -> None:
         chat_response("kaputt"),
         chat_response("immer noch kaputt"),  # repair: invalid twice
     )
-    job_id = new_job(store, condition="C2")
+    job_id = new_job(store, condition="P2")
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error

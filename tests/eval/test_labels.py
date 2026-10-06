@@ -28,7 +28,7 @@ from tests.pipeline import fixtures as fx
 
 def _results_dir(tmp_path):
     store = Store(tmp_path / "store.sqlite")
-    job = store.create_job(JobConfig(condition="C2"), title="syn-letter-de")
+    job = store.create_job(JobConfig(condition="P2"), title="syn-letter-de")
     store.put_artifact(job.id, "source", fx.letter())
     store.put_artifact(
         job.id, "factsheet", to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
@@ -49,13 +49,13 @@ def _results_dir(tmp_path):
     ], unsupported=[Unsupported(block_id="b004", note="Kein Hund im Original.")])  # fmt: skip
     store.put_artifact(job.id, "judge", judge, 1)
     store.put_artifact(job.id, "summary", PipelineSummary(
-        condition="C2", final_version=1, rounds=0, stop_reason="test", writer_model="w",
+        condition="P2", final_version=1, rounds=0, stop_reason="test", writer_model="w",
         judge_model="judge", prompt_versions={}, blocking_findings=[2], notes=[],
     ))  # fmt: skip
     store.close()
-    row = {"pair_id": "syn-letter-de", "job_id": job.id, "role": "eval", "setup": "C2",
+    row = {"pair_id": "syn-letter-de", "job_id": job.id, "role": "eval", "setup": "P2",
            "status": "needs_review"}  # fmt: skip
-    (tmp_path / "C2_writer.jsonl").write_text(json.dumps(row) + "\n", encoding="utf-8")
+    (tmp_path / "P2_writer.jsonl").write_text(json.dumps(row) + "\n", encoding="utf-8")
     return tmp_path
 
 

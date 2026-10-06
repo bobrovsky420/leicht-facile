@@ -64,9 +64,9 @@
     </label>
     <label for="condition">{{ t('index.condition') }}
       <select id="condition" name="condition">
-        <option value="C2" {% if form.condition not in ('C0', 'C1') %}selected{% endif %}>{{ t('index.condition.C2') }}</option>
-        <option value="C1" {% if form.condition == 'C1' %}selected{% endif %}>{{ t('index.condition.C1') }}</option>
-        <option value="C0" {% if form.condition == 'C0' %}selected{% endif %}>{{ t('index.condition.C0') }}</option>
+        <option value="P2" {% if form.condition not in ('P0', 'P1') %}selected{% endif %}>{{ t('index.condition.P2') }}</option>
+        <option value="P1" {% if form.condition == 'P1' %}selected{% endif %}>{{ t('index.condition.P1') }}</option>
+        <option value="P0" {% if form.condition == 'P0' %}selected{% endif %}>{{ t('index.condition.P0') }}</option>
       </select>
     </label>
     <label for="title">{{ t('index.title_field') }}
@@ -108,7 +108,7 @@
         <td><a href="/jobs/{{ j.id }}">{{ j.title or j.id }}</a></td>
         <td>{{ t.get('lang.' ~ j.config.lang, j.config.lang or '') }}</td>
         <td>{{ j.config.level }}</td>
-        <td><span title="{{ t.get('condition.' ~ j.config.condition, '') }}">{{ j.config.condition }}</span></td>
+        <td><span title="{{ t.get('condition.' ~ j.config.condition, '') }}">{{ t.get('condition.short.' ~ j.config.condition, j.config.condition) }}</span></td>
         <td><span class="chip status status-{{ j.status }}">{{ t('status.' ~ j.status) }}</span>
           {% if j.status == 'running' and j.stage %}<span class="hint">{{ t.get('step.' ~ j.stage.split(' ')[0] ~ '.title', j.stage) }}</span>{% endif %}</td>
         <td><time datetime="{{ j.created_at.isoformat() }}" data-relative>{{ j.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</time></td>

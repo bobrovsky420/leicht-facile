@@ -18,7 +18,7 @@ documents.
 Rules for using reference pairs:
 
 - **Evaluation:** our draft is scored against the official easy version (SARI,
-  readability, fact coverage). Conditions C0, C1 and C2 run on the same pairs.
+  readability, fact coverage). Conditions P0, P1 and P2 run on the same pairs.
 - **Checker calibration:** official easy-language pages are written by professionals,
   so the checker should raise almost no `error` findings on them. Every error is either
   a genuine deviation or a false positive to fix. The rate is recorded in
