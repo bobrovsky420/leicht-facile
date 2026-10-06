@@ -3,6 +3,7 @@ reader preview. The pipeline runs against the fake endpoint."""
 
 from __future__ import annotations
 
+import re
 from datetime import timedelta
 from pathlib import Path
 
@@ -72,13 +73,20 @@ def test_form_passes_model_overrides_to_the_job(env) -> None:
     endpoint.push(chat_response(fx.BASELINE_TEXT))
     response = client.post(
         "/jobs",
-        data={"text": LETTER, "condition": "C0", "writer_model": " my-writer ", "judge_model": ""},
+        data={
+            "text": LETTER,
+            "condition": "C0",
+            "writer_model": " my-writer ",
+            "understand_model": " my-reader ",
+            "judge_model": "",
+        },
         follow_redirects=False,
     )
     assert response.status_code == 303
     job_id = response.headers["location"].rsplit("/", 1)[-1]
     config = client.get(f"/api/jobs/{job_id}").json()["config"]
     assert config["writer_model"] == "my-writer" and config["judge_model"] is None
+    assert config["understand_model"] == "my-reader"
 
 
 def test_progress_page_lists_the_stages_of_a_queued_job(env) -> None:
@@ -162,6 +170,31 @@ def test_reader_preview_is_served_inline(env) -> None:
     assert "content-disposition" not in preview.headers
     assert '<html lang="de">' in preview.text and "Was müssen Sie tun?" in preview.text
     assert client.get("/jobs/nope/preview").status_code == 404
+
+
+def test_reader_preview_of_unsaved_decisions_stores_nothing(env) -> None:
+    client, app, _, _, endpoint = env
+    job_id = run_c1(client, app, endpoint)
+    version = int(re.search(r'data-version="(\d+)"', client.get(f"/jobs/{job_id}").text)[1])
+    draft = client.get(f"/api/jobs/{job_id}/artifacts/draft", params={"version": version}).json()
+    rejected, edited = draft["blocks"][2], draft["blocks"][4]
+    body = {
+        "draft_version": version,
+        "decisions": [
+            {"block_id": rejected["id"], "decision": "rejected"},
+            {"block_id": edited["id"], "decision": "edited", "text": "Neu geschrieben."},
+        ],
+    }
+    preview = client.post(f"/jobs/{job_id}/preview", json=body)
+    assert preview.status_code == 200
+    assert rejected["text"] not in preview.text and edited["text"] not in preview.text
+    assert "Neu geschrieben." in preview.text and "noch nicht geprüft" not in preview.text
+    assert client.get(f"/api/jobs/{job_id}/artifacts/review").status_code == 404
+
+    untouched = client.post(f"/jobs/{job_id}/preview", json={"draft_version": version})
+    assert "noch nicht geprüft" in untouched.text
+    missing = client.post(f"/jobs/{job_id}/preview", json={"draft_version": 99})
+    assert missing.status_code == 404
 
 
 def test_format_duration() -> None:

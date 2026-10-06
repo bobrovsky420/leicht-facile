@@ -38,7 +38,6 @@ footer.site { margin-top: 3rem; color: var(--text-muted); font-size: .85rem; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .error { color: var(--err); border-left: 4px solid var(--err); padding-left: .8rem; }
 .hint { color: var(--text-muted); font-size: .9rem; }
-.crumbs { margin: 0 0 .2rem; font-size: .9rem; }
 .card { background: var(--background-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
 form.inline { display: inline-block; margin-right: .5rem; }
 button, .button, input[type=submit] { border-radius: .4rem; }
@@ -171,6 +170,11 @@ table.usage { margin-top: 1rem; font-size: .9rem; }
               border-radius: var(--radius); box-shadow: 0 6px 18px rgba(0,0,0,.12); min-width: 12rem; display: flex; flex-direction: column; }
 .menu-items a { padding: .5rem .9rem; text-decoration: none; color: var(--text-main); }
 .menu-items a:hover { background: var(--background); }
+.view-switch { display: inline-flex; border: 1px solid var(--border); border-radius: .4rem; overflow: hidden; }
+.view-opt { padding: .55rem 1rem; font-size: .95rem; text-decoration: none; color: var(--text-main); background: var(--background-body); }
+.view-opt + .view-opt { border-left: 1px solid var(--border); }
+.view-opt:hover { background: var(--background); color: var(--text-bright); }
+.view-opt.current { background: var(--sel); color: var(--text-bright); font-weight: 600; }
 .versions { margin: .3rem 0 .2rem; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
 .version { display: inline-flex; gap: .35rem; align-items: center; padding: .15rem .6rem; border-radius: 1rem; border: 1px solid var(--border);
            text-decoration: none; color: var(--text-main); font-size: .9rem; }
@@ -180,12 +184,35 @@ table.usage { margin-top: 1rem; font-size: .9rem; }
 
 .review-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, .95fr);
                gap: 1.2rem; align-items: start; margin-top: 1rem; }
-.pane { max-height: calc(100vh - 12rem); overflow-y: auto; padding-right: .5rem; }
-.pane-head { position: sticky; top: 0; background: var(--background-body); z-index: 2; padding: .3rem 0; display: flex;
-             gap: .6rem; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+/* Each column is a framed box that scrolls on its own; the padding keeps the outlines of
+   highlighted segments and blocks inside the scroll area, where they are not clipped.
+   The sticky header and save bar reach over that padding, so outlines scrolling under
+   them stay hidden. */
+.pane { --pane-pad: .9rem; max-height: calc(100vh - 12rem); overflow-y: auto; padding: 0 var(--pane-pad);
+        background: var(--background-body); border: 1px solid var(--border); border-radius: var(--radius); }
+.pane-head { position: sticky; top: 0; background: var(--background-body); z-index: 2; padding: .6rem var(--pane-pad) .5rem;
+             margin: 0 calc(-1 * var(--pane-pad)) .6rem;
+             border-bottom: 1px solid var(--border); display: flex; gap: .6rem; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
 .pane-head h2 { margin: 0; }
+.pane.reader { max-height: none; overflow: visible; margin-top: 1rem; padding-bottom: .9rem; }
+.pane.reader .pane-head { position: static; }
+#reader-note.bad { color: var(--err); }
+#reader-frame { display: block; width: 100%; min-height: 20rem; border: 0; background: #fff; }
 .pane-hint { margin: .1rem 0 .5rem; }
 @media (max-width: 1100px) { .review-grid { grid-template-columns: 1fr; } .pane { max-height: none; } }
+/* On a wide, tall enough window the review page fits the window, footer included: the
+   panes take the height that is left and only they scroll. Narrower or shorter windows
+   keep the stacked panes and the page scrolls as usual. */
+@media (min-width: 1101px) and (min-height: 600px) {
+  body.fit-screen { height: 100vh; height: 100dvh; box-sizing: border-box; padding-bottom: .5rem;
+                    display: flex; flex-direction: column; }
+  body.fit-screen > main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  body.fit-screen > footer { margin-top: .6rem; }
+  body.fit-screen .review-grid { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  body.fit-screen .review-grid > .pane { max-height: none; }
+  body.fit-screen .pane.reader { flex: 1; min-height: 0; overflow-y: auto; }
+  body.fit-screen .pane.reader .pane-head { position: sticky; }
+}
 .legend { font-size: .78rem; color: var(--text-muted); display: flex; gap: .7rem; flex-wrap: wrap; }
 .lg::before { content: ""; display: inline-block; width: .9rem; height: .7rem; margin-right: .3rem; vertical-align: -.05rem; border-radius: .15rem; }
 .lg-linked::before { background: var(--link-bg); outline: 2px solid #e0b400; outline-offset: -2px; }
@@ -225,9 +252,9 @@ h3.seg { font-size: 1.05rem; margin-top: 1rem; }
 .suggestion { color: var(--ok); }
 .decision { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; font-size: .86rem; margin-top: .4rem; }
 .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; background: var(--background-body); }
-.segmented .opt { position: relative; }
+.segmented .opt { position: relative; display: flex; margin: 0; }  /* water.css gives labels a bottom margin */
 .segmented .opt input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
-.segmented .opt span { display: inline-block; padding: .15rem .7rem; cursor: pointer; color: var(--text-muted); }
+.segmented .opt span { display: block; padding: .15rem .7rem; cursor: pointer; color: var(--text-muted); }
 .segmented .opt + .opt span { border-left: 1px solid var(--border); }
 .segmented .opt:hover span { color: var(--text-bright); background: var(--background); }
 .segmented .opt input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: -2px; }
@@ -235,19 +262,32 @@ h3.seg { font-size: 1.05rem; margin-top: 1rem; }
 .segmented .opt-edited input:checked + span { background: var(--sel); color: #1d4ed8; font-weight: 600; }
 .segmented .opt-rejected input:checked + span { background: var(--err-bg); color: var(--err); font-weight: 600; }
 .decision textarea { flex-basis: 100%; margin: .2rem 0 0; font-family: inherit; font-size: 1rem; }
-.save-bar { position: sticky; bottom: 0; background: var(--background-body); padding: .6rem 0; border-top: 1px solid var(--border);
+.save-bar { position: sticky; bottom: 0; background: var(--background-body); padding: .6rem var(--pane-pad, 0); border-top: 1px solid var(--border);
+            margin: 0 calc(-1 * var(--pane-pad, 0));
             display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; z-index: 2; }
 .save-bar button { margin: 0; }
 .save-bar .complete { display: inline-flex; gap: .3rem; align-items: center; font-size: .9rem; }
 .save-bar .complete input { margin: 0; }
 #save-status.ok { color: var(--ok); } #save-status.bad { color: var(--err); }
 
-.panel-section { margin: 0 0 .6rem; padding: 0 0 .4rem; background: none; border: 0; border-bottom: 1px solid var(--border); }
-.panel-section summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: .4rem; }
+/* Side-panel cards. water.css lays details out as a flex column that shrinks the summary
+   to its text and underlines it on hover; here the header spans the card. */
+.panel-section, .panel-section[open] { display: block; margin: 0 0 .7rem; padding: 0; background: var(--background-body);
+                                       border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.panel-section summary { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: 0;
+                         padding: .5rem .8rem; background: var(--background-alt); list-style: none; cursor: pointer; }
+.panel-section[open] summary { margin: 0; border-bottom: 1px solid var(--border); }
+.panel-section summary:hover, .panel-section summary:focus { text-decoration: none; }
+.panel-section summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .panel-section summary::-webkit-details-marker { display: none; }
-.panel-section summary::before { content: "▸"; color: var(--text-muted); font-size: .9rem; transition: transform .15s; }
-.panel-section[open] summary::before { transform: rotate(90deg); }
-.panel-section summary h2 { margin: .3rem 0; font-size: 1.1rem; }
+.panel-section summary::after { content: ""; flex: none; width: .6rem; height: .6rem; margin: -.3rem .25rem 0 0;
+                                border: solid var(--text-muted); border-width: 0 .17rem .17rem 0; transform: rotate(45deg); transition: transform .15s; }
+.panel-section[open] summary::after { margin-top: .3rem; transform: rotate(-135deg); }
+.panel-section summary:hover::after { border-color: var(--text-bright); }
+.panel-section summary h3 { margin: 0; font-size: 1.05rem; }
+.panel-body { padding: .6rem .8rem; }
+.panel-body > :first-child { margin-top: 0; }
+.panel-body > :last-child { margin-bottom: 0; }
 .fact-list, .doc-issues, .omissions, .notes { padding-left: 0; list-style: none; }
 .fact { padding: .35rem .5rem; margin-bottom: .35rem; border-radius: .3rem; background: var(--background-alt);
         border-left: 4px solid var(--border); cursor: pointer; font-size: .92rem; }

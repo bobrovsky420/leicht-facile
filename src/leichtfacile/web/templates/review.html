@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{ t('review.title', title=job.title or job.id) }} - Leicht·Facile{% endblock %}
-{% block body_class %}wide{% endblock %}
+{% block body_class %}wide fit-screen{% endblock %}
 {% block content %}
 {% set counts = v.counts %}
 {% set fc = v.fact_counts %}
 <section class="review-head">
-  <p class="crumbs"><a href="/">{{ t('site.drafts') }}</a></p>
   <div class="title-row">
     <h1>{{ job.title or job.id }}</h1>
     <nav class="actions" aria-label="{{ t('review.actions') }}">
-      <a class="button secondary" href="/jobs/{{ job.id }}/preview?version={{ v.draft.version }}" target="_blank" rel="noopener">{{ t('review.reader_view') }}</a>
+      <span class="view-switch" role="group" aria-label="{{ t('review.view') }}">
+        <a class="view-opt current" href="?version={{ v.draft.version }}" data-view="review" aria-pressed="true">{{ t('review.view.review') }}</a>
+        <a class="view-opt" href="/jobs/{{ job.id }}/preview?version={{ v.draft.version }}" data-view="reader" aria-pressed="false">{{ t('review.reader_view') }}</a>
+      </span>
       <details class="menu">
         <summary class="button secondary">{{ t('review.export') }}</summary>
         <div class="menu-items">
@@ -40,7 +42,7 @@
   </nav>
 </section>
 
-<div class="review-grid">
+<div class="review-grid" id="review-grid">
   <section class="pane source" aria-label="{{ t('review.source_label') }}">
     <div class="pane-head">
       <h2>{{ t('review.source') }}</h2>
@@ -113,9 +115,13 @@
   </section>
 
   <aside class="pane panel" aria-label="{{ t('review.checks') }}">
+    <div class="pane-head">
+      <h2>{{ t('review.checks') }}</h2>
+    </div>
     {% if v.core %}
     <details class="panel-section" open>
-      <summary><h2>{{ t('review.core') }} <span class="chip who-apertus">Apertus</span></h2></summary>
+      <summary><h3>{{ t('review.core') }}</h3></summary>
+      <div class="panel-body">
       <dl class="core">
       {% for c in v.core %}
         <dt>{{ c.label }}</dt>
@@ -123,12 +129,14 @@
           {% if c.answer.text %}{{ c.answer.text }}{% else %}<span class="hint">{{ t('core.unanswered') }}</span>{% endif %}</dd>
       {% endfor %}
       </dl>
+      </div>
     </details>
     {% endif %}
 
     {% if v.facts %}
     <details class="panel-section" open>
-      <summary><h2>{{ t('review.facts') }} <span class="chip who-code">{{ t('by.rule') }}</span>{% if v.judge %} <span class="chip who-apertus">{{ t('by.judge') }}</span>{% endif %}</h2></summary>
+      <summary><h3>{{ t('review.facts') }}</h3></summary>
+      <div class="panel-body">
       <ul class="fact-list">
       {% for f in v.facts %}
         <li class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" tabindex="0">
@@ -142,43 +150,51 @@
       {% endfor %}
       </ul>
       <p class="hint">{{ t('review.facts_hint') }}</p>
+      </div>
     </details>
     {% endif %}
 
     {% if v.doc_issues %}
     <details class="panel-section" open>
-      <summary><h2>{{ t('review.doc_findings') }}</h2></summary>
+      <summary><h3>{{ t('review.doc_findings') }}</h3></summary>
+      <div class="panel-body">
       <ul class="doc-issues">
       {% for i in v.doc_issues %}
         <li class="issue sev-{{ i.severity }}"><span class="rid">{{ i.rule_id }}</span> {{ i.message }}</li>
       {% endfor %}
       </ul>
+      </div>
     </details>
     {% endif %}
 
     {% if v.draft.omissions %}
     <details class="panel-section" open>
-      <summary><h2>{{ t('review.omissions') }}</h2></summary>
+      <summary><h3>{{ t('review.omissions') }}</h3></summary>
+      <div class="panel-body">
       <ul class="omissions">
       {% for o in v.draft.omissions %}
         <li class="linkable" data-segments="{{ o.segment_ids | join(' ') }}" tabindex="0"><strong>{{ o.what }}</strong>: {{ o.why }}</li>
       {% endfor %}
       </ul>
+      </div>
     </details>
     {% endif %}
 
     {% if v.draft.glossary %}
     <details class="panel-section">
-      <summary><h2>{{ t('review.glossary') }}</h2></summary>
+      <summary><h3>{{ t('review.glossary') }}</h3></summary>
+      <div class="panel-body">
       <dl class="glossary">
       {% for g in v.draft.glossary %}<dt>{{ g.term }}</dt><dd>{{ g.explanation }}</dd>{% endfor %}
       </dl>
+      </div>
     </details>
     {% endif %}
 
     {% if v.rules %}
     <details class="panel-section">
-      <summary><h2>{{ t('review.measures') }}</h2></summary>
+      <summary><h3>{{ t('review.measures') }}</h3></summary>
+      <div class="panel-body">
       <table class="metrics">
         <tr><th>{{ t('measure.sentences') }}</th><td>{{ v.rules.metrics.sentences }}</td></tr>
         <tr><th>{{ t('measure.words') }}</th><td>{{ t('measure.words_value', avg=v.rules.metrics.avg_words, max=v.rules.metrics.max_words) }}</td></tr>
@@ -186,13 +202,15 @@
         <tr><th>{{ t('measure.passive') }}</th><td>{{ v.rules.metrics.pct_passive }} %</td></tr>
         <tr><th>{{ t('measure.facts') }}</th><td>{% if v.rules.metrics.fact_coverage is not none %}{{ t('measure.facts_value', found=v.rules.metrics.facts_found, total=v.rules.metrics.facts_total) }}{% else %}-{% endif %}</td></tr>
       </table>
+      </div>
     </details>
     {% endif %}
 
     <details class="panel-section">
-      <summary><h2>{{ t('review.run') }}</h2></summary>
+      <summary><h3>{{ t('review.run') }}</h3></summary>
+      <div class="panel-body">
       {% if v.summary %}
-      <p class="hint">{{ t('review.run.writer') }} <code>{{ v.summary.writer_model }}</code>{% if v.summary.judge_model %}. {{ t('review.run.judge') }} <code>{{ v.summary.judge_model }}</code>{% endif %}.</p>
+      <p class="hint">{{ t('review.run.writer') }} <code>{{ v.summary.writer_model }}</code>{% if v.summary.understand_model %}. {{ t('review.run.understand') }} <code>{{ v.summary.understand_model }}</code>{% endif %}{% if v.summary.judge_model %}. {{ t('review.run.judge') }} <code>{{ v.summary.judge_model }}</code>{% endif %}.</p>
       {% if v.summary.notes %}<ul class="notes">{% for n in v.summary.notes %}<li class="hint">{{ n }}</li>{% endfor %}</ul>{% endif %}
       {% endif %}
       <form method="post" action="/jobs/{{ job.id }}/rerun" class="inline">
@@ -206,7 +224,16 @@
       <form method="post" action="/jobs/{{ job.id }}/delete" class="inline">
         <button type="submit" class="secondary">{{ t('review.delete') }}</button>
       </form>
+      </div>
     </details>
   </aside>
 </div>
+
+<section class="pane reader" id="reader-pane" aria-label="{{ t('review.reader_view') }}" hidden>
+  <div class="pane-head">
+    <h2>{{ t('review.reader_view') }}</h2>
+    <span class="hint" id="reader-note">{{ t('review.reader.hint') }}</span>
+  </div>
+  <iframe id="reader-frame" title="{{ t('review.reader_view') }}" sandbox="allow-same-origin"></iframe>
+</section>
 {% endblock %}

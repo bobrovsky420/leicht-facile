@@ -2,7 +2,6 @@
 {% block title %}{{ job.title or job.id }} - Leicht·Facile{% endblock %}
 {% block content %}
 <section class="review-head">
-  <p class="crumbs"><a href="/">{{ t('site.drafts') }}</a></p>
   <h1>{{ job.title or job.id }}</h1>
   <p class="chips">
     <span class="chip status status-{{ job.status }}">{{ t('status.' ~ job.status) }}</span>

@@ -18,7 +18,8 @@ from leichtfacile.export.html import to_html
 from leichtfacile.pipeline.orchestrator import PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.rules.base import RULES
-from leichtfacile.schemas import LANGS, Draft, PipelineSummary, ReviewState
+from leichtfacile.schemas import LANGS, Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.web.api import ReviewIn
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import Submission, SubmissionError, create_job
 from leichtfacile.web.views import format_duration, progress_view, review_view, stop_reason
@@ -121,6 +122,7 @@ async def submit(
     condition: Annotated[str, Form()] = "C2",
     title: Annotated[str | None, Form()] = None,
     writer_model: Annotated[str | None, Form()] = None,
+    understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,
 ):
     data = await file.read() if file is not None and file.filename else None
@@ -133,6 +135,7 @@ async def submit(
         level=level,
         condition=condition,
         writer_model=(writer_model or "").strip() or None,
+        understand_model=(understand_model or "").strip() or None,
         judge_model=(judge_model or "").strip() or None,
         title=title,
     )
@@ -148,6 +151,7 @@ async def submit(
             "condition": condition,
             "title": title or "",
             "writer_model": writer_model or "",
+            "understand_model": understand_model or "",
             "judge_model": judge_model or "",
         }
         return _index(request, 400, exc.text(translator(request)), form)
@@ -192,6 +196,23 @@ def preview(request: Request, job_id: str, version: int | None = None) -> HTMLRe
     if draft is None:
         raise HTTPException(404, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
+    return HTMLResponse(to_html(draft, review, title=job.title))
+
+
+@router.post("/jobs/{job_id}/preview", response_class=HTMLResponse)
+def preview_unsaved(request: Request, job_id: str, body: ReviewIn) -> HTMLResponse:
+    """The reader view of the decisions on screen, saved or not. Nothing is stored."""
+    job = _job_or_404(request, job_id)
+    draft = request.app.state.store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
+    if draft is None:
+        raise HTTPException(404, f"no draft version {body.draft_version}")
+    review = None
+    if body.decisions:
+        review = ReviewState(
+            draft_version=body.draft_version,
+            decisions=[Decision(**d.model_dump()) for d in body.decisions],
+            completed=body.completed,
+        )
     return HTMLResponse(to_html(draft, review, title=job.title))
 
 

@@ -184,6 +184,7 @@
   const form = $("#review-form");
   if (form) {
     let dirty = false;
+    let view = "review";
     const total = blocks.length;
     const decidedCount = $("#decided-count");
     const undecidedN = $("#undecided-n");
@@ -251,7 +252,7 @@
       radio.dispatchEvent(new Event("change", { bubbles: true }));
     };
     document.addEventListener("keydown", (e) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (view !== "review" || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.target.matches("input, textarea, select")) return;
       const visible = blocks.filter((b) => !b.hidden);
       if (!visible.length) return;
@@ -273,8 +274,8 @@
       e.returnValue = "";
     });
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
+    // The decisions on screen, in the body the review API takes.
+    const currentReview = () => {
       const decisions = [];
       blocks.forEach((block) => {
         const picked = chosen(block);
@@ -283,11 +284,16 @@
         if (picked.value === "edited") entry.text = $("textarea", block).value;
         decisions.push(entry);
       });
-      const body = {
+      return {
         draft_version: Number(form.dataset.version),
         decisions,
         completed: form.elements.completed.checked,
       };
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const body = currentReview();
       const out = $("#save-status");
       out.textContent = t("saving");
       out.className = "";
@@ -318,6 +324,54 @@
       }
     });
 
+    // -- review: the reader view in place of the three panes, unsaved decisions included
+    const grid = $("#review-grid");
+    const reader = $("#reader-pane");
+    const frame = $("#reader-frame");
+    const note = $("#reader-note");
+    const hint = note.textContent;
+    const fit = () => {
+      const doc = frame.contentDocument;
+      if (doc && doc.documentElement) frame.style.height = `${doc.documentElement.scrollHeight}px`;
+    };
+    frame.addEventListener("load", fit);
+    window.addEventListener("resize", () => view === "reader" && fit());
+
+    const showView = async (name) => {
+      view = name;
+      $$(".view-opt").forEach((a) => {
+        const on = a.dataset.view === name;
+        a.classList.toggle("current", on);
+        a.setAttribute("aria-pressed", String(on));
+      });
+      grid.hidden = name !== "review";
+      reader.hidden = name !== "reader";
+      history.replaceState(null, "", name === "reader" ? "#reader" : location.pathname + location.search);
+      if (name !== "reader") return;
+      note.textContent = dirty ? t("reader_unsaved") : hint;
+      note.className = "hint";
+      try {
+        const res = await fetch(`/jobs/${form.dataset.job}/preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentReview()),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        frame.srcdoc = await res.text();
+      } catch (e) {
+        frame.srcdoc = "";
+        note.textContent = t("reader_failed");
+        note.className = "hint bad";
+      }
+    };
+    $$(".view-opt").forEach((a) =>
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (a.dataset.view !== view) showView(a.dataset.view);
+      })
+    );
+
     refresh();
+    if (location.hash === "#reader") showView("reader");
   }
 })();
