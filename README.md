@@ -52,9 +52,12 @@ Requirements: Docker with Compose, `make`, and an API key for an Apertus endpoin
 
 ```bash
 cp .env.example .env      # set LLM_BASE_URL, LLM_API_KEY, LLM_NAME (CSCS by default)
-make run                  # builds and starts the container
-# open http://localhost:8000
+make run                  # builds and starts the container, opens http://localhost:8000
 ```
+
+`make run` opens the web UI in the default browser once the service answers; on a
+machine without a desktop it prints the address instead (`make run OPEN_BROWSER=0`
+turns the browser off).
 
 The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_URL`.
 `.env.example` lists the profiles: CSCS, a local vLLM (`docker compose --profile

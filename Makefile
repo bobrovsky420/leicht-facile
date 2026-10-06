@@ -13,8 +13,16 @@ export PATH := $(GIT_SH_DIR);$(PATH)
 SHELL := sh.exe
 endif
 
-# Start the application in Docker. Open http://localhost:8000 when it is up.
+# Start the application in Docker. A helper opens APP_URL in the default browser as
+# soon as the service answers (`make run OPEN_BROWSER=0` turns that off). The helper
+# is stopped with the containers, also when the start fails.
+APP_URL ?= http://localhost:8000
+OPEN_BROWSER ?= 1
+
 run: check-env
+	@opener=; \
+	if [ "$(OPEN_BROWSER)" != 0 ]; then sh scripts/open_browser.sh "$(APP_URL)" & opener=$$!; fi; \
+	trap '[ -n "$$opener" ] && kill $$opener 2>/dev/null' EXIT INT TERM; \
 	docker compose up --build
 
 stop:
