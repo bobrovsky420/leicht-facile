@@ -14,7 +14,7 @@ from typing import Any
 from leichtfacile.eval.calibrate import source_as_draft
 from leichtfacile.eval.metrics import compression_ratio, sari_document
 from leichtfacile.rules import check_draft
-from leichtfacile.rules.document import fact_coverage
+from leichtfacile.rules.document import fact_coverage, foreign_values
 from leichtfacile.rules.values import extract_values, hard_value_found, hard_values
 from leichtfacile.schemas import Draft, FactSheet, Job, JudgeReport, SourceDocument
 
@@ -49,6 +49,10 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
     source_keys = hard_values(standard.text(), standard.lang)
     out_values = extract_values(draft.text(), draft.lang)
     found = sum(1 for key in source_keys if hard_value_found(key, out_values))
+    # Values the source does not contain, strictly against the source (the runtime
+    # rule FACT-06 also accepts the fact sheet's values; here a value the fact sheet
+    # invented counts too).
+    invented = foreign_values(draft, standard, None, draft.lang)
     m = checked.metrics
     return {
         "blocks": len(draft.blocks),
@@ -65,6 +69,8 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
         "hard_facts_total": len(source_keys),
         "hard_facts_found": found,
         "hard_fact_recall": round(found / len(source_keys), 3) if source_keys else None,
+        "invented_values": len(invented),
+        "invented_values_per_100": round(100 * len(invented) / blocks, 2),
         "compression": round(compression_ratio(max(1, standard.word_count()), m.words), 3),
     }
 

@@ -1,4 +1,4 @@
-"""Fact rules FACT-01 to FACT-05 on a small synthetic letter."""
+"""Fact rules FACT-01 to FACT-06 on a small synthetic letter."""
 
 from __future__ import annotations
 
@@ -129,3 +129,93 @@ def test_fact_sheet_value_not_in_source() -> None:
     messages = [f.message for f in result.findings if f.rule_id == "FACT-05"]
     assert any("f05" in m and "not in the source" in m for m in messages)
     assert any("f06" in m and "unknown source sentences" in m for m in messages)
+
+
+def test_value_not_in_the_source_is_an_error_with_the_source_value_suggested() -> None:
+    leaked = Block(
+        id="b005",
+        kind="sentence",
+        text="Rufen Sie die DISG an: 031 987 65 43.",
+        segment_ids=["s0004"],
+    )  # the phone number of the prompt's examples
+    result = check_draft(draft(*GOOD, leaked), source=SOURCE, factsheet=FACTS)
+    (finding,) = [f for f in result.findings if f.rule_id == "FACT-06"]
+    assert finding.block_id == "b005" and finding.severity == "error"
+    assert "phone number 031 987 65 43 is not in the source" in finding.message
+    assert finding.evidence == "031 987 65 43"
+    assert finding.suggestion == "044 123 45 67"  # the source's only phone number
+
+
+def test_values_the_source_has_in_another_form_are_not_foreign() -> None:
+    hours = Segment(
+        id="s0006",
+        kind="paragraph",
+        para=4,
+        text="Schalter: 8-12 Uhr. Mehr unter https://www.zh.ch/de/soziales.html, "
+        "Mail an info@zh.ch.",
+    )
+    source = SOURCE.model_copy(update={"segments": [*SOURCE.segments, hours]})
+    blocks = [
+        Block(
+            id="b001",
+            kind="sentence",
+            text="Schicken Sie das Gesuch bis 31.3.2026.",
+            segment_ids=["s0002"],
+        ),
+        Block(id="b002", kind="sentence", text="Das kostet CHF 20.-.", segment_ids=["s0003"]),
+        Block(
+            id="b003",
+            kind="sentence",
+            text="Rufen Sie an: +41 44 123 45 67.",
+            segment_ids=["s0004"],
+        ),
+        Block(
+            id="b004",
+            kind="sentence",
+            text="Der Schalter ist von 8 Uhr bis 12 Uhr offen.",
+            segment_ids=["s0006"],
+        ),
+        Block(
+            id="b005",
+            kind="sentence",
+            text="Mehr Infos: www.zh.ch oder info@zh.ch.",
+            segment_ids=["s0006"],
+        ),
+    ]
+    result = check_draft(draft(*blocks), source=source, factsheet=FACTS)
+    assert "FACT-06" not in rule_ids(result)
+
+
+def test_a_fact_sheet_value_the_source_lacks_is_fact_05_not_fact_06() -> None:
+    wrong = FACTS.model_copy(update={"facts": [
+        *FACTS.facts,
+        Fact(id="f05", kind="deadline", text="Frist 30. April", value_norm="2026-04-30",
+             segment_ids=["s0002"]),
+    ]})  # fmt: skip
+    block = Block(
+        id="b005",
+        kind="sentence",
+        text="Die Frist ist der 30. April 2026.",
+        fact_ids=["f05"],
+        segment_ids=["s0002"],
+    )
+    ids = rule_ids(check_draft(draft(*GOOD, block), source=SOURCE, factsheet=wrong))
+    assert "FACT-05" in ids and "FACT-06" not in ids
+
+
+def test_foreign_values_without_a_fact_sheet_suggest_contacts_only() -> None:
+    from leichtfacile.rules.document import foreign_values
+
+    two_dates = SOURCE.model_copy(update={"segments": [
+        *SOURCE.segments,
+        Segment(id="s0006", kind="paragraph", para=4, text="Die Verfügung folgt am 15. Mai 2026."),
+    ]})  # fmt: skip
+    invented = Draft(doc_id="letter", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Sie bekommen bis 30. Juni 2026 einen Brief."),
+        Block(id="b002", kind="sentence", text="Das Amt hat 3 Schalter."),
+    ])  # fmt: skip
+    found = foreign_values(invented, two_dates, None, "de")
+    assert [(f.block_id, f.value.kind, f.value.canonical) for f in found] == [
+        ("b001", "date", "2026-06-30")
+    ]  # a plain number is never foreign
+    assert found[0].suggestion is None  # never a date: the source's only date may be a law's

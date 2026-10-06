@@ -230,13 +230,20 @@ score, share of passive sentences, …). The full catalogue is in
   exact check and the single most important automatic test;
 - readability: Amstad (German Flesch) for DE, Kandel-Moles for FR, Gulpease for IT;
 - the fact sheet itself: a value the model wrote into the fact sheet must appear in the
-  source sentences it cites (FACT-05).
+  source sentences it cites (FACT-05);
+- the draft's values: every date, amount, phone number, e-mail and web address,
+  percentage and time in the draft must occur in the source (FACT-06, the mirror of
+  fact coverage). A value the model invented or copied from the prompt's examples is
+  an error and goes to repair; for a phone number, e-mail or web address the source's
+  only one is suggested, if it has exactly one. On the 12 dev pairs of 6 October the
+  rule found the examples' phone numbers in 8 final drafts, the examples' amount and
+  date in 3, and an e-mail address with a dropped letter; the C0 drafts had none.
 
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that
 registry, and a test keeps the registry and [rules.md](rules.md) in sync. German has
 30 rules of its own (`rules/de.py`) and French 27 (`rules/fr.py`, ids ending in `-FR`),
-both calibrated on the official easy-language pages; 11 rules for facts, layout and
+both calibrated on the official easy-language pages; 12 rules for facts, layout and
 readability apply to every language. Italian texts get only those until their rule set
 ships.
 
@@ -276,9 +283,9 @@ Then:
   no progress, when only warnings are left after the first round, or after
   `MAX_REPAIR_ROUNDS` (3).
 
-Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH) and fact errors are
-repaired; provenance and bookkeeping findings (FACT-02 to FACT-05) and layout go to the
-reviewer. All draft versions are kept; the version with the fewest blocking findings
+Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH), missing fact values
+(FACT-01) and values the source does not contain (FACT-06) are repaired; provenance and
+bookkeeping findings (FACT-02 to FACT-05) and layout go to the reviewer. All draft versions are kept; the version with the fewest blocking findings
 is marked final, and the reviewer can switch to any other version. Model: `LLM_NAME`,
 thinking off, temperature 0.2.
 
@@ -607,6 +614,7 @@ judge is always the 70B-thinking model, so C1 and C2 are judged by the same inst
 | Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
+| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for C0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |

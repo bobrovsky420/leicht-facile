@@ -76,14 +76,16 @@ Key decisions:
   genitive, Konjunktiv, nominalisations, numbers, Swiss date, time and phone formats,
   `ss` for `ß`, the Mediopunkt in long compounds, and fact coverage are decided by
   code: exact, free, reproducible, and the model does not grade its own homework.
-  41 deterministic German rules are registered once in code with their severity per
+  42 deterministic German rules are registered once in code with their severity per
   level and the instruction for the writer prompt. The writer's style guide is
   rendered from that registry, and a test fails if the registry and the catalogue in
   [docs/rules.md](docs/rules.md) disagree.
 - **Fact coverage (rule FACT-01) is the central check.** Every must-keep fact with a
   normalised value must appear in the draft in an accepted surface form
   (`31. März 2026`, `31.3.2026`, ...). A deadline that silently became 30 March is
-  caught exactly.
+  caught exactly. Its mirror, FACT-06, flags every date, amount, phone number,
+  address, percentage or time in the draft that the source does not contain, so an
+  invented value, or one copied from the prompt's examples, is caught just as exactly.
 - **Typed, persisted artifacts.** Each stage reads and writes pydantic models stored
   in SQLite. A failed job resumes from the last good stage, every intermediate result
   is visible in the UI, and the evaluation reuses the same artifacts.

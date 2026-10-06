@@ -194,6 +194,26 @@ def test_repair_rounds_focus_on_blocking_problems_first() -> None:
     assert set(build_request(draft, rules, None, fs).problems) == {"b001", "b002"}
 
 
+def test_a_foreign_value_blocks_the_draft_and_goes_to_repair_with_the_suggestion() -> None:
+    from leichtfacile.pipeline.orchestrator import build_request
+    from leichtfacile.schemas import Block, Draft, FactSheet, Finding, RuleFindings
+
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Rufen Sie an: 031 987 65 43."),
+    ])  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=[
+        Finding(block_id="b001", rule_id="FACT-06", severity="error",
+                message="The phone number 031 987 65 43 is not in the source.",
+                suggestion="044 123 45 67"),
+        Finding(block_id="b001", rule_id="FACT-03", severity="error", message="no provenance"),
+    ])  # fmt: skip
+    assert blocking_count(rules, None) == 1  # FACT-03 is for the reviewer
+    request = build_request(draft, rules, None, FactSheet(doc_id="d", facts=[]),
+                            include_warnings=False)  # fmt: skip
+    (line,) = request.problems["b001"]
+    assert line.startswith("  - FACT-06:") and "Vorschlag: 044 123 45 67" in line
+
+
 def test_missing_facts_come_in_small_batches_most_important_first() -> None:
     from leichtfacile.pipeline.orchestrator import MAX_MISSING_PER_ROUND, build_request
     from leichtfacile.schemas import Block, Draft, Fact, FactSheet, Finding, RuleFindings

@@ -86,9 +86,9 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
         "",
         "| Setup | Pairs | Fact coverage | Hard facts kept | Errors / 100 blocks "
         "| Warnings / 100 blocks | Words / sentence | Readability | SARI "
-        "| Invented / 100 blocks | Tokens / page | USD / page "
-        "| Seconds / page |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| Invented / 100 blocks | Invented values / 100 blocks | Tokens / page "
+        "| USD / page | Seconds / page |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for name, group in groups:
         label = LABELS.get(name.split(" ")[0], name)
@@ -100,6 +100,7 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
             f"| {_fmt(_mean(group, 'errors_per_100'))} | {_fmt(_mean(group, 'warnings_per_100'))} "
             f"| {_fmt(_mean(group, 'avg_words'))} | {_fmt(_mean(group, 'readability'), 0)} "
             f"| {_fmt(_mean(group, 'sari'))} | {_fmt(_mean(group, 'unsupported_per_100'))} "
+            f"| {_fmt(_mean(group, 'invented_values_per_100'))} "
             f"| {_fmt(_mean(group, 'tokens_per_page'), 0)} "
             f"| {_fmt(_mean(group, 'usd_per_page'), 4)} "
             f"| {_fmt(_mean(group, 'latency_s_per_page'))} |"

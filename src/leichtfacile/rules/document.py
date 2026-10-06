@@ -4,11 +4,13 @@ the rules the judge decides (docs/rules.md, "Facts", "Layout", "Readability",
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 from leichtfacile.rules.base import Context, Hit, declare, rule, sev
 from leichtfacile.rules.values import (
+    HARD_KINDS,
     Value,
     extract_values,
     format_date,
@@ -230,6 +232,103 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
                 "The fact sheet may be wrong."
             )
         yield Hit(message, evidence=fact.text, fact_id=fact.id)
+
+
+# -- values the source does not contain (FACT-06) ------------------------------------
+
+KIND_LABELS = {
+    "date": "date",
+    "amount": "amount",
+    "phone": "phone number",
+    "email": "e-mail address",
+    "url": "web address",
+    "percent": "percentage",
+    "time": "time",
+}
+# Kinds for which the source's only value is suggested in place of a foreign one: a
+# document with one phone number means that one. The only date or amount in a
+# document (a law's date, a fee) would turn an invented sentence into a wrong one.
+SUGGESTED_KINDS = ("phone", "email", "url")
+
+
+@dataclass(frozen=True)
+class ForeignValue:
+    """A hard value of the draft that the source does not contain."""
+
+    block_id: str
+    value: Value
+    suggestion: str | None = None  # the source's only contact of that kind, if it has one
+
+
+def _supported(value: Value, source_values: list[Value], fact_values: list[Value]) -> bool:
+    if any(matches(value, v) for v in source_values) or any(matches(value, v) for v in fact_values):
+        return True
+    if value.kind == "url":
+        # A shortened address that leads to the right site: zh.ch for www.zh.ch/soziales.
+        prefix = value.canonical + "/"
+        return any(v.kind == "url" and v.canonical.startswith(prefix) for v in source_values)
+    if value.kind == "time" and value.canonical.endswith(":00"):
+        # "8 Uhr bis 12 Uhr" for a source that says "8-12 Uhr": there the first hour is
+        # a plain number.
+        hour = str(int(value.canonical[:2]))
+        return any(v.kind == "number" and v.canonical == hour for v in source_values)
+    return False
+
+
+def foreign_values(
+    draft: Draft, source: SourceDocument, factsheet: FactSheet | None, lang: str
+) -> list[ForeignValue]:
+    """FACT-06: the dates, amounts, phone numbers, e-mail and web addresses, percentages
+    and times in the draft that neither the source nor the fact sheet contains, in
+    draft order. Plain numbers are not checked: "zwei Wochen" may become "14 Tage".
+
+    The fact sheet's normalised values count as supported so that FACT-01 (the value
+    must be there) and FACT-06 cannot contradict each other; a fact-sheet value that is
+    not in the source is FACT-05's finding."""
+    source_text = "\n".join(t for t in (source.title, source.text()) if t)
+    source_values = extract_values(source_text, lang)
+    fact_values: list[Value] = []
+    if factsheet:
+        for fact in factsheet.facts:
+            target = parse_value_norm(fact.value_norm, fact.kind, lang)
+            if target is not None:
+                fact_values.append(target)
+    candidates: dict[str, set[str]] = defaultdict(set)  # kind -> canonical source values
+    for v in source_values:
+        if v.kind in HARD_KINDS:
+            candidates[v.kind].add(v.canonical)
+    out: list[ForeignValue] = []
+    for block in draft.blocks:
+        for value in extract_values(block.text, lang):
+            if value.kind not in HARD_KINDS or _supported(value, source_values, fact_values):
+                continue
+            suggestion = None
+            if value.kind in SUGGESTED_KINDS and len(candidates[value.kind]) == 1:
+                (only,) = candidates[value.kind]
+                suggestion = display_value(Value(value.kind, only), lang)
+            out.append(ForeignValue(block.id, value, suggestion))
+    return out
+
+
+@rule(
+    "FACT-06",
+    lang=None,
+    title="Every value in the draft appears in the source",
+    severity=sev("error"),
+    scope="document",
+)
+def fact_06(doc: DocInput, ctx: Context) -> Iterator[Hit]:
+    if not doc.source:
+        return
+    for item in foreign_values(doc.draft, doc.source, doc.factsheet, ctx.lang):
+        label = KIND_LABELS[item.value.kind]
+        yield Hit(
+            f"The {label} {item.value.text} is not in the source. "
+            "Remove it or take the value from the source.",
+            evidence=item.value.text,
+            suggestion=item.suggestion,
+            block_id=item.block_id,
+        )
 
 
 # -- layout and readability -----------------------------------------------------------

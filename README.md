@@ -22,9 +22,10 @@ Technical report: [technical_report.md](technical_report.md) (PDF:
    Code adds every date, amount and contact the model missed.
 2. **Write** (Apertus): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 41 deterministic rules from the published Swiss guidelines
+3. **Check** (code): 42 deterministic rules from the published Swiss guidelines
    (sentence length, passive, genitive, numbers, Swiss spelling, Mediopunkt, ...) and
-   an exact check of every fact value, in milliseconds, without a model.
+   an exact check of every fact value in both directions (nothing lost, nothing
+   invented), in milliseconds, without a model.
 4. **Judge** (a second, larger Apertus model): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
 5. **Repair** (Apertus): only the flagged sentences, until no blocking finding is left
@@ -84,7 +85,7 @@ Done:
 - German pipeline end to end: ingest (text, HTML, PDF with text layer), Understand,
   Write, rule check, judge, repair, review UI, export (Markdown, HTML, JSON audit
   bundle), web API and CLI.
-- German rule checker: 41 deterministic rules with golden tests; 7 meaning rules for
+- German rule checker: 42 deterministic rules with golden tests; 7 meaning rules for
   the judge. French and Italian texts get the language-independent rules (facts,
   layout, readability).
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions C0, C1 and

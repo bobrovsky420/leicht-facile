@@ -105,6 +105,7 @@ sentence limits follow from the calibration on the official French pages (below)
 | FACT-03 | No block without provenance | every non-heading block has ≥ 1 `segment_id` that exists in the source | error |
 | FACT-04 | Omissions are explained | every source segment not referenced by any block is either listed in `omissions[]` or in the fact sheet's `omit_candidates[]` | warn |
 | FACT-05 | Fact sheet values appear in the source | for each fact with a normalised value: the value is found in the cited source segments; a value found elsewhere in the source, or nowhere, means the fact sheet itself may be wrong (checked on the fact sheet, before writing) | warn |
+| FACT-06 | Every value in the draft appears in the source | the mirror of FACT-01: for each date, amount, phone number, e-mail address, web address, percentage and time found in a draft block, the value (in any accepted surface form) is found in the source text or is a normalised fact-sheet value; a shortened web address that is a prefix of a source address passes, as does a full hour the source writes as a plain number (`8-12 Uhr`); plain numbers are not checked (`zwei Wochen` may become `14 Tage`); for a phone number, e-mail or web address the suggestion names the source's only one, if it has exactly one (never for dates and amounts: the only date in a document may be a law's) | error |
 
 ### Layout (checked on export)
 
@@ -295,3 +296,6 @@ What the calibration changed, and why:
   any error it raises there is either a genuine deviation or a false positive to fix.
 - Readability implementations are tested against published example values for each
   formula.
+- `tests/rules/test_facts.py`: the fact rules on a synthetic letter, including a phone
+  number from the prompt's examples that FACT-06 must flag and the accepted surface
+  forms (numeric date, `CHF 20.-`, `+41`, a shortened web address) it must not.

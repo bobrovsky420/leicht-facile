@@ -22,6 +22,7 @@ from leichtfacile.rules import check_draft
 from leichtfacile.schemas import (
     Draft,
     FactSheet,
+    Finding,
     Job,
     JudgeReport,
     PipelineSummary,
@@ -32,9 +33,12 @@ from leichtfacile.store import Store
 
 log = logging.getLogger(__name__)
 
-# Rule families whose findings the model can fix by rewriting a block. Provenance and
-# bookkeeping findings (FACT-02 to FACT-05) and layout go to the reviewer instead.
+# Rule families whose findings the model can fix by rewriting a block. A value the
+# source does not contain (FACT-06) is fixed the same way; a missing fact value
+# (FACT-01) gets new sentences. Provenance and bookkeeping findings (FACT-02 to
+# FACT-05) and layout go to the reviewer instead.
 REPAIRABLE = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
+REPAIRABLE_RULES = ("FACT-06",)
 STAGE_ORDER = ("understand", "write", "check", "judge", "repair", "review")
 MAX_MISSING_PER_ROUND = 5
 MISSING_PRIORITY = {
@@ -60,13 +64,17 @@ class _Stopped(Exception):  # noqa: N818  (control flow, not an error)
         self.stage = stage
 
 
+def repairable(finding: Finding) -> bool:
+    """Whether a repair round can fix the finding by rewriting its block."""
+    return finding.rule_id.split("-")[0] in REPAIRABLE or finding.rule_id in REPAIRABLE_RULES
+
+
 def blocking_count(rules: RuleFindings, judge: JudgeReport | None) -> int:
     """Findings that should not survive into the draft the reviewer gets."""
     count = sum(
         1
         for f in rules.findings
-        if f.severity == "error"
-        and (f.rule_id.split("-")[0] in REPAIRABLE or f.rule_id == "FACT-01")
+        if f.severity == "error" and (repairable(f) or f.rule_id == "FACT-01")
     )
     if judge:
         count += sum(1 for c in judge.fact_checks if c.status != "present")
@@ -92,8 +100,7 @@ def build_request(
     problems: dict[str, list[str]] = defaultdict(list)
     missing: set[str] = set()
     for f in rules.findings:
-        family = f.rule_id.split("-")[0]
-        if f.block_id in blocks and f.severity in severities and family in REPAIRABLE:
+        if f.block_id in blocks and f.severity in severities and repairable(f):
             problems[f.block_id].append(render.finding_line(f, lang))
         elif f.rule_id == "FACT-01" and f.fact_id:
             missing.add(f.fact_id)

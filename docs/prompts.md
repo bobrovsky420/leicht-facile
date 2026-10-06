@@ -148,9 +148,14 @@ from the examples leak into real drafts through the repair additions: the exampl
 phone number `031 987 65 43` (French: `032 987 65 43`) stood in 4 of the 12 final
 drafts, the example's office in 3, in sentences the guard does not recognise because
 they are rewritten ("Rufen Sie die DISG an: 031 987 65 43."). The judge did not flag
-them. A code rule that every date, amount, phone number, e-mail and web address in a
-draft must appear in the source (the mirror of FACT-01) would catch every such value
-exactly; it is the next rule to add.
+them. Since then rule FACT-06 (the mirror of FACT-01) flags every date, amount, phone
+number, e-mail and web address, percentage and time that is not in the source as an
+error and sends the block to repair (with the source's only phone number, e-mail or web
+address as the suggestion); the evaluation counts such values per 100 blocks by code,
+for every condition. On the stored dev drafts the rule found the examples' phone
+numbers in 8 of 12 final drafts, the examples' `120 Franken` and `30. April 2026` in
+3, and one e-mail address with a dropped letter (`gwaesserschutz@`), which the judge
+had passed.
 
 ### On CSCS (official Apertus 1.5 8B and 70B, thinking for Understand and Judge)
 
