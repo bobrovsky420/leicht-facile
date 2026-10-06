@@ -381,20 +381,28 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
   `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
   (local vLLM: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
-  `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`.
+  `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
+  `LLM_EXTRA_BODY` (JSON fields sent with every request, for gateway switches).
 - **Endpoint profiles** (documented in `.env.example`):
   1. CSCS inference API, the hackathon default;
   2. local vLLM from the `local-llm` compose profile, for on-premise and air-gapped
      deployments;
   3. the Public AI gateway (`https://api.publicai.co/v1`), for development and
-     evaluation with public documents. It serves all four Apertus 1.5 variants
-     (`swiss-ai/apertus-v1.5-8b`, `-70b`, each with a `-thinking` variant, 262k
-     context) at USD 0.10/0.20 per million input/output tokens for the 8B and
-     0.82/2.92 for the 70B, with USD 2 of starter credit. It is run by Metagov Inc.,
-     a US nonprofit, under Massachusetts law, and routes requests to compute partners
-     including CSCS, AWS, Exoscale and Cudo. It requires a `User-Agent` header, which
+     evaluation with public documents. It lists `swiss-ai/apertus-v1.5-8b` and
+     `-70b`, each with a `-thinking` variant, at USD 0.10/0.20 per million
+     input/output tokens for the 8B and 0.82/2.92 for the 70B, with USD 2 of starter
+     credit. It is run by Metagov Inc., a US nonprofit, under Massachusetts law, and
+     routes requests to compute partners. It requires a `User-Agent` header, which
      the client always sends. Not a sovereign deployment: never used for documents
-     with personal data;
+     with personal data. The routing checked on 6 October 2026 (from the gateway's
+     response headers) decides the profile's settings: the 8B goes to Juelich's
+     Blablador (vLLM) and thinks through the chat template; the 70B goes to
+     Infomaniak (`Apertus-v1.5-70B`) and ignores the thinking switch; the
+     `-thinking` names are not used, because `apertus-v1.5-8b-thinking` serves the
+     older Apertus 1 8B through Featherless. The gateway's response cache ignores
+     the thinking switch, so the profile turns it off per request
+     (`LLM_EXTRA_BODY={"cache": {"no-cache": true}}`). Results from this profile are
+     labelled Public AI, never CSCS;
   4. the Hugging Face inference router, for development only. It serves only the
      older Apertus 1 models (`swiss-ai/Apertus-8B-Instruct-2509` through Public AI,
      `…-70B-Instruct-2509` through Featherless). No Hugging Face provider serves

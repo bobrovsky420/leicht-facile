@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     llm_timeout_s: float = Field(default=300.0, gt=0)
     llm_max_retries: int = Field(default=4, ge=0)
     llm_cache: bool = False
+    # Extra JSON fields sent with every request, for gateway-specific switches such as
+    # Public AI's `{"cache": {"no-cache": true}}` (its response cache ignores the
+    # thinking switch). Set as JSON in the environment.
+    llm_extra_body: dict[str, Any] = Field(default_factory=dict)
 
     # Pipeline
     max_repair_rounds: int = Field(default=3, ge=0)

@@ -64,6 +64,19 @@ def test_chat_template_mode_sends_enable_thinking(endpoint, make_client):
     assert second["chat_template_kwargs"] == {"enable_thinking": False}
 
 
+def test_extra_body_is_sent_with_every_call(endpoint, make_client):
+    client = make_client(
+        make_settings(
+            llm_thinking_mode="chat-template", llm_extra_body={"cache": {"no-cache": True}}
+        )
+    )
+    endpoint.push(chat_response("a"))
+    client.complete(MSG, thinking=True)
+    body = endpoint.chat_bodies()[0]
+    assert body["cache"] == {"no-cache": True}
+    assert body["chat_template_kwargs"] == {"enable_thinking": True}
+
+
 def test_off_mode_sends_model_unchanged(endpoint, make_client):
     client = make_client(make_settings(llm_thinking_mode="off"))
     endpoint.push(chat_response("a"))

@@ -126,7 +126,8 @@ class LLMClient:
         stage: str = "adhoc",
         response_format: dict[str, Any] | None = None,
     ) -> LLMResult:
-        name, extra_body = self.resolve_model(model, thinking)
+        name, thinking_body = self.resolve_model(model, thinking)
+        extra_body = {**self.settings.llm_extra_body, **thinking_body}
         params: dict[str, Any] = {"temperature": temperature, "max_tokens": max_tokens}
         if response_format:
             params["response_format"] = response_format

@@ -2,6 +2,15 @@
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
 
+# The recipes need a POSIX shell. On Windows, make falls back to cmd.exe unless
+# sh.exe is on PATH, so use the one from Git for Windows (override GIT_SH_DIR if
+# Git is installed elsewhere).
+ifeq ($(OS),Windows_NT)
+GIT_SH_DIR ?= C:/Program Files/Git/usr/bin
+export PATH := $(GIT_SH_DIR);$(PATH)
+SHELL := sh.exe
+endif
+
 # Start the application in Docker. Open http://localhost:8000 when it is up.
 run: check-env
 	docker compose up --build
