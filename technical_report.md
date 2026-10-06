@@ -371,6 +371,12 @@ outputs, the evaluation metrics, and the web API.
   worker who drafted it is the natural reviewer. Needed: the person the letter speaks
   to, identifiers and postal addresses as exact facts, a fixed notice that the decision
   prevails, judge checks for neutrality and advice.
+- Same engine, other documents ([docs/use-cases.md](docs/use-cases.md)): patient
+  letters, lease terminations, penal orders, payment orders, social and school
+  decisions, information for study participants. Most of them turn on a period such as
+  "innert 10 Tagen", which code does not check yet: the first planned check is a period
+  value kind, then identifiers, postal addresses, and doses for patient letters
+  ([docs/rules.md](docs/rules.md), planned fact checks).
 - A pilot with a cantonal easy-language office and target-group testing of the
   drafts.
 - Beyond the public sector: insurers, pension funds and utilities send some of the

@@ -206,6 +206,50 @@ show them next to the code findings:
 | SEM-06 | Does the block state something the source does not support? (hallucination) |
 | SEM-07 | For each fact: present, missing, or distorted? |
 
+## Planned fact checks (not implemented)
+
+Specified on 6 October 2026 for the decisions use case
+([use-case-decisions.md](use-case-decisions.md)) and the further use cases
+([use-cases.md](use-cases.md)). None of them exists in code yet. Their ids are written
+in backticks because the registry test reads the rule tables above and expects every
+bare id there to be registered in code. When a check is built, its row moves into its
+family's table above, with golden tests, and loses the backticks.
+
+### New value kinds
+
+Value kinds feed the code completion of the fact sheet, FACT-01 (every must-keep value
+is in the draft), FACT-05 (fact-sheet values are in the source), FACT-06 (no value in
+the draft that the source lacks) and "hard facts kept" in the evaluation. Today the
+checked kinds are dates, amounts, phone numbers, e-mail and web addresses, percentages
+and times (`rules/values.py`). Plain numbers are extracted but not checked, so a
+period such as `innert 30 Tagen` is checked only when the fact sheet happens to carry
+it as a value, and a period the draft invents is never flagged.
+
+| Kind | What is extracted | Canonical form and matching | Use cases |
+|------|-------------------|-----------------------------|-----------|
+| `period` | a number, in digits or as a number word, with `Tag`, `Arbeitstag`, `Werktag`, `Woche`, `Monat` or `Jahr` in any inflection (`innert 10 Tagen`, `dreissig Tage`, `zwei Wochen`); French `jour`, `jour ouvrable`, `semaine`, `mois`, `an`, `année`; Italian `giorno`, `giorno lavorativo`, `settimana`, `mese`, `anno` | days for days and weeks (`2 Wochen` equals `14 Tage`, as FACT-06 already allows), months for months and years (`1 Jahr` equals `12 Monate`), working days on their own (`5 Arbeitstage` never equals `5 Tage`); a match needs the same count and unit | 2, 4-8, 10 |
+| `identifier` | AHV number (`756.dddd.dddd.dd`); IBAN and QR-IBAN (`CH`, two check digits and 17 more characters, any spacing); postal account (`dd-d…-d`, one to six digits in the middle); UID (`CHE-ddd.ddd.ddd`); a reference after a keyword (`Referenz`, `Geschäftsnummer`, `Dossier`, `Fall`, `Verfügung Nr.`; French `référence`, `dossier`, `n° AVS`) | IBAN and AHV number compared without spaces, everything else exactly after whitespace normalisation; no checksum test, since letters carry specimen numbers (PLAN.md, D-O) | 2, 5-7 |
+| `address` | a Swiss postal address: street and number, `Postfach` with or without a number, and a four-digit postcode followed by a place name | postcode and place exactly (case-insensitive); street, number and `Postfach` exactly when the fact has them; a year followed by a capitalised word is not a postcode | 2, 4-6, 8, 10 |
+| `quantity` | a number with a unit: `mg`, `µg`, `g`, `kg`, `ml`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l` | decimal comma and point equal (`2,5 mg` equals `2.5 mg`), a unit's name equal to its symbol (`Milligramm` equals `mg`); a match needs the same number and unit | 3, 9 |
+| `schedule` | a dosing scheme of three or four parts (`1-0-1`, `1-0-0-1`, `½-0-½`) | exactly, part by part | 3 |
+| `medication` | not extracted by code (there is no drug list yet); the fact sheet gives the name as `value_norm` for facts of kind `medication` | the name exactly, case-insensitive, ignoring the Mediopunkt | 3 |
+
+### New checks
+
+| Planned id | Rule | Detection | Severity | Use cases |
+|------------|------|-----------|----------|-----------|
+| `FACT-07` | The fixed notice is present | in the decision mode and for received letters, the export begins and ends with the notice the organisation set ("Massgebend ist der Entscheid."), word for word; code inserts it, and the check catches a review edit that removes or changes it | error | 2, 4-8 |
+| `FACT-08` | Nothing from the operative part or the appeal instructions is dropped | in the decision mode, every fact cited from segments under the operative part or the instructions on appeal (headings such as `Entscheid`, `Dispositiv`, `Rechtsmittelbelehrung`; French `dispositif`, `voies de droit`) is must-keep, and none of those segments is listed as an omission | error | 2, 5-8, 10 |
+| `FACT-09` | A medication stays in one block | the block that names a medication also carries its dose, scheme and period, so a reader cannot pair a dose with the wrong drug | error | 3 |
+
+### New questions for the judge
+
+| Planned id | Question the judge answers | Use cases |
+|------------|----------------------------|-----------|
+| `SEM-08` | Is every obligation still an obligation, every recommendation a recommendation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, PLAN.md D-P)? | all |
+| `SEM-09` | Does the block add advice or an evaluation the source does not contain ("leider", "Sie sollten Einsprache erheben")? | 2-8, 10 |
+| `SEM-10` | Does every period keep its start ("nach Empfang", "ab Zustellung")? A period without its start misleads. | 2, 4-8, 10 |
+
 ## Calibration on official easy-language texts
 
 ### German

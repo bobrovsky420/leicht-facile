@@ -1,7 +1,7 @@
 # Leicht·Facile - design and architecture
 
 Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12). Hack Apertus online hackathon, Track 2B.
-Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
+Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and the presentation).
 Items marked **[verify]** are assumptions to confirm against the live endpoint on day 1 (see §12).
 
 ## 1. What it is
@@ -69,6 +69,12 @@ binding text. Not built yet: a field for the person the letter speaks to; identi
 and postal addresses as exact facts; a document type "decision" whose operative part
 and appeal instructions are must-keep facts; a fixed notice in the export that the
 decision prevails; judge checks for neutrality and advice.
+
+Further users, sketched in [use-cases.md](use-cases.md): physicians (patient letters),
+public prosecutors' and debt collection offices, social services, schools, study teams,
+and helpers such as tenants' associations and debt counselling services, who explain
+letters someone else wrote (the received-letter mode planned in PLAN.md, WP12b). They
+need the planned checks of [rules.md](rules.md#planned-fact-checks-not-implemented).
 
 ## 3. Architecture overview
 
@@ -265,6 +271,11 @@ score, share of passive sentences, …). The full catalogue is in
   only one is suggested, if it has exactly one. On the 12 dev pairs of 6 October the
   rule found the examples' phone numbers in 8 final drafts, the examples' amount and
   date in 3, and an e-mail address with a dropped letter; the P0 drafts had none.
+- planned, not built: periods (`innert 30 Tagen`), identifiers, postal addresses,
+  doses and dosing schemes as checked value kinds, plus checks for the fixed notice,
+  the operative part and appeal instructions, and medications, and three more
+  questions for the judge ([rules.md](rules.md#planned-fact-checks-not-implemented)).
+  Today a period is checked only when the fact sheet carries it as a value.
 
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that

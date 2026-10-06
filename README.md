@@ -16,7 +16,8 @@ Two use cases: a canton's letters and web pages
 ([docs/use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
 that may never leave the authority ([docs/use-case-decisions.md](docs/use-case-decisions.md),
-partly planned).
+partly planned). Further use cases, from patient letters and lease terminations to
+penal orders and payment orders, are sketched in [docs/use-cases.md](docs/use-cases.md).
 
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers.
 Technical report: [technical_report.md](technical_report.md) (PDF:
@@ -128,6 +129,7 @@ letters, and the air-gapped bundle (`make bundle`).
 - [docs/sources.md](docs/sources.md): reference pairs, demo documents, licences
 - [docs/use-case-canton.md](docs/use-case-canton.md): a walkthrough for a cantonal administration
 - [docs/use-case-decisions.md](docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
+- [docs/use-cases.md](docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
 - [docs/hard-texts.md](docs/hard-texts.md): hard words and sentences for tests and the presentation
 - [docs/demo-video.md](docs/demo-video.md): script and storyboard for the demo video
 

@@ -86,8 +86,11 @@ case worker to veto.
 
 The same deterministic checks as in the first use case: the easy-language rules, every
 must-keep fact with its exact value (FACT-01), and no value the decision does not
-contain (FACT-06). An appeal period that became 20 days, or a phone number taken from
-somewhere else, is caught exactly.
+contain (FACT-06). A deadline date that moved, or a phone number taken from somewhere
+else, is caught exactly. A period such as 30 days is checked by code today only when
+the fact sheet gives it as a value; a value kind of its own is planned
+([rules.md](rules.md#planned-fact-checks-not-implemented), `period`), and until then the
+judge checks it.
 
 ### Step 5: a second, larger Apertus model judges meaning
 
@@ -127,6 +130,9 @@ still ahead.
   easy-language summaries, made from the anonymised, published decision. Leicht·Facile
   does not anonymise; that is a separate step before it.
 
+Penal orders, payment orders, social assistance, school and migration decisions, and
+use cases beyond decisions, are sketched in [use-cases.md](use-cases.md).
+
 ## 5. Why not a chatbot
 
 | What the authority needs | One chatbot prompt | Leicht·Facile |
@@ -165,13 +171,18 @@ three deployment profiles.
 Planned, not built:
 
 - a field for the person the letter speaks to;
-- identifiers (case and reference numbers, AHV number) and postal addresses as facts
-  that must come back exactly;
+- periods such as 30 days, identifiers (case and reference numbers, AHV number) and
+  postal addresses as facts that must come back exactly (`period`, `identifier`,
+  `address`);
 - a document type "decision": its own core questions, every item of the operative part
-  and the appeal instructions as must-keep facts;
-- the fixed notice in the export;
-- judge checks for neutrality, advice and conditions;
+  and the appeal instructions as must-keep facts (`FACT-08`);
+- the fixed notice in the export (`FACT-07`);
+- judge checks for conditions, neutrality and advice, and for the start of every
+  period (`SEM-08`, `SEM-09`, `SEM-10`);
 - a mode that condenses long legal reasoning, with every omission listed.
+
+The planned checks in backticks are specified in
+[rules.md](rules.md#planned-fact-checks-not-implemented).
 
 ## References
 

@@ -3,7 +3,8 @@
 Status: scenario, 5 October 2026. Companion to [architecture.md](architecture.md),
 which describes the mechanics behind each step referenced here. A second use case,
 letters that accompany decisions of child and adult protection authorities and courts,
-is in [use-case-decisions.md](use-case-decisions.md).
+is in [use-case-decisions.md](use-case-decisions.md); all use cases at a glance are in
+[use-cases.md](use-cases.md).
 
 ## 1. Who and why
 
