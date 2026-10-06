@@ -1,10 +1,26 @@
 // Leicht·Facile: start-page form, job progress polling, provenance highlighting and
 // review decisions. No dependencies; every page works without it, with less comfort.
+// Texts come from the interface catalog the page embeds (#ui-text, see web/i18n.py).
 "use strict";
 
 (function () {
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  const lang = document.documentElement.lang || "en";
+  let texts = {};
+  try {
+    texts = JSON.parse($("#ui-text").textContent);
+  } catch (e) {
+    texts = {};
+  }
+  const plural = new Intl.PluralRules(lang);
+  // t("saved", { n: 3 }) picks "saved.one" or "saved.other" and fills {n}.
+  const t = (key, params = {}) => {
+    if ("n" in params) key += plural.select(params.n) === "one" ? ".one" : ".other";
+    const text = texts[key] ?? key;
+    return text.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
+  };
 
   // -- start page: source tabs, example texts, endpoint status, relative times --------
   const tabs = $$(".tab");
@@ -48,30 +64,32 @@
         .then((data) => {
           const llm = data.llm || {};
           if (llm.reachable) {
-            const listed = llm.model_listed ? "model listed" : "model not in the endpoint's list";
-            status.textContent = `Endpoint ${llm.base_url}: reachable, ${listed}.`;
+            const key = llm.model_listed ? "endpoint.listed" : "endpoint.unlisted";
+            status.textContent = t(key, { url: llm.base_url });
             status.className = "hint " + (llm.model_listed ? "ok" : "bad");
           } else {
-            status.textContent = `Endpoint ${llm.base_url || ""} not reachable (${llm.error || "no answer"}). Check LLM_BASE_URL and LLM_API_KEY.`;
+            const error = llm.error || t("endpoint.no_answer");
+            status.textContent = t("endpoint.unreachable", { url: llm.base_url || "", error });
             status.className = "hint bad";
           }
         })
         .catch(() => {
-          status.textContent = "Endpoint status unknown.";
+          status.textContent = t("endpoint.unknown");
         })
         .finally(() => clearTimeout(timer));
     }
   }
 
+  const relative = new Intl.RelativeTimeFormat(lang, { numeric: "auto", style: "short" });
   $$("time[data-relative]").forEach((el) => {
     const then = new Date(el.getAttribute("datetime"));
     if (Number.isNaN(then.getTime())) return;
     const minutes = Math.round((Date.now() - then.getTime()) / 60000);
     let text;
-    if (minutes < 1) text = "just now";
-    else if (minutes < 60) text = `${minutes} min ago`;
-    else if (minutes < 60 * 24) text = `${Math.round(minutes / 60)} h ago`;
-    else text = then.toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "numeric" });
+    if (minutes < 1) text = relative.format(0, "minute");
+    else if (minutes < 60) text = relative.format(-minutes, "minute");
+    else if (minutes < 60 * 24) text = relative.format(-Math.round(minutes / 60), "hour");
+    else text = then.toLocaleDateString(lang, { day: "2-digit", month: "2-digit", year: "numeric" });
     el.title = el.textContent;
     el.textContent = text;
   });
@@ -178,7 +196,7 @@
         block.classList.toggle("decided", has);
         if (has) decided += 1;
       });
-      if (decidedCount) decidedCount.textContent = `${decided} of ${total} decided`;
+      if (decidedCount) decidedCount.textContent = t("decided", { decided, total });
       if (undecidedN) undecidedN.textContent = String(total - decided);
       applyFilter();
     };
@@ -271,7 +289,7 @@
         completed: form.elements.completed.checked,
       };
       const out = $("#save-status");
-      out.textContent = "Saving...";
+      out.textContent = t("saving");
       out.className = "";
       try {
         const res = await fetch(`/api/jobs/${form.dataset.job}/review`, {
@@ -282,19 +300,20 @@
         const data = await res.json();
         if (res.ok) {
           dirty = false;
-          out.textContent = `Saved ${data.saved} decision${data.saved === 1 ? "" : "s"}${data.completed ? ", review complete" : ""}.`;
+          out.textContent = t(data.completed ? "saved_complete" : "saved", { n: data.saved });
           out.className = "ok";
           const chip = $(".review-head .status");
           if (chip) {
-            chip.textContent = data.completed ? "done" : "needs review";
-            chip.className = `chip status status-${data.completed ? "done" : "needs_review"}`;
+            const status = data.completed ? "done" : "needs_review";
+            chip.textContent = t(`status.${status}`);
+            chip.className = `chip status status-${status}`;
           }
         } else {
-          out.textContent = `Not saved: ${data.detail}`;
+          out.textContent = t("not_saved", { detail: data.detail });
           out.className = "bad";
         }
       } catch (e) {
-        out.textContent = "Not saved: the server did not answer.";
+        out.textContent = t("no_answer");
         out.className = "bad";
       }
     });

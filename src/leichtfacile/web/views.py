@@ -1,7 +1,10 @@
-"""View models for the pages: everything a template needs, computed once in Python."""
+"""View models for the pages: everything a template needs, computed once in Python.
+
+Texts come from the interface catalogs (`i18n.py`) through the translator `t`."""
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -23,32 +26,27 @@ from leichtfacile.schemas import (
     SourceDocument,
 )
 from leichtfacile.store import Store
+from leichtfacile.web.i18n import ENGLISH, Translator
 
-STAGE_LABELS = {
-    "understand": "Apertus reads the document and writes the fact sheet",
-    "write": "Apertus writes the easy-language draft",
-    "check": "Code checks the rules and the facts",
-    "judge": "A second Apertus model checks meaning and facts",
-    "repair": "Apertus repairs the flagged blocks",
-    "baseline": "Apertus rewrites the text with one prompt (baseline)",
-    "review": "A person reviews the draft",
+CORE_KEYS = ("what", "must_do", "deadline", "cost", "contact")
+
+# The pipeline's stop reasons (orchestrator.py) and their catalog keys.
+STOP_KEYS = {
+    "baseline": "stop.baseline",
+    "C1": "stop.c1",
+    "no problems left": "stop.no_problems",
+    "only warnings left": "stop.only_warnings",
+    "no blocking problems left": "stop.no_blocking",
+    "a repair round failed": "stop.round_failed",
+    "a repair round brought no progress": "stop.no_progress",
 }
 
-CORE_LABELS = (
-    ("what", "What is it about?"),
-    ("must_do", "What must you do?"),
-    ("deadline", "By when?"),
-    ("cost", "What does it cost?"),
-    ("contact", "Who can you ask?"),
-)
 
-CONDITION_LABELS = {
-    "C0": "Baseline: one prompt",
-    "C1": "Fact sheet, draft and rule check",
-    "C2": "Full pipeline with judge and repair",
-}
-
-LANG_NAMES = {"de": "German", "fr": "French", "it": "Italian"}
+def stop_reason(t: Translator, reason: str) -> str:
+    rounds = re.fullmatch(r"stopped after (\d+) repair rounds", reason)
+    if rounds:
+        return t("stop.max_rounds", n=int(rounds.group(1)))
+    return t(STOP_KEYS[reason]) if reason in STOP_KEYS else reason
 
 
 # -- the review page ------------------------------------------------------------------
@@ -173,7 +171,9 @@ class ReviewView:
         ]
 
 
-def review_view(store: Store, job: Job, version: int | None = None) -> ReviewView | None:
+def review_view(
+    store: Store, job: Job, version: int | None = None, t: Translator = ENGLISH
+) -> ReviewView | None:
     source = store.get_artifact(job.id, "source", SourceDocument)
     versions = store.versions(job.id, "draft")
     if source is None or not versions:
@@ -201,11 +201,8 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
     if judge:
         for u in judge.unsupported:
             if u.block_id in rows:
-                rows[u.block_id].issues.append(
-                    Issue(
-                        "judge", "SEM-06", "error", f"Not supported by the source. {u.note}".strip()
-                    )
-                )
+                message = t("issue.unsupported", note=u.note).strip()
+                rows[u.block_id].issues.append(Issue("judge", "SEM-06", "error", message))
         for s in judge.semantic_findings:
             if s.block_id in rows:
                 rows[s.block_id].issues.append(Issue("judge", s.rule_id, "warn", s.note))
@@ -218,7 +215,7 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
                                 "judge",
                                 "SEM-07",
                                 "error",
-                                f"Fact {c.fact_id} distorted. {c.note}".strip(),
+                                t("issue.distorted", fact=c.fact_id, note=c.note).strip(),
                             )
                         )
     for row in rows.values():
@@ -252,7 +249,7 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
                     judge_note=check.note if check else "",
                 )
             )
-        core_rows = core_questions(factsheet)
+        core_rows = core_questions(factsheet, t)
     omitted = {}
     for o in draft.omissions:
         for s in o.segment_ids:
@@ -285,21 +282,22 @@ def review_view(store: Store, job: Job, version: int | None = None) -> ReviewVie
     )
 
 
-def core_questions(factsheet: FactSheet) -> list[CoreRow]:
-    return [CoreRow(key, label, getattr(factsheet.core, key)) for key, label in CORE_LABELS]
+def core_questions(factsheet: FactSheet, t: Translator = ENGLISH) -> list[CoreRow]:
+    return [CoreRow(key, t(f"core.{key}"), getattr(factsheet.core, key)) for key in CORE_KEYS]
 
 
 # -- the progress page ----------------------------------------------------------------
 
-# Title, description and who does the work (the model, code, or the reviewer).
-STEP_INFO: dict[str, tuple[str, str, str]] = {
-    "baseline": ("Rewrite", "Apertus rewrites the text with one prompt", "apertus"),
-    "understand": ("Read", "Apertus reads the document and writes the fact sheet", "apertus"),
-    "write": ("Write", "Apertus writes the easy-language draft", "apertus"),
-    "check": ("Check", "Code checks the rules and every fact value", "code"),
-    "judge": ("Judge", "A second Apertus model checks meaning and facts", "apertus"),
-    "repair": ("Repair", "Apertus rewrites only the flagged blocks", "apertus"),
-    "review": ("Review", "A person approves, edits and exports", "human"),
+# Who does the work in each step: the model, code, or the reviewer. Title and
+# description are the catalog texts `step.<key>.title` and `step.<key>.desc`.
+STEP_WHO = {
+    "baseline": "apertus",
+    "understand": "apertus",
+    "write": "apertus",
+    "check": "code",
+    "judge": "apertus",
+    "repair": "apertus",
+    "review": "human",
 }
 STEPS_BY_CONDITION = {
     "C0": ("baseline", "check", "review"),
@@ -354,7 +352,9 @@ class ProgressView:
         return self.job.status in ("queued", "running")
 
 
-def progress_view(store: Store, job: Job, now: datetime | None = None) -> ProgressView:
+def progress_view(
+    store: Store, job: Job, now: datetime | None = None, t: Translator = ENGLISH
+) -> ProgressView:
     keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["C2"])
     names = store.artifact_names(job.id)
     drafts = names.get("draft", [])
@@ -382,7 +382,6 @@ def progress_view(store: Store, job: Job, now: datetime | None = None) -> Progre
 
     steps: list[Step] = []
     for i, key in enumerate(keys):
-        title, description, who = STEP_INFO[key]
         if idx < 0 or i > idx:
             state = "pending"
         elif i < idx or job.status == "done":
@@ -391,14 +390,14 @@ def progress_view(store: Store, job: Job, now: datetime | None = None) -> Progre
             state = "failed"
         else:
             state = "running"
-        steps.append(Step(key, title, description, who, state))
+        steps.append(Step(key, t(f"step.{key}.title"), t(f"step.{key}.desc"), STEP_WHO[key], state))
 
     for step in steps:
-        _add_detail(step, store, job, drafts, factsheet, draft, rules_v1, judge_v1, summary)
+        _add_detail(step, store, job, drafts, factsheet, draft, rules_v1, judge_v1, summary, t)
         if step.state == "failed" and job.error:
             step.detail = job.error
     if job.status == "queued" and steps:
-        steps[0].detail = "waiting for the worker"
+        steps[0].detail = t("detail.waiting")
 
     block_marks: dict[str, str] = {}
     if rules:
@@ -430,7 +429,7 @@ def progress_view(store: Store, job: Job, now: datetime | None = None) -> Progre
         usage=list(by_stage.values()),
         elapsed_s=max(elapsed, 0.0),
         block_marks=block_marks,
-        core=core_questions(factsheet) if factsheet else [],
+        core=core_questions(factsheet, t) if factsheet else [],
     )
 
 
@@ -444,57 +443,61 @@ def _add_detail(
     rules_v1: RuleFindings | None,
     judge_v1: JudgeReport | None,
     summary: PipelineSummary | None,
+    t: Translator,
 ) -> None:
     """One line per step from the artifacts that exist so far."""
     stage = job.stage or ""
     stage_key = stage.split(" ")[0]
     if step.key == "understand" and factsheet:
         keep = sum(1 for f in factsheet.facts if f.must_keep)
-        step.detail = f"{len(factsheet.facts)} facts, {keep} must survive"
+        step.detail = t("detail.facts", n=len(factsheet.facts), keep=keep)
     elif step.key in ("write", "baseline") and drafts:
         first = draft if draft and draft.version == 1 else None
         first = first or store.get_artifact(job.id, "draft", Draft, version=1)
         if first:
-            step.detail = f"{len(first.blocks)} blocks"
+            step.detail = t("detail.blocks", n=len(first.blocks))
             if first.omissions:
-                step.detail += f", {len(first.omissions)} things left out with a reason"
+                step.detail += t("detail.omissions", n=len(first.omissions))
     elif step.key == "check" and rules_v1:
         errors = sum(1 for f in rules_v1.findings if f.severity == "error")
         warns = sum(1 for f in rules_v1.findings if f.severity == "warn")
-        step.detail = f"draft v1: {errors} errors, {warns} warnings"
+        step.detail = t("detail.checked", errors=errors, warns=warns)
     elif step.key == "judge":
         if judge_v1:
             present = sum(1 for c in judge_v1.fact_checks if c.status == "present")
-            step.detail = (
-                f"{present} of {len(judge_v1.fact_checks)} facts present, "
-                f"{len(judge_v1.unsupported)} unsupported statements"
+            step.detail = t(
+                "detail.judged",
+                present=present,
+                total=len(judge_v1.fact_checks),
+                unsupported=len(judge_v1.unsupported),
             )
         elif step.state == "done":
             step.state = "skipped"
-            step.detail = _note(summary, "judge") or "not run"
+            step.detail = _note(summary, "judge") or t("detail.not_run")
     elif step.key == "repair":
         if step.state == "running":
             if stage_key == "repair":
-                step.detail = f"round {stage.split(' ')[-1]}"
+                step.detail = t("detail.round", round=stage.split(" ")[-1])
             else:
-                step.detail = "checking the repaired draft"
+                step.detail = t("detail.checking_repair")
         elif summary and step.state == "done":
             if summary.rounds == 0:
                 step.state = "skipped"
-                step.detail = f"not needed: {summary.stop_reason}"
+                step.detail = t("detail.not_needed", reason=stop_reason(t, summary.stop_reason))
             else:
-                rounds = "round" if summary.rounds == 1 else "rounds"
-                step.detail = f"{summary.rounds} {rounds}, {summary.stop_reason}"
+                step.detail = t(
+                    "detail.rounds", n=summary.rounds, reason=stop_reason(t, summary.stop_reason)
+                )
                 per_version = ", ".join(
                     f"v{v}: {b}" for v, b in zip(drafts, summary.blocking_findings, strict=False)
                 )
                 if per_version:
-                    step.detail += f". Blocking problems left: {per_version}"
+                    step.detail += t("detail.blocking_left", versions=per_version)
     elif step.key == "review":
         if job.status == "needs_review":
-            step.detail = "ready for your review"
+            step.detail = t("detail.ready")
         elif job.status == "done":
-            step.detail = "review complete"
+            step.detail = t("detail.reviewed")
 
 
 def _note(summary: PipelineSummary | None, word: str) -> str:

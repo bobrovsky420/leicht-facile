@@ -535,6 +535,21 @@ what Apertus did and teal what code did, the same colours as the diagram in §3.
 Styling is one vendored classless stylesheet (water.css, MIT) plus a small
 `app.css` and `app.js`: no CDN, no build step, nothing that breaks air-gapped.
 
+**Interface languages.** The UI speaks English and German; the interface language is
+the reviewer's and independent of the document's, so a German-speaking reviewer can
+check a French draft. Every text lives in one flat JSON catalog per language,
+`web/locales/<code>.json` (keys such as `review.approve`, `{name}` placeholders,
+`.one` / `.other` variants for counts, `_name` for the switcher); `web/i18n.py` loads
+them and provides `t(key, ...)` to the templates and view models. The texts `app.js`
+needs (keys under `js.`) are embedded in each page as JSON, and the script picks
+plural forms and relative times with `Intl`. The language is the choice from the EN /
+DE switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
+`UI_LANG`, else the browser's `Accept-Language`, else English. Adding French or
+Italian means adding `fr.json` or `it.json`: the switcher, the language choice and the
+tests pick it up, and a test fails until the catalog has every English key with the
+same placeholders. Model output and the rule checker's messages are not translated:
+they stay in the language they were produced in.
+
 ### CLI
 
 | Command | Purpose |
@@ -732,7 +747,8 @@ src/leichtfacile/
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, de.py, document.py, layout.py, values.py, lexicon.py,
                           readability.py, styleguide.py, checker.py, nlp.py
-  web/                    app.py, api.py, pages.py, jobs.py, views.py, templates/, static/ (vendored)
+  web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
+                          static/ (vendored), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py
   eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
                           day1.py, cli.py

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ ui_lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,19 +13,29 @@
 <body class="{% block body_class %}{% endblock %}">
 <header class="site">
   <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"></span>Leicht·Facile</a>
-  <span class="tagline">Easy-language drafts of Swiss official texts. Apertus writes, code checks, you decide.</span>
-  <nav class="site-nav" aria-label="Site">
-    <a href="/">New draft</a>
-    <a href="/#drafts">Drafts</a>
+  <span class="tagline">{{ t('site.tagline') }}</span>
+  <nav class="site-nav" aria-label="{{ t('site.nav') }}">
+    <a href="/">{{ t('site.new') }}</a>
+    <a href="/#drafts">{{ t('site.drafts') }}</a>
     <a href="/docs">API</a>
   </nav>
+  {% set languages = ui_languages() %}
+  {% if languages | length > 1 %}
+  <nav class="ui-langs" aria-label="{{ t('site.ui_lang') }}">
+    {% for code, name in languages.items() %}
+      {% if code == ui_lang %}<span class="ui-lang current" lang="{{ code }}" aria-current="true" title="{{ name }}">{{ code | upper }}</span>
+      {% else %}<a class="ui-lang" href="/ui/{{ code }}?next={{ here | urlencode }}" lang="{{ code }}" hreflang="{{ code }}" title="{{ name }}">{{ code | upper }}</a>{% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
 </header>
 <main>
 {% block content %}{% endblock %}
 </main>
 <footer class="site">
-  Leicht·Facile {{ version }}. A drafting assistant for professionals: every draft needs a human review, and a review by readers from the target group before publication.
+  Leicht·Facile {{ version }}. {{ t('site.footer') }}
 </footer>
+<script type="application/json" id="ui-text">{{ t.js() | tojson }}</script>
 <script src="/static/app.js" defer></script>
 </body>
 </html>

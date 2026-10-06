@@ -1,9 +1,9 @@
 {# The progress fragment: included by job.html and polled at /jobs/{id}/progress. #}
-<ol class="steps" aria-label="Pipeline stages">
+<ol class="steps" aria-label="{{ t('progress.steps') }}">
 {% for s in p.steps %}
   <li class="step step-{{ s.state }} who-{{ s.who }}" {% if s.state == 'running' %}aria-current="step"{% endif %}>
     <span class="step-mark" aria-hidden="true"></span>
-    <span class="step-title">{{ s.title }} <span class="who">{{ {'apertus': 'Apertus', 'code': 'code', 'human': 'you'}[s.who] }}</span></span>
+    <span class="step-title">{{ s.title }} <span class="who">{{ t('who.' ~ s.who) }}</span></span>
     <span class="step-desc">{{ s.description }}</span>
     {% if s.detail %}<span class="step-detail">{{ s.detail }}</span>{% endif %}
   </li>
@@ -11,43 +11,43 @@
 </ol>
 
 {% if job.status == "failed" %}
-<p class="error" role="alert">The job failed: {{ job.error }}</p>
-<p>The stages that finished are kept. Run the job again from where it stopped, or from the start.</p>
+<p class="error" role="alert">{{ t('progress.failed', error=job.error) }}</p>
+<p>{{ t('progress.failed_hint') }}</p>
 <form method="post" action="/jobs/{{ job.id }}/rerun" class="inline">
   <input type="hidden" name="stage" value="understand">
-  <button type="submit">Run again from the start</button>
+  <button type="submit">{{ t('progress.rerun') }}</button>
 </form>
 {% elif p.live %}
 <p class="progress-line"><span class="spinner" aria-hidden="true"></span>
-  <span id="stage-text">{% if p.current %}{{ p.current.description }}{% if p.current.detail %} ({{ p.current.detail }}){% endif %}{% else %}Waiting for the worker{% endif %}</span>
-  <span class="hint">{{ duration(p.elapsed_s) }} so far{% if p.tokens %}, {{ p.tokens }} tokens{% endif %}. The page updates by itself.</span></p>
+  <span id="stage-text">{% if p.current %}{{ p.current.description }}{% if p.current.detail %} ({{ p.current.detail }}){% endif %}{% else %}{{ t('progress.waiting') }}{% endif %}</span>
+  <span class="hint">{% if p.tokens %}{{ t('progress.elapsed_tokens', time=duration(p.elapsed_s), tokens=p.tokens) }}{% else %}{{ t('progress.elapsed', time=duration(p.elapsed_s)) }}{% endif %}</span></p>
 {% endif %}
 
 {% if p.factsheet or p.draft %}
 <div class="live-grid">
   {% if p.factsheet %}
   <section class="card live-card">
-    <h2>Fact sheet <span class="chip who-apertus">Apertus</span></h2>
+    <h2>{{ t('progress.factsheet') }} <span class="chip who-apertus">Apertus</span></h2>
     <dl class="core">
     {% for c in p.core %}
       <dt>{{ c.label }}</dt>
-      <dd>{% if c.answer.text %}{{ c.answer.text }}{% else %}<span class="hint">Not answered in the document.</span>{% endif %}</dd>
+      <dd>{% if c.answer.text %}{{ c.answer.text }}{% else %}<span class="hint">{{ t('core.unanswered') }}</span>{% endif %}</dd>
     {% endfor %}
     </dl>
-    <h3>Facts that must survive</h3>
+    <h3>{{ t('progress.must_keep') }}</h3>
     <ul class="fact-list compact">
     {% for f in p.factsheet.facts if f.must_keep %}
-      <li class="fact"><span class="fid">{{ f.id }}</span><span class="kind">{{ f.kind }}</span> {{ f.text }}
+      <li class="fact"><span class="fid">{{ f.id }}</span><span class="kind">{{ t.get('kind.' ~ f.kind, f.kind) }}</span> {{ f.text }}
         {% if f.value_norm %}<span class="value">{{ f.value_norm }}</span>{% endif %}</li>
     {% endfor %}
     </ul>
-    {% if p.factsheet.omit_candidates %}<p class="hint">{{ p.factsheet.omit_candidates | length }} passages marked as background that may be left out.</p>{% endif %}
+    {% if p.factsheet.omit_candidates %}<p class="hint">{{ t('progress.background', n=p.factsheet.omit_candidates | length) }}</p>{% endif %}
   </section>
   {% endif %}
   {% if p.draft %}
   <section class="card live-card">
-    <h2>Draft v{{ p.draft.version }} <span class="chip who-apertus">Apertus</span>
-      {% if p.rules %}<span class="chip who-code">checked by code</span>{% endif %}</h2>
+    <h2>{{ t('draft.version', version=p.draft.version) }} <span class="chip who-apertus">Apertus</span>
+      {% if p.rules %}<span class="chip who-code">{{ t('progress.checked_by_code') }}</span>{% endif %}</h2>
     <div class="draft-preview">
     {% for b in p.draft.blocks %}
       {% set mark = p.block_marks.get(b.id) %}
@@ -56,8 +56,9 @@
     {% endfor %}
     </div>
     {% if p.rules %}
-    <p class="hint">{{ p.rules.findings | selectattr('severity', 'equalto', 'error') | list | length }} errors and
-      {{ p.rules.findings | selectattr('severity', 'equalto', 'warn') | list | length }} warnings in this version; marked blocks have findings.</p>
+    <p class="hint">{{ t('progress.findings',
+        errors=p.rules.findings | selectattr('severity', 'equalto', 'error') | list | length,
+        warns=p.rules.findings | selectattr('severity', 'equalto', 'warn') | list | length) }}</p>
     {% endif %}
   </section>
   {% endif %}
@@ -66,10 +67,10 @@
 
 {% if p.usage %}
 <table class="usage">
-  <thead><tr><th>Stage</th><th>Model calls</th><th>Tokens in</th><th>Tokens out</th><th>Model time</th></tr></thead>
+  <thead><tr><th>{{ t('usage.stage') }}</th><th>{{ t('usage.calls') }}</th><th>{{ t('usage.tokens_in') }}</th><th>{{ t('usage.tokens_out') }}</th><th>{{ t('usage.time') }}</th></tr></thead>
   <tbody>
   {% for u in p.usage %}
-    <tr><td>{{ u.stage }}</td><td>{{ u.calls }}{% if u.cached %} ({{ u.cached }} from cache){% endif %}</td>
+    <tr><td>{{ t.get('step.' ~ u.stage ~ '.title', u.stage) }}</td><td>{{ u.calls }}{% if u.cached %} {{ t('usage.cached', n=u.cached) }}{% endif %}</td>
       <td>{{ u.tokens_in }}</td><td>{{ u.tokens_out }}</td><td>{{ duration(u.seconds) }}</td></tr>
   {% endfor %}
   </tbody>

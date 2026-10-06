@@ -27,6 +27,11 @@ header.site .brand { font-size: 1.4rem; font-weight: bold; color: var(--text-bri
 header.site .tagline { color: var(--text-muted); flex: 1 1 20rem; }
 header.site .site-nav a { margin-left: 1rem; color: var(--text-muted); }
 header.site .site-nav a:hover { color: var(--links); }
+header.site .ui-langs { display: inline-flex; border: 1px solid var(--border); border-radius: .4rem; overflow: hidden; font-size: .8rem; }
+header.site .ui-lang { padding: .1rem .45rem; color: var(--text-muted); text-decoration: none; }
+header.site .ui-lang + .ui-lang { border-left: 1px solid var(--border); }
+header.site a.ui-lang:hover { color: var(--links); background: var(--background-alt); }
+header.site .ui-lang.current { color: var(--text-bright); font-weight: bold; background: var(--background-alt); }
 footer.site { margin-top: 3rem; color: var(--text-muted); font-size: .85rem; }
 
 /* -- shared bits -- */
@@ -55,7 +60,6 @@ button.linklike:hover { color: var(--text-bright); }
 .chip.who-code, .by-rule, .who-code > .who { background: var(--code-bg); color: var(--code); }
 .who-human > .who { background: var(--human-bg); color: var(--human); }
 h2 .chip { font-size: .7rem; font-weight: 600; }
-.status { text-transform: capitalize; }
 .status-failed { background: var(--err-bg); color: var(--err); }
 .status-needs_review { background: var(--warn-bg); color: var(--warn); }
 .status-done { background: var(--ok-bg); color: var(--ok); }
@@ -129,7 +133,7 @@ table.jobs .hint { display: block; font-size: .8rem; }
 .step-skipped .step-mark { border-style: dashed; }
 .step-skipped { opacity: .75; }
 .step-pending { opacity: .6; }
-.step-title { font-weight: 600; font-size: 1rem; display: flex; gap: .4rem; align-items: baseline; }
+.step-title { font-weight: 600; font-size: 1rem; display: flex; flex-wrap: wrap; gap: .1rem .4rem; align-items: baseline; }
 .step-title .who { font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: .02rem .4rem; border-radius: 1rem; }
 .step-desc { color: var(--text-muted); }
 .step-detail { color: var(--text-main); font-size: .85rem; }

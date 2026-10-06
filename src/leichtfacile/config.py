@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     # Runtime
     data_dir: Path = Path("data")
     log_level: str = "INFO"
+    # Interface language for visitors who have not picked one: a code with a catalog in
+    # web/locales/ (en, de), or "auto" for the browser's preference. The switcher in the
+    # header overrides it per browser.
+    ui_lang: str = "auto"
 
     @model_validator(mode="after")
     def _default_judge(self) -> Settings:

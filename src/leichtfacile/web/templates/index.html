@@ -1,119 +1,120 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="hero">
-  <h1>Turn an official text into easy language</h1>
-  <p class="lede">Paste a letter, give a web address, or upload a PDF. Apertus, the Swiss open model,
-  reads it and writes a draft in Leichte Sprache or FALC. Code checks the rules and every deadline,
-  amount and phone number. You review and export.</p>
+  <h1>{{ t('index.title') }}</h1>
+  <p class="lede">{{ t('index.lede') }}</p>
   <ol class="how">
-    <li class="who-apertus"><span class="who">Apertus</span><strong>Reads and writes</strong>
-      <span>A fact sheet with every value first, then the draft. Every sentence links back to its source.</span></li>
-    <li class="who-code"><span class="who">Code</span><strong>Checks</strong>
-      <span>{{ rule_count }} rules from the Swiss guidelines, in milliseconds. No fact may get lost.</span></li>
-    <li class="who-apertus"><span class="who">Apertus</span><strong>Judges and repairs</strong>
-      <span>A second model checks the meaning. Only the flagged blocks are rewritten.</span></li>
-    <li class="who-human"><span class="who">You</span><strong>Review and export</strong>
-      <span>Approve, edit or reject each block. Markdown, HTML, or the JSON audit trail.</span></li>
+    <li class="who-apertus"><span class="who">Apertus</span><strong>{{ t('index.how.write') }}</strong>
+      <span>{{ t('index.how.write_text') }}</span></li>
+    <li class="who-code"><span class="who">{{ t('who.code_title') }}</span><strong>{{ t('index.how.check') }}</strong>
+      <span>{{ t('index.how.check_text', count=rule_count) }}</span></li>
+    <li class="who-apertus"><span class="who">Apertus</span><strong>{{ t('index.how.judge') }}</strong>
+      <span>{{ t('index.how.judge_text') }}</span></li>
+    <li class="who-human"><span class="who">{{ t('who.human_title') }}</span><strong>{{ t('index.how.review') }}</strong>
+      <span>{{ t('index.how.review_text') }}</span></li>
   </ol>
 </section>
 
 <form method="post" action="/jobs" enctype="multipart/form-data" class="new-job card" id="new-job">
-  <h2>New draft</h2>
+  <h2>{{ t('index.new') }}</h2>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
-  <div class="tabs" role="tablist" aria-label="Where the document comes from">
-    <button type="button" role="tab" class="tab" data-tab="text" aria-selected="true" id="tab-text" aria-controls="panel-text">Paste text</button>
-    <button type="button" role="tab" class="tab" data-tab="url" aria-selected="false" id="tab-url" aria-controls="panel-url">Web address</button>
-    <button type="button" role="tab" class="tab" data-tab="file" aria-selected="false" id="tab-file" aria-controls="panel-file">Upload a file</button>
+  <div class="tabs" role="tablist" aria-label="{{ t('index.source') }}">
+    <button type="button" role="tab" class="tab" data-tab="text" aria-selected="true" id="tab-text" aria-controls="panel-text">{{ t('index.tab.text') }}</button>
+    <button type="button" role="tab" class="tab" data-tab="url" aria-selected="false" id="tab-url" aria-controls="panel-url">{{ t('index.tab.url') }}</button>
+    <button type="button" role="tab" class="tab" data-tab="file" aria-selected="false" id="tab-file" aria-controls="panel-file">{{ t('index.tab.file') }}</button>
   </div>
 
   <div class="tab-panel active" data-panel="text" id="panel-text" role="tabpanel" aria-labelledby="tab-text">
-    <label for="text" class="visually-hidden">Pasted text</label>
-    <textarea id="text" name="text" rows="9" placeholder="Paste the official text here, headings and all.">{{ form.text or "" }}</textarea>
+    <label for="text" class="visually-hidden">{{ t('index.text.label') }}</label>
+    <textarea id="text" name="text" rows="9" placeholder="{{ t('index.text.placeholder') }}">{{ form.text or "" }}</textarea>
     {% if examples %}
-    <p class="examples">Try an example:
-      {% for e in examples %}<button type="button" class="linklike" data-example="{{ e.id }}">{{ e.title }}</button>{% if not loop.last %} <span class="sep">or</span> {% endif %}{% endfor %}
+    <p class="examples">{{ t('index.examples') }}
+      {% for e in examples %}<button type="button" class="linklike" data-example="{{ e.id }}">{{ e.title }}</button>{% if not loop.last %} <span class="sep">{{ t('index.or') }}</span> {% endif %}{% endfor %}
     </p>
     {% endif %}
   </div>
   <div class="tab-panel" data-panel="url" id="panel-url" role="tabpanel" aria-labelledby="tab-url">
-    <label for="url">Address of a public web page</label>
+    <label for="url">{{ t('index.url.label') }}</label>
     <input id="url" name="url" type="url" placeholder="https://www.zh.ch/de/..." value="{{ form.url or '' }}">
-    <p class="hint">The page's main text is extracted; navigation and footers are dropped.</p>
+    <p class="hint">{{ t('index.url.hint') }}</p>
   </div>
   <div class="tab-panel" data-panel="file" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
-    <label for="file">PDF with a text layer, HTML or plain text, up to 15 MB</label>
+    <label for="file">{{ t('index.file.label') }}</label>
     <input id="file" name="file" type="file" accept=".pdf,.html,.htm,.txt,.md">
   </div>
 
   <div class="options">
-    <label for="lang">Language
+    <label for="lang">{{ t('index.lang') }}
       <select id="lang" name="lang">
-        <option value="auto" {% if not form.lang or form.lang == 'auto' %}selected{% endif %}>Detect</option>
-        <option value="de" {% if form.lang == 'de' %}selected{% endif %}>German</option>
-        <option value="fr" {% if form.lang == 'fr' %}selected{% endif %}>French</option>
-        <option value="it" disabled>Italian (follows)</option>
+        <option value="auto" {% if not form.lang or form.lang == 'auto' %}selected{% endif %}>{{ t('index.lang.auto') }}</option>
+        {% for code in doc_langs %}
+        <option value="{{ code }}" {% if form.lang == code %}selected{% endif %}>{{ t('lang.' ~ code) }}</option>
+        {% endfor %}
+        {% for code in coming_langs %}
+        <option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t('lang.' ~ code)) }}</option>
+        {% endfor %}
       </select>
     </label>
-    <label for="level">Level
+    <label for="level">{{ t('index.level') }}
       <select id="level" name="level">
-        <option value="A2" {% if form.level != 'B1' %}selected{% endif %}>A2: Leichte Sprache, FALC</option>
-        <option value="B1" {% if form.level == 'B1' %}selected{% endif %}>B1: Einfache Sprache, langage clair</option>
+        <option value="A2" {% if form.level != 'B1' %}selected{% endif %}>{{ t('level.A2') }}</option>
+        <option value="B1" {% if form.level == 'B1' %}selected{% endif %}>{{ t('level.B1') }}</option>
       </select>
     </label>
-    <label for="condition">Pipeline
+    <label for="condition">{{ t('index.condition') }}
       <select id="condition" name="condition">
-        <option value="C2" {% if form.condition not in ('C0', 'C1') %}selected{% endif %}>Full: fact sheet, draft, rule check, judge, repair</option>
-        <option value="C1" {% if form.condition == 'C1' %}selected{% endif %}>Without judge and repair</option>
-        <option value="C0" {% if form.condition == 'C0' %}selected{% endif %}>Baseline: one prompt, for comparison</option>
+        <option value="C2" {% if form.condition not in ('C0', 'C1') %}selected{% endif %}>{{ t('index.condition.C2') }}</option>
+        <option value="C1" {% if form.condition == 'C1' %}selected{% endif %}>{{ t('index.condition.C1') }}</option>
+        <option value="C0" {% if form.condition == 'C0' %}selected{% endif %}>{{ t('index.condition.C0') }}</option>
       </select>
     </label>
-    <label for="title">Title (optional)
-      <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="Shown in the list of drafts">
+    <label for="title">{{ t('index.title_field') }}
+      <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
     </label>
   </div>
 
   <details class="advanced">
-    <summary>Models</summary>
+    <summary>{{ t('index.models') }}</summary>
     <div class="options">
-      <label for="writer_model">Writer
+      <label for="writer_model">{{ t('index.models.writer') }}
         <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm_name }}">
       </label>
-      <label for="judge_model">Judge
+      <label for="judge_model">{{ t('index.models.judge') }}
         <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.judge_name }}">
       </label>
     </div>
-    <p class="hint">Leave empty for the configured models. Any model name the endpoint lists works.</p>
+    <p class="hint">{{ t('index.models.hint') }}</p>
   </details>
 
   <div class="submit-row">
-    <button type="submit" class="primary">Create draft</button>
-    <span id="endpoint-status" class="hint" data-url="/healthz" aria-live="polite">Endpoint: <code>{{ settings.llm_name }}</code></span>
+    <button type="submit" class="primary">{{ t('index.submit') }}</button>
+    <span id="endpoint-status" class="hint" data-url="/healthz" aria-live="polite">{{ t('index.endpoint') }} <code>{{ settings.llm_name }}</code></span>
   </div>
 </form>
 {% if examples %}<script type="application/json" id="example-texts">{{ examples | tojson }}</script>{% endif %}
 
 <section id="drafts" class="drafts">
-  <h2>Drafts</h2>
+  <h2>{{ t('site.drafts') }}</h2>
   {% if jobs %}
   <table class="jobs">
-    <thead><tr><th>Document</th><th>Language</th><th>Level</th><th>Pipeline</th><th>Status</th><th>Created</th></tr></thead>
+    <thead><tr><th>{{ t('jobs.document') }}</th><th>{{ t('index.lang') }}</th><th>{{ t('index.level') }}</th><th>{{ t('index.condition') }}</th><th>{{ t('jobs.status') }}</th><th>{{ t('jobs.created') }}</th></tr></thead>
     <tbody>
     {% for j in jobs %}
       <tr>
         <td><a href="/jobs/{{ j.id }}">{{ j.title or j.id }}</a></td>
-        <td>{{ lang_names.get(j.config.lang, j.config.lang or '') }}</td>
+        <td>{{ t.get('lang.' ~ j.config.lang, j.config.lang or '') }}</td>
         <td>{{ j.config.level }}</td>
-        <td><span title="{{ condition_labels.get(j.config.condition, '') }}">{{ j.config.condition }}</span></td>
-        <td><span class="chip status status-{{ j.status }}">{{ j.status | replace('_', ' ') }}</span>
-          {% if j.status == 'running' and j.stage %}<span class="hint">{{ j.stage }}</span>{% endif %}</td>
+        <td><span title="{{ t.get('condition.' ~ j.config.condition, '') }}">{{ j.config.condition }}</span></td>
+        <td><span class="chip status status-{{ j.status }}">{{ t('status.' ~ j.status) }}</span>
+          {% if j.status == 'running' and j.stage %}<span class="hint">{{ t.get('step.' ~ j.stage.split(' ')[0] ~ '.title', j.stage) }}</span>{% endif %}</td>
         <td><time datetime="{{ j.created_at.isoformat() }}" data-relative>{{ j.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</time></td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <p class="hint">No drafts yet. Try one of the examples above.</p>
+  <p class="hint">{{ t('jobs.none') }}</p>
   {% endif %}
 </section>
 {% endblock %}
