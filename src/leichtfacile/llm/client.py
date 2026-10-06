@@ -64,6 +64,7 @@ class LLMResult:
     reasoning: str | None
     finish_reason: str | None
     usage: Usage
+    cache_key: str | None = None  # set when a response cache is on (see `forget`)
 
     @property
     def truncated(self) -> bool:
@@ -155,7 +156,9 @@ class LLMClient:
             if hit is not None:
                 usage = Usage(stage, name, hit["tokens_in"], hit["tokens_out"], 0, cached=True)
                 self._record(usage)
-                return LLMResult(hit["text"], hit["reasoning"], hit["finish_reason"], usage)
+                return LLMResult(
+                    hit["text"], hit["reasoning"], hit["finish_reason"], usage, cache_key=key
+                )
 
         started = time.perf_counter()
         reply = self._create_with_retries(name, messages, params, stage)
@@ -174,7 +177,7 @@ class LLMClient:
                 max_tokens,
             )
 
-        result = LLMResult(answer, reasoning, reply.finish_reason, usage)
+        result = LLMResult(answer, reasoning, reply.finish_reason, usage, cache_key=key)
         if self._cache and key:
             self._cache.put(
                 key,
@@ -188,6 +191,13 @@ class LLMClient:
                 },
             )
         return result
+
+    def forget(self, result: LLMResult) -> None:
+        """Drop a response from the cache: an answer that could not be used (no valid
+        JSON, a copy of the prompt's example) must not be served again on a rerun; the
+        evaluation reruns failed pairs with the cache on."""
+        if self._cache and result.cache_key:
+            self._cache.delete(result.cache_key)
 
     def list_models(self, timeout_s: float = 10.0) -> list[str]:
         page = self._client.with_options(timeout=timeout_s).models.list()

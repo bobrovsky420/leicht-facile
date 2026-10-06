@@ -7,8 +7,8 @@ Regeln für die Verbesserung:
 - Für jeden Block schreiben Sie einen neuen Text. Sie dürfen einen Block in 2 oder 3 kurze Sätze teilen. Dann schreiben Sie mehrere Texte.
 - Lösen Sie jedes genannte Problem. Ein Vorschlag nach "Vorschlag:" ist meistens richtig.
 - Behalten Sie alle Werte genau: Fristen, Beträge, Telefonnummern, Adressen.
-- Schreiben Sie nichts, was nicht im Original steht.
-{% if missing %}- Einige Tatsachen fehlen im Text. Das ist das Wichtigste: Schreiben Sie für jede fehlende Tatsache 1 oder 2 neue Sätze in "additions", mit genau dem Wert aus dem Faktenblatt. Sagen Sie, nach welchem Block sie kommen ("after"), und nennen Sie die Tatsache in "fact_ids".
+- Schreiben Sie nichts, was nicht im Original steht. Jeder Wert in Ihrer Antwort (Datum, Betrag, Telefonnummer, E-Mail-Adresse, Internet-Adresse, Prozent, Uhrzeit) steht im Faktenblatt oder in den Sätzen des Originals unten. Die Werte im Beispiel der Form unten (30. April 2026, 031 987 65 43) gehören zu einem anderen Dokument: Verwenden Sie sie nie.
+{% if missing %}- Einige Tatsachen fehlen im Text. Das ist das Wichtigste: Schreiben Sie für jede fehlende Tatsache 1 oder 2 neue Sätze in "additions", mit genau dem Wert, der bei der Tatsache steht. Hat die Tatsache keinen Wert, erfinden Sie keinen. Sagen Sie, nach welchem Block sie kommen ("after"), und nennen Sie die Tatsache in "fact_ids".
 - Ändern Sie Blöcke nur, wenn sie oben unter "Die Blöcke, die Sie verbessern" stehen.
 {% endif %}
 Antworten Sie nur mit einem JSON-Objekt, ohne anderen Text. Die Form sieht so aus (die Werte sind nur ein Beispiel):

@@ -58,6 +58,11 @@ class ResponseCache:
             )
             self._conn.commit()
 
+    def delete(self, key: str) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
+            self._conn.commit()
+
     def close(self) -> None:
         with self._lock:
             self._conn.close()

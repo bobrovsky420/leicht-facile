@@ -183,3 +183,41 @@ def test_extract_json_closes_the_object_a_model_forgot_to_close():
         "core": {"note": 'say "facts": here'},
         "facts": [],
     }
+
+
+def test_complete_json_soft_check_never_fails_the_call(endpoint, make_client):
+    def soft(sheet):
+        return "nicht das Jahr 2027"
+
+    # An invalid first answer, then a valid one the soft check dislikes: it is used.
+    endpoint.push(chat_response("nichts"), chat_response(VALID))
+    sheet, results = complete_json(
+        make_client(), [{"role": "user", "content": "x"}], FactSheet, soft_check=soft
+    )
+    assert sheet.facts[0].value == "2027-03-31" and len(results) == 2
+    # A valid first answer the soft check dislikes, then an invalid one: the first is used.
+    endpoint.push(chat_response(VALID), chat_response("nichts"))
+    sheet, results = complete_json(
+        make_client(), [{"role": "user", "content": "x"}], FactSheet, soft_check=soft
+    )
+    assert sheet.facts[0].value == "2027-03-31" and len(results) == 2
+    assert "nicht das Jahr 2027" in endpoint.chat_bodies()[-1]["messages"][-1]["content"]
+
+
+def test_an_unusable_answer_leaves_the_cache(endpoint, make_client, tmp_path):
+    from leichtfacile.llm.cache import ResponseCache
+
+    cache = ResponseCache(tmp_path / "cache.sqlite")
+    client = make_client(cache=cache)
+    messages = [{"role": "user", "content": "x"}]
+    endpoint.push(chat_response("nichts"), chat_response(VALID))
+    sheet, results = complete_json(client, messages, FactSheet)
+    assert len(results) == 2
+    # The same call again: the invalid first answer was dropped, so the model is asked.
+    endpoint.push(chat_response(VALID))
+    sheet, results = complete_json(client, messages, FactSheet)
+    assert len(results) == 1 and results[0].usage.cached is False
+    # A usable answer stays cached.
+    sheet, results = complete_json(client, messages, FactSheet)
+    assert len(results) == 1 and results[0].usage.cached is True
+    cache.close()

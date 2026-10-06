@@ -260,19 +260,68 @@ class ForeignValue:
     suggestion: str | None = None  # the source's only contact of that kind, if it has one
 
 
-def _supported(value: Value, source_values: list[Value], fact_values: list[Value]) -> bool:
-    if any(matches(value, v) for v in source_values) or any(matches(value, v) for v in fact_values):
-        return True
-    if value.kind == "url":
-        # A shortened address that leads to the right site: zh.ch for www.zh.ch/soziales.
-        prefix = value.canonical + "/"
-        return any(v.kind == "url" and v.canonical.startswith(prefix) for v in source_values)
-    if value.kind == "time" and value.canonical.endswith(":00"):
-        # "8 Uhr bis 12 Uhr" for a source that says "8-12 Uhr": there the first hour is
-        # a plain number.
-        hour = str(int(value.canonical[:2]))
-        return any(v.kind == "number" and v.canonical == hour for v in source_values)
-    return False
+@dataclass
+class KnownValues:
+    """The values a draft may contain: those of the source and of the fact sheet.
+
+    The fact sheet's normalised values count as supported so that FACT-01 (the value
+    must be there) and FACT-06 cannot contradict each other; a fact-sheet value that is
+    not in the source is FACT-05's finding."""
+
+    lang: str
+    source_values: list[Value]
+    fact_values: list[Value]
+    candidates: dict[str, set[str]]  # kind -> canonical source values of that kind
+
+    @classmethod
+    def of(cls, source: SourceDocument, factsheet: FactSheet | None, lang: str) -> KnownValues:
+        source_values = [
+            v for part in (source.title, source.text()) if part for v in extract_values(part, lang)
+        ]
+        fact_values: list[Value] = []
+        if factsheet:
+            for fact in factsheet.facts:
+                target = parse_value_norm(fact.value_norm, fact.kind, lang)
+                if target is not None:
+                    fact_values.append(target)
+        candidates: dict[str, set[str]] = defaultdict(set)
+        for v in source_values:
+            if v.kind in HARD_KINDS:
+                candidates[v.kind].add(v.canonical)
+        return cls(lang, source_values, fact_values, candidates)
+
+    def supports(self, value: Value) -> bool:
+        if any(matches(value, v) for v in self.source_values):
+            return True
+        if any(matches(value, v) for v in self.fact_values):
+            return True
+        if value.kind == "url":
+            # A shortened address that leads to the right site: zh.ch for www.zh.ch/soziales.
+            prefix = value.canonical + "/"
+            return any(
+                v.kind == "url" and v.canonical.startswith(prefix) for v in self.source_values
+            )
+        if value.kind == "time" and value.canonical.endswith(":00"):
+            # "8 Uhr bis 12 Uhr" for a source that says "8-12 Uhr": there the first hour
+            # is a plain number.
+            hour = str(int(value.canonical[:2]))
+            return any(v.kind == "number" and v.canonical == hour for v in self.source_values)
+        return False
+
+    def foreign(self, text: str) -> list[Value]:
+        """The hard values of a text that neither the source nor the fact sheet has."""
+        return [
+            v
+            for v in extract_values(text, self.lang)
+            if v.kind in HARD_KINDS and not self.supports(v)
+        ]
+
+    def suggestion(self, value: Value) -> str | None:
+        """The source's only contact of the value's kind, if it has exactly one."""
+        if value.kind in SUGGESTED_KINDS and len(self.candidates[value.kind]) == 1:
+            (only,) = self.candidates[value.kind]
+            return display_value(Value(value.kind, only), self.lang)
+        return None
 
 
 def foreign_values(
@@ -280,34 +329,13 @@ def foreign_values(
 ) -> list[ForeignValue]:
     """FACT-06: the dates, amounts, phone numbers, e-mail and web addresses, percentages
     and times in the draft that neither the source nor the fact sheet contains, in
-    draft order. Plain numbers are not checked: "zwei Wochen" may become "14 Tage".
-
-    The fact sheet's normalised values count as supported so that FACT-01 (the value
-    must be there) and FACT-06 cannot contradict each other; a fact-sheet value that is
-    not in the source is FACT-05's finding."""
-    source_text = "\n".join(t for t in (source.title, source.text()) if t)
-    source_values = extract_values(source_text, lang)
-    fact_values: list[Value] = []
-    if factsheet:
-        for fact in factsheet.facts:
-            target = parse_value_norm(fact.value_norm, fact.kind, lang)
-            if target is not None:
-                fact_values.append(target)
-    candidates: dict[str, set[str]] = defaultdict(set)  # kind -> canonical source values
-    for v in source_values:
-        if v.kind in HARD_KINDS:
-            candidates[v.kind].add(v.canonical)
-    out: list[ForeignValue] = []
-    for block in draft.blocks:
-        for value in extract_values(block.text, lang):
-            if value.kind not in HARD_KINDS or _supported(value, source_values, fact_values):
-                continue
-            suggestion = None
-            if value.kind in SUGGESTED_KINDS and len(candidates[value.kind]) == 1:
-                (only,) = candidates[value.kind]
-                suggestion = display_value(Value(value.kind, only), lang)
-            out.append(ForeignValue(block.id, value, suggestion))
-    return out
+    draft order. Plain numbers are not checked: "zwei Wochen" may become "14 Tage"."""
+    known = KnownValues.of(source, factsheet, lang)
+    return [
+        ForeignValue(block.id, value, known.suggestion(value))
+        for block in draft.blocks
+        for value in known.foreign(block.text)
+    ]
 
 
 @rule(

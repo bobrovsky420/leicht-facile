@@ -34,6 +34,9 @@ LABELS: dict[str, dict[str, str]] = {
         "copied_example": "Die Antwort enthält {count} Sätze aus dem Beispiel in der Anleitung "
         "(Hunde·steuer). Das Beispiel zeigt nur die Form. Schreiben Sie über das Dokument "
         "unten, mit seinen Tatsachen und Satznummern.",
+        "foreign_values": "Die Antwort enthält Werte, die nicht im Dokument stehen: {values}. "
+        "Jeder Wert muss aus dem Faktenblatt oder aus den Sätzen des Originals kommen. "
+        "Schreiben Sie diese Sätze ohne den fremden Wert, oder lassen Sie sie weg.",
     },
     "fr": {
         "core_what": "De quoi s'agit-il ?",
@@ -63,6 +66,9 @@ LABELS: dict[str, dict[str, str]] = {
         "copied_example": "La réponse contient {count} phrases de l'exemple dans les "
         "instructions (taxe des chiens). L'exemple montre seulement la forme. Écrivez sur le "
         "document plus bas, avec ses faits et ses numéros de phrases.",
+        "foreign_values": "La réponse contient des valeurs qui ne sont pas dans le document : "
+        "{values}. Chaque valeur doit venir de la fiche de faits ou des phrases de "
+        "l'original. Écrivez ces phrases sans la valeur étrangère, ou laissez-les de côté.",
     },
 }
 

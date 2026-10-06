@@ -272,7 +272,9 @@ time, the most important kinds first; the warnings get one round once nothing bl
 is left. Code drops a repaired or added sentence that repeats one already in the draft,
 also when an addition lands before the block it repeats. The judge's meaning findings
 on headings are not sent for repair: a small model turns the question heading into a
-statement.
+statement. A repair answer with a value that neither the source nor the fact sheet
+contains (the check of FACT-06) is sent back once with the values named; the second
+answer is used as it is, and FACT-06 flags what remains.
 Then:
 
 - rule checks rerun on the new version;
@@ -458,6 +460,8 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
 - **Cache.** Responses are cached by hash of (model, messages, parameters) in SQLite
   when `LLM_CACHE=1`. It speeds up development and makes evaluation reruns cheap. The
   repository ships with an empty cache: the live run must work from the endpoint.
+  An answer that cannot be used (no valid JSON, a copy of the example) is dropped
+  from the cache again, so a rerun of a failed pair asks the model.
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`, which
   is needed to see the reasoning markers) also print `<|assistant_end|>`; every
   `<|...|>` token is removed from answers.

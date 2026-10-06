@@ -24,6 +24,7 @@ from leichtfacile.pipeline.models import (
     clean_text,
 )
 from leichtfacile.pipeline.prompts import examples, level_name, render
+from leichtfacile.rules.document import KnownValues
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.rules.values import HARD_KINDS, Value, extract_values, matches, parse_value_norm
@@ -75,7 +76,15 @@ SECTION_WORDS = 1500
 JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05"}
 
 
-def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None, check=None):
+def _call(
+    llm: LLMClient,
+    stage: str,
+    prompt: str,
+    schema,
+    model: str | None,
+    check=None,
+    soft_check=None,
+):
     """Call the model for a stage. When the reasoning of a thinking call runs out of
     tokens before the answer, the stage is answered once more without thinking."""
     s = STAGES[stage]
@@ -87,6 +96,7 @@ def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None, ch
             messages,
             schema,
             check=check,
+            soft_check=soft_check,
             model=model,
             thinking=thinking,
             temperature=s.temperature,
@@ -102,6 +112,7 @@ def _call(llm: LLMClient, stage: str, prompt: str, schema, model: str | None, ch
             messages,
             schema,
             check=check,
+            soft_check=soft_check,
             model=model,
             thinking=False,
             temperature=s.temperature,
@@ -181,6 +192,27 @@ def _repair_texts(out: RepairOut) -> list[str]:
     return [t for item in out.repairs for t in item.texts] + [
         t for add in out.additions for t in add.texts
     ]
+
+
+def _foreign_check(lang: str, known: KnownValues, texts_of):
+    """A `check` for complete_json: an answer with a date, amount, phone number, e-mail
+    or web address, percentage or time that neither the source nor the fact sheet
+    contains (the check of rule FACT-06) is sent back with the values named. Used as a
+    soft check, so the stage never fails because of it. On the Public AI 8B the repair
+    additions carried the examples' phone number into 8 of 12 dev drafts (6 October
+    2026)."""
+
+    def check(out) -> str | None:
+        seen: dict[str, None] = {}
+        for text in texts_of(out):
+            for value in known.foreign(text):
+                seen.setdefault(value.text, None)
+        if not seen:
+            return None
+        log.warning("the answer has values not in the document: %s", ", ".join(seen))
+        return label(lang, "foreign_values", values=", ".join(seen))
+
+    return check
 
 
 # -- understand -----------------------------------------------------------------------
@@ -568,8 +600,15 @@ def repair(
         draft=r.draft_lines(draft, refs=False, marked=set(request.problems)),
         source=r.cited_source(source, cited),
     )
+    known = KnownValues.of(source, factsheet, lang)
     out, results = _call(
-        llm, "repair", prompt, RepairOut, model, check=_copy_check(lang, "repair", _repair_texts)
+        llm,
+        "repair",
+        prompt,
+        RepairOut,
+        model,
+        check=_copy_check(lang, "repair", _repair_texts),
+        soft_check=_foreign_check(lang, known, _repair_texts),
     )
     return apply_repairs(draft, out, request, factsheet), results
 

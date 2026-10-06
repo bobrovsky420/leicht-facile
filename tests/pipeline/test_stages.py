@@ -350,3 +350,36 @@ def test_a_draft_that_copies_the_example_is_sent_back_once(endpoint, sleeps) -> 
     endpoint.push(chat_response(fx.as_json(fx.WRITE)))
     draft, results = write(llm, fx.letter(), fs, level="A2")
     assert len(results) == 1
+
+
+def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, sleeps) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import RepairRequest, repair
+    from leichtfacile.schemas import Block, Draft
+    from tests.conftest import chat_response, make_settings
+
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Sie können das Amt anrufen.",
+              segment_ids=["s0005"]),
+    ])  # fmt: skip
+    request = RepairRequest({"b001": ["  - SEM-03: Welches Amt?"]}, [])
+    leaked = {
+        "repairs": [{"id": "b001", "texts": ["Rufen Sie das Amt an: 031 987 65 43."]}],
+        "additions": [],
+    }  # the phone number of the prompt's own example
+    fixed = {
+        "repairs": [{"id": "b001", "texts": ["Rufen Sie das Amt an: 044 123 45 67."]}],
+        "additions": [],
+    }
+    endpoint.push(chat_response(fx.as_json(leaked)), chat_response(fx.as_json(fixed)))
+    new_draft, results = repair(llm, fx.letter(), fs, draft, request)
+    assert len(results) == 2
+    feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
+    assert "031 987 65 43" in feedback and "nicht im Dokument" in feedback
+    assert new_draft.blocks[0].text.endswith("044 123 45 67.")
+    # The second answer is used as it is: FACT-06 flags what remains.
+    endpoint.push(chat_response(fx.as_json(leaked)), chat_response(fx.as_json(leaked)))
+    new_draft, results = repair(llm, fx.letter(), fs, draft, request)
+    assert len(results) == 2 and "031 987 65 43" in new_draft.blocks[0].text

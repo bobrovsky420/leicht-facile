@@ -54,6 +54,18 @@ thinking.
   recognises it (`stages.example_keys`: the sentences of the rendered prompt without
   its document, normalised) and sends it back once with a message in the document's
   language; a second copy fails the stage. Understand, write and repair are checked.
+- **Values not in the document.** A repair answer with a date, amount, phone number,
+  e-mail address, web address, percentage or time that neither the source nor the
+  fact sheet contains (the check of rule FACT-06) is sent back once with the values
+  named, in the document's language. The second answer is used as it is, and when it
+  is not valid JSON the first one is: the guard never fails a round. What remains is
+  FACT-06's finding and the next round's problem. The write stage is not
+  checked this way: a second write call is long, and FACT-06 plus a repair round do
+  the same job.
+- **Response cache.** An answer that cannot be used (no valid JSON, a copy of the
+  example) is dropped from the response cache, so a rerun of a failed pair asks the
+  model again instead of replaying the same unusable answer; the evaluation reruns
+  failed pairs with the cache on.
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`) also
   print `<|assistant_end|>`; the client strips every `<|...|>` token from answers.
 
@@ -181,6 +193,39 @@ evaluation; the style gap is the repair loop's job. Two slips of the thinking 8B
 a missing comma after a list and an object never closed before the next top-level key;
 both are repaired in code now (`llm/json_out.py`).
 
+### Repair guard: C2 on the dev pairs on CSCS (6 October 2026, late)
+
+The 12 dev pairs again, C2 with thinking for Understand and the judge, repair prompt
+version 6 and the guard against values the document does not contain; the LLM cache
+was on, so the pairs already run on CSCS reused their fact sheets, drafts and judge
+reports and only the repair rounds ran fresh.
+
+- 11 of 12 pairs reached review. `be-pregnancy-counselling-de` failed three times in
+  Understand on three different JSON slips of the thinking 8B (no JSON object at all,
+  five validation errors, a missing comma), a fresh answer each time once unusable
+  answers left the cache; it is the next candidate for the parser repairs.
+- The guard fired 10 times in 33 repair calls, every time on values from the prompt's
+  examples (`031 987 65 43`, `032 987 65 43`, `120`, `30. April 2026`, `8 h 00`,
+  `11 h 30`) or on a value the model computed (`360`). Whenever the first answer was
+  sent back, the second one was clean. One repair addition still carried an example
+  value into a final draft: its first answer was invalid JSON and the second, with the
+  value, was used (the guard never fails a round).
+- 8 foreign values remain in 3 of the 11 final drafts: 6 come from the write stage,
+  which the guard does not check (`sg-el-costs-de`: dog-tax sentences in paraphrase,
+  only 2 of 12 sentences verbatim and so below the copy guard's threshold;
+  `bwl-emergency-supplies-fr`: the example's contact block), 2 from the fallback above.
+- German means over the 9 completed pairs: fact coverage 61 percent, hard facts kept
+  61 percent, invented values 2.1 per 100 blocks (all in `sg-el-costs-de`), rule errors
+  2.8 per 100 blocks, 1.9 repair rounds, 82 seconds per job. The judge's numbers are
+  not comparable with the gateway run: the thinking judge reports 10.7 unsupported
+  blocks per 100 against 3.7 without thinking.
+
+The remaining leak is the write stage's paraphrased example content. Two candidate
+fixes: the copy guard also counts sentences with the examples' topic words (`Hund`,
+`Hunde·steuer`, `Impfausweis`, `contrôle des habitants`) that the source does not
+contain, or the write stage gets the same soft check for foreign values at the price of
+a second write call when it fires.
+
 ## Change log
 
 | Version | Date | Change |
@@ -191,3 +236,4 @@ both are repaired in code now (`llm/json_out.py`).
 | 3 | 2026-10-06 | All examples (few-shot pairs and the JSON examples of every prompt) moved to topics that are not in the evaluation set: a resident parking permit and a dog tax. The repair prompt makes adding the missing facts the first task, each with its value and fact id. Code: a repair round first asks only for the blocking problems (rule errors, missing facts, the judge's problems), at most 5 missing facts at a time, the most important kinds first; the warnings get one round once nothing blocking is left. |
 | 4 | 2026-10-06 | French templates for all five stages, with French JSON examples and two French few-shot pairs on the same topics as the German ones. The words code writes around the items come from a table per language (`pipeline/labels.py`). No change to the German templates. |
 | 5 | 2026-10-06 | Write prompt (German and French): the JSON form moved before the style examples, its intro says the values come from another document; the document comes last, followed by the instruction to write about it. Reason: on the Public AI 8B without thinking, 4 of 12 dev drafts were the JSON form itself. Code: an answer that copies the examples is sent back once; the omissions or glossary list written as a pseudo-block inside blocks is hoisted. No change to the other templates. |
+| 6 | 2026-10-06 | Repair prompt (German and French): every value in the answer comes from the fact sheet or the original's sentences, the values of the JSON form belong to another document, and no value is invented for a fact without one. Code: a repair answer with a value that neither the source nor the fact sheet contains is sent back once with the values named (the check of rule FACT-06); the second answer is used as it is. Reason: the examples' phone number stood in 8 of 12 dev drafts, put there by repair additions. No change to the other templates. |

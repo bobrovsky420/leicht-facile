@@ -186,20 +186,27 @@ def complete_json[T: BaseModel](
     *,
     max_repairs: int = 1,
     check: Callable[[T], str | None] | None = None,
+    soft_check: Callable[[T], str | None] | None = None,
     **kwargs: Any,
 ) -> tuple[T, list[LLMResult]]:
     """Call the model and return a validated instance of `schema` plus all raw results.
 
     `check` looks at an answer that validated and returns a message when it still cannot
     be used (an answer that copies the prompt's own example); the message goes back to
-    the model like a validation error.
+    the model like a validation error. `soft_check` works the same way for an answer
+    that could be used but should be better (a value the document does not contain):
+    it is consulted only while a repair attempt is left, and when nothing better comes
+    back, the answer it complained about is returned. It never fails the call.
     """
     conversation = list(messages)
     results: list[LLMResult] = []
+    fallback: T | None = None  # the answer a soft check sent back
     for attempt in range(max_repairs + 1):
         result = client.complete(conversation, **kwargs)
         results.append(result)
         if result.truncated:
+            if fallback is not None:
+                return fallback, results
             # A cut-off answer still contains complete inner objects that would parse;
             # it is never used, and asking again for the same answer does not help.
             raise LLMOutputError(
@@ -211,11 +218,20 @@ def complete_json[T: BaseModel](
         except (JSONExtractionError, ValidationError) as exc:
             cause = exc
             error: str | None = str(exc)[:_MAX_ERROR_CHARS]
+            client.forget(result)
         else:
             error = check(out) if check else None
+            if error is not None:
+                client.forget(result)
+            if error is None and soft_check is not None and attempt < max_repairs:
+                error = soft_check(out)
+                if error is not None:
+                    fallback = out
             if error is None:
                 return out, results
         if attempt == max_repairs:
+            if fallback is not None:
+                return fallback, results
             raise LLMOutputError(
                 f"model output did not validate as {schema.__name__}: {error}", results
             ) from cause
