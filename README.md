@@ -1,5 +1,7 @@
 # Leicht·Facile
 
+[![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
+
 Leicht·Facile drafts easy-language versions of Swiss official texts (Leichte Sprache,
 Einfache Sprache; French and Italian follow) with Apertus, and proves with code that
 no deadline, amount or phone number got lost. It is a drafting assistant for the

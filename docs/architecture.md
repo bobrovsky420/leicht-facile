@@ -726,6 +726,7 @@ at runtime.
 ## 11. Repository layout
 
 ```text
+.github/workflows/ci.yml  CI: ruff, pytest, Docker image built and started against an unreachable endpoint
 Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval
 docker-compose.yml        app (+ profile local-llm: vllm)
 Dockerfile

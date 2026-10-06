@@ -318,6 +318,8 @@ outputs, the evaluation metrics, and the web API.
 - **Numbers:** `make eval` fetches the pairs, scores the references, runs C0, C1 and
   C2 with the response cache on (an interrupted run resumes), and writes the report
   tables. `make calibrate` runs the checker on the official pages without a model.
+- **CI:** GitHub Actions runs the linter, the test suite and a start of the Docker
+  image against an unreachable endpoint on every push (`.github/workflows/ci.yml`).
 - **Environment:** Python 3.14 in `python:3.14-slim`; dependencies locked in
   `uv.lock`; spaCy `de_core_news_md` 3.8.0 pinned by wheel URL; uv 0.12.18.
 - **Models and prompts:** model names and stage settings as in §3; each result
