@@ -232,6 +232,9 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
     request = build_request(draft, rules, None, fs)
     assert len(request.missing) == MAX_MISSING_PER_ROUND
     assert [f.kind for f in request.missing][:3] == ["deadline", "amount", "amount"]
+    # A facts-only round takes its own cap (MAX_MISSING_PER_FACTS_ROUND).
+    assert len(build_request(draft, rules, None, fs, facts_only=True, limit=8).missing) == 8
+    assert len(build_request(draft, rules, None, fs, facts_only=True, limit=2).missing) == 2
 
 
 def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:

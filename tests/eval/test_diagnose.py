@@ -191,7 +191,10 @@ def test_every_bucket_once(tmp_path) -> None:
     assert "4 jobs, 14 checkable must-keep facts, 11 missing" in table
     assert "| x: asked for, answer not recorded | 3 | 27 % |" in table
     assert "| k: written into a version not kept as final | 1 | 9 % |" in table
-    assert "| a: never asked for, behind the cap of 5 missing facts per round | 1 |" in table
+    assert (
+        "| a: never asked for, behind the cap of missing facts per round (5 in a repair round, "
+        "MAX_MISSING_PER_FACTS_ROUND in a facts round) | 1 |" in table
+    )
     assert (
         "Background facts whose value is not in the final text (bucket e, for reading): 1" in table
     )

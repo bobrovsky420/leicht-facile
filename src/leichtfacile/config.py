@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     # Rounds that ask only for the must-keep facts still missing after the repair loop
     # has stopped (docs/architecture.md §4.6). 0 switches them off.
     max_facts_rounds: int = Field(default=1, ge=0, le=5)
+    # How many missing facts one facts-only round asks for. A repair round asks for at
+    # most 5 next to its flagged blocks; a facts round has nothing else to do. 10 since
+    # the measured dev rerun of 7 October 2026 (PLAN.md D-Z, docs/prompts.md): fact
+    # coverage 79 against 75 percent with 5, no invented value, fewer judge findings.
+    max_missing_per_facts_round: int = Field(default=10, ge=1, le=20)
 
     # Runtime
     data_dir: Path = Path("data")

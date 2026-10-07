@@ -73,7 +73,8 @@ BUCKETS = {
     "x": "asked for, answer not recorded",
 }
 REASONS_A = {
-    "cap": f"behind the cap of {MAX_MISSING_PER_ROUND} missing facts per round",
+    "cap": "behind the cap of missing facts per round "
+    f"({MAX_MISSING_PER_ROUND} in a repair round, MAX_MISSING_PER_FACTS_ROUND in a facts round)",
     "no_round": "no repair round ran",
     "unflagged": "never flagged by FACT-01 in the stored findings",
 }

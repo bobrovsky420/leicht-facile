@@ -355,7 +355,9 @@ Then:
   `MAX_REPAIR_ROUNDS` (3).
 
 When the loop has stopped and must-keep values are still missing (FACT-01), up to
-`MAX_FACTS_ROUNDS` (1) more rounds ask for the missing facts alone, no block flagged.
+`MAX_FACTS_ROUNDS` (1) more rounds ask for the missing facts alone, no block flagged,
+up to `MAX_MISSING_PER_FACTS_ROUND` (10) of them at a time; a repair round asks for at
+most 5 next to its flagged blocks.
 They are measured by the FACT-01 count, not by the whole: the loop above stops on "no
 progress" when a round adds facts and the judge finds as many new problems, which on
 the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round

@@ -99,8 +99,11 @@ thinking.
   findings. After the loop, up to `MAX_FACTS_ROUNDS` (default 1) rounds ask for the
   missing facts alone, with no block flagged, and are measured by the FACT-01 count:
   they go on while a round adds a fact. The judge reruns as in any round with facts
-  involved. The final version is still the one with the fewest blocking findings.
-  Set `MAX_FACTS_ROUNDS=0` to measure the pipeline without them.
+  involved. A facts round asks for up to `MAX_MISSING_PER_FACTS_ROUND` (10) missing
+  facts, a repair round for 5 next to its flagged blocks; the cap was raised from 5 on
+  the measured dev rerun of 7 October ("Fact-retention diagnosis" below). The final
+  version is the one with the fewest must-keep values missing, then the fewest blocking
+  findings. Set `MAX_FACTS_ROUNDS=0` to measure the pipeline without them.
 - **Repair records.** Every round stores what it asked for, the answer as given and
   every answered sentence code left out with its reason (a repeat, example content, a
   block the round had not flagged), under the version it produced. `eval diagnose`
@@ -479,7 +482,7 @@ in the final version goes into one bucket.
 
 | Bucket | Meaning | How the tool decides |
 |---|---|---|
-| a | never asked for in any round | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of 5 missing facts per round, no round ran at all (the loop stopped or failed before one), or never flagged by FACT-01 when the job ran |
+| a | never asked for in any round | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of missing facts per round (5 in a repair round, `MAX_MISSING_PER_FACTS_ROUND` in a facts round), no round ran at all (the loop stopped or failed before one), or never flagged by FACT-01 when the job ran |
 | b | asked for and written, but in a form FACT-01 rejects | the record's answer carries the fact's digits or words, but no value the matcher accepts |
 | c | asked for and written, then dropped by code | the answered sentence is in the record's dropped list (a repeat, example content, a block the round had not flagged) |
 | d | asked for, and the model did not write it | no answered sentence for the fact, nothing loose either |
@@ -590,6 +593,66 @@ readings:
   reader who searches the fact sheet for the full address does not find it. Coverage
   is now asked in the reader's direction, so the full value gets its own fact next to
   the model's partial one (the same for a bare number against a quantity).
+
+The rule change, read on the same jobs with `eval rescore` (no model call), German dev
+pairs, P2:
+
+| Jobs | Final version by | Fact coverage | Hard facts kept | Silent losses | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 |
+|---|---|---|---|---|---|---|---|
+| Third run | blocking findings (the rule until 7 Oct) | 71 % | 68 % | 2 % | 0.0 | 4.9 | 7.5 |
+| Third run | missing facts first (since 8 Oct) | 80 % | 81 % | 2 % | 0.0 | 6.1 | 8.8 |
+| Second run | missing facts first | 83 % | 84 % | 5 % | 0.0 | 5.2 | 7.1 |
+
+The "blocking" rescore reproduces the third run's row to the decimal, which also
+checks the rescoring itself. Facts first gains 9 points of fact coverage and 13 of
+hard facts kept on the same drafts, for 1.2 more judge findings and 1.3 more rule
+errors per 100 blocks: the sentences a facts round adds are the ones the judge then
+flags. The silent losses do not move with the rule, as they should not: they are a
+property of the fact sheet stored when the job ran, and the completion fixes show
+only in the next run. The cap of a facts-only round is a setting now
+(`MAX_MISSING_PER_FACTS_ROUND`, default 5): the one experiment left for the dev split
+before the freeze.
+
+The fifth run, the same day, under the final code (facts first, the fixed completion;
+`--redo`, the rows before it kept in `eval/results-cscs-v5`), then the cap experiment
+in a fresh folder `eval/results-cscs-cap10` with `MAX_MISSING_PER_FACTS_ROUND=10`, run
+after it on the same cache, so both replay the same Understand and Write answers and
+the cap-10 run made only 4 fresh calls. German dev pairs, P2:
+
+| Run | Fact coverage | Hard facts kept | Silent losses | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 | Tokens / page | USD / page |
+|---|---|---|---|---|---|---|---|---|
+| Fifth run, cap 5 | 75 % | 77 % | 0 % | 0.0 | 4.6 | 5.4 | 21,786 | 0.0117 |
+| Cap 10 | 79 % | 81 % | 0 % | 0.0 | 2.8 | 6.7 | 21,697 | 0.0117 |
+
+| Bucket | Fifth run, cap 5 (12 jobs) | Cap 10 (10 German jobs) |
+|---|---|---|
+| Checkable must-keep facts | 123 | 110 |
+| Missing in the final versions | 27 (78 % found) | 15 (86 % found) |
+| a: never asked for, behind the cap | 13 | 7 |
+| a: no round ran, or never flagged by FACT-01 | 0 | 0 |
+| b: written in a form FACT-01 rejects | 1 | 1 |
+| c: written, then dropped by code | 2 | 5 |
+| d: asked for, not written | 7 | 2 |
+| k: written into a version not kept as final | 0 | 0 |
+| l: present once, lost in a later rewrite | 0 | 0 |
+| x: asked for, answer not recorded (the two French jobs, not rerun) | 4 | 0 |
+| e: background facts whose value is not in the text (for reading) | 9 | 9 |
+| Facts without a value the judge calls missing or distorted | 9 | 6 |
+
+The fifth run closes the two open points: no silent loss (the completion fixes hold)
+and no fact written into a version that was not kept (the facts-first rule holds).
+What is left is mostly the cap, 13 of 27 missing facts, all in `sg-el-costs-de` (22
+checkable facts). With cap 10 that pair goes from 15 missing facts to 7, and the means
+over the ten pairs move by 4 points of fact coverage and 4 of hard facts kept, with no
+invented value and fewer judge findings (2.8 against 4.6 per 100 blocks), at 1.3 more
+rule errors per 100 blocks. That passes the decision rule set before the run (coverage
+up by 3 points or more, invented values not up, judge findings up by less than 2), so
+the default is 10 since this run (decision D-Z). The gain comes from one pair; the
+other nine keep the same number of missing facts. The 4 fresh calls were the facts
+round and its judge in `sg-el-costs-de` and in `zg-disability-services-act-de`; the
+second asked for the same 4 facts under both caps, so its fresh answer is a cache miss,
+not the cap: the same 4 facts stay missing, read as dropped by code (c) in the cap-10
+run and as not written (d) in the fifth.
 
 ### Image input spike (CSCS, 8B, 7 October 2026): no-go at this setting
 

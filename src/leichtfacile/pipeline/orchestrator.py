@@ -109,6 +109,7 @@ def build_request(
     *,
     include_warnings: bool = True,
     facts_only: bool = False,
+    limit: int = MAX_MISSING_PER_ROUND,
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
@@ -150,7 +151,7 @@ def build_request(
     ordered_missing = sorted(
         (f for f in factsheet.facts if f.id in missing),
         key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
-    )[:MAX_MISSING_PER_ROUND]
+    )[:limit]
     if facts_only:
         return RepairRequest({}, ordered_missing)
     return RepairRequest({k: v for k, v in problems.items() if k in blocks}, ordered_missing)
@@ -319,7 +320,14 @@ class Orchestrator:
             if missing == 0:
                 facts_rounds -= 1
                 break
-            request = build_request(draft, rules, judge, factsheet, facts_only=True)
+            request = build_request(
+                draft,
+                rules,
+                judge,
+                factsheet,
+                facts_only=True,
+                limit=self.settings.max_missing_per_facts_round,
+            )
             step = self._round(
                 job, source, factsheet, draft, rules, judge, request, facts_rounds, kind="facts"
             )
