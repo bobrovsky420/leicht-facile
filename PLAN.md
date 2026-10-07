@@ -163,6 +163,13 @@ Local environment facts:
   the decision mode moves to WP15 as a v1 for G4 (planned 7 Oct); the rest stays
   WP17.*
 
+### Added 7 October: the UI redesign (WP18)
+
+- Should ship: the reviewer's workbench (WP18), a calmer and denser web UI for people
+  who review drafts all day; designed and approved by the owner on 7 Oct, specified in
+  `docs/ui-design.md`. Built next to the pipeline work by G4 and before the video is
+  recorded; it touches no pipeline file, so the evaluation numbers do not move.
+
 ## 3. Work packages
 
 Package root: `src/leichtfacile/` (layout per architecture §11). Every WP ends with:
@@ -502,6 +509,55 @@ hardening, WP15 sovereignty and "why Apertus" evidence (includes the WP12 split)
 credibility and positioning, WP17 after 16 October. Build order: WP16's push and CI
 first, then WP13, WP14 and WP15 next to the evaluation runs; all of them before WP11.
 
+### WP18 - UI redesign: the reviewer's workbench (added 7 Oct)
+
+Designed and approved by the owner on 7 Oct after a review of the current UI. The
+specification is `docs/ui-design.md`: tokens, components, every screen against the
+templates and view models, the new interface texts, accessibility, tests, build order,
+cut order and the differences from the design canvas (six clickable screens,
+https://claude.ai/artifact/8Js1ncMf4ceXmg3uUcPqCU, private to the owner). No change to
+the pipeline, the schemas, the store layout or the API; one new page route (`GET
+/new`). About 25 focused hours; separable for its own session.
+
+- [ ] D-V to D-Y decided; the owner's go for downloading the fonts (IBM Plex Sans and
+      Mono, Atkinson Hyperlegible Next, all SIL OFL 1.1).
+- [ ] Foundations: an own `app.css` with tokens and components (water.css goes), the
+      vendored fonts with their licence texts, icon macros, the app bar with the review
+      count, the endpoint indicator (cached in `sessionStorage`) and a skip link
+      (ui-design §3, §4, §5.1).
+- [ ] Review screen: header with save state and Save, summary strip, three flush
+      panes; blocks that read as text and open when selected (findings, Apply for
+      suggestions, the facts carried, decisions with keys, auto-advance, N for the next
+      undecided); checks as tabs; shortcuts only while the focus is in the draft pane
+      (WCAG 2.1.4) (§5.5).
+- [ ] Reader view with the export panel and the "before publication" lines (§5.6,
+      D-V).
+- [ ] Drafts list as the start page: filters as GET parameters, checks and review
+      progress per row, an empty state with the example letters, the intro strip, a
+      row menu; deleting asks first (§5.2, D-Y).
+- [ ] New draft at `/new`: source tabs, level and pipeline as radio lists with the
+      stages shown, a drop zone, the error path (§5.3, D-W).
+- [ ] Job running: a stepper with each stage's calls, tokens and time; results so
+      far; the failed state (§5.4).
+- [ ] Texts: every new key in `en.json` and `de.json`, the rules' titles as
+      `rule.<ID>`, plural forms for `detail.judged`, dead keys removed (§8).
+- [ ] Tests updated and added; screenshots in English and German at four widths;
+      keyboard, no-JavaScript and contrast passes (§12).
+- [ ] Docs: architecture §7 rewritten for the new UI (the purple and teal sentence
+      goes), README docs list, `docs/demo-video.md`, `THIRD_PARTY_NOTICES.md` (§11).
+
+Order as listed; the review screen first, since it is the video's main scene. WP15's
+form fields and notice banner (pieces 1 and 5) go into the new templates (ui-design
+§5.7). Cut order (ui-design §13, cut list §13.5 item 10): the drafts list's extras,
+the job page beyond the stylesheet, New draft as its own page, the reader view's
+export panel. The stylesheet, the app bar and the review screen stay once started, or
+WP18 is reverted as a whole.
+
+Done when: a reviewer opens the drafts list, starts a draft at `/new`, watches it run,
+reviews every block with the keys alone and exports it, in English and in German, at
+1440 and 1024 px; the pages read without JavaScript; tests and ruff are green; `make
+run` loads nothing from another host.
+
 ### WP11 - Report, video, submission
 
 - [ ] `technical_report.md` filled (sections 1-8); export to PDF (pandoc or print to
@@ -543,6 +599,7 @@ first, then WP13, WP14 and WP15 next to the evaluation runs; all of them before 
 | WP15 | WP14 identifier kind (for the decision letter); WP12 spike | WP13 |
 | WP16 | nothing for push and CI; the positioning text needs WP13's numbers | WP13-WP15 |
 | WP17 | after 16 October | - |
+| WP18 | WP8 (done); WP15's form fields and notice banner build on it | WP13-WP16 (it touches no pipeline file) |
 | WP11 | everything | - |
 
 ## 4. Schedule and gates
@@ -634,7 +691,7 @@ comparison, the report, the video.
 | D-A | Where do rules live: parse `docs/rules.md` at runtime, or a code registry with a test that both contain the same ids? | Code registry (`rules/catalog.py`) with id, families, severities per level, prose; `styleguide.py` renders from it; a test diffs ids and severities against `rules.md`. Markdown parsing at runtime is brittle. | 7 Oct |
 | D-B | `response_format` JSON mode | Use it only if day-1 check 3 shows fewer failures; never rely on it alone. *Decided 6 Oct on Public AI: 20 of 20 parsed in both modes, same answers; not used.* | done |
 | D-C | SARI implementation | Own ~80-line implementation in `eval/metrics.py`, unit-tested against the EASSE example; avoids heavy deps in the image. | 9 Oct |
-| D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. | 11 Oct |
+| D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. *7 Oct: WP18 replaces water.css with an own stylesheet and vendored fonts, still without a framework or a bundler (docs/ui-design.md).* | 11 Oct |
 | D-E | Primary level A2 or B1 | Day-1 check 6. | 6 Oct |
 | D-F | Section-parallel writing | Only if check 5 shows headroom; otherwise sequential. *Decided 6 Oct on Public AI: 8 parallel calls, no 429, 1.4 to 2.2 s each. Headroom exists; use it first for parallel evaluation workers, section-parallel writing stays optional.* | done |
 | D-G | Publish an HF dataset | Development and evaluation need no consent (docs/sources.md §4). Publishing protected texts or our rewrites of them does. Default: manifest, metrics, and article-5 texts with outputs; ask Bern only if a Swiss reference set should be public. | 13 Oct |
@@ -652,6 +709,10 @@ comparison, the report, the video.
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
 | D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. | 8 Oct |
 | D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §12). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
+| D-V | Reader typeface (WP18): Atkinson Hyperlegible Next for the reader view and the HTML export | In the reader view yes: the vendored font, injected into the preview response only. In the HTML export first in the font stack with Arial and Helvetica behind it, not embedded, so exported files stay small (docs/ui-design.md §14). | 8 Oct |
+| D-W | New draft as its own page at `/new` (WP18); the start page becomes the drafts list | Yes; `POST /jobs` and the API stay; the demo's "paste a letter" scene starts at `/new`, one click from the list. | 8 Oct |
+| D-X | Accent colour and density as settings (WP18) | No settings in v1: the accent is one CSS variable with its tints, the density stays "comfortable"; WP17 if reviewers ask. | 8 Oct |
+| D-Y | Per-row checks and review progress in the drafts list (WP18) | Computed per request with `review_view` for the at most 50 rows shown; a stored summary per job only if the page needs more than 300 ms with 50 jobs. | WP18 step 4 |
 
 ## 9. Judging criteria → evidence we must produce
 
@@ -712,6 +773,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07 (afternoon): two more value kinds for the patient letters and the study information (WP14, use cases 3 and 9): `quantity` (a number with a dose or measurement unit, symbol or name in DE, FR and IT, `2,5 mg` and `2.5 Milligramm` the same; a fact given as a bare number is found in its quantity, a dropped unit is a loss) and `schedule` (`1-0-1`, `½-0-½`), taken before addresses after `1000 IE` came out as a postcode and a place. Six quantities and no scheme on the 35 pairs; REF on the German eval pairs 69.2 to 65.9 percent because the two pages concerned have few facts (rules.md, calibration note); 999 tests. The decision mode written into WP15 as "Decision mode v1": seven pieces, tests, cut order, rows in §13.3 (Fri to Mon), a paragraph in §13.5, GAP-20 and the WP17 rows updated. Fixed on a peer session's note: literal U+2010 to U+2014 characters that the editing tool had written into two regex classes of `rules/values.py`, where a `/` in front of them also formed an unintended range (a scheme or quantity right after a colon was rejected); the classes are built from `DASHES` now. Docs: rules.md (two rows, the planned table, the calibration note, the test plan), architecture §4.2, §4.4 and §9, prompts.md, report §8, use-cases.md §3, §9 and §12.
 - 2026-10-07 (evening): two printable synthetic letters for the image input spike (WP12): `scripts/print_letters.py` writes `data/examples/print/` with a German tax reminder (one page: a table of amounts, an IBAN, a tax number, deadlines) and a French grant decision (two pages, registered: AHV and file number, a calculation table, payment dates, periods, the means of appeal), each as a PDF to print, fold and scan and as the printed text in reading order for comparing a transcription. Everything invented; the IBANs and the AHV number have invalid check digits. No code in the pipeline changed. Both letters printed, folded in three and scanned by the owner (300 dpi colour, no OCR, one PDF per letter in `data/examples/print/scans/`); the creases cross the German subject line and the French IBAN line. Next: phone photos, then the transcription spike against these texts.
 - 2026-10-07 (evening, 2): report cut to the page limit (WP11). Measured by rendering `technical_report.md` with markdown-it-py (tables on) and printing it with headless Edge to A4, 10 pt, 2 cm margins, which reproduces the submission check's 8 pages and 4,427 words; now 6 pages, the last 37 % full, 3,171 words. Every template section kept, every number unchanged. Cut: the status paragraph, the team-name sentence, the planned demo-documents row, the build-time/runtime table (now one paragraph), the stage table's cells, the prompt, parser and reliability detail, the result table's row labels, the second baseline, 70B, judge, calibration and test paragraphs, the limitations and next steps merged. Fixed on the way: 999 tests instead of 825, 42 German and 39 French rules instead of 41, French no longer a next step (Italian is), the NUM-08 limitation dropped (D-J accepts `+41`), the judge default to the 70B in §3, κ stated as not yet measured instead of **[pending]**, the UI described without the stylesheet the WP18 branch removes. Left for the owner: team names, video link, the commit of the final run in §7, the PDF.
+- 2026-10-07 (evening; UI session): the web UI reviewed on screenshots of its four pages (a server on a copy of `data/`) and redesigned for people who review drafts all day: calm surfaces, one accent, status colours only as icons and counts, the draft read as text with details for the selected block, checks as tabs, the start page as a work queue, a separate New draft page. Six screens on a design canvas (review, reader view and export, drafts list, new draft, job running, foundations), approved by the owner. Specification `docs/ui-design.md`: tokens, components, every screen against the templates and view models, the new interface texts, WCAG 2.2 AA, tests and checks, build order (about 25 h), cut order, differences from the canvas. Planned as WP18 with D-V to D-Y, rows in §13.3 and item 10 in §13.5; GAP-17 noted as half closed (German since `3ef69d3`). Found on the way, to be fixed in WP18: the judge stage says "1 unsupported statements" (`detail.judged` has no plural forms), the review page's single-key shortcuts act on the whole page (WCAG 2.1.4), deleting a draft does not ask. No code changed.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -817,7 +879,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-14 | Live-run risk | example jobs pending; CSCS cuts about 1 in 4 long thinking calls; `local-llm` never started on a GPU; no bundle | Feasibility | WP8, WP10, WP16 | Must (example jobs) |
 | GAP-15 | Claims not precise enough | the voting gap is federal (Zurich publishes cantonal voting information in Leichte Sprache since 28 September 2025); A2 or B1 still open (D-E) | All | WP15, WP16 | Must |
 | GAP-16 | Not listable as public-sector software | no `publiccode.yml` | Value, scalability | WP16 | Should |
-| GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17 | Later |
+| GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17; *German since `3ef69d3` (6 Oct), French and Italian stay WP17* | Later |
 | GAP-18 | Zurich's good ideas not captured | termbase, house styles, check my own text, completeness switch, several drafts, DOCX | Value, scalability | WP17, report §8 | Later |
 | GAP-19 | Long compounds reach the reviewer unsplit: the glossary exempts them from LEX-01, and the 8B ignores the split suggestion | job `287fea3aadd2` (6 Oct, web UI, CSCS): `Krankenversicherungspolice` and `Sozialversicherungsstelle` in the final draft, `Alleinstehende` flagged through two rounds | Rigour, value (the first thing a juror sees in a draft) | WP14 | Should; in by the freeze or WP17 |
 | GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP15 "Decision mode v1", planned 7 Oct for Sat 10 to Mon 12 Oct; the rest WP17 | Must (docs, demo), Should (mode v1 by G4) |
@@ -1330,11 +1392,11 @@ passed on 6 Oct).
 | Date | Focus | Gate (end of day) |
 |------|-------|-------------------|
 | Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
-| Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14) | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
-| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); **prompt freeze 18:00**; final CSCS evaluation overnight | Final run started |
-| Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |
-| Sun 11 Oct | Example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS | Example jobs in the image |
-| Mon 12 Oct | `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G4**: feature freeze, as before; decision mode v1 in or cut per its order |
+| Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14); UI track (WP18, own session): D-V to D-Y, foundations, start of the review screen | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
+| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); **prompt freeze 18:00**; final CSCS evaluation overnight; UI: the review screen, the reader view | Final run started |
+| Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |
+| Sun 11 Oct | Example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS; UI: the job page, the texts, tests and screenshots; the decision mode's form fields and notice banner go into the new templates (WP18) | Example jobs in the image |
+| Mon 12 Oct | `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G4**: feature freeze, as before; decision mode v1 in or cut per its order; WP18 in or cut per its order |
 | Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-G, D-L | All report tables filled |
 | Wed 14 Oct | Report draft, video recording, clean-checkout test on Linux and on Windows | **G5** as before, plus CI green on the final commit |
 | Thu 15 Oct | PDF, numbers audit again, repo public, awesome-apertus pull request prepared | **G6**, as before |
@@ -1345,7 +1407,8 @@ AI, labelled as such; P2 numbers come only from CSCS; the v1 results are the fal
 
 If one person with agents does the work: agents take the identifier kind (WP14), CI
 and `publiccode.yml` (WP16) next to the evaluation runs. The owner keeps the diagnosis,
-the decision letter and every text a juror reads.
+the decision letter and every text a juror reads. WP18 suits an agent session as well: it
+touches no pipeline file, and the owner judges it from screenshots and the running UI.
 
 ### 13.4 Reading the numbers at G3 (D-M)
 
@@ -1382,13 +1445,16 @@ Apply in this order when a gate is missed:
 7. Italian.
 8. Clause recipes for French (German stays).
 9. Outreach follow-ups (mails already sent stay sent; no second round).
-10. WP12a, image ingest for the reviewed workflow.
-11. 70B writer comparison (the 70B judge stays).
-12. P0-ZH `condensed` (`complete` stays).
-13. French.
-14. B1 level.
-15. UI polish: a single review page without the version switcher.
-16. Judge κ labelling: 30 items down to 15, stated in the report.
+10. WP18's later parts, in its own cut order (docs/ui-design.md §13): the drafts
+    list's extras, the job page beyond the stylesheet, New draft as its own page, the
+    reader view's export panel.
+11. WP12a, image ingest for the reviewed workflow.
+12. 70B writer comparison (the 70B judge stays).
+13. P0-ZH `condensed` (`complete` stays).
+14. French.
+15. B1 level.
+16. UI polish: a single review page without the version switcher.
+17. Judge κ labelling: 30 items down to 15, stated in the report.
 
 Mediopunkt by code (WP14) is not on this list: both parts go in before the freeze or
 both move to WP17 with a sentence in report §7. A checker change after the final run
@@ -1399,6 +1465,10 @@ partial, the code facts per operative item, the addressee in the judge, FACT-07.
 mode flag, FACT-08, the notice in the export and the KESB example as a decision job
 go together or not at all; its hooks before the freeze cost nothing and stay either
 way.
+
+The UI redesign (WP18) goes in as a whole up to its review screen: the stylesheet, the
+app bar and the review screen stay once started, or WP18 is reverted; only the later
+parts in item 10 are cut on their own.
 
 Never cut:
 - `make run` from a clean checkout;
