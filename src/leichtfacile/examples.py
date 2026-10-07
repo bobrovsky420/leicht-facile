@@ -19,6 +19,7 @@ from leichtfacile.schemas import (
     JobConfig,
     JudgeReport,
     PipelineSummary,
+    RepairRecord,
     ReviewState,
     RuleFindings,
     SourceDocument,
@@ -72,6 +73,9 @@ def import_bundle(store: Store, bundle: dict[str, Any], *, job_id: str | None = 
     for judge in bundle.get("judge_reports") or []:
         j = JudgeReport.model_validate(judge)
         store.put_artifact(job_id, "judge", j, j.draft_version)
+    for record in bundle.get("repair_records") or []:
+        rec = RepairRecord.model_validate(record)
+        store.put_artifact(job_id, "repair", rec, rec.draft_version)
     if bundle.get("summary"):
         store.put_artifact(job_id, "summary", PipelineSummary.model_validate(bundle["summary"]))
     if bundle.get("review"):
@@ -127,7 +131,8 @@ def build_examples(
         source = ingest_file(path, doc_id=f"example-{path.stem}",
                              license_note="written by the team; free to use")  # fmt: skip
         config = JobConfig(lang=source.lang, level=level, condition=condition,  # type: ignore[arg-type]
-                           max_repair_rounds=settings.max_repair_rounds)  # fmt: skip
+                           max_repair_rounds=settings.max_repair_rounds,
+                           max_facts_rounds=settings.max_facts_rounds)  # fmt: skip
         job = store.create_job(config, title=source.title or path.stem)
         store.put_artifact(job.id, "source", source)
         orchestrator.run(job.id)

@@ -17,8 +17,16 @@ from leichtfacile.eval.metrics import compression_ratio, sari_document
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.document import fact_coverage, foreign_values
 from leichtfacile.rules.mediopunkt import GLOSSARY
-from leichtfacile.rules.values import extract_values, hard_value_found, hard_values
+from leichtfacile.rules.values import (
+    Value,
+    extract_values,
+    hard_value_found,
+    hard_values,
+    matches,
+    parse_value_norm,
+)
 from leichtfacile.schemas import (
+    BASELINE_CONDITIONS,
     CodeEdit,
     Draft,
     FactSheet,
@@ -58,6 +66,10 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
     source_keys = hard_values(standard.text(), standard.lang)
     out_values = extract_values(draft.text(), draft.lang)
     found = sum(1 for key in source_keys if hard_value_found(key, out_values))
+    # Without a fact checklist and an omission log (the baselines, the official version)
+    # every hard value the text lost is lost in silence; `silent_losses` below narrows
+    # this for a pipeline job.
+    silent = len(source_keys) - found
     # Values the source does not contain, strictly against the source (the runtime
     # rule FACT-06 also accepts the fact sheet's values; here a value the fact sheet
     # invented counts too).
@@ -78,6 +90,8 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
         "hard_facts_total": len(source_keys),
         "hard_facts_found": found,
         "hard_fact_recall": round(found / len(source_keys), 3) if source_keys else None,
+        "silent_losses": silent,
+        "silent_loss_share": round(silent / len(source_keys), 3) if source_keys else None,
         "invented_values": len(invented),
         "invented_values_per_100": round(100 * len(invented) / blocks, 2),
         "compression": round(compression_ratio(max(1, standard.word_count()), m.words), 3),
@@ -93,6 +107,49 @@ def score_reference(standard: SourceDocument, easy: SourceDocument) -> dict[str,
 def score_source(standard: SourceDocument) -> dict[str, Any]:
     """The standard-language original, scored as if it were a draft (how far from easy)."""
     return {"setup": "SOURCE", **text_metrics(source_as_draft(standard, "A2"), standard)}
+
+
+def silent_losses(
+    draft: Draft, standard: SourceDocument, factsheet: FactSheet | None, *, condition: str
+) -> dict[str, Any]:
+    """Hard values of the source that the output lost without a trace: not in the text,
+    and nowhere a reviewer would see them. For a pipeline job (P1, P2) a lost value is
+    told when the fact sheet carries it (the review checklist lists every fact, must-keep
+    or background, with its status) or when the source sentence it stands in is listed
+    as left out, by the draft's omissions or the fact sheet's omit candidates. A single
+    prompt (P0, P0-ZH) has neither, so every value it loses is silent; the reference
+    fact sheet the scorer borrows for it does not count. Zero by design for P1 and P2
+    as long as the code completion of the fact sheet covers every hard value: a count
+    above zero there names a value the completion missed."""
+    lang = standard.lang
+    keys = hard_values(standard.text(), lang)
+    out_values = extract_values(draft.text(), draft.lang)
+    lost = [key for key in keys if not hard_value_found(key, out_values)]
+    told: set[tuple[str, str]] = set()
+    if factsheet is not None and condition not in BASELINE_CONDITIONS:
+        fact_values = [
+            v for f in factsheet.facts if (v := parse_value_norm(f.value_norm, f.kind, lang))
+        ]
+        omitted = {s for o in draft.omissions for s in o.segment_ids}
+        omitted |= {s for o in factsheet.omit_candidates for s in o.segment_ids}
+        omitted_values = [
+            v
+            for seg in standard.segments
+            if seg.id in omitted
+            for v in extract_values(seg.text, lang)
+        ]
+        for key in lost:
+            target = Value(*key)  # type: ignore[arg-type]
+            if any(matches(target, v) for v in fact_values) or hard_value_found(
+                key, omitted_values
+            ):
+                told.add(key)
+    silent = [key for key in lost if key not in told]
+    return {
+        "silent_losses": len(silent),
+        "silent_loss_share": round(len(silent) / len(keys), 3) if keys else None,
+        "silent_loss_kinds": dict(sorted(Counter(k[0] for k in silent).items())),
+    }
 
 
 def kept_code_splits(final: Draft, edits: list[CodeEdit]) -> int:
@@ -119,6 +176,7 @@ def score_output(
 ) -> dict[str, Any]:
     """`code_edits`: the edits of every version up to `draft` (default: its own only)."""
     row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard)}
+    row.update(silent_losses(draft, standard, factsheet, condition=job.config.condition))
     # Compounds split by code that stand in the final version (rules/mediopunkt.py, P1 and
     # P2 only): the deterministic share of the LEX improvement, reported next to the LEX
     # family.

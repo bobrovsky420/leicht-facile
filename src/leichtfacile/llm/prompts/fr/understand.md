@@ -19,6 +19,7 @@ Votre tâche :
    - "must_keep" : true si la lectrice ou le lecteur a besoin de ce fait. false pour une simple information de contexte.
 4. Faites la liste des mots difficiles : mots techniques, noms d'offices, abréviations. Expliquez chaque mot simplement, en 2 phrases courtes au plus.
 5. Faites la liste des passages qu'une version en {{ level_name }} peut laisser de côté, par exemple des articles de loi, des répétitions ou des remarques internes. Donnez les numéros des phrases et une raison courte.
+{% if mode is defined and mode == "decision" %}{% include "fr/decision.md" %}{% endif %}
 
 Écrivez tous les textes en français.
 

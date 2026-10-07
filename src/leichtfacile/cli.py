@@ -65,6 +65,14 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument("--no-judge", action="store_true", help="P2 without the judge")
     simplify.add_argument("--no-repair", action="store_true", help="P2 without repair rounds")
     simplify.add_argument(
+        "--mode",
+        choices=["standard", "decision"],
+        default="standard",
+        help="decision: the letter that goes out with a decision (docs/use-case-decisions.md)",
+    )
+    simplify.add_argument("--addressee", help="decision mode: the person the letter speaks to")
+    simplify.add_argument("--notice", help="decision mode: the authority's fixed notice")
+    simplify.add_argument(
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )
 
@@ -247,6 +255,10 @@ def _simplify(args: argparse.Namespace) -> int:
         judge_model=args.judge,
         use_judge=not args.no_judge,
         max_repair_rounds=0 if args.no_repair else settings.max_repair_rounds,
+        max_facts_rounds=0 if args.no_repair else settings.max_facts_rounds,
+        mode=args.mode,
+        addressee=args.addressee,
+        notice=args.notice,
     )
     job = store.create_job(config, title=source.title or args.input)
     store.put_artifact(job.id, "source", source)

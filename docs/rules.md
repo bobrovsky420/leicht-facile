@@ -41,7 +41,7 @@ sentence limits follow from the calibration on the official French pages (below)
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
 | LEN-01 | At most N words per sentence (N from level) | token count excluding punctuation; a run of numbers (`044 123 45 67`) counts as one word | warn up to 3 words over, error beyond |
-| LEN-02 | One clause per sentence; no subordinate clauses | per colon-separated part: subordinating conjunctions (`KOUS`: `dass`, `weil`, `wenn`, ...; `KOUI`: `um ... zu`), relative clauses (`rc`), dependent zu-infinitive clauses, finite verbs with their own subject (coordinated verbs sharing a subject and infinitives mis-tagged as finite do not count). The limit is 1 clause (A2) or 2 (B1) | warn for one clause too many, error for two or more |
+| LEN-02 | One clause per sentence; no subordinate clauses | per colon-separated part: subordinating conjunctions (`KOUS`: `dass`, `weil`, `wenn`, ...; `KOUI`: `um ... zu`), relative clauses (`rc`), dependent zu-infinitive clauses, finite verbs with their own subject (coordinated verbs sharing a subject and infinitives mis-tagged as finite do not count). The limit is 1 clause (A2) or 2 (B1). The suggestion is the rewrite recipe for the conjunction found (`rules/recipes.py`, since 7 October 2026): `weil`, `da` two sentences with `Deshalb`; `damit`, `um ... zu` the aim first, then `Deshalb`; `obwohl`, `auch wenn` `Trotzdem`; `wenn`, `falls`, `sofern` a question and an answer with `Dann`, never `vielleicht` (decision D-P); `als`, `nachdem`, `bevor`, `sobald`, `während` two sentences in the order of time with `Dann`; `indem`, `sodass` two sentences; a relative clause two sentences with the noun repeated; `ob` a direct question; `dass` the colon form; several main clauses one sentence per statement. The idea of a recipe per conjunction comes from the Canton of Zurich's prompt (THIRD_PARTY_NOTICES.md), the wording is ours; the repair round gets it as "Vorschlag", the review page shows it as advice and never offers it as a replacement | warn for one clause too many, error for two or more |
 | LEN-03 | Enumerations of three or more items become a list | a coordination chain (`cj`/`cd`) of three or more nouns, verbs or adjectives | warn |
 | ORD-01 | Subject - verb - object order | subject (`sb`) appears after the finite verb in a main clause that is not a question | info |
 
@@ -164,7 +164,7 @@ parser cannot tell an inverted subject from an object.
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
 | LEN-01-FR | At most N words per sentence (N from level, French limits) | words without punctuation; an elided word counts with the next one (`l'argent`), a hyphenated pronoun with its verb (`appelez-nous`), a run of numbers as one word | warn up to 3 words over, error beyond |
-| LEN-02-FR | One clause per sentence; no subordinate clauses | per colon-separated part: the main predicate, coordinated predicates with their own subject, finite subordinate clauses (`advcl`, `ccomp`, `acl:relcl`: `parce que`, `que`, `si`, `quand`, `qui`, `dont`, `où`) and adverbial infinitives (`pour`, `afin de`, `sans`, `avant de`, `après`); `est-ce que` only marks a question | warn for one clause too many, error for two or more |
+| LEN-02-FR | One clause per sentence; no subordinate clauses | per colon-separated part: the main predicate, coordinated predicates with their own subject, finite subordinate clauses (`advcl`, `ccomp`, `acl:relcl`: `parce que`, `que`, `si`, `quand`, `qui`, `dont`, `où`) and adverbial infinitives (`pour`, `afin de`, `sans`, `avant de`, `après`); `est-ce que` only marks a question. The suggestion is the rewrite recipe for the opener (`rules/recipes.py`, since 7 October 2026): `parce que`, `puisque`, `comme` two sentences with `C'est pourquoi`; `pour que`, `afin que`, `pour`, `afin de` the aim first, then `Pour cela`; `bien que`, `même si` `Mais`; `si` a question and an answer with `Alors`, never `peut-être`; `lorsque`, `quand`, `dès que`, `avant de`, `après` two sentences in the order of time with `Ensuite`; `qui`, `dont`, `où` two sentences with the noun repeated; `que` the noun repeated or a colon after a verb; anything else two short sentences. The recipes are still to be read against the 5 official French pages (PLAN.md WP14) | warn for one clause too many, error for two or more |
 | LEN-03-FR | Enumerations of three or more items become a list | a coordination chain (`conj`) of three or more nouns, verbs or adjectives, or noun phrases separated by commas and a final `et` or `ou` | warn |
 | GRAM-01-FR | No passive | `être` (`aux:pass`) + past participle. With an agent `par`, in a compound tense (`a été envoyé`), after a modal verb or `aller` (`doit être envoyé`) or in the future (`sera envoyé`) it is a passive; a plain present (`est envoyé`) may describe a state and is a warning (A2) or a note (B1); stative participles in the plain present (`fermé`, `ouvert`, `assuré`, `inscrit`, `interdit`, ...) are not flagged | error (A2) / warn (B1) |
 | GRAM-03-FR | No subjunctive or conditional | a conditional ending on the future stem (`pourriez`, `faudrait`, `aimerions`); a subjunctive after a conjunction (`pour que`, `afin que`, `bien que`, `avant que`, `sans que`, `à condition que`, `à ce que`, ...) or a governing verb or adjective (`il faut que`, `il est important que`), or a form that is always subjunctive (`puisse`, `fasse`, `soit`) | warn |
@@ -227,6 +227,7 @@ show them next to the code findings:
 | SEM-05 | Is a difficult word used without an explanation, where the glossary has none? |
 | SEM-06 | Does the block state something the source does not support? (hallucination) |
 | SEM-07 | For each fact: present, missing, or distorted? |
+| SEM-08 | Is every obligation still an obligation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, decision D-P)? In the German and French judge prompts since 7 October 2026 |
 
 ## Vocabulary (data, not used by a rule yet)
 
@@ -277,10 +278,11 @@ a hard term the writer left out of the glossary gets the `explain` text.
 
 Specified on 6 October 2026 for the decisions use case
 ([use-case-decisions.md](use-case-decisions.md)) and the further use cases
-([use-cases.md](use-cases.md)). None of them exists in code yet. Their ids are written
-in backticks because the registry test reads the rule tables above and expects every
-bare id there to be registered in code. When a check is built, its row moves into its
-family's table above, with golden tests, and loses the backticks.
+([use-cases.md](use-cases.md)). None of them exists in code yet, except SEM-08, which
+moved into the judge table above on 7 October 2026. Their ids are written in backticks
+because the registry test reads the rule tables above and expects every bare id there
+to be registered in code. When a check is built, its row moves into its family's table
+above, with golden tests, and loses the backticks.
 
 ### New value kinds
 
@@ -307,7 +309,6 @@ extracted but not checked.
 
 | Planned id | Question the judge answers | Use cases |
 |------------|----------------------------|-----------|
-| `SEM-08` | Is every obligation still an obligation, every recommendation a recommendation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, PLAN.md D-P)? | all |
 | `SEM-09` | Does the block add advice or an evaluation the source does not contain ("leider", "Sie sollten Einsprache erheben")? | 2-8, 10 |
 | `SEM-10` | Does every period keep its start ("nach Empfang", "ab Zustellung")? A period without its start misleads. | 2, 4-8, 10 |
 

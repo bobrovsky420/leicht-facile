@@ -104,6 +104,7 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert row["status"] == "needs_review", row.get("error")
     assert row["fact_coverage"] == 1.0
     assert row["hard_facts_found"] == row["hard_facts_total"] == 3  # 31 March, CHF 20, phone
+    assert row["silent_losses"] == 0 and row["silent_loss_share"] == 0.0
     assert row["calls"] == 5 and row["usd_per_page"] is not None
     assert 0 <= row["sari"] <= 100
     assert row["judge_distorted"] == 0.0
@@ -126,6 +127,7 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert len(endpoint.chat_bodies()) == 10
 
     report = render_report(results, role="eval")
+    assert "| Silent losses |" in report and "zero by design" in report
     assert "Original (standard language)" in report
     assert "Official easy-language version" in report
     assert "P2 full: pipeline with judge and repair" in report
@@ -253,3 +255,33 @@ def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
     assert fs is not None and fs.facts and all(f.origin == "code" for f in fs.facts)
     assert {f.value_norm for f in fs.facts} == {"2026-03-31", "20", "0441234567"}
     assert row["fact_coverage"] == 1.0  # the baseline text keeps all three
+
+
+def test_silent_losses_need_a_checklist_or_an_omission_log() -> None:
+    from leichtfacile.eval.score import silent_losses
+    from leichtfacile.pipeline.models import UnderstandOut
+    from leichtfacile.pipeline.stages import complete_factsheet, to_factsheet
+    from leichtfacile.schemas import Block, Draft, Omission
+
+    standard = fx.letter()  # three hard values: 31 March 2026, CHF 20, the phone number
+    fs = complete_factsheet(
+        to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "d"), standard
+    )
+    without_phone = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Schicken Sie das Gesuch bis 31. März 2026."),
+        Block(id="b002", kind="sentence", text="Das kostet 20 Franken."),
+    ])  # fmt: skip
+    # A single prompt: the lost number is silent, whatever fact sheet the scorer borrows.
+    baseline = silent_losses(without_phone, standard, fs, condition="P0")
+    assert baseline["silent_losses"] == 1 and baseline["silent_loss_share"] == 0.333
+    assert baseline["silent_loss_kinds"] == {"phone": 1}
+    # The pipeline: the fact sheet lists the number, the reviewer sees it as missing.
+    assert silent_losses(without_phone, standard, fs, condition="P2")["silent_losses"] == 0
+    # No fact for it, but its sentence is a listed omission: still told.
+    fewer = fs.model_copy(update={"facts": [f for f in fs.facts if f.id != "f03"]})
+    assert silent_losses(without_phone, standard, fewer, condition="P2")["silent_losses"] == 1
+    omitted = without_phone.model_copy(
+        update={"omissions": [Omission(what="Kontakt", why="x", segment_ids=["s0005"])]}
+    )
+    assert silent_losses(omitted, standard, fewer, condition="P2")["silent_losses"] == 0
+    assert silent_losses(without_phone, standard, None, condition="P2")["silent_losses"] == 1

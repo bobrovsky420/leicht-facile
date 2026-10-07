@@ -202,25 +202,27 @@ Two rows need no model: SOURCE (the original, scored as if it were a draft) and 
 **Metrics**, the same for every row, on the final text: *fact coverage* (must-keep
 facts with a normalised value found in the output); *hard facts kept* (the source's
 dates, amounts, contacts, addresses and other countable values; by code, so
-comparable with REF); *invented values* (values the source lacks, by code);
-*unsupported blocks* (by the 70B judge); *rule errors*; *readability* (Amstad, the
-German Flesch); *SARI* against the official version (a port of `SARI.py`, checked bit
-for bit); cost and speed per 250-word page.
+comparable with REF); *silent losses* (hard values lost without a trace: for a single
+prompt and REF every lost value; for the pipeline the gaps of its code completion);
+*invented values* (values the source lacks, by code); *unsupported blocks* (by the 70B
+judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against the
+official version (a port of `SARI.py`, checked bit for bit); cost and speed per
+250-word page.
 
 Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026, means over
 pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full tables):
 
-| Setup | Fact coverage | Hard facts kept | Invented values /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
-|-------|---------------|-----------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
-| SOURCE | - | 100 % | 0.0 | - | 31.3 | 36 | - | - | - |
-| REF (official) | - | 70 % | 2.2 | - | 2.7 | 62 | - | - | - |
-| P0 | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
-| P0-ZH complete | 91 % | 95 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
-| P0-ZH condensed | 75 % | 77 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
-| P1 | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
-| **P2 (ours)** | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
-| P2, 70B everywhere | 78 % | 75 % | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
-| P2, 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
+| Setup | Fact coverage | Hard facts kept | Silent losses | Invented values /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
+|-------|---------------|-----------------|---------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
+| SOURCE | - | 100 % | 0 % | 0.0 | - | 31.3 | 36 | - | - | - |
+| REF (official) | - | 70 % | 30 % | 2.2 | - | 2.7 | 62 | - | - | - |
+| P0 | 93 % | 100 % | 0 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
+| P0-ZH complete | 91 % | 95 % | 5 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
+| P0-ZH condensed | 75 % | 77 % | 23 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
+| P1 | 72 % | 69 % | 0 by design | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
+| **P2 (ours)** | 84 % | 80 % | 0 by design | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
+| P2, 70B everywhere | 78 % | 75 % | 0 by design | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
+| P2, 70B reads, 8B writes | 66 % | 65 % | 0 by design | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
 
 **Reading the table.** The baseline keeps everything as it rewrites little (7.7 words
 per sentence; SARI rewards closeness to the source). The pipeline nears the official

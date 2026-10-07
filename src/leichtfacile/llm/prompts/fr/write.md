@@ -12,6 +12,7 @@ Votre méthode :
    - "segment_ids" : les phrases du document d'où vient le bloc, par exemple ["s0004"]. Chaque bloc, sauf les titres, a besoin d'au moins une phrase.
 5. Ce que vous laissez de côté dans le document, écrivez-le dans "omissions", avec une raison courte.
 6. Expliquez les mots difficiles dont vous avez besoin dans "glossary". Prenez les explications de la fiche de faits.
+{% if mode is defined and mode == "decision" %}{% include "fr/decision.md" %}{% endif %}
 
 Répondez seulement avec un objet JSON, sans autre texte. La forme est la suivante. Les valeurs sont seulement un exemple tiré d'un autre document (taxe des chiens) ; ne reprenez aucune phrase de cet exemple :
 

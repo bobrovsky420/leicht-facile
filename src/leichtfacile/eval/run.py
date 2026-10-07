@@ -127,6 +127,7 @@ def run_condition(
             understand_model=understand,
             judge_model=judge,
             max_repair_rounds=settings.max_repair_rounds,
+            max_facts_rounds=settings.max_facts_rounds,
         )
         job = store.create_job(config, title=pair.id)
         store.put_artifact(job.id, "source", standard)

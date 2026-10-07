@@ -167,6 +167,8 @@
   "detail.not_needed": "nicht nötig: {reason}",
   "detail.rounds.one": "{n} Runde, {reason}",
   "detail.rounds.other": "{n} Runden, {reason}",
+  "detail.facts_rounds.one": ", dann {n} Runde nur für die fehlenden Fakten",
+  "detail.facts_rounds.other": ", dann {n} Runden nur für die fehlenden Fakten",
   "detail.blocking_left": ". Verbleibende blockierende Probleme: {versions}",
   "detail.ready": "bereit für Ihre Prüfung",
   "detail.reviewed": "Prüfung abgeschlossen",
@@ -180,6 +182,11 @@
   "stop.no_progress": "eine Überarbeitungsrunde brachte keinen Fortschritt",
   "stop.max_rounds.one": "nach {n} Überarbeitungsrunde beendet",
   "stop.max_rounds.other": "nach {n} Überarbeitungsrunden beendet",
+  "stop.no_missing_facts": "keine fehlenden Fakten mehr",
+  "stop.facts_round_failed": "eine Runde für die fehlenden Fakten ist fehlgeschlagen",
+  "stop.facts_no_progress": "eine Runde für die fehlenden Fakten brachte keinen Fortschritt",
+  "stop.max_facts_rounds.one": "nach {n} Runde für die fehlenden Fakten beendet",
+  "stop.max_facts_rounds.other": "nach {n} Runden für die fehlenden Fakten beendet",
 
   "progress.steps": "Schritte des Ablaufs",
   "progress.failed": "Der Auftrag ist fehlgeschlagen: {error}",
@@ -362,6 +369,7 @@
   "error.unknown_condition": "Unbekannter Ablauf '{condition}'; verwenden Sie P0, P1 oder P2.",
   "error.no_text": "Im Dokument wurde kein Text gefunden.",
   "error.unsupported_lang": "Das Dokument ist auf {lang}. Diese Version schreibt {langs}.",
+  "error.unknown_mode": "Unbekannter Modus '{mode}'; verwenden Sie standard oder decision.",
 
   "js.endpoint.listed": "Endpunkt {url}: erreichbar, Modell aufgeführt.",
   "js.endpoint.unlisted": "Endpunkt {url}: erreichbar, aber das Modell fehlt in seiner Liste.",
@@ -562,5 +570,6 @@
   "rule.SEM-04": "Setzt Wissen voraus, das Lesende vielleicht nicht haben",
   "rule.SEM-05": "Schwieriges Wort ohne Erklärung",
   "rule.SEM-06": "Aussage, die die Quelle nicht stützt",
-  "rule.SEM-07": "Fakt vorhanden, fehlt oder verfälscht"
+  "rule.SEM-07": "Fakt vorhanden, fehlt oder verfälscht",
+  "rule.SEM-08": "Pflicht, Möglichkeit oder Bedingung verändert"
 }

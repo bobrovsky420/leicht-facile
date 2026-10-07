@@ -13,6 +13,7 @@ from leichtfacile.examples import EXAMPLE_PREFIX
 from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.messages import recover
+from leichtfacile.rules.recipes import RECIPE_RULES
 from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import (
     SEVERITY_RANK,
@@ -44,6 +45,9 @@ STOP_KEYS = {
     "no blocking problems left": "stop.no_blocking",
     "a repair round failed": "stop.round_failed",
     "a repair round brought no progress": "stop.no_progress",
+    "no missing facts left": "stop.no_missing_facts",
+    "a facts round failed": "stop.facts_round_failed",
+    "a facts round brought no progress": "stop.facts_no_progress",
 }
 
 
@@ -51,6 +55,9 @@ def stop_reason(t: Translator, reason: str) -> str:
     rounds = re.fullmatch(r"stopped after (\d+) repair rounds", reason)
     if rounds:
         return t("stop.max_rounds", n=int(rounds.group(1)))
+    facts = re.fullmatch(r"stopped after (\d+) facts rounds", reason)
+    if facts:
+        return t("stop.max_facts_rounds", n=int(facts.group(1)))
     return t(STOP_KEYS[reason]) if reason in STOP_KEYS else reason
 
 
@@ -318,9 +325,11 @@ def review_view(
     for row in rows.values():
         row.issues.sort(key=lambda i: SEVERITY_RANK[i.severity])
         for issue in row.issues:
+            # A recipe (LEN-02: "make two sentences ...") is advice, not a replacement.
             issue.applicable = bool(
                 issue.suggestion
                 and issue.evidence
+                and issue.rule_id not in RECIPE_RULES
                 and issue.evidence != issue.suggestion
                 and issue.evidence in row.block.text
             )
@@ -508,6 +517,8 @@ def progress_view(
 
     stage = job.stage or ""
     stage_key = stage.split(" ")[0]
+    if stage_key == "facts":  # a round for the missing facts alone: the repair step
+        stage_key = "repair"
     in_loop = len(drafts) > 1 or stage_key == "repair"
     if job.status in ("needs_review", "done"):
         current = "review"
@@ -548,7 +559,9 @@ def progress_view(
 
     by_stage: dict[str, StageUsage] = {}
     for u in job.usage:
-        row = by_stage.setdefault(u.stage.split(" ")[0], StageUsage(u.stage.split(" ")[0]))
+        key = u.stage.split(" ")[0]
+        key = "repair" if key == "facts" else key  # a facts round is a repair call
+        row = by_stage.setdefault(key, StageUsage(key))
         row.calls += 1
         row.cached += int(u.cached)
         row.tokens_in += u.tokens_in
@@ -629,6 +642,8 @@ def _add_detail(
                 step.detail = t(
                     "detail.rounds", n=summary.rounds, reason=stop_reason(t, summary.stop_reason)
                 )
+                if summary.facts_rounds:
+                    step.detail += t("detail.facts_rounds", n=summary.facts_rounds)
                 per_version = ", ".join(
                     f"v{v}: {b}" for v, b in zip(drafts, summary.blocking_findings, strict=False)
                 )

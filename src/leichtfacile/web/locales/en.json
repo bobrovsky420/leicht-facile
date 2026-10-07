@@ -167,6 +167,8 @@
   "detail.not_needed": "not needed: {reason}",
   "detail.rounds.one": "{n} round, {reason}",
   "detail.rounds.other": "{n} rounds, {reason}",
+  "detail.facts_rounds.one": ", then {n} round for the missing facts alone",
+  "detail.facts_rounds.other": ", then {n} rounds for the missing facts alone",
   "detail.blocking_left": ". Blocking problems left: {versions}",
   "detail.ready": "ready for your review",
   "detail.reviewed": "review complete",
@@ -180,6 +182,11 @@
   "stop.no_progress": "a repair round brought no progress",
   "stop.max_rounds.one": "stopped after {n} repair round",
   "stop.max_rounds.other": "stopped after {n} repair rounds",
+  "stop.no_missing_facts": "no missing facts left",
+  "stop.facts_round_failed": "a round for the missing facts failed",
+  "stop.facts_no_progress": "a round for the missing facts brought no progress",
+  "stop.max_facts_rounds.one": "stopped after {n} round for the missing facts",
+  "stop.max_facts_rounds.other": "stopped after {n} rounds for the missing facts",
 
   "progress.steps": "Pipeline stages",
   "progress.failed": "The job failed: {error}",
@@ -362,6 +369,7 @@
   "error.unknown_condition": "Unknown condition '{condition}'; use P0, P1 or P2.",
   "error.no_text": "No text was found in the document.",
   "error.unsupported_lang": "The document is in {lang}. This version writes {langs}.",
+  "error.unknown_mode": "Unknown mode '{mode}'; use standard or decision.",
 
   "js.endpoint.listed": "Endpoint {url}: reachable, model listed.",
   "js.endpoint.unlisted": "Endpoint {url}: reachable, model not in the endpoint's list.",

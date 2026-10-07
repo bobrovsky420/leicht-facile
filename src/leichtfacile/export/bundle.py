@@ -51,6 +51,7 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
         "drafts": drafts,
         "rule_findings": versions("rules"),
         "judge_reports": versions("judge"),
+        "repair_records": versions("repair"),
         "review": review_json,
         "final": final,
     }

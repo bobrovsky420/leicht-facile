@@ -74,6 +74,17 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     kap.add_argument("sheet", type=Path, help="judge_facts.jsonl or judge_blocks.jsonl")
     kap.set_defaults(handler=_kappa)
 
+    dia = evsub.add_parser(
+        "diagnose", help="why must-keep facts are missing from the final drafts (no model)"
+    )
+    dia.add_argument("--results", type=Path, default=Path("eval/results"))
+    dia.add_argument("--condition", type=canonical_condition, default="P2", choices=["P1", "P2"])
+    dia.add_argument("--role", default="dev", choices=["dev", "eval", "all"])
+    dia.add_argument("--writer", help="only this writer model")
+    dia.add_argument("--out", type=Path, help="write the full report (details) to this file")
+    dia.add_argument("--json", type=Path, help="write the diagnosis as JSON to this file")
+    dia.set_defaults(handler=_diagnose)
+
     rep = evsub.add_parser("report", help="Markdown tables from the results")
     rep.add_argument("--results", type=Path, default=Path("eval/results"))
     rep.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
@@ -173,6 +184,27 @@ def _kappa(args: argparse.Namespace) -> int:
     from leichtfacile.eval.labels import kappa_report, render_kappa
 
     print(render_kappa(kappa_report(args.sheet)))
+    return 0
+
+
+def _diagnose(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.diagnose import diagnose, render_diagnosis, to_json
+
+    jobs = diagnose(args.results, condition=args.condition, role=args.role, writer=args.writer)
+    if not jobs:
+        print(f"no completed {args.condition} jobs for the {args.role} split in {args.results}")
+        return 1
+    title = f"Fact-retention diagnosis: {args.condition}, {args.role} split, {args.results}"
+    # The counts can be published; the details quote the pages and stay local.
+    print(render_diagnosis(jobs, title=title, details=False))
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(render_diagnosis(jobs, title=title), encoding="utf-8")
+        print(f"written: {args.out}")
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(to_json(jobs) + "\n", encoding="utf-8")
+        print(f"written: {args.json}")
     return 0
 
 

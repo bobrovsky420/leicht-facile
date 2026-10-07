@@ -12,6 +12,7 @@ from leichtfacile.config import Settings
 from leichtfacile.ingest.errors import IngestError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
+    JOB_MODES,
     LANGS,
     LEVELS,
     Job,
@@ -63,6 +64,9 @@ class Submission:
     understand_model: str | None = None
     judge_model: str | None = None
     title: str | None = None
+    mode: str = "standard"  # or "decision" (docs/use-case-decisions.md)
+    addressee: str | None = None
+    notice: str | None = None
 
 
 def check_public_url(url: str, *, allow_private: bool = False) -> None:
@@ -145,6 +149,8 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
         raise SubmissionError(
             "unsupported_lang", lang=source.lang, langs=tuple(available_languages())
         )
+    if sub.mode not in JOB_MODES:
+        raise SubmissionError("unknown_mode", mode=sub.mode)
     config = JobConfig(
         lang=source.lang,
         level=sub.level,  # type: ignore[arg-type]
@@ -153,6 +159,10 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
         max_repair_rounds=settings.max_repair_rounds,
+        max_facts_rounds=settings.max_facts_rounds,
+        mode=sub.mode,  # type: ignore[arg-type]
+        addressee=(sub.addressee or "").strip() or None,
+        notice=(sub.notice or "").strip() or None,
     )
     title = sub.title or source.title or sub.url or sub.file_name or "Pasted text"
     job = store.create_job(config, title=title[:200])

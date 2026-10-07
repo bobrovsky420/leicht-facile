@@ -11,6 +11,7 @@ Regeln für die Verbesserung:
 {% if missing %}- Einige Tatsachen fehlen im Text. Das ist das Wichtigste: Schreiben Sie für jede fehlende Tatsache 1 oder 2 neue Sätze in "additions", mit genau dem Wert, der bei der Tatsache steht. Hat die Tatsache keinen Wert, erfinden Sie keinen. Sagen Sie, nach welchem Block sie kommen ("after"), und nennen Sie die Tatsache in "fact_ids".
 - Ändern Sie Blöcke nur, wenn sie oben unter "Die Blöcke, die Sie verbessern" stehen.
 {% endif %}
+{% if mode is defined and mode == "decision" %}{% include "de/decision.md" %}{% endif %}
 Antworten Sie nur mit einem JSON-Objekt, ohne anderen Text. Die Form sieht so aus (die Werte sind nur ein Beispiel):
 
 {

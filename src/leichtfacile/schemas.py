@@ -33,6 +33,12 @@ DraftOrigin = Literal["write", "repair", "baseline", "review"]
 FactStatus = Literal["present", "missing", "distorted"]
 DecisionKind = Literal["approved", "edited", "rejected"]
 JobStatus = Literal["queued", "running", "needs_review", "done", "failed"]
+# standard: any official text. decision: the letter that goes out with a decision of an
+# authority or a court (docs/use-case-decisions.md): the operative part and the appeal
+# instructions are untouchable, the text speaks to one named person, and the export
+# carries the authority's fixed notice. A job option, never an evaluation condition.
+JobMode = Literal["standard", "decision"]
+JOB_MODES: tuple[str, ...] = get_args(JobMode)
 # P as in pipeline: the letter C would read as a CEFR level next to A2 and B1.
 Condition = Literal["P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2"]
 CONDITIONS: tuple[str, ...] = get_args(Condition)
@@ -287,7 +293,7 @@ class Unsupported(Artifact):
 
 class SemanticFinding(Artifact):
     block_id: str
-    rule_id: str  # SEM-01 ... SEM-05
+    rule_id: str  # SEM-01 ... SEM-05, SEM-08
     note: str = ""
 
 
@@ -305,6 +311,50 @@ class JudgeReport(Artifact):
             if fc.status == "distorted":
                 ids |= set(fc.block_ids)
         return ids
+
+
+# -- repair rounds -------------------------------------------------------------------
+
+
+DropReason = Literal["repeat", "example", "not_flagged"]
+
+
+class DroppedText(Artifact):
+    """A sentence of a repair answer that code left out of the new version: a repeat of
+    a sentence the draft already has, a sentence about the prompt's examples, or the
+    repair of a block the round had not flagged."""
+
+    text: str
+    reason: DropReason
+    block_id: str | None = None  # the repaired block, or the block the addition follows
+    fact_ids: list[str] = Field(default_factory=list)
+
+
+class AnsweredRepair(Artifact):
+    block_id: str
+    texts: list[str]
+
+
+class AnsweredAddition(Artifact):
+    after: str | None = None
+    texts: list[str]
+    fact_ids: list[str] = Field(default_factory=list)
+
+
+class RepairRecord(Artifact):
+    """What a repair round asked for and what the model answered, before code applied
+    it (one per round, stored under the version the round produced). The fact-retention
+    diagnosis (`eval diagnose`) reads it to tell a fact the model never wrote from one
+    it wrote in a form FACT-01 does not accept or one that code dropped."""
+
+    draft_version: int  # the version the round produced
+    parent_version: int
+    kind: Literal["repair", "facts"] = "repair"  # facts: a round that asks for facts only
+    requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
+    requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
+    repairs: list[AnsweredRepair] = Field(default_factory=list)
+    additions: list[AnsweredAddition] = Field(default_factory=list)
+    dropped: list[DroppedText] = Field(default_factory=list)
 
 
 # -- review ------------------------------------------------------------------------
@@ -334,8 +384,10 @@ class PipelineSummary(Artifact):
     """How a job's pipeline ran: which draft version is final and why it stopped."""
 
     condition: Condition
+    mode: JobMode = "standard"
     final_version: int
     rounds: int = 0
+    facts_rounds: int = 0  # rounds that asked for missing facts only, after the loop
     stop_reason: str = ""
     writer_model: str = ""
     understand_model: str | None = None  # only when it differs from the writer
@@ -363,6 +415,12 @@ class JobConfig(Artifact):
     judge_model: str | None = None  # None: LLM_JUDGE_NAME
     use_judge: bool = True  # P2 only: False repairs on rule findings alone
     max_repair_rounds: int = Field(default=3, ge=0, le=10)  # 0: no repair
+    # Rounds that ask for the missing facts alone once the loop above has stopped with
+    # must-keep values still missing (P2 only; 0: none).
+    max_facts_rounds: int = Field(default=1, ge=0, le=5)
+    mode: JobMode = "standard"
+    addressee: str | None = None  # decision mode: the person the letter speaks to
+    notice: str | None = None  # decision mode: the authority's fixed notice in the export
 
     @field_validator("condition", mode="before")
     @classmethod

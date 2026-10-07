@@ -30,7 +30,8 @@ SHEETS = {"fact": "judge_facts", "block": "judge_blocks"}
 Item = tuple[dict[str, Any], dict[str, Any]]  # the sheet row and its key row
 
 
-def _rows(results_dir: Path, condition: str, role: str | None) -> list[dict[str, Any]]:
+def completed_rows(results_dir: Path, condition: str, role: str | None) -> list[dict[str, Any]]:
+    """The result rows of a condition's completed jobs (every writer setup), for a role."""
     rows = []
     for path in sorted(results_dir.glob(f"{condition}_*.jsonl")):
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -86,7 +87,7 @@ def sample_items(
     block_pools: dict[str, list[Item]] = {s: [] for s in BLOCK_LABELS}
     store = Store(results_dir / "store.sqlite")
     try:
-        for row in _rows(results_dir, condition, role):
+        for row in completed_rows(results_dir, condition, role):
             loaded = _final(store, row["job_id"])
             if loaded is None:
                 continue

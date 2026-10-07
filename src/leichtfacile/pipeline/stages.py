@@ -24,7 +24,7 @@ from leichtfacile.pipeline.models import (
     clean_text,
 )
 from leichtfacile.pipeline.prompts import examples, level_name, render
-from leichtfacile.rules.document import KnownValues
+from leichtfacile.rules.document import KnownValues, display_value
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
@@ -40,10 +40,13 @@ from leichtfacile.rules.values import (
 )
 from leichtfacile.schemas import (
     ZH_CONDITIONS,
+    AnsweredAddition,
+    AnsweredRepair,
     Block,
     CoreAnswer,
     CoreQuestions,
     Draft,
+    DroppedText,
     Fact,
     FactCheck,
     FactSheet,
@@ -53,6 +56,7 @@ from leichtfacile.schemas import (
     Level,
     Omission,
     OmitCandidate,
+    RepairRecord,
     Segment,
     SemanticFinding,
     SourceDocument,
@@ -81,11 +85,19 @@ def thinking_for(llm: LLMClient, stage: str) -> bool:
     return stage in llm.settings.thinking_stages
 
 
+def mode_context(stage: str, mode: str = "standard", addressee: str | None = None) -> dict:
+    """The job mode in a prompt's context. The standard templates carry one line each,
+    `{% if mode is defined and mode == "decision" %}{% include %}{% endif %}`, which
+    renders to nothing for a standard job (same prompt, same cache key) and pulls in the
+    section of the decision partial for this stage (docs/use-case-decisions.md)."""
+    return {"mode": mode, "stage_name": stage, "addressee": addressee or ""}
+
+
 log = logging.getLogger(__name__)
 LONG_DOCUMENT_WORDS = 3000  # longer sources are written section by section
 SECTION_WORDS = 1500
 MIN_SECTION_SEGMENTS = 6  # a cut-off answer for fewer sentences is an error
-JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05"}
+JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05", "SEM-08"}
 
 
 def _call(
@@ -181,6 +193,7 @@ def example_keys(lang: str, stage: str) -> frozenset[str]:
     copies them. On the Public AI 8B, 4 of 12 dev drafts were the write prompt's JSON
     example, word for word (6 October 2026)."""
     context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
+    context.update(mode_context(stage))
     if stage == "write":
         context["examples"] = examples(lang)
     text = render(lang, stage, **context)
@@ -203,6 +216,7 @@ def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
 def example_values(lang: str, stage: str) -> tuple[Value, ...]:
     """The dates, amounts, phone numbers, addresses and times of a prompt's examples."""
     context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
+    context.update(mode_context(stage))
     if stage == "write":
         context["examples"] = examples(lang)
     text = render(lang, stage, **context)
@@ -327,11 +341,18 @@ def _foreign_check(lang: str, known: KnownValues, texts_of):
 
 
 def understand(
-    llm: LLMClient, source: SourceDocument, *, level: Level, model: str | None = None
+    llm: LLMClient,
+    source: SourceDocument,
+    *,
+    level: Level,
+    model: str | None = None,
+    mode: str = "standard",
+    addressee: str | None = None,
 ) -> tuple[FactSheet, list[LLMResult]]:
     prompt = render(
         source.lang,
         "understand",
+        **mode_context("understand", mode, addressee),
         level_name=level_name(source.lang, level),
         source=r.source_text(source),
     )
@@ -495,6 +516,8 @@ def write(
     *,
     level: Level,
     model: str | None = None,
+    mode: str = "standard",
+    addressee: str | None = None,
 ) -> tuple[Draft, list[LLMResult]]:
     lang = source.lang
     if source.word_count() > LONG_DOCUMENT_WORDS:
@@ -517,6 +540,7 @@ def write(
         prompt = render(
             lang,
             "write",
+            **mode_context("write", mode, addressee),
             level_name=level_name(lang, level),
             level=level,
             style_guide=style_guide(lang, level),
@@ -657,6 +681,8 @@ def judge(
     draft: Draft,
     *,
     model: str | None = None,
+    mode: str = "standard",
+    addressee: str | None = None,
 ) -> tuple[JudgeReport, list[LLMResult]]:
     cited = {s for b in draft.blocks for s in b.segment_ids}
     cited |= {s for f in factsheet.facts for s in f.segment_ids}
@@ -664,6 +690,7 @@ def judge(
     prompt = render(
         draft.lang,
         "judge",
+        **mode_context("judge", mode, addressee),
         level_name=level_name(draft.lang, draft.level),
         factsheet=r.factsheet_text(factsheet, lang=draft.lang),
         source=excerpt,
@@ -720,6 +747,28 @@ class RepairRequest:
         return bool(self.problems or self.missing)
 
 
+# The kinds whose exact form the repair request spells out next to the fact sheet's
+# value: a date as 31. März 2026, an amount as 1'500 Franken, a phone number in groups.
+# Web and e-mail addresses are given as written; a quantity keeps the sheet's form.
+_SPELLED_OUT_KINDS = frozenset(
+    {"date", "amount", "phone", "percent", "time", "period", "identifier", "address"}
+)
+
+
+def missing_value_label(fact: Fact, lang: str) -> str:
+    """The value a missing fact must get, with the exact form the draft should write it
+    in when that differs from the fact sheet's form (`2026-03-31`: `31. März 2026`).
+    A small model asked for `2026-03-31` sometimes writes it as it stands."""
+    if not fact.value_norm:
+        return ""
+    target = parse_value_norm(fact.value_norm, fact.kind, lang)
+    if target is not None and target.kind in _SPELLED_OUT_KINDS:
+        exact = display_value(target, lang)
+        if exact and exact != fact.value_norm:
+            return label(lang, "missing_value_exact", value=fact.value_norm, exact=exact)
+    return label(lang, "missing_value", value=fact.value_norm)
+
+
 def repair(
     llm: LLMClient,
     source: SourceDocument,
@@ -728,7 +777,12 @@ def repair(
     request: RepairRequest,
     *,
     model: str | None = None,
-) -> tuple[Draft, list[LLMResult]]:
+    mode: str = "standard",
+    addressee: str | None = None,
+    kind: str = "repair",
+) -> tuple[Draft, list[LLMResult], RepairRecord]:
+    """One repair round. Returns the new draft version, the model calls and the record
+    of the round: what was asked, what the model answered, what code left out."""
     lang = draft.lang
     by_id = draft.by_id()
     facts = {f.id: f for f in factsheet.facts}
@@ -746,11 +800,11 @@ def repair(
     missing_lines = []
     for fact in request.missing:
         cited |= set(fact.segment_ids)
-        value = label(lang, "missing_value", value=fact.value_norm) if fact.value_norm else ""
-        missing_lines.append(f"- {fact.id}: {fact.text}{value}")
+        missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}")
     prompt = render(
         draft.lang,
         "repair",
+        **mode_context("repair", mode, addressee),
         level_name=level_name(draft.lang, draft.level),
         level=draft.level,
         style_guide=style_guide(draft.lang, draft.level),
@@ -773,21 +827,57 @@ def repair(
             _foreign_check(lang, known, _repair_texts),
         ),
     )
-    dropped = drop_topical(_repair_texts(out), lang, source.text(), "repair")
-    if dropped:
+    record = RepairRecord(
+        draft_version=draft.version + 1,
+        parent_version=draft.version,
+        kind=kind,  # type: ignore[arg-type]
+        requested_blocks=list(request.problems),
+        requested_facts=[f.id for f in request.missing],
+        repairs=[AnsweredRepair(block_id=i.id, texts=list(i.texts)) for i in out.repairs],
+        additions=[
+            AnsweredAddition(after=a.after, texts=list(a.texts), fact_ids=list(a.fact_ids))
+            for a in out.additions
+        ],
+    )
+    topical = drop_topical(_repair_texts(out), lang, source.text(), "repair")
+    if topical:
         for item in out.repairs:
-            item.texts = [t for t in item.texts if t not in dropped]
+            record.dropped += [
+                DroppedText(text=t, reason="example", block_id=item.id)
+                for t in item.texts
+                if t in topical
+            ]
+            item.texts = [t for t in item.texts if t not in topical]
         out.repairs = [item for item in out.repairs if item.texts]
         for add in out.additions:
-            add.texts = [t for t in add.texts if t not in dropped]
+            record.dropped += [
+                DroppedText(text=t, reason="example", block_id=add.after, fact_ids=add.fact_ids)
+                for t in add.texts
+                if t in topical
+            ]
+            add.texts = [t for t in add.texts if t not in topical]
         out.additions = [add for add in out.additions if add.texts]
-    return apply_repairs(draft, out, request, factsheet), results
+    new_draft = apply_repairs(draft, out, request, factsheet, dropped=record.dropped)
+    return new_draft, results, record
 
 
 def apply_repairs(
-    draft: Draft, out: RepairOut, request: RepairRequest, factsheet: FactSheet
+    draft: Draft,
+    out: RepairOut,
+    request: RepairRequest,
+    factsheet: FactSheet,
+    dropped: list[DroppedText] | None = None,
 ) -> Draft:
+    """The new version: repaired blocks replaced (split into several when the answer
+    has several texts), additions placed after their blocks. `dropped`, when given,
+    collects every answered sentence code leaves out, with its reason."""
+    dropped = [] if dropped is None else dropped
     repairs = {item.id: item.texts for item in out.repairs if item.id in request.problems}
+    for item in out.repairs:
+        if item.id not in request.problems:  # the prompt says: only the flagged blocks
+            dropped += [
+                DroppedText(text=t, reason="not_flagged", block_id=item.id) for t in item.texts
+            ]
     known_facts = factsheet.fact_ids()
     additions: dict[str | None, list] = {}
     block_ids = set(draft.by_id())
@@ -812,7 +902,11 @@ def apply_repairs(
     for b in draft.blocks:
         texts = repairs.get(b.id)
         if texts:
-            texts = [t for t in texts if key(t) not in kept] or texts[:1]
+            fresh = [t for t in texts if key(t) not in kept] or texts[:1]
+            dropped += [
+                DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
+            ]
+            texts = fresh
             for i, text in enumerate(texts):
                 block_id = b.id if i == 0 else new_id(b.id)
                 used.add(block_id)
@@ -823,6 +917,11 @@ def apply_repairs(
         for add in additions.get(b.id, []):
             for text in add.texts:
                 if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
+                    dropped.append(
+                        DroppedText(
+                            text=text, reason="repeat", block_id=b.id, fact_ids=add.fact_ids
+                        )
+                    )
                     continue
                 blocks.append(
                     Block(
@@ -836,6 +935,7 @@ def apply_repairs(
     for add in additions.get(None, []):
         for text in add.texts:
             if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
+                dropped.append(DroppedText(text=text, reason="repeat", fact_ids=add.fact_ids))
                 continue
             base = blocks[-1].id if blocks else "b000"
             blocks.append(
@@ -847,10 +947,18 @@ def apply_repairs(
                     segment_ids=add.segment_ids,
                 )
             )
+    # An addition can land before the repaired block it repeats: drop the repeat.
+    final_blocks = drop_repeats(blocks, renumber=False)
+    if len(final_blocks) != len(blocks):
+        left = {b.id for b in final_blocks}
+        dropped += [
+            DroppedText(text=b.text, reason="repeat", block_id=b.id, fact_ids=b.fact_ids)
+            for b in blocks
+            if b.id not in left and b.kind != "heading"
+        ]
     return draft.model_copy(
         update={
-            # An addition can land before the repaired block it repeats: drop the repeat.
-            "blocks": drop_repeats(blocks, renumber=False),
+            "blocks": final_blocks,
             "version": draft.version + 1,
             "parent_version": draft.version,
             "origin": "repair",

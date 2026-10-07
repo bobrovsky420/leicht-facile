@@ -23,6 +23,7 @@ from leichtfacile.rules.base import BlockInfo, Context, Hit, rule, sev
 from leichtfacile.rules.de import ACCEPTED_PHONE_RE, format_phone
 from leichtfacile.rules.lexicon import MEDIOPUNKT, is_known, zipf
 from leichtfacile.rules.messages import hit
+from leichtfacile.rules.recipes import recipe_fr
 from leichtfacile.rules.values import (
     DASHES,
     DATE_ISO_RE,
@@ -430,6 +431,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     # As in German: one clause too many is a warning, nested clauses are an error.
     severity = "warn" if clauses == limit + 1 else "error"
     openers = subordinators(worst)
+    # The suggestion is the rewrite recipe for the conjunction (rules/recipes.py).
     if openers:
         yield hit(
             "LEN-02-FR.sub",
@@ -438,6 +440,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
             limit=limit,
             level=ctx.level,
             evidence=sent.text,
+            suggestion=recipe_fr(openers[0], sent.text),
             severity=severity,
         )
     else:
@@ -447,6 +450,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
             limit=limit,
             level=ctx.level,
             evidence=sent.text,
+            suggestion=recipe_fr(None),
             severity=severity,
         )
 

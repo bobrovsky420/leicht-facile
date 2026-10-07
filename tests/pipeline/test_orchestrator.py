@@ -268,3 +268,140 @@ def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
     assert set(request.problems) == {"b002"}  # the heading is not sent for repair
     lines = " ".join(request.problems["b002"])
     assert "Suggestion : 31 mars 2027" in lines and "Ce n'est pas dans l'original." in lines
+
+
+def test_a_facts_round_asks_for_the_missing_facts_alone(store, endpoint, sleeps) -> None:
+    """The loop stops on "no progress"; a round for the missing facts alone follows,
+    with no block flagged, and is measured by the FACT-01 count."""
+    from leichtfacile.schemas import RepairRecord
+
+    # Round 1 drops the wrong number instead of fixing it, and the judge then flags a
+    # block: as many blocking problems as before, so the loop stops on "no progress"
+    # with f03 still missing. The facts round adds the number.
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    judge_before = {
+        "fact_checks": [
+            {"fact_id": "f01", "status": "present", "block_ids": ["b002"]},
+            {"fact_id": "f02", "status": "present", "block_ids": ["b003"]},
+            {"fact_id": "f03", "status": "missing", "block_ids": []},
+        ]
+    }
+    judge_after = {**judge_before, "unsupported": [{"block_id": "b005", "note": "Woher?"}]}
+    added = {"repairs": [], "additions": [{
+        "after": "b004", "texts": ["Die Telefon·nummer ist 044 123 45 67."],
+        "fact_ids": ["f03"], "segment_ids": ["s0005"],
+    }]}  # fmt: skip
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge_before)),
+        chat_response(fx.as_json(no_number)),  # repair 1
+        chat_response(fx.as_json(judge_after)),  # judge again: a fact was involved
+        chat_response(fx.as_json(added)),  # facts 1
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=3, max_facts_rounds=2)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert [u.stage for u in job.usage] == [
+        "understand", "write", "judge", "repair", "judge", "repair", "judge",
+    ]  # fmt: skip
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.rounds == 1 and summary.facts_rounds == 1
+    assert summary.stop_reason == "no missing facts left"
+    assert summary.final_version == 3
+    facts_prompt = endpoint.chat_bodies()[5]["messages"][0]["content"]
+    assert "Die fehlenden Tatsachen" in facts_prompt
+    assert "(Wert: 0441234567; schreiben Sie: 044 123 45 67)" in facts_prompt
+    assert "Die Blöcke, die Sie verbessern:\n\n(keine)" in facts_prompt
+    # The record of each round: what was asked, what came back, what code dropped.
+    first = store.get_artifact(job_id, "repair", RepairRecord, version=2)
+    assert first.kind == "repair" and first.requested_blocks == ["b002", "b004"]  # passive, number
+    assert first.requested_facts == ["f03"] and first.dropped == []
+    second = store.get_artifact(job_id, "repair", RepairRecord, version=3)
+    assert second.kind == "facts" and second.requested_blocks == []
+    assert second.requested_facts == ["f03"]
+    assert second.additions[0].fact_ids == ["f03"]
+    rules_v3 = store.get_artifact(job_id, "rules", RuleFindings, version=3)
+    assert "FACT-01" not in {f.rule_id for f in rules_v3.findings}
+
+
+def test_facts_rounds_stop_without_progress_and_are_off_with_the_repair(
+    store, endpoint, sleeps
+) -> None:
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    judge_before = {"fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}]}
+    judge_after = {**judge_before, "unsupported": [{"block_id": "b005", "note": "Woher?"}]}
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge_before)),
+        chat_response(fx.as_json(no_number)),  # repair 1: no progress
+        chat_response(fx.as_json(judge_after)),
+        chat_response(fx.as_json({"repairs": [], "additions": []})),  # facts 1: nothing added
+        chat_response(fx.as_json(judge_after)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=2)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.rounds == 1 and summary.facts_rounds == 1
+    assert summary.stop_reason == "a facts round brought no progress"
+    assert len(store.get_job(job_id).usage) == 7
+
+    # Without repair rounds there are no facts rounds either.
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = new_job(store, condition="P2", use_judge=False, max_repair_rounds=0)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    assert store.get_artifact(job_id, "summary", PipelineSummary).facts_rounds == 0
+
+
+def test_a_facts_only_request_flags_no_block() -> None:
+    from leichtfacile.pipeline.models import UnderstandOut
+    from leichtfacile.pipeline.orchestrator import build_request, missing_count
+    from leichtfacile.pipeline.stages import to_factsheet
+    from leichtfacile.schemas import Block, Draft, Finding, RuleFindings
+    from tests.pipeline.fixtures import UNDERSTAND
+
+    fs = to_factsheet(UnderstandOut.model_validate(UNDERSTAND), "d")
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Das Formular wird geprüft."),
+    ])  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=[
+        Finding(block_id="b001", rule_id="GRAM-01", severity="error", message="passive"),
+        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id="f02"),
+    ])  # fmt: skip
+    assert missing_count(rules) == 1
+    request = build_request(draft, rules, None, fs, facts_only=True)
+    assert request.problems == {} and [f.id for f in request.missing] == ["f02"]
+    assert bool(request)
+
+
+def test_the_summary_and_the_judge_carry_the_mode(store, endpoint, sleeps) -> None:
+    from leichtfacile.schemas import SemanticFinding
+
+    judge = {
+        "fact_checks": [{"fact_id": "f01", "status": "present", "block_ids": ["b002"]}],
+        "unsupported": [],
+        "semantic_findings": [
+            {"block_id": "b002", "rule_id": "SEM-08", "note": "Aus muss wurde kann."},
+            {"block_id": "b002", "rule_id": "SEM-09", "note": "Rat"},  # not a standard rule
+        ],
+    }
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=0)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    report = store.get_artifact(job_id, "judge", JudgeReport, version=1)
+    assert report.semantic_findings == [
+        SemanticFinding(block_id="b002", rule_id="SEM-08", note="Aus muss wurde kann.")
+    ]
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.mode == "standard"
+    judge_prompt = endpoint.chat_bodies()[2]["messages"][0]["content"]
+    assert "SEM-08" in judge_prompt and "Entscheid" not in judge_prompt

@@ -52,9 +52,9 @@ MISSING_PRIORITY = {
     )
 }
 ARTIFACTS_FROM = {
-    "understand": ["factsheet", "draft", "rules", "judge", "summary", "review"],
-    "write": ["draft", "rules", "judge", "summary", "review"],
-    "judge": ["judge", "summary", "review"],
+    "understand": ["factsheet", "draft", "rules", "judge", "repair", "summary", "review"],
+    "write": ["draft", "rules", "judge", "repair", "summary", "review"],
+    "judge": ["judge", "repair", "summary", "review"],
 }
 
 
@@ -71,6 +71,11 @@ class _Stopped(Exception):  # noqa: N818  (control flow, not an error)
 def repairable(finding: Finding) -> bool:
     """Whether a repair round can fix the finding by rewriting its block."""
     return finding.rule_id.split("-")[0] in REPAIRABLE or finding.rule_id in REPAIRABLE_RULES
+
+
+def missing_count(rules: RuleFindings) -> int:
+    """Must-keep values the draft still lacks (FACT-01), the measure of a facts round."""
+    return sum(1 for f in rules.findings if f.rule_id == "FACT-01")
 
 
 def blocking_count(rules: RuleFindings, judge: JudgeReport | None) -> int:
@@ -93,10 +98,12 @@ def build_request(
     factsheet: FactSheet,
     *,
     include_warnings: bool = True,
+    facts_only: bool = False,
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
-    model asked to fix everything at once tends to fix nothing (docs/prompts.md)."""
+    model asked to fix everything at once tends to fix nothing (docs/prompts.md). A
+    facts-only round asks for the missing facts alone and flags no block."""
     severities = ("error", "warn") if include_warnings else ("error",)
     lang = draft.lang
     blocks = draft.by_id()
@@ -134,6 +141,8 @@ def build_request(
         (f for f in factsheet.facts if f.id in missing),
         key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
     )[:MAX_MISSING_PER_ROUND]
+    if facts_only:
+        return RepairRequest({}, ordered_missing)
     return RepairRequest({k: v for k, v in problems.items() if k in blocks}, ordered_missing)
 
 
@@ -213,7 +222,12 @@ class Orchestrator:
         if factsheet is None:
             self._set(job.id, stage="understand")
             factsheet, results = stages.understand(
-                self.llm, source, level=cfg.level, model=self._understand_model(cfg)
+                self.llm,
+                source,
+                level=cfg.level,
+                model=self._understand_model(cfg),
+                mode=cfg.mode,
+                addressee=cfg.addressee,
             )
             self._record(job.id, results)
             factsheet = stages.complete_factsheet(factsheet, source)
@@ -224,7 +238,13 @@ class Orchestrator:
         if draft is None:
             self._set(job.id, stage="write")
             draft, results = stages.write(
-                self.llm, source, factsheet, level=cfg.level, model=cfg.writer_model
+                self.llm,
+                source,
+                factsheet,
+                level=cfg.level,
+                model=cfg.writer_model,
+                mode=cfg.mode,
+                addressee=cfg.addressee,
             )
             self._record(job.id, results)
             draft = stages.link_facts(draft, factsheet)
@@ -256,32 +276,15 @@ class Orchestrator:
                 rounds -= 1
                 break
             polished = polished or blocking == 0
-            self._set(job.id, stage=f"repair {rounds}")
-            try:
-                new_draft, results = stages.repair(
-                    self.llm, source, factsheet, draft, request, model=cfg.writer_model
-                )
-            except (LLMError, LLMOutputError) as exc:
+            step = self._round(job, source, factsheet, draft, rules, judge, request, rounds)
+            if step is None:
                 # The drafts so far stay valid; the reviewer gets the best of them.
-                self._record(job.id, getattr(exc, "results", []))
-                self._notes.append(f"repair round {rounds} failed: {_short(exc)}")
                 reason = "a repair round failed"
                 rounds -= 1
                 break
-            self._record(job.id, results)
-            new_draft = stages.link_facts(new_draft, factsheet)
-            new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
-            self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
-            new_rules = self._check(job, new_draft, source, factsheet)
-            if self._judge_again(judge, rules):
-                new_judge = self._judge(job, source, factsheet, new_draft)
-            else:
-                new_judge = _carry_over(judge, draft, new_draft) if judge else None
-                if new_judge:
-                    self.store.put_artifact(job.id, "judge", new_judge, new_draft.version)
-            history.append((new_draft, new_rules, new_judge))
-            progress = blocking_count(new_rules, new_judge) < blocking
-            draft, rules, judge = new_draft, new_rules, new_judge
+            history.append(step)
+            progress = blocking_count(step[1], step[2]) < blocking
+            draft, rules, judge = step
             if blocking_count(rules, judge) == 0:
                 reason = "no blocking problems left"
                 break
@@ -290,6 +293,40 @@ class Orchestrator:
                 break
         else:
             reason = f"stopped after {cfg.max_repair_rounds} repair rounds"
+        # Facts-only rounds: the loop above stops when a round brings no progress on the
+        # whole, which on the dev pairs left must-keep values missing in nearly every
+        # job (docs/prompts.md). These rounds ask for the missing facts alone and are
+        # measured by them: they go on while a round adds a fact, up to the limit.
+        facts_rounds = 0
+        # Not without repair (max_repair_rounds 0) and not after a failed round: the
+        # endpoint is in trouble, and the drafts so far stand.
+        limit = cfg.max_facts_rounds if cfg.max_repair_rounds else 0
+        if reason == "a repair round failed":
+            limit = 0
+        for facts_rounds in range(1, limit + 1):  # noqa: B007
+            missing = missing_count(rules)
+            if missing == 0:
+                facts_rounds -= 1
+                break
+            request = build_request(draft, rules, judge, factsheet, facts_only=True)
+            step = self._round(
+                job, source, factsheet, draft, rules, judge, request, facts_rounds, kind="facts"
+            )
+            if step is None:
+                reason = "a facts round failed"
+                facts_rounds -= 1
+                break
+            history.append(step)
+            draft, rules, judge = step
+            if missing_count(rules) == 0:
+                reason = "no missing facts left"
+                break
+            if missing_count(rules) >= missing:
+                reason = "a facts round brought no progress"
+                break
+        else:
+            if facts_rounds:
+                reason = f"stopped after {facts_rounds} facts rounds"
         best = min(history, key=lambda h: (blocking_count(h[1], h[2]), -h[0].version))
         self._summary(
             job,
@@ -298,9 +335,57 @@ class Orchestrator:
             rules=[h[1] for h in history],
             judge=judge,
             rounds=max(rounds, 0),
+            facts_rounds=max(facts_rounds, 0),
             reason=reason,
             history=history,
         )
+
+    def _round(
+        self,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        draft: Draft,
+        rules: RuleFindings,
+        judge: JudgeReport | None,
+        request: RepairRequest,
+        number: int,
+        *,
+        kind: str = "repair",
+    ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
+        """One repair round: the new version, checked and judged; None when the model
+        call failed (the job goes on with the versions it has)."""
+        cfg = job.config
+        self._set(job.id, stage=f"{kind} {number}")
+        try:
+            new_draft, results, record = stages.repair(
+                self.llm,
+                source,
+                factsheet,
+                draft,
+                request,
+                model=cfg.writer_model,
+                mode=cfg.mode,
+                addressee=cfg.addressee,
+                kind=kind,
+            )
+        except (LLMError, LLMOutputError) as exc:
+            self._record(job.id, getattr(exc, "results", []))
+            self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
+            return None
+        self._record(job.id, results)
+        new_draft = stages.link_facts(new_draft, factsheet)
+        new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
+        self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
+        self.store.put_artifact(job.id, "repair", record, new_draft.version)
+        new_rules = self._check(job, new_draft, source, factsheet)
+        if self._judge_again(judge, rules):
+            new_judge = self._judge(job, source, factsheet, new_draft)
+        else:
+            new_judge = _carry_over(judge, draft, new_draft) if judge else None
+            if new_judge:
+                self.store.put_artifact(job.id, "judge", new_judge, new_draft.version)
+        return new_draft, new_rules, new_judge
 
     # -- stages -----------------------------------------------------------------------
 
@@ -321,7 +406,15 @@ class Orchestrator:
         self._set(job.id, stage="judge")
         model = job.config.judge_model or self.llm.judge_model()
         try:
-            report, results = stages.judge(self.llm, source, factsheet, draft, model=model)
+            report, results = stages.judge(
+                self.llm,
+                source,
+                factsheet,
+                draft,
+                model=model,
+                mode=job.config.mode,
+                addressee=job.config.addressee,
+            )
         except (LLMError, LLMOutputError) as exc:
             # Without the judge the draft still has its rule and fact checks.
             self._record(job.id, getattr(exc, "results", []))
@@ -352,6 +445,7 @@ class Orchestrator:
         rounds: int,
         reason: str,
         history: list | None = None,
+        facts_rounds: int = 0,
     ) -> None:
         blocking = (
             [blocking_count(h[1], h[2]) for h in history]
@@ -362,8 +456,10 @@ class Orchestrator:
         reader = self.llm.resolve_model(self._understand_model(job.config), False)[0]
         summary = PipelineSummary(
             condition=job.config.condition,
+            mode=job.config.mode,
             final_version=final.version,
             rounds=rounds,
+            facts_rounds=facts_rounds,
             stop_reason=reason,
             writer_model=writer,
             understand_model=reader

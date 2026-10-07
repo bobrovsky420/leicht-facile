@@ -181,8 +181,9 @@ Planned, not built:
 - a document type "decision": its own core questions, every item of the operative part
   and the appeal instructions as must-keep facts (`FACT-08`);
 - the fixed notice in the export (`FACT-07`);
-- judge checks for conditions, neutrality and advice, and for the start of every
-  period (`SEM-08`, `SEM-09`, `SEM-10`);
+- judge checks for neutrality and advice, and for the start of every period
+  (`SEM-09`, `SEM-10`; the check that a condition stays a condition, SEM-08, is in the
+  standard judge prompt since 7 October 2026);
 - a mode that condenses long legal reasoning, with every omission listed.
 
 The planned checks in backticks are specified in

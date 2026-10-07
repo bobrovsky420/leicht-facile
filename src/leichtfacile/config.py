@@ -56,6 +56,9 @@ class Settings(BaseSettings):
 
     # Pipeline
     max_repair_rounds: int = Field(default=3, ge=0)
+    # Rounds that ask only for the must-keep facts still missing after the repair loop
+    # has stopped (docs/architecture.md §4.6). 0 switches them off.
+    max_facts_rounds: int = Field(default=1, ge=0, le=5)
 
     # Runtime
     data_dir: Path = Path("data")

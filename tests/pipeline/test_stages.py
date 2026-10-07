@@ -377,14 +377,14 @@ def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, s
         "additions": [],
     }
     endpoint.push(chat_response(fx.as_json(leaked)), chat_response(fx.as_json(fixed)))
-    new_draft, results = repair(llm, fx.letter(), fs, draft, request)
+    new_draft, results, _ = repair(llm, fx.letter(), fs, draft, request)
     assert len(results) == 2
     feedback = endpoint.chat_bodies()[1]["messages"][-1]["content"]
     assert "044 215 21 51" in feedback and "nicht im Dokument" in feedback
     assert new_draft.blocks[0].text.endswith("044 123 45 67.")
     # The second answer is used as it is: FACT-06 flags what remains.
     endpoint.push(chat_response(fx.as_json(leaked)), chat_response(fx.as_json(leaked)))
-    new_draft, results = repair(llm, fx.letter(), fs, draft, request)
+    new_draft, results, _ = repair(llm, fx.letter(), fs, draft, request)
     assert len(results) == 2 and "044 215 21 51" in new_draft.blocks[0].text
 
 
@@ -482,3 +482,121 @@ def test_write_output_hoists_entries_written_as_blocks_of_that_kind() -> None:
     assert [b.text for b in out.blocks] == ["Ein Satz."]
     assert [o.what for o in out.omissions] == ["Gesetz"]
     assert [g.term for g in out.glossary] == ["Notruf"]
+
+
+def test_the_repair_record_keeps_the_answer_and_what_code_dropped(endpoint, sleeps) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import RepairRequest, repair
+    from leichtfacile.schemas import Block, Draft
+    from tests.conftest import chat_response, make_settings
+
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Sie können das Amt anrufen.",
+              segment_ids=["s0005"]),
+        Block(id="b002", kind="sentence", text="Das kostet 20 Franken.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    request = RepairRequest({"b001": ["  - SEM-03: Welches Amt?"]}, [fs.facts[0]])
+    answer = {
+        "repairs": [
+            {"id": "b001", "texts": ["Rufen Sie das Sozial·amt an.", "Das kostet 20 Franken."]},
+            {"id": "b002", "texts": ["Die Gebühr ist 20 Franken."]},  # not flagged
+        ],
+        "additions": [
+            {"after": "b002", "texts": ["Das Gesuch muss bis 31. März 2026 bei der Gemeinde sein.",
+                                        "Melden Sie Ihren Hund an."], "fact_ids": ["f01"]},
+        ],
+    }  # fmt: skip
+    endpoint.push(chat_response(fx.as_json(answer)), chat_response(fx.as_json(answer)))
+    new_draft, results, record = repair(llm, fx.letter(), fs, draft, request)
+    assert [b.text for b in new_draft.blocks] == [
+        "Rufen Sie das Sozial·amt an.",
+        "Das kostet 20 Franken.",
+        "Das Gesuch muss bis 31. März 2026 bei der Gemeinde sein.",
+    ]
+    assert record.draft_version == 2 and record.parent_version == 1
+    assert record.requested_blocks == ["b001"] and record.requested_facts == ["f01"]
+    # The answer as given, every text, before code applied it.
+    assert [r.block_id for r in record.repairs] == ["b001", "b002"]
+    assert record.additions[0].fact_ids == ["f01"] and len(record.additions[0].texts) == 2
+    dropped = {(d.text, d.reason) for d in record.dropped}
+    assert dropped == {
+        ("Das kostet 20 Franken.", "repeat"),  # the draft has the sentence already
+        ("Die Gebühr ist 20 Franken.", "not_flagged"),
+        ("Melden Sie Ihren Hund an.", "example"),  # the examples' topic
+    }
+    # The prompt names the exact form next to the fact sheet's value.
+    prompt = endpoint.chat_bodies()[0]["messages"][0]["content"]
+    assert "- f01: Das Gesuch muss bis 31. März 2026 bei der Gemeinde sein. " in prompt
+    assert "(Wert: 2026-03-31; schreiben Sie: 31. März 2026)" in prompt
+
+
+def test_the_exact_form_of_a_missing_value() -> None:
+    from leichtfacile.pipeline.stages import missing_value_label
+    from leichtfacile.schemas import Fact
+
+    def fact(kind: str, value: str | None) -> Fact:
+        return Fact(id="f01", kind=kind, text="x", value_norm=value)  # type: ignore[arg-type]
+
+    assert missing_value_label(fact("deadline", "2026-03-31"), "de") == (
+        " (Wert: 2026-03-31; schreiben Sie: 31. März 2026)"
+    )
+    assert missing_value_label(fact("deadline", "2026-03-31"), "fr") == (
+        " (valeur : 2026-03-31 ; écrivez : 31 mars 2026)"
+    )
+    assert missing_value_label(fact("amount", "1500"), "de") == (
+        " (Wert: 1500; schreiben Sie: 1'500 Franken)"
+    )
+    assert missing_value_label(fact("contact", "0441234567"), "de") == (
+        " (Wert: 0441234567; schreiben Sie: 044 123 45 67)"
+    )
+    # Already in its exact form, or a kind whose written form is the value itself.
+    assert missing_value_label(fact("deadline", "30 Tage"), "de") == " (Wert: 30 Tage)"
+    assert missing_value_label(fact("contact", "www.musterwil.example"), "de") == (
+        " (Wert: www.musterwil.example)"
+    )
+    assert missing_value_label(fact("other", None), "de") == ""
+
+
+def test_the_decision_partial_renders_only_in_decision_mode() -> None:
+    from leichtfacile.pipeline.stages import mode_context
+
+    source = fx.letter()
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), source.id)
+    draft = Draft(doc_id=source.id, lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Das kostet 20 Franken.", segment_ids=["s0004"])
+    ])  # fmt: skip
+    contexts = {
+        "understand": {"source": r.source_text(source)},
+        "write": {"style_guide": style_guide("de", "A2"), "examples": examples("de"),
+                  "section": "", "factsheet": r.factsheet_text(fs),
+                  "source": r.source_text(source)},
+        "judge": {"factsheet": r.factsheet_text(fs), "source": r.source_text(source),
+                  "draft": r.draft_lines(draft), "glossary": r.glossary_text(draft)},
+        "repair": {"style_guide": style_guide("de", "A2"), "flagged": "[b001] ...", "missing": "",
+                   "factsheet": r.factsheet_text(fs), "draft": r.draft_lines(draft),
+                   "source": r.source_text(source)},
+    }  # fmt: skip
+    common = {"level_name": level_name("de", "A2"), "level": "A2"}
+    for stage, context in contexts.items():
+        plain = render("de", stage, **common, **context)
+        standard = render("de", stage, **common, **context, **mode_context(stage))
+        assert standard == plain, stage  # the include line renders to nothing
+        assert "Entscheid" not in standard and "SEM-09" not in standard, stage
+        decision = render(
+            "de", stage, **common, **context, **mode_context(stage, "decision", "Frau Muster")
+        )
+        assert "{{" not in decision and "{%" not in decision, stage
+        assert decision != standard, stage
+        assert "Frau Muster" in decision, stage
+    assert "Was hat die Behörde entschieden?" in render(
+        "de", "write", **common, **contexts["write"], **mode_context("write", "decision")
+    )
+    french = render(
+        "fr", "judge", level_name=level_name("fr", "A2"), level="A2",
+        factsheet=r.factsheet_text(fs, lang="fr"), source=r.source_text(source),
+        draft=r.draft_lines(draft), glossary=r.glossary_text(draft),
+        **mode_context("judge", "decision"),
+    )  # fmt: skip
+    assert "SEM-09" in french and "SEM-10" in french

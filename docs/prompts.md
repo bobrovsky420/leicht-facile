@@ -82,6 +82,30 @@ thinking.
   example) is dropped from the response cache, so a rerun of a failed pair asks the
   model again instead of replaying the same unusable answer; the evaluation reruns
   failed pairs with the cache on.
+- **The exact form of a missing value** (7 October 2026). The list of missing facts
+  in a repair request names the fact sheet's value and, when the draft should write
+  it differently, the exact form: `(Wert: 2026-03-31; schreiben Sie: 31. März 2026)`,
+  `(valeur : 0221234567 ; écrivez : 022 123 45 67)`. Dates, amounts, phone numbers,
+  percentages, times, periods, identifiers and addresses get it; web and e-mail
+  addresses are given as written. The repair prompt's text did not change; the
+  rendered requests did, so the repair calls of a `--redo` run are fresh.
+- **Clause recipes.** A LEN-02 or LEN-02-FR finding carries the rewrite recipe for its
+  conjunction as the suggestion (docs/rules.md, `rules/recipes.py`), so the repair
+  line reads "Vorschlag: Machen Sie eine Frage und eine Antwort mit Dann ..." for a
+  `wenn` clause. The idea is Zurich's, the wording ours.
+- **Facts-only rounds** (7 October 2026, PLAN.md WP13). The repair loop stops when a
+  round brings no progress on the whole; on the dev pairs that left must-keep values
+  missing in 15 of 16 jobs, because a round that adds facts also gets new judge
+  findings. After the loop, up to `MAX_FACTS_ROUNDS` (default 1) rounds ask for the
+  missing facts alone, with no block flagged, and are measured by the FACT-01 count:
+  they go on while a round adds a fact. The judge reruns as in any round with facts
+  involved. The final version is still the one with the fewest blocking findings.
+  Set `MAX_FACTS_ROUNDS=0` to measure the pipeline without them.
+- **Repair records.** Every round stores what it asked for, the answer as given and
+  every answered sentence code left out with its reason (a repeat, example content, a
+  block the round had not flagged), under the version it produced. `eval diagnose`
+  reads them to tell a fact the model never wrote from one it wrote in a form FACT-01
+  rejects or one code dropped (below, "Fact-retention diagnosis").
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`) also
   print `<|assistant_end|>`; the client strips every `<|...|>` token from answers.
 
@@ -445,6 +469,32 @@ The full dev split under P2 with the step (10 of 10 pairs): fact coverage 58 per
 hard facts kept 63 percent, 3.0 rule errors and 47.5 warnings per 100 blocks, no
 invented values.
 
+### Fact-retention diagnosis (WP13): the method, numbers pending (7 October 2026, night)
+
+Why does P2 keep fewer facts than Zurich's complete prompt (84 against 91 percent fact
+coverage on the eval split)? `python -m leichtfacile eval diagnose --results
+eval/results-cscs --role dev` answers it without a model call, from the stored
+artifacts of the P2 jobs: every must-keep fact with a value that FACT-01 does not find
+in the final version goes into one bucket.
+
+| Bucket | Meaning | How the tool decides |
+|---|---|---|
+| a | never asked for in a round that led to the final version | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of 5 missing facts per round, no round reached the final version (the loop stopped or failed, or a later version was not kept), or never flagged by FACT-01 when the job ran |
+| b | asked for and written, but in a form FACT-01 rejects | the record's answer carries the fact's digits or words, but no value the matcher accepts |
+| c | asked for and written, then dropped by code | the answered sentence is in the record's dropped list (a repeat, example content, a block the round had not flagged) |
+| d | asked for, and the model did not write it | no answered sentence for the fact, nothing loose either |
+| l | present in an earlier version, lost in a later rewrite | the value is in a version before the final one and gone after a round, by the model's rewrite or by code |
+| x | asked for, answer not recorded | jobs run before the repair record existed (every run before 7 October 2026, night): b, c and d cannot be told apart for them |
+| e | background facts whose value is not in the final text | listed for reading, not counted: whether the reader needed a fact Understand or code completion marked droppable is a reading decision |
+
+The bucket table of the dev split goes here once the command has run on the machine
+that holds `eval/results-cscs` (the cloud session that built the tool has no stored
+results); the tool prints it ready to paste, and writes the details, which quote the
+pages, to a local file only. The fixes already in for the buckets the stored data can
+show without a record: the facts-only rounds (bucket a, the cap and the "no progress"
+stop) and the exact form in the request (bucket b); the record itself makes the next
+run's diagnosis exact.
+
 ## Change log
 
 | Version | Date | Change |
@@ -460,3 +510,5 @@ invented values.
 | 6 | 2026-10-06 | No change to our templates. New German template `baseline_zh.md`: the Canton of Zurich's Leichte Sprache prompt, verbatim, as the second baseline P0-ZH in two variants (`complete`, `condensed`); its rendering was checked character for character against their own prompt assembly (`create_prompt` in `app_core.py`). |
 | 6 | 2026-10-06 | No template change. Code: the Mediopunkt is written by code after the write stage and after every repair round, in P1 and P2 (`rules/mediopunkt.py`, docs/rules.md "Edits made by code"), and LEX-01 no longer exempts a compound because it is in the glossary. Reason: in the owner's first CSCS job through the web UI the 8B kept `Krankenversicherungspolice` and `Sozialversicherungsstelle` unsplit through two repair rounds. The repair prompt therefore no longer carries LEX-01 lines for compound nouns. Rescored without model calls on the final drafts already in the CSCS store (97 German P1 and P2 jobs, 3453 blocks): LEX-01 warnings per 100 blocks fall from 39.1 to 3.0 (P1, 8B), 31.9 to 3.1 (P2, 8B) and 27.0 to 2.2 (P2, 70B), all warnings per 100 blocks from 77.9 to 42.0, 66.7 to 38.0 and 53.8 to 29.3; 30 to 41 words per 100 blocks get the dot, 157 of the 1177 in glossary terms. Reading splits by hand found two wrong joints in the first 25: `Ostermundi·gens·trasse`, fixed in the splitter (a nested split now counts by its weakest part, giving `Ostermundigen·strasse`) and by leaving the word in front of a house number alone; and `Kostengut·sprache` for `Kosten·gutsprache`, which stays, because the splitter does not know the Swiss term. The next 25 had none. What the step saves in repair rounds shows only in the next `--redo` rerun on CSCS, which is still open. |
 | 6 | 2026-10-06 | No template change. Code: the compound splitter treats the feminine ending `-innen` as an ending (`Sozial·arbeiterinnen`, never `Schweizer·innen`), and the evaluation counts the splits of earlier rounds that the final version keeps. The dev rerun on CSCS with and without the step is in "Mediopunkt by code" above: LEX-01 from 35 to 5 warnings per 100 blocks, no repair round saved, no fact lost. |
+| 7 | 2026-10-07 | Judge prompt (German and French): one more rule, SEM-08, an obligation, a possibility or a condition that changed (`müssen` to `können`, a `wenn` written as `vielleicht`); the judge filter accepts it (decision D-P, PLAN.md WP15 piece 4). All four standard templates in both languages get one line, `{% if mode is defined and mode == "decision" %}{% include "<lang>/decision.md" %}{% endif %}`, which renders to nothing for a standard job (same prompt text, same cache key; the template hash changes once) and pulls in the stage's section of the new partial `decision.md` for a job in the decision mode (docs/use-case-decisions.md; first draft, free to change after the freeze). |
+| 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Numbers from the dev rerun follow. |

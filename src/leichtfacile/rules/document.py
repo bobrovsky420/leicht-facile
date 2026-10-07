@@ -451,6 +451,7 @@ JUDGE_RULES = {
     "SEM-05": "Difficult word without an explanation",
     "SEM-06": "Statement the source does not support",
     "SEM-07": "Fact present, missing or distorted",
+    "SEM-08": "Obligation, possibility or condition changed",
 }
 for _rule_id, _title in JUDGE_RULES.items():
     declare(_rule_id, lang=None, title=_title, severity=sev("warn"), scope="judge")

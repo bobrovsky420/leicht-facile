@@ -17,7 +17,9 @@ from leichtfacile.schemas import Decision, Draft, PipelineSummary, ReviewState
 from leichtfacile.web.jobs import Submission, SubmissionError, create_job
 
 router = APIRouter(prefix="/api")
-ARTIFACT_NAMES = ("source", "factsheet", "draft", "rules", "judge", "review", "summary")
+ARTIFACT_NAMES = (
+    "source", "factsheet", "draft", "rules", "judge", "repair", "review", "summary",
+)  # fmt: skip
 
 
 class DecisionIn(BaseModel):
@@ -57,8 +59,13 @@ async def post_job(
     understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,
     title: Annotated[str | None, Form()] = None,
+    mode: Annotated[str, Form()] = "standard",
+    addressee: Annotated[str | None, Form()] = None,
+    notice: Annotated[str | None, Form()] = None,
 ) -> dict:
-    """Create a job from pasted text, a URL or an uploaded file (multipart form)."""
+    """Create a job from pasted text, a URL or an uploaded file (multipart form).
+    `mode` is `standard` or `decision` (docs/use-case-decisions.md); `addressee` and
+    `notice` belong to the decision mode."""
     data = await file.read() if file is not None and file.filename else None
     sub = Submission(
         text=text,
@@ -72,6 +79,9 @@ async def post_job(
         understand_model=understand_model,
         judge_model=judge_model,
         title=title,
+        mode=mode,
+        addressee=addressee,
+        notice=notice,
     )
     state = _state(request)
     try:

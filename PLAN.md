@@ -452,7 +452,12 @@ the page. Built after WP10 in build order; scope status in §2 (stretch item 11)
       `data/examples/print/`, from `scripts/print_letters.py`: a German tax reminder
       and a French grant decision over two pages; both printed, folded in three and
       scanned at 300 dpi without OCR, one PDF per letter in `print/scans/`; phone
-      photos and a third letter still needed)*
+      photos and a third letter still needed. 7 Oct, night: the spike itself is
+      `scripts/image_spike.py` with `eval/image_spike.py`: the page JPEGs out of the
+      scans unchanged, scaled to 1600 px, one transcription call per page, character
+      error rate and hard values found against the printed text, a table and a JSON
+      report; tested without a key on the committed scans. The run on CSCS is the
+      owner's: a LOCAL TEST REQUEST in the session log)*
 - [ ] `ingest/image.py` (was the WP3 item): JPEG/PNG, up to 3 photos per letter
       (pages in order), or a scanned PDF without text layer (its page JPEGs taken out
       unchanged, as for the spike's scans), EXIF rotation, long side scaled to about 1600 px (Pillow);
@@ -709,9 +714,10 @@ comparison, the report, the video.
 | D-M | Headline metric and sentence | The rules of §13.4, applied to the final CSCS numbers, no debate. | 10 Oct (G3) |
 | D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. | 8 Oct |
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
-| D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. | 9 Oct |
+| D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
 | D-Q | Outreach | Mail A to Zurich's Team Data, mail B to one easy-language office (§13.7). Only synthetic letters and their outputs leave the team. Answers by 12 Oct; no second round. | 7 Oct |
 | D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of §13.4). | 10 Oct |
+| D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. | 9 Oct, before the freeze |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
 | D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. | 8 Oct |
 | D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §13). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
@@ -785,6 +791,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07 (night; c7): the submission documents argue why only Apertus fits the letters under secrecy (owner's request). `docs/use-cases.md` §2 "Why only Apertus": four conditions in a row, the text stays inside (official, medical and tax secrecy, art. 33 ATSG for social and basic health insurance, art. 86 BVG, art. 47 BankG; privatim's resolution of 18 November 2025 on international cloud services; the CLOUD Act), the organisation runs the model (open weights), it can account for what the model learned (open training data, which rules out Llama, Gemma, Qwen and Mistral), the model is Swiss (which rules out EuroLLM and SmolLM3, the fully open models with German, French and Italian), with the Apertus facts and every source in its references. A research agent checked each claim against primary sources; corrected on the way: other open-weight models can run in-house too, so the argument needs conditions 3 and 4; the personal-data filter replaces only e-mail and IP addresses and IBANs; Apertus 1.5 is Apache 2.0 with an acceptable use policy; more than 1,000 languages, not 1,811 for 1.5; the CSCS API serves research, not administrations (architecture §10 fixed). Tax letters added as use case 12 (tax secrecy, 30 days to object, art. 132 DBG; the WP12 print letter is one), the needs table is §13 now (links in architecture and rules.md updated), a column "What keeps the text inside" and a sovereignty line per use case. README: the use-case paragraph and a "Why only Apertus" table (WP15 box ticked), a pointer under Sovereign deployment. Report: one clause in §1, §3's "Where it runs" bullet carries the argument, §8's two use-case bullets merged; +74 words, about 5 lines (with both §2 diagrams, measured as on 7 October: last page 39 to 47 percent; leicht-facile-99 renders the diagrams larger and counts 7 pages before this change). Video: the BehiG scene dropped at the owner's request, the "only Apertus" scene at 1:29-1:57 with the four conditions as tiles and Ticino's in-house use, the product scene cut to 72 words (42 rules, not 41), about 245 words in all; hard-texts.md §1 no longer suggests BehiG for the pitch. use-case-decisions.md §2 and architecture §10 link the argument. Docs only, no code; no presentation file exists yet. Then, at the owner's go: the video says Leicht·Facile does not replace the writers but gives them a checked first draft (logo scene, now 0:32-0:49; the product scene trimmed to 63 words, the writer approves every block), and mail B in §13.7 no longer says the opposite of what it means ("Das Werkzeug ersetzt die Prüfung durch Menschen aus der Zielgruppe nicht").
 - 2026-10-07 (night; vocabulary session): a vocabulary of hard words for German and French (`rules/data/vocabulary_<lang>.toml`, loader `rules/vocabulary.py`, docs/rules.md "Vocabulary"). Two kinds: `replace` (bureaucratic word, phrase or abbreviation and the everyday word: `innert` = `innerhalb von`, `moyennant` = `avec`) and `explain` (a term that stays, `Verfügung`, `Franchise`, `commandement de payer`, with a glossary text). German 229 and 107 entries, French 185 and 105, Swiss usage; drawn from the rare words of the standard pages in the 35 cached pairs, the way official easy pages explain the same terms, and the existing rule lists. Every explanation passes the checker at A2 with no warning (LEX-01 excepted): the first draft had 45 German and 68 French warnings and errors, mostly relative clauses, rewritten as one clause per sentence. `tests/rules/test_vocabulary.py` keeps it so. Not yet used by prompt or checker: the new WP17 row "Vocabulary in prompt and checker".
 - 2026-10-07 (night; vocabulary session, 2): vocabulary checked against TERMDAT and published lists (docs/rules.md "Vocabulary"). TERMDAT, queried as Linked Data (`ld.admin.ch/query`, about 40,000 entries): 59 German and 57 French terms of the pilot's letters with the official French equivalent and the entry id as a comment (`rechtliches Gehör` / `droit d'être entendu`, `Mitwirkungspflicht`, `Verzugszins`, `Einstelltage`, `Vorsorgeauftrag`, `vorläufige Aufnahme`; French tax letters say `réclamation`, not `opposition`). 18 and 15 pilot terms TERMDAT lacks, with the act as source (`aufschiebende Wirkung` / `effet suspensif`, `Vorbescheid` / `préavis`, the EL terms, `Grundbedarf` / `forfait pour l'entretien`). A helper agent cross-checked against COSLA's *Lexique administratif*, German administrative-language guides, Wiktionary and Hurraki (checklists only, nothing copied): about 40 gaps per language added (`widrigenfalls`, `Rechtsöffnung`, `Nachsteuer`, `indûment`, `mainlevée`, `taxation d'office`) and 21 wrong or risky entries fixed or dropped (`prescription`, `disposition`, `aufheben`, `verfügen`, `bzw.`). Now German 263 replace and 195 explain, French 218 and 190; every explanation passes the checker at A2. Found on the way: GRAM-04-FR flagged the present `il agit` as passé simple (the parser tags some second-group -ir forms Past); fixed in `rules/fr.py` (the singular of second-group -ir and -ire verbs counts as present, third-group `il sortit` stays flagged), with golden cases.
+- 2026-10-07 (night; cloud session): items 1-3 of the 8 Oct plan without the endpoint and without `eval/results-cscs`, which the cloud session does not have. (1) The fact-retention diagnosis as a tool: `eval diagnose` (`eval/diagnose.py`) puts every missing must-keep value of a run's P2 jobs into a bucket (never asked for: cap, no round, unflagged; written but rejected; dropped by code; not written; lost later; answer not recorded) from the stored artifacts and, for new runs, from a `RepairRecord` per round (request, answer as given, dropped texts with reason, in the audit bundle); method in docs/prompts.md, numbers pending the owner's run. (2) The fixes for bucket a and b: facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1, D-Z) and the exact form of a missing value in the request; the clause recipes for LEN-02 and LEN-02-FR (`rules/recipes.py`, golden tests, no "Apply" in the UI; D-P done); the decision mode's hooks (JobConfig `mode`, `addressee`, `notice`, CLI and API fields, include lines in all eight standard templates with a first `decision.md` in DE and FR, SEM-08 in the judge filter and both judge prompts, rules.md judge table). (3) Silent losses in `eval/score.py` and the report tables, the §5 column with the identity for the baseline rows; the image spike `scripts/image_spike.py` (`eval/image_spike.py`), tested on the committed scans without a key. Tests: 1059 collected, all green; ruff clean. Committed to the session branch `ccr-0afb0414-dnn24f` at the owner's request; the merge to `main` is the owner's. Pending runs for the owner's machine: `eval diagnose` on `eval/results-cscs`, the dev rerun with `--redo` with and without facts rounds, the spike on CSCS.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -945,13 +952,35 @@ prompt, on the same model?", with numbers a juror can trust.
         needs it.
 
       Result: a table in docs/prompts.md ("Tested so far").
+      *7 Oct, night (cloud session): the tool is `python -m leichtfacile eval diagnose
+      --results eval/results-cscs --role dev` (`eval/diagnose.py`, tests on a
+      hand-built store). It puts every missing must-keep value into a bucket from the
+      stored artifacts; for the stored runs it decides bucket a exactly (requests
+      recomputed with `build_request`) and reports b, c and d together as "answer not
+      recorded", since the repair record (below) did not exist yet. The method is in
+      docs/prompts.md; the numbers wait for the run on the owner's machine, the cloud
+      session has no `eval/results-cscs`.*
 - [ ] **Fix the largest bucket** (2-6 h), then `eval run --redo` on the dev pairs.
       Candidates:
       - a facts-only repair round that "no progress" on other findings does not stop;
+        *in, 7 Oct night: up to `MAX_FACTS_ROUNDS` (default 1) rounds after the loop,
+        missing facts only, no block flagged, measured by the FACT-01 count; off after
+        a failed round and without repair rounds; decision D-Z;*
       - the exact value in the repair request ("Schreiben Sie genau: 31. März 2026");
-      - wider FACT-01 surface forms where the value stays unambiguous;
-      - every dropped addition logged with its reason.
-- [ ] **Headline metrics** (1-2 h) in `eval/score.py` and `eval/report.py`:
+        *in, 7 Oct night: `(Wert: 2026-03-31; schreiben Sie: 31. März 2026)`;*
+      - wider FACT-01 surface forms where the value stays unambiguous; *waits for
+        bucket b of the diagnosis;*
+      - every dropped addition logged with its reason. *In, 7 Oct night: the
+        `RepairRecord` artifact per round (request, answer, dropped texts with reason),
+        in the audit bundle and read by `eval diagnose`.*
+
+      *The dev rerun with `--redo` (and `MAX_FACTS_ROUNDS=0` for the comparison) is the
+      owner's run: LOCAL TEST REQUEST in the session log.*
+- [x] **Headline metrics** (1-2 h) in `eval/score.py` and `eval/report.py` *(7 Oct,
+      night: `silent_losses` and `silent_loss_share` per row, the "Silent losses"
+      column with its "by design" note in the report tables; the invented values and
+      rule errors per 100 blocks existed; eval/report.md and the §5 column fill with
+      the final run, the baseline rows follow from 100 minus hard facts kept)*:
       - *silent losses*: hard values of the source that are neither in the final text
         nor in the review checklist or omission log. For P0 and P0-ZH every missing
         value is silent. For P1 and P2 it is zero by design once identifiers are hard
@@ -975,7 +1004,8 @@ prompt, on the same model?", with numbers a juror can trust.
         Never overwrite a result that might be needed.
 - [ ] **Report §5 table**: SOURCE, REF, P0, P0-ZH complete, P0-ZH condensed, P1, P2,
       with the silent-loss column. The §1 headline follows §13.4 *(rows in place 6 Oct,
-      evening; the silent-loss column waits for the headline metrics above)*.
+      evening; the silent-loss column added 7 Oct night with the identity for the rows
+      without a checklist, 0 by design for P1 and P2; the final run fills the rest)*.
 
 Done when: `eval/report.md` (CSCS) has every row on the 20 German eval pairs; the
 headline sentence follows §13.4; README, report §1 and the video script carry the same
@@ -1052,10 +1082,15 @@ three numbers.
       before addresses, so `1000 IE` is no postcode and place. Six quantities and no
       scheme on the 35 pairs (rules.md, calibration note). Still planned:
       `medication` (needs a drug list) and `FACT-09`.
-- [ ] **Clause recipes** (3-4 h German, 2 h more for French). LEN-02 and LEN-02-FR put
+- [x] **Clause recipes** (3-4 h German, 2 h more for French). LEN-02 and LEN-02-FR put
       a rewrite recipe for the conjunction they found into `suggestion`, which repair
       already receives (idea from Zurich's prompt, credited in rules.md; our own
-      wording).
+      wording). *Implemented 7 Oct, night (cloud session): `rules/recipes.py`, German
+      and French, the judge line as SEM-08 in both judge prompts, golden tests per
+      conjunction in `tests/rules/test_recipes.py`, the review page never offers a
+      recipe as "Apply". Still open: the reading check of the French recipes against
+      the 5 official pages, and the before/after measure, which comes with the dev
+      rerun.*
       - German:
         - `weil`, `da`: two sentences, the second starting with `Deshalb`;
         - `damit`, `um ... zu`: the aim first, then `Deshalb`;
@@ -1243,13 +1278,20 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          "Dokumentart" select that reveals the person and the notice (prefilled per
          language from `pipeline/labels.py`); `POST /jobs` and `simplify --mode
          decision --addressee --notice`; the mode on the job and in the audit bundle.
+         *7 Oct, night: the three fields, the summary's `mode`, the CLI flags and the
+         API form fields are in; the page's select is open.*
       2. *Prompts without touching the frozen ones.* One partial per language,
          `llm/prompts/<lang>/decision.md`, with sections for understand, write, judge
          and repair; the standard templates get one line each, `{% if mode ==
          "decision" %}{% include %}{% endif %}`, which renders to nothing for a
          standard job (same cache keys, same results; the template hash changes once).
          The include lines and the SEM-08 line go in before the Friday freeze; the
-         partial is free to change afterwards. Content: what the five core questions
+         partial is free to change afterwards. *7 Oct, night: the include lines are in
+         all eight standard templates (`mode is defined and mode == "decision"`, so
+         every existing render call works), with a first draft of `decision.md` in
+         German and French; a test shows a standard job's prompt unchanged and a
+         decision job's prompt carrying the heading set and the addressee.* Content:
+         what the five core questions
          mean for a decision (no new keys in `FactSheet`: a schema change would ripple
          into render, web and locales), the fixed heading set as the reader's
          questions (Was hat die Behörde entschieden? Was bedeutet das für Sie? Was
@@ -1275,7 +1317,10 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          SEM-08 (an obligation stays an obligation, a condition a condition, never
          `vielleicht` for `wenn`) is D-P generalised and goes into the standard judge
          prompt before the freeze; SEM-09 (no advice, no "leider") and SEM-10 (every
-         period keeps its start) live in the partial.
+         period keeps its start) live in the partial. *7 Oct, night: SEM-08 declared,
+         in the judge filter, in both judge prompts and in rules.md's judge table;
+         SEM-09 and SEM-10 stand in the partial's judge section but the filter still
+         drops them: widen it with piece 4.*
       5. *The notice and FACT-07.* The three exporters take `notice` and write it as
          the first and last paragraph; the review page shows it as a fixed banner, not
          a block (a block would need provenance and could be rejected); the notice is

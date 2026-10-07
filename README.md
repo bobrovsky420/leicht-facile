@@ -117,7 +117,8 @@ Other targets: `make check-llm` (one call to the endpoint), `make test`, `make l
 official easy-language pages, no model needed), `make day1` (endpoint checks),
 `make eval` (conditions P0, P1, P2 on the reference pairs; `RESULTS=eval/results-cscs`
 keeps one endpoint's results together). `python -m leichtfacile eval sample` writes the
-hand-labelling sheets for the judge and `eval kappa` scores a filled sheet.
+hand-labelling sheets for the judge and `eval kappa` scores a filled sheet; `eval diagnose`
+says why must-keep facts are missing from the final drafts of a run, without a model call.
 
 ## Sovereign deployment
 

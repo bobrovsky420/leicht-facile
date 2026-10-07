@@ -151,7 +151,7 @@ a failure resumes from the last good stage.
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Day-1 check 4 passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. | - |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Day-1 check 4 passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike of PLAN.md WP12 is `scripts/image_spike.py` (`eval/image_spike.py`): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found; its run on CSCS is pending. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -309,7 +309,9 @@ via the segment ids). It answers only what code cannot:
 1. For each fact: `present` | `missing` | `distorted`, with the block ids and a note.
 2. Which draft blocks state something the source does not support (hallucinations).
 3. Semantic rule violations: metaphors and idioms, abstract nouns, pronouns whose
-   reference is unclear, implied knowledge the reader may not have.
+   reference is unclear, implied knowledge the reader may not have, and a changed
+   obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
+   not become `können`, and a `wenn` never `vielleicht`).
 
 Model: `LLM_JUDGE_NAME` (default `swiss-ai/Apertus-v1.5-70B-thinking`), temperature
 0. The judge never rewrites; it only reports. Its reliability is measured, not
@@ -328,7 +330,13 @@ also when an addition lands before the block it repeats. The judge's meaning fin
 on headings are not sent for repair: a small model turns the question heading into a
 statement. A repair answer with a value that neither the source nor the fact sheet
 contains (the check of FACT-06) is sent back once with the values named; the second
-answer is used as it is, and FACT-06 flags what remains.
+answer is used as it is, and FACT-06 flags what remains. A missing fact is listed with
+the fact sheet's value and, when that differs, the exact form the draft should write
+(`2026-03-31; schreiben Sie: 31. März 2026`). A finding of LEN-02 carries the rewrite
+recipe for its conjunction as the suggestion (docs/rules.md). Every round is recorded
+(`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
+every answered sentence code left out with its reason (a repeat, example content, a
+block the round had not flagged); `eval diagnose` reads these records.
 Then:
 
 - code writes the Mediopunkt into the new version as after the write stage (§4.3), so
@@ -340,6 +348,15 @@ Then:
   facts the judge found missing or distorted, invented statements), when a round brings
   no progress, when only warnings are left after the first round, or after
   `MAX_REPAIR_ROUNDS` (3).
+
+When the loop has stopped and must-keep values are still missing (FACT-01), up to
+`MAX_FACTS_ROUNDS` (1) more rounds ask for the missing facts alone, no block flagged.
+They are measured by the FACT-01 count, not by the whole: the loop above stops on "no
+progress" when a round adds facts and the judge finds as many new problems, which on
+the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round
+goes on while it adds a fact and stops when none is missing, when it adds none, or at
+the limit; none runs after a failed round or without repair rounds. The version with
+the fewest blocking findings is final as before. Since 7 October 2026 (PLAN.md WP13).
 
 Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH), missing fact values
 (FACT-01) and values the source does not contain (FACT-06) are repaired; provenance and
@@ -415,21 +432,29 @@ JudgeReport  (one per judged draft version)
   draft_version, model
   fact_checks[]: {fact_id, status (present|missing|distorted), block_ids[], note}
   unsupported[]: {block_id, note}
-  semantic_findings[]: {block_id, rule_id (SEM-01..05), note}
+  semantic_findings[]: {block_id, rule_id (SEM-01..05, SEM-08), note}
+
+RepairRecord  (one per repair round, under the version it produced)
+  draft_version, parent_version, kind (repair|facts)
+  requested_blocks[], requested_facts[]
+  repairs[]: {block_id, texts[]}            the answer as given
+  additions[]: {after?, texts[], fact_ids[]}
+  dropped[]: {text, reason (repeat|example|not_flagged), block_id?, fact_ids[]}
 
 ReviewState
   draft_version, completed
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
 PipelineSummary
-  condition, final_version, rounds, stop_reason, writer_model, understand_model?
-  (only when another model read the source), judge_model?,
+  condition, mode, final_version, rounds, facts_rounds, stop_reason, writer_model,
+  understand_model? (only when another model read the source), judge_model?,
   prompt_versions {stage: hash}, blocking_findings[] (per draft version)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
   config: {lang, level, condition (P0|P1|P2), writer_model, understand_model,
-           judge_model, use_judge, max_repair_rounds}
+           judge_model, use_judge, max_repair_rounds, max_facts_rounds,
+           mode (standard|decision), addressee?, notice?}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?
 ```
@@ -541,10 +566,10 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `understand_model`, `judge_model`, `title` |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
-| `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `review`, `summary` |
+| `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
 | `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete |
 | `GET` or `POST /api/jobs/{id}/export?format=md\|html\|json` | Download: Markdown, HTML, or the JSON audit bundle |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again |
@@ -663,8 +688,8 @@ language it was produced in.
 | `python -m leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
 | `python -m leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `python -m leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
-| `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report` | The evaluation harness (§9) |
+| `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
+| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run |
 | `python -m leichtfacile examples build` | Build the example jobs shown on first start |
 
 ## 8. Languages and levels
@@ -773,6 +798,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
+| Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026) | The property the headline rests on in case B of PLAN.md §13.4: nothing is lost in silence |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).
@@ -890,18 +916,22 @@ src/leichtfacile/
   examples.py             example jobs: import on start, build
   llm/                    client.py, json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, examples/;
+                          decision.md (the decision mode's partial, included by the four
+                          standard templates when mode is "decision");
                           de/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
                           lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
-                          vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml)
+                          vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),
+                          recipes.py (clause recipes), mediopunkt.py
   web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
                           static/ (app.css, app.js, fonts/), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py
   eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
+                          labels.py, diagnose.py (why facts go missing), image_spike.py,
                           day1.py, cli.py
-scripts/                  fetch_pairs.py, day1_checks.py, print_letters.py
+scripts/                  fetch_pairs.py, day1_checks.py, print_letters.py, image_spike.py
 data/
   pairs/manifest.jsonl    URLs + licence notes (committed)
   examples/               team-written sample documents, printable letters; example job bundles

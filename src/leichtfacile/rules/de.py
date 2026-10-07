@@ -25,6 +25,7 @@ from leichtfacile.rules.lexicon import (
     zipf,
 )
 from leichtfacile.rules.messages import hit
+from leichtfacile.rules.recipes import recipe_de
 from leichtfacile.rules.values import (
     DASHES,
     DATE_ISO_RE,
@@ -243,6 +244,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     # Two or more too many (nested clauses) is an error.
     severity = "warn" if clauses == limit + 1 else "error"
     subs = subordinators(worst)
+    # The suggestion is the rewrite recipe for the conjunction (rules/recipes.py).
     if subs:
         yield hit(
             "LEN-02.sub",
@@ -251,6 +253,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
             limit=limit,
             level=ctx.level,
             evidence=sent.text,
+            suggestion=recipe_de(subs[0]),
             severity=severity,
         )
     else:
@@ -260,6 +263,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
             limit=limit,
             level=ctx.level,
             evidence=sent.text,
+            suggestion=recipe_de(None),
             severity=severity,
         )
 

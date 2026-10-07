@@ -100,11 +100,11 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
         f"Pairs: {len({r['pair_id'] for r in rows})} ({role or 'all'} split). "
         "Means over pairs; a dash means not applicable.",
         "",
-        "| Setup | Pairs | Fact coverage | Hard facts kept | Errors / 100 blocks "
-        "| Warnings / 100 blocks | Words / sentence | Readability | SARI "
-        "| Invented / 100 blocks | Invented values / 100 blocks | Tokens / page "
+        "| Setup | Pairs | Fact coverage | Hard facts kept | Silent losses "
+        "| Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability "
+        "| SARI | Invented / 100 blocks | Invented values / 100 blocks | Tokens / page "
         "| USD / page | Seconds / page |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for name, group in groups:
         label = LABELS.get(name.split(" ")[0], name)
@@ -113,6 +113,7 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
         out.append(
             f"| {label} | {len(group)} | {_fmt(_mean(group, 'fact_coverage'), pct=True)} "
             f"| {_fmt(_mean(group, 'hard_fact_recall'), pct=True)} "
+            f"| {_fmt(_mean(group, 'silent_loss_share'), pct=True)} "
             f"| {_fmt(_mean(group, 'errors_per_100'))} | {_fmt(_mean(group, 'warnings_per_100'))} "
             f"| {_fmt(_mean(group, 'avg_words'))} | {_fmt(_mean(group, 'readability'), 0)} "
             f"| {_fmt(_mean(group, 'sari'))} | {_fmt(_mean(group, 'unsupported_per_100'))} "
@@ -122,6 +123,12 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
             f"| {_fmt(_mean(group, 'latency_s_per_page'))} |"
         )
     out += [
+        "",
+        "Silent losses: the share of the source's hard values that the text lost without a "
+        "trace. A single prompt and the official version have no fact checklist and no "
+        "omission log, so every value they lose is silent; for P1 and P2 every hard value "
+        "is a fact in the review checklist or lies in a listed omission, so their share is "
+        "zero by design, and a value above zero names one the code completion missed.",
         "",
         'Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is '
         "the compounds split by code in the final version, per 100 blocks (P1 and P2 only; "

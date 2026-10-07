@@ -10,6 +10,8 @@ Prüfen Sie diese 3 Dinge:
    - SEM-03: ein Pronomen (er, sie, es, dieser) ist nicht eindeutig.
    - SEM-04: der Block setzt Wissen voraus, das die Leserin oder der Leser vielleicht nicht hat, zum Beispiel einen Ablauf, ein Amt oder einen Rechtsbegriff, und erklärt es nicht.
    - SEM-05: ein schwieriges Wort ohne Erklärung, das nicht im Wörterbuch des Entwurfs steht.
+   - SEM-08: eine Pflicht, eine Möglichkeit oder eine Bedingung hat sich verändert. Aus "müssen" darf nicht "können" werden und umgekehrt. Eine Bedingung mit "wenn" bleibt eine Bedingung: "vielleicht" macht daraus eine Vermutung, das ist falsch.
+{% if mode is defined and mode == "decision" %}{% include "de/decision.md" %}{% endif %}
 
 Melden Sie nur echte Probleme. Ein guter Entwurf hat wenige oder keine Meldungen. Schreiben Sie die Notizen auf Deutsch.
 
