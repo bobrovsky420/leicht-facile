@@ -9,47 +9,33 @@ code.
 - **Repository:** https://github.com/bobrovsky420/leicht-facile
 - **Demo:** `link to video`
 
-Status of this report: 6 October 2026. Everything that has been designed, decided or
-built is described; numbers that need the CSCS endpoint are marked **[pending]** and
-are filled in from `make eval`.
-
 ## 1. Summary
 
 **Problem.** About 844'000 adults in Switzerland aged 16 to 65 (15%) have low reading
-skills (PIAAC 2023). People with intellectual disabilities, people learning a national
-language and people with dementia need easy language too. None of them should be
-excluded from the official letters that decide their money, deadlines and rights. Federal and cantonal
-accessibility law asks authorities to publish important information in Leichte
-Sprache, FALC or lingua facile, but each version is written by hand by a small number
-of trained writers, and every deadline, amount and phone number must be checked
-against the original.
+skills (PIAAC 2023); people with intellectual disabilities, people learning a national
+language and people with dementia need easy language too. Accessibility law asks
+authorities to publish important information in Leichte Sprache, FALC or lingua
+facile, but each version is written by hand by a few trained writers, who must check
+every deadline, amount and phone number against the original.
 
-**Approach.** Leicht·Facile is a drafting assistant for those writers. It rests on one
+**Approach.** Leicht·Facile is a drafting assistant for those writers, built on one
 rule: *Apertus does everything that needs language understanding; plain code does
 everything that can be counted.* Apertus 1.5 turns the document into a fact sheet,
 writes a draft against it with provenance for every sentence, judges meaning with a
-second, larger model, and repairs only the flagged sentences. Code checks 41
-published easy-language rules and the exact presence of every fact value. A human
-reviews source and draft side by side and exports the text with an audit trail. The
-whole system is one container plus an OpenAI-compatible Apertus endpoint, so it runs
-on-premise, air-gapped or on a Swiss cloud.
+second, larger model, and repairs only the flagged sentences. Code checks the published
+easy-language rules (42 checks for German, 39 for French), including the exact presence
+of every fact value. A human reviews source and draft side by side and exports the text
+with an audit trail. The system is one container plus an OpenAI-compatible Apertus
+endpoint, so it runs on-premise, air-gapped or on a Swiss cloud. A single prompt
+("rewrite this in Leichte Sprache") gives text with no fact contract, no provenance and
+no independent check; it is our baseline P0, the full pipeline is P2.
 
-**Why not one prompt.** "Rewrite this in Leichte Sprache" gives text with no fact
-contract, no provenance, no omission log and no independent check. That prompt is our
-baseline condition P0; the full pipeline is P2 (P as in pipeline, not a language
-level).
-
-**Headline result.** On the 20 held-out German pairs, run on the CSCS endpoint, the
-full pipeline keeps 80 percent of the source's countable facts (dates, amounts,
-phone numbers, addresses) against 70 percent in the official easy-language versions,
-with 4.3 rule errors per 100 blocks against 2.7 in the official versions and 22.0 for
-the one-prompt baseline, which keeps 100 percent of the facts because it hardly
-simplifies (readability 50, 95 warnings per 100 blocks). Values that the source does
-not contain: 0.1 per 100 blocks in the pipeline's drafts, 2.2 in the official
-versions, which add contact details of their own.
-
-The team name is meant as a bridge between authorities and the people they write to,
-not between languages: each language version is simplified from its own original.
+**Headline result.** On 20 held-out German pairs on the CSCS endpoint, the pipeline
+keeps 80 percent of the source's countable facts (dates, amounts, phone numbers,
+addresses) against 70 percent in the official easy-language versions, with 4.3 rule
+errors per 100 blocks against 2.7 for the official versions and 22.0 for the one-prompt
+baseline, which keeps every fact because it hardly simplifies. Its drafts contain 0.1
+values per 100 blocks that the source does not have; the official versions 2.2.
 
 ## 2. Architecture
 
@@ -65,84 +51,69 @@ leicht-facile container (FastAPI, Python 3.14)
 Apertus endpoint: CSCS API | local vLLM | Swiss sovereign cloud
 ```
 
-The full diagram is in [docs/architecture.md](docs/architecture.md) §3.
-
 | Stage | Done by | Output |
 |-------|---------|--------|
-| Ingest | Code: `trafilatura` for HTML, `pdfplumber` for PDFs (column-aware, headers and footers removed), paragraph rules for text; spaCy sentence splitting with a merge step for German abbreviations and dates | `SourceDocument`: segments with stable ids (`s0001`), kind, heading path |
-| Understand | Apertus 8B, thinking (`LLM_UNDERSTAND_NAME` switches this stage alone to the 70B) | `FactSheet`: the reader's core questions (what, what to do, by when, cost, contact), typed facts with normalised values and source ids, hard terms, droppable passages. Code then adds every date, amount, phone number, e-mail, URL, percentage, time, period, identifier (case and AHV numbers, IBANs) and postal address the model missed |
-| Write | Apertus 8B | `Draft`: blocks with the fact ids they carry and the source segments they come from, omissions with reasons, glossary. Code links each block to every fact whose exact value it contains |
-| Rule check | Code (spaCy morphology and dependency parse, regex, word frequencies) | `RuleFindings` with rule id, severity, evidence and a suggestion; document metrics |
-| Judge | Apertus 70B, thinking | `JudgeReport`: each fact present, missing or distorted; unsupported (invented) blocks; semantic findings. The judge never rewrites |
-| Repair | Apertus 8B | New text for flagged blocks only, plus sentences for missing facts; up to 3 rounds; every version kept |
-| Review and export | Human, then code | Per-block decisions; Markdown and HTML (one sentence per line, at most 85 characters) and a JSON audit bundle |
+| Ingest | Code: `trafilatura`, `pdfplumber`, spaCy | `SourceDocument`: segments with stable ids (`s0001`) |
+| Understand | Apertus 8B, thinking | `FactSheet`: the reader's core questions (what, what to do, by when, cost, contact), typed facts with normalised values and source ids. Code adds every date, amount, phone number, address, period or identifier the model missed |
+| Write | Apertus 8B | `Draft`: blocks with the facts and source segments they carry, omissions with reasons, glossary |
+| Rule check | Code: spaCy parse, regex, word frequencies | Findings with rule id, severity, evidence, suggestion |
+| Judge | Apertus 70B, thinking | Each fact present, missing or distorted; unsupported blocks; meaning findings. The judge never rewrites |
+| Repair | Apertus 8B | New text for flagged blocks only; up to 3 rounds; every version kept |
+| Review, export | Human, then code | Per-block decisions; Markdown, HTML and a JSON audit bundle |
 
-Key decisions:
+Key decisions (details in [docs/architecture.md](docs/architecture.md)):
 
 - **Countable rules in code, meaning in the model.** Sentence length, passive,
-  genitive, Konjunktiv, nominalisations, numbers, Swiss date, time and phone formats,
-  `ss` for `ß`, the Mediopunkt in long compounds, and fact coverage are decided by
-  code: exact, free, reproducible, and the model does not grade its own homework.
-  42 deterministic German rules are registered once in code with their severity per
-  level and the instruction for the writer prompt. The writer's style guide is
-  rendered from that registry, and a test fails if the registry and the catalogue in
-  [docs/rules.md](docs/rules.md) disagree.
-- **Fact coverage (rule FACT-01) is the central check.** Every must-keep fact with a
-  normalised value must appear in the draft in an accepted surface form
-  (`31. März 2026`, `31.3.2026`, ...). A deadline that silently became 30 March is
-  caught exactly. Its mirror, FACT-06, flags every date, amount, phone number,
-  address, percentage or time in the draft that the source does not contain, so an
-  invented value, or one copied from the prompt's examples, is caught just as exactly.
-- **Typed, persisted artifacts.** Each stage reads and writes pydantic models stored
-  in SQLite. A failed job resumes from the last good stage, every intermediate result
-  is visible in the UI, and the evaluation reuses the same artifacts.
-- **Writer and judge are different models.** The 70B judge checks the 8B writer.
-- **One service.** FastAPI serves the API and a server-rendered review UI (Jinja2, one
-  vendored classless stylesheet, a small script); a single worker thread runs the
-  jobs. No Node build, no message broker, no CDN.
+  genitive, numbers, Swiss date and phone formats, the Mediopunkt in long compounds and
+  fact coverage are decided by code: exact, free, reproducible, and the model does not
+  grade its own homework. The writer's style guide is rendered from the same rule
+  registry, which a test keeps in sync with [docs/rules.md](docs/rules.md).
+- **Fact coverage is the central check.** Every must-keep fact with a normalised value
+  must appear in the draft in an accepted form (`31. März 2026`, `31.3.2026`), so a
+  deadline that became 30 March is caught exactly (FACT-01). Its mirror, FACT-06, flags
+  every value in the draft that the source does not contain.
+- **Typed, persisted artifacts.** Each stage reads and writes pydantic models stored in
+  SQLite: a failed job resumes from the last good stage, every intermediate result is
+  visible in the UI, and the evaluation reuses the same artifacts.
+- **Writer and judge are different models; one service.** FastAPI serves the API and a
+  server-rendered review UI, a single worker thread runs the jobs. No Node build, no
+  message broker, no CDN.
 
 ### Target architecture (mandatory)
 
-Leicht·Facile is deployable in all three architectures. The only runtime dependency
-is the Apertus endpoint in `LLM_BASE_URL`; changing the deployment means changing that
+Leicht·Facile is deployable in all three architectures. Its only runtime dependency is
+the Apertus endpoint in `LLM_BASE_URL`; changing the deployment means changing that
 variable.
 
 | Architecture | How it is met |
 |--------------|---------------|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU with the Apertus reasoning parser; the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU for small offices. |
-| b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and UI assets are baked into the image; no telemetry, no CDN, no package installs at runtime. |
-| c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint. The hackathon demo runs against the CSCS inference API in Lugano. |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
+| b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. |
+| c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint; the hackathon demo runs against the CSCS inference API in Lugano. |
 
-| | Build time | Runtime |
-|---|------------|---------|
-| Network | PyPI (locked by `uv.lock`), the spaCy model wheel from GitHub, base images from Docker Hub and GHCR | The Apertus endpoint only; a URL the user submits is fetched on request |
-| Storage | - | Named volume `appdata`: SQLite database, artifacts, optional response cache |
+External dependencies: at build time PyPI (locked by `uv.lock`), the spaCy model wheels
+from GitHub and base images from Docker Hub and GHCR; at runtime only the Apertus
+endpoint (and a URL the user submits). Data lives in the volume `appdata`. The
+container runs as a non-root user, never logs document text above `DEBUG`, and has no
+login, so it belongs behind the organisation's reverse proxy.
 
-The container runs as a non-root user with a Docker health check. Document text is
-never logged above `DEBUG`. The prototype has no login and is meant to run behind the
-organisation's reverse proxy.
-
-Hardware for (a) and (b): the 8B in bf16 needs about 16 GB for the weights plus KV
-cache, so a 24 GB GPU with a reduced context is realistic; the FP8 build is 11.4 GB.
-No GPU host with vLLM was reachable during the hackathon, so the vLLM profile is
-validated by `docker compose config` only and the figures above come from the model
-card; we say so rather than guess. Measured so far: on a
-laptop RTX 4060 (8 GB) with llama.cpp and a community 4-bit conversion, about 37
-tokens per second at short context and 17 near 16k; Understand took about 1.5 minutes
-and Write with thinking about 12 minutes for a 400-word letter.
+Hardware for (a) and (b): the 8B in bf16 needs about 16 GB plus KV cache, so it fits a
+24 GB GPU (FP8 build: 11.4 GB). No GPU host with vLLM was reachable during the hackathon, so
+the vLLM profile is validated by `docker compose config` only and these figures come
+from the model card. Measured on a laptop RTX 4060 (8 GB, llama.cpp, 4-bit): about 37
+tokens per second; Understand took 1.5 and Write with thinking 12 minutes for a
+400-word letter.
 
 ## 3. Use of Apertus
 
-- **Models:** `swiss-ai/Apertus-v1.5-8B` (writer: Understand, Write, Repair, baseline)
-  and `swiss-ai/Apertus-v1.5-70B` (judge), both in thinking mode where noted. Both are
-  set by environment variables (`LLM_NAME`, `LLM_JUDGE_NAME`); `LLM_UNDERSTAND_NAME`
-  gives the Understand stage alone another model (the hybrid: the 70B reads, the 8B
-  writes). The 8B writer, the 70B writer and the hybrid are compared in the evaluation.
-- **How it is used:** inference, as a structured-output agent pipeline (no tool
-  calling: the thinking variants are served with tools disabled, and the pipeline does
-  not need them). Fine-tuning is not part of the submission (§8).
+- **Models:** `swiss-ai/Apertus-v1.5-8B` writes (Understand, Write, Repair, baseline)
+  and `swiss-ai/Apertus-v1.5-70B` judges, set by `LLM_NAME` and `LLM_JUDGE_NAME`
+  (without it, the judge is the 70B when the endpoint serves it).
+  `LLM_UNDERSTAND_NAME` gives the Understand stage alone another model.
+- **How it is used:** inference, as a structured-output agent pipeline without tool
+  calling (the thinking variants are served with tools disabled). No fine-tuning.
 - **Where it runs:** the CSCS inference API for the hackathon; the same client works
-  unchanged with local vLLM, llama.cpp or a Swiss cloud endpoint.
+  unchanged with vLLM, llama.cpp or a Swiss cloud endpoint.
 
 | Stage | Model | Thinking | Temperature | max_tokens |
 |-------|-------|----------|-------------|------------|
@@ -152,237 +123,165 @@ and Write with thinking about 12 minutes for a 400-word letter.
 | Repair | 8B | off | 0.2 | 8000 |
 | Baseline P0 | 8B | off | 0.3 | 6000 |
 
-**Prompts** ([docs/prompts.md](docs/prompts.md)). German instructions for German
-documents. Each prompt shows one filled JSON example instead of the JSON schema; small
-models copy an example more reliably, at a fraction of the tokens. Source sentences
-carry ids (`[s0004]`) and draft blocks carry ids (`[b007]`): the model cites, code
-verifies that the ids exist. The writer prompt asks for a plan first (the reader's
-questions as headings), contains the style guide rendered from the rule registry for
-the chosen level, and two short example pairs written by the team (cantonal pages may
-not be reproduced, and no evaluation pair leaks into a prompt). The repair prompt
-receives only the flagged blocks, their findings with the checker's suggestion, and
-the facts they must keep. Every prompt is identified by a hash of its template, stored
-with each result. A small model sometimes returns the prompt's own JSON example instead
-of a draft; code recognises an answer that copies the examples and asks once more.
+**Prompts** ([docs/prompts.md](docs/prompts.md)), in the document's language. Each
+shows one filled JSON example instead of the schema, which small models copy more
+reliably at a fraction of the tokens. Source sentences and draft blocks carry ids
+(`[s0004]`, `[b007]`): the model cites, code verifies. The writer prompt asks for a
+plan first (the reader's questions as headings) and contains the style guide for the
+chosen level and two short example pairs written by the team. Repair receives only the
+flagged blocks, their findings and the facts they must keep. Code guards send back an
+answer that copies the prompt's example or adds a value the document does not have.
 
-**Structured output.** The answer is stripped of reasoning (from `reasoning_content`,
-or inline `<|inner_prefix|> ... <|inner_suffix|>` or `<think>` tokens), control tokens
-and code fences, parsed leniently (an 8B model writes `s4` for `s0004` or a string
-where a list was asked for) and validated with pydantic. On failure the validation
-error goes back to the model once. Output cut off while still reasoning is reported as
-truncated.
+**Structured output and reliability.** Answers are stripped of reasoning, parsed
+leniently (an 8B writes `s4` for `s0004`, or a string where a list was asked for) and
+validated with pydantic; on failure the error goes back to the model once. Responses
+are streamed, so a proxy cannot cut a long answer; broken streams, 429 and 5xx are
+retried with backoff; every call is logged with stage, model, tokens and latency.
 
-**Reliability.** Responses are streamed, so a proxy in front of the endpoint cannot
-cut a long answer (Cloudflare in front of the Public AI gateway does so after about
-100 seconds); retries on 429, 5xx, connection errors and broken streams with
-exponential backoff, jitter and `Retry-After`; a response cache keyed by model,
-messages and parameters for development and evaluation reruns; every call is logged
-with stage, model, tokens and latency, so each job shows its cost.
-
-**Other models.** No other language model is used at runtime or in the evaluation.
-The rule checker uses spaCy's `de_core_news_md` (a small statistical parser for
-part-of-speech, morphology and dependencies, not a generative model) and the
-`wordfreq` word frequency lists. During development without a CSCS key, the prompts
-were tested against the same Apertus 1.5 8B through llama.cpp, using the community
-conversion `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (4-bit, unofficial). Numbers from
-that setup are labelled as such and never mixed with CSCS results.
+**Other models.** None at runtime or in the evaluation. The checker uses spaCy's
+statistical parsers (not generative models) and `wordfreq`. Without a CSCS key, the
+prompts were tested on a community 4-bit conversion of Apertus 1.5 8B in llama.cpp
+(`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF`); those numbers are never mixed with CSCS
+results.
 
 ## 4. Data
 
 | Data | Origin | Licence and handling |
 |------|--------|----------------------|
-| Reference pairs: 35 documents with an official easy-language version (30 German: 20 `eval`, 10 `dev`; 5 French: 3 `eval`, 2 `dev`) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | The publishers allow personal use only. The repository holds only the manifest (`data/pairs/manifest.jsonl`: URLs, section, word counts, fact estimate, licence note per pair); `eval fetch` caches the texts locally in a git-ignored folder. Every URL was checked on 5 October 2026 |
-| Example documents and few-shot examples | Written by the team; invented municipality, reserved `.example` domains, the style-guide example phone number | Part of the repository, under the project licence |
-| Hard texts for tests and the presentation | Written by the team in the style of official letters | Same |
-| Demo documents (planned) | Federal Council explanations for a past federal vote, a text with no easy-language version (Swiss Copyright Act art. 5: official reports and enactments are not protected) | Bill text and the Federal Council's parts only; committee texts and images are not used |
+| Reference pairs: 35 documents with an official easy-language version (30 German: 20 `eval`, 10 `dev`; 5 French: 3 `eval`, 2 `dev`) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | Personal use only. The repository holds only the manifest (`data/pairs/manifest.jsonl`: URLs, word counts, licence note per pair); `eval fetch` caches the texts in a git-ignored folder. URLs checked on 5 October 2026 |
+| Example documents, few-shot examples, hard texts for tests | Written by the team: invented municipality, reserved `.example` domains | Part of the repository, under the project licence |
 
-`dev` pairs are used for prompt development and checker calibration, `eval` pairs are
-held out for the reported numbers. No personal data is used: the reference pairs are
-public web pages, all other texts are written by the team. Developing and evaluating
-against protected pages needs no consent as long as neither the texts nor our rewrites
-of them are published (Copyright Act articles 24a and 24d; our reading, not legal
-advice; details in [docs/sources.md](docs/sources.md) §4). An optional Hugging Face
-dataset would therefore contain the manifest, metrics, and article-5 texts with our
-outputs, with instance-level licence fields. **[pending]** decision on publishing it.
+`dev` pairs serve prompt development and checker calibration; `eval` pairs are held out
+for the reported numbers. No personal data is used. Developing and evaluating against
+protected pages needs no consent as long as neither the texts nor our rewrites of them
+are published (Copyright Act articles 24a and 24d; our reading, not legal advice;
+[docs/sources.md](docs/sources.md) §4), so a published dataset could hold only the
+manifest, the metrics, and texts free under article 5 with our outputs.
 
 ## 5. Evaluation
 
-**Task.** Simplify a standard-language official text to level A2 (Leichte Sprache)
-and keep every fact. Each held-out pair is run under these conditions with the 8B
-writer:
+**Task.** Simplify a standard-language official text to level A2 (Leichte Sprache) and
+keep every fact. Each held-out pair runs under these conditions with the 8B writer:
 
-| Code | Condition | Measures the value of |
-|------|-----------|-----------------------|
-| P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | Baseline: what a user gets from a chatbot |
-| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim, on the same model (`complete`: keep everything; `condensed`: essentials only, their default); German only | Baseline: the best public Swiss prompt |
-| P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning and provenance |
+| Code | Condition | Measures |
+|------|-----------|----------|
+| P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
+| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim (`complete`: keep everything; `condensed`: essentials only, their default); German only | The best public Swiss prompt |
+| P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning, provenance |
 | P2 | Full pipeline with judge and repair | Checking and repairing |
 
-Two reference rows need no model: SOURCE (the original, scored as if it were a draft)
-and REF (the official easy-language version written by professionals).
+Two rows need no model: SOURCE (the original, scored as if it were a draft) and REF
+(the official easy-language version written by professionals).
 
-**Metrics.** All rows are scored the same way, on the final text:
+**Metrics**, the same for every row, on the final text: *fact coverage* (must-keep
+facts with a normalised value found in the output, against one fact sheet per pair);
+*hard facts kept* (the source's dates, amounts, contacts, percentages, times, periods,
+identifiers and postal addresses found in the output; code only, so comparable with
+REF); *invented values* (values the source does not have, by code); *unsupported
+blocks* (by the 70B judge); *rule errors*; *readability* (Amstad, the German Flesch);
+*SARI* against the official version (a port of `SARI.py`, checked bit for bit); cost
+and speed per page of 250 words.
 
-- *Fact coverage*: share of must-keep facts with a normalised value found in the
-  output (exact, code), against one fact sheet per pair.
-- *Hard facts kept*: share of the source's dates, amounts, phone numbers, e-mail and
-  web addresses, percentages, times, periods (`innert 30 Tagen`), identifiers and
-  postal addresses found in the output (exact, code, no model; comparable with REF).
-- *Fact status and invented statements*: present, missing or distorted facts, and
-  unsupported blocks per 100 blocks, from the 70B judge.
-- *Rule violations*: errors and warnings per 100 blocks, by rule family.
-- *Readability*: Amstad index (German Flesch) for source, output and REF.
-- *SARI* against the official easy version (document level, a port of the original
-  `SARI.py`, checked bit for bit).
-- *Cost and speed*: tokens, latency and estimated cost per page of 250 words.
+Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026, means over
+pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full tables):
 
-Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026 (means over
-pairs; `eval/report.md` has the full tables, including warnings, words per sentence,
-tokens and latency):
-
-| Setup | Fact coverage | Hard facts kept | Invented values / 100 blocks | Judge: unsupported / 100 blocks | Rule errors / 100 blocks | Amstad | SARI | USD / page | Seconds / page |
-|-------|---------------|-----------------|------------------------------|---------------------------------|--------------------------|--------|------|------------|----------------|
+| Setup | Fact coverage | Hard facts kept | Invented values /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
+|-------|---------------|-----------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
 | SOURCE | - | 100 % | 0.0 | - | 31.3 | 36 | - | - | - |
 | REF (official) | - | 70 % | 2.2 | - | 2.7 | 62 | - | - | - |
-| P0 baseline, 8B | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
-| P0-ZH complete: Zurich's prompt, 8B | 91 % | 95 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
-| P0-ZH condensed: Zurich's prompt, 8B | 75 % | 77 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
-| P1, 8B | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
-| P2 (ours), 8B | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
+| P0 | 93 % | 100 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
+| P0-ZH complete | 91 % | 95 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
+| P0-ZH condensed | 75 % | 77 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
+| P1 | 72 % | 69 % | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
+| **P2 (ours)** | 84 % | 80 % | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
 | P2, 70B everywhere | 78 % | 75 % | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
-| P2, hybrid: 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
+| P2, 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
 
-Reading the table: the baseline keeps everything because it rewrites little (7.7
-words per sentence, 95 warnings per 100 blocks, SARI rewards its closeness to the
-source); the pipeline simplifies as far as the official versions do on sentence
-length (6.8 words against 6.1) and keeps more of the countable facts than they do,
-at a readability still below theirs (51 against 62). P1 shows what the judge and the
-repair loop add: from 72 to 84 percent fact coverage, from 9.9 to 4.3 errors, and
-from 3.2 to 0.1 invented values per 100 blocks. On the 14 fact-rich pairs (at least 3
-hard facts) P2 keeps 77 percent of the hard facts, the official versions 60. The 3
-French pairs: P2 73 percent fact coverage, 4.6 errors per 100 blocks, readability 75
-(official: 85), no invented values. All 23 pairs completed under every condition;
-the run also surfaced five answer shapes of the models that the parser now repairs,
-and 31 streams the server cut that the client retried.
+**Reading the table.** The baseline keeps everything because it rewrites little (7.7
+words per sentence, 95 warnings per 100 blocks; SARI rewards its closeness to the
+source). The pipeline reaches the official versions' sentence length (6.8 words against
+6.1) and keeps more countable facts than they do, at a readability still below theirs
+(51 against 62). Judge and repair (P1 to P2) raise fact coverage from 72 to 84 percent
+and cut errors from 9.9 to 4.3 and invented values from 3.2 to 0.1 per 100 blocks. On
+the 14 fact-rich pairs (at least 3 hard facts) P2 keeps 77 percent of the hard facts,
+the official versions 60. French (3 pairs): P2 73 percent fact coverage, 4.6 errors per
+100 blocks, readability 75 (official: 85), no invented values. All 23 pairs completed
+under every condition.
 
-**The best public Swiss prompt as the second baseline.** A one-sentence baseline can be
-called a strawman, so the Canton of Zurich's Leichte Sprache prompt (39 rules and clause
-recipes, from its open-source app, verbatim) runs on the same 8B model as P0-ZH. Its
-complete variant, which asks to keep every piece of information, keeps 95 percent of
-the hard facts and 91 percent fact coverage, 7 points above the pipeline, with 15.4
-rule errors per 100 blocks against 4.3, the same sentence length as P2 (6.8 words) and
-a lower readability (47 against 51). Its condensed variant, the app's default, keeps 77
-percent of the hard facts at 8.7 errors. Neither baseline invents values on these
-pages. The difference the pipeline makes is not only the error rate: a fact a single
-prompt drops is lost silently, while the pipeline lists every missing fact for the
-reviewer in the checklist and the omission log, so the facts it does not keep in the
-text are known losses. Closing the coverage gap to the complete prompt is the next
-prompt work ([docs/prompts.md](docs/prompts.md)).
+**Zurich's prompt as the second baseline.** So that the baseline is no strawman, the
+Canton of Zurich's prompt from its open-source app (39 rules and clause recipes) runs
+verbatim on the same 8B. Its complete variant reaches 91 percent fact coverage, 7
+points above the pipeline, with 15.4 errors per 100 blocks against 4.3 and a lower
+readability (47 against 51); its condensed default keeps 77 percent of the hard facts.
+The larger difference is what happens to a lost fact: a single prompt drops it
+silently, the pipeline lists it for the reviewer. Closing the coverage gap is the next
+prompt work.
 
-**8B, 70B and the hybrid** on the 20 German pairs: every stage on the 70B writes
-cleaner easy language (1.4 errors per 100 blocks, readability 58, fewer unsupported
-blocks) but keeps fewer facts (78 against 84 percent coverage, 75 against 80 percent
-of the hard facts) in shorter texts, at 1.8 times the price per page (USD 0.019
-against 0.011 at Public AI list prices) and, end to end, less time, because the 70B
-reasons a third as much in Understand. The hybrid (`LLM_UNDERSTAND_NAME`: the 70B
-reads, the 8B writes) keeps the fewest facts (66 percent) and produced erratic
-lengths; it is not recommended. The 8B stays the default writer and the 70B the
-judge; the 70B everywhere is the quality tier for style, on-premise at four GPUs
-instead of one. [docs/prompts.md](docs/prompts.md) has the per-stage numbers. The
-seconds per page undercount every setup, because calls served from the response
-cache count as 0 s.
+**8B and 70B.** The 70B at every stage writes cleaner easy language (1.4 errors,
+readability 58) but keeps fewer facts, at 1.8 times the price per page; the hybrid
+keeps the fewest. The 8B stays the writer and the 70B the judge; the 70B everywhere is
+a quality tier for style, on-premise at four GPUs instead of one. Seconds per page
+undercount every setup, because cached calls count as 0 s.
 
-**Judge reliability.** The judge is measured, not assumed: agreement (Cohen's κ)
-between the judge and hand labels on 30 (fact, draft) items. `eval sample` draws the
-items from the P2 outputs, stratified by the judge's verdict, plus 30 blocks half
-flagged as unsupported and half passed, and writes the sheets without the verdicts;
-`eval kappa` scores a filled sheet. **[pending]** the labelled result.
+**Judge reliability.** Agreement (Cohen's κ) between the judge and hand labels on 30
+facts and 30 blocks is prepared (`eval sample`, `eval kappa`) but not yet measured;
+until then the judge's verdicts are a signal for the reviewer, not ground truth.
 
-**Checker calibration.** Official easy-language pages are written by professionals,
-so the checker should raise almost no errors on them; each error is a real deviation
-or a false positive to fix. On the 30 official German pages (3,468 blocks) the checker
-went from 12.6 to 2.0 errors per 100 blocks during calibration, on the 5 French pages
-(544 blocks) from 5.3 to 2.2; the remaining errors are mostly genuine deviations of
-the professional texts, recorded in [docs/rules.md](docs/rules.md).
-
-**Tests.** 825 automated tests run without network: golden sentences for every rule
-(at least two that trigger it, one that must not), the team's hard texts, the client
-against a fake OpenAI-compatible endpoint, the orchestrator with recorded model
-outputs, the evaluation metrics, and the web API.
+**Checker calibration and tests.** Official pages should raise almost no errors, so
+each error is a real deviation or a false positive to fix: calibration took the checker
+from 12.6 to 2.0 errors per 100 blocks on the 30 German pages (3,468 blocks) and from
+5.3 to 2.2 on the 5 French pages. 999 automated tests run without network, with golden
+sentences for every rule (at least two that trigger it, one that must not).
 
 ## 6. Limitations
 
-- **A2 with an 8B model is not guaranteed.** The fact sheet, examples and repair loop
-  are meant to compensate; if they do not, B1 (Einfache Sprache) becomes the primary
-  level and the gap is reported with numbers.
+- **A2 with an 8B model.** The drafts match the official versions' sentence length but
+  not their readability (51 against 62) and keep 84 percent of the must-keep facts; the
+  rest is listed for the reviewer.
 - **Not a certification.** Easy-language texts must be tested by readers from the
-  target group. The tool prepares that test; it does not replace it.
-- **German first.** French and Italian run through the same pipeline but get only the
-  language-independent rules (facts, layout, readability) until their rule sets and
-  prompts ship. The B1 thresholds are our own choice; no official Swiss B1 rule set
-  exists.
-- **Judge is a model.** Meaning checks (distortion, invention, metaphors, unclear
-  references) depend on the 70B judge; its agreement with hand labels is reported.
-- **Fact coverage needs values.** Exact checks cover facts with a normalised value
-  (dates, amounts, contacts); obligations and conditions without a value rely on the
-  judge. Many easy-language pages carry few such facts, so coverage is reported on the
-  fact-rich subset as well.
-- **Not yet supported:** scanned PDFs and photos (Apertus 1.5 reads images, and the
-  day-1 checks on CSCS and on the Public AI gateway confirmed image input through the
-  API on 6 October 2026, but the ingest step for images is not built), DOCX export,
-  the air-gapped image bundle.
-- **Live pages change.** Evaluation uses cached copies with a fetch date; a page
-  submitted live may have moved or changed.
-- **Rule NUM-08** (phone numbers without `+41`) is under review: official Zürich pages
-  use `+41`.
-- **No login** in the prototype.
+  target group; the tool prepares that test, it does not replace it.
+- **Italian** runs through the same pipeline but gets only the language-independent
+  rules (facts, layout, readability) until its rule set and prompts ship. The B1
+  thresholds are our own; no official Swiss B1 rule set exists.
+- **The judge is a model**, and obligations and conditions without a value rely on it
+  alone; many pages carry few countable facts, so the fact-rich subset is reported too.
+- **Not yet supported:** scanned PDFs and photos (image input through the API works on
+  CSCS, the ingest step is not built), DOCX export, an air-gapped image bundle, login.
+- **Live pages change.** The evaluation uses cached copies with a fetch date.
 
 ## 7. Reproducibility
 
-- **Run:** set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME` in the shell or in `.env`
-  (`cp .env.example .env`), then `make run`, which opens http://localhost:8000 in the browser. `make check-llm` makes one call to
-  the endpoint; `make smoke` runs a bundled example letter through the full pipeline.
-- **Numbers:** `make eval` fetches the pairs, scores the references, runs P0, P0-ZH,
-  P1 and P2 with the response cache on (an interrupted run resumes), and writes the
-  report tables. `make calibrate` runs the checker on the official pages without a model.
-- **CI:** GitHub Actions runs the linter, the test suite and a start of the Docker
-  image against an unreachable endpoint on every push (`.github/workflows/ci.yml`).
-- **Environment:** Python 3.14 in `python:3.14-slim`; dependencies locked in
-  `uv.lock`; spaCy `de_core_news_md` 3.8.0 pinned by wheel URL; uv 0.12.18.
-- **Models and prompts:** model names and stage settings as in §3; each result
-  stores the hash of the prompt template that produced it. Sampling temperatures above
-  zero are not seeded; reruns reproduce exact outputs through the response cache.
-- **Hardware:** the CSCS endpoint for all reported numbers. **[pending]** exact commit
-  of the reported run.
+- **Run:** set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` in the shell or in `.env`
+  (`cp .env.example .env`), then `make run` (http://localhost:8000). `make check-llm`
+  makes one call to the endpoint; `make smoke` runs a bundled letter through the full
+  pipeline.
+- **Numbers:** `make eval` fetches the pairs, scores the references, runs P0, P0-ZH, P1
+  and P2 with the response cache on (an interrupted run resumes) and writes the report
+  tables; `make calibrate` runs the checker on the official pages without a model.
+- **CI:** GitHub Actions runs the linter, the tests and a start of the Docker image on
+  every push.
+- **Environment:** Python 3.14 in `python:3.14-slim`, dependencies locked in
+  `uv.lock`, spaCy models pinned by wheel URL, uv 0.12.18.
+- **Models, prompts, seeds:** names and settings as in §3; each result stores the hash
+  of its prompt template. Temperatures above zero are not seeded; reruns reproduce
+  exact outputs through the response cache.
+- **Hardware and commit:** the CSCS endpoint for all reported numbers; commit
+  `commit of the reported run`.
 
 ## 8. Next steps
 
-- French (FALC) and Italian (lingua facile) rule sets, prompts and evaluation, with a
-  consistency check across the three fact sheets of one document.
-- Image input for scanned letters and photos.
-- Learning from review: approved drafts as training data and reviewer edits as
-  preference pairs for a LoRA on the 8B writer with the official Apertus fine-tuning
-  recipes, so that a small on-premise model reaches the 70B judge's standard.
-- DOCX export (writers work in Word) and an air-gapped image bundle.
-- A second use case ([docs/use-case-decisions.md](docs/use-case-decisions.md)):
-  easy-language letters that go out together with decisions of child and adult
-  protection authorities and courts. The appeal period runs from notification (10 days
-  for involuntary placement), the decision may never leave the authority, and the case
-  worker who drafted it is the natural reviewer. The appeal period, the case number,
-  the AHV number and the court's address are exact facts already; still needed: the
-  person the letter speaks to, a fixed notice that the decision prevails, judge checks
-  for neutrality and advice.
-- Same engine, other documents ([docs/use-cases.md](docs/use-cases.md)): patient
-  letters, lease terminations, penal orders, payment orders, social and school
-  decisions, information for study participants. Most of them turn on a period such as
-  "innert 10 Tagen", a reference number, the address to object to or a dose, which
-  code checks like a date since 7 October; still planned: drug names and the one-block
-  check for patient letters, the decision mode and the received-letter mode
-  ([docs/rules.md](docs/rules.md), planned fact checks).
-- A pilot with a cantonal easy-language office and target-group testing of the
-  drafts.
-- Beyond the public sector: insurers, pension funds and utilities send some of the
-  least readable letters people receive.
+- Italian (lingua facile) rules, prompts and evaluation; image input for scanned
+  letters and photos; DOCX export (writers work in Word); an air-gapped image bundle.
+- Learning from review: approved drafts and reviewer edits as training and preference
+  data for a LoRA on the 8B writer with the official Apertus fine-tuning recipes.
+- A decision mode ([docs/use-case-decisions.md](docs/use-case-decisions.md)) for
+  easy-language letters that go out with decisions of child and adult protection
+  authorities and courts, which may never leave the authority.
+- Other documents ([docs/use-cases.md](docs/use-cases.md)): patient letters, lease
+  terminations, penal and payment orders, social and school decisions, letters from
+  insurers and utilities. Most turn on a period, a reference number, an address or a
+  dose, which code already checks like a date.
+- A pilot with a cantonal easy-language office, with target-group testing.
 
 ## License
 

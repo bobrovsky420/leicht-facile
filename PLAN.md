@@ -33,12 +33,15 @@ Fixed:
 
 Blocking the submission (WP11):
 
-- [ ] Report over the page limit: 8 A4 pages at 10 pt with 2 cm margins (4,427 words),
-      limit 6. Cut about a quarter, together with the stale text below.
+- [x] Report over the page limit: 8 A4 pages at 10 pt with 2 cm margins (4,427 words),
+      limit 6. Cut to 3,171 words: 6 pages, the last 37 % full, so about half a page is
+      left for the names, the video link, κ and the final rerun.
 - [ ] Report PDF `RoestigrabenBridgers_Report.pdf` in the root.
-- [ ] Stale report: team names (`` `member` ``), `link to video`, "Status of this
-      report: 6 October", three **[pending]** markers (§4 dataset decision, §5 judge
-      labelling, §7 exact commit), and §8 lists French as a next step though it is done.
+- [ ] Stale report: team names (`` `member` ``), `link to video`, and the §7 commit
+      placeholder (`` `commit of the reported run` ``, known after the final rerun). The
+      status line, the three **[pending]** markers (§5 now says κ is not yet measured,
+      §4 no longer announces a dataset decision), French in §8, the stale NUM-08
+      limitation and the test count are fixed.
 - [ ] Stale README: "825 tests" (963 now), "Status (6 October 2026)", the Pending list
       names French; the demo video is "*link follows*".
 - [ ] Demo video (at most 2 minutes) recorded and linked in README and report.
@@ -708,6 +711,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07 (submission check, 2): the two findings of the check fixed. The parser drops a string where an object expects a key (`drop_stray_strings` in `llm/json_out.py`: the 8B gave `value_norm` a second value without a list), and code completion brings the dropped value back as a fact of its own (test on the recorded letter). Without `LLM_JUDGE_NAME` the judge is the 70B of the writer's family when the endpoint lists it, looked up once per process (`LLMClient.judge_model`, also in `/healthz`), else `LLM_NAME` as before, so vLLM and llama.cpp with one model are unchanged; `LLM_MAX_RETRIES` defaults to 8. Verified in a fresh clone without `.env` on CSCS: 4 of 4 `make smoke` jobs to review, the 70B-thinking judging, a dropped stream recovered on attempt 1 of 9. 963 tests.
 - 2026-10-07 (afternoon): two more value kinds for the patient letters and the study information (WP14, use cases 3 and 9): `quantity` (a number with a dose or measurement unit, symbol or name in DE, FR and IT, `2,5 mg` and `2.5 Milligramm` the same; a fact given as a bare number is found in its quantity, a dropped unit is a loss) and `schedule` (`1-0-1`, `½-0-½`), taken before addresses after `1000 IE` came out as a postcode and a place. Six quantities and no scheme on the 35 pairs; REF on the German eval pairs 69.2 to 65.9 percent because the two pages concerned have few facts (rules.md, calibration note); 999 tests. The decision mode written into WP15 as "Decision mode v1": seven pieces, tests, cut order, rows in §13.3 (Fri to Mon), a paragraph in §13.5, GAP-20 and the WP17 rows updated. Fixed on a peer session's note: literal U+2010 to U+2014 characters that the editing tool had written into two regex classes of `rules/values.py`, where a `/` in front of them also formed an unintended range (a scheme or quantity right after a colon was rejected); the classes are built from `DASHES` now. Docs: rules.md (two rows, the planned table, the calibration note, the test plan), architecture §4.2, §4.4 and §9, prompts.md, report §8, use-cases.md §3, §9 and §12.
 - 2026-10-07 (evening): two printable synthetic letters for the image input spike (WP12): `scripts/print_letters.py` writes `data/examples/print/` with a German tax reminder (one page: a table of amounts, an IBAN, a tax number, deadlines) and a French grant decision (two pages, registered: AHV and file number, a calculation table, payment dates, periods, the means of appeal), each as a PDF to print, fold and scan and as the printed text in reading order for comparing a transcription. Everything invented; the IBANs and the AHV number have invalid check digits. No code in the pipeline changed. Both letters printed, folded in three and scanned by the owner (300 dpi colour, no OCR, one PDF per letter in `data/examples/print/scans/`); the creases cross the German subject line and the French IBAN line. Next: phone photos, then the transcription spike against these texts.
+- 2026-10-07 (evening, 2): report cut to the page limit (WP11). Measured by rendering `technical_report.md` with markdown-it-py (tables on) and printing it with headless Edge to A4, 10 pt, 2 cm margins, which reproduces the submission check's 8 pages and 4,427 words; now 6 pages, the last 37 % full, 3,171 words. Every template section kept, every number unchanged. Cut: the status paragraph, the team-name sentence, the planned demo-documents row, the build-time/runtime table (now one paragraph), the stage table's cells, the prompt, parser and reliability detail, the result table's row labels, the second baseline, 70B, judge, calibration and test paragraphs, the limitations and next steps merged. Fixed on the way: 999 tests instead of 825, 42 German and 39 French rules instead of 41, French no longer a next step (Italian is), the NUM-08 limitation dropped (D-J accepts `+41`), the judge default to the 70B in §3, κ stated as not yet measured instead of **[pending]**, the UI described without the stylesheet the WP18 branch removes. Left for the owner: team names, video link, the commit of the final run in §7, the PDF.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
