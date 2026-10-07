@@ -275,6 +275,26 @@ def verb_tense(t: Token) -> str | None:
     return None
 
 
+# -ir verbs whose singular passé simple differs from the present: "il part", "il partit".
+IR_THIRD_GROUP = ("partir", "sortir", "dormir", "sentir", "servir", "mentir", "ouvrir",
+                  "offrir", "couvrir", "souffrir", "cueillir", "bouillir", "faillir",
+                  "saillir")  # fmt: skip
+
+
+def _present_singular(t: Token) -> bool:
+    """'il agit', 'je finis', 'il dit', 'cela suffit': the present and the passé simple
+    of second-group -ir verbs and of -ire verbs share the singular, and the parser
+    tags some of them Past. A plain letter means the present."""
+    lemma, form = t.lemma_.lower(), t.lower_
+    if lemma.endswith("ire"):
+        stem = lemma[:-3]
+    elif lemma.endswith("ir") and not lemma.endswith(IR_THIRD_GROUP):
+        stem = lemma[:-2]
+    else:
+        return False
+    return form in (stem + "is", stem + "it")
+
+
 def is_passe_simple(t: Token) -> bool:
     morph = t.morph
     return (
@@ -286,6 +306,7 @@ def is_passe_simple(t: Token) -> bool:
         and _has_subject(t)  # "un acte interdit par la loi" is a participle
         and not any(c.dep_ in AUX_DEPS for c in t.children)  # "il est interdit"
         and verb_tense(t) is None
+        and not _present_singular(t)
     )
 
 

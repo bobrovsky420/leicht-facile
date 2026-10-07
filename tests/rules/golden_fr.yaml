@@ -64,7 +64,10 @@ GRAM-04-FR:
     - "Vous recevrez une lettre."
     - "Le Conseil fédéral décida de changer la loi."
     - "Nous enverrons la décision en avril."
+    - "Il sortit du bureau."
   negative:
+    - "Une personne agit pour vous."
+    - "Il agit comme le médicament original."
     - "Vous allez recevoir une lettre."
     - "Vous avez reçu une lettre."
     - "Vous entrez dans le bureau."

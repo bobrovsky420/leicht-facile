@@ -168,7 +168,7 @@ parser cannot tell an inverted subject from an object.
 | LEN-03-FR | Enumerations of three or more items become a list | a coordination chain (`conj`) of three or more nouns, verbs or adjectives, or noun phrases separated by commas and a final `et` or `ou` | warn |
 | GRAM-01-FR | No passive | `être` (`aux:pass`) + past participle. With an agent `par`, in a compound tense (`a été envoyé`), after a modal verb or `aller` (`doit être envoyé`) or in the future (`sera envoyé`) it is a passive; a plain present (`est envoyé`) may describe a state and is a warning (A2) or a note (B1); stative participles in the plain present (`fermé`, `ouvert`, `assuré`, `inscrit`, `interdit`, ...) are not flagged | error (A2) / warn (B1) |
 | GRAM-03-FR | No subjunctive or conditional | a conditional ending on the future stem (`pourriez`, `faudrait`, `aimerions`); a subjunctive after a conjunction (`pour que`, `afin que`, `bien que`, `avant que`, `sans que`, `à condition que`, `à ce que`, ...) or a governing verb or adjective (`il faut que`, `il est important que`), or a form that is always subjunctive (`puisse`, `fasse`, `soit`) | warn |
-| GRAM-04-FR | Present and passé composé; no passé simple, no futur simple where `aller` + infinitive works | a future ending on the future stem (`recevrez`, `sera`, `enverrons`; the suggestion is `allez recevoir`); a passé simple: a finite past tense with a passé simple ending, a subject and no auxiliary | warn |
+| GRAM-04-FR | Present and passé composé; no passé simple, no futur simple where `aller` + infinitive works | a future ending on the future stem (`recevrez`, `sera`, `enverrons`; the suggestion is `allez recevoir`); a passé simple: a finite past tense with a passé simple ending, a subject and no auxiliary; the singular of second-group -ir verbs and of -ire verbs (`il agit`, `je finis`, `il dit`) is the same in the present and counts as present | warn |
 | GRAM-05-FR | No nominalisations | a noun ending in `-tion`, `-sion`, `-ment`, `-age`, `-ance`, `-ence`, `-ité`, `-ure`, `-isme` that is not an everyday word (Zipf frequency below 4.0; stop list: `votation`, `ambulance`, ...) and not in the glossary. Warning in nominal style (with a light verb such as `effectuer`, `procéder` or `intervenir`, after `lors de`, `en vue de` or `dans le cadre de`, or with a `de` attribute: `le versement de la prestation`), otherwise a note | warn / info |
 | GRAM-06-FR | Pronouns only with an unambiguous reference | `il`, `elle`, `ils`, `elles`, the object `le` or `la`, `celui-ci` ... with no noun of matching gender and number in the same or the previous block, or with several; the impersonal `il` (`il faut`) is skipped | info (judge confirms: SEM-03) |
 | GRAM-07-FR | No reported speech | `selon`, `d'après` | info |
@@ -242,12 +242,32 @@ administrative letters, read by `rules/vocabulary.py`. Two kinds:
   explanation. Groups: law, debt, insurance, health, social, tax, residence, vote.
   The false friends of `docs/hard-texts.md` §3 are in it.
 
-Size on 7 October: German 229 replace and 107 explain, French 185 and 105. Sources: the
-hard words of the standard pages in the pairs (`data/pairs/`), the explanations
-official easy pages give for the same terms, and the rule lists above (LEX-01-FR,
-LEX-02). `tests/rules/test_vocabulary.py` checks the lists: no term twice, no en or em
-dash, no sharp s in German, and every explanation, one block per sentence, passes the
-checker at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt).
+Size on 7 October: German 263 replace and 195 explain, French 218 and 190. Sources:
+
+- the hard words of the standard pages in the pairs (`data/pairs/`), the explanations
+  official easy pages give for the same terms, and the rule lists above (LEX-01-FR,
+  LEX-02);
+- TERMDAT, the federal terminology database, queried as Linked Data (SPARQL endpoint
+  `https://ld.admin.ch/query`, graph `https://lindas.admin.ch/fch/termdat`, about
+  40,000 entries in DE, FR, IT, RM, EN): the terms of the pilot's letters (decisions
+  and appeals, social insurance, unemployment, IV, KESB, debt collection, tax,
+  residence, grants) with the official French equivalent. The entry is named in a
+  trailing comment (`# TERMDAT 47696`); only the term names are taken, every
+  explanation is our own. Terms TERMDAT lacks (`aufschiebende Wirkung`, `Vorbescheid`,
+  the EL terms) name the act that defines them (`# IVG Art. 57a`);
+- a cross-check against published lists, used as checklists only, never copied: COSLA's
+  *Lexique administratif* (Le Robert 2004, about 4,300 entries; before the check we
+  covered about 60 percent of its entries relevant to Swiss letters), the German guides
+  of the Bundesverwaltungsamt (2002), Bavaria (2022) and Berlin, the senses Wiktionary
+  labels Amtssprache, and Hurraki (CC BY-SA). It found gaps (`widrigenfalls`, `Rechtsöffnung`,
+  `indûment`, `mainlevée`, `taxation d'office`) and wrong replacements, now fixed:
+  `prescription` is a time limit in debt letters, not a rule; `disposition` broke
+  `à votre disposition`; `aufheben` in a decision means annul; `bzw.` and `resp.` mean
+  "respectively" in Swiss letters, so the advice is two sentences, not `oder`.
+
+`tests/rules/test_vocabulary.py` checks the lists: no term twice, no en or em dash, no
+sharp s in German, and every explanation, one block per sentence, passes the checker
+at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt).
 
 Planned use (PLAN.md WP17, termbase): entries that occur in the source go into the
 write prompt; LEX-01, LEX-02 and LEX-03 name the `replace` word in their suggestion;
