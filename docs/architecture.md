@@ -557,50 +557,80 @@ running when the service stopped are queued again on start.
 
 ### Review UI
 
-Server-rendered (Jinja2) pages. Every page works without JavaScript; `app.js` adds
-polling, highlighting and keyboard comfort on top. Throughout the UI, purple marks
-what Apertus did and teal what code did, the same colours as the diagram in §3.
+A workbench for people who review drafts for hours every day, designed in WP18
+([ui-design.md](ui-design.md) has the full specification: tokens, components,
+screens, texts, accessibility). Server-rendered Jinja2 pages, one `app.css`, one
+`app.js`, no framework, no build step, no CDN. Calm on purpose: white and grey
+surfaces, one institutional blue for actions, selection and focus; red, amber and
+green only for status, always with a shape and a word or number. Apertus, code and
+the reviewer are told apart by a grey tag with a word and an icon. Every page can be
+read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 
-- **Start page** (`/`): the submission form with three source tabs (pasted text, web
-  address, file), the two team-written example letters from `data/examples/sources/`
-  as one-click fills, language, level and pipeline condition, optional writer and
-  judge model overrides, the endpoint status from `/healthz`, and the list of jobs.
-- **Progress page** (`/jobs/{id}` while the job is queued or running): the stages of
-  the chosen condition as a stepper (done / running / pending / skipped / failed, with
-  one line of facts per stage such as "14 facts, 14 must survive" or "draft v1: 10
-  errors, 9 warnings"), the elapsed time and tokens, and the intermediate artifacts as
-  soon as they exist: the fact sheet with the core questions and the facts that must
-  survive, then the latest draft with the blocks that have findings marked, then the
-  model calls per stage. The page polls the fragment at `/jobs/{id}/progress` every
-  two seconds and reloads when the job reaches review or fails.
-- **Review page** (`/jobs/{id}` once a draft exists): a summary strip (status,
-  language and level, condition, errors and warnings, facts present, tokens and model
-  time), the draft versions as pills with the blocking problems left after each one,
-  a Review / Reader view switch and the export menu, then three framed panes that
-  scroll on their own. On a window at least 1101 px wide and 600 px high the page
-  fits the window, footer included, and only the panes scroll; smaller windows stack
-  the panes and scroll the page. The reader view replaces the panes in the same window with the
-  HTML export of the decisions on screen, unsaved ones included (`POST
-  /jobs/{id}/preview` renders it and stores nothing; `GET /jobs/{id}/preview` shows
-  the saved review and is the fallback without JavaScript). The keys are off while it
-  is shown. The panes:
-  1. **Source** - segments in order; clicking a draft block highlights the source
-     sentences it came from. Sentences left out are struck through with the reason as
-     a tooltip; sentences neither used nor listed as left out are outlined (FACT-04).
-  2. **Draft** - blocks with a colour mark for findings (none / warning / error), the
-     findings with their suggestions and a code / judge badge, filters (all, with
-     findings, undecided), approve / edit / reject per block as a segmented control,
-     "approve all undecided", the decided count and "review complete". Keys: j and k
-     move between blocks, a, e and r decide. Unsaved decisions warn before leaving.
-  3. **Checks** - collapsible cards: the five core questions from the fact sheet
-     (click to see the source sentences), the fact checklist (present / missing /
-     distorted, from code and judge; click to see the blocks that carry a fact),
-     document findings, omissions with reasons, glossary, measures (sentence length,
-     readability, passive, facts found) and the run summary with the rerun and delete
-     actions.
+- **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
+  need review, **New draft**, the endpoint indicator (the configured model; the dot
+  turns green, amber or red from `/healthz`, kept 5 minutes in `sessionStorage`), the
+  EN / DE switch and the API link. A "Skip to content" link comes first.
+- **Drafts** (`/`): the work queue as a table. Title (an "Example" tag replaces the
+  `Example: ` prefix) and where the text came from, language and level, pipeline,
+  status (the stage and time while running, the error when failed), the checks of the
+  latest draft (errors, warnings, facts present), the review progress, the creation
+  time, and a row menu (open, reader view, exports, delete, which asks first). Search,
+  status filter with counts and language filter are GET parameters, so they work
+  without JavaScript; at most 50 rows, newest first, with the counts computed per
+  request from `review_view` (D-Y). An intro strip explains the four steps and can be
+  hidden. Without jobs, the empty state offers the two example letters.
+- **New draft** (`/new`, D-W): the source as pasted text, web address or file (drop
+  zone), with the two team-written example letters as one-click fills
+  (`/new?example=<id>` fills the text without JavaScript); language, level and
+  pipeline as radio lists, the chosen pipeline's stages shown under it; title,
+  optional model overrides. `POST /jobs` answers 400 with the form and the error.
+- **Job running** (`/jobs/{id}` while queued or running): the stages of the chosen
+  condition as a stepper (done, running, waiting, skipped, failed), each with its
+  detail line ("14 facts, 14 must survive") and its model usage ("1 call · 2,813
+  tokens · 47 s"; Check: "41 rules · no model call"); next to it the results as soon
+  as they exist: the fact sheet with the core questions and the facts that must
+  survive, then the latest draft with a severity mark on blocks that have findings.
+  The page polls `/jobs/{id}/progress` every two seconds and reloads when the job
+  reaches review or fails; a failed job shows the error and "Run again".
+- **Review** (`/jobs/{id}` once a draft exists): a header with the view switch
+  (Review, Reader view), the export menu, the save state ("Saved 10:42") and "Save
+  review" (also Ctrl+S); a strip with language, level, pipeline, the draft versions as
+  pills with the blocking problems left after each, the repair rounds and the counts.
+  On a window at least 1101 px wide and 600 px high the page fits the window and only
+  the three panes scroll; smaller windows stack them. The panes:
+  1. **Source** - the sentences in order. Selecting a block marks the sentences it came
+     from. Sentences left out keep their text, muted, with a "Left out" tag and the
+     reason; sentences neither used nor explained carry an amber bar and a "Not
+     explained" tag (FACT-04).
+  2. **Draft** - the blocks read as text, with an id gutter, a severity column and a
+     decision icon. The selected block opens: its findings (rule id, Code or Judge tag,
+     message, suggestion; "Apply" replaces the evidence with the suggestion where the
+     evidence stands in the text, such as LEX-01's Mediopunkt split), the facts it
+     carries, and Approve / Edit / Reject. Filters (all, with findings, undecided),
+     "Approve all undecided", the decided count and "Review complete" in the footer.
+     Keys, only while the focus is in this pane (WCAG 2.1.4): J and K or the arrows
+     move, A, E and R decide, N jumps to the next undecided block; Approve and Reject
+     move on to it. Unsaved decisions warn before leaving. Without JavaScript every
+     block is open.
+  3. **Checks** - four tabs (stacked without JavaScript): **Facts**, problems first,
+     with the expected value, the status from code and judge and the judge's note;
+     selecting a fact marks the blocks that carry it. **Findings**, the document's
+     findings grouped by rule with the rule's title; a FACT-04 line marks its source
+     sentences, a FACT-01 line selects its fact. **Questions**, the five core questions.
+     **More**, omissions with reasons, glossary, measures, and the run (models, usage,
+     notes, rerun and delete).
+- **Reader view**: replaces the panes with the HTML export of the decisions on screen,
+  unsaved ones included (`POST /jobs/{id}/preview` renders it and stores nothing; `GET
+  /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
+  next to an export panel: the format (Markdown, HTML, audit bundle), the download of
+  the saved review, and a "Before publication" list (blocks decided, blocking problems
+  in this version, review complete). The keys are off while it is shown.
 
-Styling is one vendored classless stylesheet (water.css, MIT) plus a small
-`app.css` and `app.js`: no CDN, no build step, nothing that breaks air-gapped.
+Type: IBM Plex Sans and Mono for the interface; the reader view uses Atkinson
+Hyperlegible Next (D-V), injected into the preview response only. The HTML export
+names it first and falls back to Arial and Helvetica, without embedding it. All three
+families are vendored as woff2 under `web/static/fonts/` (SIL OFL 1.1, licences next
+to the files, THIRD_PARTY_NOTICES.md), so nothing is fetched from another host.
 
 **Interface languages.** The UI speaks English and German; the interface language is
 the reviewer's and independent of the document's, so a German-speaking reviewer can
@@ -620,8 +650,10 @@ the English templates; `message_key` and `message_params` travel with the Findin
 the English catalog takes the templates over as `finding.<key>`, and the other
 catalogs translate them. A finding from an artifact written before the keys existed
 gets key and values read back off its English text with the rule's templates, and
-keeps the stored text when none fits. Model output (the judge's notes) is not
-translated: it stays in the language it was produced in.
+keeps the stored text when none fits. The rules' titles, which head the grouped
+findings, join the English catalog the same way as `rule.<ID>` (the base id without
+`-DE` or `-FR`). Model output (the judge's notes) is not translated: it stays in the
+language it was produced in.
 
 ### CLI
 
@@ -842,9 +874,10 @@ pyproject.toml, uv.lock   dependencies (uv), Python 3.12+; .python-version pins 
 .env.example              endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                 project overview, quick start, status; Track 2B challenge text (template)
 technical_report.md       the report (PDF: RoestigrabenBridgers_Report.pdf)
-THIRD_PARTY_NOTICES.md    the Canton of Zurich's prompt (MIT) used as baseline P0-ZH
+THIRD_PARTY_NOTICES.md    the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 docs/
   architecture.md         this document
+  ui-design.md            the web UI's specification (WP18)
   rules.md                rule catalogue → implemented by src/leichtfacile/rules
   prompts.md              prompt design notes and change log
   sources.md, use-case-canton.md, hard-texts.md
@@ -862,7 +895,7 @@ src/leichtfacile/
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
                           lexicon.py, readability.py, styleguide.py, checker.py, nlp.py
   web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
-                          static/ (vendored), locales/ (en.json, de.json)
+                          static/ (app.css, app.js, fonts/), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py
   eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
                           day1.py, cli.py

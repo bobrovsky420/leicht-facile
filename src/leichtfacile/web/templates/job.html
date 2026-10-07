@@ -1,20 +1,34 @@
 {% extends "base.html" %}
-{% block title %}{{ job.title or job.id }} - Leicht·Facile{% endblock %}
+{% import "_icons.html" as icons with context %}
+{% block title %}{{ title }} - Leicht·Facile{% endblock %}
 {% block content %}
-<section class="review-head">
-  <h1>{{ job.title or job.id }}</h1>
-  <p class="chips">
-    <span class="chip status status-{{ job.status }}">{{ t('status.' ~ job.status) }}</span>
-    {% if job.config.lang %}<span class="chip">{{ t.get('lang.' ~ job.config.lang, job.config.lang) }}, {{ job.config.level }}</span>{% endif %}
-    <span class="chip" title="{{ t.get('condition.' ~ job.config.condition, '') }}">{{ job.config.condition }}</span>
-  </p>
+<section class="pagehead">
+  <div class="pagehead-row">
+    <div class="pagehead-title">
+      <a class="crumb" href="/">{{ t('site.drafts') }}{{ icons.icon('chevron-right', 12) }}</a>
+      <div class="titleline">
+        <h1{% if job.config.lang %} lang="{{ job.config.lang }}"{% endif %}>{{ title }}</h1>
+        <span class="badge status-{{ job.status }}" id="job-status">{{ t('status.' ~ job.status) }}</span>
+      </div>
+    </div>
+    <div class="pagehead-actions">
+      {% if p.live %}
+      <span class="run-line" role="status"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=number(p.tokens, ui_lang)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
+      {% endif %}
+      <form method="post" action="/jobs/{{ job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
+        <button type="submit" class="btn btn-danger">{{ t('job.delete') }}</button>
+      </form>
+    </div>
+  </div>
+  <div class="strip">
+    <span>{% if job.config.lang %}{{ t.get('lang.' ~ job.config.lang, job.config.lang) }} · {% endif %}{{ t('level.' ~ job.config.level) }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
+    <span>{{ t('progress.writer') }} <code>{{ job.config.writer_model or settings.llm_name }}</code></span>
+    {% if job.config.judge_model %}<span>{{ t('progress.judge') }} <code>{{ job.config.judge_model }}</code></span>{% endif %}
+  </div>
 </section>
-
-<div id="progress" data-job="{{ job.id }}" data-status="{{ job.status }}">
+<div class="page">
+  <div id="progress" data-job="{{ job.id }}" data-status="{{ job.status }}">
 {% include "_progress.html" %}
+  </div>
 </div>
-
-<form method="post" action="/jobs/{{ job.id }}/delete" class="inline danger-zone">
-  <button type="submit" class="secondary">{{ t('job.delete') }}</button>
-</form>
 {% endblock %}

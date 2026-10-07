@@ -1,0 +1,57 @@
+{# Inline SVG icons (docs/ui-design.md §4). Import with context:
+   {% import "_icons.html" as icons with context %}. A label makes the icon an image
+   for screen readers; without one it is decorative. #}
+
+{% macro _a11y(label) -%}
+{%- if label %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif -%}
+{%- endmacro %}
+
+{# Severity and fact status: error, warn, info, present, missing, distorted, unchecked,
+   and "none" for a count of zero (grey circle). #}
+{% macro sev(kind, label="", size=14) -%}
+{%- if kind in ("error", "missing", "none") -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="{{ '#BCC3CC' if kind == 'none' else '#B42318' }}"/><path d="M8 4.4v4.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.4" r="1.05" fill="#fff"/></svg>
+{%- elif kind in ("warn", "distorted") -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><path d="M8 1.2 15.3 14.3H.7Z" fill="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 5.6v4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="12" r="1" fill="#fff"/></svg>
+{%- elif kind == "present" -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="#1E6B3A"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{%- elif kind == "unchecked" -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" stroke="#646C78" stroke-width="1.5" stroke-dasharray="2.4 2"/></svg>
+{%- else -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" stroke="#646C78" stroke-width="1.5"/><path d="M8 7.3v4" stroke="#646C78" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r="1" fill="#646C78"/></svg>
+{%- endif -%}
+{%- endmacro %}
+
+{# The decision column of a block: all four icons, CSS shows the one that applies. #}
+{% macro decision_states() -%}
+<span class="st st-undecided" role="img" aria-label="{{ t('review.decision.undecided') }}"></span>
+<svg class="st st-approved" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.approved') }}"><circle cx="8" cy="8" r="7.5" fill="#1E6B3A"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg class="st st-edited" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.edited') }}"><circle cx="8" cy="8" r="7.5" fill="#1F4E8A"/><path d="M9.7 4.4l1.9 1.9-4.7 4.7-2.4.5.5-2.4z" fill="#fff"/></svg>
+<svg class="st st-rejected" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.rejected') }}"><circle cx="8" cy="8" r="7.5" fill="#B42318"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+{%- endmacro %}
+
+{# Line icons in the text colour. #}
+{% macro icon(name, size=16, label="") -%}
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="{{ '1.8' if name in ('check', 'x', 'plus', 'code') else '1.6' }}" stroke-linecap="round" stroke-linejoin="round" {{ _a11y(label) }}>
+{%- if name == "chevron-right" %}<path d="M6 4l4 4-4 4"/>
+{%- elif name == "chevron-down" %}<path d="M4 6l4 4 4-4"/>
+{%- elif name == "check" %}<path d="M3.5 8.5 6.5 11.5 12.5 4.5"/>
+{%- elif name == "pencil" %}<path d="M10.8 2.8 13.2 5.2 6 12.4 3 13l.6-3z"/>
+{%- elif name == "x" %}<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+{%- elif name == "search" %}<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>
+{%- elif name == "plus" %}<path d="M8 3v10M3 8h10"/>
+{%- elif name == "download" %}<path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/>
+{%- elif name == "upload" %}<path d="M8 10.5v-8M4.5 6 8 2.5 11.5 6M2.5 10.5v3h11v-3"/>
+{%- elif name == "arrow-down" %}<path d="M8 3v10M4 9l4 4 4-4"/>
+{%- elif name == "kebab" %}<circle cx="3.5" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="12.5" cy="8" r="1.1" fill="currentColor" stroke="none"/>
+{%- elif name == "chip" %}<rect x="4" y="4" width="8" height="8" rx="1.5"/><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"/>
+{%- elif name == "code" %}<path d="M5.5 4 1.5 8l4 4M10.5 4l4 4-4 4"/>
+{%- elif name == "person" %}<circle cx="8" cy="5.5" r="2.5"/><path d="M3 14c.6-2.8 2.6-4.3 5-4.3s4.4 1.5 5 4.3"/>
+{%- endif -%}
+</svg>
+{%- endmacro %}
+
+{# Who does a stage's work, as a grey tag with an icon. #}
+{% macro who(kind) -%}
+<span class="tag">{{ icon('chip' if kind == 'apertus' else ('code' if kind == 'code' else 'person'), 12) }}{{ t('who.' ~ kind ~ '_title') if kind in ('code', 'human') else t('who.apertus') }}</span>
+{%- endmacro %}

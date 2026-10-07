@@ -38,3 +38,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Fonts of the web UI
+
+The web UI ships three font families, vendored as woff2 files in
+`src/leichtfacile/web/static/fonts/` so that it fetches nothing from another host
+(docs/ui-design.md, section 3.4). The files are the `latin` and `latin-ext` subsets of
+the Fontsource npm packages, version 5.3.0, unchanged:
+
+| Family | Weights | Package | Licence text |
+|--------|---------|---------|--------------|
+| IBM Plex Sans | 400, 500, 600 | `@fontsource/ibm-plex-sans` | `OFL-IBM-Plex-Sans.txt` |
+| IBM Plex Mono | 400, 600 | `@fontsource/ibm-plex-mono` | `OFL-IBM-Plex-Mono.txt` |
+| Atkinson Hyperlegible Next | 400, 700 | `@fontsource/atkinson-hyperlegible-next` | `OFL-Atkinson-Hyperlegible-Next.txt` |
+
+IBM Plex: Copyright 2017-2019 IBM Corp., https://github.com/IBM/plex. Atkinson
+Hyperlegible Next: Copyright 2020-2024 The Atkinson Hyperlegible Next Project Authors,
+https://github.com/googlefonts/atkinson-hyperlegible-next.
+
+All three are licensed under the SIL Open Font License, Version 1.1; the full text
+with each family's copyright notice lies next to the font files. The files are
+distributed unmodified, bundled with the software, as the licence permits.

@@ -38,8 +38,9 @@ PLURAL_ONE: dict[str, frozenset[int]] = {"fr": frozenset({0, 1})}
 def catalogs() -> dict[str, dict[str, str]]:
     """All catalogs by language code, English first."""
     found = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in LOCALES_DIR.glob("*.json")}
-    # The checker's messages: English from the rules package, translations from the files.
-    found[DEFAULT_LANG] = {**found[DEFAULT_LANG], **finding_texts()}
+    # The checker's messages and the rules' titles: English from the rules package,
+    # translations from the files.
+    found[DEFAULT_LANG] = {**found[DEFAULT_LANG], **finding_texts(), **rule_texts()}
     order = sorted(found, key=lambda code: (code != DEFAULT_LANG, code))
     return {code: found[code] for code in order}
 
@@ -47,6 +48,17 @@ def catalogs() -> dict[str, dict[str, str]]:
 def finding_texts() -> dict[str, str]:
     """The English templates of the rule checker's messages as catalog entries."""
     return {f"finding.{key}": text for key, text in MESSAGES.items()}
+
+
+def rule_texts() -> dict[str, str]:
+    """The rules' titles (the "Rule" column of docs/rules.md) as catalog entries
+    `rule.<ID>`, one per rule across its language variants."""
+    from leichtfacile.rules import RULES  # importing the package registers every rule
+
+    out: dict[str, str] = {}
+    for rule_id, spec in RULES.items():
+        out.setdefault(f"rule.{rule_id.removesuffix('-DE').removesuffix('-FR')}", spec.title)
+    return out
 
 
 def ui_languages() -> dict[str, str]:

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
+{% block title %}{{ t('site.new') }} - Leicht·Facile{% endblock %}
+{% block content %}
+<div class="page page-form">
+  <a class="crumb" href="/">{{ t('site.drafts') }}{{ icons.icon('chevron-right', 12) }}</a>
+  <h1 style="margin-bottom: 16px">{{ t('site.new') }}</h1>
+
+  {% if error %}
+  <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>
+  {% endif %}
+
+  <form method="post" action="/jobs" enctype="multipart/form-data" class="newgrid" id="new-job">
+    <section class="card src" aria-labelledby="src-h">
+      <div class="card-head">
+        <h2 id="src-h">{{ t('new.source') }}</h2>
+        <span class="grow"></span>
+        <div class="seg src-tabs" role="tablist" aria-label="{{ t('index.source') }}">
+          <button type="button" role="tab" class="seg-item" data-tab="text" id="tab-text" aria-controls="panel-text" aria-selected="true">{{ t('index.tab.text') }}</button>
+          <button type="button" role="tab" class="seg-item" data-tab="url" id="tab-url" aria-controls="panel-url" aria-selected="false" tabindex="-1">{{ t('index.tab.url') }}</button>
+          <button type="button" role="tab" class="seg-item" data-tab="file" id="tab-file" aria-controls="panel-file" aria-selected="false" tabindex="-1">{{ t('index.tab.file') }}</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="tab-panel active" data-panel="text" id="panel-text" role="tabpanel" aria-labelledby="tab-text">
+          <label class="label" for="text">{{ t('index.text.label') }}</label>
+          <textarea id="text" name="text" rows="18" placeholder="{{ t('index.text.placeholder') }}" data-max="{{ max_chars }}">{{ form.text or "" }}</textarea>
+          <div class="textmeta">
+            <span id="char-count">{{ t('js.chars', count=number(chars, ui_lang), max=number(max_chars, ui_lang)) }}</span>
+            <span id="lang-note">{{ t('js.lang_auto') }}</span>
+          </div>
+          {% if examples %}
+          <div class="examples">
+            <span>{{ t('index.examples') }}</span>
+            {% for e in examples %}<button type="button" class="linklike" data-example="{{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</button>{% endfor %}
+            <span class="grow"></span>
+            <button type="button" class="btn btn-sm js-only" id="clear-text">{{ t('new.clear') }}</button>
+          </div>
+          {% endif %}
+        </div>
+        <div class="tab-panel" data-panel="url" id="panel-url" role="tabpanel" aria-labelledby="tab-url">
+          <label class="label" for="url">{{ t('index.url.label') }}</label>
+          <input id="url" name="url" type="url" placeholder="https://www.zh.ch/de/..." value="{{ form.url or '' }}">
+          <p class="hint" style="margin-top: 8px">{{ t('index.url.hint') }} {{ t('new.private_note') }}</p>
+        </div>
+        <div class="tab-panel" data-panel="file" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
+          <div class="dropzone" id="dropzone">
+            {{ icons.icon('upload', 28) }}
+            <span class="big js-only">{{ t('new.drop') }}</span>
+            <span class="hint js-only">{{ t('new.or') }}</span>
+            <input id="file" name="file" type="file" accept=".pdf,.html,.htm,.txt,.md">
+            <label class="btn" for="file">{{ t('new.choose') }}</label>
+            <span class="chosen" id="file-chosen" aria-live="polite"></span>
+            <span class="hint">{{ t('index.file.label') }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card settings" aria-labelledby="set-h">
+      <div class="card-head"><h2 id="set-h">{{ t('new.settings') }}</h2></div>
+      <div class="card-body">
+        <div>
+          <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
+          <select id="lang" name="lang">
+            <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
+            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t('lang.' ~ code) }}</option>{% endfor %}
+            {% for code in coming_langs %}<option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t('lang.' ~ code)) }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <fieldset>
+          <legend>{{ t('index.level') }}</legend>
+          <div class="optlist">
+            {% for level in ('A2', 'B1') %}
+            <label class="opt">
+              <input type="radio" name="level" value="{{ level }}"{% if (form.level or 'A2') == level %} checked{% endif %}>
+              <span class="opt-text"><span class="opt-title">{{ t('level.' ~ level) }}</span><span class="opt-desc">{{ t('new.level.' ~ level ~ '.desc') }}</span></span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>{{ t('index.condition') }}</legend>
+          <div class="optlist">
+            {% for p in pipelines %}
+            <label class="opt">
+              <input type="radio" name="condition" value="{{ p.id }}"{% if (form.condition or 'P2') == p.id %} checked{% endif %}>
+              <span class="opt-text">
+                <span class="opt-title">{{ t('new.condition.' ~ p.id ~ '.title') }}{% if loop.first %}<span class="tag">{{ t('new.default') }}</span>{% endif %}</span>
+                <span class="opt-desc">{{ t('new.condition.' ~ p.id ~ '.desc') }}</span>
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+          {% for p in pipelines %}
+          <div class="stages" data-condition="{{ p.id }}" aria-label="{{ t('new.stages') }}">
+            {% for s in p.stages %}<span class="stage-chip">{{ s.title }} <span class="who">{{ s.who }}</span></span>{% if not loop.last %}{{ icons.icon('chevron-right', 10) }}{% endif %}{% endfor %}
+          </div>
+          {% endfor %}
+        </fieldset>
+
+        <div>
+          <label class="label" for="title">{{ t('index.title_field') }}</label>
+          <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
+        </div>
+
+        <details class="models"{% if form.writer_model or form.understand_model or form.judge_model %} open{% endif %}>
+          <summary>{{ icons.icon('chevron-right', 12) }}{{ t('index.models') }} <span class="muted" style="font-weight: 400">{{ t('new.models_defaults') }}</span></summary>
+          <div class="fields">
+            <div><label class="label" for="writer_model">{{ t('index.models.writer') }}</label>
+              <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm_name }}"></div>
+            <div><label class="label" for="understand_model">{{ t('index.models.understand') }}</label>
+              <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.understand_name }}"></div>
+            <div><label class="label" for="judge_model">{{ t('index.models.judge') }}</label>
+              <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.judge_name }}"></div>
+            <p class="hint">{{ t('index.models.hint') }}</p>
+          </div>
+        </details>
+      </div>
+      <div class="card-foot">
+        <div class="actions">
+          <button type="submit" class="btn btn-primary btn-lg">{{ t('new.create') }}</button>
+          <a class="btn btn-lg" href="/">{{ t('new.cancel') }}</a>
+        </div>
+        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm_name }}</code></span></p>
+      </div>
+    </section>
+  </form>
+  {% if examples %}<script type="application/json" id="example-texts">{{ examples | tojson }}</script>{% endif %}
+</div>
+{% endblock %}

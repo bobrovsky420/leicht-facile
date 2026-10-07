@@ -135,6 +135,7 @@ letters, and the air-gapped bundle (`make bundle`).
 
 - [technical_report.md](technical_report.md): the technical report (PDF: `RoestigrabenBridgers_Report.pdf`)
 - [docs/architecture.md](docs/architecture.md): design and architecture
+- [docs/ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [docs/rules.md](docs/rules.md): the rule catalogue the checker implements
 - [docs/prompts.md](docs/prompts.md): prompt design and change log
 - [docs/sources.md](docs/sources.md): reference pairs, demo documents, licences

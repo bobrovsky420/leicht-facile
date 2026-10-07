@@ -1,9 +1,10 @@
 # Web UI design: the reviewer's workbench
 
-Specification of the redesigned web UI, planned as WP18 (PLAN.md). Designed and
-approved by the owner on 7 October 2026; **not implemented yet**. Until it is,
-[architecture.md](architecture.md) §7 describes the UI as it is; when WP18 lands,
-§7 is rewritten from this file.
+Specification of the redesigned web UI, built as WP18 (PLAN.md). Designed and
+approved by the owner on 7 October 2026 and implemented the same day;
+[architecture.md](architecture.md) §7 gives the overview. Where the implementation
+departs from the plan, this file follows the implementation, and §17 lists the
+departures.
 
 The visual reference is a design canvas with six screens (review, reader view and
 export, drafts list, new draft, job running, foundations), clickable in its Play
@@ -71,7 +72,7 @@ CSS custom properties on `:root` in `app.css`, prefixed `--lf-`.
 | `--lf-ink` | `#1A1E23` | Text, headings, icons |
 | `--lf-text-2` | `#49515C` | Labels, descriptions (8.0:1 on white) |
 | `--lf-muted` | `#646C78` | IDs, captions, counts (5.3:1 on white, 5.0:1 on `--lf-sunken`) |
-| `--lf-border-input` | `#8A929D` | Outline of text fields, selects and the selected segment (3.2:1, WCAG 1.4.11) |
+| `--lf-border-input` | `#808893` | Outline of text fields, selects and the selected segment (3.6:1 on white, 3.1:1 on the segmented tracks, WCAG 1.4.11) |
 | `--lf-border-strong` | `#BCC3CC` | Outline of buttons (their label identifies them) |
 | `--lf-border` | `#D7DBE0` | Edges of panes, cards and the app bar |
 | `--lf-hairline` | `#E6E9ED` | Strip borders, chip borders, list frames |
@@ -159,12 +160,11 @@ Into `src/leichtfacile/web/static/fonts/`, as woff2, subsets `latin` and
 | IBM Plex Mono | 400, 600 | SIL OFL 1.1 | Fontsource `@fontsource/ibm-plex-mono`, or `IBM/plex` |
 | Atkinson Hyperlegible Next | 400, 700 | SIL OFL 1.1 | Fontsource `@fontsource/atkinson-hyperlegible-next`, or `googlefonts/atkinson-hyperlegible-next` |
 
-About 14 files of 15 to 30 KB each (an estimate; check when downloading). One
-`@font-face` per file with `font-display: swap` and the subset's `unicode-range`.
-The licence text of each family goes next to the files (`OFL-IBM-Plex.txt`,
-`OFL-Atkinson-Hyperlegible-Next.txt`), and `THIRD_PARTY_NOTICES.md` gains a section
-per family with the version used. The download needs the owner's go, with file
-names, source and size stated first.
+14 files of 7 to 24 KB, 236 KB together (Fontsource 5.3.0). One `@font-face` per
+file with `font-display: swap` and the subset's `unicode-range`. The licence text of
+each family lies next to the files (`OFL-IBM-Plex-Sans.txt`, `OFL-IBM-Plex-Mono.txt`,
+`OFL-Atkinson-Hyperlegible-Next.txt`), and `THIRD_PARTY_NOTICES.md` has a section on
+the fonts with the version used.
 
 ## 4. Components
 
@@ -186,7 +186,7 @@ names, source and size stated first.
 | Radio list | `.optlist` | Framed list, one option per row (title 600, description 13/18); the checked row in `--lf-accent-tint` |
 | Menu | `details.menu` | Summary styled as a button; panel white, radius 8, shadow; closes on Esc and on a click outside (JS) |
 | Pane | `.pane` | Flush column with a 40 px sunken header and its own scroll area; 1 px border between panes |
-| Source row | `.seg` | 60 px mono gutter with the id; states: linked, left out, not explained, heading (§5.5) |
+| Source row | `.seg-row` | 60 px mono gutter with the id; states: linked, left out, not explained, heading (§5.5) |
 | Block row | `.block` | Id gutter, severity column, text, decision column; selected: accent-weak fill and accent bar, details open (§5.5) |
 | Fact row | `.fact` | A button: status icon, id, value chip, status word, text clamped to two lines, the judge's note |
 | Stepper | `.steps` | Vertical list; icon column with a connector line; title, who tag, state word, description, detail, usage (§5.4) |
@@ -274,8 +274,10 @@ Empty states:
 View model: `drafts_view(store, jobs, t) -> list[DraftRow]` in `views.py` (D-Y). For
 jobs in `needs_review` or `done` it calls `review_view` and keeps the counts; the
 others get status and note only. `DraftRow`: `job`, `title`, `is_example`,
-`source_line`, `language`, `status_note`, `errors`, `warnings`, `facts_present`,
-`facts_total`, `decided`, `blocks`, `complete`, `created_day`, `created_time`.
+`language`, `doc_lang`, `source_line`, `status_note`, `has_checks`, `errors`,
+`warnings`, `facts_present`, `facts_total`, `decided`, `blocks`, `complete` and
+`review_pct`. The template writes the creation date and time in UTC; `app.js` turns
+them into local time and "Today" or "Yesterday".
 
 ### 5.3 New draft (`/new`, `new.html`)
 
@@ -354,8 +356,8 @@ others get status and note only. `DraftRow`: `job`, `title`, `is_example`,
   the error in its detail line, mono 12.
 - Polling as today: `app.js` swaps the `_progress.html` fragment every 2 s and
   reloads when the status leaves queued and running. The fragment's root carries
-  `data-elapsed` and `data-tokens`; `app.js` copies them into the page header after
-  each swap.
+  the header's line, formatted by the server, in `data-run`; `app.js` copies it into
+  the page header after each swap.
 - View model: `Step` gains `usage: StageUsage | None`, matched by stage key (Read is
   `understand`); `progress_view` already sums the usage per stage.
 
@@ -389,8 +391,8 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 **Source pane.**
 
 - Header: "Source", "19 sentences".
-- Legend line: "Source of the selected block" (accent-weak swatch with the bar),
-  "Not explained 5" (amber bar), "Left out 5" (grey tag).
+- Legend line: "Source of the selected block" (accent-weak swatch with the bar)
+  and "Not explained 5" (amber bar); a left-out sentence carries its tag in its row.
 - Rows: the id in a 60 px mono gutter, then the sentence; headings in bold; extra
   space before a new paragraph. States:
   - linked (the selected block's sources, set by `app.js`): `--lf-accent-weak` and
@@ -403,11 +405,13 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 - `lang` is the document's language.
 
 ```html
-<p class="seg {{ state }}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}">
+<p class="seg-row {{ state }}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}">
   <span class="sid">{{ seg.id }}</span>
-  <span class="seg-text">{{ seg.text }}</span>
-  {% if state == "omitted" %}<span class="seg-note"><span class="tag">{{ t('review.tag.left_out') }}</span> {{ reason }}</span>{% endif %}
-  {% if state == "unused" %}<span class="seg-note"><span class="tag tag-warn">{{ t('review.tag.unused') }}</span></span>{% endif %}
+  <span class="seg-main">
+    <span class="seg-text">{{ seg.text }}</span>
+    {% if state == "omitted" %}<span class="seg-note"><span class="tag">{{ t('review.tag.left_out') }}</span><span>{{ reason }}</span></span>{% endif %}
+    {% if state == "unused" %}<span class="seg-note"><span class="tag tag-warn">{{ t('review.tag.unused') }}</span></span>{% endif %}
+  </span>
 </p>
 ```
 
@@ -445,19 +449,19 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 - The block texts carry the document's `lang`.
 
 ```html
-<article class="block{% if row.worst %} sev-{{ row.worst }}{% endif %}{% if row.decision %} decided{% endif %}"
+<article class="block kind-{{ b.kind }}{% if row.worst %} sev-{{ row.worst }} has-issues{% endif %}{% if d %} decided {{ d }}{% endif %}"
          id="blk-{{ b.id }}" data-block="{{ b.id }}" data-segments="{{ b.segment_ids | join(' ') }}"
          data-facts="{{ b.fact_ids | join(' ') }}" tabindex="0">
   <span class="bid">{{ b.id }}</span>
-  <span class="block-sev">{{ sev(row.worst) }}<span class="n">{{ counted }}</span></span>
+  <span class="block-sev">{{ sev(row.worst) }}<span class="n-{{ row.worst }}">{{ counted }}</span></span>
   <div class="block-main">
-    <p class="block-text" lang="{{ v.draft.lang }}">{{ b.text }}</p>
-    <div class="block-details">
-      {# edited text, findings with Apply, "Carries", the decision radios d-{{ b.id }}
-         and the text area t-{{ b.id }}, Next undecided #}
-    </div>
+    <p class="block-text"><span class="orig-text">{{ b.text }}</span><span class="edited-text">{{ edited }}</span></p>
   </div>
-  <span class="block-state">{{ decision(row.decision.decision if row.decision else none) }}</span>
+  <span class="block-state">{{ decision_states() }}</span>
+  <div class="block-details">
+    {# a full-width row under the text: the text area t-{{ b.id }}, findings with
+       Apply, "Carries", the decision radios d-{{ b.id }}, Next undecided #}
+  </div>
 </article>
 ```
 
@@ -487,10 +491,13 @@ the four panels stack with their headings.
   "Delete draft", danger, asks first).
 
 View model (`views.py`): `Issue` gains `evidence`, `fact_id` and `segment_ids` (from
-the `Finding`; empty for the judge's issues); `ReviewView` gains `facts_sorted` (the
-order above), `finding_groups` (`FindingGroup(rule_id, title, worst, issues)`),
-`omitted_count`, `unused_count`, `saved_at` (the newest `Decision.at`, or None) and
-the current version's blocking count for the reader view's list.
+the `Finding`; empty for the judge's issues), `applicable` (Apply is offered) and
+`ref` (the fact id or the sentence range a document finding points at); `ReviewView`
+gains `facts_sorted` (the order above), `finding_groups` (`FindingGroup(rule_id,
+title, worst, issues)`), `segment_counts` (sentences, left out, not explained),
+`saved_at` (the newest `Decision.at`, or None), `current_blocking` (the current
+version's blocking count, for the reader view's list), `facts_by_id` and
+`decided_pct`.
 
 ### 5.6 Reader view and export (`review.html`)
 
@@ -545,7 +552,7 @@ New or changed:
    on change.
 3. New draft: the character count, the language note after an example, the file
    name and size after a choice, dropping a file on the drop zone.
-4. Job running: copying `data-elapsed` and `data-tokens` into the page header after
+4. Job running: copying the fragment's `data-run` line into the page header after
    each swap.
 5. Review:
    - one selected block at a time; its row opens (`.is-open`), the others close (the
@@ -617,8 +624,6 @@ drafts.not_yet            Not yet
 drafts.facts              Facts {present}/{total}
 drafts.reviewed           {decided} of {total}
 drafts.reviewed_complete  {decided} of {total}, complete
-drafts.today              Today
-drafts.yesterday          Yesterday
 drafts.running            {stage}, {time}
 drafts.actions_for        More actions for {title}
 drafts.open               Open
@@ -631,9 +636,6 @@ drafts.shown              {shown} of {total} drafts
 drafts.newest_first       Newest first
 
 new.source                Source document
-new.chars                 {n} of {max} characters
-new.lang_auto             The language is detected when the draft is created
-new.lang_detected         Detected: {lang}
 new.clear                 Clear
 new.drop                  Drop a file here
 new.or                    or
@@ -675,13 +677,15 @@ progress.doc_findings     Findings about the whole document, such as missing fac
 
 review.saved_at           Saved {time}
 review.never_saved        No decisions saved yet
-review.blocking_n         {n} blocking
+review.blocking_n         {count} blocking
+review.rounds_short.one   {n} repair round
+review.rounds_short.other {n} repair rounds
+review.run.cost           Used
 review.sentences.one      {n} sentence
 review.sentences.other    {n} sentences
 review.blocks.one         {n} block
 review.blocks.other       {n} blocks
-review.legend.unused_n    Not explained {n}
-review.legend.omitted_n   Left out {n}
+review.legend.unused_n    Not explained {count}
 review.tag.left_out       Left out
 review.tag.unused         Not explained
 review.tag.code           Code
@@ -709,20 +713,25 @@ reader.format             Format
 reader.md.desc            Plain text with headings, one sentence per line. For a content management system.
 reader.html.desc          A web page in the reader layout, ready to print or to publish.
 reader.json.desc          Source, fact sheet, every draft version, the findings and your decisions.
-reader.download           Download {ext}
-reader.saved_only         Exports use the last saved review. Decisions you have not saved are left out.
 reader.before             Before publication
-reader.decided            {decided} of {total} blocks decided
 reader.decided_hint       Undecided blocks stay in, as drafted.
 reader.blocking.one       {n} blocking problem in v{version}
 reader.blocking.other     {n} blocking problems in v{version}
-reader.complete           Review marked complete
-reader.not_complete       Review not marked complete
 reader.complete_hint      Mark it complete in the review once every block is decided.
 
 js.unsaved                Unsaved changes
 js.saved_at               Saved {time}
 js.confirm_delete         Delete this draft and everything it produced? This cannot be undone.
+js.chars                  {count} of {max} characters
+js.lang_auto              The language is detected when the draft is created
+js.lang_detected          Detected: {lang}
+js.today                  Today
+js.yesterday              Yesterday
+js.download               Download {ext}
+js.saved_only             Exports use the last saved review. Decisions you have not saved are left out.
+js.reader_decided         {decided} of {total} blocks decided
+js.reader_complete        Review marked complete
+js.reader_not_complete    Review not marked complete
 
 rule.<ID>                 the rule's title from RuleSpec.title, merged like finding.<key>
 ```
@@ -772,8 +781,8 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
   in the order Source, Draft, Checks and the page scrolls (the breakpoint of today's
   `app.css`).
 - The app bar and every toolbar wrap; the summary strip wraps.
-- Drafts: the table keeps its columns and scrolls sideways inside the card under
-  1170 px.
+- Drafts: the table keeps its columns (at least 1200 px wide) and scrolls sideways
+  inside the card under 1250 px.
 - New draft and Job running: the two columns stack under 1000 px.
 - The reader view's export panel moves under the page under 1000 px.
 
@@ -798,7 +807,7 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
 | `docs/architecture.md` §7, `README.md`, `docs/demo-video.md`, `THIRD_PARTY_NOTICES.md`, `PLAN.md` | Updated when WP18 lands |
 
 Hooks that `app.js` and the tests rely on keep their names: the classes `block`,
-`seg`, `fact`, `step-<state>`, `version current`; the attributes `data-filter`,
+`seg-row`, `fact`, `step-<state>`, `version current`; the attributes `data-filter`,
 `data-block`, `data-segments`, `data-facts`, `data-fact`, `data-version`; the ids
 `review-form`, `reader-pane`, `reader-frame`, `example-texts`, `endpoint-status`.
 
@@ -887,14 +896,14 @@ shipping a half-styled review page.
 
 ## 15. Differences from the canvas
 
-- Fields and the selected segment are outlined in `--lf-border-input` (`#8A929D`)
+- Fields and the selected segment are outlined in `--lf-border-input` (`#808893`)
   for WCAG 1.4.11; the canvas draws `#BCC3CC`.
 - The drafts list is a real `<table>`; the canvas lays it out as a grid of `div`s.
 - Only the rows "Individuelle Prämienverbilligung 2027" and "Réduction individuelle
   des primes 2027" of the canvas's drafts list are real jobs; the others are sample
   rows built from the evaluation topics, with made-up counts.
 - The job page's time and tokens in the header come from the polled fragment
-  (`data-elapsed`, `data-tokens`).
+  (`data-run`).
 - "Save review" in the header submits the review form through `form="review-form"`.
 - The shortcuts act only while the focus is in the draft pane; the canvas binds them
   to the selected block.
@@ -910,3 +919,48 @@ shipping a half-styled review page.
 - User accounts, roles, assigning drafts to reviewers.
 - Pagination beyond 50 rows; sorting by other columns.
 - A print stylesheet for the review page.
+
+## 17. As built
+
+Departures from the plan above, found while building and checking WP18 on 7 October
+2026. The sections above already follow them.
+
+- **Class names.** A source row is `.seg-row`, because `.seg` is the segmented
+  control; the drafts list's checks cell is `.checks-cell`, because `.checks` is the
+  checks pane.
+- **Block details** are a full-width row of the block under its text, not part of the
+  text column: the decision buttons and "Next undecided" get the pane's whole width
+  and stay on one line.
+- **Summary strip** on one line at 1440 px: the level as its code ("A2") with the full
+  name in `title`; the repair rounds as "2 repair rounds" with the stop reason in
+  `title`; the tokens and the model time moved to More, Run ("Used"). The version
+  pills carry no tooltip, so screen readers read their text.
+- **Save review** names its shortcut with `aria-keyshortcuts="Control+S"` instead of
+  a keycap inside the button, which screen readers read as the button's name.
+- **Texts that `app.js` rewrites** live under `js.*` (character count, language note,
+  Today and Yesterday, the download label, the reader view's checklist), so the page
+  hands them to the script with the other `js.*` texts. A count that only fills a
+  placeholder is called `{count}`, because `n=` selects the `.one` or `.other` form.
+- **Source legend**: no "Left out" entry; each left-out sentence carries its tag and
+  reason in its row.
+- **Language filter** reads `config.lang`, which `create_job` sets to the source's
+  detected or chosen language.
+- **Drafts table** at least 1200 px wide; it scrolls inside its card under 1250 px, so
+  the Document column never shrinks to a few letters.
+- **Decisions with the keyboard**: moving through the decision radios with the arrow
+  keys checks them but does not move on to the next block (a keyboard click has
+  `detail` 0); a click with the mouse and the keys A and R move on.
+- **The job page's header line** comes formatted from the server in one attribute,
+  `data-run`, instead of `data-elapsed` and `data-tokens`.
+- **Contrast pass** by script over the tokens in `app.css` (40 pairs): every text
+  pair at least 4.5:1 (`--lf-muted` on `--lf-accent-weak` is the lowest, 4.5:1). The
+  selected segment's outline was 2.8:1 against the grey track, so `--lf-border-input`
+  went from `#8A929D` to `#808893` (3.1:1 on both tracks, 3.6:1 on white). The amber
+  bar of an unexplained sentence stays at 2.4:1: it is never the only signal, the
+  "Not explained" tag next to it says the same in words (5.8:1).
+- **Checks done**: headless screenshots of every page at 1440 × 900 (the review in
+  English and German) and of the review at 1366 and 1024 px wide; phone width (375
+  px) in a browser with mobile emulation, without sideways scrolling. Edge takes no
+  headless screenshot with scripts off, so the review page without JavaScript was
+  checked in a browser by removing the `js` class, the only thing that layout depends
+  on: every block open, filters and keys hidden, the four checks panels stacked.

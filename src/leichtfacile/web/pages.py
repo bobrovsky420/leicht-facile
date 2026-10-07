@@ -1,12 +1,14 @@
-"""Server-rendered pages: start page, job progress, review, reader preview.
+"""Server-rendered pages: drafts list, new draft, job progress, review, reader preview.
 
 Every page is rendered in the reviewer's interface language (`i18n.py`): the choice
-from the switcher in the header (a cookie), else `UI_LANG`, else the browser's."""
+from the switcher in the header (a cookie), else `UI_LANG`, else the browser's.
+The layout and its parts are specified in docs/ui-design.md."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Annotated
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -15,25 +17,63 @@ from fastapi.templating import Jinja2Templates
 from leichtfacile import __version__
 from leichtfacile.examples import example_sources
 from leichtfacile.export.html import to_html
+from leichtfacile.ingest.detect import detect_language
 from leichtfacile.pipeline.orchestrator import PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.rules.base import RULES
 from leichtfacile.schemas import LANGS, Decision, Draft, PipelineSummary, ReviewState
 from leichtfacile.web.api import ReviewIn
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
-from leichtfacile.web.jobs import Submission, SubmissionError, create_job
-from leichtfacile.web.views import format_duration, progress_view, review_view, stop_reason
+from leichtfacile.web.jobs import MAX_TEXT_CHARS, Submission, SubmissionError, create_job
+from leichtfacile.web.views import (
+    STEP_WHO,
+    STEPS_BY_CONDITION,
+    display_title,
+    drafts_view,
+    format_duration,
+    format_number,
+    progress_view,
+    review_view,
+    stop_reason,
+)
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals.update(
     version=__version__,
     duration=format_duration,
+    number=format_number,
     ui_languages=ui_languages,
     stop_reason=stop_reason,
 )
 
 router = APIRouter()
 ONE_YEAR = 365 * 24 * 3600
+LIST_LIMIT = 50  # rows the drafts list shows
+STATUS_FILTERS = ("all", "needs_review", "running", "queued", "done", "failed")
+FORM_CONDITIONS = ("P2", "P1", "P0")  # the pipelines the form offers, default first
+
+# The reader view shows the export in the vendored Atkinson Hyperlegible Next (D-V). The
+# exported file itself names the font first and falls back to Arial, without embedding it.
+_LATIN = (
+    "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, "
+    "U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+)
+_LATIN_EXT = (
+    "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, "
+    "U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, "
+    "U+2C60-2C7F, U+A720-A7FF"
+)
+READER_FONTS = (
+    "<style>\n"
+    + "".join(
+        f'@font-face {{ font-family: "Atkinson Hyperlegible Next"; font-weight: {weight}; '
+        f"font-display: swap; src: url(/static/fonts/atkinson-hyperlegible-next-{subset}-"
+        f'{weight}-normal.woff2) format("woff2"); unicode-range: {ranges}; }}\n'
+        for weight in (400, 700)
+        for subset, ranges in (("latin", _LATIN), ("latin-ext", _LATIN_EXT))
+    )
+    + "</style>\n"
+)
 
 
 def translator(request: Request) -> Translator:
@@ -51,6 +91,9 @@ def _render(request: Request, name: str, status_code: int = 200, **context) -> H
     here = request.url.path if request.method == "GET" else "/"
     if request.method == "GET" and request.url.query:
         here += f"?{request.url.query}"
+    state = request.app.state
+    context.setdefault("settings", state.settings)
+    context.setdefault("review_count", state.store.count_jobs("needs_review"))
     context.update(ui_lang=t.lang, here=here)
     return TEMPLATES.TemplateResponse(request, name, context, status_code=status_code)
 
@@ -74,29 +117,113 @@ def rule_count() -> int:
     )
 
 
-def _index(
-    request: Request, status_code: int = 200, error: str | None = None, form: dict | None = None
-) -> HTMLResponse:
-    state = request.app.state
-    written = available_languages()
-    return _render(
-        request,
-        "index.html",
-        status_code,
-        jobs=state.store.list_jobs(50),
-        settings=state.settings,
-        error=error,
-        form=form or {},
-        examples=example_sources(),
-        rule_count=rule_count(),
-        doc_langs=[lang for lang in LANGS if lang in written],
-        coming_langs=[lang for lang in LANGS if lang not in written],
-    )
+def examples_for_page(t: Translator) -> list[dict[str, str]]:
+    """The example letters with their language, for the New draft page and the empty list."""
+    out = []
+    for example in example_sources():
+        lang, _ = detect_language(example["text"])
+        name = t.get(f"lang.{lang}", lang) if lang else ""
+        out.append({**example, "lang": lang or "", "lang_name": name})
+    return out
+
+
+def _list_url(status: str, q: str, lang: str) -> str:
+    params = {k: v for k, v in (("status", status), ("q", q), ("lang", lang)) if v and v != "all"}
+    return "/?" + urlencode(params) if params else "/"
 
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request) -> HTMLResponse:
-    return _index(request)
+def index(request: Request, status: str = "all", q: str = "", lang: str = "") -> HTMLResponse:
+    """The drafts list: filters as GET parameters, so they work without JavaScript."""
+    state = request.app.state
+    t = translator(request)
+    status = status if status in STATUS_FILTERS else "all"
+    jobs = state.store.list_jobs(200)
+    query = q.strip().casefold()
+    matching = [
+        job
+        for job in jobs
+        if (not query or query in display_title(job)[0].casefold())
+        and (not lang or job.config.lang == lang)
+    ]
+    counts = {key: sum(1 for j in matching if key in ("all", j.status)) for key in STATUS_FILTERS}
+    shown = [j for j in matching if status in ("all", j.status)]
+    filters = [
+        {
+            "key": key,
+            "label": t("drafts.filter.all") if key == "all" else t(f"status.{key}"),
+            "n": counts[key],
+            "url": _list_url(key, q, lang),
+            "current": key == status,
+        }
+        for key in STATUS_FILTERS
+    ]
+    return _render(
+        request,
+        "index.html",
+        t=t,
+        rows=drafts_view(state.store, shown[:LIST_LIMIT], t),
+        matching=len(shown),
+        total=len(jobs),
+        status=status,
+        q=q,
+        lang=lang,
+        filtered=bool(query or lang or status != "all"),
+        filters=filters,
+        langs=sorted({j.config.lang for j in jobs if j.config.lang}),
+        examples=examples_for_page(t) if not jobs else [],
+        rule_count=rule_count(),
+        section="drafts",
+        section_root=True,
+    )
+
+
+def _pipelines(t: Translator) -> list[dict]:
+    """The pipelines the form offers, each with the stages it runs."""
+    return [
+        {
+            "id": condition,
+            "stages": [
+                {"title": t(f"step.{key}.title"), "who": t(f"who.{STEP_WHO[key]}")}
+                for key in STEPS_BY_CONDITION[condition]
+            ],
+        }
+        for condition in FORM_CONDITIONS
+    ]
+
+
+def _new(
+    request: Request, status_code: int = 200, error: str | None = None, form: dict | None = None
+) -> HTMLResponse:
+    t = translator(request)
+    written = available_languages()
+    form = form or {}
+    return _render(
+        request,
+        "new.html",
+        status_code,
+        t=t,
+        error=error,
+        form=form,
+        examples=examples_for_page(t),
+        doc_langs=[lang for lang in LANGS if lang in written],
+        coming_langs=[lang for lang in LANGS if lang not in written],
+        pipelines=_pipelines(t),
+        max_chars=MAX_TEXT_CHARS,
+        chars=len(form.get("text") or ""),
+        section="new",
+    )
+
+
+@router.get("/new", response_class=HTMLResponse)
+def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
+    """The form for a new draft; `?example=<id>` fills in one of the example letters."""
+    form: dict = {}
+    if example:
+        found = next((e for e in example_sources() if e["id"] == example), None)
+        if found is not None:
+            form["text"] = found["text"]
+    return _new(request, form=form)
 
 
 @router.get("/ui/{lang}")
@@ -154,7 +281,7 @@ async def submit(
             "understand_model": understand_model or "",
             "judge_model": judge_model or "",
         }
-        return _index(request, 400, exc.text(translator(request)), form)
+        return _new(request, 400, exc.text(translator(request)), form)
     state.runner.submit(job.id)
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)
 
@@ -164,11 +291,24 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
     state = request.app.state
     job = _job_or_404(request, job_id)
     t = translator(request)
+    title, _ = display_title(job)
     if job.status in ("needs_review", "done"):
         view = review_view(state.store, job, version, t)
         if view is not None:
-            return _render(request, "review.html", job=job, v=view, t=t)
-    return _render(request, "job.html", job=job, p=progress_view(state.store, job, t=t), t=t)
+            return _render(
+                request, "review.html", job=job, v=view, t=t, title=title, section="drafts"
+            )
+    progress = progress_view(state.store, job, t=t)
+    return _render(
+        request,
+        "job.html",
+        job=job,
+        p=progress,
+        t=t,
+        title=title,
+        rule_count=rule_count(),
+        section="drafts",
+    )
 
 
 @router.get("/jobs/{job_id}/progress", response_class=HTMLResponse)
@@ -177,11 +317,21 @@ def job_progress(request: Request, job_id: str) -> HTMLResponse:
     job = _job_or_404(request, job_id)
     t = translator(request)
     response = _render(
-        request, "_progress.html", job=job, p=progress_view(request.app.state.store, job, t=t), t=t
+        request,
+        "_progress.html",
+        job=job,
+        p=progress_view(request.app.state.store, job, t=t),
+        t=t,
+        rule_count=rule_count(),
     )
     response.headers["X-Job-Status"] = job.status
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+def _reader_page(html: str) -> HTMLResponse:
+    """The export as the reader view shows it: with the vendored reader font (D-V)."""
+    return HTMLResponse(html.replace("</head>", READER_FONTS + "</head>", 1))
 
 
 @router.get("/jobs/{job_id}/preview", response_class=HTMLResponse)
@@ -196,7 +346,7 @@ def preview(request: Request, job_id: str, version: int | None = None) -> HTMLRe
     if draft is None:
         raise HTTPException(404, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    return HTMLResponse(to_html(draft, review, title=job.title))
+    return _reader_page(to_html(draft, review, title=job.title))
 
 
 @router.post("/jobs/{job_id}/preview", response_class=HTMLResponse)
@@ -213,7 +363,7 @@ def preview_unsaved(request: Request, job_id: str, body: ReviewIn) -> HTMLRespon
             decisions=[Decision(**d.model_dump()) for d in body.decisions],
             completed=body.completed,
         )
-    return HTMLResponse(to_html(draft, review, title=job.title))
+    return _reader_page(to_html(draft, review, title=job.title))
 
 
 @router.post("/jobs/{job_id}/rerun")

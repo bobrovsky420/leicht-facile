@@ -1,123 +1,145 @@
 {% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
 {% block content %}
-<section class="hero">
-  <h1>{{ t('index.title') }}</h1>
-  <p class="lede">{{ t('index.lede') }}</p>
-  <ol class="how">
-    <li class="who-apertus"><span class="who">Apertus</span><strong>{{ t('index.how.write') }}</strong>
-      <span>{{ t('index.how.write_text') }}</span></li>
-    <li class="who-code"><span class="who">{{ t('who.code_title') }}</span><strong>{{ t('index.how.check') }}</strong>
-      <span>{{ t('index.how.check_text', count=rule_count) }}</span></li>
-    <li class="who-apertus"><span class="who">Apertus</span><strong>{{ t('index.how.judge') }}</strong>
-      <span>{{ t('index.how.judge_text') }}</span></li>
-    <li class="who-human"><span class="who">{{ t('who.human_title') }}</span><strong>{{ t('index.how.review') }}</strong>
-      <span>{{ t('index.how.review_text') }}</span></li>
-  </ol>
-</section>
-
-<form method="post" action="/jobs" enctype="multipart/form-data" class="new-job card" id="new-job">
-  <h2>{{ t('index.new') }}</h2>
-  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-
-  <div class="tabs" role="tablist" aria-label="{{ t('index.source') }}">
-    <button type="button" role="tab" class="tab" data-tab="text" aria-selected="true" id="tab-text" aria-controls="panel-text">{{ t('index.tab.text') }}</button>
-    <button type="button" role="tab" class="tab" data-tab="url" aria-selected="false" id="tab-url" aria-controls="panel-url">{{ t('index.tab.url') }}</button>
-    <button type="button" role="tab" class="tab" data-tab="file" aria-selected="false" id="tab-file" aria-controls="panel-file">{{ t('index.tab.file') }}</button>
+<div class="page">
+  <div class="pagetitle">
+    <div class="grow">
+      <h1>{{ t('site.drafts') }}</h1>
+      {% if total %}<p class="subline">{{ t('drafts.count', n=total) }}{% if review_count %} {{ t('drafts.to_review', n=review_count) }}{% endif %}</p>{% endif %}
+    </div>
+    <a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
   </div>
 
-  <div class="tab-panel active" data-panel="text" id="panel-text" role="tabpanel" aria-labelledby="tab-text">
-    <label for="text" class="visually-hidden">{{ t('index.text.label') }}</label>
-    <textarea id="text" name="text" rows="9" placeholder="{{ t('index.text.placeholder') }}">{{ form.text or "" }}</textarea>
-    {% if examples %}
-    <p class="examples">{{ t('index.examples') }}
-      {% for e in examples %}<button type="button" class="linklike" data-example="{{ e.id }}">{{ e.title }}</button>{% if not loop.last %} <span class="sep">{{ t('index.or') }}</span> {% endif %}{% endfor %}
-    </p>
+  {% if total %}
+  <section class="intro" id="intro" aria-label="{{ t('drafts.how.title') }}">
+    <span class="intro-title">{{ t('drafts.how.title') }}</span>
+    <ol>
+      <li><span class="stepno" aria-hidden="true">1</span>{{ t('drafts.how.read') }}</li>
+      <li><span class="stepno" aria-hidden="true">2</span>{{ t('drafts.how.check', count=rule_count) }}</li>
+      <li><span class="stepno" aria-hidden="true">3</span>{{ t('drafts.how.judge') }}</li>
+      <li><span class="stepno" aria-hidden="true">4</span>{{ t('drafts.how.review') }}</li>
+    </ol>
+    <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="intro-close" aria-label="{{ t('drafts.how.hide') }}">{{ icons.icon('x', 14) }}</button>
+  </section>
+  {% endif %}
+
+  <div class="card">
+    {% if total %}
+    <form class="toolbar" method="get" action="/" role="search">
+      <div class="search">
+        {{ icons.icon('search') }}
+        <input type="search" name="q" value="{{ q }}" placeholder="{{ t('drafts.search') }}" aria-label="{{ t('drafts.search_label') }}">
+      </div>
+      <nav class="seg" aria-label="{{ t('drafts.filter') }}">
+        {% for f in filters %}<a class="seg-item" href="{{ f.url }}"{% if f.current %} aria-current="true"{% endif %}>{{ f.label }}<span class="n">{{ f.n }}</span></a>{% endfor %}
+      </nav>
+      {% if status != 'all' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+      <span class="grow"></span>
+      {% if langs | length > 1 or lang %}
+      <label class="inline">{{ t('index.lang') }}
+        <select name="lang" data-autosubmit>
+          <option value="">{{ t('drafts.lang.all') }}</option>
+          {% for code in langs %}<option value="{{ code }}"{% if code == lang %} selected{% endif %}>{{ t.get('lang.' ~ code, code) }}</option>{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <button type="submit" class="btn btn-sm no-js">{{ t('drafts.apply_filters') }}</button>
+    </form>
+    {% endif %}
+
+    {% if rows %}
+    <div class="table-wrap">
+      <table class="drafts">
+        <colgroup><col class="c-doc"><col class="c-lang"><col class="c-pipe"><col class="c-status"><col class="c-checks"><col class="c-review"><col class="c-created"><col class="c-actions"></colgroup>
+        <thead>
+          <tr>
+            <th scope="col">{{ t('jobs.document') }}</th>
+            <th scope="col">{{ t('index.lang') }}</th>
+            <th scope="col">{{ t('index.condition') }}</th>
+            <th scope="col">{{ t('jobs.status') }}</th>
+            <th scope="col">{{ t('drafts.col.checks') }}</th>
+            <th scope="col">{{ t('drafts.col.review') }}</th>
+            <th scope="col">{{ t('jobs.created') }}</th>
+            <th scope="col"><span class="visually-hidden">{{ t('drafts.col.actions') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>
+              <span class="doc-title"><a href="/jobs/{{ r.job.id }}"{% if r.doc_lang %} lang="{{ r.doc_lang }}"{% endif %}>{{ r.title }}</a>{% if r.is_example %}<span class="tag">{{ t('drafts.example') }}</span>{% endif %}</span>
+              {% if r.source_line %}<span class="doc-sub">{{ r.source_line }}</span>{% endif %}
+            </td>
+            <td>{{ r.language }}{% if r.job.config.level %} <span class="muted">· {{ r.job.config.level }}</span>{% endif %}</td>
+            <td>{{ t.get('condition.short.' ~ r.job.config.condition, r.job.config.condition) }}</td>
+            <td>
+              <span class="badge status-{{ r.job.status }}">{{ t('status.' ~ r.job.status) }}</span>
+              {% if r.status_note %}<span class="cell-note{% if r.job.status == 'failed' %} bad{% endif %}">{{ r.status_note }}</span>{% endif %}
+            </td>
+            <td>
+              {% if r.has_checks %}
+              <span class="checks-cell">
+                <span class="stat">{{ icons.sev('error' if r.errors else 'none', t('count.errors', n=r.errors)) }}<span aria-hidden="true">{{ r.errors }}</span></span>
+                <span class="stat">{{ icons.sev('warn', t('count.warnings', n=r.warnings)) }}<span aria-hidden="true">{{ r.warnings }}</span></span>
+                {% if r.facts_total %}<span class="muted">{{ t('drafts.facts', present=r.facts_present, total=r.facts_total) }}</span>{% endif %}
+              </span>
+              {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
+            </td>
+            <td>
+              {% if r.blocks %}
+              <span class="review-cell"><span class="meter{% if r.complete %} complete{% endif %}"><span style="width: {{ r.review_pct }}%"></span></span>{{ t('drafts.reviewed_complete' if r.complete else 'drafts.reviewed', decided=r.decided, total=r.blocks) }}</span>
+              {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
+            </td>
+            <td class="created">
+              <time datetime="{{ r.job.created_at.isoformat() }}" data-local><span class="day">{{ r.job.created_at.strftime('%d.%m.%Y') }}</span><span class="tm">{{ r.job.created_at.strftime('%H:%M') }} UTC</span></time>
+            </td>
+            <td>
+              <details class="menu">
+                <summary class="btn btn-quiet btn-icon" aria-label="{{ t('drafts.actions_for', title=r.title) }}">{{ icons.icon('kebab') }}</summary>
+                <div class="menu-panel">
+                  <a href="/jobs/{{ r.job.id }}">{{ t('drafts.open') }}</a>
+                  {% if r.has_checks %}
+                  <a href="/jobs/{{ r.job.id }}/preview">{{ t('review.reader_view') }}</a>
+                  <hr>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=md">Markdown<span class="ext">.md</span></a>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=html">HTML<span class="ext">.html</span></a>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
+                  {% endif %}
+                  <hr>
+                  <form method="post" action="/jobs/{{ r.job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
+                    <button type="submit" class="danger">{{ t('drafts.delete') }}</button>
+                  </form>
+                </div>
+              </details>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-foot">
+      <span>{% if matching > rows | length or filtered %}{{ t('drafts.shown', shown=rows | length, total=total) }}{% else %}{{ t('drafts.count', n=total) }}{% endif %}</span>
+      <span class="grow"></span>
+      <span>{{ t('drafts.newest_first') }}</span>
+    </div>
+    {% elif total %}
+    <div class="empty">
+      <p>{{ t('drafts.no_match') }}</p>
+      <div class="actions"><a class="btn" href="/">{{ t('drafts.clear') }}</a></div>
+    </div>
+    {% else %}
+    <div class="empty">
+      <h2>{{ t('drafts.empty.title') }}</h2>
+      <p>{{ t('site.tagline') }}</p>
+      <p>{{ t('drafts.empty.text') }}</p>
+      <div class="actions">
+        {% for e in examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}
+        <a class="btn btn-primary" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
+      </div>
+    </div>
     {% endif %}
   </div>
-  <div class="tab-panel" data-panel="url" id="panel-url" role="tabpanel" aria-labelledby="tab-url">
-    <label for="url">{{ t('index.url.label') }}</label>
-    <input id="url" name="url" type="url" placeholder="https://www.zh.ch/de/..." value="{{ form.url or '' }}">
-    <p class="hint">{{ t('index.url.hint') }}</p>
-  </div>
-  <div class="tab-panel" data-panel="file" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
-    <label for="file">{{ t('index.file.label') }}</label>
-    <input id="file" name="file" type="file" accept=".pdf,.html,.htm,.txt,.md">
-  </div>
 
-  <div class="options">
-    <label for="lang">{{ t('index.lang') }}
-      <select id="lang" name="lang">
-        <option value="auto" {% if not form.lang or form.lang == 'auto' %}selected{% endif %}>{{ t('index.lang.auto') }}</option>
-        {% for code in doc_langs %}
-        <option value="{{ code }}" {% if form.lang == code %}selected{% endif %}>{{ t('lang.' ~ code) }}</option>
-        {% endfor %}
-        {% for code in coming_langs %}
-        <option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t('lang.' ~ code)) }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <label for="level">{{ t('index.level') }}
-      <select id="level" name="level">
-        <option value="A2" {% if form.level != 'B1' %}selected{% endif %}>{{ t('level.A2') }}</option>
-        <option value="B1" {% if form.level == 'B1' %}selected{% endif %}>{{ t('level.B1') }}</option>
-      </select>
-    </label>
-    <label for="condition">{{ t('index.condition') }}
-      <select id="condition" name="condition">
-        <option value="P2" {% if form.condition not in ('P0', 'P1') %}selected{% endif %}>{{ t('index.condition.P2') }}</option>
-        <option value="P1" {% if form.condition == 'P1' %}selected{% endif %}>{{ t('index.condition.P1') }}</option>
-        <option value="P0" {% if form.condition == 'P0' %}selected{% endif %}>{{ t('index.condition.P0') }}</option>
-      </select>
-    </label>
-    <label for="title">{{ t('index.title_field') }}
-      <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
-    </label>
-  </div>
-
-  <details class="advanced">
-    <summary>{{ t('index.models') }}</summary>
-    <div class="options">
-      <label for="writer_model">{{ t('index.models.writer') }}
-        <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm_name }}">
-      </label>
-      <label for="understand_model">{{ t('index.models.understand') }}
-        <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.understand_name }}">
-      </label>
-      <label for="judge_model">{{ t('index.models.judge') }}
-        <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.judge_name }}">
-      </label>
-    </div>
-    <p class="hint">{{ t('index.models.hint') }}</p>
-  </details>
-
-  <div class="submit-row">
-    <button type="submit" class="primary">{{ t('index.submit') }}</button>
-    <span id="endpoint-status" class="hint" data-url="/healthz" aria-live="polite">{{ t('index.endpoint') }} <code>{{ settings.llm_name }}</code></span>
-  </div>
-</form>
-{% if examples %}<script type="application/json" id="example-texts">{{ examples | tojson }}</script>{% endif %}
-
-<section id="drafts" class="drafts">
-  <h2>{{ t('site.drafts') }}</h2>
-  {% if jobs %}
-  <table class="jobs">
-    <thead><tr><th>{{ t('jobs.document') }}</th><th>{{ t('index.lang') }}</th><th>{{ t('index.level') }}</th><th>{{ t('index.condition') }}</th><th>{{ t('jobs.status') }}</th><th>{{ t('jobs.created') }}</th></tr></thead>
-    <tbody>
-    {% for j in jobs %}
-      <tr>
-        <td><a href="/jobs/{{ j.id }}">{{ j.title or j.id }}</a></td>
-        <td>{{ t.get('lang.' ~ j.config.lang, j.config.lang or '') }}</td>
-        <td>{{ j.config.level }}</td>
-        <td><span title="{{ t.get('condition.' ~ j.config.condition, '') }}">{{ t.get('condition.short.' ~ j.config.condition, j.config.condition) }}</span></td>
-        <td><span class="chip status status-{{ j.status }}">{{ t('status.' ~ j.status) }}</span>
-          {% if j.status == 'running' and j.stage %}<span class="hint">{{ t.get('step.' ~ j.stage.split(' ')[0] ~ '.title', j.stage) }}</span>{% endif %}</td>
-        <td><time datetime="{{ j.created_at.isoformat() }}" data-relative>{{ j.created_at.strftime('%d.%m.%Y %H:%M') }} UTC</time></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="hint">{{ t('jobs.none') }}</p>
-  {% endif %}
-</section>
+  <p class="pagefoot">Leicht·Facile {{ version }}. {{ t('site.footer') }}</p>
+</div>
 {% endblock %}

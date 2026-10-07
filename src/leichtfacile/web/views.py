@@ -7,7 +7,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
+from leichtfacile.examples import EXAMPLE_PREFIX
+from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.messages import recover
 from leichtfacile.rules.values import parse_value_norm
@@ -61,6 +64,29 @@ class Issue:
     severity: str
     message: str
     suggestion: str | None = None
+    evidence: str = ""  # what the rule found, e.g. LEX-01's long word
+    fact_id: str | None = None  # FACT-01, FACT-02, FACT-05: the fact concerned
+    segment_ids: list[str] = field(default_factory=list)  # FACT-04: the sentences concerned
+    applicable: bool = False  # the suggestion can replace the evidence in the block's text
+
+    @property
+    def ref(self) -> str:
+        """What a document finding points at: a fact, or a sentence or range of sentences."""
+        if self.fact_id:
+            return self.fact_id
+        if len(self.segment_ids) > 1:
+            return f"{self.segment_ids[0]}-{self.segment_ids[-1]}"
+        return self.segment_ids[0] if self.segment_ids else ""
+
+
+@dataclass
+class FindingGroup:
+    """Document findings of one rule, for the checks pane."""
+
+    rule_id: str
+    title: str
+    worst: str
+    issues: list[Issue]
 
 
 @dataclass
@@ -129,6 +155,39 @@ class ReviewView:
     tokens_in: int
     tokens_out: int
     seconds: float  # model time over all calls
+    finding_groups: list[FindingGroup] = field(default_factory=list)  # doc_issues by rule
+    saved_at: datetime | None = None  # when the stored review was last saved
+
+    @property
+    def facts_sorted(self) -> list[FactRow]:
+        """Problems first: missing, distorted, unchecked, present; background facts last."""
+        rank = {"missing": 0, "distorted": 1, "unchecked": 2, "present": 3}
+        return sorted(self.facts, key=lambda f: (not f.fact.must_keep, rank.get(f.status, 4)))
+
+    @property
+    def segment_counts(self) -> dict[str, int]:
+        """Source sentences without headings: all, left out with a reason, not explained."""
+        counts = {"sentences": 0, "omitted": 0, "unused": 0}
+        for seg in self.source.segments:
+            if seg.kind == "heading":
+                continue
+            counts["sentences"] += 1
+            if seg.id not in self.used_segments:
+                counts["omitted" if seg.id in self.omitted_segments else "unused"] += 1
+        return counts
+
+    @property
+    def current_blocking(self) -> int | None:
+        """Blocking problems left after the version on screen, when known."""
+        return next((row.blocking for row in self.version_rows if row.current), None)
+
+    @property
+    def facts_by_id(self) -> dict[str, FactRow]:
+        return {f.fact.id: f for f in self.facts}
+
+    @property
+    def decided_pct(self) -> int:
+        return round(100 * self.decided / len(self.rows)) if self.rows else 0
 
     @property
     def counts(self) -> dict[str, int]:
@@ -222,7 +281,16 @@ def review_view(
     rows = {b.id: BlockRow(b) for b in draft.blocks}
     doc_issues: list[Issue] = []
     for f in rules.findings if rules else []:
-        issue = Issue("rule", f.rule_id, f.severity, finding_text(t, f), f.suggestion)
+        issue = Issue(
+            "rule",
+            f.rule_id,
+            f.severity,
+            finding_text(t, f),
+            f.suggestion,
+            evidence=f.evidence,
+            fact_id=f.fact_id,
+            segment_ids=list(f.segment_ids),
+        )
         if f.block_id in rows:
             rows[f.block_id].issues.append(issue)
         else:
@@ -249,6 +317,13 @@ def review_view(
                         )
     for row in rows.values():
         row.issues.sort(key=lambda i: SEVERITY_RANK[i.severity])
+        for issue in row.issues:
+            issue.applicable = bool(
+                issue.suggestion
+                and issue.evidence
+                and issue.evidence != issue.suggestion
+                and issue.evidence in row.block.text
+            )
     if review:
         for d in review.decisions:
             if d.block_id in rows:
@@ -308,7 +383,30 @@ def review_view(
         tokens_in=sum(u.tokens_in for u in usage),
         tokens_out=sum(u.tokens_out for u in usage),
         seconds=sum(u.latency_ms for u in usage) / 1000,
+        finding_groups=group_findings(doc_issues, t),
+        saved_at=max((d.at for d in review.decisions), default=None) if review else None,
     )
+
+
+def rule_title(t: Translator, rule_id: str) -> str:
+    """A rule's title in the interface language (`rule.<ID>`), else the registry's."""
+    base = rule_id.removesuffix("-DE").removesuffix("-FR")
+    spec = RULES.get(rule_id) or RULES.get(base)
+    return t.get(f"rule.{base}", spec.title if spec else rule_id)
+
+
+def group_findings(issues: list[Issue], t: Translator = ENGLISH) -> list[FindingGroup]:
+    """Document findings grouped by rule, errors first."""
+    groups: dict[str, FindingGroup] = {}
+    for issue in issues:
+        group = groups.get(issue.rule_id)
+        if group is None:
+            title = rule_title(t, issue.rule_id)
+            group = groups[issue.rule_id] = FindingGroup(issue.rule_id, title, issue.severity, [])
+        group.issues.append(issue)
+        if SEVERITY_RANK[issue.severity] < SEVERITY_RANK[group.worst]:
+            group.worst = issue.severity
+    return sorted(groups.values(), key=lambda g: (SEVERITY_RANK[g.worst], g.rule_id))
 
 
 def core_questions(factsheet: FactSheet, t: Translator = ENGLISH) -> list[CoreRow]:
@@ -345,6 +443,7 @@ class Step:
     who: str  # apertus, code, human
     state: str  # pending, running, done, skipped, failed
     detail: str = ""
+    usage: StageUsage | None = None  # the stage's model calls so far
 
 
 @dataclass
@@ -373,6 +472,15 @@ class ProgressView:
     @property
     def current(self) -> Step | None:
         return next((s for s in self.steps if s.state in ("running", "failed")), None)
+
+    @property
+    def current_index(self) -> int:
+        """1-based position of the running or failed stage; 0 while queued, all when done."""
+        if self.current is not None:
+            return self.steps.index(self.current) + 1
+        if self.job.status in ("needs_review", "done"):
+            return len(self.steps)
+        return 0
 
     @property
     def tokens(self) -> int:
@@ -446,6 +554,8 @@ def progress_view(
         row.tokens_in += u.tokens_in
         row.tokens_out += u.tokens_out
         row.seconds += u.latency_ms / 1000
+    for step in steps:
+        step.usage = by_stage.get(step.key)
 
     now = now or datetime.now(UTC)
     end = now if job.status in ("queued", "running") else job.updated_at
@@ -498,9 +608,9 @@ def _add_detail(
             present = sum(1 for c in judge_v1.fact_checks if c.status == "present")
             step.detail = t(
                 "detail.judged",
+                n=len(judge_v1.unsupported),
                 present=present,
                 total=len(judge_v1.fact_checks),
-                unsupported=len(judge_v1.unsupported),
             )
         elif step.state == "done":
             step.state = "skipped"
@@ -539,6 +649,102 @@ def _note(summary: PipelineSummary | None, word: str) -> str:
 
 def _aware(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+# -- the drafts list ------------------------------------------------------------------
+
+
+@dataclass
+class DraftRow:
+    job: Job
+    title: str  # without the example prefix
+    is_example: bool
+    language: str  # the document language's name
+    doc_lang: str | None
+    source_line: str = ""
+    status_note: str = ""
+    has_checks: bool = False  # a draft exists: the counts below are meaningful
+    errors: int = 0
+    warnings: int = 0
+    facts_present: int = 0
+    facts_total: int = 0
+    decided: int = 0
+    blocks: int = 0
+    complete: bool = False
+
+    @property
+    def review_pct(self) -> int:
+        return round(100 * self.decided / self.blocks) if self.blocks else 0
+
+
+def display_title(job: Job) -> tuple[str, bool]:
+    """The title as the list shows it, and whether the job is an example."""
+    title = job.title or job.id
+    if title.startswith(EXAMPLE_PREFIX):
+        return title.removeprefix(EXAMPLE_PREFIX), True
+    return title, False
+
+
+def format_number(n: int, lang: str) -> str:
+    """Thousands separated the way the interface language writes them: 1,960 or 1'960."""
+    text = f"{n:,}"
+    return text.replace(",", "'") if lang == "de" else text
+
+
+def source_line(source: SourceDocument | None, t: Translator = ENGLISH) -> str:
+    """Where a document came from, for the second line of a drafts list row."""
+    if source is None:
+        return ""
+    info = source.source
+    if info.type == "html":
+        host = urlsplit(info.uri or "").hostname or info.uri or ""
+        return t("drafts.source.html", host=host.removeprefix("www."))
+    if info.type == "pdf":
+        return t("drafts.source.pdf", name=info.uri or "PDF")
+    if info.type == "image":
+        return t("drafts.source.image")
+    return t("drafts.source.text", chars=format_number(len(source.text()), t.lang))
+
+
+def drafts_view(
+    store: Store, jobs: list[Job], t: Translator = ENGLISH, now: datetime | None = None
+) -> list[DraftRow]:
+    """One row per job for the drafts list. Jobs with a draft get the review page's
+    counts (computed here, per request: D-Y); the others a status note."""
+    now = now or datetime.now(UTC)
+    rows: list[DraftRow] = []
+    for job in jobs:
+        source = store.get_artifact(job.id, "source", SourceDocument)
+        title, is_example = display_title(job)
+        doc_lang = job.config.lang or (source.lang if source else None)
+        row = DraftRow(
+            job=job,
+            title=title,
+            is_example=is_example,
+            language=t.get(f"lang.{doc_lang}", doc_lang) if doc_lang else "",
+            doc_lang=doc_lang,
+            source_line=source_line(source, t),
+        )
+        if job.status == "running":
+            stage_key = (job.stage or "").split(" ")[0]
+            elapsed = format_duration((now - _aware(job.created_at)).total_seconds())
+            stage = t.get(f"step.{stage_key}.title", job.stage or "") if stage_key else ""
+            row.status_note = t("drafts.running", stage=stage, time=elapsed) if stage else elapsed
+        elif job.status == "queued":
+            row.status_note = t("detail.waiting")
+        elif job.status == "failed" and job.error:
+            row.status_note = job.error if len(job.error) <= 60 else job.error[:59] + "…"
+        if job.status in ("needs_review", "done"):
+            view = review_view(store, job, None, t)
+            if view is not None:
+                row.has_checks = True
+                row.errors, row.warnings = view.counts["error"], view.counts["warn"]
+                row.facts_present = view.fact_counts["present"]
+                row.facts_total = view.fact_counts["total"]
+                row.decided, row.blocks = view.decided, len(view.rows)
+                row.complete = bool(view.review and view.review.completed)
+        rows.append(row)
+    return rows
 
 
 def format_duration(seconds: float) -> str:

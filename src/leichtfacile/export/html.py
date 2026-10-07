@@ -1,5 +1,7 @@
 """HTML export: a standalone page laid out for easy language (large type, one sentence
-per line, no hyphenation, left-aligned). No external assets."""
+per line, no hyphenation, left-aligned). No external assets: the font stack names
+Atkinson Hyperlegible Next first, used where it is installed (and in the reader view,
+which adds the vendored font), and falls back to Arial and Helvetica (D-V)."""
 
 from __future__ import annotations
 
@@ -10,7 +12,8 @@ from leichtfacile.rules.layout import wrap_sentence
 from leichtfacile.schemas import Draft, ReviewState
 
 _STYLE = """
-body { font: 1.25rem/1.6 Arial, Helvetica, sans-serif; max-width: 42rem; margin: 2rem auto;
+body { font: 1.25rem/1.6 "Atkinson Hyperlegible Next", Arial, Helvetica, sans-serif;
+       max-width: 42rem; margin: 2rem auto;
        padding: 0 1rem; color: #111; background: #fff; hyphens: none; text-align: left; }
 h1 { font-size: 1.8rem; } h2 { font-size: 1.45rem; margin-top: 2rem; }
 p { margin: 0 0 .9rem; } .note { border-left: 4px solid #b00; padding-left: .8rem; }

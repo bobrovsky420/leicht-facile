@@ -11,6 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.rules import RULES
 from leichtfacile.rules.messages import MESSAGES
 from leichtfacile.schemas import (
     LANGS,
@@ -102,7 +103,17 @@ def test_keys_built_from_data_exist() -> None:
         + [f"step.{k}.{part}" for k in STEP_WHO for part in ("title", "desc")]
         + [f"who.{w}" for w in set(STEP_WHO.values())]
         + list(STOP_KEYS.values())
-        + ["stop.max_rounds.one", "stop.max_rounds.other", "by.rule", "by.judge"]
+        + ["stop.max_rounds.one", "stop.max_rounds.other"]
+        # the workbench (docs/ui-design.md): states, severities, decisions, rule titles
+        + [f"progress.state.{s}" for s in ("pending", "running", "done", "skipped", "failed")]
+        + [f"sev.{s}" for s in ("error", "warn", "info")]
+        + [f"review.decision.{d}" for d in ("undecided", "approved", "edited", "rejected")]
+        + ["review.tag.code", "review.tag.judge"]
+        + ["who.apertus", "who.code_title", "who.human_title"]
+        + [f"new.level.{level}.desc" for level in ("A2", "B1")]
+        + [f"new.condition.{c}.{part}" for c in ("P2", "P1", "P0") for part in ("title", "desc")]
+        + [f"reader.{fmt}.desc" for fmt in ("md", "html", "json")]
+        + [f"rule.{rule_id.removesuffix('-DE').removesuffix('-FR')}" for rule_id in RULES]
     )
     assert not [k for k in built if k not in english]
 
@@ -154,8 +165,9 @@ def test_pages_follow_the_switcher(client) -> None:
 
     german = client.get("/")
     assert '<html lang="de">' in german.text
-    assert "Neuer Entwurf" in german.text and "Entwurf erstellen" in german.text
+    assert "Neuer Entwurf" in german.text and "Noch keine Entwürfe" in german.text
     assert '"saving": "Wird gespeichert..."' in german.text  # the texts for app.js
+    assert "Entwurf erstellen" in client.get("/new").text
 
     rejected = client.post("/jobs", data={"text": "Hallo.", "url": "https://example.org"})
     assert rejected.status_code == 400 and "Geben Sie genau eines an" in rejected.text

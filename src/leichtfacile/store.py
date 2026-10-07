@@ -124,6 +124,17 @@ class Store:
             ).fetchall()
         return [_job(r, []) for r in rows]
 
+    def count_jobs(self, status: str | None = None) -> int:
+        """How many jobs there are, or how many have this status."""
+        with self._lock:
+            if status is None:
+                row = self._conn.execute("SELECT COUNT(*) FROM jobs").fetchone()
+            else:
+                row = self._conn.execute(
+                    "SELECT COUNT(*) FROM jobs WHERE status = ?", (status,)
+                ).fetchone()
+        return int(row[0])
+
     def update_job(self, job_id: str, **fields: object) -> None:
         allowed = {"status", "stage", "title", "error", "config"}
         unknown = set(fields) - allowed
