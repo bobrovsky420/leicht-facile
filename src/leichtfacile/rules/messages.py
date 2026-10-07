@@ -68,6 +68,7 @@ MESSAGES: dict[str, str] = {
     "LEX-06": "'{found}' talks about the reader in the third person: write Sie.",
     "LEX-06.no_address": "'{found}' talks about the reader in the third person: write Sie. "
     "Easy language talks to the reader directly.",
+    "LEX-07": "Office word '{found}': simpler is {easy}.",
     # -- German: numbers, dates, times, amounts
     "NUM-01": "Number word '{found}': write the digit.",
     "NUM-01.ordinal": "Ordinal word '{found}': write the digit.",
@@ -111,7 +112,6 @@ MESSAGES: dict[str, str] = {
     "NEG-02-FR": "Negation '{found}': can it be said positively?",
     # -- French: words
     "LEX-01-FR": "'{found}' is long ({letters} letters): use a shorter word if there is one.",
-    "LEX-01-FR.administrative": "Administrative word '{found}': use the everyday word.",
     "LEX-02-FR": "Abbreviation '{found}': write the word in full.",
     "LEX-02-FR.weekdays": "Abbreviated weekdays '{found}': write du lundi au vendredi.",
     "LEX-02-FR.explained": "Abbreviation '{found}' is explained, but easy language avoids "
@@ -124,6 +124,7 @@ MESSAGES: dict[str, str] = {
     "LEX-06-FR": "'{found}' talks about the reader in the third person: write vous.",
     "LEX-06-FR.no_address": "'{found}' talks about the reader in the third person: write vous. "
     "Easy language talks to the reader directly.",
+    "LEX-07-FR": "Office word '{found}': simpler is {easy}.",
     # -- French: numbers, dates, times, amounts
     "NUM-01-FR": "Number word '{found}': write the digit.",
     "NUM-01-FR.ordinal": "Ordinal word '{found}': write the digit.",

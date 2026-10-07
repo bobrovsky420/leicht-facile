@@ -696,6 +696,62 @@ turns an IBAN into another plausible IBAN cannot feed a fact contract whose poin
 that such numbers survive exactly; image input stays future work, named in the report
 with these numbers (WP12a and WP12b cut).
 
+### Vocabulary in the pipeline: P2 on the dev pairs on CSCS (7 October 2026)
+
+Three runs of P2 on the 12 dev pairs (10 German, 2 French) with the settings of the day
+(8B writer, 70B judge, thinking for Understand and Judge, 3 repair rounds, 1 facts round
+of up to 10 facts): without the vocabulary (`USE_VOCABULARY=0`), with all of it
+including the word list in the write prompt (`VOCABULARY_PROMPT=1`), and with all of it
+but the word list, the default since. The Understand prompt did not change, so the three
+runs got the same Understand answers from the response cache; their fact sheets differ
+only by what code added. Write, judge and repair calls are fresh, one run per setting.
+One job failed on the side without the vocabulary (`sg-el-costs-de`: the 8B copied the
+prompt's JSON example twice) and was run again. The run with the list started before two
+fixes of the matcher (the lemma of a noun no longer stands for a verb: `recourir` is no
+`recourant`; `dès lors` is no `dès`); all rows were scored again with the final code
+(`eval rescore`), so one checker measures all three. Results in
+`eval/results-cscs-vocab-off`, `-on` and `-nolist`, each with its `-rescored-facts`.
+
+| Mean of the 12 pairs | without | with the list | default (no list) |
+|---|---|---|---|
+| Hard terms used without a glossary entry, per draft | 2.3 | 1.0 | 0.1 |
+| Glossary entries per draft (added by code) | 4.4 (0) | 7.4 (1.9) | 7.1 (1.6) |
+| Glossary entries whose explanation breaks a rule | 38 of 53 (72%) | 40 of 89 (45%) | 42 of 85 (49%) |
+| Fact sheet hard terms with the vocabulary's explanation | 0 of 82 | 45 of 114 | 45 of 114 |
+| Office words in the first drafts (sum) | 33 | 58 | 20 |
+| Office words in the final drafts (sum) | 46 | 37 | 42 |
+| Office words per 100 blocks, final drafts (median) | 7.1 | 4.2 | 7.0 |
+| Fact coverage | 0.74 | 0.74 | 0.76 |
+| Hard facts kept | 0.79 | 0.81 | 0.72 |
+| Invented values per draft | 0.08 | 0.25 | 0.17 |
+| Rule errors per 100 blocks | 4.1 | 5.9 | 3.5 |
+| Rule warnings per 100 blocks | 58.9 | 60.5 | 51.7 |
+| Readability (Amstad, Kandel-Moles) | 54.6 | 56.0 | 54.1 |
+| Judge: facts missing, distorted | 7.3%, 3.8% | 3.4%, 3.8% | 6.0%, 6.2% |
+| Judge: unsupported statements per 100 blocks | 3.3 | 2.7 | 5.1 |
+| Repair rounds | 2.1 | 1.9 | 1.9 |
+
+- What code does with the vocabulary works as built, in both runs: the hard terms a
+  draft uses without an explanation fall from 2.3 to 1.0 and 0.1 per draft, the
+  glossary grows from 4.4 to about 7 entries, 45 of the 114 hard terms carry the checked
+  explanation, and the share of glossary explanations that break the rules falls from
+  72 to 45 and 49 percent.
+- The word list primes the 8B. With it, the first drafts have 58 office words; without
+  it 20, and 33 without any vocabulary. Words the writer without the vocabulary never
+  used turn up from the list: `grundsätzlich`, `Wohnsitz`, `falls`, `zugestellt`,
+  `elterliche Sorge`. The polish round with LEX-07 removes most of them again, so the
+  final drafts end in the same range (37, 42 and 46 office words). The list is therefore
+  off by default (`VOCABULARY_PROMPT=0`): about the same final drafts without the
+  detour. Not tried: a list that names only the everyday words.
+- Facts, invented values, the judge's findings and the rule errors move in both
+  directions, by single pairs: in the default run the 8B wrote a first draft of 7 blocks
+  for `sg-el-costs-de` (20 facts missing; the repair and facts rounds refilled it with
+  near-copies of the source, hence 74 office words per 100 blocks) and one of 29 blocks
+  for `be-tax-extension-fr` (14 facts missing, never recovered); in the run with the
+  list a repair answer for `sg-el-costs-de` was broken JSON. One run per setting cannot
+  separate effects of this size from that variance; a second run of each, or the 23
+  eval pairs, would.
+
 ## Change log
 
 | Version | Date | Change |
@@ -714,3 +770,4 @@ with these numbers (WP12a and WP12b cut).
 | 7 | 2026-10-07 | Judge prompt (German and French): one more rule, SEM-08, an obligation, a possibility or a condition that changed (`müssen` to `können`, a `wenn` written as `vielleicht`); the judge filter accepts it (decision D-P, PLAN.md WP15 piece 4). All four standard templates in both languages get one line, `{% if mode is defined and mode == "decision" %}{% include "<lang>/decision.md" %}{% endif %}`, which renders to nothing for a standard job (same prompt text, same cache key; the template hash changes once) and pulls in the stage's section of the new partial `decision.md` for a job in the decision mode (docs/use-case-decisions.md; first draft, free to change after the freeze). |
 | 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
 | 7 | 2026-10-08 | No template change. Code, from the second and third dev runs: the code completion takes the values from the document text with segment offsets and stores a percentage as `10%`; a value counts as covered only when a reader who searches the fact sheet for it finds it; the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; an unusable repair answer no longer cancels the facts round; `eval rescore` scores stored jobs under either rule without a model call. |
+| 8 | 2026-10-07 | Write prompt (German and French): after the fact sheet, the office words of the document part with their everyday word, from the vocabulary (`Diese Wörter aus dem Dokument sind schwer. Schreiben Sie stattdessen das einfache Wort:`, `Ces mots du document sont difficiles. Écrivez plutôt le mot simple :`, at most 15). The block renders to nothing when the part has no office word or with `USE_VOCABULARY=0`: the prompt is then the same text as before. The generated style guide gets a LEX-07 line in German (`Nehmen Sie Alltags·wörter statt Amts·wörtern ...`), and in French the administrative words move from the LEX-01-FR line to a LEX-07-FR line. Code: the fact sheet's hard terms get the vocabulary's checked explanations and up to 6 terms of the source; code adds missing glossary entries from the vocabulary after the write stage and every repair round; LEX-07 and LEX-07-FR findings go to the polish round (docs/rules.md "Vocabulary"). Dev run on CSCS with and without: "Vocabulary in the pipeline" above; after it the word list is off by default (`VOCABULARY_PROMPT=0`), because it primed the 8B to write the listed office words. |

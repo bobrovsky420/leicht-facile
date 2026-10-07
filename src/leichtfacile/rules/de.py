@@ -40,6 +40,7 @@ from leichtfacile.rules.values import (
     format_thousands,
     mask,
 )
+from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 
 DE = "de"
 SENTENCE_KINDS = ("sentence", "list_item")
@@ -817,7 +818,8 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in ABBREVIATION_RE.finditer(text):
         if m.group(0) == "St." and text[m.end() :].lstrip().startswith("Gallen"):
             continue
-        yield hit("LEX-02", found=m.group(0), evidence=m.group(0))
+        found = m.group(0)
+        yield hit("LEX-02", found=found, evidence=found, suggestion=easy_for(DE, found))
     for m in WEEKDAY_RANGE_RE.finditer(text):
         yield hit("LEX-02.weekdays", found=m.group(0), evidence=m.group(0))
     for m in ACRONYM_RE.finditer(text):
@@ -834,7 +836,9 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         if acronym in ctx.introduced or ctx.in_glossary(acronym):
             yield hit("LEX-02.explained", found=acronym, evidence=acronym, severity="info")
             continue
-        yield hit("LEX-02.acronym", found=acronym, evidence=acronym)
+        yield hit(
+            "LEX-02.acronym", found=acronym, evidence=acronym, suggestion=easy_for(DE, acronym)
+        )
 
 
 @rule(
@@ -847,9 +851,13 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "Ist ein schwieriges Wort nötig, erklären Sie es im Wörterbuch.",
 )
 def lex_03(sent: Span, ctx: Context) -> Iterator[Hit]:
+    office = covered_offsets(
+        office_words(find_terms(DE, sent), exclude=ROLE_NOUN_RE), sent.start_char
+    )
     for t in sent:
         if (
-            t.pos_ not in ("NOUN", "VERB", "ADJ", "ADV")
+            t.idx in office  # LEX-07 names the everyday word
+            or t.pos_ not in ("NOUN", "VERB", "ADJ", "ADV")
             or not t.text.replace(MEDIOPUNKT, "").replace("-", "").isalpha()
             or len(t.text) < 4
             or ctx.in_glossary(t.text)
@@ -936,6 +944,22 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             found=m.group(0),
             evidence=m.group(0),
         )
+
+
+@rule(
+    "LEX-07",
+    lang=DE,
+    title="Everyday words instead of office words",
+    severity=sev("warn", "info"),
+    scope="sentence",
+    guide="Nehmen Sie Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
+    "nach statt gemäss, wenn nötig statt gegebenenfalls.",
+)
+def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
+    # Words of rules/data/vocabulary_de.toml; the role nouns are LEX-06's (write Sie).
+    for m in office_words(find_terms(DE, sent), exclude=ROLE_NOUN_RE):
+        easy = m.entry.easy or ""
+        yield hit("LEX-07", found=m.text, easy=easy, evidence=m.text, suggestion=easy)
 
 
 # -- numbers, dates, times, amounts -----------------------------------------------

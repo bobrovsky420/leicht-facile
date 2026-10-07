@@ -8,6 +8,9 @@
 # [explain.<group>]  a term that has to stay, because the reader meets it again on
 #                    forms, letters and the phone = a plain explanation for the
 #                    glossary, in short sentences that pass the checker.
+# [<kind>.context]   words with a second, everyday sense: the writer gets them as a
+#                    hint, code never flags or adds them on its own.
+# [not_in]           phrases in which a term does not count (zur Verfügung).
 #
 # A trailing "# TERMDAT <id>" names the entry of the federal terminology database
 # (www.termdat.bk.admin.ch/entry/<id>) that confirms the official term.
@@ -65,13 +68,19 @@
 "susceptible de" = "peut"
 "ci-dessus" = "plus haut"
 "ci-dessous" = "plus bas"
-"dès" = "à partir de"
 "en l'espèce" = "dans votre cas"
 "en l'occurrence" = "dans ce cas"
 "il convient de" = "il faut"
 "il y a lieu de" = "il faut"
 "au prorata" = "en proportion"
 "veuillez agréer" = "meilleures salutations"
+"susdit" = "nommé plus haut"
+"ledit" = "ce"
+"ladite" = "cette"
+"lesdits" = "ces"
+"subséquemment" = "ensuite"
+"par la présente" = "avec cette lettre"
+"aux termes de" = "selon"
 
 [replace.adverbs]
 "le cas échéant" = "si besoin"
@@ -95,22 +104,18 @@
 "à titre gratuit" = "gratuit"
 "onéreux" = "payant"
 "afférent" = "qui concerne"
-"compétent" = "responsable"
 "exigible" = "à payer maintenant"
 "pécuniaire" = "en argent"
 "domicilié" = "qui habite"
 "mineur" = "de moins de 18 ans"
-"majeur" = "de 18 ans ou plus"
 "défunt" = "mort"
 "célibataire" = "pas marié"
 "exonéré" = "qui ne doit pas payer"
 "assujetti" = "qui doit payer"
 "indûment" = "sans y avoir droit"
 "à tort" = "par erreur"
-"motivé" = "avec les raisons"
 "échu" = "à payer depuis"
 "rétroactif" = "aussi pour le temps passé"
-"réputé" = "considéré comme"
 "imparti" = "donné"
 
 [replace.verbs]
@@ -122,17 +127,11 @@
 "solliciter" = "demander"
 "requérir" = "demander"
 "transmettre" = "envoyer"
-"adresser" = "envoyer"
 "faire parvenir" = "envoyer"
-"déposer" = "envoyer"
-"retourner" = "renvoyer"
-"parvenir" = "arriver"
 "octroyer" = "donner"
 "accorder" = "donner"
 "allouer" = "donner"
 "fournir" = "donner"
-"produire" = "donner"
-"percevoir" = "recevoir"
 "bénéficier de" = "recevoir"
 "être tenu de" = "devoir"
 "incomber" = "devoir"
@@ -147,7 +146,6 @@
 "statuer" = "décider"
 "se prononcer" = "donner son avis"
 "rejeter" = "refuser"
-"admettre" = "accepter"
 "résilier" = "mettre fin à"
 "révoquer" = "annuler"
 "abroger" = "supprimer"
@@ -155,15 +153,9 @@
 "proroger" = "prolonger"
 "recouvrer" = "récupérer"
 "restituer" = "rendre"
-"présenter" = "montrer"
-"joindre" = "mettre avec la lettre"
-"compléter" = "remplir"
-"prendre en charge" = "payer"
-"assumer" = "payer"
 "résider" = "habiter"
 "séjourner" = "vivre"
 "entrer en vigueur" = "commencer à valoir"
-"motiver" = "expliquer pourquoi"
 "imputer" = "déduire"
 "excéder" = "dépasser"
 "faire valoir" = "demander"
@@ -181,7 +173,6 @@
 "conjoint" = "mari ou femme"
 "concubin" = "personne avec qui vous vivez en couple"
 "descendant" = "enfant ou petit-enfant"
-"tiers" = "autre personne"
 "décès" = "mort"
 "créancier" = "personne à qui vous devez de l'argent"
 "débiteur" = "personne qui doit de l'argent"
@@ -189,14 +180,12 @@
 "rémunération" = "salaire"
 "échéance" = "date limite"
 "arriéré" = "montant en retard"
-"solde" = "reste"
 "acompte" = "paiement partiel"
 "mensualité" = "paiement par mois"
 "échelonnement" = "paiement en plusieurs fois"
 "restitution" = "remboursement"
 "justificatif" = "preuve"
 "pièce justificative" = "preuve"
-"pièce" = "document"
 "modalité" = "manière"
 "législation" = "lois"
 "litige" = "désaccord"
@@ -208,11 +197,9 @@
 "bailleur" = "propriétaire"
 "prise de position" = "avis"
 "courrier" = "lettre"
-"correspondance" = "lettres"
 "renseignement" = "information"
 "autorisation" = "permission"
 "exonération" = "ne pas devoir payer"
-"site internet" = "page internet"
 "assurance obligatoire des soins" = "assurance de base"  # TERMDAT 37586
 "autorité de protection de l'enfant et de l'adulte" = "APEA"  # TERMDAT 379564
 "recourant" = "personne qui fait recours"  # TERMDAT 414084
@@ -225,7 +212,6 @@
 "barème" = "tableau des montants"
 "trop-perçu" = "argent reçu en trop"
 "plafond" = "montant maximum"
-"intéressé" = "personne concernée"
 "considérants" = "raisons de la décision"
 
 [replace.abbreviations]
@@ -246,13 +232,42 @@
 "LPC" = "loi sur les prestations complémentaires"
 "LHand" = "loi sur l'égalité pour les personnes handicapées"
 
+
+[replace.context]
+# Words whose hard sense depends on the letter (Schreiben: a letter or to write).
+# The writer gets them as a hint; code never flags them.
+"présenter" = "montrer"
+"produire" = "donner"
+"retourner" = "renvoyer"
+"déposer" = "envoyer"
+"adresser" = "envoyer"
+"admettre" = "accepter"
+"compléter" = "remplir"
+"joindre" = "mettre avec la lettre"
+"percevoir" = "recevoir"
+"pièce" = "document"
+"solde" = "reste"
+"assumer" = "payer"
+"prendre en charge" = "payer"
+"intéressé" = "personne concernée"
+"dès" = "à partir de"
+"motivé" = "avec les raisons"
+"motiver" = "expliquer pourquoi"
+"réputé" = "considéré comme"
+"tiers" = "autre personne"
+"correspondance" = "lettres"
+"parvenir" = "arriver"
+"compétent" = "responsable"
+"majeur" = "de 18 ans ou plus"
+"site internet" = "page internet"
+
 # -- explain -----------------------------------------------------------------------
 
 [explain.law]
 "décision" = "Une décision est la réponse d'un office ou d'un tribunal. Elle vaut pour vous. Elle arrive par lettre."
 "notification" = "La notification est le jour de la remise de la décision. Le délai commence ce jour-là."
 "opposition" = "Vous n'êtes pas d'accord avec une décision ? Vous écrivez au même office. L'office examine sa décision encore une fois."
-"recours" = "Vous n'êtes pas d'accord avec une décision ? Vous écrivez à une autre autorité, par exemple un tribunal. Elle examine la décision."
+"recours" = "Vous n'êtes pas d'accord avec une décision ? Vous écrivez à un tribunal ou à un autre office. Il examine la décision."
 "voies de droit" = "Ce texte est à la fin d'une décision. Il explique vos moyens de défense. Il donne aussi la date limite et l'adresse."
 "entrée en force" = "Personne ne peut plus se défendre contre la décision. La décision vaut maintenant pour de bon."
 "délai" = "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai."
@@ -263,11 +278,10 @@
 "annexe" = "Une annexe est une feuille dans la même lettre. Par exemple un formulaire ou une copie."
 "procuration" = "Avec une procuration, vous permettez à une autre personne de faire quelque chose pour vous."
 "loi" = "Une loi est une règle de l'État. Tout le monde doit la respecter."
-"ordonnance" = "Ici, une ordonnance est une liste de règles. Le gouvernement la fait. Elle explique une loi plus en détail."
 "tribunal" = "Un tribunal décide en cas de conflit. Il contrôle aussi les décisions des offices."
 "secret professionnel" = "Les professionnels ne disent rien sur vous à d'autres personnes. C'est le secret professionnel."
 "protection des données" = "La loi protège vos données. Seules certaines personnes ont le droit de les voir."
-"APEA" = "L'APEA est une autorité. Elle protège les enfants et les adultes en difficulté. Elle peut par exemple décider une curatelle."
+"APEA" = "L'APEA est un office. Cet office protège les enfants et les adultes en difficulté. Il peut par exemple décider une curatelle."
 "curatelle" = "Une personne vous aide pour des choses importantes. Par exemple pour l'argent ou les lettres des offices. L'APEA choisit cette personne."
 "curateur" = "Un curateur ou une curatrice vous aide pour des choses importantes. L'APEA choisit cette personne."
 "assistance judiciaire" = "Vous avez peu d'argent ? Alors vous ne devez peut-être pas payer la procédure. Vous pouvez aussi recevoir un avocat ou une avocate. Votre cas doit avoir une chance de succès."  # TERMDAT 79024
@@ -288,32 +302,27 @@
 "effet suspensif" = "Vous vous défendez contre une décision. Jusqu'à la nouvelle décision, l'ancienne décision ne vaut pas encore. Parfois, l'office enlève l'effet suspensif. Alors la décision vaut tout de suite."  # PA art. 55
 "avance de frais" = "Vous payez à l'avance de l'argent pour la procédure. Sans ce paiement, le tribunal n'examine peut-être pas votre recours."  # PA art. 63
 "reconsidération" = "L'office examine encore une fois sa propre décision. Par exemple en cas d'erreur dans la décision."  # LPGA art. 53
-"préavis" = "Ici, le préavis vient de l'AI. Avant la décision, l'AI vous dit : nous voulons décider comme cela. Vous pouvez donner votre avis pendant 30 jours."  # LAI art. 57a
 "demande de restitution" = "Vous avez reçu trop d'argent. L'office réclame cet argent."  # LPGA art. 25
 "prescription" = "Après un certain temps, personne ne peut plus exiger une dette. C'est la prescription."
 "instance" = "Une instance est un office ou un tribunal. Il décide dans votre affaire. La première instance décide en premier."
 "exécutoire" = "Exécutoire veut dire : l'office peut maintenant appliquer la décision. Par exemple avec une poursuite."
-"irrecevable" = "L'autorité n'examine pas votre demande. Par exemple, le délai est passé."
-"conclusions" = "Dans un recours, les conclusions sont vos demandes."
+"irrecevable" = "L'office n'examine pas votre demande. Par exemple, le délai est passé."
 "tutelle" = "Un enfant n'a pas de parents avec l'autorité parentale. Alors l'APEA choisit un tuteur ou une tutrice. Cette personne s'occupe de l'enfant."
 "amende" = "Une amende est une punition en argent."
 "autorisation de séjour" = "C'est le nom officiel du permis B. Vous pouvez habiter en Suisse pendant un certain temps."
 "autorisation d'établissement" = "C'est le nom officiel du permis C. Vous pouvez habiter en Suisse sans limite de temps."
 
 [explain.debt]
-"rappel" = "Un rappel est une lettre. Vous n'avez pas encore payé une facture. Payez-la maintenant."
 "sommation" = "Une sommation est une lettre sévère. Vous devez payer maintenant. Sinon, d'autres mesures suivent."
 "créance" = "Une créance est une somme d'argent. Une personne ou une entreprise vous demande cet argent."
 "poursuite" = "Vous avez des dettes. Avec une poursuite, quelqu'un récupère cet argent. L'office des poursuites aide pour cela."
 "office des poursuites" = "L'office des poursuites récupère l'argent des dettes. Ensuite, il donne cet argent à la bonne personne."
 "commandement de payer" = "Un commandement de payer est une lettre de l'office des poursuites. Vous devez payer une dette."
 "opposition à la poursuite" = "Vous n'êtes pas d'accord avec la dette ? Dites-le à l'office des poursuites. Vous avez 10 jours."
-"saisie" = "L'office des poursuites prend une partie de votre salaire ou de vos biens. Avec cet argent, il paie vos dettes."
 "acte de défaut de biens" = "Un papier de l'office des poursuites. Vous devez encore ces dettes."
 "minimum vital" = "Le minimum vital est la somme minimale pour la vie de tous les jours. L'office des poursuites ne peut pas prendre cet argent."
 "recouvrement" = "Vous devez de l'argent. Avec le recouvrement, l'office récupère cet argent. Parfois, une entreprise le fait."
 "conseil en désendettement" = "Vous avez des dettes ? Des professionnels vous aident. Ils font un plan avec vous."
-"compensation" = "L'office enlève vos dettes de l'argent pour vous. Vous recevez seulement le reste."  # TERMDAT 97006
 "intérêt moratoire" = "Vous payez une facture en retard. Alors vous payez plus. Cet argent en plus s'appelle intérêt moratoire."  # TERMDAT 43049
 "extrait du registre des poursuites" = "Un papier de l'office des poursuites. Il montre vos poursuites. Les propriétaires le demandent souvent."  # TERMDAT 384196
 "saisie de salaire" = "L'office des poursuites prend chaque mois une partie de votre salaire. Avec cet argent, il paie vos dettes."  # TERMDAT 385114
@@ -393,13 +402,11 @@
 "certificat de salaire" = "Un papier de votre employeur. Il montre votre salaire d'une année. Vous en avez besoin pour la déclaration d'impôt."
 "délai de congé" = "Le délai de congé est le temps avant la fin du contrat. Il commence avec la lettre de fin de contrat."
 "période d'essai" = "Les premières semaines dans un nouvel emploi. Pendant ce temps, l'employeur et vous pouvez mettre fin au contrat plus vite."
-"charges" = "Les charges sont les frais pour le logement en plus du loyer. Par exemple le chauffage et l'eau."
 "garantie de loyer" = "De l'argent comme sécurité pour le propriétaire. Il est sur un compte spécial à la banque. Vous le récupérez après votre départ."
 "régie" = "La régie s'occupe d'un immeuble pour le propriétaire. Elle s'occupe aussi des locataires."
 "autorité parentale" = "Les parents avec l'autorité parentale décident des choses importantes pour l'enfant. Par exemple pour l'école et la santé."
-"garde" = "L'enfant habite chez vous. Vous vous occupez de l'enfant chaque jour."
 "contribution d'entretien" = "De l'argent pour la vie d'un enfant. Ou pour un ancien mari ou une ancienne femme. Une personne le paie régulièrement à l'autre."
-"état civil" = "L'état civil dit par exemple : vous êtes marié. Ou : vous êtes célibataire."
+"état civil" = "L'état civil dit par exemple : vous êtes marié. Ou : vous n'êtes pas marié."
 "veuf" = "Veuf ou veuve veut dire : votre mari ou votre femme est mort."
 "bourse d'études" = "De l'argent du canton pour une formation. Vous ne devez pas le rembourser."  # TERMDAT 56159
 "contribution à la formation" = "De l'argent du canton pour une formation. Ça peut être une bourse. Ou un prêt. Vous devez rembourser un prêt plus tard."  # TERMDAT 385216
@@ -420,7 +427,6 @@
 "revenu imposable" = "Votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu."
 "revenu déterminant" = "Ce revenu compte pour une décision. L'office le calcule avec ses propres règles."
 "fortune" = "La fortune est l'ensemble de vos biens. Par exemple l'argent sur le compte ou une maison."
-"réclamation" = "Pour les impôts, une réclamation est une opposition. Vous n'êtes pas d'accord avec la taxation ? Alors vous écrivez à l'office des impôts."  # TERMDAT 97023
 "décision sur réclamation" = "L'office des impôts a examiné votre réclamation. La décision sur réclamation est sa réponse."  # TERMDAT 97023
 "remise de l'impôt" = "Vous ne pouvez pas payer vos impôts à cause d'une situation difficile. Alors l'office peut annuler une partie ou tous vos impôts."  # TERMDAT 97116
 "facilités de paiement" = "Vous pouvez payer plus tard ou en plusieurs fois. L'office doit être d'accord."  # lois fiscales cantonales
@@ -451,5 +457,24 @@
 "Grand Conseil" = "Le Grand Conseil est le parlement du canton. Il fait les lois du canton."
 "Conseil d'État" = "Le Conseil d'État est le gouvernement du canton. Il a 5 ou 7 membres."
 "assemblée communale" = "Les électeurs et électrices de la commune se réunissent. Ensemble, ils décident des affaires de la commune."
-"consultation" = "Avant une nouvelle loi, le gouvernement demande l'avis de beaucoup de groupes. Ça s'appelle une consultation."
 "Constitution" = "La Constitution est la loi la plus importante du pays ou du canton. Elle contient les règles de base et vos droits."
+
+[explain.context]
+# Terms with a second, everyday sense (Leistung in a school report, Wartezeit at
+# the doctor's). Kept for the writer and the termbase; code never adds them.
+"consultation" = "Avant une nouvelle loi, le gouvernement demande l'avis de beaucoup de groupes. Ça s'appelle une consultation."
+"garde" = "L'enfant habite chez vous. Vous vous occupez de l'enfant chaque jour."
+"charges" = "Les charges sont les frais pour le logement en plus du loyer. Par exemple le chauffage et l'eau."
+"compensation" = "L'office enlève vos dettes de l'argent pour vous. Vous recevez seulement le reste."  # TERMDAT 97006
+"préavis" = "Ici, le préavis vient de l'AI. Avant la décision, l'AI vous dit : nous voulons décider comme cela. Vous pouvez donner votre avis pendant 30 jours."  # LAI art. 57a
+"rappel" = "Un rappel est une lettre. Vous n'avez pas encore payé une facture. Payez-la maintenant."
+"réclamation" = "Pour les impôts, une réclamation est une opposition. Vous n'êtes pas d'accord avec la taxation ? Alors vous écrivez à l'office des impôts."  # TERMDAT 97023
+"saisie" = "L'office des poursuites prend une partie de votre salaire ou de vos biens. Avec cet argent, il paie vos dettes."
+"conclusions" = "Dans un recours, les conclusions sont vos demandes."
+"ordonnance" = "Ici, une ordonnance est une liste de règles. Le gouvernement la fait. Elle explique une loi plus en détail."
+
+# -- not in ------------------------------------------------------------------------
+
+# Phrases in which a term does not mean what the vocabulary explains.
+[not_in]
+"dès" = ["dès lors", "dès que"]

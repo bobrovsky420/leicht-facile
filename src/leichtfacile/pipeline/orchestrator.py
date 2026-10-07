@@ -20,7 +20,9 @@ from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.glossary import fill_glossary
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
+from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     Draft,
@@ -110,11 +112,13 @@ def build_request(
     include_warnings: bool = True,
     facts_only: bool = False,
     limit: int = MAX_MISSING_PER_ROUND,
+    vocabulary: bool = True,
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
     model asked to fix everything at once tends to fix nothing (docs/prompts.md). A
-    facts-only round asks for the missing facts alone and flags no block."""
+    facts-only round asks for the missing facts alone and flags no block. Without
+    `vocabulary` the office words of LEX-07 are left to the reviewer."""
     severities = ("error", "warn") if include_warnings else ("error",)
     lang = draft.lang
     blocks = draft.by_id()
@@ -122,6 +126,8 @@ def build_request(
     problems: dict[str, list[str]] = defaultdict(list)
     missing: set[str] = set()
     for f in rules.findings:
+        if not vocabulary and f.rule_id in OFFICE_RULES:
+            continue
         if f.block_id in blocks and f.severity in severities and repairable(f):
             problems[f.block_id].append(render.finding_line(f, lang))
         elif f.rule_id == "FACT-01" and f.fact_id:
@@ -242,6 +248,8 @@ class Orchestrator:
             )
             self._record(job.id, results)
             factsheet = stages.complete_factsheet(factsheet, source)
+            if self.settings.use_vocabulary:
+                factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)
         self._maybe_stop("understand")
 
@@ -256,9 +264,12 @@ class Orchestrator:
                 model=cfg.writer_model,
                 mode=cfg.mode,
                 addressee=cfg.addressee,
+                vocabulary=self.settings.use_vocabulary and self.settings.vocabulary_prompt,
             )
             self._record(job.id, results)
             draft = stages.link_facts(draft, factsheet)
+            if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
+                draft, _ = fill_glossary(draft)
             draft, _ = apply_mediopunkt(draft)  # P1 and P2 only; a baseline measures the prompt
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop("write")
@@ -281,7 +292,14 @@ class Orchestrator:
                 reason = "only warnings left"
                 rounds -= 1
                 break
-            request = build_request(draft, rules, judge, factsheet, include_warnings=blocking == 0)
+            request = build_request(
+                draft,
+                rules,
+                judge,
+                factsheet,
+                include_warnings=blocking == 0,
+                vocabulary=self.settings.use_vocabulary,
+            )
             if not request:
                 reason = "no problems left"
                 rounds -= 1
@@ -396,6 +414,8 @@ class Orchestrator:
             return None
         self._record(job.id, results)
         new_draft = stages.link_facts(new_draft, factsheet)
+        if self.settings.use_vocabulary:  # a repair can bring a new hard term
+            new_draft, _ = fill_glossary(new_draft)
         new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
         self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
         self.store.put_artifact(job.id, "repair", record, new_draft.version)
@@ -492,6 +512,9 @@ class Orchestrator:
             prompt_versions=prompt_versions(source.lang),
             blocking_findings=blocking,
             notes=list(getattr(self, "_notes", [])),
+            vocabulary=vocabulary_version(source.lang)
+            if self.settings.use_vocabulary and job.config.condition not in BASELINE_CONDITIONS
+            else None,
         )
         self.store.put_artifact(job.id, "summary", summary)
 

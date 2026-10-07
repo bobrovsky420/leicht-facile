@@ -236,7 +236,7 @@
         {% if v.draft.glossary %}
         <div class="more-section">
           <h3>{{ t('review.glossary') }} <span class="n">{{ v.draft.glossary | length }}</span></h3>
-          <dl class="gloss" lang="{{ doc_lang }}">{% for g in v.draft.glossary %}<div><dt>{{ g.term }}</dt><dd>{{ g.explanation }}</dd></div>{% endfor %}</dl>
+          <dl class="gloss" lang="{{ doc_lang }}">{% for g in v.draft.glossary %}<div><dt>{{ g.term }}{% if g.origin == 'vocabulary' %} <span class="muted" lang="{{ ui_lang }}" title="{{ t('review.glossary_vocabulary_title') }}">{{ t('review.glossary_vocabulary') }}</span>{% endif %}</dt><dd>{{ g.explanation }}</dd></div>{% endfor %}</dl>
         </div>
         {% endif %}
         {% if v.rules %}

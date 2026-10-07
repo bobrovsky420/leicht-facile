@@ -7,6 +7,9 @@
 # [explain.<group>]  a term that has to stay, because the reader meets it again on
 #                    forms, letters and the phone = a plain explanation for the
 #                    glossary, in short sentences that pass the checker.
+# [<kind>.context]   words with a second, everyday sense: the writer gets them as a
+#                    hint, code never flags or adds them on its own.
+# [not_in]           phrases in which a term does not count (zur Verfügung).
 #
 # A trailing "# TERMDAT <id>" names the entry of the federal terminology database
 # (www.termdat.bk.admin.ch/entry/<id>) that confirms the official term.
@@ -34,7 +37,6 @@
 "abzüglich" = "minus"
 "nebst" = "und"
 "samt" = "mit"
-"inklusive" = "mit"
 "exklusive" = "ohne"
 "ungeachtet" = "trotz"
 "mangels" = "ohne"
@@ -97,7 +99,6 @@
 "gesamthaft" = "zusammen"
 "grundsätzlich" = "in der Regel"
 "zwingend" = "unbedingt"
-"obligatorisch" = "Pflicht"
 "fakultativ" = "freiwillig"
 "unentgeltlich" = "gratis"
 "kostenpflichtig" = "kostet Geld"
@@ -141,9 +142,6 @@
 "rückerstatten" = "zurückzahlen"
 "gewähren" = "geben"
 "erteilen" = "geben"
-"ausrichten" = "auszahlen"
-"beziehen" = "bekommen"
-"erhalten" = "bekommen"
 "beanspruchen" = "nutzen"
 "in Anspruch nehmen" = "nutzen"
 "geltend machen" = "verlangen"
@@ -163,10 +161,8 @@
 "gutheissen" = "recht geben"
 "anfechten" = "sich wehren gegen"
 "widerrufen" = "zurücknehmen"
-"aufheben" = "ungültig machen"
 "sistieren" = "unterbrechen"
 "obliegen" = "müssen"
-"unterliegen" = "gelten für"
 "ermitteln" = "herausfinden"
 "festsetzen" = "bestimmen"
 "bemessen" = "berechnen"
@@ -187,9 +183,7 @@
 "veräussern" = "verkaufen"
 
 [replace.nouns]
-"Behörde" = "Amt"
 "Amtsstelle" = "Amt"
-"Dienststelle" = "Amt"
 "Wohnsitz" = "Wohnort"
 "Domizil" = "Adresse"
 "Ehegatte" = "Ehemann oder Ehefrau"
@@ -217,17 +211,13 @@
 "Teilzahlung" = "Zahlung in Teilen"
 "Ermässigung" = "tieferer Preis"
 "Vergünstigung" = "tieferer Preis"
-"Unterlagen" = "Papiere"
 "Beleg" = "Papier als Beweis"
 "Nachweis" = "Beweis"
-"Merkblatt" = "Infoblatt"
 "Wegleitung" = "Anleitung"
-"Bestimmung" = "Regel"
 "Vorschrift" = "Regel"
 "Sachverhalt" = "was passiert ist"
 "Angelegenheit" = "Sache"
 "Anliegen" = "Frage oder Wunsch"
-"Schreiben" = "Brief"
 "Zuschrift" = "Brief"
 "Eingabe" = "Brief an ein Amt"
 "Korrespondenz" = "Briefe"
@@ -248,7 +238,6 @@
 "Inkrafttreten" = "Beginn"
 "Mietzins" = "Miete"
 "Liegenschaft" = "Haus oder Grundstück"
-"Beeinträchtigung" = "Behinderung"
 "Webauftritt" = "Internetseite"
 "obligatorische Krankenpflegeversicherung" = "Grundversicherung"  # TERMDAT 37586
 "elterliche Sorge" = "Sorgerecht"  # TERMDAT 216979
@@ -264,7 +253,6 @@
 "Attest" = "Arztzeugnis"
 "Wegzug" = "Umzug aus der Gemeinde"
 "Nachfrist" = "letzte Frist"
-"Auflage" = "Pflicht"
 "Sanktion" = "Strafe"
 
 [replace.abbreviations]
@@ -281,7 +269,6 @@
 "vgl." = "siehe"
 "Nr." = "Nummer"
 "Tel." = "Telefon"
-"Fr." = "Franken"
 "Art." = "Artikel"
 "Abs." = "Absatz"
 "lit." = "Buchstabe"
@@ -291,12 +278,29 @@
 "ELG" = "Gesetz über die Ergänzungsleistungen"
 "BehiG" = "Gesetz für die Gleichstellung von Menschen mit Behinderung"
 
+
+[replace.context]
+# Words whose hard sense depends on the letter (Schreiben: a letter or to write).
+# The writer gets them as a hint; code never flags them.
+"Schreiben" = "Brief"
+"erhalten" = "bekommen"
+"beziehen" = "bekommen"
+"Bestimmung" = "Regel"
+"aufheben" = "ungültig machen"
+"ausrichten" = "auszahlen"
+"unterliegen" = "gelten für"
+"Auflage" = "Pflicht"
+"Unterlagen" = "Papiere"
+"obligatorisch" = "Pflicht"
+"Dienststelle" = "Amt"
+"Beeinträchtigung" = "Behinderung"
+"inklusive" = "mit"
+
 # -- explain -----------------------------------------------------------------------
 
 [explain.law]
 "Verfügung" = "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie."
 "Entscheid" = "Ein Entscheid ist die Antwort von einem Amt oder Gericht. Er sagt: Das gilt in Ihrer Sache."
-"Eröffnung" = "Eröffnung heisst hier: Das Amt gibt Ihnen den Entscheid. Ab diesem Tag läuft die Frist."
 "Einsprache" = "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal."
 "Beschwerde" = "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie an eine höhere Stelle, zum Beispiel an ein Gericht. Diese Stelle prüft den Entscheid."
 "Rekurs" = "Ein Rekurs ist eine Beschwerde gegen einen Entscheid. Manche Kantone sagen Rekurs. Andere Kantone sagen Beschwerde."
@@ -311,7 +315,6 @@
 "Beilage" = "Eine Beilage ist ein Blatt im gleichen Brief. Zum Beispiel ein Formular oder eine Kopie."
 "Vollmacht" = "Mit einer Vollmacht erlauben Sie einer anderen Person: Sie darf etwas für Sie erledigen."
 "Gesetz" = "Ein Gesetz ist eine Regel vom Staat. Alle müssen sich daran halten."
-"Verordnung" = "Eine Verordnung ist eine Sammlung von Regeln. Die Regierung macht sie. Sie erklärt ein Gesetz genauer."
 "Gericht" = "Ein Gericht entscheidet bei einem Streit. Es prüft auch Entscheide von Ämtern."
 "Datenschutz" = "Datenschutz heisst: Ihre Daten sind geschützt. Nur bestimmte Personen dürfen sie sehen."
 "Schweigepflicht" = "Fachleute dürfen anderen nichts über Sie erzählen. Das ist die Schweigepflicht."
@@ -346,10 +349,11 @@
 "Vormundschaft" = "Ein Kind hat keine Eltern mit Sorgerecht. Dann bestimmt die KESB einen Vormund oder eine Vormundin. Diese Person sorgt für das Kind."
 "Busse" = "Eine Busse ist eine Strafe in Geld."
 "Strafregisterauszug" = "Ein Papier vom Bund. Es zeigt Ihre Strafen. Sie brauchen es zum Beispiel für die Einbürgerung."
+"Behörde" = "Eine Behörde ist ein Amt. Zum Beispiel die Gemeinde oder das Steueramt."
+"Merkblatt" = "Ein Merkblatt ist ein Blatt mit wichtigen Informationen zu einem Thema."
 
 [explain.debt]
 "Mahnung" = "Eine Mahnung ist ein Brief. Darin steht: Sie haben eine Rechnung noch nicht bezahlt. Bitte bezahlen Sie jetzt."
-"Forderung" = "Eine Forderung ist Geld. Jemand verlangt dieses Geld von Ihnen."
 "Betreibung" = "Sie haben Schulden. Mit einer Betreibung holt jemand dieses Geld. Das Betreibungsamt hilft dabei."
 "Betreibungsamt" = "Das Betreibungsamt ist ein Amt. Es holt Geld bei Menschen mit Schulden. Danach gibt es das Geld weiter."
 "Zahlungsbefehl" = "Ein Zahlungsbefehl ist ein Brief vom Betreibungsamt. Darin steht: Sie sollen eine Schuld bezahlen."
@@ -366,7 +370,6 @@
 "Konkurs" = "Eine Firma oder eine Person kann ihre Schulden nicht mehr bezahlen. Dann verkauft das Amt ihr Vermögen."  # TERMDAT 86789
 "Stundung" = "Sie dürfen eine Schuld später bezahlen. Das Amt gibt Ihnen dafür mehr Zeit."
 "Rechtsöffnung" = "Sie haben Rechtsvorschlag gemacht. Mit der Rechtsöffnung lässt ein Gericht die Betreibung trotzdem weiterlaufen."
-"solidarisch" = "Solidarisch heisst hier: Jede Person muss die ganze Schuld bezahlen. Zum Beispiel ein Ehepaar bei den Steuern."
 "IBAN" = "Die IBAN ist die Nummer von Ihrem Bankkonto. Ihre Bank gibt Ihnen diese Nummer."
 
 [explain.insurance]
@@ -378,7 +381,6 @@
 "Franchise" = "Die Franchise ist ein fester Betrag pro Jahr. Bis zu diesem Betrag bezahlen Sie Arzt und Medikamente selbst. Danach zahlt die Krankenkasse."
 "Selbstbehalt" = "Nach der Franchise bezahlen Sie noch einen Teil von den Kosten selbst. Das ist der Selbstbehalt."
 "Kostenbeteiligung" = "Ihr Teil an den Kosten für Arzt und Medikamente. Dazu gehören die Franchise und der Selbstbehalt."
-"Leistung" = "Eine Leistung bekommen Sie von einer Versicherung oder einem Amt. Das kann Geld sein oder Hilfe."
 "Rente" = "Eine Rente ist Geld für jeden Monat. Sie bekommen es zum Beispiel im Alter. Oder bei einer Behinderung."
 "AHV" = "Die AHV ist eine Versicherung. Sie bezahlt eine Rente im Alter. Sie hilft auch der Familie nach einem Todesfall."
 "IV" = "Die IV ist eine Versicherung. Sie ist für Menschen mit Behinderung oder langer Krankheit. Sie hilft zum Beispiel bei der Arbeit. Oder sie bezahlt eine Rente."
@@ -398,7 +400,6 @@
 "Versicherungspflicht" = "Sie müssen eine Versicherung haben. Das verlangt das Gesetz. Für die Krankenkasse gilt das für alle in der Schweiz."  # TERMDAT 37640
 "Generikum" = "Ein Generikum ist ein günstigeres Medikament. Es wirkt gleich wie das Original."  # TERMDAT 37534
 "Suva" = "Die Suva ist eine grosse Unfallversicherung. Viele Arbeitgeber versichern ihre Angestellten bei der Suva."  # TERMDAT 3042
-"Wartezeit" = "Wartezeit heisst hier: Die Versicherung zahlt erst nach einigen Tagen. Diese Tage müssen Sie warten."  # TERMDAT 56382
 "Arbeitsunfähigkeit" = "Sie können wegen Krankheit oder Unfall nicht arbeiten. Oder Sie können nur weniger arbeiten."  # TERMDAT 37485
 "Erwerbsunfähigkeit" = "Sie können wegen Ihrer Gesundheit nicht mehr genug verdienen. Das gilt für lange Zeit."  # TERMDAT 37525
 "Invaliditätsgrad" = "Der Invaliditätsgrad ist eine Zahl in Prozent. Sie zeigt: So viel Lohn verlieren Sie wegen Ihrer Gesundheit. Davon hängt die IV-Rente ab."  # TERMDAT 294549
@@ -421,7 +422,6 @@
 "Prämienregion" = "Die Prämie für die Krankenkasse hängt von Ihrem Wohnort ab. Ein Kanton hat bis zu 3 Prämienregionen."  # KVG Art. 61
 "Richtprämie" = "Mit der Richtprämie berechnet der Kanton die Prämienverbilligung. Sie ist ein fester Betrag pro Person."  # kantonal, zum Beispiel Zürich
 "Sozialversicherung" = "Sozialversicherungen helfen bei Krankheit oder Unfall. Sie helfen auch im Alter und ohne Arbeit. Zum Beispiel die AHV oder die IV."
-"Beitrag" = "Ein Beitrag ist Geld für eine Versicherung. Zum Beispiel für die AHV. Bei Angestellten zieht der Arbeitgeber ihn vom Lohn ab."
 "Lebensbedarf" = "Geld für den Alltag bei den Ergänzungsleistungen. Zum Beispiel für Essen und Kleider. Das Gesetz legt den Betrag fest."
 "Freibetrag" = "Bis zu diesem Betrag zählt das Amt Ihr Geld nicht. Zum Beispiel einen Teil von Ihrem Vermögen."
 "Entschädigung" = "Eine Entschädigung ist Geld als Ausgleich. Zum Beispiel für einen Schaden oder einen Verlust."
@@ -448,7 +448,7 @@
 "Sorgerecht" = "Die Eltern mit dem Sorgerecht entscheiden über wichtige Sachen für das Kind. Zum Beispiel über die Schule und die Gesundheit."
 "Obhut" = "Das Kind wohnt bei Ihnen. Sie sorgen jeden Tag für das Kind."
 "Unterhaltsbeitrag" = "Geld für den Lebensunterhalt von einem Kind oder von einem früheren Ehepartner. Eine Person bezahlt es regelmässig an die andere."
-"Zivilstand" = "Der Zivilstand sagt zum Beispiel: Sie sind verheiratet. Oder: Sie sind ledig."
+"Zivilstand" = "Der Zivilstand sagt zum Beispiel: Sie sind verheiratet. Oder: Sie sind nicht verheiratet."
 "verwitwet" = "Verwitwet heisst: Ihr Ehemann oder Ihre Ehefrau ist gestorben."
 "Stipendium" = "Geld vom Kanton für eine Ausbildung. Sie müssen es nicht zurückzahlen."  # TERMDAT 56159
 "Ausbildungsbeitrag" = "Geld vom Kanton für eine Ausbildung. Das kann ein Stipendium sein. Oder ein Darlehen. Ein Darlehen zahlen Sie später zurück."  # TERMDAT 385216
@@ -503,3 +503,22 @@
 "Gemeindeversammlung" = "An der Gemeindeversammlung treffen sich die Stimmberechtigten. Sie entscheiden zusammen über Fragen in der Gemeinde."
 "Vernehmlassung" = "Vor einem neuen Gesetz fragt die Regierung viele Gruppen nach ihrer Meinung. Das heisst Vernehmlassung."
 "Verfassung" = "Die Verfassung ist das wichtigste Gesetz vom Land oder vom Kanton. Darin stehen die Grundregeln und Ihre Rechte."
+
+[explain.context]
+# Terms with a second, everyday sense (Leistung in a school report, Wartezeit at
+# the doctor's). Kept for the writer and the termbase; code never adds them.
+"Eröffnung" = "Eröffnung heisst hier: Das Amt gibt Ihnen den Entscheid. Ab diesem Tag läuft die Frist."
+"Wartezeit" = "Wartezeit heisst hier: Die Versicherung zahlt erst nach einigen Tagen. Diese Tage müssen Sie warten."  # TERMDAT 56382
+"Beitrag" = "Ein Beitrag ist Geld für eine Versicherung. Zum Beispiel für die AHV. Bei Angestellten zieht der Arbeitgeber ihn vom Lohn ab."
+"Leistung" = "Eine Leistung bekommen Sie von einer Versicherung oder einem Amt. Das kann Geld sein oder Hilfe."
+"solidarisch" = "Solidarisch heisst hier: Jede Person muss die ganze Schuld bezahlen. Zum Beispiel ein Ehepaar bei den Steuern."
+"Forderung" = "Eine Forderung ist Geld. Jemand verlangt dieses Geld von Ihnen."
+"Verordnung" = "Eine Verordnung ist eine Sammlung von Regeln. Die Regierung macht sie. Sie erklärt ein Gesetz genauer."
+
+# -- not in ------------------------------------------------------------------------
+
+# Phrases in which a term does not mean what the vocabulary explains:
+# zur Verfügung stehen is not a decision.
+[not_in]
+"Verfügung" = ["zur Verfügung", "zu Ihrer Verfügung"]
+"Abstimmung" = ["in Abstimmung mit", "Abstimmung mit"]

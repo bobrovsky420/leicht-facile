@@ -23,7 +23,7 @@ rule: *Apertus does everything that needs language understanding; plain code doe
 everything that can be counted.* Apertus 1.5 turns the document into a fact sheet,
 writes a draft against it with provenance for every sentence, judges meaning with a
 second, larger model, and repairs only the flagged sentences. Code checks the published
-easy-language rules (42 checks for German, 39 for French), including the exact presence
+easy-language rules (43 checks for German, 40 for French), including the exact presence
 of every fact value. A human reviews source and draft side by side and exports the text
 with an audit trail. The system is one container plus an OpenAI-compatible Apertus
 endpoint, so it runs on-premise, air-gapped or on a Swiss cloud, as letters under

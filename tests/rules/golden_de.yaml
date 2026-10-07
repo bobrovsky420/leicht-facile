@@ -195,6 +195,18 @@ LEX-06:
     - Sie müssen Ihren Antrag schicken.
     - Die Gemeinde prüft den Antrag.
 
+LEX-07:
+  positive:
+    - Sie zahlen innert 30 Tagen.
+    - Gemäss dem Gesetz zahlen Sie weniger.
+    - Sie reichen das Gesuch bis Ende Mai ein.
+    - Das neue Gesetz tritt am 1. Januar in Kraft.
+  negative:
+    - Sie zahlen innerhalb von 30 Tagen.
+    - Die Formulare stehen Ihnen zur Verfügung.
+    - Schreiben Sie uns einen Brief.
+    - Der Gesuchsteller bekommt Geld.
+
 NUM-01:
   positive:
     - Sie haben zwei Kinder.

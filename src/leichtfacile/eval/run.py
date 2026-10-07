@@ -187,6 +187,8 @@ def _score(
     row = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
     if summary:
         row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
+        if summary.vocabulary:
+            row["vocabulary"] = summary.vocabulary
     return row
 
 

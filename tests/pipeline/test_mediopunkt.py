@@ -185,8 +185,9 @@ def test_p1_splits_after_write_before_the_check(store, endpoint, sleeps) -> None
     assert store.get_job(job_id).status == "needs_review", store.get_job(job_id).error
     v1 = store.get_artifact(job_id, "draft", Draft, version=1)
     assert v1.blocks[-1].text == "Die Kranken·versicherungs·police kommt per Post."
-    assert v1.glossary[-1].term == "Kranken·versicherungs·police"
-    assert [(e.block_id, e.after) for e in v1.code_edits] == [
+    assert "Kranken·versicherungs·police" in [g.term for g in v1.glossary]
+    # the splits; the glossary entries code adds from the vocabulary are rule SEM-05's
+    assert [(e.block_id, e.after) for e in v1.code_edits if e.rule_id == "LEX-01"] == [
         ("b006", "Kranken·versicherungs·police"),
         ("glossary", "Kranken·versicherungs·police"),
     ]
@@ -209,8 +210,9 @@ def test_p2_splits_every_repaired_version_and_records_per_version(store, endpoin
     v2 = store.get_artifact(job_id, "draft", Draft, version=2)
     assert v2.by_id()["b002"].text == "Schicken Sie das Gesuch an die Sozial·versicherungs·stelle."
     assert v2.by_id()["b006"].text == "Die Kranken·versicherungs·police kommt per Post."
-    assert [e.before for e in v1.code_edits] == ["Krankenversicherungspolice"] * 2
-    assert [e.before for e in v2.code_edits] == ["Sozialversicherungsstelle"]  # this version only
+    splits = [[e.before for e in v.code_edits if e.rule_id == "LEX-01"] for v in (v1, v2)]
+    assert splits[0] == ["Krankenversicherungspolice"] * 2
+    assert splits[1] == ["Sozialversicherungsstelle"]  # this version only
     # The repair prompt saw the split text: no LEX-01 line for the block code had fixed.
     repair_prompt = endpoint.chat_bodies()[3]["messages"][-1]["content"]
     assert "Krankenversicherungspolice" not in repair_prompt

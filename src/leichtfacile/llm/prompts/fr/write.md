@@ -46,6 +46,12 @@ La fiche de faits :
 
 {{ factsheet }}
 
+{% if words is defined and words %}
+Ces mots du document sont difficiles. Écrivez plutôt le mot simple :
+
+{{ words }}
+
+{% endif %}
 Le document. Chaque ligne est une phrase avec son numéro :
 
 {{ source }}

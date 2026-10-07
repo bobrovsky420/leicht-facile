@@ -69,11 +69,12 @@ sentence limits follow from the calibration on the official French pages (below)
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
 | LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, in the glossary or not (an entry explains the word, it does not make it shorter); the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`) and is written into the draft by code in P1 and P2 (nouns only, see "Edits made by code" below); a long word that is no compound is a note, none if it is in the glossary; an uppercase letter after the dot is flagged | warn |
-| LEX-02 | No abbreviations except common ones | a list of dotted abbreviations (`z. B.`, `bzw.`, `ggf.`, `ca.`, `Art. 5`, ...), abbreviated weekday ranges (`Mo-Fr`), capital clusters and mixed-case law abbreviations (`KVG`, `BehiG`); allowlist: `WC`, `SBB`, `PDF`, `AHV`, `IV`, `CHF`, `SMS`, `TV`; an abbreviation explained in the text (`(EL)` after the full term) or in the glossary is only `info` | warn |
-| LEX-03 | No foreign words, anglicisms, jargon | content word with a Zipf frequency below 2.5 (wordfreq, German), unless it is a compound of common words or in the glossary | info |
+| LEX-02 | No abbreviations except common ones | a list of dotted abbreviations (`z. B.`, `bzw.`, `ggf.`, `ca.`, `Art. 5`, ...), abbreviated weekday ranges (`Mo-Fr`), capital clusters and mixed-case law abbreviations (`KVG`, `BehiG`); allowlist: `WC`, `SBB`, `PDF`, `AHV`, `IV`, `CHF`, `SMS`, `TV`; an abbreviation explained in the text (`(EL)` after the full term) or in the glossary is only `info`; the suggestion is the full word from the vocabulary (`z. B.`: `zum Beispiel`, `EL`: `Ergänzungsleistungen`) | warn |
+| LEX-03 | No foreign words, anglicisms, jargon | content word with a Zipf frequency below 2.5 (wordfreq, German), unless it is a compound of common words, in the glossary, or an office word LEX-07 names the everyday word for | info |
 | LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded); `%` is NUM-06, quotation marks are CH-02 | warn |
 | LEX-05 | Gender-fair, concrete forms | asterisk, colon, underscore and Binnen-I forms (`Mitarbeiter*innen`, `MitarbeiterInnen`), participle nouns (`Mitarbeitende`, `Studierende`). Generic masculine plurals are not detected | info |
 | LEX-06 | Direct address with `Sie` | role nouns for the reader (`Antragsteller`, `Gesuchsteller`, `Versicherte`, `Steuerpflichtige`, `Bezüger`, `die betroffene Person`, ...) | info |
+| LEX-07 | Everyday words instead of office words | a `replace` word of the vocabulary ("Vocabulary" below: `innert`, `gemäss`, `einreichen` also as `reichen ... ein`, `in Kraft treten` also as `tritt ... in Kraft`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02), not the role nouns (LEX-06) | warn / info |
 
 ### Numbers, dates, times, amounts
 
@@ -175,12 +176,13 @@ parser cannot tell an inverted subject from an object.
 | GRAM-08-FR | No impersonal `il convient de`, `il y a lieu de` | phrase list: `il convient`, `il y a lieu`, `il incombe`, `il appartient`, `il importe`, `il est loisible`, `opportun`, `souhaitable`, `recommandé`, `requis`; `il est nécessaire`, `obligatoire`, `possible`, `important`, `interdit` ... + `de` or `que` is a note | warn |
 | NEG-01-FR | No double negation | per clause part (commas, colons, `et`, `ou`, `mais`, `car` and the opener of a subordinate clause separate parts): the words that form one negation with `ne` (`pas`, `jamais`, `rien`, `plus`, `personne`, `aucun`, `ni`, ...) count as one negation together; `sans` (when `ne` is present), `non` (not in `non plus`) and an adjective with a negative prefix (`impossible`, `inutile`, `illégal`, ...) each add one; two negations in one part | error |
 | NEG-02-FR | Prefer positive formulation | one negation in a sentence | info |
-| LEX-01-FR | No long words; prefer the everyday synonym | a word or part (at hyphens and apostrophes) longer than 12 letters, not in the glossary (note); administrative words and phrases with an everyday equivalent (`émolument`, `moyennant`, `nonobstant`, `dûment`, `le cas échéant`, `en vertu de`, `faute de quoi`, `ci-joint`, ...), as in the Italian stop list (warning) | info / warn |
-| LEX-02-FR | No abbreviations except common ones | dotted abbreviations (`p. ex.`, `etc.`, `cf.`, `env.`, `c.-à-d.`, `art. 5`, `al. 2`, `no 3`, `tél.`, `Mme`, ...), abbreviated weekday ranges (`lu-ve`) and months, capital clusters and mixed-case law abbreviations (`LAVS`, `LAMal`); allowlist: `CHF`, `AVS`, `AI`, `CFF`, `PDF`, `WC`, `SMS`, `TV`, `ID`, `OK`; known words in an all-capital heading are no abbreviations; an abbreviation explained in the text or the glossary is only `info` | warn |
-| LEX-03-FR | No foreign words, anglicisms, jargon | a content word with a Zipf frequency below 2.5 (wordfreq, French), unless it is a hyphenated word of common parts (`pare-brise`) or in the glossary | info |
+| LEX-01-FR | No long words | a word or part (at hyphens and apostrophes) longer than 12 letters, not in the glossary; the administrative words it also flagged until 7 October 2026 are LEX-07-FR's now | info |
+| LEX-02-FR | No abbreviations except common ones | dotted abbreviations (`p. ex.`, `etc.`, `cf.`, `env.`, `c.-à-d.`, `art. 5`, `al. 2`, `no 3`, `tél.`, `Mme`, ...), abbreviated weekday ranges (`lu-ve`) and months, capital clusters and mixed-case law abbreviations (`LAVS`, `LAMal`); allowlist: `CHF`, `AVS`, `AI`, `CFF`, `PDF`, `WC`, `SMS`, `TV`, `ID`, `OK`; known words in an all-capital heading are no abbreviations; an abbreviation explained in the text or the glossary is only `info`; the suggestion is the full word from the vocabulary (`p. ex.`: `par exemple`) | warn |
+| LEX-03-FR | No foreign words, anglicisms, jargon | a content word with a Zipf frequency below 2.5 (wordfreq, French), unless it is a hyphenated word of common parts (`pare-brise`), in the glossary, or an office word LEX-07-FR names the everyday word for | info |
 | LEX-04-FR | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded) | warn |
 | LEX-05-FR | Inclusive forms without typographic devices | `·e·s`, `.e.s` and `(e)s` forms (`employé·e·s`, `citoyen(ne)`) | info |
 | LEX-06-FR | Direct address with `vous` | role nouns for the reader with an article (`le requérant`, `l'assuré`, `les bénéficiaires`, `le contribuable`, `la personne concernée`, ...) | info |
+| LEX-07-FR | Everyday words instead of office words | a `replace` word of the vocabulary (`émolument`, `moyennant`, `le cas échéant`, `s'acquitter de` also as `vous vous acquittez de`, `dans le cadre de` also as `dans le cadre du`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02-FR), not the role nouns (LEX-06-FR) | warn / info |
 | NUM-01-FR | Numbers as digits, except `un`/`une` | cardinal number words (`deux` ... `seize`, `vingt` ... `nonante`, `cent`, `mille`, also hyphenated) and ordinals from `deuxième` on; `premier`, the adjective `neuf` and `pour cent` are not flagged | warn |
 | NUM-02-FR | Thousands separator with a space: `1 500` | 5+ digits without a separator; 4 digits only next to a currency; phone numbers, dates, IBANs, postal codes and numbers after `no`, `art.`, `formulaire`, ... are skipped; `1'500` is accepted | warn |
 | NUM-03-FR | Date `4 février 2020` | numeric dates (`31.03.2026`, ISO and slash dates), also a day and month without year after `au`, `le`, `du`, `dès` (`au 15.09`); the suggestion is the written-out date (`1er mars 2026`) | warn |
@@ -229,7 +231,7 @@ show them next to the code findings:
 | SEM-07 | For each fact: present, missing, or distorted? |
 | SEM-08 | Is every obligation still an obligation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, decision D-P)? In the German and French judge prompts since 7 October 2026 |
 
-## Vocabulary (data, not used by a rule yet)
+## Vocabulary
 
 `rules/data/vocabulary_de.toml` and `vocabulary_fr.toml` collect hard words of Swiss
 administrative letters, read by `rules/vocabulary.py`. Two kinds:
@@ -242,8 +244,14 @@ administrative letters, read by `rules/vocabulary.py`. Two kinds:
   letters (`Verfügung`, `Franchise`, `commandement de payer`), with a glossary
   explanation. Groups: law, debt, insurance, health, social, tax, residence, vote.
   The false friends of `docs/hard-texts.md` §3 are in it.
+- `context` (a group of either kind): words with a second, everyday sense
+  (`Schreiben` a letter or to write, `Leistung` in a school report, `consultation` at
+  the doctor's). The writer gets the replace words as a hint; code never flags or adds
+  them on its own.
+- `[not_in]`: phrases in which a term does not count (`zur Verfügung` is no decision).
 
-Size on 7 October: German 263 replace and 195 explain, French 218 and 190. Sources:
+Size on 7 October: German 260 replace (13 of them context-dependent) and 197 explain
+(7), French 225 (24) and 190 (10). Sources:
 
 - the hard words of the standard pages in the pairs (`data/pairs/`), the explanations
   official easy pages give for the same terms, and the rule lists above (LEX-01-FR,
@@ -268,11 +276,47 @@ Size on 7 October: German 263 replace and 195 explain, French 218 and 190. Sourc
 
 `tests/rules/test_vocabulary.py` checks the lists: no term twice, no en or em dash, no
 sharp s in German, and every explanation, one block per sentence, passes the checker
-at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt).
+at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt), LEX-07
+included, so the explanations use no office word themselves.
 
-Planned use (PLAN.md WP17, termbase): entries that occur in the source go into the
-write prompt; LEX-01, LEX-02 and LEX-03 name the `replace` word in their suggestion;
-a hard term the writer left out of the glossary gets the `explain` text.
+**Matching** (`rules/vocabulary.py`): a word matches as written, by its lemma or with a
+usual ending (`Verfügungen`, `versées`), with its Mediopunkt (`Prämien·verbilligung`),
+as part of a hyphenated word (`Rente` in `IV-Rente`), as a German separable verb
+(`reichen ... ein` for `einreichen`) and as a German verbal phrase whose verb stands
+elsewhere in the sentence (`tritt ... in Kraft`); French contracted and elided forms
+count (`dans le cadre du`), and a French verb is listed without its pronoun
+(`vous vous acquittez de`). Abbreviations and acronyms match as written, so the French
+`ai` is never the `AI`. Of overlapping matches the longest wins (`opposition à la
+poursuite` over `opposition`).
+
+**Use in the pipeline** (since 7 October 2026; `USE_VOCABULARY=0` switches it off, only
+to measure it; docs/architecture.md §4.2, §4.3, §4.6):
+
+1. the fact sheet: a hard term the model listed gets the vocabulary's explanation, and
+   up to 6 hard terms of the source are added, the rarest first (12 in all);
+2. the write prompt can list the office words of the source with their everyday word
+   (at most 15 per part, not the role nouns of LEX-06), but by default it does not
+   (`VOCABULARY_PROMPT=0`): the list made the 8B write those words more often
+   (docs/prompts.md, "Vocabulary in the pipeline");
+3. code adds the vocabulary's entry for a hard term a draft uses without one, after the
+   write stage and every repair round: at most 6 per version, 10 entries in all, the
+   rarest first, marked on the review page (`rules/glossary.py`). "Hard" means an
+   abbreviation, a phrase or a word below Zipf 5.2: `loi` and `demande` stay out,
+   `Verfügung` and `décision` stay in;
+4. the checker: LEX-07 and LEX-07-FR flag the office words left in a draft, with the
+   everyday word as the suggestion; LEX-02 and LEX-02-FR suggest the full word of an
+   abbreviation; LEX-03 leaves the office words to LEX-07. Without the vocabulary their
+   findings are computed but not sent to repair.
+
+**Calibration** (7 October 2026): LEX-07 fires 1.2 times per 100 blocks on the 30
+official German easy-language pages and 20.5 times on their standard originals;
+LEX-07-FR 0.7 and 19.6 on the 5 French pairs. The first version fired 3.1 times on the
+easy German pages. The words the official writers keep on purpose became explain
+entries (`Behörde`, `Merkblatt`) or context-dependent (`Unterlagen`, `obligatorisch`,
+`Dienststelle` in names of offices, `Beeinträchtigung` as the respectful word,
+`inklusive` meaning inclusion, `site internet`), and a word inside a hyphenated name
+(`Abklärungs-Stelle`) is no longer flagged. What still fires on the easy pages are
+office words (`genehmigt`, `einreichen`, `Anliegen`).
 
 ## Planned fact checks (not implemented)
 
@@ -361,6 +405,15 @@ the result. Every change is recorded on the draft version (`code_edits`: block, 
 before and after), shown on the review page and reported in the evaluation next to the
 LEX family as "LEX by code". The step runs in P1 and P2 only; the baselines measure
 the prompt alone, and the CLI `check` checks a text as it is.
+
+Edits made by code (7 October 2026): the glossary entries of the vocabulary. A hard term
+of the vocabulary that a block uses without a glossary entry gets the vocabulary's
+entry, before the Mediopunkt step (so a long term gets its dot too): at most 6 per
+version, 10 entries in all, the rarest first, never a context-dependent word
+(`rules/glossary.py`, "Vocabulary" above). Each one is a code edit under SEM-05 (block
+`glossary`, the term as `after`) and marked `origin: vocabulary`; the review page shows
+it as "from the vocabulary", and the evaluation counts them (`code_glossary`) apart from
+the Mediopunkt splits.
 - NUM-04 accepts full hours (`17 Uhr`) and `8.30 bis 11.30 Uhr`, as the Bern and
   Zürich pages write them.
 - NUM-08 accepts the spaced international format (`+41 44 123 45 67`), which the

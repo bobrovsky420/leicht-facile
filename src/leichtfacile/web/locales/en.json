@@ -294,6 +294,8 @@
   "review.doc_findings": "Document findings",
   "review.omissions": "Left out, with reasons",
   "review.glossary": "Glossary",
+  "review.glossary_vocabulary": "from the vocabulary",
+  "review.glossary_vocabulary_title": "Added by code: the checked explanation of the vocabulary, not the model's.",
   "review.measures": "Measures",
   "review.run": "Run",
   "review.run.cost": "Used",

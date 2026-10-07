@@ -24,7 +24,9 @@ from leichtfacile.pipeline.models import (
     clean_text,
 )
 from leichtfacile.pipeline.prompts import examples, level_name, render
+from leichtfacile.rules.de import ROLE_NOUN_RE as ROLE_NOUNS_DE
 from leichtfacile.rules.document import KnownValues, display_value
+from leichtfacile.rules.fr import ROLE_NOUN_WORD_RE as ROLE_NOUNS_FR
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
@@ -37,6 +39,14 @@ from leichtfacile.rules.values import (
     format_period,
     matches,
     parse_value_norm,
+)
+from leichtfacile.rules.vocabulary import (
+    explained_term,
+    has_vocabulary,
+    is_hard,
+    matcher,
+    prompt_words,
+    rarity,
 )
 from leichtfacile.schemas import (
     ZH_CONDITIONS,
@@ -455,6 +465,69 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     return fs.model_copy(update={"facts": facts})
 
 
+# The vocabulary (rules/data/vocabulary_<lang>.toml) in the fact sheet and the prompt.
+MAX_HARD_TERMS = 12  # the fact sheet's hard terms, the model's and the vocabulary's
+MAX_VOCABULARY_TERMS = 6  # terms of the source code adds to the model's
+MAX_PROMPT_WORDS = 15  # office words of the source the write prompt lists
+ROLE_NOUNS = {"de": ROLE_NOUNS_DE, "fr": ROLE_NOUNS_FR}  # LEX-06 asks for Sie, not a noun
+
+
+def vocabulary_terms(fs: FactSheet, source: SourceDocument) -> FactSheet:
+    """The fact sheet with the vocabulary's checked explanations. A hard term the model
+    listed gets the vocabulary's explanation when the vocabulary explains it: the 8B's
+    own were often hard or wrong (Franchise and Selbstbehalt explained alike, the Urne
+    as the place of the vote; CSCS dev run of 7 October 2026). Terms of the source the
+    model did not list are added, the rarest first, up to MAX_VOCABULARY_TERMS and
+    MAX_HARD_TERMS in all. The write prompt shows the hard terms and asks the writer to
+    take the glossary explanations from them."""
+    lang = source.lang
+    if not has_vocabulary(lang):
+        return fs
+    terms: list[HardTerm] = []
+    listed: set[str] = set()
+    for term in fs.hard_terms:
+        entry = explained_term(term.term, lang)
+        if entry is None:
+            terms.append(term)
+            continue
+        listed.add(entry.term)
+        update = {"explanation": entry.explanation or term.explanation, "origin": "vocabulary"}
+        terms.append(term.model_copy(update=update))
+    found: dict[str, tuple] = {}
+    texts = (s.text for s in source.segments)
+    for seg, found_here in zip(source.segments, matcher(lang).find_texts(texts), strict=True):
+        for m in found_here:
+            entry = m.entry
+            if entry.kind != "explain" or entry.context or entry.term in listed:
+                continue
+            if not is_hard(entry, lang):
+                continue
+            segment_ids = found.setdefault(entry.term, (entry, []))[1]
+            if seg.id not in segment_ids:
+                segment_ids.append(seg.id)
+    room = min(MAX_VOCABULARY_TERMS, MAX_HARD_TERMS - len(terms))
+    ranked = sorted(found.values(), key=lambda item: rarity(item[0], lang))
+    for entry, segment_ids in ranked[: max(0, room)]:
+        terms.append(
+            HardTerm(
+                term=entry.term,
+                explanation=entry.explanation or "",
+                segment_ids=segment_ids,
+                origin="vocabulary",
+            )
+        )
+    return fs.model_copy(update={"hard_terms": terms})
+
+
+def word_list(segments: list[Segment], lang: str) -> str:
+    """The office words of these sentences with their everyday word, one per line, for
+    the write prompt (empty: the prompt has no such list)."""
+    entries = prompt_words(
+        lang, (s.text for s in segments), exclude=ROLE_NOUNS.get(lang), limit=MAX_PROMPT_WORDS
+    )
+    return "\n".join(f"- {e.term}: {e.easy}" for e in entries)
+
+
 def to_factsheet(out: UnderstandOut, doc_id: str) -> FactSheet:
     facts = [
         Fact(
@@ -541,7 +614,10 @@ def write(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
+    vocabulary: bool = False,
 ) -> tuple[Draft, list[LLMResult]]:
+    """The first draft. `vocabulary`: the prompt lists the office words of each part
+    with their everyday word (rules/vocabulary.py)."""
     lang = source.lang
     if source.word_count() > LONG_DOCUMENT_WORDS:
         sections = split_sections(source)
@@ -570,6 +646,7 @@ def write(
             examples=examples(lang),
             section=title if sectioned else "",
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
+            words=word_list(segments, lang) if vocabulary else "",
             source=r.source_lines(segments),
         )
         try:

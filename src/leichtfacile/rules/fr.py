@@ -37,6 +37,7 @@ from leichtfacile.rules.values import (
     format_thousands,
     mask,
 )
+from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 
 FR = "fr"
 SENTENCE_KINDS = ("sentence", "list_item")
@@ -950,32 +951,18 @@ def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
 # -- words --------------------------------------------------------------------------
 
 MAX_WORD_LETTERS = 12  # LEX-01-FR, both levels (docs/rules.md)
-# Administrative words and phrases with an everyday equivalent, as in the Italian
-# "burocratese" list of the rule catalogue: "moyennant" is "avec", "dûment" is "bien".
-BUREAUCRATIC_RE = re.compile(
-    r"\b(?:émoluments?|moyennant|nonobstant|dûment|susmentionnée?s?|susdite?s?|"
-    r"ledit|ladite|lesdite?s|ci-jointe?s?|ci-après|afférente?s?|subséquemment|"
-    r"préalablement|le\s+cas\s+échéant|en\s+vertu\s+d(?:e|u|es)|faute\s+de\s+quoi|"
-    r"en\s+l" + _APOS + r"espèce|par\s+la\s+présente|eu\s+égard\s+(?:à|au|aux)|"
-    r"aux\s+termes\s+d(?:e|u|es)|en\s+sus)\b",
-    re.IGNORECASE,
-)
 
 
 @rule(
     "LEX-01-FR",
     lang=FR,
-    title="No long words; prefer the everyday synonym",
+    title="No long words",
     severity=sev("info"),
     scope="sentence",
-    guide="Évitez les mots longs et les mots de l'administration (pas : émolument, "
-    "moyennant, le cas échéant, dûment). Prenez le mot court et connu.",
+    guide="Évitez les mots longs. Prenez le mot court et connu.",
 )
 def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
-    for m in BUREAUCRATIC_RE.finditer(sent.text):
-        yield hit(
-            "LEX-01-FR.administrative", found=m.group(0), evidence=m.group(0), severity="warn"
-        )
+    # The office words (émolument, moyennant) are LEX-07-FR's, from the vocabulary.
     for t in sent:
         if t.like_url or t.like_email or ctx.in_glossary(t.text):
             continue
@@ -1038,7 +1025,7 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for regex in (ABBREVIATION_RE, MONTH_ABBREVIATION_RE):
         for m in regex.finditer(text):
             found = m.group(0).strip()
-            yield hit("LEX-02-FR", found=found, evidence=found)
+            yield hit("LEX-02-FR", found=found, evidence=found, suggestion=easy_for(FR, found))
     for m in WEEKDAY_RANGE_RE.finditer(text):
         yield hit("LEX-02-FR.weekdays", found=m.group(0), evidence=m.group(0))
     for m in ACRONYM_RE.finditer(text):
@@ -1056,7 +1043,9 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         if acronym in ctx.introduced or ctx.in_glossary(acronym):
             yield hit("LEX-02-FR.explained", found=acronym, evidence=acronym, severity="info")
             continue
-        yield hit("LEX-02-FR.acronym", found=acronym, evidence=acronym)
+        yield hit(
+            "LEX-02-FR.acronym", found=acronym, evidence=acronym, suggestion=easy_for(FR, acronym)
+        )
 
 
 @rule(
@@ -1069,9 +1058,12 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "techniques. Si un mot difficile est nécessaire, expliquez-le dans le lexique.",
 )
 def lex_03(sent: Span, ctx: Context) -> Iterator[Hit]:
+    office = covered_offsets(
+        office_words(find_terms(FR, sent), exclude=ROLE_NOUN_WORD_RE), sent.start_char
+    )
     for t in sent:
-        if t.pos_ not in ("NOUN", "VERB", "ADJ", "ADV"):
-            continue
+        if t.pos_ not in ("NOUN", "VERB", "ADJ", "ADV") or t.idx in office:
+            continue  # an office word: LEX-07-FR names the everyday word
         parts = [p for p in re.split(_APOS + "|-", t.text) if p]
         if not parts or not all(p.isalpha() for p in parts) or len(t.text) < 4:
             continue
@@ -1144,14 +1136,21 @@ def lex_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         yield hit("LEX-05-FR", found=m.group(0), evidence=m.group(0))
 
 
-ROLE_NOUN_RE = re.compile(
-    r"\b(?:le|la|les|l" + _APOS + r"|du|des|au|aux|chaque|tout|toute|tous|toutes)\s?"
+_ROLE_NOUNS = (
     r"(?:requérante?s?|demandeur|demandeuse|demandeurs|demandeuses|assurée?s?|"
     r"bénéficiaires?|contribuables?|intéressée?s?|administrée?s?|titulaires?|"
     r"ayants?\s+droit|preneurs?\s+d" + _APOS + r"assurance|ressortissante?s?|justiciables?|"
-    r"personnes?\s+concernées?)\b",
+    r"personnes?\s+concernées?)"
+)
+ROLE_NOUN_RE = re.compile(
+    r"\b(?:le|la|les|l"
+    + _APOS
+    + r"|du|des|au|aux|chaque|tout|toute|tous|toutes)\s?"
+    + _ROLE_NOUNS
+    + r"\b",
     re.IGNORECASE,
 )
+ROLE_NOUN_WORD_RE = re.compile(r"\b" + _ROLE_NOUNS + r"\b", re.IGNORECASE)  # LEX-07-FR
 
 
 @rule(
@@ -1170,6 +1169,22 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             found=m.group(0),
             evidence=m.group(0),
         )
+
+
+@rule(
+    "LEX-07-FR",
+    lang=FR,
+    title="Everyday words instead of office words",
+    severity=sev("warn", "info"),
+    scope="sentence",
+    guide="Prenez les mots de tous les jours, pas les mots de l'administration (pas : "
+    "émolument, moyennant, le cas échéant, dûment).",
+)
+def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
+    # Words of rules/data/vocabulary_fr.toml; the role nouns are LEX-06-FR's (vous).
+    for m in office_words(find_terms(FR, sent), exclude=ROLE_NOUN_WORD_RE):
+        easy = m.entry.easy or ""
+        yield hit("LEX-07-FR", found=m.text, easy=easy, evidence=m.text, suggestion=easy)
 
 
 # -- numbers, dates, times, amounts -----------------------------------------------

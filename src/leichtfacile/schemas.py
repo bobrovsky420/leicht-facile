@@ -168,6 +168,9 @@ class HardTerm(Artifact):
     term: str
     explanation: str
     segment_ids: list[str] = Field(default_factory=list)
+    # vocabulary: the explanation is the vocabulary's (rules/vocabulary.py), the term the
+    # model's or, for a term code added, the vocabulary's
+    origin: Literal["model", "vocabulary"] = "model"
 
 
 class OmitCandidate(Artifact):
@@ -211,6 +214,7 @@ class Omission(Artifact):
 class GlossaryEntry(Artifact):
     term: str
     explanation: str
+    origin: Literal["model", "vocabulary"] = "model"  # vocabulary: added by code
 
 
 class CodeEdit(Artifact):
@@ -403,6 +407,8 @@ class PipelineSummary(Artifact):
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     blocking_findings: list[int] = Field(default_factory=list)  # per draft version
     notes: list[str] = Field(default_factory=list)  # stages that failed and were skipped
+    # The version of the vocabulary the job used (rules/vocabulary.py); None: not used.
+    vocabulary: str | None = None
 
     @field_validator("condition", mode="before")
     @classmethod

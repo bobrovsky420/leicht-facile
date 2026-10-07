@@ -134,8 +134,6 @@ LEX-01-FR:
   positive:
     - "Vous devez faire une demande de naturalisation."
     - "Les renseignements sont gratuits."
-    - "Le cas échéant, appelez-nous."
-    - "Vous payez un émolument de 40 francs."
   negative:
     - "Vous recevez une information."
     - "Le formulaire est sur internet."
@@ -154,9 +152,10 @@ LEX-02-FR:
 
 LEX-03-FR:
   positive:
-    - "Les frais susmentionnés sont payés."
-    - "Vous devez payer un émolument."
+    - "La forclusion s'applique."
+    - "La caducité est constatée."
   negative:
+    - "Vous devez payer un émolument."
     - "Vous recevez une lettre de la commune."
 
 LEX-04-FR:
@@ -185,6 +184,17 @@ LEX-06-FR:
   negative:
     - "Vous payez les frais."
     - "Vous êtes assuré."
+
+LEX-07-FR:
+  positive:
+    - "Le cas échéant, appelez-nous."
+    - "Vous payez un émolument de 40 francs."
+    - "Les frais susmentionnés sont payés."
+    - "Vous vous acquittez de la facture."
+  negative:
+    - "Si besoin, appelez-nous."
+    - "Le requérant reçoit une lettre."
+    - "Vous pouvez joindre le service."
 
 NUM-01-FR:
   positive:

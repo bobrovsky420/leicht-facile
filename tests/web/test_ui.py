@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from leichtfacile.examples import EXAMPLE_PREFIX
 from leichtfacile.llm.client import LLMClient, Usage
 from leichtfacile.rules import RULES
+from leichtfacile.rules.vocabulary import load_vocabulary
 from leichtfacile.schemas import (
     Block,
     CoreAnswer,
@@ -260,6 +261,16 @@ def test_review_page_shows_core_questions_versions_and_counts(env) -> None:
     assert f"0 of {len(fx.WRITE['blocks'])} decided" in page.text
     assert 'data-filter="issues"' in page.text
     assert "Reader view" in page.text
+
+
+def test_review_page_marks_the_glossary_entries_code_added(env) -> None:
+    client, app, _, _, endpoint = env
+    job_id = run_c1(client, app, endpoint)
+    page = client.get(f"/jobs/{job_id}")
+    assert page.status_code == 200
+    gesuch = next(e.explanation for e in load_vocabulary("de") if e.term == "Gesuch")
+    assert gesuch in page.text  # the letter's Gesuch: the vocabulary's entry, added by code
+    assert "from the vocabulary" in page.text
 
 
 def reviewable_job(store, settings):

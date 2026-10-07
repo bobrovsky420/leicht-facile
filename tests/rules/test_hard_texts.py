@@ -87,7 +87,7 @@ HARD_SENTENCES_FR = {
     ),
     "FR-7": (
         "Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-.",
-        {"NUM-03-FR", "NUM-07-FR", "LEX-01-FR"},
+        {"NUM-03-FR", "NUM-07-FR", "LEX-07-FR"},
     ),
 }
 CASES = [("de", key, *value) for key, value in HARD_SENTENCES.items()]

@@ -64,6 +64,15 @@ class Settings(BaseSettings):
     # the measured dev rerun of 7 October 2026 (PLAN.md D-Z, docs/prompts.md): fact
     # coverage 79 against 75 percent with 5, no invented value, fewer judge findings.
     max_missing_per_facts_round: int = Field(default=10, ge=1, le=20)
+    # The vocabulary of hard words (rules/data/vocabulary_<lang>.toml) in the pipeline:
+    # the checked explanations in the fact sheet, missing glossary entries by code, and
+    # the LEX-07 findings in the repair rounds. Off only to measure what it brings.
+    use_vocabulary: bool = True
+    # The office words of the source with their everyday word in the write prompt. Off:
+    # on the CSCS dev run of 7 October 2026 the 8B wrote the listed office words into
+    # its first drafts more often than without the list (docs/prompts.md, "Vocabulary
+    # in the pipeline"); the checker and the polish round handle them instead.
+    vocabulary_prompt: bool = False
 
     # Runtime
     data_dir: Path = Path("data")

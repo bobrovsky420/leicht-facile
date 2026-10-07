@@ -206,6 +206,17 @@ parsed as a plain number and never matched again. Values in passages the model m
 droppable become background facts; all others must be kept. The first local test run
 showed why: the model listed 3 facts for a letter with 11 checkable values.
 
+**The vocabulary completes the hard terms.** The project's vocabulary of hard words
+(`rules/data/vocabulary_<lang>.toml`, `rules/vocabulary.py`; [rules.md](rules.md),
+"Vocabulary") explains about 200 terms per language in checked easy language. A hard
+term the model listed gets the vocabulary's explanation when the vocabulary has the
+term (`origin: vocabulary`): the 8B's own were often hard or wrong (Franchise and
+Selbstbehalt explained alike, the Urne as the place of the vote; CSCS dev run of
+7 October 2026). Terms of the source the model did not list are added, the rarest
+first, up to 6 and 12 hard terms in all. Context-dependent words (Leistung, Wartezeit)
+are never added by code. Since 7 October 2026; `USE_VOCABULARY=0` switches this and the
+other uses below off, only to measure them.
+
 ### 4.3 Plan and write (Apertus)
 
 Easy language is not a sentence-by-sentence translation, so the prompt asks for a
@@ -220,6 +231,12 @@ one idea per sentence, then write. Inputs:
    ([sources.md](sources.md) §4), so they are not used as examples.
 3. The source segments with ids.
 4. The fact sheet.
+5. Optionally (`VOCABULARY_PROMPT=1`, off by default), the office words of the source
+   with their everyday word, from the vocabulary (`innert: innerhalb von`, `moyennant:
+   avec`), at most 15 per part. Off because on the CSCS dev run of 7 October the 8B
+   wrote the listed office words into its first drafts more often than without the list
+   (docs/prompts.md, "Vocabulary in the pipeline"); rule LEX-07 and the polish round
+   handle them instead. Without the list the prompt is the same text as before.
 
 Output: `Draft` - blocks (`heading` | `sentence` | `list_item`), each with the
 `fact_ids` it conveys and the `segment_ids` it was derived from (this is the
@@ -239,6 +256,15 @@ on the model. A sentence that repeats an earlier one is dropped and its referenc
 to the first, and a heading left without content goes too: small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
 "By when?").
+
+Code then completes the glossary (`rules/glossary.py`): a hard term of the vocabulary
+that a block uses and the glossary does not explain gets the vocabulary's entry, at most
+6 per version and up to 10 entries in all, the rarest first. The writer is asked to take
+the explanations from the fact sheet but leaves many out: on the dev run of 7 October the
+fact sheet of `sg-el-costs-de` listed Franchise, Selbstbehalt and Spitex, and the final
+glossary had none of them. The entries are marked (`origin: vocabulary`, a muted note on
+the review page) and recorded as code edits under rule SEM-05, the judge's question
+for a hard word without explanation.
 
 Then code writes the Mediopunkt (`rules/mediopunkt.py`): every compound noun with a part
 longer than the level's limit is split (`Kranken·versicherungs·police`), in the blocks
@@ -267,6 +293,9 @@ score, share of passive sentences, …). The full catalogue is in
 - numbers as digits, Swiss formats for dates, times, amounts, phone numbers;
 - `ß`, `« »`, `%`, `&`, brackets, semicolons, abbreviations not on the allowlist;
 - long compounds without Mediopunkt;
+- office words with an everyday equivalent from the vocabulary (LEX-07, LEX-07-FR:
+  `innert`, `reichen ... ein`, `moyennant`; a warning at A2, a note at B1), with the
+  everyday word as the suggestion; abbreviations get their full word the same way (LEX-02);
 - **fact coverage**: every `must_keep` fact with a normalised value must appear in the
   draft in some accepted surface form (`4. Februar 2020`, `4.2.2020`, …). This is an
   exact check and the single most important automatic test;
@@ -301,7 +330,7 @@ score, share of passive sentences, …). The full catalogue is in
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that
 registry, and a test keeps the registry and [rules.md](rules.md) in sync. German has
-30 rules of its own (`rules/de.py`) and French 27 (`rules/fr.py`, ids ending in `-FR`),
+31 rules of its own (`rules/de.py`) and French 28 (`rules/fr.py`, ids ending in `-FR`),
 both calibrated on the official easy-language pages; 12 rules for facts, layout and
 readability apply to every language. Italian texts get only those until their rule set
 ships.
@@ -344,8 +373,9 @@ every answered sentence code left out with its reason (a repeat, example content
 block the round had not flagged); `eval diagnose` reads these records.
 Then:
 
-- code writes the Mediopunkt into the new version as after the write stage (§4.3), so
-  that the check, the judge, the reviewer and the exports see the same text;
+- code completes the glossary and writes the Mediopunkt into the new version as after
+  the write stage (§4.3), so that the check, the judge, the reviewer and the exports see
+  the same text;
 - rule checks rerun on the new version;
 - the judge reruns only if a fact or an invented statement was involved; otherwise its
   findings for the blocks the repair did not touch are carried over;
@@ -428,14 +458,16 @@ FactSheet
   doc_id, doc_type, audience
   core: {what, must_do, deadline, cost, contact}  each {text|null, segment_ids[]}
   facts[]: {id, kind, text, value_norm?, segment_ids[], must_keep, origin (model|code)}
-  hard_terms[]: {term, explanation, segment_ids[]}
+  hard_terms[]: {term, explanation, segment_ids[], origin (model|vocabulary)}
   omit_candidates[]: {segment_ids[], reason}
 
 Draft  (one per version)
   doc_id, lang, level (A2|B1), version, parent_version?, origin (write|repair|baseline|review)
   blocks[]: {id, kind (heading|sentence|list_item), text, fact_ids[], segment_ids[]}
   omissions[]: {what, why, segment_ids[]}
-  glossary[]: {term, explanation}
+  glossary[]: {term, explanation, origin (model|vocabulary)}
+  code_edits[]: {block_id, rule_id, before, after}   made by code on this version:
+                Mediopunkt splits (LEX-01), glossary entries (SEM-05)
 
 RuleFindings  (one per draft version)
   draft_version, level
@@ -464,7 +496,8 @@ ReviewState
 PipelineSummary
   condition, mode, final_version, rounds, facts_rounds, stop_reason, writer_model,
   understand_model? (only when another model read the source), judge_model?,
-  prompt_versions {stage: hash}, blocking_findings[] (per draft version)
+  prompt_versions {stage: hash}, blocking_findings[] (per draft version),
+  vocabulary? (hash of the vocabulary file the job used)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
@@ -940,7 +973,8 @@ src/leichtfacile/
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
                           lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
                           vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),
-                          recipes.py (clause recipes), mediopunkt.py
+                          recipes.py (clause recipes), mediopunkt.py,
+                          glossary.py (glossary entries from the vocabulary)
   web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
                           static/ (app.css, app.js, fonts/), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py

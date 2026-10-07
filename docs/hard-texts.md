@@ -104,8 +104,8 @@ at the top are the most interesting: the code checker cannot see them, only the 
 | réduction individuelle des primes (RIP), subside | Abbreviation, rare word | LEX-02 |
 | voies de droit, délai de recours | Legal jargon | SEM-04 |
 | ayant droit, requérant·e | Legal role words, inclusive typography | LEX-05-FR |
-| émolument, moyennant, nonobstant | Old bureaucratic vocabulary | LEX-01-FR |
-| le cas échéant, dûment, en vertu de | Fixed administrative phrases | LEX-01-FR |
+| émolument, moyennant, nonobstant | Old bureaucratic vocabulary | LEX-07-FR |
+| le cas échéant, dûment, en vertu de | Fixed administrative phrases | LEX-07-FR |
 
 ## 4. Sentences
 
@@ -139,7 +139,7 @@ Illustrative A2 rewrite of DE-4:
 | FR-4 | Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais ne pourront être remboursés. | Impersonal start, conditional passé, `ne` without `pas` | GRAM-08-FR, GRAM-03-FR |
 | FR-5 | Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous saurions gré de bien vouloir prendre contact avec nos services. | Courtesy formulas hide the instruction ("call us") | GRAM-03-FR, SEM-01 |
 | FR-6 | Le/la requérant·e transmet les pièces justificatives à l'office compétent, lequel les examine et, le cas échéant, les fait suivre. | Inclusive typography, `lequel`, unclear `les` | LEX-05-FR, SEM-03 |
-| FR-7 | Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03-FR, NUM-07-FR, LEX-01-FR |
+| FR-7 | Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03-FR, NUM-07-FR, LEX-07-FR |
 
 Illustrative FALC rewrite of FR-4:
 

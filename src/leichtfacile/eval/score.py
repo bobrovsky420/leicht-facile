@@ -16,7 +16,9 @@ from leichtfacile.eval.calibrate import source_as_draft
 from leichtfacile.eval.metrics import compression_ratio, sari_document
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.document import fact_coverage, foreign_values
+from leichtfacile.rules.glossary import unexplained_terms
 from leichtfacile.rules.mediopunkt import GLOSSARY
+from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
 from leichtfacile.rules.values import (
     Value,
     extract_values,
@@ -25,6 +27,7 @@ from leichtfacile.rules.values import (
     matches,
     parse_value_norm,
 )
+from leichtfacile.rules.vocabulary import OFFICE_RULES
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     CodeEdit,
@@ -85,6 +88,10 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
         "errors_per_100": round(100 * severity["error"] / blocks, 2),
         "warnings_per_100": round(100 * severity["warn"] / blocks, 2),
         "by_family_per_100": {k: round(100 * v / blocks, 2) for k, v in sorted(by_family.items())},
+        # office words left (LEX-07, LEX-07-FR, any level), comparable with the reference
+        "office_words_per_100": round(
+            100 * sum(1 for f in checked.findings if f.rule_id in OFFICE_RULES) / blocks, 2
+        ),
         "pct_passive": m.pct_passive,
         "pct_subordinate": m.pct_subordinate,
         "hard_facts_total": len(source_keys),
@@ -159,6 +166,8 @@ def kept_code_splits(final: Draft, edits: list[CodeEdit]) -> int:
     texts = {"blocks": final.text(), GLOSSARY: "\n".join(g.term for g in final.glossary)}
     kept = set()
     for edit in edits:
+        if edit.rule_id != MEDIOPUNKT_RULE:  # a glossary entry from the vocabulary
+            continue
         text = texts[GLOSSARY if edit.block_id == GLOSSARY else "blocks"]
         if re.search(rf"(?<!\w){re.escape(edit.after)}(?!\w)", text):
             kept.add((edit.block_id, edit.after))
@@ -183,6 +192,11 @@ def score_output(
     splits = kept_code_splits(draft, draft.code_edits if code_edits is None else code_edits)
     row["code_splits"] = splits
     row["mediopunkt_per_100"] = round(100 * splits / max(1, len(draft.blocks)), 2)
+    # The glossary (rules/glossary.py): its entries, those code added from the
+    # vocabulary, and the hard terms of the vocabulary the text uses without one.
+    row["glossary_entries"] = len(draft.glossary)
+    row["code_glossary"] = sum(1 for g in draft.glossary if g.origin == "vocabulary")
+    row["unexplained_terms"] = len(unexplained_terms(draft))
     if factsheet is not None:
         coverage = fact_coverage(draft, factsheet, draft.lang)
         row["facts_checkable"] = len(coverage.checkable)

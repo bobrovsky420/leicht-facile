@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from leichtfacile.examples import EXAMPLE_PREFIX
 from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
+from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
 from leichtfacile.rules.messages import recover
 from leichtfacile.rules.recipes import RECIPE_RULES
 from leichtfacile.rules.values import parse_value_norm
@@ -228,7 +229,7 @@ class ReviewView:
     @property
     def code_splits(self) -> int:
         """Words of this version that code split with a Mediopunkt (rules/mediopunkt.py)."""
-        return len(self.draft.code_edits)
+        return sum(1 for e in self.draft.code_edits if e.rule_id == MEDIOPUNKT_RULE)
 
     @property
     def version_rows(self) -> list[VersionRow]:
