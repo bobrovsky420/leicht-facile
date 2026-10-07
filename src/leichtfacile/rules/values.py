@@ -211,7 +211,9 @@ _REF_FILLER = (
     r"(?:[ ]+(?:ist|lautet|heisst|hat|die|der|das|Ihre?[nmrs]?|unsere?[nmrs]?|von|vom|Nr\.?"
     r"|Nummer|est|votre|notre|le|la|du|de|è|il|vostro|nostro|numero|numéro|n°|no\.?)){0,4}?"
 )
-_CODE_SEP = r"[.\-/‐-—]"
+# Built from DASHES, so that no dash character stands in the source; a leading hyphen
+# in a class is literal, which also keeps "/" from forming a range with the dashes.
+_CODE_SEP = "[" + DASHES + "./]"
 _REF_CODE = (
     r"(?P<code>(?=(?:[A-Za-z0-9]|"
     + _CODE_SEP
@@ -236,7 +238,7 @@ REFERENCE_RE = re.compile(
     re.IGNORECASE,
 )
 _BARE_CODE_RE = re.compile(
-    r"(?=.*\d)(?=.*[A-Za-z/\-‐-—])[A-Za-z0-9]+(?:" + _CODE_SEP + r"[A-Za-z0-9]+)*"
+    r"(?=.*\d)(?=.*[" + DASHES + r"A-Za-z/])[A-Za-z0-9]+(?:" + _CODE_SEP + r"[A-Za-z0-9]+)*"
 )
 _EXPLICIT_NUMBER = re.compile(r"nr\.?$|nummer|n°|no\.?$|numéro|numero|n\.$")
 
@@ -337,7 +339,7 @@ _UNIT_SYMBOLS: dict[str, str] = {
 _FRACTIONS = {"½": "0.5", "¼": "0.25", "¾": "0.75"}
 _QUANTITY_UNITS = "|".join(re.escape(u) for u in sorted(_UNIT_SYMBOLS, key=len, reverse=True))
 _QUANTITY_RE = re.compile(
-    r"(?<![\d.,'’/" + DASHES + r"])(?P<num>\d+(?:[.,]\d+)?[½¼¾]?|[½¼¾])" + _SP + r"?"
+    r"(?<![" + DASHES + r"\d.,'’/])(?P<num>\d+(?:[.,]\d+)?[½¼¾]?|[½¼¾])" + _SP + r"?"
     r"(?P<unit>" + _QUANTITY_UNITS + r")(?![\w·/])",
     re.IGNORECASE,
 )
@@ -345,17 +347,17 @@ _QUANTITY_RE = re.compile(
 # with halves (½-0-½, 1.5-0-1).
 _DOSE_PART = r"(?:[0-9][.,]5|[0-9]|[½¼¾])"
 _SCHEDULE_RE = re.compile(
-    r"(?<![\w.,/"
+    r"(?<!["
     + DASHES
-    + r"])(?P<parts>"
+    + r"\w.,/])(?P<parts>"
     + _DOSE_PART
     + r"(?:[ ]?["
     + DASHES
     + r"][ ]?"
     + _DOSE_PART
-    + r"){2,3})(?![\w/"
+    + r"){2,3})(?!["
     + DASHES
-    + r"])(?![.,]\d)"
+    + r"\w/])(?![.,]\d)"
 )
 
 

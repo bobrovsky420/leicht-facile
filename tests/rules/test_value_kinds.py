@@ -52,7 +52,7 @@ def keys(text: str, lang: str = "de") -> list[tuple[str, str]]:
         ("Postkonto 80-151-4", ("identifier", "80-151-4")),
         ("UID CHE-123.456.789 MWST", ("identifier", "CHE-123.456.789")),
         ("Referenz 2026-0042", ("identifier", "2026-0042")),
-        ("Referenz 2026‑0042", ("identifier", "2026-0042")),
+        ("Referenz 2026" + chr(0x2011) + "0042", ("identifier", "2026-0042")),  # a hyphen
         ("Dossier-Nr. 12345", ("identifier", "12345")),
         ("Geschäftsnummer: K-4711", ("identifier", "K-4711")),
         ("Geschäfts·nummer: K-4711", ("identifier", "K-4711")),

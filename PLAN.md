@@ -9,6 +9,64 @@ Source of truth for *what* we build: [docs/architecture.md](docs/architecture.md
 *what gets cut*. When the two disagree, fix the docs, not this plan - AGENTS.md requires
 the docs to stay in sync with the code.
 
+## Submission check (7 October 2026): open findings
+
+Checked against the template's submission requirements (README, "Submission Requirements
+& Deliverables") and the five judging criteria. Tick an item when it is done; the two
+"submission check" lines in §11 have the details. Status as of commit `40a8b5c`.
+
+Passed: the Docker image builds and serves `/healthz` and the UI with no external assets;
+tests and ruff green on the committed state (963 tests); `data/` has 44 KB tracked; no key
+in git history; first commit on 5 October, inside the hackathon period; the report keeps
+the template's sections; only Apertus at runtime; code Apache 2.0, report CC-BY-4.0.
+
+Fixed:
+
+- [x] `make run` failed without a `.env` file when the three variables come from the
+      shell, as the judges may set them (`bfa2de5`).
+- [x] A JSON slip (a second value without a list, `"value_norm": "0441234567",
+      "ipv@musterwil.example"`) failed the Understand stage and with it the job
+      (`40a8b5c`).
+- [x] With only the three variables set, the judge ran on the 8B and the client retried
+      4 times; now the 70B judges when the endpoint lists it, and retries default to 8
+      (`40a8b5c`).
+
+Blocking the submission (WP11):
+
+- [ ] Report over the page limit: 8 A4 pages at 10 pt with 2 cm margins (4,427 words),
+      limit 6. Cut about a quarter, together with the stale text below.
+- [ ] Report PDF `RoestigrabenBridgers_Report.pdf` in the root.
+- [ ] Stale report: team names (`` `member` ``), `link to video`, "Status of this
+      report: 6 October", three **[pending]** markers (§4 dataset decision, §5 judge
+      labelling, §7 exact commit), and §8 lists French as a next step though it is done.
+- [ ] Stale README: "825 tests" (963 now), "Status (6 October 2026)", the Pending list
+      names French; the demo video is "*link follows*".
+- [ ] Demo video (at most 2 minutes) recorded and linked in README and report.
+- [ ] Repository public (anonymous access gave 404 on 7 October); then check that CI is
+      green on the submitted commit.
+
+Risks:
+
+- [ ] No pre-computed example jobs: `data/examples/` holds the two source letters only,
+      though architecture §10 and the Dockerfile promise jobs. Judges see an empty UI
+      until a job has run (about 2 minutes on CSCS, none while the endpoint is down).
+- [ ] Layout: the template says to keep `track_2b/` as it is; this repository has its
+      contents at the root (owner's decision). Ask the organisers on Discord.
+- [ ] Clean-checkout test only on this Windows machine (fresh clone, no `.env`,
+      `make run`, 4 of 4 smoke jobs to review). Still to do on Linux or macOS, or on a
+      second machine, before G6.
+- [x] Literal U+2010 to U+2014 characters in the regexes of `rules/values.py`
+      (`_CODE_SEP` and the identifier pattern), against the no-dash rule. Fixed by
+      `leicht-facile-a3`: the classes are built from `DASHES`, which also removed an
+      unintended `/` range that rejected a value right after a colon.
+- [ ] A job that failed in Understand reported "0 model calls, 0 tokens" after two
+      calls: the usage of failed jobs seems under-reported. Not investigated.
+
+Optional:
+
+- [ ] Hugging Face dataset: decide by 13 October (also clears the §4 **[pending]**
+      marker).
+
 ## 0. How to use this plan
 
 - Work packages (WP) are listed in build order in §3. Each has a "done when" line;
@@ -98,8 +156,9 @@ Local environment facts:
   (`docs/use-cases.md`) and the planned fact checks they need (`docs/rules.md`,
   "Planned fact checks"). Only the period value kind is a candidate before the freeze
   (WP14, D-U); everything else is WP17. *Done 7 Oct: the value kinds `period`,
-  `identifier` and `address` (WP14), a day before their slot; the decision mode and
-  the rest stay WP17.*
+  `identifier`, `address`, `quantity` and `schedule` (WP14), a day before their slot;
+  the decision mode moves to WP15 as a v1 for G4 (planned 7 Oct); the rest stays
+  WP17.*
 
 ## 3. Work packages
 
@@ -641,6 +700,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07: the fact contract gets the value kinds `period`, `identifier` and `address` (WP14; GAP-04 and GAP-22 closed; D-O and D-U decided), in `rules/values.py` and from there in the code completion of the fact sheet (value_norm `30 Tage`, `2026-0042`, `Gerichtsstrasse 12, 8000 Musterwil`, fact kind deadline for a period with a deadline word), FACT-01 (the exact string as suggestion), FACT-05, FACT-06 (new messages and German translations; the source's only identifier or address as suggestion), the repair request and "hard facts kept". Periods: digits, number words and adjectives in DE/FR/IT, canonical count and unit as written, weeks equal days and years months, working days only themselves, a period equals its bare count. Identifiers: AHV, IBAN, postal account, UID, a code after a keyword (compounds with -nummer, `Verfügung Nr.`, French and Italian forms), also with a Mediopunkt in the keyword and a few words in between; a bare code in a fact sheet. Addresses: street and number with a street word, Postfach, postcode and place, over lines; a bare postcode and place only after a boundary, never a year or a count. `tests/rules/test_value_kinds.py` (86 tests, a synthetic KESB decision); 956 tests, ruff clean; no prompt change. REF rows of `eval/results-cscs` recomputed and read value by value (rules.md, "The value kinds of 7 October on the official texts"): hard facts on the 20 German eval pairs 138 to 191, REF keeps 69 instead of 70 percent, three defects found and fixed (`St.Gallen`, a town taken into the street, a count as a place). `eval/report.md` untouched: the P0 to P2 rows carry the old definition until the Friday rerun with `--redo`. Docs: rules.md ("Value kinds" table, planned section shortened, calibration note, test plan), architecture §2, §4.2, §4.4, §9, prompts.md, report §5 and §8, both use-case documents. Next: the WP13 diagnosis, then the KESB decision letter (D-T) through P2 with the new facts.
 - 2026-10-07 (submission check): checked the repository against the template's submission requirements. Fixed: `make run` failed when the judges set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` in the shell without a `.env` file (Compose stopped on the missing env file, `check-env` on "Missing .env"); now `.env` is optional in `docker-compose.yml`, the three variables pass through from the shell (shell wins over `.env`) and `check-env` accepts either. Verified in a fresh clone without `.env`: `check-env` in six cases, `docker compose config` in four, `make check-llm` and `make run` against CSCS (`/healthz` reachable), `make smoke` to review on the second try; the first failed in Understand on a JSON slip the parser does not repair (a value without its key: `"value_norm": "0441234567", "ipv@musterwil.example"`), which fails the whole job. Still open for WP11: the report renders to 8 A4 pages (limit 6), the PDF, the video, the team names, the repo public, the stale counts and status in README and report. With only the three variables set, the judge runs on `LLM_NAME` (the 8B) and `LLM_MAX_RETRIES` is 4, not the 70B and 8 that `.env.example` sets.
 - 2026-10-07 (submission check, 2): the two findings of the check fixed. The parser drops a string where an object expects a key (`drop_stray_strings` in `llm/json_out.py`: the 8B gave `value_norm` a second value without a list), and code completion brings the dropped value back as a fact of its own (test on the recorded letter). Without `LLM_JUDGE_NAME` the judge is the 70B of the writer's family when the endpoint lists it, looked up once per process (`LLMClient.judge_model`, also in `/healthz`), else `LLM_NAME` as before, so vLLM and llama.cpp with one model are unchanged; `LLM_MAX_RETRIES` defaults to 8. Verified in a fresh clone without `.env` on CSCS: 4 of 4 `make smoke` jobs to review, the 70B-thinking judging, a dropped stream recovered on attempt 1 of 9. 963 tests.
+- 2026-10-07 (afternoon): two more value kinds for the patient letters and the study information (WP14, use cases 3 and 9): `quantity` (a number with a dose or measurement unit, symbol or name in DE, FR and IT, `2,5 mg` and `2.5 Milligramm` the same; a fact given as a bare number is found in its quantity, a dropped unit is a loss) and `schedule` (`1-0-1`, `½-0-½`), taken before addresses after `1000 IE` came out as a postcode and a place. Six quantities and no scheme on the 35 pairs; REF on the German eval pairs 69.2 to 65.9 percent because the two pages concerned have few facts (rules.md, calibration note); 999 tests. The decision mode written into WP15 as "Decision mode v1": seven pieces, tests, cut order, rows in §13.3 (Fri to Mon), a paragraph in §13.5, GAP-20 and the WP17 rows updated. Fixed on a peer session's note: literal U+2010 to U+2014 characters that the editing tool had written into two regex classes of `rules/values.py`, where a `/` in front of them also formed an unintended range (a scheme or quantity right after a colon was rejected); the classes are built from `DASHES` now. Docs: rules.md (two rows, the planned table, the calibration note, the test plan), architecture §4.2, §4.4 and §9, prompts.md, report §8, use-cases.md §3, §9 and §12.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -749,7 +809,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17 | Later |
 | GAP-18 | Zurich's good ideas not captured | termbase, house styles, check my own text, completeness switch, several drafts, DOCX | Value, scalability | WP17, report §8 | Later |
 | GAP-19 | Long compounds reach the reviewer unsplit: the glossary exempts them from LEX-01, and the 8B ignores the split suggestion | job `287fea3aadd2` (6 Oct, web UI, CSCS): `Krankenversicherungspolice` and `Sozialversicherungsstelle` in the final draft, `Alleinstehende` flagged through two rounds | Rigour, value (the first thing a juror sees in a draft) | WP14 | Should; in by the freeze or WP17 |
-| GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP17 | Must (docs, demo), Later (mode) |
+| GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP15 "Decision mode v1", planned 7 Oct for Sat 10 to Mon 12 Oct; the rest WP17 | Must (docs, demo), Should (mode v1 by G4) |
 | GAP-21 | The further use cases were not described: patient letters, lease terminations, penal orders, payment orders, social and school decisions, information for study participants, migration, private-sector letters | Raised 6 Oct (night): one engine, many documents; penal orders are 92 percent of Swiss convictions with a 10-day objection period; 49 percent of adults have low health literacy | Value, scalability | `docs/use-cases.md` and the planned fact checks in `docs/rules.md`, written 6 Oct (night; cloud session, 2). Modes and checks: WP17 | Should (docs), Later (modes) |
 | GAP-22 | A period is no checked value: `innert 30 Tagen` yields a plain number, so a changed or invented period passes FACT-01 and FACT-06 unless the fact sheet carries it as a value | `rules/values.py` (`ValueKind`, `HARD_KINDS`); step 4 of `docs/use-case-decisions.md` claimed otherwise (corrected 6 Oct, night) | Rigour; the KESB demo's 30-day appeal period | WP14 (period kind, D-U); *closed 7 Oct, with the address kind* | Should; by the freeze or WP17 |
 
@@ -899,6 +959,15 @@ three numbers.
       by value (rules.md, "The value kinds of 7 October on the official texts").
       Not done: a Swiss postcode list (would make a bare postcode and place exact;
       WP17).
+- [x] **Quantity and schedule kinds** (1-2 h; *added and done 7 Oct, afternoon, at the
+      owner's request: use cases 3 and 9*). `quantity`: a number with a unit of a dose
+      or a measurement (`2,5 mg`, `2 Tabletten`, `1½ Tabletten`, `38,5 Grad`, `9 Liter`;
+      symbol or name in DE, FR and IT, the name equals the symbol; a fact given as a
+      bare number is found in its quantity, a unit the draft dropped is a loss);
+      `schedule`: a dosing scheme of three or four parts (`1-0-1`, `½-0-½`). Taken
+      before addresses, so `1000 IE` is no postcode and place. Six quantities and no
+      scheme on the 35 pairs (rules.md, calibration note). Still planned:
+      `medication` (needs a drug list) and `FACT-09`.
 - [ ] **Clause recipes** (3-4 h German, 2 h more for French). LEN-02 and LEN-02-FR put
       a rewrite recipe for the conjunction they found into `suggestion`, which repair
       already receives (idea from Zurich's prompt, credited in rules.md; our own
@@ -1074,9 +1143,87 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
 - [ ] Hardware statement (existing WP10 item): the vLLM profile on a GPU host if one is
       reachable; otherwise cite the guide and say so.
 
+- [ ] **Decision mode v1** (planned 7 Oct; about 1.5 days, Sat 10 to Mon 12 Oct;
+      GAP-20; the elaboration of "step 2"). A job option, not a condition: an ordinary
+      P2 run that treats the operative part and the appeal instructions as untouchable,
+      speaks to one named person, asks the judge three more questions and wraps the
+      export in the authority's fixed notice. The conditions P0 to P2 never see it, so
+      the evaluation stays valid. Seven pieces:
+      1. *Config and plumbing.* `JobConfig.mode: "standard" | "decision"`, `addressee`,
+         `notice` (defaults change nothing for stored jobs); the form gets a
+         "Dokumentart" select that reveals the person and the notice (prefilled per
+         language from `pipeline/labels.py`); `POST /jobs` and `simplify --mode
+         decision --addressee --notice`; the mode on the job and in the audit bundle.
+      2. *Prompts without touching the frozen ones.* One partial per language,
+         `llm/prompts/<lang>/decision.md`, with sections for understand, write, judge
+         and repair; the standard templates get one line each, `{% if mode ==
+         "decision" %}{% include %}{% endif %}`, which renders to nothing for a
+         standard job (same cache keys, same results; the template hash changes once).
+         The include lines and the SEM-08 line go in before the Friday freeze; the
+         partial is free to change afterwards. Content: what the five core questions
+         mean for a decision (no new keys in `FactSheet`: a schema change would ripple
+         into render, web and locales), the fixed heading set as the reader's
+         questions (Was hat die Behörde entschieden? Was bedeutet das für Sie? Was
+         entscheiden Sie weiter selbst? Sind Sie nicht einverstanden? Bis wann? Wen
+         können Sie fragen?), "Sie" is always the addressee, the reasons condensed to
+         the main ones with every omission listed, no advice and no evaluation.
+      3. *Protected segments and FACT-08* (`rules/decision.py`; `check_draft` gets a
+         `mode`). Segments under a heading matching `Dispositiv | Entscheid | erkennt |
+         verfügt | beschliesst | Rechtsmittel` (FR `dispositif | par ces motifs | voies
+         de droit | recours`), plus a text fallback for PDFs without headings (the
+         numbered items after `erkennt:` / `verfügt:` / `beschliesst:`, a paragraph
+         starting `Gegen diesen Entscheid kann` or containing `Rechtsmittelbelehrung`);
+         Thursday's run on a published, anonymised decision calibrates the markers.
+         Code completion keeps their values must-keep whatever the model marked
+         droppable and adds one code fact without a value per numbered item of the
+         operative part. `FACT-08` (error, decision mode only): a protected segment
+         no block cites or any omission lists; the hit carries the item's fact id,
+         `build_request` treats it like FACT-01 and `blocking_count` counts it, so a
+         dropped item goes back to the writer before the reviewer sees the draft.
+      4. *SEM-08 to SEM-10.* Declared in `JUDGE_RULES`, the filter in
+         `to_judge_report` widened (today it drops anything outside SEM-01 to
+         SEM-05), the rows moved from "Planned" into the judge table of rules.md.
+         SEM-08 (an obligation stays an obligation, a condition a condition, never
+         `vielleicht` for `wenn`) is D-P generalised and goes into the standard judge
+         prompt before the freeze; SEM-09 (no advice, no "leider") and SEM-10 (every
+         period keeps its start) live in the partial.
+      5. *The notice and FACT-07.* The three exporters take `notice` and write it as
+         the first and last paragraph; the review page shows it as a fixed banner, not
+         a block (a block would need provenance and could be rejected); the notice is
+         exempt from the language rules. `FACT-07` in `check_export`: in decision mode
+         the first and last lines must be the configured notice. Honest: a guard
+         against an empty field and a declaration that the notice is part of the
+         contract; the exporter is what writes it.
+      6. *The addressee* in understand, write, repair and judge ("Sie ist immer
+         {{ addressee }}; den Beistand und die Behörde nennen Sie bei Rolle oder
+         Namen"); no code check, SEM-03 plus this line cover it; the name stays in the
+         store like the decision itself.
+      7. *Example job and product scene.* The KESB decision (D-T) with a sidecar
+         `.json` (`mode`, `addressee`) next to the `.txt`, since `example_sources()`
+         reads texts only; the video shows the notice, the case number, the AHV
+         number, the 30 days and the court's address as code facts with green ticks,
+         FACT-08 catching a dropped operative item and the repair restoring it, the
+         omission log for the condensed reasons.
+
+      Tests: `tests/rules/test_decision.py` (protected segments with and without
+      headings, FACT-08 on a dropped item and an omitted Rechtsmittelbelehrung, silent
+      in standard mode, FACT-07 on export lines); orchestrator with stub stages (a
+      decision job's prompts carry the addressee and the partial, a standard job's not
+      a word of it, FACT-08 lands in the repair request, the summary records the
+      mode); the judge filter; the form posts the three fields; the KESB example
+      through `complete_factsheet` with all four code facts.
+
+      Cut order if G4 slips: the French partial; the code facts per operative item
+      (keep the segment coverage check); the addressee in the judge; FACT-07 (keep
+      the notice in the export). Never cut once started: the mode flag, FACT-08, the
+      notice in the export, the example job. Separable for a second developer: pieces
+      1, 5 and 7; pieces 2 to 4 touch the pipeline core. Stays WP17: anonymisation in
+      front, a Swiss postcode list, the received-letter mode, drug names.
+
 Done when: the decision letter runs P2 on CSCS with every identifier intact and is
 among the example jobs; the "Why Apertus" box is in README and report; the spike
-result is in architecture §4.1; WP12a has shipped or been cut by D-N.
+result is in architecture §4.1; WP12a has shipped or been cut by D-N; the KESB
+decision runs as a decision job with the notice in the export and FACT-08 silent.
 
 #### WP16 - Credibility and positioning (GAP-08, -09, -11, -12, -13, -16)
 
@@ -1154,8 +1301,8 @@ guess.
 | UI in German and French | Labels and help texts in the writers' languages | The users are cantonal writers | 1-2 days |
 | Italian | Rules, prompts, calibration on Ticino pairs | National coverage; Apertus's languages | 1 week |
 | ZIX column | The Canton's index as an extra evaluation column, in the evaluation environment only (it loads pickled models and runs a pip fallback) | Speaks Zurich's language | 0.5 day |
-| Decision mode | For letters that go out with decisions (docs/use-case-decisions.md §7): a field for the person the letter speaks to, core questions for decisions, the operative part and the appeal instructions as must-keep facts, postal addresses as a value kind, the fixed notice in the export, judge checks for neutrality, advice and conditions | The strongest sovereignty case: KESB and courts | 2-3 days |
-| Planned fact checks | The rest of `docs/rules.md` "Planned fact checks": value kinds `quantity`, `schedule`, `medication` (`period`, `identifier` and `address` exist since 7 Oct), a Swiss postcode list for bare postcodes; checks `FACT-07` (fixed notice), `FACT-08` (operative part and appeal instructions kept), `FACT-09` (a medication in one block); judge questions `SEM-08` (modality, conditions), `SEM-09` (no advice, no evaluation), `SEM-10` (every period keeps its start) | The further use cases (`docs/use-cases.md` §12) | 3-4 days |
+| Decision mode, beyond v1 | WP15 builds v1 by G4 (mode flag, addressee, notice with FACT-07, protected segments with FACT-08, SEM-08 to SEM-10, form, CLI, example job). Later: whatever its cut order drops (French partial, code facts per operative item, the addressee in the judge, FACT-07), a document-type detector instead of the manual flag, an anonymisation step in front, decisions of social insurance offices and courts as further examples | The strongest sovereignty case: KESB and courts | 1-2 days |
+| Planned fact checks | The rest of `docs/rules.md` "Planned fact checks": the value kind `medication` (the five kinds of 7 Oct exist), a Swiss postcode list for bare postcodes; checks `FACT-07` (fixed notice), `FACT-08` (operative part and appeal instructions kept), `FACT-09` (a medication in one block); judge questions `SEM-08` (modality, conditions), `SEM-09` (no advice, no evaluation), `SEM-10` (every period keeps its start) | The further use cases (`docs/use-cases.md` §12) | 3-4 days |
 | Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, `FACT-09`, `SEM-08`, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
 | Helpers for received letters | Lease terminations and payment orders for tenants' associations, social services and debt counselling: WP12b with the period kind and the facts box (`docs/use-cases.md` §4, §6) | Reach; a 10- or 30-day period decides | with WP12b |
 | WP12b | The end-user letter mode | Reach | as in WP12 |
@@ -1173,10 +1320,10 @@ passed on 6 Oct).
 |------|-------|-------------------|
 | Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
 | Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14) | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
-| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; **prompt freeze 18:00**; final CSCS evaluation overnight | Final run started |
-| Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch) | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |
-| Sun 11 Oct | Example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims | Example jobs in the image |
-| Mon 12 Oct | `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard | **G4**: feature freeze, as before |
+| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); **prompt freeze 18:00**; final CSCS evaluation overnight | Final run started |
+| Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |
+| Sun 11 Oct | Example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS | Example jobs in the image |
+| Mon 12 Oct | `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G4**: feature freeze, as before; decision mode v1 in or cut per its order |
 | Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-G, D-L | All report tables filled |
 | Wed 14 Oct | Report draft, video recording, clean-checkout test on Linux and on Windows | **G5** as before, plus CI green on the final commit |
 | Thu 15 Oct | PDF, numbers audit again, repo public, awesome-apertus pull request prepared | **G6**, as before |
@@ -1235,6 +1382,12 @@ Apply in this order when a gate is missed:
 Mediopunkt by code (WP14) is not on this list: both parts go in before the freeze or
 both move to WP17 with a sentence in report §7. A checker change after the final run
 would make its numbers stale, and the rule change alone adds warnings nobody fixes.
+
+The decision mode (WP15, v1) has its own cut order inside its item: the French
+partial, the code facts per operative item, the addressee in the judge, FACT-07. The
+mode flag, FACT-08, the notice in the export and the KESB example as a decision job
+go together or not at all; its hooks before the freeze cost nothing and stay either
+way.
 
 Never cut:
 - `make run` from a clean checkout;

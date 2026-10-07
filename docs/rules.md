@@ -391,6 +391,14 @@ Zürich`) is not found, and Neuchâtel (2000) or Sion (1950) need their street o
 The calibration of the rules above is unchanged: no FACT rule runs on a text without its
 source.
 
+The kinds `quantity` and `schedule`, added the same day for patient letters, hardly
+touch the cantonal pages: six quantities in the 35 sources (temperatures and litres of
+water on two pages), no dosing scheme. The official versions keep one of the five on
+the eval pairs and add one (`3 Liter pro Person` for `9 Liter`), which moves the
+German eval mean from 69.2 to 65.9 percent because both pages have few hard facts (the
+count 191 to 195). `1000 IE` was read as a postcode and a place until quantities were
+taken before addresses; a known unit is never a place.
+
 ## Test plan for the checker
 
 - `tests/rules/golden_<lang>.yaml`: for every rule, 2-5 positive and 2-5 negative
