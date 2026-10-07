@@ -487,13 +487,83 @@ in the final version goes into one bucket.
 | x | asked for, answer not recorded | jobs run before the repair record existed (every run before 7 October 2026, night): b, c and d cannot be told apart for them |
 | e | background facts whose value is not in the final text | listed for reading, not counted: whether the reader needed a fact Understand or code completion marked droppable is a reading decision |
 
-The bucket table of the dev split goes here once the command has run on the machine
-that holds `eval/results-cscs` (the cloud session that built the tool has no stored
-results); the tool prints it ready to paste, and writes the details, which quote the
-pages, to a local file only. The fixes already in for the buckets the stored data can
-show without a record: the facts-only rounds (bucket a, the cap and the "no progress"
-stop) and the exact form in the request (bucket b); the record itself makes the next
-run's diagnosis exact.
+Run on the owner's machine on 7 October 2026 against `eval/results-cscs` (CSCS, 8B
+writer, 70B judge), first on the stored dev jobs of 6 October, then after the dev rerun
+with `--redo` under the code of 7 October (facts-only rounds, the exact form in the
+request, the repair record). The first run's rows are kept in `eval/results-cscs-v3`.
+
+| Bucket | Stored run of 6 Oct (12 jobs) | Rerun of 7 Oct (12 jobs) |
+|---|---|---|
+| Checkable must-keep facts | 102 | 122 |
+| Missing in the final versions | 50 (51 % found) | 16 (87 % found) |
+| a: never asked for, behind the cap of 5 per round | 10 | 2 |
+| a: never asked for, no repair round reached the final version | 30 | 9 |
+| a: never asked for, never flagged by FACT-01 | 0 | 0 |
+| b: written in a form FACT-01 rejects | 0 | 2 |
+| c: written, then dropped by code | 0 | 1 |
+| d: asked for, not written | 0 | 1 |
+| l: present once, lost in a later rewrite | 0 | 0 |
+| x: asked for, answer not recorded | 10 | 1 |
+| e: background facts whose value is not in the text (for reading) | 7 | 8 |
+| Facts without a value the judge calls missing or distorted | 23 | 6 |
+| Jobs with a record for every round into the final version | 3 of 12 | 11 of 12 |
+
+Reading it: four of five lost facts in the stored run were never asked for, most of
+them because no round that led to the final version asked for anything (the loop had
+stopped on "no progress" or a later version was not kept), the rest behind the cap.
+That is the bucket the facts-only rounds address, and the rerun shows it: 16 missing
+instead of 50, on more checkable facts (122 instead of 102, because the rerun's fact
+sheets were completed by the code of 7 October, which knows periods, identifiers and
+addresses; the Understand answers came from the cache). What is left is small and
+spread: 9 facts in jobs where no round reached the final version (the next reading
+decision: whether the final-version choice by blocking count throws a facts round's
+version away when the judge flags its new sentences), 2 behind the cap, 2 written in a
+form the matcher rejects, 1 dropped by code, 1 not written. The two French pairs were
+not rerun.
+
+The ablation on the 10 German dev pairs, the same cached Understand and Write answers
+on both sides (`eval/results-cscs` with the facts rounds, `eval/results-cscs-nofacts`
+with `MAX_FACTS_ROUNDS=0`, run in sequence):
+
+| Setup | Fact coverage | Hard facts kept | Silent losses | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 | Tokens / page | USD / page |
+|---|---|---|---|---|---|---|---|---|
+| P2, facts rounds on (default) | 75 % | 72 % | 5 % | 0.0 | 3.6 | 7.3 | 22,570 | 0.0121 |
+| P2, facts rounds off | 68 % | 65 % | 5 % | 0.0 | 4.3 | 8.2 | 19,197 | 0.0097 |
+| P0 (stored rows of 6 Oct) | 74 % | 83 % | - | 0.0 | - | 26.1 | 936 | 0.0001 |
+| Official easy-language version | - | 37 % | 63 % | 3.5 | - | 1.6 | - | - |
+
+The facts rounds add 7 points of fact coverage and 7 points of hard facts kept (on the
+9 fact-rich pairs 80 against 72 percent kept, 83 against 76 coverage) at about 3,400
+more tokens per page, with no invented value on either side and fewer judge findings
+and rule errors: the round's additions are clean. They stay on for the final run
+(decision D-Z). The "seconds per page" of the ablation's second side read 0.1 only
+because nearly every call came from the cache. Two things the run flagged: the P2 rows
+show 5 percent silent losses, where the report's note promises zero by design, so the
+code completion misses some hard value (the row's `silent_loss_kinds` names the kinds;
+to be read next); and two Write calls were cut off at 8,000 tokens on pages of 95 and
+88 sentences and written as halves, as designed.
+
+### Image input spike (CSCS, 8B, 7 October 2026): no-go at this setting
+
+`scripts/image_spike.py` on the two scanned letters of `data/examples/print/scans/`,
+long side 1,600 pixels, the 8B without thinking, temperature 0 (PLAN.md WP12, D-N):
+
+| Capture | Pages | Character error rate | Hard values found | Seconds |
+|---|---|---|---|---|
+| steuermahnung-brief_scan (German, 1 page) | 1 | 0.996 | 0 of 21 | 0.9 |
+| bourse-etudes-decision_scan (French, 2 pages) | 2 | 0.057 | 14 of 22 | 8.0 |
+
+The German page came back as `unlesbar` in four tokens: the model declined the page
+rather than misreading it, so every value of the tax reminder is lost (the IBAN, the
+amount, six dates, four times, two phone numbers, the percentage, the period, the
+address). The French letter was read, with 5.7 percent of the characters wrong, and the
+digits are where the errors sit: the AVS number `756.4719.2083.50` came back as
+`763.4713.2063.50`, the IBAN with wrong digits, the postcode 1999 as 1399, one payment
+date, the phone number, the e-mail and the web address are lost. The go/no-go rule of
+the plan says stop: an image ingest at this setting would feed the fact contract wrong
+numbers that look right. Open before the decision is final: the same pages at full
+resolution (2,480 pixels, `--max-side 2480`) and with the 70B (`--model
+swiss-ai/Apertus-v1.5-70B`), one run each; the script takes both switches.
 
 ## Change log
 
@@ -511,4 +581,4 @@ run's diagnosis exact.
 | 6 | 2026-10-06 | No template change. Code: the Mediopunkt is written by code after the write stage and after every repair round, in P1 and P2 (`rules/mediopunkt.py`, docs/rules.md "Edits made by code"), and LEX-01 no longer exempts a compound because it is in the glossary. Reason: in the owner's first CSCS job through the web UI the 8B kept `Krankenversicherungspolice` and `Sozialversicherungsstelle` unsplit through two repair rounds. The repair prompt therefore no longer carries LEX-01 lines for compound nouns. Rescored without model calls on the final drafts already in the CSCS store (97 German P1 and P2 jobs, 3453 blocks): LEX-01 warnings per 100 blocks fall from 39.1 to 3.0 (P1, 8B), 31.9 to 3.1 (P2, 8B) and 27.0 to 2.2 (P2, 70B), all warnings per 100 blocks from 77.9 to 42.0, 66.7 to 38.0 and 53.8 to 29.3; 30 to 41 words per 100 blocks get the dot, 157 of the 1177 in glossary terms. Reading splits by hand found two wrong joints in the first 25: `Ostermundi·gens·trasse`, fixed in the splitter (a nested split now counts by its weakest part, giving `Ostermundigen·strasse`) and by leaving the word in front of a house number alone; and `Kostengut·sprache` for `Kosten·gutsprache`, which stays, because the splitter does not know the Swiss term. The next 25 had none. What the step saves in repair rounds shows only in the next `--redo` rerun on CSCS, which is still open. |
 | 6 | 2026-10-06 | No template change. Code: the compound splitter treats the feminine ending `-innen` as an ending (`Sozial·arbeiterinnen`, never `Schweizer·innen`), and the evaluation counts the splits of earlier rounds that the final version keeps. The dev rerun on CSCS with and without the step is in "Mediopunkt by code" above: LEX-01 from 35 to 5 warnings per 100 blocks, no repair round saved, no fact lost. |
 | 7 | 2026-10-07 | Judge prompt (German and French): one more rule, SEM-08, an obligation, a possibility or a condition that changed (`müssen` to `können`, a `wenn` written as `vielleicht`); the judge filter accepts it (decision D-P, PLAN.md WP15 piece 4). All four standard templates in both languages get one line, `{% if mode is defined and mode == "decision" %}{% include "<lang>/decision.md" %}{% endif %}`, which renders to nothing for a standard job (same prompt text, same cache key; the template hash changes once) and pulls in the stage's section of the new partial `decision.md` for a job in the decision mode (docs/use-case-decisions.md; first draft, free to change after the freeze). |
-| 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Numbers from the dev rerun follow. |
+| 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
