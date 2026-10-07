@@ -4,7 +4,9 @@ Status: overview, 6 October 2026. The first two use cases are described step by 
 in their own documents, [use-case-canton.md](use-case-canton.md) and
 [use-case-decisions.md](use-case-decisions.md). The others are sketched here: what the
 document is, which facts must survive, who reviews, and what the checker still needs.
-The planned checks they rely on are specified in
+The value kinds `period`, `identifier` and `address` they share exist since 7 October
+2026 ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"); the
+remaining checks are specified in
 [rules.md](rules.md#planned-fact-checks-not-implemented). Companion to
 [architecture.md](architecture.md).
 
@@ -65,9 +67,9 @@ The tool is used in one of two ways:
 - **Sovereignty.** Health data are particularly sensitive; the letter stays on the
   hospital's infrastructure. A medical Apertus model exists for the judge:
   Apertus-70B-MeditronFO (EPFL).
-- **Works today.** Dates and phone numbers are checked; the judge looks for invented
-  statements.
-- **Needs.** The value kinds `quantity`, `schedule`, `medication` and `period`; the
+- **Works today.** Dates, phone numbers and periods (how long to take a drug, when to
+  come back) are checked; the judge looks for invented statements.
+- **Needs.** The value kinds `quantity`, `schedule` and `medication`; the
   check `FACT-09` (a drug's name, dose and scheme in one block); the judge question
   `SEM-08` (an instruction stays an instruction, a recommendation a recommendation); a
   medical judge model.
@@ -93,8 +95,10 @@ The tool is used in one of two ways:
   cooperative landlords who want their tenants to understand.
 - **Mode.** Mostly a received letter (the helper uploads it), or the writer workflow
   at a cooperative or a city's housing department.
-- **Needs.** The value kinds `period` and `address`; the received-letter mode; the
-  judge question `SEM-10` (every period keeps its start).
+- **Works today.** The 30-day period, the date the lease ends, the conciliation
+  authority's address and the rent amounts are checked facts.
+- **Needs.** The received-letter mode; the judge question `SEM-10` (every period
+  keeps its start).
 - **Limits.** No legal advice: whether to contest is a question for the tenants'
   association, not for the letter.
 
@@ -114,8 +118,10 @@ The tool is used in one of two ways:
   easy-language letter with it, as in use case 2.
 - **Sovereignty.** Data on criminal proceedings and sanctions are particularly
   sensitive.
-- **Needs.** The decision mode of use case 2; the value kinds `period`, `identifier`
-  and `address`; the judge questions `SEM-09` (neutral, no advice) and `SEM-10`.
+- **Works today.** The sanction's amounts, the 10-day period, the case number and the
+  address to object to are checked facts.
+- **Needs.** The decision mode of use case 2; the judge questions `SEM-09` (neutral,
+  no advice) and `SEM-10`.
 - **Limits.** As for all decisions: the order prevails, and whether to object is legal
   advice the letter does not give.
 
@@ -131,8 +137,9 @@ The tool is used in one of two ways:
   number.
 - **Reviewer.** The debt collection office, which can hand out an easy-language sheet
   with the case's values; or a debt counselling service for an order a client brings.
-- **Needs.** The value kinds `period`, `identifier` and `address`; the decision mode or
-  the received-letter mode.
+- **Works today.** The claimed amount, the 10-day period, the case number and the
+  office's address are checked facts.
+- **Needs.** The decision mode or the received-letter mode.
 - **Limits.** The payment order does not say whether the claim is justified, and
   neither may the letter.
 
@@ -148,7 +155,8 @@ The tool is used in one of two ways:
 - **Reviewer.** The case worker who wrote the decision: the workflows of use cases 1
   and 2 apply directly.
 - **Sovereignty.** Data on social assistance are particularly sensitive.
-- **Needs.** The value kinds `period` and `identifier`; the decision mode.
+- **Works today.** Amounts, dates, periods and the case number are checked facts.
+- **Needs.** The decision mode.
 
 ## 8. School and special-education decisions
 
@@ -159,7 +167,9 @@ The tool is used in one of two ways:
 - **Facts that must survive exactly.** The measure and its start, the school and
   contacts, the appeal period and the appeal authority.
 - **Reviewer.** The school administration or the school psychology service.
-- **Needs.** The decision mode; the value kinds `period` and `address`.
+- **Works today.** The start of the measure, the appeal period and the appeal
+  authority's address are checked facts.
+- **Needs.** The decision mode.
 
 ## 9. Information for study participants
 
@@ -172,8 +182,10 @@ The tool is used in one of two ways:
   reasons, risks and burdens, the number and length of visits, compensation,
   insurance, contacts.
 - **Reviewer.** The study team; the ethics committee approves the final text.
-- **Needs.** The value kinds `period` and `quantity`; the judge question `SEM-08` (a
-  right stays a right, a risk is not softened).
+- **Works today.** The number and length of visits (periods), compensation and
+  contacts are checked facts.
+- **Needs.** The value kind `quantity`; the judge question `SEM-08` (a right stays a
+  right, a risk is not softened).
 - **Limits.** The easy version supplements the approved information and needs the
   ethics committee's approval like any other document for participants.
 
@@ -187,7 +199,8 @@ The tool is used in one of two ways:
   and Leicht·Facile does not translate ([architecture.md §1](architecture.md#1-what-it-is),
   non-goals). An easy version still helps readers who know some German or French, and
   interpreters can work from it.
-- **Needs.** The value kind `period` with working days; the decision mode.
+- **Works today.** Periods are checked facts, and working days never pass as days.
+- **Needs.** The decision mode.
 
 ## 11. Letters of insurers, pension funds and utilities
 
@@ -201,9 +214,9 @@ The tool is used in one of two ways:
 
 | Need | Use cases | Specified in |
 |------|-----------|--------------|
-| Periods as a checked value kind | 2, 4-8, 10 | [rules.md](rules.md#planned-fact-checks-not-implemented): `period` |
-| Identifiers (case and reference numbers, AHV number, IBAN) | 2, 5-7 | rules.md: `identifier` (PLAN.md WP14) |
-| Postal addresses (where to appeal or object) | 2, 4-6, 8, 10 | rules.md: `address` |
+| Periods as a checked value kind | 2, 4-8, 10 | Built 7 October 2026: [rules.md](rules.md#facts-the-most-important-family), `period` |
+| Identifiers (case and reference numbers, AHV number, IBAN) | 2, 5-7 | Built 7 October 2026: rules.md, `identifier` |
+| Postal addresses (where to appeal or object) | 2, 4-6, 8, 10 | Built 7 October 2026: rules.md, `address` |
 | Doses, dosing schemes, drug names | 3, 9 | rules.md: `quantity`, `schedule`, `medication`, `FACT-09` |
 | The decision mode: addressed person, fixed notice, operative part and appeal instructions kept | 2, 5-8, 10 | [use-case-decisions.md §7](use-case-decisions.md#7-what-works-today-and-what-is-planned); rules.md: `FACT-07`, `FACT-08` |
 | The received-letter mode | 4, 6 | PLAN.md WP12b |

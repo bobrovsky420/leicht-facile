@@ -100,12 +100,32 @@ sentence limits follow from the calibration on the official French pages (below)
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| FACT-01 | Every `must_keep` fact with a normalised value appears in the draft | for each fact: render accepted surface forms of `value_norm` (dates in the required format and common variants, amounts with and without separators, phone digits with any spacing, URLs and e-mail case-insensitive) and search the draft text | error |
+| FACT-01 | Every `must_keep` fact with a normalised value appears in the draft | for each fact: render accepted surface forms of `value_norm` (dates in the required format and common variants, amounts with and without separators, phone digits with any spacing, URLs and e-mail case-insensitive, periods in any inflection or as number words with `2 Wochen` equal to `14 Tage`, identifiers without spaces, addresses by postcode and place plus the street and Postfach the fact has; see "Value kinds" below) and search the draft text; the suggestion is the exact string | error |
 | FACT-02 | Every `must_keep` fact is referenced by at least one block | `fact_ids` across blocks ⊇ must-keep ids | error |
 | FACT-03 | No block without provenance | every non-heading block has ≥ 1 `segment_id` that exists in the source | error |
 | FACT-04 | Omissions are explained | every source segment not referenced by any block is either listed in `omissions[]` or in the fact sheet's `omit_candidates[]` | warn |
 | FACT-05 | Fact sheet values appear in the source | for each fact with a normalised value: the value is found in the cited source segments; a value found elsewhere in the source, or nowhere, means the fact sheet itself may be wrong (checked on the fact sheet, before writing) | warn |
-| FACT-06 | Every value in the draft appears in the source | the mirror of FACT-01: for each date, amount, phone number, e-mail address, web address, percentage and time found in a draft block, the value (in any accepted surface form) is found in the source text or is a normalised fact-sheet value; a shortened web address that is a prefix of a source address passes, as does a full hour the source writes as a plain number (`8-12 Uhr`); plain numbers are not checked (`zwei Wochen` may become `14 Tage`); for a phone number, e-mail or web address the suggestion names the source's only one, if it has exactly one (never for dates and amounts: the only date in a document may be a law's) | error |
+| FACT-06 | Every value in the draft appears in the source | the mirror of FACT-01: for each date, amount, phone number, e-mail address, web address, percentage, time, period, identifier and postal address found in a draft block, the value (in any accepted surface form) is found in the source text or is a normalised fact-sheet value; a shortened web address that is a prefix of a source address passes, as does a full hour the source writes as a plain number (`8-12 Uhr`) and a period the source writes as a plain number; plain numbers are not checked (`zwei Wochen` may become `14 Tage`: the periods are equal); for a phone number, e-mail, web address, identifier or postal address the suggestion names the source's only one, if it has exactly one (never for dates, amounts and periods: the only date in a document may be a law's) | error |
+
+The value kinds (`rules/values.py`). Every kind feeds the code completion of the fact
+sheet, FACT-01, FACT-05, FACT-06 and "hard facts kept" in the evaluation. Plain
+numbers are extracted but not checked. The kinds `period`, `identifier` and `address`
+were added on 7 October 2026 for the decisions use case and the further use cases
+([use-cases.md §12](use-cases.md#12-what-the-further-use-cases-need)); the model is
+not told about them, code finds them in the source and parses what the model writes
+as a value.
+
+| Kind | Found as | Canonical form and matching |
+|------|----------|-----------------------------|
+| `date` | `31. März 2026`, `31.3.2026`, `2026-03-31`, `31. März`, `31. Jan. 2026` | ISO date; a date without a year matches the same day and month |
+| `amount` | `CHF 1'500.-`, `1 500 Franken`, `Fr. 20.50`, `20.-` | decimal number; an amount matches a plain number with the same value |
+| `phone` | `044 123 45 67`, `+41 44 123 45 67`, `0041 44 123 45 67`, `0800 123 456` | digits only |
+| `email`, `url` | as written, with or without `https://` and `www.` | lowercase; a shortened web address that is a prefix of a source address passes FACT-06 |
+| `percent` | `10 %`, `10 Prozent`, `10 pour cent` | the number |
+| `time` | `9.00 Uhr`, `09:00`, `9 Uhr`, `9 h 00`, `8.30 bis 11.30 Uhr` | HH:MM |
+| `period` | a count in digits or as a number word with days, working days, weeks, months or years in any inflection, also as an adjective: `innert 30 Tagen`, `dreissig Tage`, `30-tägige Frist`, `zwei Wochen`, `ein Jahr`, `5 Arbeitstage`; French `jours`, `jours ouvrables`, `semaines`, `mois`, `ans`; Italian `giorni`, `settimane`, `mesi`, `anni`; ages (`ab 18 Jahren`) are periods too; not an ordinal (`am 3. Tag`) and not a unit without a count (`pro Tag`) | count and unit as written (`30d`, `2w`, `1y`, `5wd`); weeks match days (`2 Wochen` equals `14 Tage`) and years match months, working days match only working days; a period also matches its bare count (`Kinder bis 16 Jahre` survives as `Kinder unter 16`, and a fact the model gave as `30` is found in `30 Tage`) |
+| `identifier` | AHV number (`756.1234.5678.97`, spaced or as 13 digits); IBAN and QR-IBAN (`CH`, two check digits and 17 characters, any spacing); postal account (`80-151-4`); UID (`CHE-123.456.789`); a code with a digit after a keyword: `Referenz`, `Dossier`, `Aktenzeichen`, compounds with `-nummer` (`Geschäftsnummer`, `Kundennummer`, `Versichertennummer`, `Policennummer`), `Verfügung Nr.`, `Fall Nr.`; French `référence`, `dossier`, `n° de client`; Italian `riferimento`, `incarto`; a keyword split by code (`Geschäfts·nummer`) and a few small words in between (`Die Nummer von Ihrem Dossier ist 2026-0042`) are allowed; a fact-sheet value that is a bare code (`2026-0042`, `K-4711`) is an identifier too | IBAN and AHV number without spaces, everything else exactly after whitespace normalisation, no checksum test (letters carry specimen numbers; decision D-O); a digits-only identifier also matches the number without its keyword (`Dossier 12345` survives as `Ihre Nummer: 12345`); a form number (`Formular 5100`), a count after a common word (`in diesem Fall 300 Franken`) and a one- or two-digit number after a bare keyword are no identifiers |
+| `address` | street and house number (a street word at the end: `-strasse`, `-str.`, `-weg`, `-gasse`, `-platz`, `-quai`, ...; French and Italian `Rue`, `Avenue`, `Chemin`, `Route`, `Place`, `Via`, `Piazza`, ...; a short adjective in front such as `Untere Zollgasse`, never the town or office in front of the street), `Postfach` / `Case postale` with or without a number, and a four-digit postcode followed by a place name (`Gerichtsstrasse 12, Postfach, 8000 Musterwil`, also over several lines and with `CH-`); a postcode and place alone count only after a line start, a comma or a colon and before a boundary, never in 1900-2099 without a street or `CH-` (a year and a noun), never a count (`1500 Personen`, `6000 Stimmberechtigte`) or a caption | `street number\|Postfach\|postcode place` with `str.` written out and the Mediopunkt removed; postcode and place must agree (case-insensitive), the street and the Postfach only when the fact has them: an address without its street is a loss (FACT-01), a street the source lacks an invention (FACT-06) |
 
 ### Layout (checked on export)
 
@@ -219,17 +239,12 @@ family's table above, with golden tests, and loses the backticks.
 
 Value kinds feed the code completion of the fact sheet, FACT-01 (every must-keep value
 is in the draft), FACT-05 (fact-sheet values are in the source), FACT-06 (no value in
-the draft that the source lacks) and "hard facts kept" in the evaluation. Today the
-checked kinds are dates, amounts, phone numbers, e-mail and web addresses, percentages
-and times (`rules/values.py`). Plain numbers are extracted but not checked, so a
-period such as `innert 30 Tagen` is checked only when the fact sheet happens to carry
-it as a value, and a period the draft invents is never flagged.
+the draft that the source lacks) and "hard facts kept" in the evaluation. The checked
+kinds are listed under "Facts" above (`rules/values.py`); `period`, `identifier` and
+`address` moved there on 7 October 2026. Plain numbers are extracted but not checked.
 
 | Kind | What is extracted | Canonical form and matching | Use cases |
 |------|-------------------|-----------------------------|-----------|
-| `period` | a number, in digits or as a number word, with `Tag`, `Arbeitstag`, `Werktag`, `Woche`, `Monat` or `Jahr` in any inflection (`innert 10 Tagen`, `dreissig Tage`, `zwei Wochen`); French `jour`, `jour ouvrable`, `semaine`, `mois`, `an`, `année`; Italian `giorno`, `giorno lavorativo`, `settimana`, `mese`, `anno` | days for days and weeks (`2 Wochen` equals `14 Tage`, as FACT-06 already allows), months for months and years (`1 Jahr` equals `12 Monate`), working days on their own (`5 Arbeitstage` never equals `5 Tage`); a match needs the same count and unit | 2, 4-8, 10 |
-| `identifier` | AHV number (`756.dddd.dddd.dd`); IBAN and QR-IBAN (`CH`, two check digits and 17 more characters, any spacing); postal account (`dd-d…-d`, one to six digits in the middle); UID (`CHE-ddd.ddd.ddd`); a reference after a keyword (`Referenz`, `Geschäftsnummer`, `Dossier`, `Fall`, `Verfügung Nr.`; French `référence`, `dossier`, `n° AVS`) | IBAN and AHV number compared without spaces, everything else exactly after whitespace normalisation; no checksum test, since letters carry specimen numbers (PLAN.md, D-O) | 2, 5-7 |
-| `address` | a Swiss postal address: street and number, `Postfach` with or without a number, and a four-digit postcode followed by a place name | postcode and place exactly (case-insensitive); street, number and `Postfach` exactly when the fact has them; a year followed by a capitalised word is not a postcode | 2, 4-6, 8, 10 |
 | `quantity` | a number with a unit: `mg`, `µg`, `g`, `kg`, `ml`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l` | decimal comma and point equal (`2,5 mg` equals `2.5 mg`), a unit's name equal to its symbol (`Milligramm` equals `mg`); a match needs the same number and unit | 3, 9 |
 | `schedule` | a dosing scheme of three or four parts (`1-0-1`, `1-0-0-1`, `½-0-½`) | exactly, part by part | 3 |
 | `medication` | not extracted by code (there is no drug list yet); the fact sheet gives the name as `value_norm` for facts of kind `medication` | the name exactly, case-insensitive, ignoring the Mediopunkt | 3 |
@@ -348,11 +363,42 @@ What the calibration changed, and why:
 - GRAM-05-FR: `votation` is everyday Swiss French, `ambulance` a concrete thing.
 - NUM-04-FR: `8h` and `16h30`, as the Geneva pages write them, are a note.
 
+### The value kinds of 7 October on the official texts
+
+The kinds `period`, `identifier` and `address` change what counts as a hard fact, so
+the check for false positives is the REF row of the evaluation (the official
+easy-language version scored against its original), recomputed with `eval reference`
+on 7 October 2026 and read value by value:
+
+| Rows | Hard facts in the source | Kept by the official version | Values the official version adds, per 100 blocks |
+|------|--------------------------|------------------------------|--------------------------------------------------|
+| 20 German eval pairs | 138 to 191 | 70.3 to 69.2 percent | 2.15 to 2.66 |
+| 3 French eval pairs | 40 to 46 | 59.5 to 53.2 percent | 0.51 to 0.76 |
+| 10 German dev pairs | 94 to 119 | 42.7 to 36.7 percent | 3.21 to 3.54 |
+
+Over the 35 pairs the new kinds add 90 values to the sources (periods and addresses
+mostly, one business number), the official versions leave 51 of them out and add 17 of
+their own: the same picture as for dates and amounts. Reading the values found three
+defects, fixed the same day: `9001 St.Gallen` (no space after `St.` on the sg pages)
+gave the place `St`; a town or office in front of the street was taken into it (`Biel
+Bahnhofsplatz 2D`), so a draft's `Bahnhofsplatz 2D, 2502 Biel` would have counted as a
+lost street; and a count or a caption after a four-digit number became a place (`6000
+Stimmberechtigte`, `Case postale 1555 Photos`). What stays, by design: ages are periods
+(a page that portrays nine people with their ages gets nine must-keep facts unless the
+model marks the passages droppable), a postcode and place in running text (`in 8000
+Zürich`) is not found, and Neuchâtel (2000) or Sion (1950) need their street or `CH-`.
+The calibration of the rules above is unchanged: no FACT rule runs on a text without its
+source.
+
 ## Test plan for the checker
 
 - `tests/rules/golden_<lang>.yaml`: for every rule, 2-5 positive and 2-5 negative
   sentences, including sentences from real cantonal easy-language pages that must
   pass with no `error`.
+- `tests/rules/test_value_kinds.py`: the kinds `period`, `identifier` and `address`,
+  what is and is not one of them, how they match (`2 Wochen` and `14 Tage`, working
+  days, an address with and without its street), and FACT-01, FACT-06 and the code
+  completion on a synthetic decision of a child and adult protection authority.
 - The official easy-language pages in the evaluation set serve as a sanity check: the
   checker's error rate on professionally written Leichte Sprache should be near zero;
   any error it raises there is either a genuine deviation or a false positive to fix.

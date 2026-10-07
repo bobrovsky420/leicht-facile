@@ -65,9 +65,10 @@ Second user, partly planned ([use-case-decisions.md](use-case-decisions.md)): th
 worker of a child and adult protection authority (KESB), or a court clerk, who drafted
 a decision and reviews an easy-language letter that goes out together with it. The
 workflow is the same. The review is mandatory, and the decision stays the only legally
-binding text. Not built yet: a field for the person the letter speaks to; identifiers
-and postal addresses as exact facts; a document type "decision" whose operative part
-and appeal instructions are must-keep facts; a fixed notice in the export that the
+binding text. The appeal period, the case number, the AHV number and the court's
+postal address are exact facts since 7 October 2026 (§4.4). Not built yet: a field for
+the person the letter speaks to; a document type "decision" whose operative part and
+appeal instructions are must-keep facts; a fixed notice in the export that the
 decision prevails; judge checks for neutrality and advice.
 
 Further users, sketched in [use-cases.md](use-cases.md): physicians (patient letters),
@@ -180,8 +181,9 @@ artifact, because every later step is checked against it.
   not answer it (the writer must then not invent one).
 - `facts[]`: every fact that must survive, typed (`deadline`, `amount`, `obligation`,
   `right`, `condition`, `contact`, `procedure`, `definition`, `other`), with a
-  normalised value where applicable (ISO date, decimal CHF, digits-only phone), the
-  segment ids it comes from, and `must_keep` true/false.
+  normalised value where applicable (ISO date, decimal CHF, digits-only phone; a
+  period in words, an identifier or a postal address as written), the segment ids it
+  comes from, and `must_keep` true/false.
 - `hard_terms[]`: difficult words with a plain explanation, for the glossary.
 - `omit_candidates[]`: passages the model considers droppable, with reasons - the
   reviewer sees these.
@@ -192,8 +194,10 @@ with a third of the 8B's reasoning, but the 8B writer then kept fewer of them
 (docs/prompts.md). Output is JSON; see §6 for how JSON is enforced.
 
 **Code completes the fact sheet.** After the call, code adds a fact for every date,
-amount, phone number, e-mail address, web address, percentage and time in the source
-that no fact carries (`origin: code`). Values in passages the model marked as
+amount, phone number, e-mail address, web address, percentage, time, period (`innert
+30 Tagen`), identifier (case number, AHV number, IBAN) and postal address in the source
+that no fact carries (`origin: code`; the value kinds are listed in
+[rules.md](rules.md#facts-the-most-important-family)). Values in passages the model marked as
 droppable become background facts; all others must be kept. The first local test run
 showed why: the model listed 3 facts for a letter with 11 checkable values.
 
@@ -265,17 +269,27 @@ score, share of passive sentences, …). The full catalogue is in
 - the fact sheet itself: a value the model wrote into the fact sheet must appear in the
   source sentences it cites (FACT-05);
 - the draft's values: every date, amount, phone number, e-mail and web address,
-  percentage and time in the draft must occur in the source (FACT-06, the mirror of
-  fact coverage). A value the model invented or copied from the prompt's examples is
-  an error and goes to repair; for a phone number, e-mail or web address the source's
-  only one is suggested, if it has exactly one. On the 12 dev pairs of 6 October the
-  rule found the examples' phone numbers in 8 final drafts, the examples' amount and
-  date in 3, and an e-mail address with a dropped letter; the P0 drafts had none.
-- planned, not built: periods (`innert 30 Tagen`), identifiers, postal addresses,
-  doses and dosing schemes as checked value kinds, plus checks for the fixed notice,
-  the operative part and appeal instructions, and medications, and three more
-  questions for the judge ([rules.md](rules.md#planned-fact-checks-not-implemented)).
-  Today a period is checked only when the fact sheet carries it as a value.
+  percentage, time, period, identifier and postal address in the draft must occur in
+  the source (FACT-06, the mirror of fact coverage). A value the model invented or
+  copied from the prompt's examples is an error and goes to repair; for a phone
+  number, e-mail, web address, identifier or address the source's only one is
+  suggested, if it has exactly one. On the 12 dev pairs of 6 October the rule found
+  the examples' phone numbers in 8 final drafts, the examples' amount and date in 3,
+  and an e-mail address with a dropped letter; the P0 drafts had none.
+- the value kinds of 7 October: a period (`innert 30 Tagen`, `zwei Wochen`, `30-tägige
+  Frist`; `2 Wochen` equals `14 Tage`, working days equal nothing else), an identifier
+  (AHV number, IBAN, postal account, UID, a reference after `Referenz`, `Dossier`,
+  `Geschäftsnummer`, `Verfügung Nr.` and the like, compared without spaces) and a
+  postal address (street and number, Postfach, postcode and place; an address that
+  lost its street is a loss, a street the source lacks an invention) are hard facts
+  like a date: code completion, FACT-01, FACT-05, FACT-06 and "hard facts kept" treat
+  them the same way ([rules.md](rules.md#facts-the-most-important-family), "Value
+  kinds"). Every further use case turns on one of them
+  ([use-cases.md §12](use-cases.md#12-what-the-further-use-cases-need)).
+- planned, not built: doses and dosing schemes as checked value kinds, plus checks for
+  the fixed notice, the operative part and appeal instructions, and medications, and
+  three more questions for the judge
+  ([rules.md](rules.md#planned-fact-checks-not-implemented)).
 
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that
@@ -715,14 +729,14 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
-| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages and times in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
+| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages, times, periods, identifiers and postal addresses in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
 | Compounds split by code | Words that got their Mediopunkt from code in the final version, after the write stage or in any repair round, per 100 blocks (P1 and P2) | The cheap, deterministic part of the LEX gain, kept apart from the model's |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
-| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages and times found in the output (exact, code, no model) | A fact measure that does not depend on any model, comparable with the official version |
+| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers and postal addresses found in the output (exact, code, no model; the last three since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 191) | A fact measure that does not depend on any model, comparable with the official version |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).

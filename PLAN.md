@@ -97,7 +97,9 @@ Local environment facts:
 - Documented 6 Oct (night; cloud session, 2): the further use cases
   (`docs/use-cases.md`) and the planned fact checks they need (`docs/rules.md`,
   "Planned fact checks"). Only the period value kind is a candidate before the freeze
-  (WP14, D-U); everything else is WP17.
+  (WP14, D-U); everything else is WP17. *Done 7 Oct: the value kinds `period`,
+  `identifier` and `address` (WP14), a day before their slot; the decision mode and
+  the rest stay WP17.*
 
 ## 3. Work packages
 
@@ -575,13 +577,13 @@ comparison, the report, the video.
 | D-L | Name Zurich in the video | Report: yes, with credit, link and licence. Video: only in case A of §13.4; otherwise "a strong single prompt". | 13 Oct |
 | D-M | Headline metric and sentence | The rules of §13.4, applied to the final CSCS numbers, no debate. | 10 Oct (G3) |
 | D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. | 8 Oct |
-| D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. | 8 Oct |
+| D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. | 9 Oct |
 | D-Q | Outreach | Mail A to Zurich's Team Data, mail B to one easy-language office (§13.7). Only synthetic letters and their outputs leave the team. Answers by 12 Oct; no second round. | 7 Oct |
 | D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of §13.4). | 10 Oct |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
 | D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. | 8 Oct |
-| D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §12). Otherwise WP17, with one sentence in report §7. | 8 Oct |
+| D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §12). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
 
 ## 9. Judging criteria → evidence we must produce
 
@@ -636,6 +638,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-06 (night, 6): Mediopunkt by code finished. P2 on the 10 German dev pairs on CSCS without the step (no-op, `eval/results-cscs-nomp`) and then with it (`eval/results-cscs`, `--redo`; the rows before it kept in `eval/results-cscs-v2`), the second run replaying the first's Understand and Write answers from the cache (run in sequence: in parallel, cache misses give the two sides different drafts). Over the 8 like-for-like pairs: LEX-01 35 to 5 warnings per 100 blocks, all warnings 79 to 51, errors unchanged, no fact lost (the split leaves coverage and values identical on every first draft). No repair round saved, and none can be: no job on either side reached zero blocking problems, so the warnings round never runs; 15 of 16 jobs stopped on "no progress" with facts and judge findings left, which is the fact-retention diagnosis's question. Fixed on the way: the eval counted only the final version's own splits (10 instead of 33.6 per 100 blocks), now every round's splits still in the text (`kept_code_splits`); the splitter cut the feminine ending (`Schweizer·innen`, `Assistent·innen`), now `-innen` stays on its stem and a word long only by its ending is not split. 3 wrong joints stay (`Kostengut·sprache`, `Kostenvoran·schlag`, `Leistungser·bringende`). The full dev split with the step: 10 of 10 pairs to review, 58 percent fact coverage, 63 percent hard facts. 868 tests. Next: the fact-retention diagnosis on these dev drafts.
 - 2026-10-06 (night; cloud session): second use case documented: easy-language letters that go out together with decisions of child and adult protection authorities (KESB) and courts, the strongest sovereignty case (`docs/use-case-decisions.md`, partly planned, with what works today and what does not), with references in README (intro, docs list), architecture (companions, §2 second user, §10 privacy), report §8, sources §3 (a published anonymised decision, a team-written KESB decision), demo-video §4 and the canton use case. Docs only, no rule or code change; rules.md and hard-texts.md untouched (tests parse them). Not committed: delivered to the owner as a patch, checked to apply cleanly on `origin/main` at `0fdb3b7`. Plan: GAP-20, D-T (a KESB decision as the WP15 letter), one published decision as a test on 8 Oct, D-I to revisit, decision mode in WP17.
 - 2026-10-06 (night; cloud session, 2): further use cases documented in `docs/use-cases.md`: an overview of all eleven and sketches of nine (patient letters, lease terminations and rent increases, penal orders, payment orders, social assistance and social insurance decisions, school decisions, information for study participants, migration decisions, private-sector letters), each with the facts that must survive, the reviewer and what the checker still needs; the legal periods checked against the law (OR 266l, 269d, 270b, 273; StPO 354; SchKG 74; HRA 16). Planned fact checks specified in `docs/rules.md` ("Planned fact checks (not implemented)"): value kinds `period`, `identifier`, `address`, `quantity`, `schedule`, `medication`; checks `FACT-07` to `FACT-09`; judge questions `SEM-08` to `SEM-10`; ids in backticks so the registry test does not expect them in code. Found and corrected: a period such as `innert 30 Tagen` is not a checked value kind (`rules/values.py`), so step 4 of `docs/use-case-decisions.md` overclaimed; fixed there and stated in architecture §4.4. References in README (intro, docs list), architecture (companions, §2 further users, §4.4), report §8 and both use-case documents. The decisions use case (`acab7a9`) is on `main` as pushed, with this environment's SSH signature. Plan: GAP-21, GAP-22, D-U, the period kind in WP14, rows in WP17, Thu 8 Oct. Docs and plan only, no code: 870 tests pass and ruff is clean (Python 3.13 in the cloud session). Not committed.
+- 2026-10-07: the fact contract gets the value kinds `period`, `identifier` and `address` (WP14; GAP-04 and GAP-22 closed; D-O and D-U decided), in `rules/values.py` and from there in the code completion of the fact sheet (value_norm `30 Tage`, `2026-0042`, `Gerichtsstrasse 12, 8000 Musterwil`, fact kind deadline for a period with a deadline word), FACT-01 (the exact string as suggestion), FACT-05, FACT-06 (new messages and German translations; the source's only identifier or address as suggestion), the repair request and "hard facts kept". Periods: digits, number words and adjectives in DE/FR/IT, canonical count and unit as written, weeks equal days and years months, working days only themselves, a period equals its bare count. Identifiers: AHV, IBAN, postal account, UID, a code after a keyword (compounds with -nummer, `Verfügung Nr.`, French and Italian forms), also with a Mediopunkt in the keyword and a few words in between; a bare code in a fact sheet. Addresses: street and number with a street word, Postfach, postcode and place, over lines; a bare postcode and place only after a boundary, never a year or a count. `tests/rules/test_value_kinds.py` (86 tests, a synthetic KESB decision); 956 tests, ruff clean; no prompt change. REF rows of `eval/results-cscs` recomputed and read value by value (rules.md, "The value kinds of 7 October on the official texts"): hard facts on the 20 German eval pairs 138 to 191, REF keeps 69 instead of 70 percent, three defects found and fixed (`St.Gallen`, a town taken into the street, a count as a place). `eval/report.md` untouched: the P0 to P2 rows carry the old definition until the Friday rerun with `--redo`. Docs: rules.md ("Value kinds" table, planned section shortened, calibration note, test plan), architecture §2, §4.2, §4.4, §9, prompts.md, report §5 and §8, both use-case documents. Next: the WP13 diagnosis, then the KESB decision letter (D-T) through P2 with the new facts.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -728,7 +731,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-01 | No headline number: P2 against P0 on CSCS still pending | `eval/report.md` holds SOURCE, REF and P0 (Public AI, 10 pairs) only | All | WP13 | Must |
 | GAP-02 | P0 is a one-sentence prompt; a juror can call it a strawman | `llm/prompts/de/baseline.md` | Rigour, purposeful AI | WP13 (P0-ZH) | Must |
 | GAP-03 | P2 may keep fewer facts than P0 | P0, eval, Public AI: 83 % fact coverage, 90 % hard facts kept. P2, dev, CSCS with guard: 61 % fact coverage. Repair "no progress" on 9 of 12 dev pairs (Public AI). Different splits and endpoints, but the risk is real | Rigour, value | WP13 | Must |
-| GAP-04 | Identifiers are outside the fact contract: a lost reference or AHV number is a silent loss | `HARD_KINDS` = date, amount, phone, email, url, percent, time (`rules/values.py:19`) | Rigour, sovereignty story | WP14 | Must |
+| GAP-04 | Identifiers are outside the fact contract: a lost reference or AHV number is a silent loss | `HARD_KINDS` = date, amount, phone, email, url, percent, time (`rules/values.py:19`) | Rigour, sovereignty story | WP14; *closed 7 Oct: `identifier` in `HARD_KINDS`* | Must |
 | GAP-05 | Repair gets no concrete recipe for subordinate clauses | LEN-02 carries no suggestion; Zurich's prompt has a recipe per conjunction | Rigour | WP14 | Should |
 | GAP-06 | "Why sovereignty?": every demo text is public | `data/examples/`, docs/sources.md §3 | Sovereign deployability | WP15 | Must |
 | GAP-07 | "Why Apertus?": no Apertus-specific feature in use | image input verified on CSCS, not wired into ingest; Italian jobs refused | Purposeful AI | WP15 (WP12a, argument) | Should |
@@ -746,7 +749,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-19 | Long compounds reach the reviewer unsplit: the glossary exempts them from LEX-01, and the 8B ignores the split suggestion | job `287fea3aadd2` (6 Oct, web UI, CSCS): `Krankenversicherungspolice` and `Sozialversicherungsstelle` in the final draft, `Alleinstehende` flagged through two rounds | Rigour, value (the first thing a juror sees in a draft) | WP14 | Should; in by the freeze or WP17 |
 | GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP17 | Must (docs, demo), Later (mode) |
 | GAP-21 | The further use cases were not described: patient letters, lease terminations, penal orders, payment orders, social and school decisions, information for study participants, migration, private-sector letters | Raised 6 Oct (night): one engine, many documents; penal orders are 92 percent of Swiss convictions with a 10-day objection period; 49 percent of adults have low health literacy | Value, scalability | `docs/use-cases.md` and the planned fact checks in `docs/rules.md`, written 6 Oct (night; cloud session, 2). Modes and checks: WP17 | Should (docs), Later (modes) |
-| GAP-22 | A period is no checked value: `innert 30 Tagen` yields a plain number, so a changed or invented period passes FACT-01 and FACT-06 unless the fact sheet carries it as a value | `rules/values.py` (`ValueKind`, `HARD_KINDS`); step 4 of `docs/use-case-decisions.md` claimed otherwise (corrected 6 Oct, night) | Rigour; the KESB demo's 30-day appeal period | WP14 (period kind, D-U) | Should; by the freeze or WP17 |
+| GAP-22 | A period is no checked value: `innert 30 Tagen` yields a plain number, so a changed or invented period passes FACT-01 and FACT-06 unless the fact sheet carries it as a value | `rules/values.py` (`ValueKind`, `HARD_KINDS`); step 4 of `docs/use-case-decisions.md` claimed otherwise (corrected 6 Oct, night) | Rigour; the KESB demo's 30-day appeal period | WP14 (period kind, D-U); *closed 7 Oct, with the address kind* | Should; by the freeze or WP17 |
 
 ### 13.2 Work packages
 
@@ -834,7 +837,10 @@ three numbers.
 
 #### WP14 - Fact contract and repair hardening (GAP-04, -05, -19, -22)
 
-- [ ] **Identifier kind** (4-6 h). New value kind `identifier` in `rules/values.py`,
+- [x] **Identifier kind** (4-6 h; *done 7 Oct as specified, plus a reference code
+      given bare in the fact sheet (`2026-0042`) counts as an identifier, a keyword
+      split by code (`Geschäfts·nummer`) is allowed, and a digits-only identifier also
+      matches its bare number; §11*). New value kind `identifier` in `rules/values.py`,
       part of `HARD_KINDS`:
       - patterns:
         - AHV number `756.dddd.dddd.dd`;
@@ -862,7 +868,10 @@ three numbers.
         valid number;
       - docs: rules.md (FACT-01, FACT-06, value kinds), architecture §4.2 and §4.4,
         prompts.md (code completion), report §5 (definition of hard facts).
-- [ ] **Period kind** (2-3 h; D-U; GAP-22; added 6 Oct, night; cloud session, 2). The
+- [x] **Period kind** (2-3 h; D-U; GAP-22; added 6 Oct, night; cloud session, 2;
+      *done 7 Oct: the canonical form keeps count and unit as written and the match
+      converts, so FACT-01 names the source's own form; adjective forms (`30-tägige`)
+      and ages count; a period also matches its bare count*). The
       value kind `period` as specified in `docs/rules.md` ("Planned fact checks"):
       - a number in digits or as a number word (reuse NUM-01's table) with `Tag`,
         `Arbeitstag`, `Werktag`, `Woche`, `Monat`, `Jahr` in any inflection; French
@@ -879,6 +888,15 @@ three numbers.
       - docs: move the `period` row from the planned section of rules.md into the FACT
         family, drop "planned" from step 4 of `docs/use-case-decisions.md` and from
         architecture §4.4.
+- [x] **Address kind** (2-3 h; *added and done 7 Oct, in the same pass: it serves 6 of
+      the 11 use cases (docs/use-cases.md §12) and the KESB demo's appeal address*).
+      The value kind `address` as specified in `docs/rules.md`: street and number,
+      Postfach, postcode and place, over several lines too; a postcode and place
+      alone only after a boundary, never a year or a count; the street and the
+      Postfach must come back when the fact has them; checked on the 35 pairs value
+      by value (rules.md, "The value kinds of 7 October on the official texts").
+      Not done: a Swiss postcode list (would make a bare postcode and place exact;
+      WP17).
 - [ ] **Clause recipes** (3-4 h German, 2 h more for French). LEN-02 and LEN-02-FR put
       a rewrite recipe for the conjunction they found into `suggestion`, which repair
       already receives (idea from Zurich's prompt, credited in rules.md; our own
@@ -1135,7 +1153,7 @@ guess.
 | Italian | Rules, prompts, calibration on Ticino pairs | National coverage; Apertus's languages | 1 week |
 | ZIX column | The Canton's index as an extra evaluation column, in the evaluation environment only (it loads pickled models and runs a pip fallback) | Speaks Zurich's language | 0.5 day |
 | Decision mode | For letters that go out with decisions (docs/use-case-decisions.md §7): a field for the person the letter speaks to, core questions for decisions, the operative part and the appeal instructions as must-keep facts, postal addresses as a value kind, the fixed notice in the export, judge checks for neutrality, advice and conditions | The strongest sovereignty case: KESB and courts | 2-3 days |
-| Planned fact checks | The rest of `docs/rules.md` "Planned fact checks": value kinds `address`, `quantity`, `schedule`, `medication`; checks `FACT-07` (fixed notice), `FACT-08` (operative part and appeal instructions kept), `FACT-09` (a medication in one block); judge questions `SEM-08` (modality, conditions), `SEM-09` (no advice, no evaluation), `SEM-10` (every period keeps its start) | The further use cases (`docs/use-cases.md` §12) | 3-4 days |
+| Planned fact checks | The rest of `docs/rules.md` "Planned fact checks": value kinds `quantity`, `schedule`, `medication` (`period`, `identifier` and `address` exist since 7 Oct), a Swiss postcode list for bare postcodes; checks `FACT-07` (fixed notice), `FACT-08` (operative part and appeal instructions kept), `FACT-09` (a medication in one block); judge questions `SEM-08` (modality, conditions), `SEM-09` (no advice, no evaluation), `SEM-10` (every period keeps its start) | The further use cases (`docs/use-cases.md` §12) | 3-4 days |
 | Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, `FACT-09`, `SEM-08`, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
 | Helpers for received letters | Lease terminations and payment orders for tenants' associations, social services and debt counselling: WP12b with the period kind and the facts box (`docs/use-cases.md` §4, §6) | Reach; a 10- or 30-day period decides | with WP12b |
 | WP12b | The end-user letter mode | Reach | as in WP12 |
@@ -1151,7 +1169,7 @@ passed on 6 Oct).
 
 | Date | Focus | Gate (end of day) |
 |------|-------|-------------------|
-| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers | CI green on `main`; P0-ZH numbers on 20 eval pairs |
+| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
 | Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14) | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
 | Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; **prompt freeze 18:00**; final CSCS evaluation overnight | Final run started |
 | Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch) | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |

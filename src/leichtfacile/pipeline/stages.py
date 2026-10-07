@@ -28,7 +28,16 @@ from leichtfacile.rules.document import KnownValues
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
-from leichtfacile.rules.values import HARD_KINDS, Value, extract_values, matches, parse_value_norm
+from leichtfacile.rules.values import (
+    HARD_KINDS,
+    Value,
+    extract_values,
+    format_address,
+    format_identifier,
+    format_period,
+    matches,
+    parse_value_norm,
+)
 from leichtfacile.schemas import (
     ZH_CONDITIONS,
     Block,
@@ -345,17 +354,35 @@ _DEADLINE_WORDS = re.compile(
     r"\b(?:bis|spätestens|Frist|innert|innerhalb|avant|jusqu|délai|entro|termine)\b",
     re.IGNORECASE,
 )
-_VALUE_KIND = {"amount": "amount", "phone": "contact", "email": "contact", "url": "contact"}
+_VALUE_KIND = {
+    "amount": "amount",
+    "phone": "contact",
+    "email": "contact",
+    "url": "contact",
+    "address": "contact",
+}
 
 
-def _value_norm(value: Value) -> str:
-    return value.text if value.kind == "url" else value.canonical
+def _value_norm(value: Value, lang: str) -> str:
+    """The value as the fact sheet carries it, readable for the writer and the reviewer
+    and parsed back by `parse_value_norm`: the web address as written, a period in
+    words (30 Tage), an IBAN in groups, an address with its parts."""
+    if value.kind == "url":
+        return value.text
+    if value.kind == "period":
+        return format_period(value.canonical, lang)
+    if value.kind == "identifier":
+        return format_identifier(value.canonical)
+    if value.kind == "address":
+        return format_address(value.canonical)
+    return value.canonical
 
 
 def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     """Code makes sure no hard value is forgotten: every date, amount, phone number,
-    e-mail address, web address, percentage and time in the source that no fact
-    carries becomes a fact of its own. Values in passages the model marked as
+    e-mail address, web address, percentage, time, period (`innert 30 Tagen`),
+    identifier (case number, AHV number, IBAN) and postal address in the source that
+    no fact carries becomes a fact of its own. Values in passages the model marked as
     droppable become background facts; the rest must be kept."""
     lang = source.lang
     covered = [v for f in fs.facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
@@ -367,7 +394,7 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
                 continue
             covered.append(value)
             kind = _VALUE_KIND.get(value.kind, "other")
-            if value.kind == "date" and _DEADLINE_WORDS.search(seg.text):
+            if value.kind in ("date", "period") and _DEADLINE_WORDS.search(seg.text):
                 kind = "deadline"
             text = seg.text if len(seg.text) <= 200 else seg.text[:197] + "..."
             facts.append(
@@ -375,7 +402,7 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
                     id=f"f{len(facts) + 1:02d}",
                     kind=kind,  # type: ignore[arg-type]
                     text=text,
-                    value_norm=_value_norm(value),
+                    value_norm=_value_norm(value, lang),
                     segment_ids=[seg.id],
                     must_keep=seg.id not in omitted and seg.kind != "heading",
                     origin="code",

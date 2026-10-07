@@ -45,9 +45,15 @@ thinking.
 
 - **Fact sheet completion.** After Understand, code adds a fact for every date, amount,
   phone number, e-mail address, web address, percentage and time in the source that no
-  fact carries (`origin: code`). Values in passages the model marked as droppable become
-  background facts; all others must be kept. The first local run showed why: the model
-  listed 3 facts for a letter with 11 checkable values.
+  fact carries (`origin: code`), and since 7 October 2026 for every period (`innert 30
+  Tagen`, as the value `30 Tage`), identifier (case number, AHV number, IBAN, as
+  written) and postal address (docs/rules.md, "Value kinds"). Values in passages the
+  model marked as droppable become background facts; all others must be kept. The first
+  local run showed why: the model listed 3 facts for a letter with 11 checkable values.
+  The prompts do not mention the new kinds (no prompt change before the freeze); what
+  the model writes as a value for them (`30 Tage`, `2026-0042`) is parsed as text.
+  Numbers measured before 7 October use the narrower hard-fact definition; the final
+  run recomputes every row.
 - **Fact linking.** A block that contains a fact's exact value is linked to that fact by
   code, so FACT-02 does not depend on the model's bookkeeping.
 - **Copied examples.** An answer whose sentences are mostly from the prompt's own
@@ -170,10 +176,11 @@ phone number `031 987 65 43` (French: `032 987 65 43`) stood in 4 of the 12 fina
 drafts, the example's office in 3, in sentences the guard does not recognise because
 they are rewritten ("Rufen Sie die DISG an: 031 987 65 43."). The judge did not flag
 them. Since then rule FACT-06 (the mirror of FACT-01) flags every date, amount, phone
-number, e-mail and web address, percentage and time that is not in the source as an
-error and sends the block to repair (with the source's only phone number, e-mail or web
-address as the suggestion); the evaluation counts such values per 100 blocks by code,
-for every condition. On the stored dev drafts the rule found the examples' phone
+number, e-mail and web address, percentage and time (since 7 October also every
+period, identifier and postal address) that is not in the source as an error and sends
+the block to repair (with the source's only phone number, e-mail, web address,
+identifier or address as the suggestion); the evaluation counts such values per 100
+blocks by code, for every condition. On the stored dev drafts the rule found the examples' phone
 numbers in 8 of 12 final drafts, the examples' `120 Franken` and `30. April 2026` in
 3, and one e-mail address with a dropped letter (`gwaesserschutz@`), which the judge
 had passed.

@@ -70,7 +70,7 @@ The full diagram is in [docs/architecture.md](docs/architecture.md) §3.
 | Stage | Done by | Output |
 |-------|---------|--------|
 | Ingest | Code: `trafilatura` for HTML, `pdfplumber` for PDFs (column-aware, headers and footers removed), paragraph rules for text; spaCy sentence splitting with a merge step for German abbreviations and dates | `SourceDocument`: segments with stable ids (`s0001`), kind, heading path |
-| Understand | Apertus 8B, thinking (`LLM_UNDERSTAND_NAME` switches this stage alone to the 70B) | `FactSheet`: the reader's core questions (what, what to do, by when, cost, contact), typed facts with normalised values and source ids, hard terms, droppable passages. Code then adds every date, amount, phone number, e-mail, URL, percentage and time the model missed |
+| Understand | Apertus 8B, thinking (`LLM_UNDERSTAND_NAME` switches this stage alone to the 70B) | `FactSheet`: the reader's core questions (what, what to do, by when, cost, contact), typed facts with normalised values and source ids, hard terms, droppable passages. Code then adds every date, amount, phone number, e-mail, URL, percentage, time, period, identifier (case and AHV numbers, IBANs) and postal address the model missed |
 | Write | Apertus 8B | `Draft`: blocks with the fact ids they carry and the source segments they come from, omissions with reasons, glossary. Code links each block to every fact whose exact value it contains |
 | Rule check | Code (spaCy morphology and dependency parse, regex, word frequencies) | `RuleFindings` with rule id, severity, evidence and a suggestion; document metrics |
 | Judge | Apertus 70B, thinking | `JudgeReport`: each fact present, missing or distorted; unsupported (invented) blocks; semantic findings. The judge never rewrites |
@@ -226,8 +226,8 @@ and REF (the official easy-language version written by professionals).
 - *Fact coverage*: share of must-keep facts with a normalised value found in the
   output (exact, code), against one fact sheet per pair.
 - *Hard facts kept*: share of the source's dates, amounts, phone numbers, e-mail and
-  web addresses, percentages and times found in the output (exact, code, no model;
-  comparable with REF).
+  web addresses, percentages, times, periods (`innert 30 Tagen`), identifiers and
+  postal addresses found in the output (exact, code, no model; comparable with REF).
 - *Fact status and invented statements*: present, missing or distorted facts, and
   unsupported blocks per 100 blocks, from the 70B judge.
 - *Rule violations*: errors and warnings per 100 blocks, by rule family.
@@ -368,15 +368,17 @@ outputs, the evaluation metrics, and the web API.
   easy-language letters that go out together with decisions of child and adult
   protection authorities and courts. The appeal period runs from notification (10 days
   for involuntary placement), the decision may never leave the authority, and the case
-  worker who drafted it is the natural reviewer. Needed: the person the letter speaks
-  to, identifiers and postal addresses as exact facts, a fixed notice that the decision
-  prevails, judge checks for neutrality and advice.
+  worker who drafted it is the natural reviewer. The appeal period, the case number,
+  the AHV number and the court's address are exact facts already; still needed: the
+  person the letter speaks to, a fixed notice that the decision prevails, judge checks
+  for neutrality and advice.
 - Same engine, other documents ([docs/use-cases.md](docs/use-cases.md)): patient
   letters, lease terminations, penal orders, payment orders, social and school
   decisions, information for study participants. Most of them turn on a period such as
-  "innert 10 Tagen", which code does not check yet: the first planned check is a period
-  value kind, then identifiers, postal addresses, and doses for patient letters
-  ([docs/rules.md](docs/rules.md), planned fact checks).
+  "innert 10 Tagen", a reference number or the address to object to, which code checks
+  like a date since 7 October; still planned: doses for patient letters, the decision
+  mode and the received-letter mode ([docs/rules.md](docs/rules.md), planned fact
+  checks).
 - A pilot with a cantonal easy-language office and target-group testing of the
   drafts.
 - Beyond the public sector: insurers, pension funds and utilities send some of the

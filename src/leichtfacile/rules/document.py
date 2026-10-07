@@ -14,7 +14,10 @@ from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
     extract_values,
+    format_address,
     format_date,
+    format_identifier,
+    format_period,
     format_phone,
     format_thousands,
     matches,
@@ -58,6 +61,12 @@ def display_value(value: Value, lang: str) -> str:
         return f"ore {int(hour)}.{minute}" if lang == "it" else f"{int(hour)}.{minute} Uhr"
     if value.kind == "phone":
         return format_phone(value.canonical)
+    if value.kind == "period":
+        return format_period(value.canonical, lang)
+    if value.kind == "identifier":
+        return format_identifier(value.canonical)
+    if value.kind == "address":
+        return format_address(value.canonical)
     return value.canonical
 
 
@@ -114,6 +123,7 @@ def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
             text=fact.text,
             expected=expected,
             evidence=fact.text,
+            suggestion=expected,  # the exact string: a reference number, a period
             fact_id=fact.id,
         )
 
@@ -244,9 +254,10 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
 # -- values the source does not contain (FACT-06) ------------------------------------
 
 # Kinds for which the source's only value is suggested in place of a foreign one: a
-# document with one phone number means that one. The only date or amount in a
-# document (a law's date, a fee) would turn an invented sentence into a wrong one.
-SUGGESTED_KINDS = ("phone", "email", "url")
+# document with one phone number, one reference number or one address means that one.
+# The only date, amount or period in a document (a law's date, a fee, a period that
+# belongs to another duty) would turn an invented sentence into a wrong one.
+SUGGESTED_KINDS = ("phone", "email", "url", "identifier", "address")
 
 
 @dataclass(frozen=True)
@@ -325,9 +336,10 @@ class KnownValues:
 def foreign_values(
     draft: Draft, source: SourceDocument, factsheet: FactSheet | None, lang: str
 ) -> list[ForeignValue]:
-    """FACT-06: the dates, amounts, phone numbers, e-mail and web addresses, percentages
-    and times in the draft that neither the source nor the fact sheet contains, in
-    draft order. Plain numbers are not checked: "zwei Wochen" may become "14 Tage"."""
+    """FACT-06: the dates, amounts, phone numbers, e-mail and web addresses, percentages,
+    times, periods, identifiers and postal addresses in the draft that neither the
+    source nor the fact sheet contains, in draft order. Plain numbers are not checked;
+    "zwei Wochen" may become "14 Tage" (the periods are equal)."""
     known = KnownValues.of(source, factsheet, lang)
     return [
         ForeignValue(block.id, value, known.suggestion(value))

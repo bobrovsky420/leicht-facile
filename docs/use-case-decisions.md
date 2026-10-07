@@ -70,9 +70,10 @@ the tasks the deputy takes over, what she keeps deciding herself, the fee, and t
 appeal: the period of 30 days from notification, the competent court and its address,
 the form of the appeal. Facts the decision does not state are marked as absent, so the
 letter cannot invent them. Code adds every date, amount, phone number, e-mail and web
-address the model missed. *Planned:* the case number and identifiers such as the AHV
-number, and the court's postal address, as facts that must come back character for
-character.
+address the model missed, and, since 7 October 2026, the period of 30 days, the case
+number, identifiers such as the AHV number, and the court's postal address, as facts
+that must come back character for character
+([rules.md](rules.md#facts-the-most-important-family), "Value kinds").
 
 ### Step 3: Apertus writes the letter
 
@@ -86,11 +87,10 @@ case worker to veto.
 
 The same deterministic checks as in the first use case: the easy-language rules, every
 must-keep fact with its exact value (FACT-01), and no value the decision does not
-contain (FACT-06). A deadline date that moved, or a phone number taken from somewhere
-else, is caught exactly. A period such as 30 days is checked by code today only when
-the fact sheet gives it as a value; a value kind of its own is planned
-([rules.md](rules.md#planned-fact-checks-not-implemented), `period`), and until then the
-judge checks it.
+contain (FACT-06). A deadline date that moved, a period of 30 days that became 20 or
+"einen Monat", a case number with two digits swapped, the court's address without its
+street, or a phone number taken from somewhere else, is caught exactly; "zwei Wochen"
+for "14 Tage" is not a finding, the periods are equal.
 
 ### Step 5: a second, larger Apertus model judges meaning
 
@@ -138,7 +138,7 @@ use cases beyond decisions, are sketched in [use-cases.md](use-cases.md).
 | What the authority needs | One chatbot prompt | Leicht·Facile |
 |--------------------------|--------------------|---------------|
 | The decision never leaves the authority | Runs on a foreign cloud | Runs on infrastructure the authority controls |
-| Appeal period, amounts and contacts exactly right | The model is asked to be careful; nobody checks | Checked by code (FACT-01); identifiers planned |
+| Appeal period, amounts, case number, contacts and the appeal address exactly right | The model is asked to be careful; nobody checks | Checked by code (FACT-01), character for character |
 | Nothing invented about a person's case | No check | Values checked by code (FACT-06); statements checked by the judge |
 | A neutral letter without advice | No check | Planned judge checks |
 | Proof of what the person was told | A chat transcript | The audit bundle in the case file |
@@ -166,14 +166,15 @@ Works today, unchanged from the first use case: PDF and text ingest, the fact sh
 with the reader's core questions, code completion of dates, amounts, phone numbers,
 e-mail and web addresses, percentages and times, the rule checker with FACT-01 and
 FACT-06, the judge, repair, the review UI, the exports with the audit bundle, and the
-three deployment profiles.
+three deployment profiles. Since 7 October 2026, for this use case: periods such as
+30 days, identifiers (case and reference numbers, AHV number, IBAN) and postal
+addresses are facts that must come back exactly (`period`, `identifier`, `address`),
+found by code, checked by FACT-01 and FACT-06, with the exact string as the repair
+suggestion.
 
 Planned, not built:
 
 - a field for the person the letter speaks to;
-- periods such as 30 days, identifiers (case and reference numbers, AHV number) and
-  postal addresses as facts that must come back exactly (`period`, `identifier`,
-  `address`);
 - a document type "decision": its own core questions, every item of the operative part
   and the appeal instructions as must-keep facts (`FACT-08`);
 - the fixed notice in the export (`FACT-07`);
