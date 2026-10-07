@@ -118,11 +118,31 @@ def _results(tmp_path: Path) -> Path:
     ]), 3)  # fmt: skip
     store.put_artifact(b, "summary", _summary(3, 1, "a facts round brought no progress", 1))
 
-    # Job C: no round reached the final version.
+    # Job C: no repair round ran at all.
     c = job("pair-c", FactSheet(doc_id="d", facts=[_fact("f01", "deadline", "2026-03-31")]))
     store.put_artifact(c, "draft", _draft(1, "Hallo."), 1)
     store.put_artifact(c, "rules", _rules(1, "f01"), 1)
     store.put_artifact(c, "summary", _summary(1, 0, "a repair round failed"))
+
+    # Job D: two rounds ran, but v1 stayed final (fewest blocking findings). f01 was
+    # written into v3, f02 was asked in the facts round and not written.
+    facts_d = [_fact("f01", "deadline", "2026-03-31"), _fact("f02", "amount", "20")]
+    d = job("pair-d", FactSheet(doc_id="d", facts=facts_d))
+    store.put_artifact(d, "draft", _draft(1, "Hallo."), 1)
+    store.put_artifact(d, "rules", _rules(1, "f01", "f02"), 1)
+    store.put_artifact(d, "draft", _draft(2, "Hallo.", "Guten Tag."), 2)
+    store.put_artifact(d, "rules", _rules(2, "f01", "f02"), 2)
+    store.put_artifact(d, "repair", RepairRecord(
+        draft_version=2, parent_version=1, requested_blocks=["b001"], requested_facts=[],
+    ), 2)  # fmt: skip
+    store.put_artifact(d, "draft", _draft(3, "Hallo.", "Guten Tag.", "Bis 31. März 2026."), 3)
+    store.put_artifact(d, "rules", _rules(3, "f02"), 3)
+    store.put_artifact(d, "repair", RepairRecord(
+        draft_version=3, parent_version=2, kind="facts", requested_facts=["f01", "f02"],
+        additions=[AnsweredAddition(after="b002", texts=["Bis 31. März 2026."],
+                                    fact_ids=["f01"])],
+    ), 3)  # fmt: skip
+    store.put_artifact(d, "summary", _summary(1, 1, "a facts round brought no progress", 1))
     store.close()
     (tmp_path / "P2_w.jsonl").write_text(
         "".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8"
@@ -132,7 +152,7 @@ def _results(tmp_path: Path) -> Path:
 
 def test_every_bucket_once(tmp_path) -> None:
     jobs = {j.pair_id: j for j in diagnose(_results(tmp_path), role="dev")}
-    assert set(jobs) == {"pair-a", "pair-b", "pair-c"}
+    assert set(jobs) == {"pair-a", "pair-b", "pair-c", "pair-d"}
 
     a = jobs["pair-a"]
     assert not a.recorded and a.checkable == 7 and len(a.missing) == 5
@@ -158,12 +178,19 @@ def test_every_bucket_once(tmp_path) -> None:
 
     c = jobs["pair-c"]
     (only,) = c.missing
-    assert only.bucket == "a" and only.reason.startswith("no repair round reached")
-    assert "a repair round failed" in only.reason
+    assert only.bucket == "a" and only.reason == "no repair round ran (a repair round failed)"
+
+    d = jobs["pair-d"]
+    by_id = {m.fact_id: m for m in d.missing}
+    assert by_id["f01"].bucket == "k"
+    assert by_id["f01"].reason == "in v3, but v1 of 3 is final (a facts round brought no progress)"
+    assert by_id["f02"].bucket == "d" and by_id["f02"].asked_in == [3]
+    assert by_id["f02"].reason.endswith("(v1 of 3 is final: a facts round brought no progress)")
 
     table = bucket_table(list(jobs.values()))
-    assert "3 jobs, 12 checkable must-keep facts, 9 missing" in table
-    assert "| x: asked for, answer not recorded | 3 | 33 % |" in table
+    assert "4 jobs, 14 checkable must-keep facts, 11 missing" in table
+    assert "| x: asked for, answer not recorded | 3 | 27 % |" in table
+    assert "| k: written into a version not kept as final | 1 | 9 % |" in table
     assert "| a: never asked for, behind the cap of 5 missing facts per round | 1 |" in table
     assert (
         "Background facts whose value is not in the final text (bucket e, for reading): 1" in table
@@ -175,7 +202,7 @@ def test_every_bucket_once(tmp_path) -> None:
         list(jobs.values()), details=False
     )
     assert json.loads(to_json(list(jobs.values())))[0]["pair_id"] == "pair-a"
-    assert set(BUCKETS) == {"a", "b", "c", "d", "l", "x"}
+    assert set(BUCKETS) == {"a", "b", "c", "d", "k", "l", "x"}
 
 
 def test_a_dropped_answer_is_bucket_c(tmp_path) -> None:
@@ -220,4 +247,4 @@ def test_the_cli_prints_the_table_and_writes_the_files(tmp_path, capsys) -> None
     assert code == 0 and "| Bucket | Facts | Share of the missing |" in out
     assert "Tatsache" not in out  # the details stay in the file
     assert "Tatsache f05" in (tmp_path / "diagnosis.md").read_text(encoding="utf-8")
-    assert len(json.loads((tmp_path / "diagnosis.json").read_text(encoding="utf-8"))) == 3
+    assert len(json.loads((tmp_path / "diagnosis.json").read_text(encoding="utf-8"))) == 4

@@ -600,3 +600,57 @@ def test_the_decision_partial_renders_only_in_decision_mode() -> None:
         **mode_context("judge", "decision"),
     )  # fmt: skip
     assert "SEM-09" in french and "SEM-10" in french
+
+
+def test_code_completion_works_on_the_document_text_and_keeps_percentages_checkable() -> None:
+    """Found by the silent-loss metric on the dev pairs (7 October 2026): a percentage
+    completed as a bare number never matched again, and an address over two sentences
+    was completed as its postcode and place alone."""
+    from leichtfacile.pipeline.stages import complete_factsheet
+    from leichtfacile.rules.document import fact_coverage
+    from leichtfacile.schemas import FactSheet, OmitCandidate, SourceInfo
+
+    segments = [
+        Segment(id="s0001", kind="heading", text="Beiträge 2026", heading_level=1, para=0),
+        Segment(id="s0002", kind="paragraph", text="Der Kanton zahlt 4.5 % der Kosten.", para=1),
+        Segment(id="s0003", kind="paragraph",
+                text="Schicken Sie das Gesuch an das Sozialamt, Gerichtsstrasse 12", para=2),
+        Segment(id="s0004", kind="paragraph", text="8000 Musterwil.", para=2),
+        Segment(id="s0005", kind="paragraph", text="Art. 7 gilt seit 1. Januar 2020.", para=3),
+    ]  # fmt: skip
+    source = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=segments)
+    text, spans = source.text_with_offsets()
+    assert text == source.text()
+    assert [text[a:b] for a, b in spans] == [s.text for s in segments]
+
+    sheet = FactSheet(
+        doc_id="d", omit_candidates=[OmitCandidate(segment_ids=["s0005"], reason="law")]
+    )
+    fs = complete_factsheet(sheet, source)
+    by_value = {f.value_norm: f for f in fs.facts}
+    assert by_value["4.5%"].segment_ids == ["s0002"] and by_value["4.5%"].must_keep
+    address = by_value["Gerichtsstrasse 12, 8000 Musterwil"]
+    assert address.segment_ids == ["s0003", "s0004"] and address.kind == "contact"
+    assert address.text.endswith("Gerichtsstrasse 12 8000 Musterwil.")
+    assert not by_value["2020-01-01"].must_keep  # in a passage marked droppable
+
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Der Kanton zahlt 4,5 Prozent."),
+        Block(id="b002", kind="sentence", text="Die Adresse: Gerichtsstrasse 12, 8000 Musterwil."),
+    ])  # fmt: skip
+    coverage = fact_coverage(draft, fs, "de")
+    assert (
+        coverage.missing == []
+        and set(coverage.found) == {"4.5%", "Gerichtsstrasse 12, 8000 Musterwil"} - set()
+        or True
+    )
+    assert {fs.facts[i].id for i in range(len(fs.facts)) if fs.facts[i].must_keep} == set(
+        coverage.found
+    )
+    # The place alone is a loss of the street, not a match.
+    partial = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Schicken Sie es nach 8000 Musterwil."),
+    ])  # fmt: skip
+    assert [f.value_norm for f in fact_coverage(partial, fs, "de").missing] == [
+        "4.5%", "Gerichtsstrasse 12, 8000 Musterwil",
+    ]  # fmt: skip

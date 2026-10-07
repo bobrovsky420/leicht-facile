@@ -285,3 +285,23 @@ def test_silent_losses_need_a_checklist_or_an_omission_log() -> None:
     )
     assert silent_losses(omitted, standard, fewer, condition="P2")["silent_losses"] == 0
     assert silent_losses(without_phone, standard, None, condition="P2")["silent_losses"] == 1
+
+
+def test_a_completed_percentage_is_told_and_not_a_silent_loss() -> None:
+    from leichtfacile.eval.score import silent_losses
+    from leichtfacile.pipeline.stages import complete_factsheet
+    from leichtfacile.schemas import Block, Draft, FactSheet, Segment, SourceDocument, SourceInfo
+
+    source = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=[
+        Segment(id="s0001", kind="paragraph", text="Der Kanton zahlt 4.5 % der Kosten.", para=1),
+        Segment(id="s0002", kind="paragraph", text="Adresse: Gerichtsstrasse 12", para=2),
+        Segment(id="s0003", kind="paragraph", text="8000 Musterwil.", para=2),
+    ])  # fmt: skip
+    fs = complete_factsheet(FactSheet(doc_id="d"), source)
+    blocks = [Block(id="b001", kind="sentence", text="Der Kanton zahlt mit.")]
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=blocks)
+    assert silent_losses(draft, source, fs, condition="P2")["silent_losses"] == 0
+    baseline = silent_losses(draft, source, fs, condition="P0")
+    assert baseline["silent_losses"] == 2 and baseline["silent_loss_kinds"] == {
+        "address": 1, "percent": 1,
+    }  # fmt: skip

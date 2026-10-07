@@ -108,18 +108,26 @@ class SourceDocument(Artifact):
 
     def text(self) -> str:
         """Plain text: paragraphs separated by blank lines, sentences by spaces."""
-        out: list[str] = []
-        current: list[str] = []
+        return self.text_with_offsets()[0]
+
+    def text_with_offsets(self) -> tuple[str, list[tuple[int, int]]]:
+        """The plain text and, per segment, its character span in it, so that a value
+        found in the text (an address over two sentences) can be traced to the
+        segments it spans."""
+        parts: list[str] = []
+        spans: list[tuple[int, int]] = []
+        position = 0
         last_para: int | None = None
         for seg in self.segments:
-            if last_para is not None and seg.para != last_para and current:
-                out.append(" ".join(current))
-                current = []
-            current.append(seg.text)
+            if parts:
+                separator = "\n\n" if seg.para != last_para else " "
+                parts.append(separator)
+                position += len(separator)
+            parts.append(seg.text)
+            spans.append((position, position + len(seg.text)))
+            position += len(seg.text)
             last_para = seg.para
-        if current:
-            out.append(" ".join(current))
-        return "\n\n".join(out)
+        return "".join(parts), spans
 
     def word_count(self) -> int:
         return sum(len(s.text.split()) for s in self.segments)

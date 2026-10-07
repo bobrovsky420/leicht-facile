@@ -479,10 +479,11 @@ in the final version goes into one bucket.
 
 | Bucket | Meaning | How the tool decides |
 |---|---|---|
-| a | never asked for in a round that led to the final version | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of 5 missing facts per round, no round reached the final version (the loop stopped or failed, or a later version was not kept), or never flagged by FACT-01 when the job ran |
+| a | never asked for in any round | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of 5 missing facts per round, no round ran at all (the loop stopped or failed before one), or never flagged by FACT-01 when the job ran |
 | b | asked for and written, but in a form FACT-01 rejects | the record's answer carries the fact's digits or words, but no value the matcher accepts |
 | c | asked for and written, then dropped by code | the answered sentence is in the record's dropped list (a repeat, example content, a block the round had not flagged) |
 | d | asked for, and the model did not write it | no answered sentence for the fact, nothing loose either |
+| k | asked for and written into a version that was not kept as final | the value is in a later version than the final one; the final version is the one with the fewest blocking findings, so a round's gains are lost when the judge flags its new sentences (a fact asked for in such a round and not written is b, c or d, with the reason saying which version is final) |
 | l | present in an earlier version, lost in a later rewrite | the value is in a version before the final one and gone after a round, by the model's rewrite or by code |
 | x | asked for, answer not recorded | jobs run before the repair record existed (every run before 7 October 2026, night): b, c and d cannot be told apart for them |
 | e | background facts whose value is not in the final text | listed for reading, not counted: whether the reader needed a fact Understand or code completion marked droppable is a reading decision |
@@ -543,6 +544,23 @@ code completion misses some hard value (the row's `silent_loss_kinds` names the 
 to be read next); and two Write calls were cut off at 8,000 tokens on pages of 95 and
 88 sentences and written as halves, as designed.
 
+The second reading, the same day, with the kinds and the reason strings of the local
+file: the silent losses were three percentages and one address, and both were gaps of
+the code completion, now closed. A completed percentage was stored as the bare number
+(`4.5`), which parses back as a plain number and never matched the percentage in a
+draft again, so FACT-01 counted it as missing even when the draft had `4,5 Prozent`;
+it is stored as `4.5%` now, the form the Understand prompt asks for. An address over
+two source sentences (`Gerichtsstrasse 12` and `8000 Musterwil` on separate lines) was
+completed from the second sentence alone, without its street; the completion now takes
+the values from the document text as the evaluation does, with segment offsets, so the
+fact cites both sentences and FACT-01 asks for the street. The nine facts in jobs
+where no round led to the final version were all asked for in a round whose version
+was not kept: six in a facts round that brought no progress, three in a repair round,
+with v1 final in each case. The diagnosis now reads such facts off the later rounds
+(bucket k when the value is in a version not kept, else b, c or d with the reason
+naming the final version), so the next run shows whether the model did not write them
+or the final-version choice threw them away.
+
 ### Image input spike (CSCS, 8B, 7 October 2026): no-go at this setting
 
 `scripts/image_spike.py` on the two scanned letters of `data/examples/print/scans/`,
@@ -561,9 +579,29 @@ digits are where the errors sit: the AVS number `756.4719.2083.50` came back as
 `763.4713.2063.50`, the IBAN with wrong digits, the postcode 1999 as 1399, one payment
 date, the phone number, the e-mail and the web address are lost. The go/no-go rule of
 the plan says stop: an image ingest at this setting would feed the fact contract wrong
-numbers that look right. Open before the decision is final: the same pages at full
-resolution (2,480 pixels, `--max-side 2480`) and with the 70B (`--model
-swiss-ai/Apertus-v1.5-70B`), one run each; the script takes both switches.
+numbers that look right.
+
+The two variants, the same day, at full resolution (2,480 pixels):
+
+| Model | Capture | Character error rate | Hard values found | Seconds per page |
+|---|---|---|---|---|
+| 8B | steuermahnung-brief_scan | 0.060 | 15 of 21 | 5.3 |
+| 8B | bourse-etudes-decision_scan | 0.044 | 12 of 22 | 5.3, 3.2 |
+| 70B | steuermahnung-brief_scan | 0.118 | 17 of 21 | 12.6 |
+| 70B | bourse-etudes-decision_scan | 0.041 | 13 of 22 | 12.1, 7.6 |
+
+At full size the 8B reads the German page it had declined at 1,600 pixels, and both
+models read most of the text; what they get wrong are digits, and they get them wrong
+in ways that look right. The German IBAN `CH00 0839 4100 2786 5310 4` came back as
+`CH00 0839 4100 2756 3510 4` from the 8B and `CH00 0999 4100 2736 5510 4` from the
+70B; the French IBAN with two digits swapped on both; the AVS number
+`756.4719.2083.50` as `756.4716.2088.50` from the 70B; the 78-day period as `76 Tage`
+from both; an amount, an address, e-mail addresses and a payment date are lost as
+well. The 70B finds a few more values, has the higher character error rate on the
+German page and takes 2 to 2.5 times as long. Decision D-N: a transcription that
+turns an IBAN into another plausible IBAN cannot feed a fact contract whose point is
+that such numbers survive exactly; image input stays future work, named in the report
+with these numbers (WP12a and WP12b cut).
 
 ## Change log
 

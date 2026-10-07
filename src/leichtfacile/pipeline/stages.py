@@ -390,6 +390,12 @@ def _value_norm(value: Value, lang: str) -> str:
     words (30 Tage), an IBAN in groups, an address with its parts."""
     if value.kind == "url":
         return value.text
+    if value.kind == "percent":
+        # The canonical form is the bare number; written back as "10%", the form the
+        # Understand prompt asks for, it parses as a percentage again. As a bare
+        # number it parsed as a plain number and never matched the percentage in a
+        # draft (found 7 October 2026 by the silent-loss metric).
+        return f"{value.canonical}%"
     if value.kind == "period":
         return format_period(value.canonical, lang)
     if value.kind == "identifier":
@@ -409,26 +415,38 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     covered = [v for f in fs.facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
     omitted = {s for o in fs.omit_candidates for s in o.segment_ids}
     facts = list(fs.facts)
-    for seg in source.segments:
-        for value in extract_values(seg.text, lang):
-            if value.kind not in HARD_KINDS or any(matches(c, value) for c in covered):
-                continue
-            covered.append(value)
-            kind = _VALUE_KIND.get(value.kind, "other")
-            if value.kind in ("date", "period") and _DEADLINE_WORDS.search(seg.text):
-                kind = "deadline"
-            text = seg.text if len(seg.text) <= 200 else seg.text[:197] + "..."
-            facts.append(
-                Fact(
-                    id=f"f{len(facts) + 1:02d}",
-                    kind=kind,  # type: ignore[arg-type]
-                    text=text,
-                    value_norm=_value_norm(value, lang),
-                    segment_ids=[seg.id],
-                    must_keep=seg.id not in omitted and seg.kind != "heading",
-                    origin="code",
-                )
+    # The values are taken from the document text as the evaluation's "hard facts
+    # kept" takes them, not sentence by sentence: an address over two sentences
+    # (`Gerichtsstrasse 12` / `8000 Musterwil`) is one value, found in neither alone
+    # (the silent-loss metric showed the gap on 7 October 2026). Each value cites
+    # the segments it spans.
+    text, spans = source.text_with_offsets()
+    for value in extract_values(text, lang):
+        if value.kind not in HARD_KINDS or any(matches(c, value) for c in covered):
+            continue
+        segments = [
+            seg
+            for seg, (start, end) in zip(source.segments, spans, strict=True)
+            if start < value.end and value.start < end
+        ]
+        if not segments:
+            continue
+        covered.append(value)
+        kind = _VALUE_KIND.get(value.kind, "other")
+        cited = " ".join(seg.text for seg in segments)
+        if value.kind in ("date", "period") and _DEADLINE_WORDS.search(cited):
+            kind = "deadline"
+        facts.append(
+            Fact(
+                id=f"f{len(facts) + 1:02d}",
+                kind=kind,  # type: ignore[arg-type]
+                text=cited if len(cited) <= 200 else cited[:197] + "...",
+                value_norm=_value_norm(value, lang),
+                segment_ids=[seg.id for seg in segments],
+                must_keep=any(s.id not in omitted and s.kind != "heading" for s in segments),
+                origin="code",
             )
+        )
     return fs.model_copy(update={"facts": facts})
 
 

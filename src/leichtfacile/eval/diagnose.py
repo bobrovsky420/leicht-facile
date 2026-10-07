@@ -4,17 +4,23 @@ final version of a pipeline job.
 For every job of a condition in a results folder, every must-keep fact with a value
 that FACT-01 does not find in the final version is put into one bucket:
 
-- `a`: never asked for in a repair round that led to the final version, because it was
-  behind the cap of missing facts per round, because no round reached the final
-  version (the loop stopped, failed, or a later version was not kept), or because the
-  stored findings never flagged it (not checkable when the job ran);
+- `a`: never asked for in any repair round, because it was behind the cap of missing
+  facts per round, because no round ran at all (the loop stopped or failed before
+  one), or because the stored findings never flagged it (not checkable when the job
+  ran);
 - `b`: asked for and written, but in a form FACT-01 does not accept;
 - `c`: asked for and written, then dropped by code (a repeat, example content, a block
   the round had not flagged);
 - `d`: asked for, and the model did not write it;
+- `k`: asked for and written into a version that was not kept as final (the version
+  with the fewest blocking findings is final; a round's gains are lost when the judge
+  flags its new sentences);
 - `l`: in an earlier version, then lost in a later rewrite (by the model, or by code);
 - `x`: asked for, but the round's answer was not recorded (jobs run before the repair
   record existed; `b`, `c` and `d` cannot be told apart for them).
+
+When no round led to the final version (an earlier version was kept), a fact is
+classified by the rounds that ran after it, and the reason says so.
 
 Bucket `e` of the plan is the list of background facts (`must_keep` false, marked so by
 Understand or by code completion in a passage marked droppable) whose value is not in
@@ -34,6 +40,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -61,12 +68,13 @@ BUCKETS = {
     "b": "written in a form FACT-01 rejects",
     "c": "written, then dropped by code",
     "d": "asked for, not written",
+    "k": "written into a version not kept as final",
     "l": "present once, lost in a later rewrite",
     "x": "asked for, answer not recorded",
 }
 REASONS_A = {
     "cap": f"behind the cap of {MAX_MISSING_PER_ROUND} missing facts per round",
-    "no_round": "no repair round reached the final version",
+    "no_round": "no repair round ran",
     "unflagged": "never flagged by FACT-01 in the stored findings",
 }
 
@@ -132,8 +140,21 @@ def mentions(target: Value, text: str, lang: str) -> str | None:
         street, _, place = target.canonical.lower().split("|")
         return "loose" if (street and street.split(" ")[0] in lowered) or place in lowered else None
     runs = sorted(re.findall(r"\d+", target.canonical), key=len, reverse=True)
-    if runs and len(runs[0]) >= 2 and runs[0].lstrip("0") in _digits(text):
-        return "loose"
+    if not runs:
+        return None
+    if target.kind in ("phone", "identifier", "schedule"):
+        # Long digit runs: the number in any spacing, as a substring of the text's digits.
+        return "loose" if len(runs[0]) >= 5 and runs[0] in _digits(text) else None
+    # Amounts, percentages, periods, quantities: the number as a whole token, with the
+    # thousands separators of Swiss and German writing removed (1'500, 1 500, 1.500).
+    wanted = re.match(r"\d+(?:\.\d+)?", target.canonical)
+    compact = re.sub(r"(?<=\d)[ '\u2019\u00a0\u202f.](?=\d{3}(?!\d))", "", text)
+    for token in re.findall(r"\d+(?:[.,]\d+)?", compact):
+        try:
+            if wanted and Decimal(token.replace(",", ".")) == Decimal(wanted.group(0)):
+                return "loose"
+        except InvalidOperation:
+            continue
     return None
 
 
@@ -191,15 +212,30 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
         if r is not None
     }
     into_final = [v for v in versions if 2 <= v <= final]
+    rounds_run = [v for v in versions if v >= 2]
     missing: list[MissingFact] = []
     for fact in coverage[final].missing:
         target = parse_value_norm(fact.value_norm, fact.kind, lang)
         present_in = [v for v in versions if v <= final and fact.id in coverage[v].found]
         asked_in = [v for v in into_final if fact.id in asked.get(v, [])]
+        asked_later = [v for v in rounds_run if v > final and fact.id in asked.get(v, [])]
+        present_later = [v for v in versions if v > final and fact.id in coverage[v].found]
         item = MissingFact(
             fact.id, fact.kind, fact.value_norm or "", fact.text, "", "", asked_in=asked_in
         )
-        if present_in:
+        later = ""
+        if not asked_in and asked_later:
+            # An earlier version was kept as final; the rounds after it tell the story.
+            asked_in = asked_later
+            item.asked_in = asked_later
+            later = f" (v{final} of {len(versions)} is final: {summary.stop_reason})"
+        if present_later:
+            item.bucket = "k"
+            item.reason = (
+                f"in v{max(present_later)}, but v{final} of {len(versions)} is final "
+                f"({summary.stop_reason})"
+            )
+        elif present_in:
             lost_at = min(
                 v
                 for v in versions
@@ -217,11 +253,9 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
                     item.reason += " (answer not recorded)"
         elif not asked_in:
             item.bucket = "a"
-            if not into_final:
-                item.reason = (
-                    f"{REASONS_A['no_round']} (v{final} of {len(versions)}: {summary.stop_reason})"
-                )
-            elif any(fact.id in flagged.get(v, set()) for v in versions if v < final):
+            if not rounds_run:
+                item.reason = f"{REASONS_A['no_round']} ({summary.stop_reason})"
+            elif any(fact.id in flagged.get(v, set()) for v in versions if v < versions[-1]):
                 item.reason = REASONS_A["cap"]
             else:
                 item.reason = REASONS_A["unflagged"]
@@ -231,6 +265,7 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
             if record is None:
                 item.bucket = "x"
                 item.reason = f"asked in the round to v{last}; the answer was not recorded"
+                item.reason += later
             else:
                 written = [t for a in record.additions if fact.id in a.fact_ids for t in a.texts]
                 others = [t for a in record.additions if fact.id not in a.fact_ids for t in a.texts]
@@ -256,13 +291,15 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
                         if target is None
                         else (mentions(target, " ".join(written), lang) or "none")
                     )
+                    found = "the digits or words are there" if how == "loose" else "no match"
                     item.reason = (
                         f"asked in the round to v{last}; written, but FACT-01 does not find it "
-                        f"({'the digits or words are there' if how == 'loose' else 'no match'})"
+                        f"({found})"
                     )
                 else:
                     item.bucket = "d"
                     item.reason = f"asked in the round to v{last}; the model did not write it"
+                item.reason += later
         missing.append(item)
     final_values = extract_values(drafts[final].text(), lang)
     background_lost = []
