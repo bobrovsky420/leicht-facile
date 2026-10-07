@@ -50,9 +50,12 @@ Blocking the submission (WP11):
 
 Risks:
 
-- [ ] No pre-computed example jobs: `data/examples/` holds the two source letters only,
+- [x] No pre-computed example jobs: `data/examples/` holds the two source letters only,
       though architecture §10 and the Dockerfile promise jobs. Judges see an empty UI
       until a job has run (about 2 minutes on CSCS, none while the endpoint is down).
+      *7 Oct (evening): the premium-reduction letter in German and French built on CSCS
+      into `data/examples/jobs/` and checked to import; the KESB decision's job follows
+      with decision mode v1 (WP15). Rebuild after the freeze if the pipeline changes.*
 - [ ] Layout: the template says to keep `track_2b/` as it is; this repository has its
       contents at the root (owner's decision). Ask the organisers on Discord.
 - [ ] Clean-checkout test only on this Windows machine (fresh clone, no `.env`,
@@ -393,9 +396,12 @@ Done when: the P0/P1/P2 table exists for at least 15 German pairs and is pasted 
 - [x] `export/markdown.py`, `export/html.py` (one sentence per line, 85-char wrap at
       clause boundaries, LAY-01/02 check on output), `export/bundle.py` (JSON audit
       trail). DOCX only in stretch.
-- [ ] `data/examples/`: two pre-computed jobs on article-5 or synthetic texts (one
+- [x] `data/examples/`: two pre-computed jobs on article-5 or synthetic texts (one
       web page, one PDF letter), never a protected page (docs/sources.md §4),
-      loaded into the store on first start and labelled "example".
+      loaded into the store on first start and labelled "example". *7 Oct: the
+      team's premium-reduction letter in German and French (P2, CSCS); `examples
+      build --only <name>` builds one, and a JSON file next to a source sets its job
+      (the KESB decision's decision mode).*
 
 Done when: a judge can open `localhost:8000`, submit a URL, watch the stages, open
 the review, click through provenance, and download Markdown - without reading docs.
@@ -713,7 +719,7 @@ comparison, the report, the video.
 | D-E | Primary level A2 or B1 | Day-1 check 6. | 6 Oct |
 | D-F | Section-parallel writing | Only if check 5 shows headroom; otherwise sequential. *Decided 6 Oct on Public AI: 8 parallel calls, no 429, 1.4 to 2.2 s each. Headroom exists; use it first for parallel evaluation workers, section-parallel writing stays optional.* | done |
 | D-G | Publish an HF dataset | Development and evaluation need no consent (docs/sources.md §4). Publishing protected texts or our rewrites of them does. Default: manifest, metrics, and article-5 texts with outputs; ask Bern only if a Swiss reference set should be public. | 13 Oct |
-| D-I | Main demo document | A past Federal Council voting explanation (docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap.* | 9 Oct |
+| D-I | Main demo document | A past Federal Council voting explanation (docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap. Test run of 7 Oct (use-case-decisions.md §7): the KESB decision is not demo-ready on today's pipeline (an invented appeal deadline, the deputy's tasks given to the person); it becomes the demo only with decision mode v1 by G4, otherwise the premium-reduction letter carries the product scene.* | 9 Oct |
 | D-J | NUM-08 and +41 numbers | Decide at checker calibration: accept the international format or lower to `info`. | 8 Oct |
 | D-H | Team name | Decided 5 Oct: **Röstigraben Bridgers**; file name `RoestigrabenBridgers_Report.pdf`. Report §1 frames the name as bridging the gap between authorities and readers, not as translation. | done |
 | D-K | P0-ZH variants | Run both on the 20 German eval pairs: `complete` (same task as ours, keep every fact; used for the headline) and `condensed` (their default for Leichte Sprache). One 8B call per pair, cheap. | 7 Oct |
@@ -726,7 +732,7 @@ comparison, the report, the video.
 | D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of §13.4). | 10 Oct |
 | D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. *Decided 7 Oct from the ablation (docs/prompts.md): on. Fact coverage 75 against 68 percent, hard facts kept 72 against 65, no invented value on either side, fewer judge findings. The third run answered the last question: 5 of 30 missing facts had been written into a version the blocking-count rule did not keep, so since 8 Oct the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; `eval rescore --select facts|blocking` reads the rule's effect on the stored jobs without a model call. Read on the same jobs with `eval rescore` (7 Oct, late): facts first gives 80 percent fact coverage and 81 percent hard facts kept against 71 and 68 under the old rule, at 1.2 more judge findings and 1.3 more rule errors per 100 blocks; on the run before, 83 and 84. Open for the Friday decision: the cap of a facts-only round (`MAX_MISSING_PER_FACTS_ROUND`, default 5; 13 of the 30 missing facts were behind it, all in one pair with 22 facts), to be raised only with a measured rerun. Measured 7 Oct (fifth run and the cap-10 run, same cache): cap 10 gives 79 percent fact coverage and 81 percent hard facts kept against 75 and 77, no invented value, judge findings 2.8 against 4.6 per 100 blocks, rule errors 6.7 against 5.4; the default is 10 since then. The fifth run also shows no silent loss and nothing in bucket k.* | done |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
-| D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. | 8 Oct |
+| D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. *Decided 7 Oct by its rule: the KESB decision, written in the layout and wording of the KESB Graubünden's two specimen decisions and the KOKES model decision. The reclaim letter is not written.* | done |
 | D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §13). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
 | D-V | Reader typeface (WP18): Atkinson Hyperlegible Next for the reader view and the HTML export | In the reader view yes: the vendored font, injected into the preview response only. In the HTML export first in the font stack with Arial and Helvetica behind it, not embedded, so exported files stay small (docs/ui-design.md §14). *Decided 7 Oct as recommended, implemented.* | done |
 | D-W | New draft as its own page at `/new` (WP18); the start page becomes the drafts list | Yes; `POST /jobs` and the API stay; the demo's "paste a letter" scene starts at `/new`, one click from the list. *Decided 7 Oct, implemented.* | done |
@@ -809,6 +815,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07 (night; usage fix): the submission check's open risk "a failed job reports 0 model calls" fixed. Cause: the orchestrator stored a stage's usage only from the results it returned, so the calls of a stage that raised were lost: Understand or Write with two unusable answers (the job failed with 0 calls), the thinking call before a failed fallback without thinking, and the earlier parts of a sectioned write. Now `LLMClient.recording` (a context variable) passes every call to the job's usage as it is made, around `Orchestrator.run`; the per-stage `_record` calls are gone, so nothing is counted twice. Successful jobs bill exactly as before; the job page's per-stage counts now also fill during a stage. Tests in `tests/pipeline/test_degradation.py` (failed Understand, failed fallback, failed Write); architecture §6 "Usage log". 1118 tests, ruff clean. No effect on the evaluation's numbers: it scores only jobs that reached review, whose failed judge and repair calls were already counted, and a rerun of a failed pair is a new job.
 - 2026-10-07 (evening; vocabulary session, 4): the vocabulary round (owner's request): after the facts rounds, one more round through the repair prompt for the office words still in the best version (LEX-07 findings alone, with the everyday word); its version takes the next free number and is kept only if it loses no must-keep value and adds no blocking finding (architecture §4.6). Measured on the 12 dev pairs with every earlier answer replayed from the cache, so both sides have the same versions up to the round (docs/prompts.md, "The vocabulary round"): it ran in 11 jobs, kept in 8, the 3 others lost the final choice (one dropped a fact, two got more judge findings); office words in the final drafts 42 to 19, fact coverage, hard facts and invented values unchanged, rule errors 3.5 to 2.5 per 100 blocks, about 11 s per job. On by default (`VOCABULARY_ROUND=1`). The orchestrator and degradation tests switch it off in their helpers (their scripted answers end before it); its own tests are in tests/pipeline/test_vocabulary.py. 1134 tests.
 - 2026-10-07 (evening; vocabulary session, 5): the writer gets no vocabulary (owner): the write prompt's word list, off since the dev run, is removed from code and templates (prompt version 9, the text of version 7 again) and documented as tried, for a later Apertus. One switch left, `USE_VOCABULARY` (on), for the fact sheet's explanations, the glossary entries by code, LEX-07 in the repair rounds and the vocabulary round; `VOCABULARY_PROMPT` and `VOCABULARY_ROUND` are gone. 1132 tests.
+- 2026-10-07 (evening; examples session): the decision letter and the example jobs (WP15, WP8). The KESB decision (D-T decided) written as `data/examples/sources/entscheid-beistandschaft-musterwil.txt`: a deputyship for an invented woman, with her name, date of birth, address, an AHV number with a wrong check digit, a case number, an IBAN with 00, the operative part and the 30-day appeal to an invented court; a research agent checked the layout against the KESB Graubünden's two specimen decisions and the KOKES model decision (KESB headers have no "in Sachen"; the appeal clause is Graubünden's). A JSON file next to a source sets its job (`mode`, `addressee`, `notice`), and `examples build --only <name>` builds one. Example jobs built on CSCS: the premium-reduction letter in German and French are in `data/examples/jobs/` and import on start; the KESB decision's job is held back, since its draft (decision mode, as built so far) carried an appeal deadline the decision does not contain and gave the deputy's tasks to the person, and as a standard job it lost the appeal. One published decision as a test (Verwaltungsgericht Schwyz, III 2022 132): placeholders pass through as names, 28 of 30 facts must-keep from the reasoning, the court's decision and the appeal lost, the write prompt's style guide copied into the decision-mode draft. Findings and the changes they ask of decision mode v1 in use-case-decisions.md §7 and WP15; one for the owner: a value FACT-05 finds missing from the source still counts as known to FACT-06. Fixed on the way, with tests: a short "label: value" line (a case number), a phone, e-mail or web line is no heading in pasted text, so its value stays must-keep (`ingest/text.py`); a surname above the street in an address block is no longer taken into the street (a list of street adjectives); a count with "pro Woche", "im Jahr", "par semaine" is a frequency, no period (on the 70 official texts only `365 Tage im Jahr` changes, three times); a range of ids inside one string (`"s0055-s0058"`) is written out after parsing (`llm/json_out.py`; never seen in the evaluation stores). 1133 tests.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -1220,7 +1227,8 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
 
 #### WP15 - Sovereignty and "why Apertus" evidence (GAP-06, -07, -15, -20)
 
-- [ ] **A decision letter with personal data** (1-2 h). Team-written, at
+- [x] **A decision letter with personal data** (1-2 h). *Replaced by the KESB decision
+      below (D-T, 7 Oct); not written.* Team-written, at
       `data/examples/sources/verfuegung-rueckforderung-musterwil.txt` (French
       counterpart if time allows). Topic: a premium reduction paid too much is
       reclaimed. It contains:
@@ -1235,7 +1243,7 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
       letter may not go to a cloud chatbot. On Apertus every identifier comes back
       character for character, and the omission log shows whether the model wanted to
       drop the appeal (the veto example of use-case-canton.md).
-- [ ] **Alternative per D-T: a KESB decision with personal data** (2-3 h; added 6 Oct,
+- [x] **Alternative per D-T: a KESB decision with personal data** (2-3 h; added 6 Oct,
       night; cloud session). Team-written, at
       `data/examples/sources/entscheid-beistandschaft-musterwil.txt`: the KESB of an
       invented region appoints a deputy (Beistand) for an invented woman in Musterwil
@@ -1256,12 +1264,26 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
       the model wanted to drop the appeal. Until the decision mode exists (WP17) it
       is an ordinary P2 job; the fixed notice ("Massgebend ist der Entscheid") is
       added by hand in the review, and the video says so.
-- [ ] **One published, anonymised decision as a test** (1 h plus run time, Thu 8 Oct;
+      *Written 7 Oct (evening): `data/examples/sources/entscheid-beistandschaft-musterwil.txt`,
+      1,000 words, 26 hard values (the AHV number with a wrong check digit, the IBAN
+      with 00), with `entscheid-beistandschaft-musterwil.json` for decision mode and
+      the addressee. A research agent found no KESB header with "in Sachen" or
+      "betreffend" (those are courts'), so the layout follows the KESB Graubünden's two
+      specimen decisions and the KOKES model decision: the panel, the person, the
+      subject, I. Sachverhalt, II. Erwägungen, III. Entscheid, Eröffnung and Mitteilung,
+      Graubünden's appeal clause. Its example job waits for decision mode v1: built on
+      CSCS the same evening, the draft was not fit to show (use-case-decisions.md §7).*
+- [x] **One published, anonymised decision as a test** (1 h plus run time, Thu 8 Oct;
       added 6 Oct, night; cloud session): a cantonal court on an appeal against a
       KESB decision, or the Federal Supreme Court on disability insurance (free under
       Copyright Act art. 5; docs/sources.md §3). Run P2 on CSCS, read the result, note
       how the placeholders (`A.________`) and the long reasoning come out. Input for
-      D-I and D-T.
+      D-I and D-T. *Done 7 Oct (evening): Verwaltungsgericht Schwyz, III 2022 132 (8
+      pages), P2 on CSCS in decision mode and as a standard job, and the KESB decision
+      the same way; results and what they mean for decision mode v1 in
+      use-case-decisions.md §7. The placeholders pass through as names; the model
+      proposed one passage of reasoning for omission, so code made 28 of 30 facts
+      must-keep; the court's own decision was not among them.*
 - [x] **"Why Apertus" box** (1 h) in README and report §3, five lines:
       - open weights, and open, documented training data that honours opt-outs: an
         authority can justify and audit the model;
@@ -1371,6 +1393,26 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          number, the 30 days and the court's address as code facts with green ticks,
          FACT-08 catching a dropped operative item and the repair restoring it, the
          omission log for the condensed reasons.
+
+      Added from the test runs of 7 Oct (use-case-decisions.md §7), for pieces 2 and 3:
+      - in decision mode the values of the header and of the reasoning (outside the
+        protected segments) are background facts, unless the model cites them in a
+        core answer; today code completion makes them must-keep (29 of 29 facts on the
+        KESB decision, 28 of 30 on the published one) and the repair rounds stop on
+        "no progress";
+      - the partial says to copy a period as written ("innert 30 Tagen seit
+        Mitteilung") and never to compute its end: the Understand model wrote "endet am
+        15. November 2026", a date the decision does not contain;
+      - a draft that quotes the prompt is an unusable answer: the decision-mode draft
+        of the published decision carried the write prompt's style guide as a section.
+        The copy guard knows the examples only; give it the style guide's lines too;
+      - the addressee line in the partial: with "Sie ist immer {{ addressee }}" the 8B
+        still gave the deputy's tasks to the person; name the tasks' owner in the
+        fact sheet (the deputy) and check it in the judge (SEM-03).
+      Owner's decision, affects standard jobs too: a fact-sheet value that FACT-05
+      finds missing from the source still counts as known to FACT-06, so a value the
+      Understand model invents reaches the draft with only a warning on the fact sheet.
+      Proposal: such a value is not known to FACT-06 and not required by FACT-01.
 
       Tests: `tests/rules/test_decision.py` (protected segments with and without
       headings, FACT-08 on a dropped item and an omitted Rechtsmittelbelehrung, silent

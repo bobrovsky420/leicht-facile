@@ -67,6 +67,14 @@ def keys(text: str, lang: str = "de") -> list[tuple[str, str]]:
         ("Untere Zollgasse 7, Postfach, 3000 Bern 7",
          ("address", "Untere Zollgasse 7|Postfach|3000 Bern")),
         ("8000 Zürich Telefon 044 123 45 67", ("address", "||8000 Zürich")),
+        ("Alte Landstrasse 4, 8000 Musterwil",
+         ("address", "Alte Landstrasse 4||8000 Musterwil")),
+        # The surname above the street in an address block (its lines joined by the
+        # ingest) is not a street adjective.
+        ("Frau Lea Muster Beispielweg 14 9999 Musterwil",
+         ("address", "Beispielweg 14||9999 Musterwil")),
+        ("Anna Huber Bahnhofstrasse 5, 8000 Musterwil",
+         ("address", "Bahnhofstrasse 5||8000 Musterwil")),
     ],
 )  # fmt: skip
 def test_german_values(text: str, expected: tuple[str, str]) -> None:
@@ -103,6 +111,8 @@ def test_french_and_italian_values(lang: str, text: str, expected: tuple[str, st
         ("Ihr Dossier 30 Tage", "identifier"),  # a period after a keyword
         ("Am 3. Tag", "period"),  # an ordinal
         ("Pro Tag 20 Franken, am Montag, im Jahr 2026", "period"),  # no count in front
+        ("Sie arbeitet an vier Tagen pro Woche", "period"),  # a frequency
+        ("zwei Tage je Monat, 3 Tage in der Woche", "period"),
         ("Kosten: 1000 Franken", "address"),  # a four-digit amount and a noun
         ("Es gibt 1500 Plätze", "address"),  # a count in the middle of a sentence
         ("Budget 2026 Zürich", "address"),  # a year followed by a capitalised word

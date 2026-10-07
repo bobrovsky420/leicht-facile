@@ -36,6 +36,16 @@ _ID_RANGE = re.compile(
     re.VERBOSE,
 )
 _MAX_RANGE = 500
+# The same range inside one string, which is valid JSON: ["s0055-s0058"]. Written out
+# after parsing, for list elements only. The markers are built with chr(), so that no
+# dash character stands in the source.
+_ID_RANGE_STRING = re.compile(
+    r"([a-z]{1,2})(\d{2,4})\s*(?:\.\.\.|"
+    + chr(0x2026)
+    + "|"
+    + chr(0x2013)
+    + r"|-|bis|to|à|jusqu'à)\s*(?:\1)?(\d{2,4})"
+)
 _TRAILING_COMMA = re.compile(r",\s*([}\]])")
 _MISSING_COMMA_OBJECTS = re.compile(r"}\s*\n(\s*){")
 # A value (closing quote, bracket or brace) followed by the next key without a comma,
@@ -71,6 +81,24 @@ def _expand_range(m: re.Match[str]) -> str:
     if hi < lo or hi - lo > _MAX_RANGE:
         return m.group(0)
     return ", ".join(f'"{prefix}{n:0{len(first)}d}"' for n in range(lo, hi + 1))
+
+
+def _expand_id_strings(value: Any) -> Any:
+    """Write out the id ranges given as one string in a list ("s0055-s0058")."""
+    if isinstance(value, dict):
+        return {k: _expand_id_strings(v) for k, v in value.items()}
+    if not isinstance(value, list):
+        return value
+    out: list[Any] = []
+    for item in value:
+        m = _ID_RANGE_STRING.fullmatch(item.strip()) if isinstance(item, str) else None
+        lo, hi = (int(m.group(2)), int(m.group(3))) if m else (0, -1)
+        if m and lo <= hi and hi - lo <= _MAX_RANGE:
+            width = len(m.group(2))
+            out.extend(f"{m.group(1)}{n:0{width}d}" for n in range(lo, hi + 1))
+        else:
+            out.append(_expand_id_strings(item))
+    return out
 
 
 def repair_json(text: str, top_keys: Iterable[str] = ()) -> str:
@@ -227,13 +255,13 @@ def extract_json(text: str, top_keys: Iterable[str] = ()) -> Any:
                 continue
             try:
                 value, _ = decoder.raw_decode(candidate, i)
-                return value
+                return _expand_id_strings(value)
             except json.JSONDecodeError as exc:
                 if not _KEY.search(candidate, i, exc.pos):
                     continue  # a brace in prose, not the answer: scan on
                 try:
                     value, _ = decoder.raw_decode(repair_json(candidate[i:], top_keys))
-                    return value
+                    return _expand_id_strings(value)
                 except json.JSONDecodeError:
                     broken = broken or (candidate, exc)
                     break  # the answer is broken: no object from inside it

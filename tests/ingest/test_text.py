@@ -82,6 +82,12 @@ def test_letter_structure():
         ("Lausanne, le 1er octobre 2026", "paragraph"),
         ("Cordiali saluti", "paragraph"),
         ("12345", "paragraph"),
+        ("Verfahrensnummer: KES-2026-0187", "paragraph"),  # a field line, not a heading
+        ("Telefon 044 123 45 67", "paragraph"),
+        ("kesb@musterwil.example", "paragraph"),
+        ("Mehr unter www.musterwil.example", "paragraph"),
+        ("Betreff: Staats- und Gemeindesteuern 2025", "heading"),
+        ("Prämienverbilligung 2027", "heading"),
     ],
 )
 def test_single_short_line(text, kind):

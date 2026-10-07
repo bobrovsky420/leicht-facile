@@ -7,7 +7,9 @@
   with "1." / "1)" / "a)" is a list item. A following line that is indented or starts
   in lower case continues the item. "1. Januar 2027 ..." is a date, not a list item.
 - A paragraph of one short line (at most 10 words, no final . ! ? : ; ,) is a heading
-  of level 2, unless it is a salutation, a closing formula or a place and date line.
+  of level 2, unless it is a salutation, a closing formula, a place and date line or a
+  field line: a label and a value (`Verfahrensnummer: KES-2026-0187`), a phone number,
+  an e-mail or a web address. A value in a heading is not a must-keep fact.
 """
 
 from __future__ import annotations
@@ -44,6 +46,13 @@ _LETTER_FORMULA = re.compile(
 _DATE_LINE = re.compile(
     r"(?:\d{1,2}\.\s*\d{1,2}\.\s*\d{2,4}|\d{1,2}\.?(?:er)?\s+[^\W\d_]+\s+\d{4}"
     r"|\d{4}-\d{2}-\d{2})\s*$"
+)
+# A letter's field lines: "Verfahrensnummer: KES-2026-0187", "Telefon 044 123 45 67",
+# an e-mail or web address. "Betreff: Staats- und Gemeindesteuern 2025" stays a
+# heading: the word after its colon holds no digit.
+_FIELD_LINE = re.compile(
+    r"^[^:]{1,40}:\s*\S*[\d@]|@|\bwww\.|https?://"
+    r"|(?<!\d)(?:\+41|0)\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}(?!\d)"
 )
 
 
@@ -152,4 +161,4 @@ def _looks_like_heading(text: str) -> bool:
         return False
     if not any(c.isalpha() for c in text):
         return False
-    return not (_LETTER_FORMULA.match(text) or _DATE_LINE.search(text))
+    return not (_LETTER_FORMULA.match(text) or _DATE_LINE.search(text) or _FIELD_LINE.search(text))

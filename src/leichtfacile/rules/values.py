@@ -169,6 +169,13 @@ _PERIOD_RE: dict[str, re.Pattern[str]] = {
     )
     for lang, units in _PERIOD_UNITS.items()
 }
+# A count of days per week or month is a frequency: "vier Tage pro Woche", "2 jours par
+# semaine", "tre giorni alla settimana".
+_FREQUENCY_AFTER = re.compile(
+    r"[ ]+(?:pro|je|in[ ]der|im|par|à[ ]la|per|alla|al)[ ]+"
+    r"(?:Woche|Monat|Jahr|semaine|mois|an|année|settimana|mese|anno)(?![\w·])",
+    re.IGNORECASE,
+)
 _PERIOD_WORDS: dict[str, dict[str, tuple[str, str]]] = {
     "de": {"d": ("Tag", "Tage"), "w": ("Woche", "Wochen"), "m": ("Monat", "Monate"),
            "y": ("Jahr", "Jahre"), "wd": ("Arbeitstag", "Arbeitstage")},
@@ -248,11 +255,16 @@ _NBSP = chr(0xA0)  # web pages set a no-break space in "St. Gallen" and after a 
 _SP = "[ " + _NBSP + "]"
 _UPPER = r"[A-ZÄÖÜÉÈÀÇ]"
 _WORD_CAP = _UPPER + r"(?:[^\W\d_]|[·'’-])*"  # a capitalised word, Mediopunkt allowed
-# A street name ends in a street word; a short adjective may precede it (Untere
-# Zollgasse), never the town or office in front of the address (Biel Bahnhofsplatz 2D),
-# which a draft rightly leaves out.
+# A street name ends in a street word; an adjective of place or kind may precede it
+# (Untere Zollgasse, Alte Landstrasse), never the town or office in front of the
+# address (Biel Bahnhofsplatz 2D), which a draft rightly leaves out, nor the surname
+# above it in an address block (Lea Muster / Beispielweg 14, Anna Huber / ...).
+_STREET_ADJECTIVE = (
+    r"(?:Ober|Unter|Hinter|Vorder|Inner|Äusser|Mittler|Nieder|Alt|Neu|Lang|Hoh|Gross|Klein"
+    r"|Breit|Schmal|Krumm|Still|Weiss|Schwarz|Rot|Grün)(?:e|er|en|es)"
+)
 _STREET_DE = (
-    r"(?:[A-ZÄÖÜ][a-zäöü]{1,5}(?:e|er|en|es)" + _SP + r")?" + _UPPER + r"(?:[^\W\d_]|[·'’-])*?"
+    r"(?:" + _STREET_ADJECTIVE + _SP + r")?" + _UPPER + r"(?:[^\W\d_]|[·'’-])*?"
     r"(?i:strasse|str\.|weg|gasse|platz|allee|quai|promenade|ring|rain|halde|matte|steig|graben)"
 )
 _STREET_FR_IT = (
@@ -626,6 +638,8 @@ def _period(m: re.Match[str], lang: str) -> str | None:
     count = int(num) if num.isdigit() else _number_word(num.lower(), lang)
     if count is None:
         return None  # "pro Tag", "Montag": no count in front of the unit
+    if _FREQUENCY_AFTER.match(m.string, m.end()):
+        return None  # "an vier Tagen pro Woche": how often, not how long
     unit = next(u for u in ("wd", "d", "w", "m", "y") if m.group(u))
     return f"{count}{unit}"
 

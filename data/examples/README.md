@@ -10,6 +10,38 @@ of Swiss style guides.
 |------|---------|-----|
 | `sources/praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), day-1 check 3, example job |
 | `sources/reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, French example job |
+| `sources/entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Example job in decision mode once decision mode v1 is in (PLAN.md WP15), the video's product scene (docs/use-case-decisions.md) |
+
+A JSON file next to a source holds that example's job settings, any `JobConfig` field:
+`sources/entscheid-beistandschaft-musterwil.json` runs the KESB decision in decision mode
+(`mode`), speaking to Lea Muster (`addressee`), with the KESB's fixed notice (`notice`).
+Sources without one run as standard P2 jobs at level A2.
+
+The KESB decision follows the layout of real ones: the header with the panel, the
+person and the subject, then I. Sachverhalt, II. Erwägungen, III. Entscheid and the
+Rechtsmittelbelehrung, as in the two specimen decisions in the annex of the KESB
+Graubünden's guide to deputyships (*Leitfaden Mandatsführung und Vermögensverwaltung*)
+and the KOKES model decision; the operative items and the appeal clause use their
+wording. The AHV number has a wrong check digit and the IBAN the check digits 00, so
+neither can belong to anyone. The people, the street, the bank and the doctor are
+invented.
+
+## Example jobs
+
+`jobs/` holds the pre-computed example jobs, one audit bundle per source, imported into
+the store on the first start so the UI is not empty: for now the premium-reduction
+letter in German and in French. The KESB decision's job follows with decision mode v1:
+built on 7 October 2026 with today's pipeline, its draft carried an appeal deadline the
+decision does not contain and gave the deputy's tasks to Lea Muster (PLAN.md WP15). The
+jobs are built with the endpoint and the settings of `.env`:
+
+```
+uv run python -m leichtfacile examples build                # every source
+uv run python -m leichtfacile examples build --only entscheid-beistandschaft-musterwil
+```
+
+The build runs each source through P2 in its own store (`data/examples-build.sqlite`)
+and writes `jobs/<source>.json`; a job that fails writes nothing.
 
 ## Printed letters (image input)
 

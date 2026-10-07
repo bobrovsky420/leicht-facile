@@ -107,10 +107,28 @@ def load_examples(store: Store, folder: Path | None = None) -> list[str]:
     return loaded
 
 
+def example_config(path: Path) -> dict[str, Any]:
+    """Job settings for one example source from the JSON file next to it, if any:
+    `entscheid.txt` with `entscheid.json` holding `{"mode": "decision", "addressee": ...}`.
+    Only JobConfig fields are allowed."""
+    sidecar = path.with_suffix(".json")
+    if not sidecar.is_file():
+        return {}
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    unknown = set(data) - set(JobConfig.model_fields)
+    if unknown:
+        raise ValueError(f"{sidecar.name}: not job settings: {', '.join(sorted(unknown))}")
+    return data
+
+
 def build_examples(
-    level: str = "A2", condition: str = "P2", folder: Path | None = None
+    level: str = "A2",
+    condition: str = "P2",
+    folder: Path | None = None,
+    only: list[str] | None = None,
 ) -> list[Path]:
-    """Run the pipeline on every example source and write the bundles (needs the endpoint)."""
+    """Run the pipeline on every example source (or the ones named in `only`, by file
+    name without suffix) and write the bundles (needs the endpoint)."""
     from leichtfacile.config import get_settings
     from leichtfacile.export.bundle import build_bundle
     from leichtfacile.ingest import ingest_file
@@ -127,12 +145,15 @@ def build_examples(
     for path in sorted((folder / "sources").glob("*")):
         if path.suffix.lower() not in (".txt", ".md", ".html", ".htm", ".pdf"):
             continue
+        if only and path.stem not in only:
+            continue
         # The language is detected: the sources include a German and a French letter.
         source = ingest_file(path, doc_id=f"example-{path.stem}",
                              license_note="written by the team; free to use")  # fmt: skip
-        config = JobConfig(lang=source.lang, level=level, condition=condition,  # type: ignore[arg-type]
-                           max_repair_rounds=settings.max_repair_rounds,
-                           max_facts_rounds=settings.max_facts_rounds)  # fmt: skip
+        settings_for = {"lang": source.lang, "level": level, "condition": condition,
+                        "max_repair_rounds": settings.max_repair_rounds,
+                        "max_facts_rounds": settings.max_facts_rounds}  # fmt: skip
+        config = JobConfig.model_validate(settings_for | example_config(path))
         job = store.create_job(config, title=source.title or path.stem)
         store.put_artifact(job.id, "source", source)
         orchestrator.run(job.id)

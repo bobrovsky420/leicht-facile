@@ -189,6 +189,43 @@ Planned, not built:
 The planned checks in backticks are specified in
 [rules.md](rules.md#planned-fact-checks-not-implemented).
 
+### Tested on 7 October 2026
+
+Two decisions went through P2 on CSCS (8B writer, 70B judge), each once with the
+decision-mode prompts that exist so far (the partial and the addressee, without
+protected segments) and once as a standard job:
+
+- **The team's KESB decision** (`data/examples/sources/entscheid-beistandschaft-musterwil.txt`,
+  1,000 words, 26 hard values). Every identifier, address and the 30 days that the draft
+  carried came back exactly. But in decision mode the Understand model computed an end
+  of the appeal period ("Die Beschwerdefrist endet am 15. November 2026") that the
+  decision does not state; FACT-05 warned about the fact sheet, while FACT-06 let the
+  date through because the fact sheet carried it. "Sie" became Lea Muster where the
+  deputy was meant (the inventory and the report), and the withdrawn suspensive effect
+  and the case number were missing. As a standard job the appeal (30 days, the court)
+  was missing altogether. 29 of 29 and 20 of 27 facts were must-keep, the sender's
+  address and the dates of the reasoning included, so both jobs stopped on "no
+  progress".
+- **A published decision** (Verwaltungsgericht Schwyz, III 2022 132, 8 pages, an appeal
+  against a deputyship). The placeholders (`A.________`) pass through unchanged and
+  read as names. The model proposed only one passage of the reasoning for omission, so
+  the code completion made 28 of 30 facts must-keep, among them birth dates, an
+  inheritance and a loan; the court's own decision (the appeal dismissed) was not one
+  of them. In decision mode the draft presented the KESB's measure as the court's
+  decision, gave the deputy's duties to the person concerned, left out the appeal to
+  the Federal Supreme Court, and copied the write prompt's style guide into the draft
+  as a section of its own. The operative part starts with "Demnach erkennt das
+  Verwaltungsgericht:" and holds the appeal instructions as its item 3 ("Gegen diesen
+  Entscheid kann innert 30 Tagen seit Zustellung ..."): the markers FACT-08 needs.
+
+What it means for decision mode v1 (PLAN.md WP15): the operative part and the appeal
+instructions must be found by code and protected (FACT-08), not left to the model; the
+values of the header and the reasoning must be background facts in decision mode, or
+the repair rounds chase dates nobody needs; the prompts must say to copy a period as
+written and never compute its end; and a draft must not quote the prompt. The
+published decision stays a test input. The demo uses the team's decision, which reads
+like a real one and carries the personal data a published one has removed.
+
 ## References
 
 - Swiss Civil Code (ZGB), Art. 388 and Art. 450b:

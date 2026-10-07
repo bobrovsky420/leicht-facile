@@ -105,6 +105,21 @@ def test_extract_json_writes_id_ranges_out():
     }
 
 
+def test_extract_json_writes_out_a_range_given_as_one_string():
+    text = '{"blocks": [{"segment_ids": ["s0052-s0053", "s0060"]}], "x": ["s0007 bis s0009"]}'
+    assert extract_json(text) == {
+        "blocks": [{"segment_ids": ["s0052", "s0053", "s0060"]}],
+        "x": ["s0007", "s0008", "s0009"],
+    }
+    # Not in a list, backwards, or prose: left as it is.
+    text = '{"title": "s0052-s0053", "a": ["s0009-s0007"], "b": ["Art. 450-454"]}'
+    assert extract_json(text) == {
+        "title": "s0052-s0053",
+        "a": ["s0009-s0007"],
+        "b": ["Art. 450-454"],
+    }
+
+
 def test_extract_json_repairs_commas():
     text = '{"facts": [{"kind": "a"}\n {"kind": "b"},],\n "x": "y"\n "z": 1,}'
     assert extract_json(text) == {"facts": [{"kind": "a"}, {"kind": "b"}], "x": "y", "z": 1}

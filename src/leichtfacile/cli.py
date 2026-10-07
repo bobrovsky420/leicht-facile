@@ -79,6 +79,9 @@ def main(argv: list[str] | None = None) -> int:
     examples = sub.add_parser("examples", help="build the example jobs (needs the endpoint)")
     examples.add_argument("action", choices=["build"])
     examples.add_argument("--level", choices=["A2", "B1"], default="A2")
+    examples.add_argument(
+        "--only", nargs="+", metavar="NAME", help="build these sources only (file name, no suffix)"
+    )
 
     from leichtfacile.eval.cli import add_eval_parser
 
@@ -102,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "examples":
         from leichtfacile.examples import build_examples
 
-        written = build_examples(level=args.level)
+        written = build_examples(level=args.level, only=args.only)
         for path in written:
             print(f"written: {path}")
         return 0 if written else 1

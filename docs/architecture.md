@@ -668,9 +668,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   status filter with counts and language filter are GET parameters, so they work
   without JavaScript; at most 50 rows, newest first, with the counts computed per
   request from `review_view` (D-Y). An intro strip explains the four steps and can be
-  hidden. Without jobs, the empty state offers the two example letters.
+  hidden. Without jobs, the empty state offers the team-written example texts.
 - **New draft** (`/new`, D-W): the source as pasted text, web address or file (drop
-  zone), with the two team-written example letters as one-click fills
+  zone), with the team-written example texts as one-click fills
   (`/new?example=<id>` fills the text without JavaScript); language, level and
   pipeline as radio lists, the chosen pipeline's stages shown under it; title,
   optional model overrides. `POST /jobs` answers 400 with the form and the error.
@@ -896,11 +896,14 @@ are in the image; the Italian model is added when Italian ships. The
 vendored UI assets are copied in the same way. At **runtime** the container needs
 exactly one outbound connection: `LLM_BASE_URL`. It runs as a non-root user, keeps
 its data in the named volume `appdata` (mounted at `/data`), and has a Docker health
-check on `/healthz`. The app listens on `:8000`, with two pre-computed example jobs
-so the UI is not empty before the first live run (clearly labelled as examples).
-The example jobs are audit bundles in `data/examples/jobs/`, built from the team's
-sample documents with `python -m leichtfacile examples build` once an endpoint is
-available, and imported into the store on start.
+check on `/healthz`. The app listens on `:8000`, with pre-computed example jobs
+so the UI is not empty before the first live run (clearly labelled as examples): the
+premium-reduction letter in German and in French; the KESB decision with personal data
+follows once decision mode v1 is in (PLAN.md WP15). The example jobs are audit bundles in
+`data/examples/jobs/`, built from the team's sample documents with `python -m
+leichtfacile examples build` (`--only <name>` for one) once an endpoint is available,
+and imported into the store on start. A source's job settings, such as the decision
+mode and the addressee, come from a JSON file next to it (data/examples/README.md).
 
 `make check-llm` lists the endpoint's models and makes one short call from inside the
 container; it is the first thing to run once a key is set.
