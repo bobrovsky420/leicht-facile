@@ -62,6 +62,16 @@ cp .env.example .env      # set LLM_BASE_URL, LLM_API_KEY, LLM_NAME (CSCS by def
 make run                  # builds and starts the container, opens http://localhost:8000
 ```
 
+The three variables can also come from the shell, without a `.env` file:
+
+```bash
+export LLM_BASE_URL=https://api.inference.cscs.ch/v1 LLM_API_KEY=... LLM_NAME=swiss-ai/Apertus-v1.5-8B
+make run
+```
+
+For these three, a value in the shell wins over `.env`; every other setting comes from
+`.env` or its default.
+
 `make run` opens the web UI in the default browser once the service answers; on a
 machine without a desktop it prints the address instead (`make run OPEN_BROWSER=0`
 turns the browser off).

@@ -28,15 +28,12 @@ run: check-env
 stop:
 	docker compose down
 
-# Fail early with a helpful message instead of a crashing container.
+# Fail early with a helpful message instead of a crashing container. Each required
+# variable comes from the shell or from .env (docker-compose.yml passes both on).
 check-env:
-	@if [ ! -f .env ]; then \
-		echo "Missing .env. Copy .env.example to .env and set $(REQUIRED_VARS)."; \
-		exit 1; \
-	fi
 	@for v in $(REQUIRED_VARS); do \
-		if ! grep -Eq "^$$v=.+" .env; then \
-			echo "Variable $$v is missing or empty in .env (see .env.example)."; \
+		if [ -z "$$(printenv $$v)" ] && ! { [ -f .env ] && grep -Eq "^$$v=.+" .env; }; then \
+			echo "Variable $$v is not set. Export it in the shell, or copy .env.example to .env and set it there."; \
 			exit 1; \
 		fi; \
 	done

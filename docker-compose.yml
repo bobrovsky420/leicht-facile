@@ -1,6 +1,9 @@
 # Default: the app only, talking to a remote Apertus endpoint (CSCS, Swiss cloud,
 # Hugging Face) configured in .env.
 #
+# The three required variables (LLM_BASE_URL, LLM_API_KEY, LLM_NAME) may also come
+# from the shell, with or without a .env file; the shell wins over .env.
+#
 # On-premise / air-gapped: `docker compose --profile local-llm up` adds a vLLM server
 # with Apertus 1.5 8B on one NVIDIA GPU. Point the app at it in .env:
 #   LLM_BASE_URL=http://vllm:8000/v1
@@ -21,9 +24,15 @@ services:
   app:
     build: .
     image: leicht-facile:latest
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       DATA_DIR: /data
+      # Passed through from the shell when set there; otherwise the value from .env.
+      LLM_BASE_URL:
+      LLM_API_KEY:
+      LLM_NAME:
     volumes:
       - appdata:/data
     ports:

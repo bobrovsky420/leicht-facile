@@ -339,8 +339,8 @@ outputs, the evaluation metrics, and the web API.
 
 ## 7. Reproducibility
 
-- **Run:** `cp .env.example .env`, set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`,
-  then `make run`, which opens http://localhost:8000 in the browser. `make check-llm` makes one call to
+- **Run:** set `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME` in the shell or in `.env`
+  (`cp .env.example .env`), then `make run`, which opens http://localhost:8000 in the browser. `make check-llm` makes one call to
   the endpoint; `make smoke` runs a bundled example letter through the full pipeline.
 - **Numbers:** `make eval` fetches the pairs, scores the references, runs P0, P0-ZH,
   P1 and P2 with the response cache on (an interrupted run resumes), and writes the
