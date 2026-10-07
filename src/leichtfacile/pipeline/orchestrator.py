@@ -10,10 +10,9 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
 
 from leichtfacile.config import Settings
-from leichtfacile.llm.client import LLMClient, LLMError, LLMResult
+from leichtfacile.llm.client import LLMClient, LLMError
 from leichtfacile.llm.json_out import LLMOutputError
 from leichtfacile.pipeline import render, stages
 from leichtfacile.pipeline.labels import label
@@ -179,6 +178,12 @@ class Orchestrator:
         job = self.store.get_job(job_id)
         if job is None:
             raise PipelineError(f"unknown job {job_id}")
+        # Each model call is billed to the job when it is made, so a stage that fails
+        # after some calls has them in the usage too.
+        with self.llm.recording(lambda usage: self.store.add_usage(job_id, usage)):
+            self._run(job_id, job)
+
+    def _run(self, job_id: str, job: Job) -> None:
         try:
             self._set(job_id, status="running", error=None)
             source = self.store.get_artifact(job_id, "source", SourceDocument)
@@ -217,18 +222,17 @@ class Orchestrator:
         if draft is None:
             self._set(job.id, stage="baseline")
             if job.config.condition == "P0":
-                draft, results = stages.baseline(
+                draft, _ = stages.baseline(
                     self.llm, source, level=job.config.level, model=job.config.writer_model
                 )
             else:  # the Canton of Zurich's prompt, complete or condensed
-                draft, results, self._notes = stages.baseline_zh(
+                draft, _, self._notes = stages.baseline_zh(
                     self.llm,
                     source,
                     level=job.config.level,
                     variant=stages.zh_variant(job.config.condition),
                     model=job.config.writer_model,
                 )
-            self._record(job.id, results)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         rules = self._check(job, draft, source, None)
         self._summary(job, source, draft, rules=[rules], judge=None, rounds=0, reason="baseline")
@@ -238,7 +242,7 @@ class Orchestrator:
         factsheet = self.store.get_artifact(job.id, "factsheet", FactSheet)
         if factsheet is None:
             self._set(job.id, stage="understand")
-            factsheet, results = stages.understand(
+            factsheet, _ = stages.understand(
                 self.llm,
                 source,
                 level=cfg.level,
@@ -246,7 +250,6 @@ class Orchestrator:
                 mode=cfg.mode,
                 addressee=cfg.addressee,
             )
-            self._record(job.id, results)
             factsheet = stages.complete_factsheet(factsheet, source)
             if self.settings.use_vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
@@ -256,7 +259,7 @@ class Orchestrator:
         draft = self.store.get_artifact(job.id, "draft", Draft, version=1)
         if draft is None:
             self._set(job.id, stage="write")
-            draft, results = stages.write(
+            draft, _ = stages.write(
                 self.llm,
                 source,
                 factsheet,
@@ -266,7 +269,6 @@ class Orchestrator:
                 addressee=cfg.addressee,
                 vocabulary=self.settings.use_vocabulary and self.settings.vocabulary_prompt,
             )
-            self._record(job.id, results)
             draft = stages.link_facts(draft, factsheet)
             if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
@@ -396,7 +398,7 @@ class Orchestrator:
         self._set(job.id, stage=f"{kind} {number}")
         self._round_failure: str | None = None
         try:
-            new_draft, results, record = stages.repair(
+            new_draft, _, record = stages.repair(
                 self.llm,
                 source,
                 factsheet,
@@ -408,11 +410,9 @@ class Orchestrator:
                 kind=kind,
             )
         except (LLMError, LLMOutputError) as exc:
-            self._record(job.id, getattr(exc, "results", []))
             self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
             self._round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
             return None
-        self._record(job.id, results)
         new_draft = stages.link_facts(new_draft, factsheet)
         if self.settings.use_vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
@@ -447,7 +447,7 @@ class Orchestrator:
         self._set(job.id, stage="judge")
         model = job.config.judge_model or self.llm.judge_model()
         try:
-            report, results = stages.judge(
+            report, _ = stages.judge(
                 self.llm,
                 source,
                 factsheet,
@@ -458,12 +458,10 @@ class Orchestrator:
             )
         except (LLMError, LLMOutputError) as exc:
             # Without the judge the draft still has its rule and fact checks.
-            self._record(job.id, getattr(exc, "results", []))
             getattr(self, "_notes", []).append(
                 f"judge on draft {draft.version} failed: {_short(exc)}"
             )
             return None
-        self._record(job.id, results)
         self.store.put_artifact(job.id, "judge", report, draft.version)
         return report
 
@@ -528,10 +526,6 @@ class Orchestrator:
     def _maybe_stop(self, stage: str) -> None:
         if getattr(self, "_stop_after", None) == stage:
             raise _Stopped(stage)
-
-    def _record(self, job_id: str, results: Iterable[LLMResult]) -> None:
-        for result in results:
-            self.store.add_usage(job_id, result.usage)
 
     def _set(self, job_id: str, **fields: object) -> None:
         self.store.update_job(job_id, **fields)

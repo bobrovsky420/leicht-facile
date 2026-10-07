@@ -590,7 +590,9 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   (reasoning can be several times longer than the visible answer).
 - **Usage log.** Every call records model, tokens in/out, latency and stage; jobs
   show totals, and the evaluation reports cost per page using a configurable
-  CHF-per-million-tokens table.
+  CHF-per-million-tokens table. A job's calls are stored as they are made
+  (`LLMClient.recording` around the job's run), so a stage that fails after some
+  calls, and the job it fails, still show them.
 - **Cache.** Responses are cached by hash of (model, messages, parameters) in SQLite
   when `LLM_CACHE=1`. It speeds up development and makes evaluation reruns cheap. The
   repository ships with an empty cache: the live run must work from the endpoint.

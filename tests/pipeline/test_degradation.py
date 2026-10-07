@@ -87,6 +87,44 @@ def test_runaway_reasoning_falls_back_to_an_answer_without_thinking(store, endpo
     assert [u.stage for u in job.usage] == ["understand"] * 2 + ["write"]  # all calls billed
 
 
+def test_a_failed_stage_still_bills_its_calls(store, endpoint, sleeps) -> None:
+    """A job that failed in Understand reported 0 model calls after two (7 Oct 2026):
+    usage was stored only when a stage returned."""
+    endpoint.push(chat_response("kein JSON"), chat_response("wieder kein JSON"))
+    job_id = new_job(store, condition="P1")
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "failed" and "LLMOutputError" in job.error
+    assert [u.stage for u in job.usage] == ["understand"] * 2
+    assert sum(u.tokens_out for u in job.usage) > 0
+
+
+def test_a_failed_fallback_bills_the_thinking_call_too(store, endpoint, sleeps) -> None:
+    endpoint.push(
+        chat_response(RUNAWAY, finish_reason="length"),  # thinking, cut off
+        chat_response("kein JSON"),
+        chat_response("wieder kein JSON"),  # without thinking: invalid twice
+    )
+    job_id = new_job(store, condition="P1")
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "failed"
+    assert [u.stage for u in job.usage] == ["understand"] * 3
+
+
+def test_a_failed_write_bills_each_call_once(store, endpoint, sleeps) -> None:
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response("kein JSON"),
+        chat_response("wieder kein JSON"),  # write: invalid twice
+    )
+    job_id = new_job(store, condition="P1")
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "failed"
+    assert [u.stage for u in job.usage] == ["understand", "write", "write"]
+
+
 def test_a_failing_judge_leaves_a_reviewable_draft(store, endpoint, sleeps) -> None:
     endpoint.push(
         chat_response(fx.as_json(fx.UNDERSTAND)),

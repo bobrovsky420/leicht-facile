@@ -15,7 +15,9 @@ from __future__ import annotations
 import logging
 import random
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -42,6 +44,8 @@ _BACKOFF_BASE_S = 1.0
 _BACKOFF_MAX_S = 30.0
 # Some gateways (Public AI) reject requests without an identifying User-Agent.
 USER_AGENT = f"leicht-facile/{__version__}"
+# Where the calls of the current thread are billed, set by `LLMClient.recording`.
+_RECORDING: ContextVar[Callable[[Usage], None] | None] = ContextVar("llm_recording", default=None)
 
 
 class LLMError(RuntimeError):
@@ -324,10 +328,24 @@ class LLMClient:
             tokens_out,
         )
 
+    @contextmanager
+    def recording(self, sink: Callable[[Usage], None]) -> Iterator[None]:
+        """Pass every call made in this thread inside the block to `sink` as it is made.
+        The orchestrator bills a job this way: a stage that fails after two calls has
+        made them, though it returns no results (a failed Understand reported 0 calls,
+        7 October 2026)."""
+        token = _RECORDING.set(sink)
+        try:
+            yield
+        finally:
+            _RECORDING.reset(token)
+
     def _record(self, usage: Usage) -> None:
         log.info("llm_call %s", asdict(usage))
         if self._usage_sink:
             self._usage_sink(usage)
+        if (sink := _RECORDING.get()) is not None:
+            sink(usage)
 
 
 def _reasoning_field(message: Any) -> str | None:
