@@ -31,15 +31,9 @@ Best candidates for slide 1:
 - **DE-3** / **FR-3**: short, but every key word is a false friend (Verfügung,
   Eröffnung, notification).
 
-A light moment for the pitch, after the number or before the demo:
-
-- **Behindertengleichstellungsgesetz (BehiG)**: the law that requires accessible
-  information has a 32-letter name and an abbreviation, and fails its own rules
-  (LEX-01, LEX-02, GRAM-05). Its full title is a genitive chain: *Bundesgesetz über
-  die Beseitigung von Benachteiligungen von Menschen mit Behinderungen*. The French
-  side is no better: *Loi fédérale sur l'élimination des inégalités frappant les
-  personnes handicapées (LHand)*. Punchline: "Even the law needs Leicht·Facile."
-  Easy version: *Gesetz für gleiche Rechte von Menschen mit Behinderungen*.
+BehiG as a light moment for the pitch ("Even the law needs Leicht·Facile") was dropped on
+7 October 2026: its time goes to why only Apertus fits the letters under secrecy
+([demo-video.md](demo-video.md), 1:29-1:57). The word stays in §3.
 
 The judges are expert readers. The point is not that they fail, but that they need a
 second look; the target group often never gets past the first.

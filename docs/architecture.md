@@ -287,7 +287,7 @@ score, share of passive sentences, …). The full catalogue is in
   FACT-06 and "hard facts kept" treat them the same way
   ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"). Every further
   use case turns on one of them
-  ([use-cases.md §12](use-cases.md#12-what-the-further-use-cases-need)).
+  ([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)).
 - planned, not built: drug names as a value kind, plus checks for the fixed notice,
   the operative part and appeal instructions, and a medication kept in one block, and
   three more questions for the judge
@@ -820,7 +820,7 @@ container; it is the first thing to run once a key is set.
 |--------------|----------------------------|
 | a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` serving `swiss-ai/Apertus-v1.5-8B` on one GPU, with the Apertus reasoning parser and `--max-model-len 32768`; the app points at `http://vllm:8000/v1` with `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. **[verify]** on a GPU host: the compose file validates, but the service has not been started yet. |
 | b) Air-gapped | Same as (a) with images and weights pulled in advance; spaCy models and UI assets are inside the image; no telemetry, no CDN, no package installs at runtime. A `make bundle` target saves the images to a tarball. |
-| c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (CSCS, Swisscom AI Platform, Infomaniak). The hackathon demo itself runs against CSCS in Lugano. |
+| c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B). The hackathon demo itself runs against the CSCS inference API in Lugano, which serves research, not administrations. |
 
 Hardware for (a)/(b), to be measured and stated precisely in the report: the 8B
 model in bf16 needs roughly 16 GB for the weights plus KV cache, so a 24 GB GPU with
@@ -854,7 +854,8 @@ at runtime.
   organisation, so content never leaves. The hackathon demo uses public documents only.
   Decisions of child and adult protection authorities and courts are the most
   sensitive case: before anonymisation they name a person and describe their health,
-  family and finances ([use-case-decisions.md](use-case-decisions.md) §2).
+  family and finances ([use-case-decisions.md](use-case-decisions.md) §2). Why such
+  texts leave Apertus as the only model that fits: [use-cases.md §2](use-cases.md#why-only-apertus).
 - No authentication in the prototype; it is meant to run behind the organisation's
   reverse proxy. Noted as a limitation.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API.
@@ -893,7 +894,8 @@ src/leichtfacile/
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
-                          lexicon.py, readability.py, styleguide.py, checker.py, nlp.py
+                          lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
+                          vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml)
   web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
                           static/ (app.css, app.js, fonts/), locales/ (en.json, de.json)
   export/                 markdown.py, html.py, bundle.py

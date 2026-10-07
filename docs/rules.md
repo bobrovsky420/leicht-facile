@@ -111,7 +111,7 @@ The value kinds (`rules/values.py`). Every kind feeds the code completion of the
 sheet, FACT-01, FACT-05, FACT-06 and "hard facts kept" in the evaluation. Plain
 numbers are extracted but not checked. The kinds `period`, `identifier` and `address`
 were added on 7 October 2026 for the decisions use case and the further use cases
-([use-cases.md §12](use-cases.md#12-what-the-further-use-cases-need)); the model is
+([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)); the model is
 not told about them, code finds them in the source and parses what the model writes
 as a value.
 
@@ -227,6 +227,31 @@ show them next to the code findings:
 | SEM-05 | Is a difficult word used without an explanation, where the glossary has none? |
 | SEM-06 | Does the block state something the source does not support? (hallucination) |
 | SEM-07 | For each fact: present, missing, or distorted? |
+
+## Vocabulary (data, not used by a rule yet)
+
+`rules/data/vocabulary_de.toml` and `vocabulary_fr.toml` collect hard words of Swiss
+administrative letters, read by `rules/vocabulary.py`. Two kinds:
+
+- `replace`: a bureaucratic word, phrase or abbreviation and the everyday word to use
+  instead (`innert` = `innerhalb von`, `moyennant` = `avec`, `z. B.` = `zum
+  Beispiel`). A suggestion, not a blind substitution: case and word order may change.
+  Groups: connectors, adverbs, verbs, nouns, abbreviations.
+- `explain`: a term that has to stay, because the reader meets it again on forms and
+  letters (`Verfügung`, `Franchise`, `commandement de payer`), with a glossary
+  explanation. Groups: law, debt, insurance, health, social, tax, residence, vote.
+  The false friends of `docs/hard-texts.md` §3 are in it.
+
+Size on 7 October: German 229 replace and 107 explain, French 185 and 105. Sources: the
+hard words of the standard pages in the pairs (`data/pairs/`), the explanations
+official easy pages give for the same terms, and the rule lists above (LEX-01-FR,
+LEX-02). `tests/rules/test_vocabulary.py` checks the lists: no term twice, no en or em
+dash, no sharp s in German, and every explanation, one block per sentence, passes the
+checker at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt).
+
+Planned use (PLAN.md WP17, termbase): entries that occur in the source go into the
+write prompt; LEX-01, LEX-02 and LEX-03 name the `replace` word in their suggestion;
+a hard term the writer left out of the glossary gets the `explain` text.
 
 ## Planned fact checks (not implemented)
 

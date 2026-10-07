@@ -44,7 +44,10 @@ and finances. Such a text may not go to a chatbot on a foreign cloud. Leicht·Fa
 runs as one container next to an Apertus endpoint that the authority or the canton
 controls: on its own servers, air-gapped, or on a Swiss cloud under the canton's
 contract ([architecture.md §10](architecture.md#10-deployment-and-sovereignty)).
-Nothing else leaves the network.
+Nothing else leaves the network. Official secrecy binds the authority, which must also
+be able to account for the model it uses and depend on no foreign supplier for it:
+that leaves Apertus as the only model that fits
+([use-cases.md §2](use-cases.md#why-only-apertus)).
 
 The audit bundle stays in the case file. It shows which sentence of the decision each
 easy-language sentence rests on and who approved it, so the authority can show exactly

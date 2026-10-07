@@ -26,7 +26,9 @@ second, larger model, and repairs only the flagged sentences. Code checks the pu
 easy-language rules (42 checks for German, 39 for French), including the exact presence
 of every fact value. A human reviews source and draft side by side and exports the text
 with an audit trail. The system is one container plus an OpenAI-compatible Apertus
-endpoint, so it runs on-premise, air-gapped or on a Swiss cloud. A single prompt
+endpoint, so it runs on-premise, air-gapped or on a Swiss cloud, as letters under
+official, medical or tax secrecy require; for those, Apertus is the only model that
+fits (§3). A single prompt
 ("rewrite this in Leichte Sprache") gives text with no fact contract, no provenance and
 no independent check; it is our baseline P0, the full pipeline is P2.
 
@@ -39,21 +41,41 @@ values per 100 blocks that the source does not have; the official versions 2.2.
 
 ## 2. Architecture
 
-```text
-Browser (review UI)
-   |
-leicht-facile container (FastAPI, Python 3.14)
-   Ingest (code) -> Understand (Apertus) -> Write (Apertus) -> Rule check (code)
-                                                   \-> Judge (Apertus) -> Repair (Apertus)
-   -> Review (human) -> Export (code)
-   SQLite + JSON artifacts on a mounted volume; one LLM client for all model calls
-   |
-Apertus endpoint: CSCS API | local vLLM | Swiss sovereign cloud
+```mermaid
+flowchart LR
+    U["Reviewer's browser<br/>via the organisation's<br/>reverse proxy and login"]
+    subgraph C["leicht-facile container (Docker, non-root)"]
+        W["FastAPI<br/>API, review UI,<br/>job runner thread"] --> PL["Pipeline<br/>stages below"]
+        PL --> RC["Rule checker<br/>spaCy, regex"]
+        PL --> LC["LLM client<br/>OpenAI-compatible"]
+    end
+    U --> W
+    W <--> V[("Volume appdata<br/>SQLite + JSON")]
+    LC -->|LLM_BASE_URL| E["<b>Apertus endpoint</b><br/>on-premise, air-gapped<br/>or Swiss cloud"]
+
+    classDef ai fill:#e9e1f7,stroke:#6b4fbb,color:#1b1030
+    classDef code fill:#dff3f0,stroke:#1f8a7a,color:#0d2b27
+    class LC,E ai
+    class RC code
+```
+
+```mermaid
+flowchart LR
+    ING["Ingest"] --> UND["Understand<br/>Apertus 1.5 8B"] --> WRI["Write<br/>Apertus 1.5 8B"]
+    WRI --> RUL["Rule check"] & JUD["Judge<br/>Apertus 1.5 70B"] --> REP["Repair, max. 3 rounds<br/>Apertus 1.5 8B"]
+    REP --> REV["Review<br/>human"] --> EXP["Export"]
+
+    classDef ai fill:#e9e1f7,stroke:#6b4fbb,color:#1b1030
+    classDef code fill:#dff3f0,stroke:#1f8a7a,color:#0d2b27
+    classDef human fill:#fdf0d5,stroke:#b07d1a,color:#2b1d05
+    class UND,WRI,JUD,REP ai
+    class ING,RUL,EXP code
+    class REV human
 ```
 
 | Stage | Done by | Output |
 |-------|---------|--------|
-| Ingest | Code: `trafilatura`, `pdfplumber`, spaCy | `SourceDocument`: segments with stable ids (`s0001`) |
+| Ingest | Code: trafilatura, pdfplumber, spaCy | `SourceDocument`: segments with stable ids (`s0001`) |
 | Understand | Apertus 8B, thinking | `FactSheet`: the reader's core questions (what, what to do, by when, cost, contact), typed facts with normalised values and source ids. Code adds every date, amount, phone number, address, period or identifier the model missed |
 | Write | Apertus 8B | `Draft`: blocks with the facts and source segments they carry, omissions with reasons, glossary |
 | Rule check | Code: spaCy parse, regex, word frequencies | Findings with rule id, severity, evidence, suggestion |
@@ -63,11 +85,10 @@ Apertus endpoint: CSCS API | local vLLM | Swiss sovereign cloud
 
 Key decisions (details in [docs/architecture.md](docs/architecture.md)):
 
-- **Countable rules in code, meaning in the model.** Sentence length, passive,
-  genitive, numbers, Swiss date and phone formats, the Mediopunkt in long compounds and
-  fact coverage are decided by code: exact, free, reproducible, and the model does not
-  grade its own homework. The writer's style guide is rendered from the same rule
-  registry, which a test keeps in sync with [docs/rules.md](docs/rules.md).
+- **Countable rules in code, meaning in the model.** Code decides sentence length,
+  passive, genitive, Swiss number, date and phone formats, the Mediopunkt and fact
+  coverage: exact, free, reproducible, no self-grading. The writer's style guide uses
+  the same rules ([docs/rules.md](docs/rules.md)).
 - **Fact coverage is the central check.** Every must-keep fact with a normalised value
   must appear in the draft in an accepted form (`31. März 2026`, `31.3.2026`), so a
   deadline that became 30 March is caught exactly (FACT-01). Its mirror, FACT-06, flags
@@ -112,8 +133,13 @@ tokens per second; Understand took 1.5 and Write with thinking 12 minutes for a
   `LLM_UNDERSTAND_NAME` gives the Understand stage alone another model.
 - **How it is used:** inference, as a structured-output agent pipeline without tool
   calling (the thinking variants are served with tools disabled). No fine-tuning.
-- **Where it runs:** the CSCS inference API for the hackathon; the same client works
-  unchanged with vLLM, llama.cpp or a Swiss cloud endpoint.
+- **Where it runs, and why only Apertus:** the CSCS inference API for the hackathon;
+  the same client works unchanged with vLLM, llama.cpp or a Swiss cloud endpoint.
+  Letters that name a person fall under official, medical or tax secrecy and may not
+  go to a foreign cloud, so the organisation must run the model itself and account
+  for what it learned. Only Apertus combines open weights, open training data
+  (website opt-outs honoured), Swiss public origin and German, French and Italian
+  ([docs/use-cases.md §2](docs/use-cases.md#why-only-apertus)).
 
 | Stage | Model | Thinking | Temperature | max_tokens |
 |-------|-------|----------|-------------|------------|
@@ -139,7 +165,7 @@ are streamed, so a proxy cannot cut a long answer; broken streams, 429 and 5xx a
 retried with backoff; every call is logged with stage, model, tokens and latency.
 
 **Other models.** None at runtime or in the evaluation. The checker uses spaCy's
-statistical parsers (not generative models) and `wordfreq`. Without a CSCS key, the
+statistical parsers (not generative models) and wordfreq. Without a CSCS key, the
 prompts were tested on a community 4-bit conversion of Apertus 1.5 8B in llama.cpp
 (`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF`); those numbers are never mixed with CSCS
 results.
@@ -174,13 +200,12 @@ Two rows need no model: SOURCE (the original, scored as if it were a draft) and 
 (the official easy-language version written by professionals).
 
 **Metrics**, the same for every row, on the final text: *fact coverage* (must-keep
-facts with a normalised value found in the output, against one fact sheet per pair);
-*hard facts kept* (the source's dates, amounts, contacts, percentages, times, periods,
-identifiers and postal addresses found in the output; code only, so comparable with
-REF); *invented values* (values the source does not have, by code); *unsupported
-blocks* (by the 70B judge); *rule errors*; *readability* (Amstad, the German Flesch);
-*SARI* against the official version (a port of `SARI.py`, checked bit for bit); cost
-and speed per page of 250 words.
+facts with a normalised value found in the output); *hard facts kept* (the source's
+dates, amounts, contacts, addresses and other countable values; by code, so
+comparable with REF); *invented values* (values the source lacks, by code);
+*unsupported blocks* (by the 70B judge); *rule errors*; *readability* (Amstad, the
+German Flesch); *SARI* against the official version (a port of `SARI.py`, checked bit
+for bit); cost and speed per 250-word page.
 
 Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026, means over
 pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full tables):
@@ -197,25 +222,22 @@ pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full t
 | P2, 70B everywhere | 78 % | 75 % | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
 | P2, 70B reads, 8B writes | 66 % | 65 % | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
 
-**Reading the table.** The baseline keeps everything because it rewrites little (7.7
-words per sentence, 95 warnings per 100 blocks; SARI rewards its closeness to the
-source). The pipeline reaches the official versions' sentence length (6.8 words against
-6.1) and keeps more countable facts than they do, at a readability still below theirs
-(51 against 62). Judge and repair (P1 to P2) raise fact coverage from 72 to 84 percent
-and cut errors from 9.9 to 4.3 and invented values from 3.2 to 0.1 per 100 blocks. On
-the 14 fact-rich pairs (at least 3 hard facts) P2 keeps 77 percent of the hard facts,
-the official versions 60. French (3 pairs): P2 73 percent fact coverage, 4.6 errors per
-100 blocks, readability 75 (official: 85), no invented values. All 23 pairs completed
-under every condition.
+**Reading the table.** The baseline keeps everything as it rewrites little (7.7 words
+per sentence; SARI rewards closeness to the source). The pipeline nears the official
+sentence length (6.8 words against 6.1) and keeps more hard facts, but is less
+readable (51 against 62). Judge and repair (P1 to P2) raise fact coverage from 72 to
+84 percent and cut errors per 100 blocks from 9.9 to 4.3, invented values from 3.2 to
+0.1. On the 14 pairs with 3 or more hard facts P2 keeps 77 percent, the official
+versions 60. French (3 pairs): 73 percent fact coverage, 4.6 errors per 100 blocks,
+readability 75 (official 85), nothing invented.
 
-**Zurich's prompt as the second baseline.** So that the baseline is no strawman, the
-Canton of Zurich's prompt from its open-source app (39 rules and clause recipes) runs
-verbatim on the same 8B. Its complete variant reaches 91 percent fact coverage, 7
-points above the pipeline, with 15.4 errors per 100 blocks against 4.3 and a lower
-readability (47 against 51); its condensed default keeps 77 percent of the hard facts.
-The larger difference is what happens to a lost fact: a single prompt drops it
-silently, the pipeline lists it for the reviewer. Closing the coverage gap is the next
-prompt work.
+**Zurich's prompt as the second baseline.** To avoid a strawman, the Canton of
+Zurich's prompt from its open-source app (39 rules and clause recipes) runs verbatim
+on the same 8B. Its complete variant reaches 91 percent fact coverage, 7 points above
+the pipeline, but with 15.4 errors per 100 blocks against 4.3 and readability 47
+against 51; its condensed default keeps 77 percent of the hard facts. A single prompt
+drops a fact silently; the pipeline lists it for the reviewer. Closing that gap is the
+next prompt work.
 
 **8B and 70B.** The 70B at every stage writes cleaner easy language (1.4 errors,
 readability 58) but keeps fewer facts, at 1.8 times the price per page; the hybrid
@@ -227,11 +249,10 @@ undercount every setup, because cached calls count as 0 s.
 facts and 30 blocks is prepared (`eval sample`, `eval kappa`) but not yet measured;
 until then the judge's verdicts are a signal for the reviewer, not ground truth.
 
-**Checker calibration and tests.** Official pages should raise almost no errors, so
-each error is a real deviation or a false positive to fix: calibration took the checker
-from 12.6 to 2.0 errors per 100 blocks on the 30 German pages (3,468 blocks) and from
-5.3 to 2.2 on the 5 French pages. 999 automated tests run without network, with golden
-sentences for every rule (at least two that trigger it, one that must not).
+**Checker calibration and tests.** On official pages each error is a real deviation or
+a false positive to fix; calibration cut errors per 100 blocks from 12.6 to 2.0 (30
+German pages) and from 5.3 to 2.2 (5 French). 999 offline tests include golden
+sentences for every rule (two or more that fire, one that must not).
 
 ## 6. Limitations
 
@@ -274,13 +295,12 @@ sentences for every rule (at least two that trigger it, one that must not).
   letters and photos; DOCX export (writers work in Word); an air-gapped image bundle.
 - Learning from review: approved drafts and reviewer edits as training and preference
   data for a LoRA on the 8B writer with the official Apertus fine-tuning recipes.
-- A decision mode ([docs/use-case-decisions.md](docs/use-case-decisions.md)) for
-  easy-language letters that go out with decisions of child and adult protection
-  authorities and courts, which may never leave the authority.
-- Other documents ([docs/use-cases.md](docs/use-cases.md)): patient letters, lease
-  terminations, penal and payment orders, social and school decisions, letters from
-  insurers and utilities. Most turn on a period, a reference number, an address or a
-  dose, which code already checks like a date.
+- Texts under secrecy, where only Apertus fits ([docs/use-cases.md](docs/use-cases.md)):
+  a decision mode for letters that go out with decisions of child and adult
+  protection authorities and courts ([docs/use-case-decisions.md](docs/use-case-decisions.md)),
+  then patient letters, penal and payment orders, social, school and tax decisions,
+  letters from health insurers. Most turn on a period, a reference number, an address
+  or a dose, which code already checks like a date.
 - A pilot with a cantonal easy-language office, with target-group testing.
 
 ## License

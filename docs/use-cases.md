@@ -1,6 +1,7 @@
 # Use cases
 
-Status: overview, 6 October 2026. The first two use cases are described step by step
+Status: overview, 6 October 2026; why only Apertus fits (§2) and tax letters (§12)
+added 7 October 2026. The first two use cases are described step by step
 in their own documents, [use-case-canton.md](use-case-canton.md) and
 [use-case-decisions.md](use-case-decisions.md). The others are sketched here: what the
 document is, which facts must survive, who reviews, and what the checker still needs.
@@ -12,19 +13,24 @@ remaining checks are specified in
 
 ## 1. Overview
 
-| # | Use case | Document | Period or date the reader must not miss | Natural reviewer | Status |
-|---|----------|----------|-----------------------------------------|------------------|--------|
-| 1 | Cantonal administration | Letters, forms, web pages | Dates such as a 31 March deadline | Easy-language writer | Built ([use-case-canton.md](use-case-canton.md)) |
-| 2 | Child and adult protection, courts | Decisions | 30 days to appeal, 10 days for involuntary placement | Case worker, court clerk | Partly planned ([use-case-decisions.md](use-case-decisions.md)) |
-| 3 | Hospitals and doctors | Discharge letter, report with recommendations | Follow-up dates, how long to take a drug | The physician who signs | Planned (§3) |
-| 4 | Housing | Termination of a lease, rent increase | 30 days to contest | Tenants' association, social service, conciliation authority | Planned (§4) |
-| 5 | Criminal justice | Penal order (Strafbefehl) | 10 days to object | Public prosecutor's office | Planned (§5) |
-| 6 | Debt collection | Payment order (Zahlungsbefehl) | 10 days to object | Debt collection office, debt counselling | Planned (§6) |
-| 7 | Social assistance and social insurance | Decisions, conditions, sanctions | Appeal periods, duties to report | Case worker | Close to 1 and 2 (§7) |
-| 8 | Schools | Placement and special-education decisions | Appeal periods under cantonal law | School administration | Planned (§8) |
-| 9 | Research | Information for study participants | None; rights and risks must survive | Study team, ethics committee | Planned (§9) |
-| 10 | Migration | Permit and asylum decisions | Appeal periods, some in working days | Migration office | Partial fit (§10) |
-| 11 | Private sector | Letters of insurers, pension funds, utilities | Payment and cancellation dates | The company's writers | As use case 1 (§11) |
+| # | Use case | Document | Period or date the reader must not miss | Natural reviewer | What keeps the text inside | Status |
+|---|----------|----------|-----------------------------------------|------------------|----------------------------|--------|
+| 1 | Cantonal administration | Letters, forms, web pages | Dates such as a 31 March deadline | Easy-language writer | Nothing for a web page; official secrecy for a letter to a named person | Built ([use-case-canton.md](use-case-canton.md)) |
+| 2 | Child and adult protection, courts | Decisions | 30 days to appeal, 10 days for involuntary placement | Case worker, court clerk | Official secrecy; health, family and finances | Partly planned ([use-case-decisions.md](use-case-decisions.md)) |
+| 3 | Hospitals and doctors | Discharge letter, report with recommendations | Follow-up dates, how long to take a drug | The physician who signs | Medical secrecy; health data | Planned (§3) |
+| 4 | Housing | Termination of a lease, rent increase | 30 days to contest | Tenants' association, social service, conciliation authority | The adviser's client data | Planned (§4) |
+| 5 | Criminal justice | Penal order (Strafbefehl) | 10 days to object | Public prosecutor's office | Official secrecy; criminal proceedings | Planned (§5) |
+| 6 | Debt collection | Payment order (Zahlungsbefehl) | 10 days to object | Debt collection office, debt counselling | Official secrecy; the adviser's client data | Planned (§6) |
+| 7 | Social assistance and social insurance | Decisions, conditions, sanctions | Appeal periods, duties to report | Case worker | Social insurance confidentiality; social assistance | Close to 1 and 2 (§7) |
+| 8 | Schools | Placement and special-education decisions | Appeal periods under cantonal law | School administration | Official secrecy; children's health | Planned (§8) |
+| 9 | Research | Information for study participants | None; rights and risks must survive | Study team, ethics committee | Nothing for the information sheet itself | Planned (§9) |
+| 10 | Migration | Permit and asylum decisions | Appeal periods, some in working days | Migration office | Official secrecy; asylum proceedings | Partial fit (§10) |
+| 11 | Private sector | Letters of insurers, pension funds, utilities | Payment and cancellation dates | The company's writers | Customer data; health insurers' and pension funds' duty of confidentiality | As use case 1 (§11) |
+| 12 | Tax administration | Assessments, reminders, payment plans | 30 days to object, payment dates | The tax office's writers, debt counselling | Tax secrecy | Close to 1 (§12) |
+
+The column "What keeps the text inside" names the secrecy or the kind of data that rules
+out a foreign cloud; [§2](#why-only-apertus) gives the legal basis and why that leaves
+Apertus as the only model.
 
 ## 2. What they share
 
@@ -37,18 +43,74 @@ remaining checks are specified in
 - Someone can review an easy version before it is used.
 - Most of them contain personal data. Data on health, on administrative and criminal
   proceedings and sanctions, and on social assistance are particularly sensitive under
-  the Federal Act on Data Protection (FADP, art. 5 lit. c), which makes a deployment on
-  the organisation's own infrastructure a requirement rather than an option.
+  the Federal Act on Data Protection (FADP, art. 5 lit. c) and the cantonal data
+  protection laws, and most of the texts are under a secrecy obligation as well. That
+  makes a deployment on infrastructure the organisation controls a requirement rather
+  than an option, and leaves Apertus as the only model that fits
+  ([below](#why-only-apertus)).
 
 The tool is used in one of two ways:
 
 - **Writer workflow**, as built: the author's side drafts, a professional reviews, the
-  text goes out with an audit trail (use cases 1-3, 5, 7-9, 11).
+  text goes out with an audit trail (use cases 1-3, 5, 7-9, 11, 12).
 - **Received letters**, planned (PLAN.md, WP12b): a helper or the reader uploads a
   letter someone else wrote. Nobody on the author's side reviews it, so code builds a
   box with every deadline, amount and contact in the letter's own wording, a fixed
   notice says that only the letter counts, and the explanation gives no advice (use
-  cases 4 and 6, and any letter a reader brings).
+  cases 4, 6 and 12, and any letter a reader brings).
+
+### Why only Apertus
+
+For a public web page, any good model would do. For almost every use case above, the
+text names a person, and four conditions follow one after the other.
+
+1. **The text stays inside the organisation.** Every authority is bound by official
+   secrecy (art. 320 StGB), doctors by professional secrecy (art. 321 StGB), tax
+   offices by tax secrecy (art. 110 DBG), social insurances, basic health insurers
+   among them (art. 1 KVG), by their duty of confidentiality (art. 33 ATSG), pension
+   funds by art. 86 BVG, banks by art. 47 BankG. Data on health, social assistance and
+   administrative or criminal proceedings are particularly sensitive (FADP art. 5 lit.
+   c, and likewise the cantonal data protection laws). In November 2025 the cantonal
+   data protection commissioners (privatim) resolved that public bodies may hand such
+   data to international cloud services such as Microsoft 365 only if they encrypt it
+   themselves and the provider has no key; US providers can be compelled to hand over
+   data even from Swiss data centres (CLOUD Act). A model has to read the text in
+   clear, so a model service can never meet that condition: chatbots and model APIs
+   on foreign clouds are out. (The last step is our reasoning; privatim does not mention
+   language models.)
+2. **The organisation runs the model itself**, on its own servers, air-gapped, or at a
+   Swiss operator under its contract. That needs open weights; closed models stay in
+   their makers' hands, including the on-premise offers some vendors make.
+3. **The organisation can account for what the model learned.** An authority that
+   sends a text a model helped to write must be able to say what that model was
+   trained on and how the data was collected. Llama, Gemma, Qwen and Mistral publish
+   their weights but not their training data.
+4. **The model is Swiss.** The organisation depends on no foreign supplier for the
+   model, its documentation or its development, which is what the Federal Council
+   means by digital sovereignty: the capacity to act in the digital space and to
+   monitor it (report of 26 November 2025). The few fully open models with German,
+   French and Italian, EuroLLM and SmolLM3 among them, are built and trained abroad.
+
+Apertus meets all four. Its weights, the scripts that rebuild its training data and
+its training code are published. Website opt-outs in force in January 2025 were
+applied to older crawls as well, and e-mail addresses, IP addresses and IBANs were
+replaced in the data. It was built by EPFL, ETH Zurich and CSCS with due
+consideration to Swiss data protection and copyright law, trained on the Alps
+supercomputer in Lugano on more than 1,000 languages, with dedicated Swiss German and
+Romansh data, and released under Apache 2.0 with an acceptable use policy. Swisscom
+and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one GPU in the
+organisation's own building
+([architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The Canton of
+Ticino already runs Apertus in-house to translate sensitive government documents. The
+hackathon demo runs on the CSCS inference API, which serves research, not
+administrations.
+
+For the use cases that name a person, Apertus is therefore not one option among
+several: it is the only model that meets all four conditions. Conditions 1 to 3 follow
+from the law and from accountability; condition 4 is the sovereignty choice. An
+authority that drops it is left with a short list of foreign, fully open models; one
+that also drops condition 3 has many open-weight models to choose from, but cannot say
+what they learned.
 
 ## 3. Patient letters
 
@@ -94,6 +156,9 @@ The tool is used in one of two ways:
 - **Reviewer.** Rarely the private landlord. More likely: tenants' associations,
   social services and counsellors, the conciliation authority itself, and public or
   cooperative landlords who want their tenants to understand.
+- **Sovereignty.** The letter names the tenant, the flat and the rent. A social
+  service that uploads it is bound by official secrecy, a counsellor by the duty to
+  keep a client's affairs confidential.
 - **Mode.** Mostly a received letter (the helper uploads it), or the writer workflow
   at a cooperative or a city's housing department.
 - **Works today.** The 30-day period, the date the lease ends, the conciliation
@@ -138,6 +203,8 @@ The tool is used in one of two ways:
   number.
 - **Reviewer.** The debt collection office, which can hand out an easy-language sheet
   with the case's values; or a debt counselling service for an order a client brings.
+- **Sovereignty.** The debt collection office is bound by official secrecy; a debt
+  counselling service keeps its clients' debts confidential.
 - **Works today.** The claimed amount, the 10-day period, the case number and the
   office's address are checked facts.
 - **Needs.** The decision mode or the received-letter mode.
@@ -168,6 +235,8 @@ The tool is used in one of two ways:
 - **Facts that must survive exactly.** The measure and its start, the school and
   contacts, the appeal period and the appeal authority.
 - **Reviewer.** The school administration or the school psychology service.
+- **Sovereignty.** Special-education measures rest on a child's health and
+  development; the school administration is bound by official secrecy.
 - **Works today.** The start of the measure, the appeal period and the appeal
   authority's address are checked facts.
 - **Needs.** The decision mode.
@@ -196,6 +265,8 @@ The tool is used in one of two ways:
 - **Why.** High stakes and appeal periods, some counted in working days.
 - **Facts that must survive exactly.** Periods (with working days kept apart from
   days), the authority and its address, the case number, conditions.
+- **Sovereignty.** Permit and asylum decisions describe a person's family, health and
+  reasons for flight; the migration office is bound by official secrecy.
 - **Partial fit.** Many readers need their own language, not easier German or French,
   and Leicht·Facile does not translate ([architecture.md §1](architecture.md#1-what-it-is),
   non-goals). An easy version still helps readers who know some German or French, and
@@ -208,19 +279,46 @@ The tool is used in one of two ways:
 - **Document.** Terms, premium and benefit letters, pension certificates, bills.
 - **Fit.** The workflow of use case 1, run by the company's own writers; customer data
   stay on the company's infrastructure.
+- **Sovereignty.** Basic health insurers are bound by the duty of confidentiality of
+  art. 33 ATSG, pension funds by art. 86 BVG, banks by banking secrecy (art. 47
+  BankG).
 - **Limits.** Not used for demos or evaluation: the texts are protected by copyright
   ([sources.md §3](sources.md#3-demo-documents-no-easy-language-version)).
 
-## 12. What the further use cases need
+## 12. Tax letters
+
+- **Document.** Assessments (Veranlagungsverfügung), reminders to file the return,
+  payment reminders and payment plans of cantonal and municipal tax offices.
+- **Why.** A return not filed after a reminder is assessed at the office's discretion,
+  an assessment can be contested only within 30 days of notification (art. 132 DBG for
+  the direct federal tax; cantonal laws likewise), and a late payment costs interest.
+  Every household gets these letters, including every reader easy language is for.
+- **Facts that must survive exactly.** Tax amounts and instalments, due dates, the
+  interest rate, the tax number and the payment reference, the IBAN, the 30-day period
+  and its start, the office's address and phone number.
+- **Reviewer.** The tax office's writers, for its standard letters (the workflow of use
+  case 1); a debt counselling service for a letter a client brings.
+- **Sovereignty.** Tax secrecy (art. 110 DBG, and the cantonal tax laws) binds everyone
+  who works on an assessment. A household's income, wealth and debts may not go to a
+  foreign cloud.
+- **Works today.** Amounts, dates, percentages, periods, the tax number, the IBAN and
+  the office's address are checked facts. The printable letter for the image input
+  test is a tax reminder of this kind (`data/examples/print/`).
+- **Needs.** Nothing new for the writer workflow; the received-letter mode and image
+  input (PLAN.md, WP12) for a letter a client brings on paper.
+- **Limits.** No tax advice: whether an assessment is right is a question for the tax
+  office or an adviser, not for the letter.
+
+## 13. What the further use cases need
 
 | Need | Use cases | Specified in |
 |------|-----------|--------------|
-| Periods as a checked value kind | 2, 4-8, 10 | Built 7 October 2026: [rules.md](rules.md#facts-the-most-important-family), `period` |
-| Identifiers (case and reference numbers, AHV number, IBAN) | 2, 5-7 | Built 7 October 2026: rules.md, `identifier` |
-| Postal addresses (where to appeal or object) | 2, 4-6, 8, 10 | Built 7 October 2026: rules.md, `address` |
+| Periods as a checked value kind | 2, 4-8, 10, 12 | Built 7 October 2026: [rules.md](rules.md#facts-the-most-important-family), `period` |
+| Identifiers (case and reference numbers, AHV number, IBAN, tax number) | 2, 5-7, 12 | Built 7 October 2026: rules.md, `identifier` |
+| Postal addresses (where to appeal or object) | 2, 4-6, 8, 10, 12 | Built 7 October 2026: rules.md, `address` |
 | Doses, dosing schemes, drug names | 3, 9 | `quantity` and `schedule` built 7 October 2026 (rules.md, Facts); `medication` and `FACT-09` planned |
 | The decision mode: addressed person, fixed notice, operative part and appeal instructions kept | 2, 5-8, 10 | [use-case-decisions.md §7](use-case-decisions.md#7-what-works-today-and-what-is-planned); rules.md: `FACT-07`, `FACT-08` |
-| The received-letter mode | 4, 6 | PLAN.md WP12b |
+| The received-letter mode | 4, 6, 12 | PLAN.md WP12b |
 | Obligations, conditions and the start of periods kept; no advice | all | rules.md: `SEM-08`, `SEM-09`, `SEM-10` |
 | A medical judge model | 3 | Apertus-70B-MeditronFO |
 
@@ -239,3 +337,23 @@ The tool is used in one of two ways:
   281.1), art. 74; Human Research Act (HRA, SR 810.30), art. 16; Federal Act on Data
   Protection (FADP, SR 235.1), art. 5: https://www.fedlex.admin.ch
 - EPFL LiGHT, MeditronFO models: https://huggingface.co/collections/EPFLiGHT/meditronfo
+- Swiss Criminal Code (StGB, SR 311.0), art. 320, 321; Federal Act on Direct Federal
+  Taxation (DBG, SR 642.11), art. 110, 132; ATSG (SR 830.1), art. 33; KVG (SR 832.10),
+  art. 1; BVG (SR 831.40), art. 86; Banking Act (BankG, SR 952.0), art. 47:
+  https://www.fedlex.admin.ch
+- privatim, resolution on outsourcing data processing to international cloud services
+  (18 November 2025):
+  https://www.privatim.ch/wp-content/uploads/2025/11/20251124_privatim_Resolution-Hyperscaler_DE.pdf
+- Federal Office of Justice, report on the US CLOUD Act (17 September 2021):
+  https://www.newsd.admin.ch/newsd/message/attachments/92795.pdf
+- Federal Council, digital sovereignty (26 November 2025):
+  https://www.admin.ch/en/newnsb/2VPWG78YrVs4eAVeiklQx
+- Apertus 1.5 model card: https://huggingface.co/swiss-ai/Apertus-v1.5-8B; Apertus
+  technical report (arXiv 2509.14233): https://arxiv.org/abs/2509.14233; acceptable use
+  policy: https://github.com/swiss-ai/apertus-legal/tree/main/apertus_1.5
+- ETH Zurich, press release on Apertus (2 September 2025):
+  https://ethz.ch/en/news-and-events/eth-news/news/2025/09/press-release-apertus-a-fully-open-transparent-multilingual-language-model.html
+- CSCS, Apertus 1.5 (24 July 2026), with the Ticino translation service:
+  https://www.cscs.ch/science/computer-science-hpc/2026/apertus-15-building-the-next-generation-of-open-ai-infrastructure
+- Fully open models built abroad: EuroLLM-22B (arXiv 2602.05879), SmolLM3
+  (https://huggingface.co/HuggingFaceTB/SmolLM3-3B)

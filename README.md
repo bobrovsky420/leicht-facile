@@ -17,7 +17,10 @@ Two use cases: a canton's letters and web pages
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
 that may never leave the authority ([docs/use-case-decisions.md](docs/use-case-decisions.md),
 partly planned). Further use cases, from patient letters and lease terminations to
-penal orders and payment orders, are sketched in [docs/use-cases.md](docs/use-cases.md).
+penal orders, payment orders and tax letters, are sketched in
+[docs/use-cases.md](docs/use-cases.md). Most of them are under official, medical or
+tax secrecy and may not go to a chatbot on a foreign cloud: for them, Apertus is the
+only model that fits ([why](#why-only-apertus)).
 
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers.
 Technical report: [technical_report.md](technical_report.md) (PDF:
@@ -51,6 +54,24 @@ an audit trail, and runs on infrastructure the organisation controls. The evalua
 measures the difference: the single prompt is the baseline condition P0, the full
 pipeline is P2 (P as in pipeline, not a language level;
 [docs/use-case-canton.md](docs/use-case-canton.md) §4).
+
+### Why only Apertus
+
+For a public web page, any good model would do. A letter that names a person is under
+official secrecy, a patient letter under medical secrecy, a tax letter under tax
+secrecy. Four conditions follow, and only Apertus meets all four:
+
+| Condition | Rules out | Apertus |
+|-----------|-----------|---------|
+| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped, the 8B on one GPU; Swisscom and Infomaniak serve the 70B in Switzerland |
+| The organisation runs the model itself | Closed models | Open weights |
+| The organisation can account for what the model learned | Open-weight models that keep their training data secret (Llama, Gemma, Qwen, Mistral) | Open training data and code; website opt-outs honoured, also for older crawls |
+| The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
+
+The Canton of Ticino already runs Apertus in-house to translate sensitive government
+documents. Tokens are nearly free (about one US cent per page for the full pipeline,
+report §5); the hardware is the cost. The legal basis, the sources and the use cases:
+[docs/use-cases.md §2](docs/use-cases.md#why-only-apertus).
 
 ## Quick start
 
@@ -107,7 +128,8 @@ hand-labelling sheets for the judge and `eval kappa` scores a filled sheet.
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 
 Documents and review records stay in a SQLite database on a volume the organisation
-controls.
+controls. Which texts need this, and why it leaves Apertus as the only model:
+[Why only Apertus](#why-only-apertus).
 
 ## Status (6 October 2026)
 
