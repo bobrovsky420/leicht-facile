@@ -8,9 +8,11 @@ import pytest
 
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline import stages
+from leichtfacile.pipeline.models import RepairOut
 from leichtfacile.pipeline.orchestrator import Orchestrator, build_request
+from leichtfacile.pipeline.stages import RepairRequest, apply_repairs
 from leichtfacile.rules.glossary import MAX_ADDED, fill_glossary, unexplained_terms
-from leichtfacile.rules.vocabulary import load_vocabulary
+from leichtfacile.rules.vocabulary import OFFICE_RULES, load_vocabulary
 from leichtfacile.schemas import (
     Block,
     Draft,
@@ -19,8 +21,8 @@ from leichtfacile.schemas import (
     GlossaryEntry,
     HardTerm,
     PipelineSummary,
+    RepairRecord,
     RuleFindings,
-    Segment,
 )
 from leichtfacile.store import Store
 from tests.conftest import chat_response, make_settings
@@ -64,17 +66,6 @@ def test_the_fact_sheet_gets_the_checked_explanations_and_the_terms_of_the_sourc
     assert all(t.origin == "vocabulary" and t.segment_ids for t in added)
     assert by_term["Gesuch"].segment_ids == ["s0003"]
     assert len(out.hard_terms) <= stages.MAX_HARD_TERMS
-
-
-def test_the_write_prompt_lists_office_words_but_not_role_nouns() -> None:
-    segments = [
-        *fx.letter().segments,
-        Segment(id="s0007", kind="paragraph", text="Der Gesuchsteller zahlt innert 30 Tagen."),
-    ]
-    lines = stages.word_list(segments, "de").splitlines()
-    assert lines[:3] == ["- einreichen: schicken", "- Auskunft: Information", "- erteilen: geben"]
-    assert "- innert: innerhalb von" in lines
-    assert not [line for line in lines if "Gesuchsteller" in line]  # LEX-06 asks for Sie
 
 
 def test_the_glossary_gets_the_missing_hard_terms_once() -> None:
@@ -125,7 +116,7 @@ def test_office_words_go_to_the_repair_round_only_with_the_vocabulary() -> None:
 
 @pytest.mark.parametrize("on", [True, False])
 def test_a_job_uses_the_vocabulary_unless_it_is_switched_off(store, endpoint, sleeps, on) -> None:
-    settings = make_settings(llm_max_retries=0, use_vocabulary=on, vocabulary_prompt=True)
+    settings = make_settings(llm_max_retries=0, use_vocabulary=on)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = new_job(store, condition="P1")
@@ -138,23 +129,87 @@ def test_a_job_uses_the_vocabulary_unless_it_is_switched_off(store, endpoint, sl
     origins = {t.origin for t in factsheet.hard_terms} | {g.origin for g in draft.glossary}
     if on:
         assert factsheet.hard_terms[0].origin == "vocabulary"  # Prämienverbilligung
-        assert "- einreichen: schicken" in write_prompt
         assert "Gesuch" in [g.term for g in draft.glossary if g.origin == "vocabulary"]
         assert summary.vocabulary
     else:
         assert origins == {"model"}
-        assert "einreichen: schicken" not in write_prompt
         assert summary.vocabulary is None
+    # The writer never gets a list of office words: it primed the 8B (docs/prompts.md).
+    assert "einreichen: schicken" not in write_prompt
 
 
-def test_the_word_list_is_off_by_default(store, endpoint, sleeps) -> None:
-    settings = make_settings(llm_max_retries=0)
-    assert settings.use_vocabulary and not settings.vocabulary_prompt
+# -- the vocabulary round ----------------------------------------------------------------
+
+REPAIR_OFFICE = {
+    **fx.REPAIR,
+    "repairs": [
+        {"id": "b002", "texts": ["Schicken Sie das Gesuch gemäss dem Merkblatt an die Gemeinde.",
+                                 "Das Gesuch muss bis 31. März 2026 dort sein."]},
+        *fx.REPAIR["repairs"][1:],
+    ],
+}  # fmt: skip
+VOCABULARY_ANSWER = {
+    "repairs": [
+        {"id": "b002", "texts": ["Schicken Sie das Gesuch nach dem Merkblatt an die Gemeinde."]}
+    ],
+    "additions": [],
+}  # fmt: skip
+
+
+def test_the_vocabulary_round_asks_for_the_office_words_alone() -> None:
+    draft = _draft("Sie zahlen innert 30 Tagen.", "Das kostet 20 Franken.")
+    findings = [
+        Finding(block_id="b001", rule_id="LEX-07", severity="warn", message="Office word 'innert'.",
+                suggestion="innerhalb von"),
+        Finding(block_id="b002", rule_id="GRAM-01", severity="error", message="Passive voice."),
+        Finding(block_id=None, rule_id="FACT-01", severity="error", message="Fact f01 is missing.",
+                fact_id="f01"),
+    ]  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=findings)
+    request = build_request(draft, rules, None, FactSheet(doc_id="d"), only=OFFICE_RULES)
+    assert list(request.problems) == ["b001"] and request.missing == []
+    assert "LEX-07" in request.problems["b001"][0]
+
+
+def test_a_round_from_an_earlier_version_gets_the_next_free_number() -> None:
+    draft = _draft("Sie zahlen innert 30 Tagen.").model_copy(update={"version": 2})
+    out = RepairOut.model_validate(
+        {"repairs": [{"id": "b001", "texts": ["Sie zahlen innerhalb von 30 Tagen."]}]}
+    )
+    request = RepairRequest({"b001": ["  - LEX-07: ..."]}, [])
+    new = apply_repairs(draft, out, request, FactSheet(doc_id="d"), version=5)
+    assert (new.version, new.parent_version) == (5, 2)
+    assert new.blocks[0].text == "Sie zahlen innerhalb von 30 Tagen."
+
+
+@pytest.mark.parametrize("on", [True, False])
+def test_the_vocabulary_round_rewrites_the_office_words_of_the_best_version(
+    store, endpoint, sleeps, on
+) -> None:
+    settings = make_settings(
+        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=on
+    )
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
-    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P1")
+    answers = [fx.UNDERSTAND, fx.WRITE, fx.JUDGE_FIRST, REPAIR_OFFICE, fx.JUDGE_SECOND]
+    endpoint.push(*(chat_response(fx.as_json(a)) for a in answers))
+    if on:
+        endpoint.push(chat_response(fx.as_json(VOCABULARY_ANSWER)))
+    job_id = new_job(store, condition="P2")
     Orchestrator(store, llm, settings).run(job_id)
-    write_prompt = endpoint.chat_bodies()[1]["messages"][-1]["content"]
-    assert "einreichen: schicken" not in write_prompt  # it primed the 8B (docs/prompts.md)
-    draft = store.get_artifact(job_id, "draft", Draft, version=1)
-    assert "Gesuch" in [g.term for g in draft.glossary if g.origin == "vocabulary"]
+    assert store.get_job(job_id).status == "needs_review", store.get_job(job_id).error
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    v2 = store.get_artifact(job_id, "draft", Draft, version=2)
+    assert "gemäss" in v2.by_id()["b002"].text  # the repair round left an office word
+    if not on:
+        assert summary.final_version == 2 and summary.vocabulary_rounds == 0
+        assert len(endpoint.chat_bodies()) == 5
+        return
+    assert summary.final_version == 3 and summary.vocabulary_rounds == 1
+    v3 = store.get_artifact(job_id, "draft", Draft, version=3)
+    assert v3.parent_version == 2 and v3.origin == "repair"
+    assert v3.by_id()["b002"].text == "Schicken Sie das Gesuch nach dem Merkblatt an die Gemeinde."
+    record = store.get_artifact(job_id, "repair", RepairRecord, version=3)
+    assert record.kind == "vocabulary" and record.requested_blocks == ["b002"]
+    prompt = endpoint.chat_bodies()[5]["messages"][-1]["content"]
+    assert "LEX-07" in prompt and "FACT-01" not in prompt
+    assert len(endpoint.chat_bodies()) == 6  # no judge call: no fact was involved

@@ -294,10 +294,9 @@ to measure it; docs/architecture.md §4.2, §4.3, §4.6):
 
 1. the fact sheet: a hard term the model listed gets the vocabulary's explanation, and
    up to 6 hard terms of the source are added, the rarest first (12 in all);
-2. the write prompt can list the office words of the source with their everyday word
-   (at most 15 per part, not the role nouns of LEX-06), but by default it does not
-   (`VOCABULARY_PROMPT=0`): the list made the 8B write those words more often
-   (docs/prompts.md, "Vocabulary in the pipeline");
+2. not the writer: a list of the source's office words in the write prompt made the 8B
+   write those words more often (docs/prompts.md, "Vocabulary in the pipeline"), so the
+   writer gets none; a later Apertus may take it better;
 3. code adds the vocabulary's entry for a hard term a draft uses without one, after the
    write stage and every repair round: at most 6 per version, 10 entries in all, the
    rarest first, marked on the review page (`rules/glossary.py`). "Hard" means an
@@ -306,7 +305,12 @@ to measure it; docs/architecture.md §4.2, §4.3, §4.6):
 4. the checker: LEX-07 and LEX-07-FR flag the office words left in a draft, with the
    everyday word as the suggestion; LEX-02 and LEX-02-FR suggest the full word of an
    abbreviation; LEX-03 leaves the office words to LEX-07. Without the vocabulary their
-   findings are computed but not sent to repair.
+   findings are computed but not sent to repair;
+5. the vocabulary round: a last repair round for the
+   office words still in the best version, the flagged sentences alone with their
+   everyday word; its version is kept only if it loses no fact and adds no blocking
+   finding (docs/architecture.md §4.6). On the dev pairs it took the office words in the
+   final drafts from 42 to 19 without losing a fact.
 
 **Calibration** (7 October 2026): LEX-07 fires 1.2 times per 100 blocks on the 30
 official German easy-language pages and 20.5 times on their standard originals;

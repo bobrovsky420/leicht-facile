@@ -231,12 +231,12 @@ one idea per sentence, then write. Inputs:
    ([sources.md](sources.md) §4), so they are not used as examples.
 3. The source segments with ids.
 4. The fact sheet.
-5. Optionally (`VOCABULARY_PROMPT=1`, off by default), the office words of the source
-   with their everyday word, from the vocabulary (`innert: innerhalb von`, `moyennant:
-   avec`), at most 15 per part. Off because on the CSCS dev run of 7 October the 8B
-   wrote the listed office words into its first drafts more often than without the list
-   (docs/prompts.md, "Vocabulary in the pipeline"); rule LEX-07 and the polish round
-   handle them instead. Without the list the prompt is the same text as before.
+
+The writer gets no list of the source's office words with their everyday word: tried on
+7 October 2026, such a list made the 8B write more of them into its first drafts, not
+fewer (docs/prompts.md, "Vocabulary in the pipeline"), and was removed. A later Apertus
+may take it better, or a list that names only the everyday words. The office words are
+handled after writing instead: rule LEX-07 (§4.4) and the vocabulary round (§4.6).
 
 Output: `Draft` - blocks (`heading` | `sentence` | `list_item`), each with the
 `fact_ids` it conveys and the `segment_ids` it was derived from (this is the
@@ -396,6 +396,20 @@ the limit; none runs without repair rounds or after a round the endpoint failed 
 an answer the code could not use, it still runs: a smaller prompt, a new try). Since
 7 October 2026 (PLAN.md WP13).
 
+**The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
+rounds, the office words still in the best version (LEX-07, LEX-07-FR) go to one more
+round through the repair prompt: the flagged sentences alone, each with its everyday
+word as the suggestion, no fact and no judge's problem. Before it, office words reach a
+round only as warnings, in the polish round that many jobs never get to, so the repair
+rounds stay on what blocks a draft. The round starts from the best version, so its new
+version takes the next free number and names that version as its parent. The choice
+below keeps it only when it loses no must-keep value and adds no blocking finding; at a
+tie the later version wins, so a round that only replaces office words is kept. Not with
+`USE_VOCABULARY=0`, not without repair rounds, not after a round the endpoint failed. On
+the 12 dev pairs (docs/prompts.md, "The vocabulary round") it ran in 11 jobs and was
+kept in 8: office words in the final drafts from 42 to 19, no fact lost, about 11 s more
+per job.
+
 The final version is the one with the fewest must-keep values missing (FACT-01), then
 the fewest blocking findings, then the latest. Facts come first because a reviewer can
 reject an unsupported sentence or mend a long one with a click, but cannot conjure a
@@ -483,7 +497,7 @@ JudgeReport  (one per judged draft version)
   semantic_findings[]: {block_id, rule_id (SEM-01..05, SEM-08), note}
 
 RepairRecord  (one per repair round, under the version it produced)
-  draft_version, parent_version, kind (repair|facts)
+  draft_version, parent_version, kind (repair|facts|vocabulary)
   requested_blocks[], requested_facts[]
   repairs[]: {block_id, texts[]}            the answer as given
   additions[]: {after?, texts[], fact_ids[]}
@@ -497,7 +511,7 @@ PipelineSummary
   condition, mode, final_version, rounds, facts_rounds, stop_reason, writer_model,
   understand_model? (only when another model read the source), judge_model?,
   prompt_versions {stage: hash}, blocking_findings[] (per draft version),
-  vocabulary? (hash of the vocabulary file the job used)
+  vocabulary? (hash of the vocabulary file the job used), vocabulary_rounds (0|1)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at

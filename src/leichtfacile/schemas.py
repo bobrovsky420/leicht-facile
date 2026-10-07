@@ -361,7 +361,9 @@ class RepairRecord(Artifact):
 
     draft_version: int  # the version the round produced
     parent_version: int
-    kind: Literal["repair", "facts"] = "repair"  # facts: a round that asks for facts only
+    # facts: a round that asks for facts only; vocabulary: the last round, for the
+    # office words of the best version (LEX-07)
+    kind: Literal["repair", "facts", "vocabulary"] = "repair"
     requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
     requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
     repairs: list[AnsweredRepair] = Field(default_factory=list)
@@ -409,6 +411,7 @@ class PipelineSummary(Artifact):
     notes: list[str] = Field(default_factory=list)  # stages that failed and were skipped
     # The version of the vocabulary the job used (rules/vocabulary.py); None: not used.
     vocabulary: str | None = None
+    vocabulary_rounds: int = 0  # the last round, for the office words (0 or 1)
 
     @field_validator("condition", mode="before")
     @classmethod

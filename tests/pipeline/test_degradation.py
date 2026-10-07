@@ -23,6 +23,7 @@ def store(tmp_path) -> Store:
 
 
 def orchestrator(store, endpoint, sleeps, **settings) -> Orchestrator:
+    settings.setdefault("use_vocabulary", False)  # its own tests: test_vocabulary.py
     cfg = make_settings(llm_max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, cfg)

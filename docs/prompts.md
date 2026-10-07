@@ -701,7 +701,8 @@ with these numbers (WP12a and WP12b cut).
 Three runs of P2 on the 12 dev pairs (10 German, 2 French) with the settings of the day
 (8B writer, 70B judge, thinking for Understand and Judge, 3 repair rounds, 1 facts round
 of up to 10 facts): without the vocabulary (`USE_VOCABULARY=0`), with all of it
-including the word list in the write prompt (`VOCABULARY_PROMPT=1`), and with all of it
+including the word list in the write prompt (a setting of that day, removed since),
+and with all of it
 but the word list, the default since. The Understand prompt did not change, so the three
 runs got the same Understand answers from the response cache; their fact sheets differ
 only by what code added. Write, judge and repair calls are fresh, one run per setting.
@@ -740,9 +741,10 @@ fixes of the matcher (the lemma of a noun no longer stands for a verb: `recourir
   it 20, and 33 without any vocabulary. Words the writer without the vocabulary never
   used turn up from the list: `grundsätzlich`, `Wohnsitz`, `falls`, `zugestellt`,
   `elterliche Sorge`. The polish round with LEX-07 removes most of them again, so the
-  final drafts end in the same range (37, 42 and 46 office words). The list is therefore
-  off by default (`VOCABULARY_PROMPT=0`): about the same final drafts without the
-  detour. Not tried: a list that names only the everyday words.
+  final drafts end in the same range (37, 42 and 46 office words). The list was
+  therefore removed again (version 9): about the same final drafts without the detour.
+  Worth another try with a later Apertus; not tried yet: a list that names only the
+  everyday words.
 - Facts, invented values, the judge's findings and the rule errors move in both
   directions, by single pairs: in the default run the 8B wrote a first draft of 7 blocks
   for `sg-el-costs-de` (20 facts missing; the repair and facts rounds refilled it with
@@ -751,6 +753,42 @@ fixes of the matcher (the lemma of a noun no longer stands for a verb: `recourir
   list a repair answer for `sg-el-costs-de` was broken JSON. One run per setting cannot
   separate effects of this size from that variance; a second run of each, or the 23
   eval pairs, would.
+
+### The vocabulary round: P2 on the dev pairs on CSCS (7 October 2026)
+
+The default of the section above (vocabulary on, no word list) once more, with the
+vocabulary round on. The round comes after everything else, so the
+run replayed every earlier answer from the response cache: all 12 jobs have the same draft
+versions as the run without the round, and the comparison shows what the round alone
+does. Results in `eval/results-cscs-vocab-round-v2` (and `-rescored-facts`).
+
+| Mean of the 12 pairs | without the round | with the round |
+|---|---|---|
+| Office words in the final drafts (sum) | 42 | 19 |
+| Office words per 100 blocks | 11.7 | 4.7 |
+| Fact coverage | 0.757 | 0.757 |
+| Hard facts kept | 0.718 | 0.718 |
+| Invented values per draft | 0.17 | 0.17 |
+| Rule errors per 100 blocks | 3.5 | 2.5 |
+| Rule warnings per 100 blocks | 51.7 | 41.7 |
+| Readability | 54.1 | 54.6 |
+| Judge: facts missing, distorted | 6.0%, 6.2% | 5.5%, 4.1% |
+| Judge: unsupported statements per 100 blocks | 5.1 | 4.8 |
+
+- The round ran in 11 of the 12 jobs (`zh-shelters-de` had no office word left) and its
+  version was kept in 8. The other 3 lost the final choice: in `zh-blue-algae-de` the
+  rewrite dropped a must-keep value, in `be-tax-extension-fr` and
+  `zg-disability-services-act-de` the judge, run again, found more problems. So no fact
+  was lost: fact coverage, hard facts and invented values are the same to the last digit.
+- In the kept versions the office words fell from 34 to 9; `sg-el-costs-de`, the draft
+  the facts rounds had refilled with near-copies of the source, went from 20 to 3 and
+  from 6 rule errors to 3.
+- The judge's figures move with its reruns: a version whose base had judge findings is
+  judged again (the existing rule after a repair round), with the judge's own variance.
+  That a rewritten sentence loses its unsupported finding without a new judgment cannot
+  happen: carry-over only meets versions without one.
+- Cost: 12 rewrite calls of the 8B (1.4 s each) and 10 judge reruns of the 70B (11 s
+  each), about 11 s per job. Part of the vocabulary since this run (`USE_VOCABULARY`).
 
 ## Change log
 
@@ -771,3 +809,5 @@ fixes of the matcher (the lemma of a noun no longer stands for a verb: `recourir
 | 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
 | 7 | 2026-10-08 | No template change. Code, from the second and third dev runs: the code completion takes the values from the document text with segment offsets and stores a percentage as `10%`; a value counts as covered only when a reader who searches the fact sheet for it finds it; the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; an unusable repair answer no longer cancels the facts round; `eval rescore` scores stored jobs under either rule without a model call. |
 | 8 | 2026-10-07 | Write prompt (German and French): after the fact sheet, the office words of the document part with their everyday word, from the vocabulary (`Diese Wörter aus dem Dokument sind schwer. Schreiben Sie stattdessen das einfache Wort:`, `Ces mots du document sont difficiles. Écrivez plutôt le mot simple :`, at most 15). The block renders to nothing when the part has no office word or with `USE_VOCABULARY=0`: the prompt is then the same text as before. The generated style guide gets a LEX-07 line in German (`Nehmen Sie Alltags·wörter statt Amts·wörtern ...`), and in French the administrative words move from the LEX-01-FR line to a LEX-07-FR line. Code: the fact sheet's hard terms get the vocabulary's checked explanations and up to 6 terms of the source; code adds missing glossary entries from the vocabulary after the write stage and every repair round; LEX-07 and LEX-07-FR findings go to the polish round (docs/rules.md "Vocabulary"). Dev run on CSCS with and without: "Vocabulary in the pipeline" above; after it the word list is off by default (`VOCABULARY_PROMPT=0`), because it primed the 8B to write the listed office words. |
+| 8 | 2026-10-07 | No template change. Code: the vocabulary round, a last round through the repair prompt for the office words still in the best version (LEX-07 findings alone, each sentence with its everyday word); its version takes the next free number and is kept only if it loses no must-keep value and adds no blocking finding. Measured with every earlier answer replayed from the cache ("The vocabulary round" above): office words in the final drafts 42 to 19, no fact lost, about 11 s per job; on by default (`VOCABULARY_ROUND=1`). |
+| 9 | 2026-10-07 | Write prompt (German and French): the word list of version 8 removed; the template is the text of version 7 again, so the rendered prompt is the same as before the vocabulary. The writer gets no vocabulary of office words (it primed the 8B); the office words are handled after writing, by LEX-07 and the vocabulary round. One switch, `USE_VOCABULARY`, for the vocabulary's other uses, the vocabulary round included. |

@@ -112,15 +112,24 @@ def build_request(
     facts_only: bool = False,
     limit: int = MAX_MISSING_PER_ROUND,
     vocabulary: bool = True,
+    only: tuple[str, ...] = (),
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
     model asked to fix everything at once tends to fix nothing (docs/prompts.md). A
     facts-only round asks for the missing facts alone and flags no block. Without
-    `vocabulary` the office words of LEX-07 are left to the reviewer."""
+    `vocabulary` the office words of LEX-07 are left to the reviewer. With `only`, the
+    round asks for the findings of these rules alone, no fact and no judge's problem:
+    the vocabulary round."""
     severities = ("error", "warn") if include_warnings else ("error",)
     lang = draft.lang
     blocks = draft.by_id()
+    if only:
+        flagged: dict[str, list[str]] = defaultdict(list)
+        for f in rules.findings:
+            if f.rule_id in only and f.block_id in blocks and f.severity in ("error", "warn"):
+                flagged[f.block_id].append(render.finding_line(f, lang))
+        return RepairRequest(dict(flagged), [])
     facts = {f.id: f for f in factsheet.facts}
     problems: dict[str, list[str]] = defaultdict(list)
     missing: set[str] = set()
@@ -267,7 +276,6 @@ class Orchestrator:
                 model=cfg.writer_model,
                 mode=cfg.mode,
                 addressee=cfg.addressee,
-                vocabulary=self.settings.use_vocabulary and self.settings.vocabulary_prompt,
             )
             draft = stages.link_facts(draft, factsheet)
             if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
@@ -366,6 +374,26 @@ class Orchestrator:
         else:
             if facts_rounds:
                 reason = f"stopped after {facts_rounds} facts rounds"
+        # The vocabulary round: the office words still in the best version, each sentence
+        # rewritten with its everyday word (LEX-07), after everything else, so that the
+        # repair rounds stay on the facts. Its version is a new one after the latest;
+        # the choice below keeps it only if it loses no fact and adds no blocking problem.
+        vocabulary_rounds = 0
+        if (
+            self.settings.use_vocabulary
+            and cfg.max_repair_rounds
+            and getattr(self, "_round_failure", None) != "endpoint"
+        ):
+            base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
+            request = build_request(*base, factsheet, only=OFFICE_RULES)
+            if request:
+                latest = max(h[0].version for h in history)
+                step = self._round(
+                    job, source, factsheet, *base, request, 1, kind="vocabulary", version=latest + 1
+                )
+                if step is not None:
+                    history.append(step)
+                    vocabulary_rounds = 1
         best = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
         self._summary(
             job,
@@ -377,6 +405,7 @@ class Orchestrator:
             facts_rounds=max(facts_rounds, 0),
             reason=reason,
             history=history,
+            vocabulary_rounds=vocabulary_rounds,
         )
 
     def _round(
@@ -391,9 +420,11 @@ class Orchestrator:
         number: int,
         *,
         kind: str = "repair",
+        version: int | None = None,
     ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
         """One repair round: the new version, checked and judged; None when the model
-        call failed (the job goes on with the versions it has)."""
+        call failed (the job goes on with the versions it has). `version`: the new
+        version's number when it is not the next after `draft`."""
         cfg = job.config
         self._set(job.id, stage=f"{kind} {number}")
         self._round_failure: str | None = None
@@ -408,6 +439,7 @@ class Orchestrator:
                 mode=cfg.mode,
                 addressee=cfg.addressee,
                 kind=kind,
+                version=version,
             )
         except (LLMError, LLMOutputError) as exc:
             self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
@@ -485,6 +517,7 @@ class Orchestrator:
         reason: str,
         history: list | None = None,
         facts_rounds: int = 0,
+        vocabulary_rounds: int = 0,
     ) -> None:
         blocking = (
             [blocking_count(h[1], h[2]) for h in history]
@@ -499,6 +532,7 @@ class Orchestrator:
             final_version=final.version,
             rounds=rounds,
             facts_rounds=facts_rounds,
+            vocabulary_rounds=vocabulary_rounds,
             stop_reason=reason,
             writer_model=writer,
             understand_model=reader

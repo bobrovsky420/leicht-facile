@@ -27,7 +27,11 @@ def store(tmp_path) -> Store:
 
 
 def orchestrator(store: Store, endpoint: FakeEndpoint, sleeps: list[float]) -> Orchestrator:
-    settings = make_settings(llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0)
+    # Without the vocabulary: the answers below end before its last round. The vocabulary
+    # has its own tests (tests/pipeline/test_vocabulary.py).
+    settings = make_settings(
+        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False
+    )
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, settings)
 

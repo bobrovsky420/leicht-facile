@@ -24,9 +24,7 @@ from leichtfacile.pipeline.models import (
     clean_text,
 )
 from leichtfacile.pipeline.prompts import examples, level_name, render
-from leichtfacile.rules.de import ROLE_NOUN_RE as ROLE_NOUNS_DE
 from leichtfacile.rules.document import KnownValues, display_value
-from leichtfacile.rules.fr import ROLE_NOUN_WORD_RE as ROLE_NOUNS_FR
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
@@ -45,7 +43,6 @@ from leichtfacile.rules.vocabulary import (
     has_vocabulary,
     is_hard,
     matcher,
-    prompt_words,
     rarity,
 )
 from leichtfacile.schemas import (
@@ -465,11 +462,9 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     return fs.model_copy(update={"facts": facts})
 
 
-# The vocabulary (rules/data/vocabulary_<lang>.toml) in the fact sheet and the prompt.
+# The vocabulary (rules/data/vocabulary_<lang>.toml) in the fact sheet.
 MAX_HARD_TERMS = 12  # the fact sheet's hard terms, the model's and the vocabulary's
 MAX_VOCABULARY_TERMS = 6  # terms of the source code adds to the model's
-MAX_PROMPT_WORDS = 15  # office words of the source the write prompt lists
-ROLE_NOUNS = {"de": ROLE_NOUNS_DE, "fr": ROLE_NOUNS_FR}  # LEX-06 asks for Sie, not a noun
 
 
 def vocabulary_terms(fs: FactSheet, source: SourceDocument) -> FactSheet:
@@ -517,15 +512,6 @@ def vocabulary_terms(fs: FactSheet, source: SourceDocument) -> FactSheet:
             )
         )
     return fs.model_copy(update={"hard_terms": terms})
-
-
-def word_list(segments: list[Segment], lang: str) -> str:
-    """The office words of these sentences with their everyday word, one per line, for
-    the write prompt (empty: the prompt has no such list)."""
-    entries = prompt_words(
-        lang, (s.text for s in segments), exclude=ROLE_NOUNS.get(lang), limit=MAX_PROMPT_WORDS
-    )
-    return "\n".join(f"- {e.term}: {e.easy}" for e in entries)
 
 
 def to_factsheet(out: UnderstandOut, doc_id: str) -> FactSheet:
@@ -614,10 +600,7 @@ def write(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
-    vocabulary: bool = False,
 ) -> tuple[Draft, list[LLMResult]]:
-    """The first draft. `vocabulary`: the prompt lists the office words of each part
-    with their everyday word (rules/vocabulary.py)."""
     lang = source.lang
     if source.word_count() > LONG_DOCUMENT_WORDS:
         sections = split_sections(source)
@@ -646,7 +629,6 @@ def write(
             examples=examples(lang),
             section=title if sectioned else "",
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
-            words=word_list(segments, lang) if vocabulary else "",
             source=r.source_lines(segments),
         )
         try:
@@ -880,9 +862,13 @@ def repair(
     mode: str = "standard",
     addressee: str | None = None,
     kind: str = "repair",
+    version: int | None = None,
 ) -> tuple[Draft, list[LLMResult], RepairRecord]:
     """One repair round. Returns the new draft version, the model calls and the record
-    of the round: what was asked, what the model answered, what code left out."""
+    of the round: what was asked, what the model answered, what code left out.
+    `version`: the new version's number, when it is not the next after `draft` (the
+    vocabulary round starts from the best version, not the latest)."""
+    version = version if version is not None else draft.version + 1
     lang = draft.lang
     by_id = draft.by_id()
     facts = {f.id: f for f in factsheet.facts}
@@ -928,7 +914,7 @@ def repair(
         ),
     )
     record = RepairRecord(
-        draft_version=draft.version + 1,
+        draft_version=version,
         parent_version=draft.version,
         kind=kind,  # type: ignore[arg-type]
         requested_blocks=list(request.problems),
@@ -957,7 +943,9 @@ def repair(
             ]
             add.texts = [t for t in add.texts if t not in topical]
         out.additions = [add for add in out.additions if add.texts]
-    new_draft = apply_repairs(draft, out, request, factsheet, dropped=record.dropped)
+    new_draft = apply_repairs(
+        draft, out, request, factsheet, dropped=record.dropped, version=version
+    )
     return new_draft, results, record
 
 
@@ -967,6 +955,7 @@ def apply_repairs(
     request: RepairRequest,
     factsheet: FactSheet,
     dropped: list[DroppedText] | None = None,
+    version: int | None = None,
 ) -> Draft:
     """The new version: repaired blocks replaced (split into several when the answer
     has several texts), additions placed after their blocks. `dropped`, when given,
@@ -1059,7 +1048,7 @@ def apply_repairs(
     return draft.model_copy(
         update={
             "blocks": final_blocks,
-            "version": draft.version + 1,
+            "version": version if version is not None else draft.version + 1,
             "parent_version": draft.version,
             "origin": "repair",
             "code_edits": [],  # each version records the edits made on it

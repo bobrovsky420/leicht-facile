@@ -14,9 +14,10 @@ French "ai" is never the AI. A phrase of the [not_in] table hides a term inside 
 (opposition à la poursuite over opposition).
 
 The pipeline uses the lists in four places (docs/architecture.md §4): the fact sheet
-gets the checked explanations, the write prompt lists the hard words of the source with
-their everyday word, code adds missing glossary entries (rules/glossary.py), and rule
-LEX-07 / LEX-07-FR flags the office words left in a draft.
+gets the checked explanations, code adds missing glossary entries (rules/glossary.py),
+rule LEX-07 / LEX-07-FR flags the office words left in a draft, and the vocabulary round
+rewrites them. The writer gets no list of office words: on the CSCS dev run of 7 October
+2026 such a list made the 8B write more of them (docs/prompts.md).
 """
 
 from __future__ import annotations
@@ -177,31 +178,6 @@ def explained_term(term: str, lang: str) -> VocabularyEntry | None:
             if whole and entry.kind == "explain" and not entry.context:
                 return entry
     return None
-
-
-def prompt_words(
-    lang: str,
-    texts: Iterable[str],
-    *,
-    exclude: re.Pattern[str] | None = None,
-    limit: int = 15,
-) -> list[VocabularyEntry]:
-    """The replace entries in the texts, in text order, for the write prompt's list of
-    hard words with their everyday word: the context-dependent ones too (the writer sees
-    the sentence), not a part of a hyphenated name, not what `exclude` matches (the
-    role nouns: LEX-06 asks for Sie, not for an easier noun)."""
-    if not has_vocabulary(lang):
-        return []
-    seen: dict[str, VocabularyEntry] = {}
-    for matches in matcher(lang).find_texts(texts):
-        for m in matches:
-            entry = m.entry
-            if entry.kind != "replace" or not entry.easy or m.partial:
-                continue
-            if exclude is not None and exclude.search(m.text):
-                continue
-            seen.setdefault(entry.term, entry)
-    return list(seen.values())[:limit]
 
 
 def easy_for(lang: str, abbreviation: str) -> str | None:

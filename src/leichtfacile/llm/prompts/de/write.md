@@ -46,12 +46,6 @@ Das Faktenblatt:
 
 {{ factsheet }}
 
-{% if words is defined and words %}
-Diese Wörter aus dem Dokument sind schwer. Schreiben Sie stattdessen das einfache Wort:
-
-{{ words }}
-
-{% endif %}
 Das Dokument. Jede Zeile ist ein Satz mit seiner Nummer:
 
 {{ source }}
