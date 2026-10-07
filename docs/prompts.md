@@ -47,7 +47,8 @@ thinking.
   phone number, e-mail address, web address, percentage and time in the source that no
   fact carries (`origin: code`), and since 7 October 2026 for every period (`innert 30
   Tagen`, as the value `30 Tage`), identifier (case number, AHV number, IBAN, as
-  written) and postal address (docs/rules.md, "Value kinds"). Values in passages the
+  written), postal address, quantity (`2,5 mg`, as `2.5 mg`) and dosing scheme
+  (`1-0-1`) (docs/rules.md, "Value kinds"). Values in passages the
   model marked as droppable become background facts; all others must be kept. The first
   local run showed why: the model listed 3 facts for a letter with 11 checkable values.
   The prompts do not mention the new kinds (no prompt change before the freeze); what

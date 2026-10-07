@@ -52,6 +52,23 @@ def test_recorded_understand_answer_parses(factsheet, source) -> None:
     } <= code_values
 
 
+def test_a_value_dropped_from_a_broken_answer_comes_back_from_code(source) -> None:
+    # CSCS, 7 October 2026: the 8B gave the contact fact the e-mail address as a second
+    # value without a list. The parser drops it, code completion adds it as a fact.
+    raw = (
+        '{"facts": [{"kind": "contact", "text": "Telefon 044 123 45 67 oder E-Mail '
+        'ipv@musterwil.example", "value_norm": "0441234567", "ipv@musterwil.example", '
+        '"segment_ids": ["s0016"], "must_keep": true}]}'
+    )
+    out = UnderstandOut.model_validate(extract_json(raw, UnderstandOut.model_fields))
+    sheet = complete_factsheet(to_factsheet(out, source.id), source)
+    values = {
+        (f.origin, parse_value_norm(f.value_norm, f.kind).key) for f in sheet.facts if f.value_norm
+    }
+    assert ("model", ("phone", "0441234567")) in values
+    assert ("code", ("email", "ipv@musterwil.example")) in values
+
+
 def test_recorded_write_answer_and_the_missing_phone_number(factsheet, source) -> None:
     raw = (FIXTURES / "letter_write.txt").read_text(encoding="utf-8")
     out = WriteOut.model_validate(extract_json(raw))

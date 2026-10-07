@@ -6,14 +6,20 @@ The three variables required by the hackathon template are `LLM_BASE_URL`,
 
 from __future__ import annotations
 
+import re
+from collections.abc import Iterable
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ThinkingMode = Literal["model-suffix", "chat-template", "off"]
+
+# The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
+# 70B judges by default when the endpoint serves it.
+_APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
 
 
 class Settings(BaseSettings):
@@ -39,7 +45,9 @@ class Settings(BaseSettings):
     # gateway does so after about 100 seconds). Off only for a server without streaming.
     llm_stream: bool = True
     llm_timeout_s: float = Field(default=300.0, gt=0)
-    llm_max_retries: int = Field(default=4, ge=0)
+    # CSCS closes about one long thinking stream in four midway; 8 retries make a hard
+    # failure rare (6 October 2026). The backoff stops growing at 30 seconds.
+    llm_max_retries: int = Field(default=8, ge=0)
     llm_cache: bool = False
     # Extra JSON fields sent with every request, for gateway-specific switches such as
     # Public AI's `{"cache": {"no-cache": true}}` (its response cache ignores the
@@ -57,15 +65,27 @@ class Settings(BaseSettings):
     # header overrides it per browser.
     ui_lang: str = "auto"
 
-    @model_validator(mode="after")
-    def _default_judge(self) -> Settings:
-        if not self.llm_judge_name:
-            self.llm_judge_name = self.llm_name
-        return self
-
     @property
     def judge_name(self) -> str:
+        """LLM_JUDGE_NAME, else the writer's model. What the endpoint serves can change
+        that default: `judge_for`."""
         return self.llm_judge_name or self.llm_name
+
+    @property
+    def larger_name(self) -> str | None:
+        """The 70B of the writer's Apertus family, None for any other writer."""
+        larger = _APERTUS_8B.sub(r"\g<1>70\g<2>", self.llm_name)
+        return larger if larger != self.llm_name else None
+
+    def judge_for(self, models: Iterable[str]) -> str:
+        """The judge's model: LLM_JUDGE_NAME when set; else the 70B of the writer's
+        family when the endpoint lists it (the setup the evaluation measured, also when
+        only the three required variables are set); else the writer's model (a local
+        server with one model)."""
+        if self.llm_judge_name:
+            return self.llm_judge_name
+        larger = self.larger_name
+        return larger if larger and larger in set(models) else self.llm_name
 
     @property
     def understand_name(self) -> str:

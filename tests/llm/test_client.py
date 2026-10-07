@@ -194,6 +194,48 @@ def test_judge_defaults_to_writer_model():
     assert make_settings(llm_judge_name=other).judge_name == other
 
 
+BIG = "swiss-ai/Apertus-v1.5-70B"
+
+
+def test_judge_is_the_70b_when_the_endpoint_serves_it():
+    # Only the three required variables set (a judge's machine): the measured setup.
+    settings = make_settings()
+    assert settings.larger_name == BIG
+    assert settings.judge_for([MODEL, BIG, BIG + "-thinking"]) == BIG
+    assert settings.judge_for([MODEL, MODEL + "-thinking"]) == MODEL  # one local model
+    assert make_settings(llm_judge_name=MODEL).judge_for([MODEL, BIG]) == MODEL  # as set
+    lower = make_settings(llm_name="swiss-ai/apertus-v1.5-8b")  # Public AI's spelling
+    assert lower.judge_for(["swiss-ai/apertus-v1.5-70b"]) == "swiss-ai/apertus-v1.5-70b"
+    for name in (BIG, "apertus-v1.5-8b-q4-llamacpp", "other-8b"):
+        assert make_settings(llm_name=name).larger_name is None
+
+
+def test_client_looks_the_judge_up_once(endpoint, make_client):
+    endpoint.models = [MODEL, BIG]
+    client = make_client()
+    assert client.judge_model() == BIG
+    assert client.judge_model() == BIG
+    assert sum(r.url.path.endswith("/models") for r in endpoint.requests) == 1
+    # Set explicitly, or no 70B in the family: no lookup at all.
+    endpoint.requests.clear()
+    assert make_client(make_settings(llm_judge_name=MODEL)).judge_model() == MODEL
+    assert make_client(make_settings(llm_name="local-q4")).judge_model() == "local-q4"
+    assert not endpoint.requests
+
+
+def test_judge_falls_back_to_the_writer_while_the_list_fails(endpoint, make_client, monkeypatch):
+    endpoint.models = [MODEL, BIG]
+    client = make_client()
+
+    def down() -> list[str]:
+        raise ConnectionError("down")
+
+    monkeypatch.setattr(client, "list_models", down)
+    assert client.judge_model() == MODEL
+    monkeypatch.undo()  # the endpoint is back: the next job gets the 70B
+    assert client.judge_model() == BIG
+
+
 def test_understand_defaults_to_writer_model():
     assert make_settings().understand_name == MODEL
     other = "swiss-ai/Apertus-v1.5-70B"

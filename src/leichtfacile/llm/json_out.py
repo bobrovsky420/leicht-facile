@@ -82,7 +82,72 @@ def repair_json(text: str, top_keys: Iterable[str] = ()) -> str:
     text = _LOW_QUOTE.sub("\u201e\\1\u201c", text)
     text = _MISSING_COMMA_KEYS.sub(r"\1,\2\3", text)
     text = _BROKEN_UNICODE.sub("", text)
-    return close_containers(text, top_keys)
+    return drop_stray_strings(close_containers(text, top_keys))
+
+
+def _string_end(text: str, start: int) -> int:
+    """The index after the string that opens at `start` (the end of text if unclosed)."""
+    i = start + 1
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+            continue
+        if text[i] == '"':
+            return i + 1
+        i += 1
+    return len(text)
+
+
+def drop_stray_strings(text: str) -> str:
+    """Drop a string that stands where an object expects a key.
+
+    The 8B gives a field two values without a list (`"value_norm": "0441234567",
+    "ipv@musterwil.example", "segment_ids": [...]`, CSCS, 7 October 2026), and the
+    second one breaks the object. Valid JSON never has a string there that a colon does
+    not follow, so only broken answers change. Nothing gets lost: code completion turns
+    every value of the source that no fact carries into a fact of its own.
+    """
+    out: list[str] = []
+    stack: list[str] = []
+    expect_key = False
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == '"':
+            end = _string_end(text, i)
+            if expect_key and stack and stack[-1] == "{":
+                j = end
+                while j < len(text) and text[j].isspace():
+                    j += 1
+                if j < len(text) and text[j] in ",}":  # a value, not a key
+                    k = len(out) - 1
+                    while k >= 0 and out[k].isspace():
+                        k -= 1
+                    if k >= 0 and out[k] == ",":
+                        del out[k:]  # with the comma before it
+                        i = end
+                    else:
+                        i = j + 1 if text[j] == "," else j  # first in the object
+                    continue
+                expect_key = False
+            out.append(text[i:end])
+            i = end
+            continue
+        if ch == "{":
+            stack.append(ch)
+            expect_key = True
+        elif ch == "[":
+            stack.append(ch)
+            expect_key = False
+        elif ch in "}]":
+            if stack:
+                stack.pop()
+            expect_key = False
+        elif ch == ",":
+            expect_key = bool(stack) and stack[-1] == "{"
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
 
 def close_containers(text: str, top_keys: Iterable[str]) -> str:

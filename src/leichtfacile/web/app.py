@@ -83,11 +83,13 @@ def create_app(
             log.warning("LLM endpoint check failed: %s", type(exc).__name__)
             status.update(reachable=False, error=_error_text(exc))
         else:
+            judge = settings.judge_for(models)
             status.update(
+                judge_model=judge,
                 reachable=True,
                 models=models,
                 model_listed=settings.llm_name in models,
-                judge_model_listed=settings.judge_name in models,
+                judge_model_listed=judge in models,
             )
             if settings.llm_understand_name:
                 status["understand_model_listed"] = settings.understand_name in models

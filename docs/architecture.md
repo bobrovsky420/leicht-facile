@@ -195,9 +195,9 @@ with a third of the 8B's reasoning, but the 8B writer then kept fewer of them
 
 **Code completes the fact sheet.** After the call, code adds a fact for every date,
 amount, phone number, e-mail address, web address, percentage, time, period (`innert
-30 Tagen`), identifier (case number, AHV number, IBAN) and postal address in the source
-that no fact carries (`origin: code`; the value kinds are listed in
-[rules.md](rules.md#facts-the-most-important-family)). Values in passages the model marked as
+30 Tagen`), identifier (case number, AHV number, IBAN), postal address, quantity
+(`2,5 mg`) and dosing scheme (`1-0-1`) in the source that no fact carries (`origin:
+code`; the value kinds are listed in [rules.md](rules.md#facts-the-most-important-family)). Values in passages the model marked as
 droppable become background facts; all others must be kept. The first local test run
 showed why: the model listed 3 facts for a letter with 11 checkable values.
 
@@ -281,13 +281,15 @@ score, share of passive sentences, …). The full catalogue is in
   (AHV number, IBAN, postal account, UID, a reference after `Referenz`, `Dossier`,
   `Geschäftsnummer`, `Verfügung Nr.` and the like, compared without spaces) and a
   postal address (street and number, Postfach, postcode and place; an address that
-  lost its street is a loss, a street the source lacks an invention) are hard facts
-  like a date: code completion, FACT-01, FACT-05, FACT-06 and "hard facts kept" treat
-  them the same way ([rules.md](rules.md#facts-the-most-important-family), "Value
-  kinds"). Every further use case turns on one of them
+  lost its street is a loss, a street the source lacks an invention), a quantity
+  (`2,5 mg`, `2 Tabletten`, `38,5 Grad`; the name equals the symbol) and a dosing
+  scheme (`1-0-1`) are hard facts like a date: code completion, FACT-01, FACT-05,
+  FACT-06 and "hard facts kept" treat them the same way
+  ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"). Every further
+  use case turns on one of them
   ([use-cases.md §12](use-cases.md#12-what-the-further-use-cases-need)).
-- planned, not built: doses and dosing schemes as checked value kinds, plus checks for
-  the fixed notice, the operative part and appeal instructions, and medications, and
+- planned, not built: drug names as a value kind, plus checks for the fixed notice,
+  the operative part and appeal instructions, and a medication kept in one block, and
   three more questions for the judge
   ([rules.md](rules.md#planned-fact-checks-not-implemented)).
 
@@ -441,8 +443,9 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
 - **Configuration** from the template's variables: `LLM_BASE_URL`, `LLM_API_KEY`,
-  `LLM_NAME`; plus `LLM_JUDGE_NAME` and `LLM_UNDERSTAND_NAME` (both default to
-  `LLM_NAME`) and `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
+  `LLM_NAME`; plus `LLM_JUDGE_NAME` (default: the 70B of the writer's family when the
+  endpoint lists it, looked up once per process, else `LLM_NAME`), `LLM_UNDERSTAND_NAME`
+  (default `LLM_NAME`) and `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
   `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
   (local vLLM: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
   `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
@@ -493,7 +496,8 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   (`<|inner_prefix|> … <|inner_suffix|>`) and code fences, parsed (the slips of a
   small model are repaired in code: a run of ids written as a range, a trailing or a
   missing comma, a list or object closed with the wrong bracket, a unicode escape
-  with too few digits) and validated with pydantic. On failure the validation error, or the
+  with too few digits, a second value without a list where a key belongs, which is
+  dropped because code completion restores any value it carried) and validated with pydantic. On failure the validation error, or the
   syntax error with its position, is fed back once for a repair. An answer that copies
   the prompt's own example (4 of 12 dev drafts on the Public AI 8B were the JSON form
   itself, 6 October 2026) is recognised by code and sent back once in the same way.
@@ -729,14 +733,14 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
-| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages, times, periods, identifiers and postal addresses in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
+| Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
 | Rule violations | Errors and warnings per 100 blocks, by rule family | Compliance with the published rules |
 | Compounds split by code | Words that got their Mediopunkt from code in the final version, after the write stage or in any repair round, per 100 blocks (P1 and P2) | The cheap, deterministic part of the LEX gain, kept apart from the model's |
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
-| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers and postal addresses found in the output (exact, code, no model; the last three since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 191) | A fact measure that does not depend on any model, comparable with the official version |
+| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).
@@ -981,7 +985,7 @@ letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
    `incomplete chunked`), after seconds to a minute of generation; 10 of the 40 calls of
    check 3 needed retries and one failed after five attempts. The rate is the same for
    sequential and for eight parallel calls, so it is not our load. The client retries
-   such drops; profile A sets `LLM_MAX_RETRIES=8`, which makes a hard failure rare, at the
+   such drops; `LLM_MAX_RETRIES` defaults to 8, which makes a hard failure rare, at the
    price of repeated generation time.
 7. **Baseline.** P0 on the eval pairs runs on CSCS with `make eval`; the Public AI
    baseline above was the first reading.

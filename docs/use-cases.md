@@ -67,9 +67,10 @@ The tool is used in one of two ways:
 - **Sovereignty.** Health data are particularly sensitive; the letter stays on the
   hospital's infrastructure. A medical Apertus model exists for the judge:
   Apertus-70B-MeditronFO (EPFL).
-- **Works today.** Dates, phone numbers and periods (how long to take a drug, when to
-  come back) are checked; the judge looks for invented statements.
-- **Needs.** The value kinds `quantity`, `schedule` and `medication`; the
+- **Works today.** Dates, phone numbers, periods (how long to take a drug, when to
+  come back), doses (`5 mg`, `2 Tabletten`), dosing schemes (`1-0-1`) and thresholds
+  (`über 38,5 Grad`) are checked facts; the judge looks for invented statements.
+- **Needs.** The value kind `medication` (drug names, which need a drug list); the
   check `FACT-09` (a drug's name, dose and scheme in one block); the judge question
   `SEM-08` (an instruction stays an instruction, a recommendation a recommendation); a
   medical judge model.
@@ -182,10 +183,10 @@ The tool is used in one of two ways:
   reasons, risks and burdens, the number and length of visits, compensation,
   insurance, contacts.
 - **Reviewer.** The study team; the ethics committee approves the final text.
-- **Works today.** The number and length of visits (periods), compensation and
-  contacts are checked facts.
-- **Needs.** The value kind `quantity`; the judge question `SEM-08` (a right stays a
-  right, a risk is not softened).
+- **Works today.** The number and length of visits (periods), doses and quantities,
+  compensation and contacts are checked facts.
+- **Needs.** The judge question `SEM-08` (a right stays a right, a risk is not
+  softened).
 - **Limits.** The easy version supplements the approved information and needs the
   ethics committee's approval like any other document for participants.
 
@@ -217,7 +218,7 @@ The tool is used in one of two ways:
 | Periods as a checked value kind | 2, 4-8, 10 | Built 7 October 2026: [rules.md](rules.md#facts-the-most-important-family), `period` |
 | Identifiers (case and reference numbers, AHV number, IBAN) | 2, 5-7 | Built 7 October 2026: rules.md, `identifier` |
 | Postal addresses (where to appeal or object) | 2, 4-6, 8, 10 | Built 7 October 2026: rules.md, `address` |
-| Doses, dosing schemes, drug names | 3, 9 | rules.md: `quantity`, `schedule`, `medication`, `FACT-09` |
+| Doses, dosing schemes, drug names | 3, 9 | `quantity` and `schedule` built 7 October 2026 (rules.md, Facts); `medication` and `FACT-09` planned |
 | The decision mode: addressed person, fixed notice, operative part and appeal instructions kept | 2, 5-8, 10 | [use-case-decisions.md §7](use-case-decisions.md#7-what-works-today-and-what-is-planned); rules.md: `FACT-07`, `FACT-08` |
 | The received-letter mode | 4, 6 | PLAN.md WP12b |
 | Obligations, conditions and the start of periods kept; no advice | all | rules.md: `SEM-08`, `SEM-09`, `SEM-10` |

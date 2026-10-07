@@ -210,7 +210,7 @@ def _reference_factsheet(
 
 
 def _score_judge(store, orch, job_id, standard, factsheet, draft, judge_model) -> JudgeReport:
-    model = judge_model or orch.settings.judge_name
+    model = judge_model or orch.llm.judge_model()
     report, _ = stages.judge(orch.llm, standard, factsheet, draft, model=model)
     store.put_artifact(job_id, "score_judge", report, draft.version)
     return report

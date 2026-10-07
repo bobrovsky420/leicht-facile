@@ -7,6 +7,7 @@ from leichtfacile.llm.json_out import (
     JSONExtractionError,
     LLMOutputError,
     complete_json,
+    drop_stray_strings,
     extract_json,
     schema_instruction,
 )
@@ -235,3 +236,25 @@ def test_extract_json_closes_a_list_before_a_mismatched_brace():
 def test_extract_json_drops_a_broken_unicode_escape():
     text = '{"texts": ["Masques d\'hygi\\u00ene", "m\\u00e9dicaments"]}'
     assert extract_json(text) == {"texts": ["Masques d'hygine", "médicaments"]}
+
+
+def test_extract_json_drops_a_second_value_written_without_a_list():
+    # CSCS, 7 October 2026: one field, two values, no list; the job failed in Understand.
+    text = (
+        '{"facts": [{"kind": "contact", "value_norm": "0441234567", "ipv@musterwil.example", '
+        '"segment_ids": ["s0016"], "must_keep": true}]}'
+    )
+    fact = {"kind": "contact", "value_norm": "0441234567", "segment_ids": ["s0016"]}
+    assert extract_json(text) == {"facts": [{**fact, "must_keep": True}]}
+    assert extract_json('{"a": "1", "2", "3"}') == {"a": "1"}  # last in the object, twice
+    assert extract_json('{"a": {"x", "b": 1}}') == {"a": {"b": 1}}  # first in the object
+    # Strings in a list stay, also next to a stray one.
+    assert extract_json('{"a": ["1", "2"], "b": "1", "2"}') == {"a": ["1", "2"], "b": "1"}
+
+
+def test_drop_stray_strings_leaves_well_formed_json_alone():
+    good = '{"a": ["1", "2"], "b": {"c": "x, \\"y\\", z", "d": [{"e": "f"}, "g"]}, "h": ""}'
+    assert drop_stray_strings(good) == good
+    assert drop_stray_strings('["a", "b", {"c": "d"}]') == '["a", "b", {"c": "d"}]'
+    # A key that lost its colon is not a value: it is left for the error report.
+    assert drop_stray_strings('{"a": 1, "b" [2]}') == '{"a": 1, "b" [2]}'

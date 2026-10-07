@@ -1,12 +1,13 @@
 """Find and normalise checkable values in text: dates, amounts, numbers, phone
-numbers, e-mail addresses, URLs, percentages, times, periods, identifiers and postal
-addresses.
+numbers, e-mail addresses, URLs, percentages, times, periods, identifiers, postal
+addresses, quantities and dosing schemes.
 
 This is the exact half of fact checking (rules.md FACT-01 and FACT-05) and the basis
 of the model-independent "hard fact" metric in the evaluation. A value is reduced to
 a canonical string, so "31. März 2026", "31.3.2026" and "2026-03-31" are the same
-date, "1'500 Franken", "CHF 1500.-" and "1 500.00" the same amount, and "30 Tagen",
-"dreissig Tage" and "30-tägige" the same period.
+date, "1'500 Franken", "CHF 1500.-" and "1 500.00" the same amount, "30 Tagen",
+"dreissig Tage" and "30-tägige" the same period, and "2,5 mg" and "2.5 Milligramm"
+the same quantity.
 """
 
 from __future__ import annotations
@@ -19,12 +20,12 @@ from typing import Literal
 
 ValueKind = Literal[
     "date", "amount", "number", "phone", "email", "url", "percent", "time",
-    "period", "identifier", "address",
+    "period", "identifier", "address", "quantity", "schedule",
 ]  # fmt: skip
 # The kinds a rewrite must keep exactly (plain numbers are not among them).
 HARD_KINDS: tuple[ValueKind, ...] = (
     "date", "amount", "phone", "email", "url", "percent", "time",
-    "period", "identifier", "address",
+    "period", "identifier", "address", "quantity", "schedule",
 )  # fmt: skip
 
 MONTHS: dict[str, dict[str, int]] = {
@@ -303,6 +304,60 @@ _NOT_A_PLACE_WORDS = (
 )
 _NOT_A_PLACE = frozenset(_NOT_A_PLACE_WORDS.split())
 
+# -- quantities and dosing schemes (patient letters, information for study participants)
+
+# A unit as written, with its symbol: a name equals its symbol (Milligramm is mg). The
+# list is the one of rules.md; everyday units of length or money are not quantities.
+_UNIT_SYMBOLS: dict[str, str] = {
+    "mg": "mg", "milligramm": "mg", "milligramme": "mg", "milligrammes": "mg",
+    "milligrammi": "mg", "milligrammo": "mg",
+    "µg": "µg", "mcg": "µg", "mikrogramm": "µg", "microgramme": "µg", "microgrammes": "µg",
+    "microgrammi": "µg",
+    "g": "g", "gramm": "g", "gramme": "g", "grammes": "g", "grammi": "g", "grammo": "g",
+    "kg": "kg", "kilogramm": "kg", "kilogramme": "kg", "kilogrammes": "kg", "chilogrammi": "kg",
+    "chilogrammo": "kg", "kilo": "kg", "kilos": "kg",
+    "ml": "ml", "milliliter": "ml", "millilitre": "ml", "millilitres": "ml", "millilitri": "ml",
+    "millilitro": "ml",
+    "dl": "dl", "deziliter": "dl", "décilitre": "dl", "décilitres": "dl", "decilitri": "dl",
+    "decilitro": "dl",
+    "l": "l", "liter": "l", "litre": "l", "litres": "l", "litri": "l", "litro": "l",
+    "ie": "IE", "i.e.": "IE", "ui": "IE", "u.i.": "IE",  # international units
+    "tropfen": "Tropfen", "goutte": "Tropfen", "gouttes": "Tropfen", "goccia": "Tropfen",
+    "gocce": "Tropfen",
+    "tablette": "Tablette", "tabletten": "Tablette", "comprimé": "Tablette",
+    "comprimés": "Tablette", "compressa": "Tablette", "compresse": "Tablette",
+    "kapsel": "Kapsel", "kapseln": "Kapsel", "gélule": "Kapsel", "gélules": "Kapsel",
+    "capsule": "Kapsel", "capsules": "Kapsel", "capsula": "Kapsel",
+    "hub": "Hub", "hübe": "Hub", "bouffée": "Hub", "bouffées": "Hub", "spruzzo": "Hub",
+    "spruzzi": "Hub",
+    "°c": "°C", "° c": "°C", "grad": "°C", "grad celsius": "°C", "degré": "°C",
+    "degrés": "°C", "gradi": "°C", "grado": "°C",
+    "mmhg": "mmHg", "mmol/l": "mmol/l", "mg/dl": "mg/dl", "mg/kg": "mg/kg",
+}  # fmt: skip
+_FRACTIONS = {"½": "0.5", "¼": "0.25", "¾": "0.75"}
+_QUANTITY_UNITS = "|".join(re.escape(u) for u in sorted(_UNIT_SYMBOLS, key=len, reverse=True))
+_QUANTITY_RE = re.compile(
+    r"(?<![\d.,'’/" + DASHES + r"])(?P<num>\d+(?:[.,]\d+)?[½¼¾]?|[½¼¾])" + _SP + r"?"
+    r"(?P<unit>" + _QUANTITY_UNITS + r")(?![\w·/])",
+    re.IGNORECASE,
+)
+# A dosing scheme: three or four doses for the times of day, 1-0-1 or 1-0-0-1, also
+# with halves (½-0-½, 1.5-0-1).
+_DOSE_PART = r"(?:[0-9][.,]5|[0-9]|[½¼¾])"
+_SCHEDULE_RE = re.compile(
+    r"(?<![\w.,/"
+    + DASHES
+    + r"])(?P<parts>"
+    + _DOSE_PART
+    + r"(?:[ ]?["
+    + DASHES
+    + r"][ ]?"
+    + _DOSE_PART
+    + r"){2,3})(?![\w/"
+    + DASHES
+    + r"])(?![.,]\d)"
+)
+
 
 @dataclass(frozen=True)
 class Value:
@@ -464,6 +519,8 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
     take("identifier", _POSTAL_ACCOUNT_RE, lambda m: re.sub("[" + DASHES + "]", "-", m.group(0)))
     take("identifier", _UID_RE, lambda m: "CHE-" + m.group(0)[-11:])
     take("identifier", REFERENCE_RE, _reference, group="code")
+    take("schedule", _SCHEDULE_RE, _schedule)
+    take("quantity", _QUANTITY_RE, _quantity)  # before addresses: "1000 IE" is no postcode
     take("address", ADDRESS_RE, _address)
     take("phone", PHONE_RE, lambda m: canonical_phone(m.group(0)))
     take(
@@ -575,6 +632,32 @@ def canonical_ahv(text: str) -> str:
     """756.1234.5678.97 for the dotted, spaced or bare 13 digits."""
     digits = re.sub(r"\D", "", text)
     return f"{digits[:3]}.{digits[3:7]}.{digits[7:11]}.{digits[11:]}"
+
+
+def _dose_number(text: str) -> str | None:
+    """2,5 -> 2.5, ½ -> 0.5, 1½ -> 1.5; the decimal comma and point are the same."""
+    if text in _FRACTIONS:
+        return _FRACTIONS[text]
+    whole, fraction = (text[:-1], text[-1]) if text[-1] in _FRACTIONS else (text, "")
+    number = canonical_number(*_split_decimal(whole))
+    if number is None:
+        return None
+    if fraction:
+        number = format((Decimal(number) + Decimal(_FRACTIONS[fraction])).normalize(), "f")
+    return number
+
+
+def _quantity(m: re.Match[str]) -> str | None:
+    number = _dose_number(m.group("num"))
+    if number is None:
+        return None
+    return f"{number} {_UNIT_SYMBOLS[m.group('unit').lower()]}"
+
+
+def _schedule(m: re.Match[str]) -> str | None:
+    parts = re.split("[" + DASHES + "]", m.group("parts").replace(" ", ""))
+    numbers = [_dose_number(p) for p in parts]
+    return None if None in numbers else "-".join(n for n in numbers if n is not None)
 
 
 def _reference(m: re.Match[str]) -> str | None:
@@ -692,6 +775,11 @@ def matches(target: Value, candidate: Value) -> bool:
             )
         if candidate.kind == "identifier":
             return target.kind == "number" and candidate.canonical == target.canonical
+        if candidate.kind == "quantity":
+            # A fact "2" written as "2 Tabletten"; the unit the other way round is a loss.
+            return target.kind == "number" and candidate.canonical.split(" ")[0] == (
+                target.canonical
+            )
         return candidate.kind in ("amount", "number") and candidate.canonical == target.canonical
     if target.kind == "period":
         if candidate.kind == "period":

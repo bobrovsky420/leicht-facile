@@ -37,6 +37,14 @@ def test_healthz_stays_up_when_endpoint_is_down():
     assert response.json()["llm"]["error"] == "APIConnectionError"
 
 
+def test_healthz_names_the_judge_the_endpoint_decides():
+    big = "swiss-ai/Apertus-v1.5-70B"
+    body = _app(FakeEndpoint(models=[MODEL, big])).get("/healthz").json()
+    assert body["llm"]["judge_model"] == big and body["llm"]["judge_model_listed"] is True
+    body = _app(FakeEndpoint()).get("/healthz").json()  # no 70B: the writer judges
+    assert body["llm"]["judge_model"] == MODEL
+
+
 def test_healthz_flags_missing_model():
     body = _app(FakeEndpoint(models=["other-model"])).get("/healthz").json()
     assert body["llm"]["reachable"] is True

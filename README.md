@@ -81,7 +81,8 @@ The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_U
 local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.
 Without `make`: `docker compose up --build`.
 
-Model tiers: by default the 8B reads, writes and repairs, and the 70B judges.
+Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
+endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
 the 8B write. `eval/report.md` compares the three.

@@ -125,6 +125,8 @@ as a value.
 | `time` | `9.00 Uhr`, `09:00`, `9 Uhr`, `9 h 00`, `8.30 bis 11.30 Uhr` | HH:MM |
 | `period` | a count in digits or as a number word with days, working days, weeks, months or years in any inflection, also as an adjective: `innert 30 Tagen`, `dreissig Tage`, `30-tägige Frist`, `zwei Wochen`, `ein Jahr`, `5 Arbeitstage`; French `jours`, `jours ouvrables`, `semaines`, `mois`, `ans`; Italian `giorni`, `settimane`, `mesi`, `anni`; ages (`ab 18 Jahren`) are periods too; not an ordinal (`am 3. Tag`) and not a unit without a count (`pro Tag`) | count and unit as written (`30d`, `2w`, `1y`, `5wd`); weeks match days (`2 Wochen` equals `14 Tage`) and years match months, working days match only working days; a period also matches its bare count (`Kinder bis 16 Jahre` survives as `Kinder unter 16`, and a fact the model gave as `30` is found in `30 Tage`) |
 | `identifier` | AHV number (`756.1234.5678.97`, spaced or as 13 digits); IBAN and QR-IBAN (`CH`, two check digits and 17 characters, any spacing); postal account (`80-151-4`); UID (`CHE-123.456.789`); a code with a digit after a keyword: `Referenz`, `Dossier`, `Aktenzeichen`, compounds with `-nummer` (`Geschäftsnummer`, `Kundennummer`, `Versichertennummer`, `Policennummer`), `Verfügung Nr.`, `Fall Nr.`; French `référence`, `dossier`, `n° de client`; Italian `riferimento`, `incarto`; a keyword split by code (`Geschäfts·nummer`) and a few small words in between (`Die Nummer von Ihrem Dossier ist 2026-0042`) are allowed; a fact-sheet value that is a bare code (`2026-0042`, `K-4711`) is an identifier too | IBAN and AHV number without spaces, everything else exactly after whitespace normalisation, no checksum test (letters carry specimen numbers; decision D-O); a digits-only identifier also matches the number without its keyword (`Dossier 12345` survives as `Ihre Nummer: 12345`); a form number (`Formular 5100`), a count after a common word (`in diesem Fall 300 Franken`) and a one- or two-digit number after a bare keyword are no identifiers |
+| `quantity` | a number with a unit of a dose or a measurement: `mg`, `µg`, `g`, `kg`, `ml`, `dl`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l`, `mg/dl`, `mg/kg`, as symbol or name in German, French or Italian (`2,5 mg`, `2.5 Milligramm`, `2 Tabletten`, `1½ Tabletten`, `über 38,5 Grad`, `9 Liter`); not a length, a weight of goods or money | number with a decimal point and the unit's symbol (`2.5 mg`, `1.5 Tablette`, `38.5 °C`); a match needs the same number and symbol; a fact given as a bare number is found in the quantity (`2` in `2 Tabletten`), a quantity whose unit the draft dropped is not |
+| `schedule` | a dosing scheme of three or four parts (`1-0-1`, `1-0-0-1`, `½-0-½`, `1,5-0-1`), never a page range (`3-5`) or a date with dashes | the parts with decimal points, joined by hyphens (`0.5-0-0.5`); exactly, part by part |
 | `address` | street and house number (a street word at the end: `-strasse`, `-str.`, `-weg`, `-gasse`, `-platz`, `-quai`, ...; French and Italian `Rue`, `Avenue`, `Chemin`, `Route`, `Place`, `Via`, `Piazza`, ...; a short adjective in front such as `Untere Zollgasse`, never the town or office in front of the street), `Postfach` / `Case postale` with or without a number, and a four-digit postcode followed by a place name (`Gerichtsstrasse 12, Postfach, 8000 Musterwil`, also over several lines and with `CH-`); a postcode and place alone count only after a line start, a comma or a colon and before a boundary, never in 1900-2099 without a street or `CH-` (a year and a noun), never a count (`1500 Personen`, `6000 Stimmberechtigte`) or a caption | `street number\|Postfach\|postcode place` with `str.` written out and the Mediopunkt removed; postcode and place must agree (case-insensitive), the street and the Postfach only when the fact has them: an address without its street is a loss (FACT-01), a street the source lacks an invention (FACT-06) |
 
 ### Layout (checked on export)
@@ -240,13 +242,12 @@ family's table above, with golden tests, and loses the backticks.
 Value kinds feed the code completion of the fact sheet, FACT-01 (every must-keep value
 is in the draft), FACT-05 (fact-sheet values are in the source), FACT-06 (no value in
 the draft that the source lacks) and "hard facts kept" in the evaluation. The checked
-kinds are listed under "Facts" above (`rules/values.py`); `period`, `identifier` and
-`address` moved there on 7 October 2026. Plain numbers are extracted but not checked.
+kinds are listed under "Facts" above (`rules/values.py`); `period`, `identifier`,
+`address`, `quantity` and `schedule` moved there on 7 October 2026. Plain numbers are
+extracted but not checked.
 
 | Kind | What is extracted | Canonical form and matching | Use cases |
 |------|-------------------|-----------------------------|-----------|
-| `quantity` | a number with a unit: `mg`, `µg`, `g`, `kg`, `ml`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l` | decimal comma and point equal (`2,5 mg` equals `2.5 mg`), a unit's name equal to its symbol (`Milligramm` equals `mg`); a match needs the same number and unit | 3, 9 |
-| `schedule` | a dosing scheme of three or four parts (`1-0-1`, `1-0-0-1`, `½-0-½`) | exactly, part by part | 3 |
 | `medication` | not extracted by code (there is no drug list yet); the fact sheet gives the name as `value_norm` for facts of kind `medication` | the name exactly, case-insensitive, ignoring the Mediopunkt | 3 |
 
 ### New checks
@@ -395,10 +396,12 @@ source.
 - `tests/rules/golden_<lang>.yaml`: for every rule, 2-5 positive and 2-5 negative
   sentences, including sentences from real cantonal easy-language pages that must
   pass with no `error`.
-- `tests/rules/test_value_kinds.py`: the kinds `period`, `identifier` and `address`,
-  what is and is not one of them, how they match (`2 Wochen` and `14 Tage`, working
-  days, an address with and without its street), and FACT-01, FACT-06 and the code
-  completion on a synthetic decision of a child and adult protection authority.
+- `tests/rules/test_value_kinds.py`: the kinds `period`, `identifier`, `address`,
+  `quantity` and `schedule`, what is and is not one of them, how they match (`2 Wochen`
+  and `14 Tage`, working days, an address with and without its street, `2,5 mg` and
+  `2.5 Milligramm`), and FACT-01, FACT-06 and the code completion on a synthetic
+  decision of a child and adult protection authority and on a line of a discharge
+  letter.
 - The official easy-language pages in the evaluation set serve as a sanity check: the
   checker's error rate on professionally written Leichte Sprache should be near zero;
   any error it raises there is either a genuine deviation or a false positive to fix.

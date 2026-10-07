@@ -171,6 +171,10 @@ MESSAGES: dict[str, str] = {
     "Remove it or take the value from the source.",
     "FACT-06.address": "The address {value} is not in the source. Remove it or take the value "
     "from the source.",
+    "FACT-06.quantity": "The quantity {value} is not in the source. Remove it or take the value "
+    "from the source.",
+    "FACT-06.schedule": "The dosing scheme {value} is not in the source. Remove it or take the "
+    "value from the source.",
     # -- layout and readability (every language)
     "LAY-01": "Line {line} has more than one sentence.",
     "LAY-02": "Line {line} has {chars} characters; at most {limit}.",

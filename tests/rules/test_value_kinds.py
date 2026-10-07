@@ -372,3 +372,97 @@ def test_the_sample_letter_carries_its_periods_once() -> None:
         "innert 30 Tagen seit Zustellung Einsprache erhoben werden."
     )
     assert hard_values(letter) == {("period", "30d")}
+
+
+# -- quantities and dosing schemes (patient letters) ---------------------------------
+
+
+@pytest.mark.parametrize(
+    ("lang", "text", "expected"),
+    [
+        ("de", "Nehmen Sie 2,5 mg am Morgen.", ("quantity", "2.5 mg")),
+        ("de", "2.5 Milligramm", ("quantity", "2.5 mg")),
+        ("de", "1 Tablette", ("quantity", "1 Tablette")),
+        ("de", "2 Tabletten", ("quantity", "2 Tablette")),
+        ("de", "1½ Tabletten", ("quantity", "1.5 Tablette")),
+        ("de", "½ Tablette", ("quantity", "0.5 Tablette")),
+        ("de", "20 Tropfen", ("quantity", "20 Tropfen")),
+        ("de", "2 Hübe", ("quantity", "2 Hub")),
+        ("de", "über 38,5 Grad", ("quantity", "38.5 °C")),
+        ("de", "38.5 °C", ("quantity", "38.5 °C")),
+        ("de", "500 mg/dl", ("quantity", "500 mg/dl")),
+        ("de", "1000 IE", ("quantity", "1000 IE")),
+        ("de", "9 Liter Wasser", ("quantity", "9 l")),
+        ("de", "Morgens 1-0-1.", ("schedule", "1-0-1")),
+        ("de", "1-0-0-1", ("schedule", "1-0-0-1")),
+        ("de", "½-0-½", ("schedule", "0.5-0-0.5")),
+        ("de", "1,5-0-1", ("schedule", "1.5-0-1")),
+        ("de", "1 - 0 - 1", ("schedule", "1-0-1")),
+        ("fr", "2 comprimés", ("quantity", "2 Tablette")),
+        ("fr", "5 gouttes", ("quantity", "5 Tropfen")),
+        ("fr", "2,5 mg", ("quantity", "2.5 mg")),
+        ("it", "2 compresse", ("quantity", "2 Tablette")),
+        ("it", "10 gocce", ("quantity", "10 Tropfen")),
+    ],
+)
+def test_quantities_and_schedules(lang: str, text: str, expected: tuple[str, str]) -> None:
+    assert expected in keys(text, lang)
+
+
+@pytest.mark.parametrize(
+    ("text", "absent"),
+    [
+        ("Art. 5 gilt", "quantity"),
+        ("2 ganze Tage", "quantity"),
+        ("am 3. Grad", "quantity"),
+        ("50 Prozent", "quantity"),
+        ("CHF 500", "quantity"),
+        ("Seite 3-5", "schedule"),
+        ("8-12 Uhr", "schedule"),
+        ("Tel. 044 123 45 67", "schedule"),
+        ("Konto 80-151-4", "schedule"),
+        ("31-12-2026", "schedule"),
+    ],
+)
+def test_what_is_not_a_quantity_or_a_schedule(text: str, absent: str) -> None:
+    assert absent not in {kind for kind, _ in keys(text)}
+
+
+def test_quantities_match_by_number_and_symbol() -> None:
+    assert matches(v("2,5 mg"), v("2.5 Milligramm"))
+    assert not matches(v("2.5 mg"), v("2.5 g"))
+    assert not matches(v("2 Tabletten"), v("3 Tabletten"))
+    assert matches(v("2"), v("2 Tabletten"))  # a fact "2" written with its unit
+    assert not matches(v("2 Tabletten"), v("2"))  # the unit dropped is a loss
+    assert matches(v("1-0-1"), v("1 - 0 - 1"))
+    assert matches(v("½-0-½"), v("0.5-0-0.5"))
+    assert not matches(v("1-0-1"), v("1-0-0-1"))
+
+
+def test_parse_quantity_and_schedule_value_norms() -> None:
+    assert parse_value_norm("2,5 mg", "other").key == ("quantity", "2.5 mg")
+    assert parse_value_norm("1-0-1", "other").key == ("schedule", "1-0-1")
+    assert parse_value_norm("2 Tabletten", "obligation").key == ("quantity", "2 Tablette")
+
+
+def test_an_invented_dose_or_scheme_is_a_fact_06_error() -> None:
+    source = SourceDocument(
+        id="patient",
+        lang="de",
+        source=SourceInfo(type="text"),
+        segments=[
+            Segment(id="s0001", kind="paragraph", para=1,
+                    text="Nehmen Sie 2,5 mg Bisoprolol morgens, Schema 1-0-0, für 3 Monate."),
+        ],
+    )  # fmt: skip
+    facts = complete_factsheet(FactSheet(doc_id="patient", facts=[]), source)
+    assert {f.value_norm for f in facts.facts} == {"2.5 mg", "1-0-0", "3 Monate"}
+    d = Draft(doc_id="patient", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Nehmen Sie 5 mg am Morgen, Schema 1-0-1.",
+              segment_ids=["s0001"]),
+    ])  # fmt: skip
+    found = {
+        f.message_key for f in check_draft(d, source=source, factsheet=facts).findings
+        if f.rule_id == "FACT-06"
+    }  # fmt: skip
+    assert found == {"FACT-06.quantity", "FACT-06.schedule"}

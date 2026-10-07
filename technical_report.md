@@ -375,10 +375,10 @@ outputs, the evaluation metrics, and the web API.
 - Same engine, other documents ([docs/use-cases.md](docs/use-cases.md)): patient
   letters, lease terminations, penal orders, payment orders, social and school
   decisions, information for study participants. Most of them turn on a period such as
-  "innert 10 Tagen", a reference number or the address to object to, which code checks
-  like a date since 7 October; still planned: doses for patient letters, the decision
-  mode and the received-letter mode ([docs/rules.md](docs/rules.md), planned fact
-  checks).
+  "innert 10 Tagen", a reference number, the address to object to or a dose, which
+  code checks like a date since 7 October; still planned: drug names and the one-block
+  check for patient letters, the decision mode and the received-letter mode
+  ([docs/rules.md](docs/rules.md), planned fact checks).
 - A pilot with a cantonal easy-language office and target-group testing of the
   drafts.
 - Beyond the public sector: insurers, pension funds and utilities send some of the

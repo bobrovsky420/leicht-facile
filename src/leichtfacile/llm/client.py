@@ -97,6 +97,7 @@ class LLMClient:
         self._usage_sink = usage_sink
         self._sleep = sleep
         self._warned_no_usage = False
+        self._judge_model: str | None = None
         self._client = openai.OpenAI(
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key.get_secret_value(),
@@ -202,6 +203,22 @@ class LLMClient:
     def list_models(self, timeout_s: float = 10.0) -> list[str]:
         page = self._client.with_options(timeout=timeout_s).models.list()
         return sorted(m.id for m in page)
+
+    def judge_model(self) -> str:
+        """The judge's model (`Settings.judge_for`). The endpoint's list is asked once,
+        and only when it decides; while it cannot be read, the writer's model judges."""
+        settings = self.settings
+        if settings.llm_judge_name or not settings.larger_name:
+            return settings.judge_name
+        if self._judge_model is None:
+            try:
+                models = self.list_models()
+            except Exception as exc:  # the judge still runs, on the writer's model
+                log.warning("model list for the judge failed: %s", type(exc).__name__)
+                return settings.llm_name
+            self._judge_model = settings.judge_for(models)
+            log.info("judge model: %s", self._judge_model)
+        return self._judge_model
 
     # -- internals --------------------------------------------------------------------
 

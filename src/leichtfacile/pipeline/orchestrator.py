@@ -319,7 +319,7 @@ class Orchestrator:
         if existing:
             return existing
         self._set(job.id, stage="judge")
-        model = job.config.judge_model or self.settings.judge_name
+        model = job.config.judge_model or self.llm.judge_model()
         try:
             report, results = stages.judge(self.llm, source, factsheet, draft, model=model)
         except (LLMError, LLMOutputError) as exc:
@@ -369,7 +369,7 @@ class Orchestrator:
             understand_model=reader
             if job.config.condition not in BASELINE_CONDITIONS and reader != writer
             else None,
-            judge_model=(job.config.judge_model or self.settings.judge_name)
+            judge_model=(job.config.judge_model or self.llm.judge_model())
             if job.config.condition == "P2" and job.config.use_judge
             else None,
             prompt_versions=prompt_versions(source.lang),
