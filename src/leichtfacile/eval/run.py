@@ -28,6 +28,7 @@ from leichtfacile.schemas import (
     JobConfig,
     JudgeReport,
     PipelineSummary,
+    RuleFindings,
     SourceDocument,
 )
 from leichtfacile.store import Store
@@ -215,3 +216,102 @@ def _score_judge(store, orch, job_id, standard, factsheet, draft, judge_model) -
     report, _ = stages.judge(orch.llm, standard, factsheet, draft, model=model)
     store.put_artifact(job_id, "score_judge", report, draft.version)
     return report
+
+
+SELECTIONS = ("facts", "blocking")
+
+
+def _best_version(
+    store: Store, job_id: str, versions: list[int], select: str
+) -> tuple[int, RuleFindings | None, JudgeReport | None]:
+    """The final version under a selection rule, from the stored findings: `facts`
+    (the pipeline's rule since 8 October 2026: fewest missing must-keep values, then
+    fewest blocking findings, then the latest) or `blocking` (the rule before: fewest
+    blocking findings, then the latest)."""
+    from leichtfacile.pipeline.orchestrator import blocking_count, version_key
+
+    best: tuple | None = None
+    for version in versions:
+        rules = store.get_artifact(job_id, "rules", RuleFindings, version=version)
+        if rules is None:
+            continue
+        judge = store.get_artifact(job_id, "judge", JudgeReport, version=version)
+        key = version_key(rules, judge) if select == "facts" else (blocking_count(rules, judge),)
+        candidate = ((*key, -version), version, rules, judge)
+        if best is None or candidate[0] < best[0]:
+            best = candidate
+    if best is None:
+        return versions[-1], None, None
+    return best[1], best[2], best[3]
+
+
+def rescore(
+    results_dir: Path,
+    *,
+    pairs: list[Pair],
+    condition: str = "P2",
+    role: str | None = "dev",
+    select: str = "facts",
+    out_dir: Path | None = None,
+) -> Path:
+    """Score a condition's completed jobs again from their stored artifacts, without
+    a model call: after a change of the metrics, or to compare the rules for the final
+    version on the same jobs (`select`). The rows go to `out_dir` (default
+    `<results>-rescored-<select>` next to the results folder) with the reference rows
+    copied, so `eval report` works on it; the results folder itself is not touched."""
+    from leichtfacile.eval.labels import completed_rows
+
+    if select not in SELECTIONS:
+        raise ValueError(f"unknown selection {select!r}; use one of {SELECTIONS}")
+    out_dir = out_dir or results_dir.with_name(f"{results_dir.name}-rescored-{select}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    reference = results_dir / "REF.jsonl"
+    if reference.exists():
+        (out_dir / "REF.jsonl").write_text(reference.read_text(encoding="utf-8"), encoding="utf-8")
+    by_id = {p.id: p for p in pairs}
+    store = Store(results_dir / "store.sqlite")
+    written: dict[str, list[dict[str, Any]]] = {}
+    try:
+        for row in completed_rows(results_dir, condition, role):
+            pair = by_id.get(row["pair_id"])
+            job = store.get_job(row["job_id"])
+            if pair is None or job is None:
+                continue
+            versions = store.versions(job.id, "draft")
+            factsheet = store.get_artifact(job.id, "factsheet", FactSheet) or store.get_artifact(
+                job.id, "score_factsheet", FactSheet
+            )
+            if not versions or factsheet is None:
+                continue
+            standard, easy = load_pair(pair)
+            version, _, judge_report = _best_version(store, job.id, versions, select)
+            draft = store.get_artifact(job.id, "draft", Draft, version=version)
+            edits = [
+                edit
+                for v in versions
+                if v <= version
+                for edit in store.get_artifact(job.id, "draft", Draft, version=v).code_edits
+            ]
+            summary = store.get_artifact(job.id, "summary", PipelineSummary)
+            new_row = {
+                k: v
+                for k, v in row.items()
+                if k in ("pair_id", "role", "lang", "writer", "understand", "job_id", "status")
+            }
+            new_row.update(score_output(job, draft, standard, easy, factsheet, judge_report, edits))
+            if summary:
+                new_row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
+            new_row.update(
+                selection=select, stored_final_version=summary.final_version if summary else None
+            )
+            name = results_file(
+                out_dir, condition, row.get("writer", "?"), row.get("understand")
+            ).name
+            written.setdefault(name, []).append(new_row)
+    finally:
+        store.close()
+    for name, rows in written.items():
+        (out_dir / name).write_text(
+            "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
+        )
+    return out_dir

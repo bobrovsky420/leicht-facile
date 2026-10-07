@@ -305,3 +305,44 @@ def test_a_completed_percentage_is_told_and_not_a_silent_loss() -> None:
     assert baseline["silent_losses"] == 2 and baseline["silent_loss_kinds"] == {
         "address": 1, "percent": 1,
     }  # fmt: skip
+
+
+def test_rescore_scores_the_stored_jobs_again_under_both_selection_rules(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    from leichtfacile.eval.run import rescore
+
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    reference_rows(pairs, results)
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    settings = make_settings(llm_max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    calls = len(endpoint.chat_bodies())
+
+    out = rescore(results, pairs=pairs, condition="P2", role="eval")
+    assert out == tmp_path / "results-rescored-facts" and (out / "REF.jsonl").exists()
+    (again,) = _rows(out / path.name)
+    assert again["selection"] == "facts" and again["draft_version"] == row["draft_version"] == 2
+    assert again["fact_coverage"] == row["fact_coverage"] == 1.0
+    assert again["stored_final_version"] == 2 and again["job_id"] == row["job_id"]
+    other = rescore(results, pairs=pairs, condition="P2", role="eval", select="blocking",
+                    out_dir=tmp_path / "blocking")  # fmt: skip
+    (blocking,) = _rows(other / path.name)
+    assert blocking["selection"] == "blocking" and blocking["draft_version"] == 2
+    assert len(endpoint.chat_bodies()) == calls  # no model call
+    assert "P2 full: pipeline with judge and repair" in render_report(out, role="eval")
+
+    from leichtfacile.cli import main
+
+    assert main(["eval", "rescore", "--manifest", str(pair_env), "--results", str(results),
+                 "--role", "eval", "--out", str(tmp_path / "cli")]) == 0  # fmt: skip
+    assert (tmp_path / "cli" / path.name).exists()

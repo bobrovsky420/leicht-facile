@@ -654,3 +654,29 @@ def test_code_completion_works_on_the_document_text_and_keeps_percentages_checka
     assert [f.value_norm for f in fact_coverage(partial, fs, "de").missing] == [
         "4.5%", "Gerichtsstrasse 12, 8000 Musterwil",
     ]  # fmt: skip
+
+
+def test_code_completion_adds_the_full_value_next_to_a_partial_model_fact() -> None:
+    """A model fact with the place alone, or a bare number for a quantity, does not cover
+    the source's full address or quantity: the reader who searches the fact sheet for the
+    full value must find it (the silent-loss check asks the same question)."""
+    from leichtfacile.pipeline.stages import complete_factsheet
+    from leichtfacile.schemas import Fact, FactSheet, SourceInfo
+
+    segments = [
+        Segment(id="s0001", kind="paragraph", text="Adresse: Gerichtsstrasse 12", para=1),
+        Segment(id="s0002", kind="paragraph", text="8000 Musterwil.", para=1),
+        Segment(id="s0003", kind="paragraph", text="Nehmen Sie 2 Tabletten am Morgen.", para=2),
+        Segment(id="s0004", kind="paragraph", text="Die Frist ist 30 Tage.", para=3),
+    ]
+    source = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=segments)
+    model_facts = [
+        Fact(id="f01", kind="contact", text="Ort", value_norm="8000 Musterwil"),
+        Fact(id="f02", kind="other", text="Zwei", value_norm="2"),
+        Fact(id="f03", kind="deadline", text="Dreissig", value_norm="30"),
+    ]
+    fs = complete_factsheet(FactSheet(doc_id="d", facts=model_facts), source)
+    added = [f.value_norm for f in fs.facts if f.origin == "code"]
+    # The full address and the quantity are added; the period is covered by the bare
+    # count, as the matcher accepts the count alone for a period.
+    assert added == ["Gerichtsstrasse 12, 8000 Musterwil", "2 Tablette"]

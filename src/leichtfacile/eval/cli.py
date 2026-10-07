@@ -85,6 +85,25 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     dia.add_argument("--json", type=Path, help="write the diagnosis as JSON to this file")
     dia.set_defaults(handler=_diagnose)
 
+    res = evsub.add_parser(
+        "rescore", help="score the stored jobs again from their artifacts (no model)"
+    )
+    res.add_argument("--manifest", type=Path, default=MANIFEST)
+    res.add_argument("--results", type=Path, default=Path("eval/results"))
+    res.add_argument("--condition", type=canonical_condition, default="P2", choices=["P1", "P2"])
+    res.add_argument("--role", default="dev", choices=["dev", "eval", "all"])
+    res.add_argument(
+        "--select",
+        default="facts",
+        choices=["facts", "blocking"],
+        help="the rule for the final version: facts (fewest missing must-keep values first, "
+        "the pipeline's rule) or blocking (fewest blocking findings, the rule before 8 Oct)",
+    )
+    res.add_argument(
+        "--out", type=Path, help="results folder to write (default: next to --results)"
+    )
+    res.set_defaults(handler=_rescore)
+
     rep = evsub.add_parser("report", help="Markdown tables from the results")
     rep.add_argument("--results", type=Path, default=Path("eval/results"))
     rep.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
@@ -205,6 +224,24 @@ def _diagnose(args: argparse.Namespace) -> int:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(to_json(jobs) + "\n", encoding="utf-8")
         print(f"written: {args.json}")
+    return 0
+
+
+def _rescore(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.dataset import load_manifest
+    from leichtfacile.eval.run import rescore
+
+    out = rescore(
+        args.results,
+        pairs=load_manifest(args.manifest),
+        condition=args.condition,
+        role=args.role,
+        select=args.select,
+        out_dir=args.out,
+    )
+    print(
+        f"rescored rows: {out} (render them with: eval report --results {out} --role {args.role})"
+    )
     return 0
 
 

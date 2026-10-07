@@ -78,6 +78,16 @@ def missing_count(rules: RuleFindings) -> int:
     return sum(1 for f in rules.findings if f.rule_id == "FACT-01")
 
 
+def version_key(rules: RuleFindings, judge: JudgeReport | None) -> tuple[int, int]:
+    """The order of the draft versions, best first: the fewest must-keep values
+    missing, then the fewest blocking findings. Facts come first because a reviewer can
+    reject an unsupported sentence or mend a long one with a click, but cannot conjure
+    a missing deadline; before 8 October 2026 the blocking count alone decided, and the
+    dev rerun of 7 October showed it discarding versions a facts round had just filled
+    (docs/prompts.md, "Fact-retention diagnosis", bucket k)."""
+    return (missing_count(rules), blocking_count(rules, judge))
+
+
 def blocking_count(rules: RuleFindings, judge: JudgeReport | None) -> int:
     """Findings that should not survive into the draft the reviewer gets."""
     count = sum(
@@ -298,10 +308,11 @@ class Orchestrator:
         # job (docs/prompts.md). These rounds ask for the missing facts alone and are
         # measured by them: they go on while a round adds a fact, up to the limit.
         facts_rounds = 0
-        # Not without repair (max_repair_rounds 0) and not after a failed round: the
-        # endpoint is in trouble, and the drafts so far stand.
+        # Not without repair (max_repair_rounds 0), and not after a round the endpoint
+        # failed: then the drafts so far stand. After an answer the code could not use
+        # (no valid JSON twice) the facts round still runs: a smaller prompt, a new try.
         limit = cfg.max_facts_rounds if cfg.max_repair_rounds else 0
-        if reason == "a repair round failed":
+        if reason == "a repair round failed" and self._round_failure == "endpoint":
             limit = 0
         for facts_rounds in range(1, limit + 1):  # noqa: B007
             missing = missing_count(rules)
@@ -327,7 +338,7 @@ class Orchestrator:
         else:
             if facts_rounds:
                 reason = f"stopped after {facts_rounds} facts rounds"
-        best = min(history, key=lambda h: (blocking_count(h[1], h[2]), -h[0].version))
+        best = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
         self._summary(
             job,
             source,
@@ -357,6 +368,7 @@ class Orchestrator:
         call failed (the job goes on with the versions it has)."""
         cfg = job.config
         self._set(job.id, stage=f"{kind} {number}")
+        self._round_failure: str | None = None
         try:
             new_draft, results, record = stages.repair(
                 self.llm,
@@ -372,6 +384,7 @@ class Orchestrator:
         except (LLMError, LLMOutputError) as exc:
             self._record(job.id, getattr(exc, "results", []))
             self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
+            self._round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
             return None
         self._record(job.id, results)
         new_draft = stages.link_facts(new_draft, factsheet)

@@ -561,6 +561,36 @@ with v1 final in each case. The diagnosis now reads such facts off the later rou
 naming the final version), so the next run shows whether the model did not write them
 or the final-version choice threw them away.
 
+The third run, the same day, under the fixed completion (`--redo` again; the rows
+before it are kept in `eval/results-cscs-v4`): 30 of 122 must-keep values missing (75
+percent found), fact coverage 71 percent, hard facts kept 68, silent losses 2 percent,
+invented values 0.0, 7.5 rule errors per 100 blocks. The buckets: 13 behind the cap,
+2 written in a rejected form, 1 dropped by code, 4 not written, **5 written into a
+version that was not kept as final**, 1 lost in a rewrite, 4 not recorded. Three
+readings:
+
+- *Run-to-run noise is large on single pairs.* One pair (`sg-el-costs-de`, 22
+  checkable facts) accounts for most of the difference to the run before: 18 missing
+  against 2, with v3 of 4 final instead of v5 of 5; 13 of its facts were behind the
+  cap, 3 were written by the facts round into a v4 the final-version rule did not
+  keep. Another pair lost its repair round to two unusable answers and, by the rule of
+  the day, its facts round with it. The judge and repair calls are fresh on every
+  `--redo` while Understand and Write replay from the cache, so two runs differ by
+  the loop alone.
+- *The final-version rule discarded facts.* The 5 facts of bucket k were in the draft
+  the facts round produced; the version with the fewest blocking findings won because
+  the judge flagged the new sentences or they carried a rule error. Since 8 October the
+  final version is the one with the fewest must-keep values missing, then the fewest
+  blocking findings (`version_key` in the orchestrator), and `eval rescore --select
+  facts|blocking` scores the stored jobs under either rule without a model call, so
+  the rule's effect is read on the same jobs. An answer the code could not use no
+  longer cancels the facts round; only a failed endpoint does.
+- *The last silent loss is a completion asymmetry, closed.* One address: the model's
+  fact carried the place alone, which counted as covering the full address, while the
+  reader who searches the fact sheet for the full address does not find it. Coverage
+  is now asked in the reader's direction, so the full value gets its own fact next to
+  the model's partial one (the same for a bare number against a quantity).
+
 ### Image input spike (CSCS, 8B, 7 October 2026): no-go at this setting
 
 `scripts/image_spike.py` on the two scanned letters of `data/examples/print/scans/`,
@@ -620,3 +650,4 @@ with these numbers (WP12a and WP12b cut).
 | 6 | 2026-10-06 | No template change. Code: the compound splitter treats the feminine ending `-innen` as an ending (`Sozial·arbeiterinnen`, never `Schweizer·innen`), and the evaluation counts the splits of earlier rounds that the final version keeps. The dev rerun on CSCS with and without the step is in "Mediopunkt by code" above: LEX-01 from 35 to 5 warnings per 100 blocks, no repair round saved, no fact lost. |
 | 7 | 2026-10-07 | Judge prompt (German and French): one more rule, SEM-08, an obligation, a possibility or a condition that changed (`müssen` to `können`, a `wenn` written as `vielleicht`); the judge filter accepts it (decision D-P, PLAN.md WP15 piece 4). All four standard templates in both languages get one line, `{% if mode is defined and mode == "decision" %}{% include "<lang>/decision.md" %}{% endif %}`, which renders to nothing for a standard job (same prompt text, same cache key; the template hash changes once) and pulls in the stage's section of the new partial `decision.md` for a job in the decision mode (docs/use-case-decisions.md; first draft, free to change after the freeze). |
 | 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
+| 7 | 2026-10-08 | No template change. Code, from the second and third dev runs: the code completion takes the values from the document text with segment offsets and stores a percentage as `10%`; a value counts as covered only when a reader who searches the fact sheet for it finds it; the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; an unusable repair answer no longer cancels the facts round; `eval rescore` scores stored jobs under either rule without a model call. |

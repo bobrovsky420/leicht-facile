@@ -405,3 +405,77 @@ def test_the_summary_and_the_judge_carry_the_mode(store, endpoint, sleeps) -> No
     assert summary.mode == "standard"
     judge_prompt = endpoint.chat_bodies()[2]["messages"][0]["content"]
     assert "SEM-08" in judge_prompt and "Entscheid" not in judge_prompt
+
+
+def test_the_final_version_is_the_one_with_the_fewest_missing_facts(
+    store, endpoint, sleeps
+) -> None:
+    """A facts round adds the number; the judge then flags more of the new version than
+    before. Facts come first: the version with the number is final (bucket k of the
+    diagnosis, docs/prompts.md)."""
+    from leichtfacile.pipeline.orchestrator import version_key
+
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    judge_before = {"fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}]}
+    judge_after = {**judge_before, "unsupported": [{"block_id": "b005", "note": "Woher?"}]}
+    added = {"repairs": [], "additions": [{
+        "after": "b004", "texts": ["Die Telefon·nummer ist 044 123 45 67."],
+        "fact_ids": ["f03"], "segment_ids": ["s0005"],
+    }]}  # fmt: skip
+    noisy = {  # every fact present, but four blocks called unsupported
+        "fact_checks": [{"fact_id": "f03", "status": "present", "block_ids": ["b004.1"]}],
+        "unsupported": [{"block_id": b, "note": "?"} for b in ("b002", "b003", "b005", "b004.1")],
+    }
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge_before)),
+        chat_response(fx.as_json(no_number)),  # repair 1: no progress
+        chat_response(fx.as_json(judge_after)),
+        chat_response(fx.as_json(added)),  # facts 1
+        chat_response(fx.as_json(noisy)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.stop_reason == "no missing facts left"
+    rules = {v: store.get_artifact(job_id, "rules", RuleFindings, version=v) for v in (2, 3)}
+    judges = {v: store.get_artifact(job_id, "judge", JudgeReport, version=v) for v in (2, 3)}
+    assert blocking_count(rules[3], judges[3]) > blocking_count(rules[2], judges[2])
+    assert version_key(rules[3], judges[3]) < version_key(rules[2], judges[2])
+    assert summary.final_version == 3
+
+
+def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoint, sleeps) -> None:
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response("kaputt"),
+        chat_response("immer noch kaputt"),  # repair 1: no usable answer
+        chat_response(fx.as_json({"repairs": [], "additions": [{
+            "after": "b004", "texts": ["Die Telefon·nummer ist 044 123 45 67."],
+            "fact_ids": ["f03"], "segment_ids": ["s0005"],
+        }]})),  # facts 1 still runs: a smaller prompt, a new try
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )  # fmt: skip
+    job_id = new_job(store, condition="P2", max_repair_rounds=2)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.rounds == 0 and summary.facts_rounds == 1
+    assert summary.stop_reason == "no missing facts left" and summary.final_version == 2
+    assert any(n.startswith("repair round 1 failed") for n in summary.notes)
+
+    # When the endpoint itself failed, the drafts so far stand: no facts round.
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        error_response(500),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=2)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.stop_reason == "a repair round failed" and summary.facts_rounds == 0
+    assert len(endpoint.queue) == 0

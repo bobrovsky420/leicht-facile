@@ -422,7 +422,12 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     # the segments it spans.
     text, spans = source.text_with_offsets()
     for value in extract_values(text, lang):
-        if value.kind not in HARD_KINDS or any(matches(c, value) for c in covered):
+        # Covered means: a reader who searches the fact sheet for this value finds it
+        # (the evaluation's silent-loss check asks the same question, in the same
+        # direction). A fact with the place alone does not cover the full address,
+        # and a bare number does not cover a quantity; the fact for the full value
+        # is added next to the model's.
+        if value.kind not in HARD_KINDS or any(matches(value, c) for c in covered):
             continue
         segments = [
             seg

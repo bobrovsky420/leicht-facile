@@ -360,8 +360,17 @@ They are measured by the FACT-01 count, not by the whole: the loop above stops o
 progress" when a round adds facts and the judge finds as many new problems, which on
 the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round
 goes on while it adds a fact and stops when none is missing, when it adds none, or at
-the limit; none runs after a failed round or without repair rounds. The version with
-the fewest blocking findings is final as before. Since 7 October 2026 (PLAN.md WP13).
+the limit; none runs without repair rounds or after a round the endpoint failed (after
+an answer the code could not use, it still runs: a smaller prompt, a new try). Since
+7 October 2026 (PLAN.md WP13).
+
+The final version is the one with the fewest must-keep values missing (FACT-01), then
+the fewest blocking findings, then the latest. Facts come first because a reviewer can
+reject an unsupported sentence or mend a long one with a click, but cannot conjure a
+missing deadline; until 8 October 2026 the blocking count alone decided, and the dev
+rerun of 7 October showed it discarding versions a facts round had just filled, when
+the judge flagged the new sentences (docs/prompts.md, bucket k). `eval rescore`
+scores stored jobs under either rule without a model call.
 
 Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH), missing fact values
 (FACT-01) and values the source does not contain (FACT-06) are repaired; provenance and
@@ -694,7 +703,7 @@ language it was produced in.
 | `python -m leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `python -m leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
 | `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run |
+| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`) |
 | `python -m leichtfacile examples build` | Build the example jobs shown on first start |
 
 ## 8. Languages and levels

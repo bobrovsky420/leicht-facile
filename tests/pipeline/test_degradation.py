@@ -112,7 +112,8 @@ def test_a_failing_repair_keeps_the_drafts(store, endpoint, sleeps) -> None:
         chat_response("kaputt"),
         chat_response("immer noch kaputt"),  # repair: invalid twice
     )
-    job_id = new_job(store, condition="P2")
+    # No facts round either: the job is configured without them here.
+    job_id = new_job(store, condition="P2", max_facts_rounds=0)
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
