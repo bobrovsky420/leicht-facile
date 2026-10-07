@@ -1,0 +1,47 @@
+Gemeinde Musterwil
+Steueramt
+
+Steuernummer	41.087.736
+Ansprechperson	Petra Musterli
+Telefon direkt	044 123 45 70
+E-Mail	petra.musterli@musterwil.example
+
+P.P. CH-9999 Musterwil
+B-Post
+
+Herr Thomas Beispiel
+Fiktivweg 7
+9999 Musterwil
+
+Musterwil, 5. Oktober 2026
+
+1. Mahnung: Staats- und Gemeindesteuern 2025
+
+Sehr geehrter Herr Beispiel
+
+Gemäss unserer Buchhaltung ist die Schlussrechnung für die Staats- und Gemeindesteuern 2025 vom 12. Juni 2026 noch nicht vollständig bezahlt. Die Zahlungsfrist ist am 12. Juli 2026 abgelaufen. Der offene Betrag setzt sich wie folgt zusammen:
+
+Position	Betrag in CHF
+Schlussrechnung Staats- und Gemeindesteuern 2025	4'386.40
+Ihre Zahlungen bis 30. September 2026	-2'000.00
+Verzugszins 4,5 % vom 13. Juli bis 30. September 2026 (78 Tage)	23.25
+Mahngebühr	20.00
+Offener Betrag	2'429.65
+
+Bitte überweisen Sie den offenen Betrag von CHF 2'429.65 bis spätestens 4. November 2026 auf das Konto der Gemeinde Musterwil, IBAN CH00 0839 4100 2786 5310 4. Geben Sie als Zahlungszweck Ihre Steuernummer 41.087.736 an.
+
+Können Sie den Betrag nicht auf einmal bezahlen, so können Sie bis zum gleichen Datum schriftlich eine Ratenzahlung beantragen. Begründen Sie Ihr Gesuch und legen Sie eine Aufstellung Ihrer Einnahmen und Ausgaben bei.
+
+Geht bis zum 4. November 2026 weder die Zahlung noch ein Gesuch ein, leiten wir ohne weitere Mitteilung die Betreibung ein. Die Kosten der Betreibung gehen zu Ihren Lasten, und der Verzugszins läuft bis zum Tag der Zahlung weiter. Haben Sie den Betrag in den letzten Tagen bereits überwiesen, so betrachten Sie diese Mahnung als gegenstandslos.
+
+Für Fragen erreichen Sie uns von Montag bis Freitag, 8.00 bis 11.45 Uhr und 13.30 bis 16.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an steueramt@musterwil.example.
+
+Freundliche Grüsse
+
+Steueramt Musterwil
+
+Petra Musterli
+Sachbearbeiterin Steuerbezug
+
+Gemeinde Musterwil · Steueramt · Dorfstrasse 1 · Postfach · 9999 Musterwil
+Telefon 044 123 45 67 · steueramt@musterwil.example · www.musterwil.example

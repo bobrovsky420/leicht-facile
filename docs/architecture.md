@@ -866,10 +866,10 @@ src/leichtfacile/
   export/                 markdown.py, html.py, bundle.py
   eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
                           day1.py, cli.py
-scripts/                  fetch_pairs.py, day1_checks.py
+scripts/                  fetch_pairs.py, day1_checks.py, print_letters.py
 data/
   pairs/manifest.jsonl    URLs + licence notes (committed)
-  examples/               team-written sample documents; example job bundles
+  examples/               team-written sample documents, printable letters; example job bundles
   cache/                  fetched texts, LLM cache (git-ignored)
 eval/results/             evaluation outputs (git-ignored)
 tests/                    rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),

@@ -11,6 +11,26 @@ of Swiss style guides.
 | `sources/praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), day-1 check 3, example job |
 | `sources/reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, French example job |
 
+## Printed letters (image input)
+
+`print/` holds two more letters, made for the image input spike (PLAN.md WP12): each as a
+PDF to print and as the printed text in reading order (`.txt`: blocks separated by a
+blank line, table cells by a tab), the reference a transcription is compared with.
+`uv run python scripts/print_letters.py` writes all four files again, byte for byte the
+same. Everything in them is invented as above, and so are the people and the streets;
+the IBANs carry the check digits 00 and the AHV number a wrong check digit, so none of
+them can belong to anyone.
+
+| File | Content | What it tests |
+|------|---------|---------------|
+| `print/steuermahnung-brief.pdf` | German, 1 page: first reminder for unpaid taxes | A table of amounts with a negative line and a bold total, an IBAN, a tax number, dates and a payment deadline, a percentage, office hours, a drawn signature |
+| `print/bourse-etudes-decision.pdf` | French, 2 pages: registered decision granting a study grant | A reference block with an AHV and a file number, a calculation table, two payment dates, periods of 14 and 30 days, a running header on page 2, the means of appeal in small print, two signatures |
+
+Print at 100 % (not "fit to page") and fold in three along the marks on the left edge,
+as for a window envelope. Scan to JPEG or PNG, or to a PDF without OCR: a scanner's
+searchable PDF carries its own text layer, which the PDF ingest would read instead of
+Apertus.
+
 Texts from cantonal or federal web pages are not stored here: their publishers do not
 allow reproduction (docs/sources.md §4). The evaluation fetches them into the
 git-ignored `data/cache/` instead.
