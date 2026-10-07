@@ -31,6 +31,22 @@ as for a window envelope. Scan to JPEG or PNG, or to a PDF without OCR: a scanne
 searchable PDF carries its own text layer, which the PDF ingest would read instead of
 Apertus.
 
+Scans and photos go to `print/scans/`, named `<letter>_<capture>` with the letter's
+file name in front, so a test pairs each with its `.txt`. A scan is the scanner's PDF
+with all pages of the letter in order; photos are JPEGs, one per page, with `_p<page>`
+(`steuermahnung-brief_photo-dim_p1.jpg`). A page scanned at 300 dpi is 0.5 to 0.8 MB;
+`data/` must stay under 100 MB for the submission.
+
+| File | Capture |
+|------|---------|
+| `print/scans/steuermahnung-brief_scan.pdf` | 7 October 2026: printed, folded in three, flatbed scan at 300 dpi in colour (Canon), 1 page. One crease runs along the top of the subject line, one through the last line of the paragraph on instalments |
+| `print/scans/bourse-etudes-decision_scan.pdf` | The same, 2 pages in one file. On page 1 a crease runs through the IBAN line (`CH00 0571 2009 4417 6382 9`); page 2 is slightly skewed |
+
+Each page of these PDFs is one JPEG (2480 x 3507 pixels) and the PDFs have no text
+layer, so the PDF ingest refuses them as scans. A test takes the page JPEGs out
+unchanged (pdfplumber: `page.images[0]["stream"].get_rawdata()`), without rendering
+or re-encoding.
+
 Texts from cantonal or federal web pages are not stored here: their publishers do not
 allow reproduction (docs/sources.md §4). The evaluation fetches them into the
 git-ignored `data/cache/` instead.
