@@ -108,6 +108,9 @@ maintenance:
   type: community
   contacts:
     - name: "Alexander Bobrovsky"
+      email: "bobrovsky@seznam.cz"
+    - name: "Ivan Kuzmych"
+      email: "i.kuzmych@hotmail.com"
 
 localisation:
   localisationReady: true

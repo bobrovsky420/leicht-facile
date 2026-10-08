@@ -5,7 +5,8 @@ code.
 
 - **Track:** Track 2B - Own Project
 - **Event:** Hack Apertus 2026, online
-- **Team:** Röstigraben Bridgers - `member`, `member`, `member`
+- **Team:** Röstigraben Bridgers - Alexander Bobrovsky (bobrovsky@seznam.cz), Ivan
+  Kuzmych (i.kuzmych@hotmail.com)
 - **Repository:** https://github.com/bobrovsky420/leicht-facile
 - **Demo:** `link to video`
 

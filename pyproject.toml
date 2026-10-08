@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Drafts easy-language versions of Swiss official texts with Apertus."
 readme = "README.md"
 license = "Apache-2.0"
+authors = [
+    { name = "Alexander Bobrovsky", email = "bobrovsky@seznam.cz" },
+    { name = "Ivan Kuzmych", email = "i.kuzmych@hotmail.com" },
+]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.142",

@@ -22,7 +22,8 @@ penal orders, payment orders and tax letters, are sketched in
 tax secrecy and may not go to a chatbot on a foreign cloud: for them, Apertus is the
 only model that fits ([why](#why-only-apertus)).
 
-**Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers.
+**Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
+Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
 Technical report: [technical_report.md](technical_report.md) (PDF:
 `RoestigrabenBridgers_Report.pdf`). Demo video: *link follows*.
 
