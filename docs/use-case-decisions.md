@@ -175,15 +175,23 @@ addresses are facts that must come back exactly (`period`, `identifier`, `addres
 found by code, checked by FACT-01 and FACT-06, with the exact string as the repair
 suggestion.
 
+Since 8 October 2026, the decision mode (a job option, `mode: decision`, with the person
+the letter speaks to and the authority's notice; PLAN.md WP15): code finds the operative
+part and the appeal instructions (`rules/decision.py`), by their headings or, in a PDF
+without headings, by the sentence `Demnach erkennt das Verwaltungsgericht:` and the
+paragraph `Gegen diesen Entscheid kann ...`; their values are must-keep whatever the
+model marked, the values of the header and the reasoning are background unless a core
+answer cites them, and each part gets a fact of its own. FACT-08 blocks a draft that
+cites a part in no block or lists it as omitted, and the repair round asks for the
+part first. The judge answers SEM-09 (no advice, no evaluation) and SEM-10 (every
+period with its start) for a decision; SEM-08 is in the standard judge prompt since
+7 October. The authority's notice is the first and the last paragraph of every export
+and a banner above the blocks on the review page, not a block; FACT-07 on the export's
+lines catches an export without it and a review edit that changed it.
+
 Planned, not built:
 
-- a field for the person the letter speaks to;
-- a document type "decision": its own core questions, every item of the operative part
-  and the appeal instructions as must-keep facts (`FACT-08`);
-- the fixed notice in the export (`FACT-07`);
-- judge checks for neutrality and advice, and for the start of every period
-  (`SEM-09`, `SEM-10`; the check that a condition stays a condition, SEM-08, is in the
-  standard judge prompt since 7 October 2026);
+- a document-type detector instead of the manual mode;
 - a mode that condenses long legal reasoning, with every omission listed.
 
 The planned checks in backticks are specified in

@@ -176,6 +176,15 @@ MESSAGES: dict[str, str] = {
     "from the source.",
     "FACT-06.schedule": "The dosing scheme {value} is not in the source. Remove it or take the "
     "value from the source.",
+    # FACT-07 (decision mode, on the export): the authority's fixed notice.
+    "FACT-07.first": "The export does not begin with the fixed notice: {notice}",
+    "FACT-07.last": "The export does not end with the fixed notice: {notice}",
+    # FACT-08 (decision mode): the operative part, item by item, and the appeal
+    # instructions; `item` counts the protected parts in document order.
+    "FACT-08": "Item {item} of the operative part is in no block: {text}",
+    "FACT-08.omitted": "Item {item} of the operative part is listed as omitted: {text}",
+    "FACT-08.appeal": "The appeal instructions are in no block: {text}",
+    "FACT-08.appeal_omitted": "The appeal instructions are listed as omitted: {text}",
     # -- layout and readability (every language)
     "LAY-01": "Line {line} has more than one sentence.",
     "LAY-02": "Line {line} has {chars} characters; at most {limit}.",

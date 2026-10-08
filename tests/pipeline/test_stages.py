@@ -693,3 +693,25 @@ def test_code_completion_adds_the_full_value_next_to_a_partial_model_fact() -> N
     # The full address and the quantity are added; the period is covered by the bare
     # count, as the matcher accepts the count alone for a period.
     assert added == ["Gerichtsstrasse 12, 8000 Musterwil", "2 Tablette"]
+
+
+def test_the_judge_filter_keeps_sem_09_and_sem_10_for_a_decision_only() -> None:
+    from leichtfacile.pipeline.models import JudgeOut
+    from leichtfacile.pipeline.stages import to_judge_report
+    from leichtfacile.schemas import Block, Draft, FactSheet
+
+    draft = Draft(doc_id="d", lang="de", level="A2",
+                  blocks=[Block(id="b001", kind="sentence", text="Hallo.")])  # fmt: skip
+    out = JudgeOut.model_validate({
+        "fact_checks": [], "unsupported": [],
+        "semantic_findings": [
+            {"block_id": "b001", "rule_id": "SEM-09", "note": "Rat"},
+            {"block_id": "b001", "rule_id": "SEM-10", "note": "ohne Beginn"},
+            {"block_id": "b001", "rule_id": "SEM-03", "note": "wer?"},
+        ],
+    })  # fmt: skip
+    fs = FactSheet(doc_id="d")
+    standard = to_judge_report(out, draft, fs, "m")
+    assert [s.rule_id for s in standard.semantic_findings] == ["SEM-03"]
+    decision = to_judge_report(out, draft, fs, "m", mode="decision")
+    assert [s.rule_id for s in decision.semantic_findings] == ["SEM-09", "SEM-10", "SEM-03"]

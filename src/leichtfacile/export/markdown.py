@@ -10,8 +10,15 @@ from leichtfacile.schemas import Draft, ReviewState
 
 
 def to_markdown(
-    draft: Draft, review: ReviewState | None = None, *, title: str | None = None, width: int = 85
+    draft: Draft,
+    review: ReviewState | None = None,
+    *,
+    title: str | None = None,
+    width: int = 85,
+    notice: str | None = None,
 ) -> str:
+    """`notice`: the authority's fixed text (decision mode), the first and the last
+    paragraph, as it is."""
     labels = LABELS.get(draft.lang, LABELS["de"])
     final = final_blocks(draft, review)
     out: list[str] = []
@@ -19,6 +26,8 @@ def to_markdown(
         out += [f"# {title}", ""]
     if not final.reviewed:
         out += [f"> {labels['draft_note']}", ""]
+    if notice:
+        out += [notice, ""]
     paragraph: list[str] = []
 
     def flush() -> None:
@@ -52,4 +61,6 @@ def to_markdown(
         out += [f"## {labels['glossary']}", ""]
         for g in draft.glossary:
             out += [f"**{g.term}**  ", *wrap_sentence(g.explanation, width), ""]
+    if notice:
+        out += [notice, ""]
     return "\n".join(out).rstrip() + "\n"

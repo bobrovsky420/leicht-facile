@@ -428,6 +428,30 @@ bookkeeping findings (FACT-02 to FACT-05) and layout go to the reviewer. All dra
 is marked final, and the reviewer can switch to any other version. Model: `LLM_NAME`,
 thinking off, temperature 0.2.
 
+**Decision mode** (`JobConfig.mode = "decision"`, with `addressee` and `notice`;
+docs/use-case-decisions.md, since 8 October 2026). The same stages, with the decision
+partial pulled into every prompt and three additions by code. `rules/decision.py` finds
+the operative part and the appeal instructions of the source, by their headings (`III.
+Entscheid`, `Rechtsmittelbelehrung`) or, in a PDF without headings, by the sentence that
+names the verb of deciding and ends with a colon (`Demnach erkennt das
+Verwaltungsgericht:`) followed by the numbered items, and the paragraph that begins
+`Gegen diesen Entscheid kann`; the distribution list (`Zustellung an:`) is not part of
+it. After the code completion, `protect_factsheet` makes every fact cited from those
+parts must-keep whatever the model marked, turns a value code found in the header or
+the reasoning into a background fact unless a core answer cites it (the repair rounds
+would otherwise chase the dates of the reasoning), strikes the parts from the omit
+candidates, and adds one fact without a value per part. FACT-08 (error, decision mode
+only) fires when a part is cited by no block or listed as omitted; it carries the part's
+fact id, counts as blocking and as missing like FACT-01, and a repair round asks for
+the part before any value. The judge is asked SEM-09 (no advice, no evaluation) and
+SEM-10 (every period with its start) through the partial; its answers to them pass
+the filter for a decision job only. The notice (`JobConfig.notice`) is written by the
+Markdown and HTML exporters and by the bundle's layout lines as the first and the last
+paragraph, word for word and exempt from the layout rules; the review page shows it as
+a banner above the blocks, not as a block, so it has no decision and no provenance;
+FACT-07 on the export's lines catches an export without it and a review edit that
+removed or changed it.
+
 ### 4.7 Review (human) and export (code)
 
 The reviewer sees the final draft with provenance, findings and the fact checklist,
@@ -677,9 +701,14 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   hidden. Without jobs, the empty state offers the team-written example texts.
 - **New draft** (`/new`, D-W): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
-  (`/new?example=<id>` fills the text without JavaScript); language, level and
-  pipeline as radio lists, the chosen pipeline's stages shown under it; title,
-  optional model overrides. `POST /jobs` answers 400 with the form and the error.
+  (`/new?example=<id>` fills the text without JavaScript, and the decision mode's
+  settings from the JSON file next to an example); language, level and
+  pipeline as radio lists, the chosen pipeline's stages shown under it; the document
+  type (standard text or decision letter), which reveals the addressee and the
+  authority's notice, prefilled per document language from `pipeline/labels.py`
+  (without JavaScript the two fields stay in view, and an empty notice gets the
+  language's default on the server); title, optional model overrides. `POST /jobs`
+  answers 400 with the form and the error.
 - **Job running** (`/jobs/{id}` while queued or running): the stages of the chosen
   condition as a stepper (done, running, waiting, skipped, failed), each with its
   detail line ("14 facts, 14 must survive") and its model usage ("1 call · 2,813

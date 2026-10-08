@@ -102,6 +102,24 @@
         </fieldset>
 
         <div>
+          <label class="label" for="mode">{{ t('new.mode') }}</label>
+          <select id="mode" name="mode">
+            <option value="standard"{% if (form.mode or 'standard') == 'standard' %} selected{% endif %}>{{ t('new.mode.standard') }}</option>
+            <option value="decision"{% if form.mode == 'decision' %} selected{% endif %}>{{ t('new.mode.decision') }}</option>
+          </select>
+        </div>
+        {# Decision mode: the person the letter speaks to and the authority's notice, the
+           first and last paragraph of the export. The script hides them for a standard
+           text; without it they stay in view. #}
+        <div class="fields" id="decision-fields">
+          <div><label class="label" for="addressee">{{ t('new.addressee') }}</label>
+            <input id="addressee" name="addressee" type="text" value="{{ form.addressee or '' }}" placeholder="{{ t('new.addressee.placeholder') }}"></div>
+          <div><label class="label" for="notice">{{ t('new.notice') }}</label>
+            <textarea id="notice" name="notice" rows="2" placeholder="{{ notice_defaults.get(form.lang) or notice_defaults['de'] }}"{% for code, text in notice_defaults.items() %} data-default-{{ code }}="{{ text }}"{% endfor %}>{{ form.notice or '' }}</textarea>
+            <p class="hint">{{ t('new.notice.hint') }}</p></div>
+        </div>
+
+        <div>
           <label class="label" for="title">{{ t('index.title_field') }}</label>
           <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
         </div>

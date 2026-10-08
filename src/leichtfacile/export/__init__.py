@@ -43,9 +43,11 @@ def final_blocks(draft: Draft, review: ReviewState | None) -> FinalText:
     return FinalText(blocks, reviewed=True, complete=review.completed, undecided=undecided)
 
 
-def layout_lines(blocks: list[Block], width: int = 85) -> list[str]:
-    """Plain text layout: the lines the layout rules check."""
-    lines: list[str] = []
+def layout_lines(blocks: list[Block], width: int = 85, *, notice: str | None = None) -> list[str]:
+    """Plain text layout: the lines the layout rules check. With a `notice` (decision
+    mode: the authority's fixed text), it is the first and the last line, unwrapped;
+    FACT-07 checks it is there, and the layout rules leave it alone."""
+    lines: list[str] = [notice, ""] if notice else []
     previous = None
     for b in blocks:
         if b.kind == "heading":
@@ -61,4 +63,6 @@ def layout_lines(blocks: list[Block], width: int = 85) -> list[str]:
                 lines.append("")
             lines += wrap_sentence(b.text, width)
         previous = b.kind
+    if notice:
+        lines += ["", notice]
     return lines

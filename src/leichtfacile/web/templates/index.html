@@ -67,7 +67,7 @@
         {% for r in rows %}
           <tr>
             <td>
-              <span class="doc-title"><a href="/jobs/{{ r.job.id }}"{% if r.doc_lang %} lang="{{ r.doc_lang }}"{% endif %}>{{ r.title }}</a>{% if r.is_example %}<span class="tag">{{ t('drafts.example') }}</span>{% endif %}</span>
+              <span class="doc-title"><a href="/jobs/{{ r.job.id }}"{% if r.doc_lang %} lang="{{ r.doc_lang }}"{% endif %}>{{ r.title }}</a>{% if r.is_example %}<span class="tag">{{ t('drafts.example') }}</span>{% endif %}{% if r.job.config.mode == 'decision' %}<span class="tag">{{ t('drafts.decision') }}</span>{% endif %}</span>
               {% if r.source_line %}<span class="doc-sub">{{ r.source_line }}</span>{% endif %}
             </td>
             <td>{{ r.language }}{% if r.job.config.level %} <span class="muted">· {{ r.job.config.level }}</span>{% endif %}</td>

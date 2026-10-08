@@ -279,8 +279,11 @@ def _simplify(args: argparse.Namespace) -> int:
     version = summary.final_version if summary else None
     draft = store.get_artifact(job.id, "draft", Draft, version=version)
     if draft is not None:
-        (out / "draft.md").write_text(to_markdown(draft, title=job.title), encoding="utf-8")
-        (out / "draft.html").write_text(to_html(draft, title=job.title), encoding="utf-8")
+        notice = job.config.notice
+        markdown = to_markdown(draft, title=job.title, notice=notice)
+        (out / "draft.md").write_text(markdown, encoding="utf-8")
+        html = to_html(draft, title=job.title, notice=notice)
+        (out / "draft.html").write_text(html, encoding="utf-8")
     tokens = sum(u.tokens_in + u.tokens_out for u in job.usage)
     print(
         f"job {job.id}: {job.status} ({job.stage}); {len(job.usage)} model calls, {tokens} tokens"

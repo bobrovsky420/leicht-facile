@@ -84,6 +84,7 @@ class RuleChecker:
         *,
         source: SourceDocument | None = None,
         factsheet: FactSheet | None = None,
+        mode: str = "standard",
     ) -> RuleFindings:
         infos = self.analyse(draft.blocks)
         ctx = self.context(draft, factsheet, infos)
@@ -106,6 +107,7 @@ class RuleChecker:
             source=source,
             factsheet=factsheet,
             sentences=[s.text for i in infos if i.kind != "heading" for s in i.sentences],
+            mode=mode,
         )
         for scope in ("document", "factsheet"):
             for spec in rules_for(self.lang, scope):
@@ -119,8 +121,11 @@ class RuleChecker:
             metrics=metrics,
         )
 
-    def check_export(self, lines: list[str], level: Level) -> list[Finding]:
-        ctx = Context(lang=self.lang, params=params_for(self.lang, level))
+    def check_export(
+        self, lines: list[str], level: Level, *, notice: str | None = None
+    ) -> list[Finding]:
+        """`notice`: the fixed text a decision's export begins and ends with (FACT-07)."""
+        ctx = Context(lang=self.lang, params=params_for(self.lang, level), notice=notice)
         findings: list[Finding] = []
         for spec in rules_for(self.lang, "export"):
             findings += self._findings(spec.id, spec.check(lines, ctx), ctx, None)
@@ -226,5 +231,7 @@ def check_draft(
     *,
     source: SourceDocument | None = None,
     factsheet: FactSheet | None = None,
+    mode: str = "standard",
 ) -> RuleFindings:
-    return get_checker(draft.lang).check(draft, source=source, factsheet=factsheet)
+    """`mode`: the job mode (schemas.JobMode); FACT-08 runs for a decision only."""
+    return get_checker(draft.lang).check(draft, source=source, factsheet=factsheet, mode=mode)

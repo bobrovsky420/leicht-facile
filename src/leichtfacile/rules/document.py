@@ -32,6 +32,7 @@ class DocInput:
     source: SourceDocument | None = None
     factsheet: FactSheet | None = None
     sentences: list[str] = field(default_factory=list)  # sentences of non-heading blocks
+    mode: str = "standard"  # the job mode (schemas.JobMode): FACT-08 runs for decisions only
 
 
 # -- facts ---------------------------------------------------------------------------
@@ -153,6 +154,8 @@ def fact_02(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         return
     referenced = {fid for b in doc.draft.blocks for fid in b.fact_ids}
     for fact in doc.factsheet.must_keep():
+        if fact.origin == "code" and not fact.value_norm:
+            continue  # a protected part of a decision: FACT-08 checks it by its segments
         if fact.id not in referenced:
             yield hit("FACT-02", fact=fact.id, text=fact.text, evidence=fact.text, fact_id=fact.id)
 
@@ -466,6 +469,9 @@ JUDGE_RULES = {
     "SEM-06": "Statement the source does not support",
     "SEM-07": "Fact present, missing or distorted",
     "SEM-08": "Obligation, possibility or condition changed",
+    # Asked in decision mode only (the partial's judge section), since 8 October 2026.
+    "SEM-09": "Advice or evaluation the source does not contain",
+    "SEM-10": "Period without its start",
 }
 for _rule_id, _title in JUDGE_RULES.items():
     declare(_rule_id, lang=None, title=_title, severity=sev("warn"), scope="judge")

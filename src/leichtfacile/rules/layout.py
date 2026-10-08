@@ -22,6 +22,8 @@ _SENTENCE_END_RE = re.compile(r"(?<![\d\s])[.!?](?=\s+[A-ZÄÖÜ\"])")
 )
 def lay_01(lines: list[str], ctx: Context) -> Iterator[Hit]:
     for n, line in enumerate(lines, 1):
+        if line == ctx.notice:
+            continue  # the authority's fixed text is not subject to the layout rules
         if _SENTENCE_END_RE.search(line.strip()):
             yield hit("LAY-01", line=n, evidence=line.strip())
 
@@ -36,7 +38,7 @@ def lay_01(lines: list[str], ctx: Context) -> Iterator[Hit]:
 def lay_02(lines: list[str], ctx: Context) -> Iterator[Hit]:
     limit = ctx.params.max_line_chars
     for n, line in enumerate(lines, 1):
-        if len(line) > limit:
+        if len(line) > limit and line != ctx.notice:
             yield hit("LAY-02", line=n, chars=len(line), limit=limit, evidence=line)
 
 

@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 
 from leichtfacile.config import Settings
 from leichtfacile.ingest.errors import IngestError
+from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
     JOB_MODES,
@@ -151,6 +152,9 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
         )
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
+    notice = (sub.notice or "").strip() or None
+    if sub.mode == "decision" and notice is None:
+        notice = label(source.lang, "notice_default")  # the authority's text, per language
     config = JobConfig(
         lang=source.lang,
         level=sub.level,  # type: ignore[arg-type]
@@ -162,7 +166,7 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
         max_facts_rounds=settings.max_facts_rounds,
         mode=sub.mode,  # type: ignore[arg-type]
         addressee=(sub.addressee or "").strip() or None,
-        notice=(sub.notice or "").strip() or None,
+        notice=notice,
     )
     title = sub.title or source.title or sub.url or sub.file_name or "Pasted text"
     job = store.create_job(config, title=title[:200])

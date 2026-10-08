@@ -537,6 +537,12 @@ version's blocking count, for the reader view's list), `facts_by_id` and
 - Drafts list: a "Decision" tag next to the title, like "Example".
 - WP18 is planned first; WP15 then adds its fields to `new.html` and the banner to
   `review.html`.
+- Built 8 October 2026: the select "Document type" after Pipeline with the two fields
+  under it (`#decision-fields`, hidden by the script for a standard text); the banner
+  as `.notice-banner` at the top of the draft pane, above the first block, with the
+  label as a line of its own rather than a tag, so that it scrolls with the blocks it
+  frames; the "Decision" tag on the drafts list; the reader view and both exports
+  write the notice first and last.
 
 ## 6. Behaviour (`app.js`)
 

@@ -17,6 +17,7 @@ body { font: 1.25rem/1.6 "Atkinson Hyperlegible Next", Arial, Helvetica, sans-se
        padding: 0 1rem; color: #111; background: #fff; hyphens: none; text-align: left; }
 h1 { font-size: 1.8rem; } h2 { font-size: 1.45rem; margin-top: 2rem; }
 p { margin: 0 0 .9rem; } .note { border-left: 4px solid #b00; padding-left: .8rem; }
+.notice { border-top: 1px solid #888; border-bottom: 1px solid #888; padding: .6rem 0; }
 ul { padding-left: 1.4rem; } li { margin-bottom: .4rem; }
 dt { font-weight: bold; margin-top: .8rem; } dd { margin-left: 0; }
 """
@@ -27,8 +28,15 @@ def _lines(text: str, width: int) -> str:
 
 
 def to_html(
-    draft: Draft, review: ReviewState | None = None, *, title: str | None = None, width: int = 85
+    draft: Draft,
+    review: ReviewState | None = None,
+    *,
+    title: str | None = None,
+    width: int = 85,
+    notice: str | None = None,
 ) -> str:
+    """`notice`: the authority's fixed text (decision mode), the first and the last
+    paragraph, as it is."""
     labels = LABELS.get(draft.lang, LABELS["de"])
     final = final_blocks(draft, review)
     body: list[str] = []
@@ -36,6 +44,8 @@ def to_html(
         body.append(f"<h1>{escape(title)}</h1>")
     if not final.reviewed:
         body.append(f'<p class="note">{escape(labels["draft_note"])}</p>')
+    if notice:
+        body.append(f'<p class="notice">{escape(notice)}</p>')
     in_list = False
     for b in final.blocks:
         if b.kind == "list_item" and not in_list:
@@ -58,6 +68,8 @@ def to_html(
         for g in draft.glossary:
             body.append(f"<dt>{escape(g.term)}</dt><dd>{_lines(g.explanation, width)}</dd>")
         body.append("</dl>")
+    if notice:
+        body.append(f'<p class="notice">{escape(notice)}</p>')
     page_title = escape(title or "Leicht·Facile")
     return (
         f'<!doctype html>\n<html lang="{draft.lang}">\n<head>\n<meta charset="utf-8">\n'

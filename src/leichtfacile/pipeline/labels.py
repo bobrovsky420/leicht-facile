@@ -38,6 +38,10 @@ LABELS: dict[str, dict[str, str]] = {
         "foreign_values": "Die Antwort enthält Werte, die nicht im Dokument stehen: {values}. "
         "Jeder Wert muss aus dem Faktenblatt oder aus den Sätzen des Originals kommen. "
         "Schreiben Sie diese Sätze ohne den fremden Wert, oder lassen Sie sie weg.",
+        # Decision mode: the authority's notice, the first and last paragraph of the
+        # export, when the job sets none (docs/use-case-decisions.md).
+        "notice_default": "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. "
+        "Massgebend ist der Entscheid.",
     },
     "fr": {
         "core_what": "De quoi s'agit-il ?",
@@ -71,6 +75,8 @@ LABELS: dict[str, dict[str, str]] = {
         "foreign_values": "La réponse contient des valeurs qui ne sont pas dans le document : "
         "{values}. Chaque valeur doit venir de la fiche de faits ou des phrases de "
         "l'original. Écrivez ces phrases sans la valeur étrangère, ou laissez-les de côté.",
+        "notice_default": "Cette explication vous aide à comprendre la décision. "
+        "Seule la décision fait foi.",
     },
 }
 

@@ -45,3 +45,11 @@ def test_the_kesb_decision_runs_in_decision_mode() -> None:
     assert config.mode == "decision"
     assert config.addressee == "Lea Muster"
     assert config.notice and "Massgebend ist der Entscheid" in config.notice
+
+
+def test_example_sources_carry_the_decision_settings() -> None:
+    by_id = {e["id"]: e for e in example_sources(EXAMPLES)}
+    kesb = by_id["entscheid-beistandschaft-musterwil"]
+    assert kesb["mode"] == "decision" and kesb["addressee"] == "Lea Muster"
+    assert kesb["notice"].endswith("Massgebend ist der Entscheid.")
+    assert "mode" not in by_id["praemienverbilligung-brief"]

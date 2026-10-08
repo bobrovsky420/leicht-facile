@@ -268,3 +268,66 @@ def test_a_language_without_prompts_is_refused(app_env) -> None:
     response = client.post("/api/jobs", data=italian)
     assert response.status_code == 400
     assert "German and French" in response.json()["detail"]
+
+
+def test_a_decision_job_shows_the_notice_and_exports_it_first_and_last(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    notice = "Massgebend ist der Entscheid."
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Entscheid", mode="decision",
+                     addressee="Lea Muster", notice=notice)  # fmt: skip
+    job = client.get(f"/api/jobs/{job_id}").json()
+    assert job["status"] == "needs_review", job["error"]
+    assert job["config"]["mode"] == "decision" and job["config"]["notice"] == notice
+
+    page = client.get(f"/jobs/{job_id}")
+    assert 'class="notice-banner"' in page.text and notice in page.text
+
+    md = client.get(f"/api/jobs/{job_id}/export?format=md").text
+    paragraphs = [p.strip() for p in md.split("\n\n") if p.strip()]
+    assert paragraphs[-1] == notice and notice in paragraphs[:3]
+    html = client.get(f"/api/jobs/{job_id}/export?format=html").text
+    assert html.count(f'<p class="notice">{notice}</p>') == 2
+    reader = client.get(f"/jobs/{job_id}/preview")
+    assert reader.status_code == 200 and reader.text.count(notice) == 2
+
+    bundle = json.loads(client.post(f"/api/jobs/{job_id}/export?format=json").text)
+    assert bundle["final"]["notice"] == notice
+    assert bundle["final"]["layout_findings"] == []
+
+
+def test_the_new_draft_page_takes_the_decision_settings_from_the_example(app_env) -> None:
+    client, app, endpoint = app_env
+    page = client.get("/new?example=entscheid-beistandschaft-musterwil")
+    assert page.status_code == 200
+    assert '<option value="decision" selected>' in page.text
+    assert 'value="Lea Muster"' in page.text
+    assert "Massgebend ist der Entscheid." in page.text
+    plain = client.get("/new?example=praemienverbilligung-brief")
+    assert (
+        '<option value="standard" selected>' in plain.text
+        and 'value="Lea Muster"' not in plain.text
+    )
+    # The notice's default per language stands ready for the script and the server.
+    assert 'data-default-fr="Cette explication' in page.text
+
+
+def test_the_form_fills_the_notice_default_for_a_decision_without_one(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    response = client.post(
+        "/jobs",
+        data={"text": LETTER, "condition": "P1", "mode": "decision", "addressee": "Lea Muster",
+              "notice": "  "},
+        follow_redirects=False,
+    )  # fmt: skip
+    assert response.status_code == 303, response.text
+    job_id = response.headers["location"].rsplit("/", 1)[-1]
+    assert app.state.runner.wait_idle(30)
+    config = client.get(f"/api/jobs/{job_id}").json()["config"]
+    assert config["mode"] == "decision" and config["addressee"] == "Lea Muster"
+    assert config["notice"] == (
+        "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
+    )
+    listed = client.get("/")
+    assert ">Decision</span>" in listed.text

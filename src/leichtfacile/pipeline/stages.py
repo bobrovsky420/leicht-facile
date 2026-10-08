@@ -105,6 +105,9 @@ LONG_DOCUMENT_WORDS = 3000  # longer sources are written section by section
 SECTION_WORDS = 1500
 MIN_SECTION_SEGMENTS = 6  # a cut-off answer for fewer sentences is an error
 JUDGE_RULE_IDS = {"SEM-01", "SEM-02", "SEM-03", "SEM-04", "SEM-05", "SEM-08"}
+# Asked in decision mode only (the partial's judge section): a standard judge is not
+# asked, and an answer it gives anyway is dropped.
+DECISION_JUDGE_RULE_IDS = {"SEM-09", "SEM-10"}
 
 
 def _call(
@@ -751,13 +754,18 @@ def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
 
 def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
     """Bookkeeping the model need not get right: a block that contains a fact's exact
-    value conveys that fact, and fact ids that do not exist are dropped."""
+    value conveys that fact, a block that cites a source sentence of a protected part of
+    a decision (a code fact without a value, rules/decision.py) conveys that part, and
+    fact ids that do not exist are dropped."""
     known = factsheet.fact_ids()
     targets = []
+    parts = []  # (fact id, its segments) of the facts without a value that code added
     for fact in factsheet.facts:
         value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
         if value is not None:
             targets.append((fact.id, value))
+        elif fact.origin == "code":
+            parts.append((fact.id, set(fact.segment_ids)))
     blocks = []
     for b in draft.blocks:
         ids = [f for f in b.fact_ids if f in known]
@@ -766,6 +774,9 @@ def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
             for fact_id, target in targets:
                 if fact_id not in ids and any(matches(target, v) for v in values):
                     ids.append(fact_id)
+        for fact_id, segments in parts:
+            if fact_id not in ids and segments & set(b.segment_ids):
+                ids.append(fact_id)
         blocks.append(b if ids == b.fact_ids else b.model_copy(update={"fact_ids": ids}))
     return draft.model_copy(update={"blocks": blocks})
 
@@ -798,10 +809,13 @@ def judge(
     )
     out, results = _call(llm, "judge", prompt, JudgeOut, model)
     name = results[-1].usage.model if results else llm.resolve_model(model, False)[0]
-    return to_judge_report(out, draft, factsheet, name), results
+    return to_judge_report(out, draft, factsheet, name, mode=mode), results
 
 
-def to_judge_report(out: JudgeOut, draft: Draft, factsheet: FactSheet, model: str) -> JudgeReport:
+def to_judge_report(
+    out: JudgeOut, draft: Draft, factsheet: FactSheet, model: str, *, mode: str = "standard"
+) -> JudgeReport:
+    rule_ids = JUDGE_RULE_IDS | (DECISION_JUDGE_RULE_IDS if mode == "decision" else set())
     blocks = set(draft.by_id())
     facts = factsheet.fact_ids()
     seen: set[str] = set()
@@ -829,7 +843,7 @@ def to_judge_report(out: JudgeOut, draft: Draft, factsheet: FactSheet, model: st
         semantic_findings=[
             SemanticFinding(block_id=s.block_id, rule_id=s.rule_id, note=clean_text(s.note))
             for s in out.semantic_findings
-            if s.block_id in blocks and s.rule_id in JUDGE_RULE_IDS
+            if s.block_id in blocks and s.rule_id in rule_ids
         ],
     )
 

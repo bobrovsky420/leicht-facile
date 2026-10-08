@@ -305,7 +305,7 @@ class Unsupported(Artifact):
 
 class SemanticFinding(Artifact):
     block_id: str
-    rule_id: str  # SEM-01 ... SEM-05, SEM-08
+    rule_id: str  # SEM-01 ... SEM-05, SEM-08; SEM-09 and SEM-10 in decision mode
     note: str = ""
 
 

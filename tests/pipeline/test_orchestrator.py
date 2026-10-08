@@ -486,3 +486,27 @@ def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoi
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.stop_reason == "a repair round failed" and summary.facts_rounds == 0
     assert len(endpoint.queue) == 0
+
+
+def test_a_dropped_part_of_a_decision_blocks_and_is_asked_for_first() -> None:
+    # FACT-08 (rules/decision.py) names the part's fact; the request puts it before any
+    # missing value, and it counts like a missing value in the version choice.
+    from leichtfacile.pipeline.orchestrator import build_request, missing_count
+    from leichtfacile.schemas import Block, Draft, Fact, FactSheet, Finding, RuleFindings
+
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id="f01", kind="deadline", text="Frist", value_norm="2026-03-31"),
+        Fact(id="f02", kind="other", text="Die Beschwerde wird abgewiesen.", segment_ids=["s0009"],
+             origin="code"),
+    ])  # fmt: skip
+    draft = Draft(doc_id="d", lang="de", level="A2",
+                  blocks=[Block(id="b001", kind="sentence", text="Hallo.")])  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=[
+        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id="f01"),
+        Finding(block_id=None, rule_id="FACT-08", severity="error", message="y", fact_id="f02",
+                segment_ids=["s0009"]),
+    ])  # fmt: skip
+    assert blocking_count(rules, None) == 2 and missing_count(rules) == 2
+    request = build_request(draft, rules, None, fs)
+    assert [f.id for f in request.missing] == ["f02", "f01"]
+    assert request.problems == {}

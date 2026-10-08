@@ -19,6 +19,7 @@ from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
@@ -44,6 +45,9 @@ log = logging.getLogger(__name__)
 # FACT-05) and layout go to the reviewer instead.
 REPAIRABLE = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
 REPAIRABLE_RULES = ("FACT-06",)
+# Findings that name a fact the draft lacks: a missing must-keep value, and in decision
+# mode a dropped part of the operative part or the appeal instructions (rules/decision.py).
+MISSING_RULES = ("FACT-01", "FACT-08")
 STAGE_ORDER = ("understand", "write", "check", "judge", "repair", "review")
 MAX_MISSING_PER_ROUND = 5
 MISSING_PRIORITY = {
@@ -75,8 +79,9 @@ def repairable(finding: Finding) -> bool:
 
 
 def missing_count(rules: RuleFindings) -> int:
-    """Must-keep values the draft still lacks (FACT-01), the measure of a facts round."""
-    return sum(1 for f in rules.findings if f.rule_id == "FACT-01")
+    """Must-keep values the draft still lacks (FACT-01), and in decision mode the parts
+    of the decision it dropped (FACT-08): the measure of a facts round."""
+    return sum(1 for f in rules.findings if f.rule_id in MISSING_RULES)
 
 
 def version_key(rules: RuleFindings, judge: JudgeReport | None) -> tuple[int, int]:
@@ -94,7 +99,7 @@ def blocking_count(rules: RuleFindings, judge: JudgeReport | None) -> int:
     count = sum(
         1
         for f in rules.findings
-        if f.severity == "error" and (repairable(f) or f.rule_id == "FACT-01")
+        if f.severity == "error" and (repairable(f) or f.rule_id in MISSING_RULES)
     )
     if judge:
         count += sum(1 for c in judge.fact_checks if c.status != "present")
@@ -133,13 +138,16 @@ def build_request(
     facts = {f.id: f for f in factsheet.facts}
     problems: dict[str, list[str]] = defaultdict(list)
     missing: set[str] = set()
+    dropped: set[str] = set()  # parts of a decision (FACT-08): first in the list
     for f in rules.findings:
         if not vocabulary and f.rule_id in OFFICE_RULES:
             continue
         if f.block_id in blocks and f.severity in severities and repairable(f):
             problems[f.block_id].append(render.finding_line(f, lang))
-        elif f.rule_id == "FACT-01" and f.fact_id:
+        elif f.rule_id in MISSING_RULES and f.fact_id:
             missing.add(f.fact_id)
+            if f.rule_id == "FACT-08":
+                dropped.add(f.fact_id)
     if judge:
         for u in judge.unsupported:
             problems[u.block_id].append(
@@ -160,11 +168,16 @@ def build_request(
                     problems[block_id].append(f"  - {wrong}")
             elif c.status == "missing" and fact.must_keep:
                 missing.add(c.fact_id)
-    # A few missing facts per round, the most important kinds first: a small model adds
-    # some of a long list and drops the rest; the next round takes the next ones.
+    # A few missing facts per round, the most important kinds first (a dropped part of a
+    # decision before any value): a small model adds some of a long list and drops the
+    # rest; the next round takes the next ones.
     ordered_missing = sorted(
         (f for f in factsheet.facts if f.id in missing),
-        key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
+        key=lambda f: (
+            f.id not in dropped,
+            MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)),
+            f.id,
+        ),
     )[:limit]
     if facts_only:
         return RepairRequest({}, ordered_missing)
@@ -260,6 +273,8 @@ class Orchestrator:
                 addressee=cfg.addressee,
             )
             factsheet = stages.complete_factsheet(factsheet, source)
+            if cfg.mode == "decision":
+                factsheet = protect_factsheet(factsheet, source)
             if self.settings.use_vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)
@@ -466,7 +481,7 @@ class Orchestrator:
         self, job: Job, draft: Draft, source: SourceDocument, factsheet: FactSheet | None
     ) -> RuleFindings:
         self._set(job.id, stage="check")
-        rules = check_draft(draft, source=source, factsheet=factsheet)
+        rules = check_draft(draft, source=source, factsheet=factsheet, mode=job.config.mode)
         self.store.put_artifact(job.id, "rules", rules, draft.version)
         return rules
 
@@ -503,7 +518,7 @@ class Orchestrator:
         if judge is None:
             return False
         fact_issue = any(c.status != "present" for c in judge.fact_checks) or judge.unsupported
-        return bool(fact_issue) or any(f.rule_id == "FACT-01" for f in rules.findings)
+        return bool(fact_issue) or any(f.rule_id in MISSING_RULES for f in rules.findings)
 
     def _summary(
         self,

@@ -5,7 +5,13 @@ language-independent ones in `document` (facts, headings, readability, judge rul
 and `layout` (export).
 """
 
-from leichtfacile.rules import de, document, fr, layout  # noqa: F401  (registers the rules)
+from leichtfacile.rules import (  # noqa: F401  (registers the rules)
+    de,
+    decision,
+    document,
+    fr,
+    layout,
+)
 from leichtfacile.rules.base import PARAMS, RULES, LevelParams, RuleSpec, params_for
 from leichtfacile.rules.checker import RuleChecker, check_draft, get_checker
 from leichtfacile.rules.styleguide import style_guide

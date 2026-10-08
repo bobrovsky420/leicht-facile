@@ -36,7 +36,9 @@ def examples_dir() -> Path:
 
 
 def example_sources(folder: Path | None = None) -> list[dict[str, str]]:
-    """The team-written example texts offered on the start page: id, title and text."""
+    """The team-written example texts offered on the start page: id, title and text,
+    plus the job settings of the decision mode (`mode`, `addressee`, `notice`) from the
+    JSON file next to a source, when it has one (`example_config`)."""
     folder = (folder or examples_dir()) / "sources"
     out = []
     for path in sorted(folder.glob("*.txt")) + sorted(folder.glob("*.md")):
@@ -46,7 +48,9 @@ def example_sources(folder: Path | None = None) -> list[dict[str, str]]:
             continue
         lines = [line.strip() for line in text.splitlines() if line.strip()]
         title = lines[0].lstrip("#").strip() if lines else path.stem
-        out.append({"id": path.stem, "title": title, "text": text})
+        settings = example_config(path)
+        fields = {k: settings[k] for k in ("mode", "addressee", "notice") if settings.get(k)}
+        out.append({"id": path.stem, "title": title, "text": text, **fields})
     return out
 
 

@@ -18,6 +18,7 @@ from leichtfacile import __version__
 from leichtfacile.examples import example_sources
 from leichtfacile.export.html import to_html
 from leichtfacile.ingest.detect import detect_language
+from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.orchestrator import PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.rules.base import RULES
@@ -211,6 +212,8 @@ def _new(
         pipelines=_pipelines(t),
         max_chars=MAX_TEXT_CHARS,
         chars=len(form.get("text") or ""),
+        # Decision mode: the authority's notice, prefilled per document language.
+        notice_defaults={lang: label(lang, "notice_default") for lang in LANGS if lang in written},
         section="new",
     )
 
@@ -223,6 +226,8 @@ def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
         found = next((e for e in example_sources() if e["id"] == example), None)
         if found is not None:
             form["text"] = found["text"]
+            # The decision mode's settings from the file next to the example, if any.
+            form.update({k: found[k] for k in ("mode", "addressee", "notice") if found.get(k)})
     return _new(request, form=form)
 
 
@@ -251,6 +256,9 @@ async def submit(
     writer_model: Annotated[str | None, Form()] = None,
     understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,
+    mode: Annotated[str, Form()] = "standard",
+    addressee: Annotated[str | None, Form()] = None,
+    notice: Annotated[str | None, Form()] = None,
 ):
     data = await file.read() if file is not None and file.filename else None
     sub = Submission(
@@ -265,6 +273,9 @@ async def submit(
         understand_model=(understand_model or "").strip() or None,
         judge_model=(judge_model or "").strip() or None,
         title=title,
+        mode=mode,
+        addressee=addressee,
+        notice=notice,
     )
     state = request.app.state
     try:
@@ -280,6 +291,9 @@ async def submit(
             "writer_model": writer_model or "",
             "understand_model": understand_model or "",
             "judge_model": judge_model or "",
+            "mode": mode,
+            "addressee": addressee or "",
+            "notice": notice or "",
         }
         return _new(request, 400, exc.text(translator(request)), form)
     state.runner.submit(job.id)
@@ -346,7 +360,7 @@ def preview(request: Request, job_id: str, version: int | None = None) -> HTMLRe
     if draft is None:
         raise HTTPException(404, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    return _reader_page(to_html(draft, review, title=job.title))
+    return _reader_page(to_html(draft, review, title=job.title, notice=job.config.notice))
 
 
 @router.post("/jobs/{job_id}/preview", response_class=HTMLResponse)
@@ -363,7 +377,7 @@ def preview_unsaved(request: Request, job_id: str, body: ReviewIn) -> HTMLRespon
             decisions=[Decision(**d.model_dump()) for d in body.decisions],
             completed=body.completed,
         )
-    return _reader_page(to_html(draft, review, title=job.title))
+    return _reader_page(to_html(draft, review, title=job.title, notice=job.config.notice))
 
 
 @router.post("/jobs/{job_id}/rerun")

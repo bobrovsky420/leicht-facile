@@ -193,6 +193,27 @@
       noteAuto();
     });
 
+    // Decision mode: the document type reveals the addressee and the notice; the
+    // notice's placeholder follows the document language (the server fills the
+    // default in when the field stays empty).
+    const mode = $("#mode");
+    const decisionFields = $("#decision-fields");
+    const langSelect = $("#lang");
+    const notice = $("#notice");
+    const reveal = () => {
+      if (mode && decisionFields) decisionFields.hidden = mode.value !== "decision";
+    };
+    const noticePlaceholder = () => {
+      if (!notice) return;
+      const code = langSelect && langSelect.value !== "auto" ? langSelect.value : "de";
+      const key = `default${code.charAt(0).toUpperCase()}${code.slice(1)}`;
+      notice.placeholder = notice.dataset[key] || notice.dataset.defaultDe || "";
+    };
+    if (mode) mode.addEventListener("change", reveal);
+    if (langSelect) langSelect.addEventListener("change", noticePlaceholder);
+    reveal();
+    noticePlaceholder();
+
     let examples = [];
     try {
       examples = JSON.parse($("#example-texts").textContent);
@@ -207,6 +228,12 @@
         area.value = example.text;
         $("#url").value = "";
         $("#title").value = "";
+        if (mode) {
+          mode.value = example.mode || "standard";
+          reveal();
+        }
+        if ($("#addressee")) $("#addressee").value = example.addressee || "";
+        if (notice) notice.value = example.notice || "";
         recount();
         if (note) note.textContent = example.lang_name ? t("lang_detected", { lang: example.lang_name }) : t("lang_auto");
         area.focus();

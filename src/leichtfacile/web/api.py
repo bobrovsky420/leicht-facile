@@ -179,11 +179,12 @@ def export(
     if draft is None:
         raise HTTPException(409, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
+    notice = job.config.notice
     if format == "md":
-        return _download(
-            to_markdown(draft, review, title=job.title), "text/markdown", f"{job_id}.md"
-        )
-    return _download(to_html(draft, review, title=job.title), "text/html", f"{job_id}.html")
+        body = to_markdown(draft, review, title=job.title, notice=notice)
+        return _download(body, "text/markdown", f"{job_id}.md")
+    body = to_html(draft, review, title=job.title, notice=notice)
+    return _download(body, "text/html", f"{job_id}.html")
 
 
 @router.post("/jobs/{job_id}/rerun")

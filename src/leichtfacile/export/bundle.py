@@ -29,15 +29,18 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
         draft = store.get_artifact(job.id, "draft", Draft, version=final_version)
         review = ReviewState.model_validate(review_json) if review_json else None
         text = final_blocks(draft, review)
-        lines = layout_lines(text.blocks)
+        notice = job.config.notice  # decision mode: the first and the last line
+        lines = layout_lines(text.blocks, notice=notice)
+        checker = get_checker(draft.lang)
         final = {
             "draft_version": final_version,
             "reviewed": text.reviewed,
             "review_complete": text.complete,
             "undecided_blocks": text.undecided,
+            "notice": notice,
             "blocks": [b.model_dump() for b in text.blocks],
             "layout_findings": [
-                f.model_dump() for f in get_checker(draft.lang).check_export(lines, draft.level)
+                f.model_dump() for f in checker.check_export(lines, draft.level, notice=notice)
             ],
         }
     return {

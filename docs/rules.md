@@ -107,6 +107,8 @@ sentence limits follow from the calibration on the official French pages (below)
 | FACT-04 | Omissions are explained | every source segment not referenced by any block is either listed in `omissions[]` or in the fact sheet's `omit_candidates[]` | warn |
 | FACT-05 | Fact sheet values appear in the source | for each fact with a normalised value: the value is found in the cited source segments; a value found elsewhere in the source, or nowhere, means the fact sheet itself may be wrong (checked on the fact sheet, before writing). A value found nowhere in the source is no longer required by FACT-01 nor accepted by FACT-06 | warn |
 | FACT-06 | Every value in the draft appears in the source | the mirror of FACT-01: for each date, amount, phone number, e-mail address, web address, percentage, time, period, identifier and postal address found in a draft block, the value (in any accepted surface form) is found in the source text or is a normalised fact-sheet value that the source contains in another form (a period as its bare count); a fact-sheet value the source does not contain at all, such as an end of a period the model computed (`endet am 15. November 2026` for `innert 30 Tagen seit Mitteilung`), is foreign like any other; a shortened web address that is a prefix of a source address passes, as does a full hour the source writes as a plain number (`8-12 Uhr`) and a period the source writes as a plain number; plain numbers are not checked (`zwei Wochen` may become `14 Tage`: the periods are equal); for a phone number, e-mail, web address, identifier or postal address the suggestion names the source's only one, if it has exactly one (never for dates, amounts and periods: the only date in a document may be a law's) | error |
+| FACT-07 | The fixed notice is present | decision mode only, on the export's lines (`check_export`, since 8 October 2026): the first and the last non-empty line are the notice the authority set for the job (`JobConfig.notice`, for example "Massgebend ist der Entscheid."), word for word; the exporters write it as the first and last paragraph and the review page shows it as a banner, not a block, so the check catches an export made without it and a review edit that removes or changes it. The notice is exempt from LAY-01 and LAY-02 | error |
+| FACT-08 | Nothing from the operative part or the appeal instructions is dropped | decision mode only (`rules/decision.py`, since 8 October 2026): the operative part is found by its heading (`III. Entscheid`, `Dispositiv`) or, without one, by the sentence that names the verb of deciding and ends with a colon (`Demnach erkennt das Verwaltungsgericht:`) followed by numbered items; the appeal instructions by their heading (`Rechtsmittelbelehrung`) or by the paragraph that begins `Gegen diesen Entscheid kann` (French: `Dispositif`, `Par ces motifs`, `voies de droit`, `peut faire l'objet d'un recours`). Every item of the operative part (one per paragraph; the distribution list `Zustellung an:` and what follows it are none) and the instructions must be cited by a block and may not be listed as omitted. The hit carries the part's fact id: `protect_factsheet` adds one fact without a value per part, so a repair round asks for a dropped part like a missing value, and it blocks like FACT-01. Silent in standard mode and when the document has neither part | error |
 
 The value kinds (`rules/values.py`). Every kind feeds the code completion of the fact
 sheet, FACT-01, FACT-05, FACT-06 and "hard facts kept" in the evaluation. Plain
@@ -230,6 +232,8 @@ show them next to the code findings:
 | SEM-06 | Does the block state something the source does not support? (hallucination) |
 | SEM-07 | For each fact: present, missing, or distorted? |
 | SEM-08 | Is every obligation still an obligation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, decision D-P)? In the German and French judge prompts since 7 October 2026 |
+| SEM-09 | Does the block add advice or an evaluation the source does not contain ("leider", "Sie sollten Beschwerde erheben")? Decision mode only, asked in the partial's judge section (8 October 2026) |
+| SEM-10 | Does every period keep its start ("seit Mitteilung", "ab Zustellung")? A period without its start misleads. Decision mode only (8 October 2026) |
 
 ## Vocabulary
 
@@ -326,8 +330,9 @@ office words (`genehmigt`, `einreichen`, `Anliegen`).
 
 Specified on 6 October 2026 for the decisions use case
 ([use-case-decisions.md](use-case-decisions.md)) and the further use cases
-([use-cases.md](use-cases.md)). None of them exists in code yet, except SEM-08, which
-moved into the judge table above on 7 October 2026. Their ids are written in backticks
+([use-cases.md](use-cases.md)). None of them exists in code yet, except SEM-08 (judge
+table, 7 October 2026) and FACT-07, FACT-08, SEM-09 and SEM-10 (8 October 2026), which
+moved into the tables above. Their ids are written in backticks
 because the registry test reads the rule tables above and expects every bare id there
 to be registered in code. When a check is built, its row moves into its family's table
 above, with golden tests, and loses the backticks.
@@ -349,16 +354,12 @@ extracted but not checked.
 
 | Planned id | Rule | Detection | Severity | Use cases |
 |------------|------|-----------|----------|-----------|
-| `FACT-07` | The fixed notice is present | in the decision mode and for received letters, the export begins and ends with the notice the organisation set ("Massgebend ist der Entscheid."), word for word; code inserts it, and the check catches a review edit that removes or changes it | error | 2, 4-8 |
-| `FACT-08` | Nothing from the operative part or the appeal instructions is dropped | in the decision mode, every fact cited from segments under the operative part or the instructions on appeal (headings such as `Entscheid`, `Dispositiv`, `Rechtsmittelbelehrung`; French `dispositif`, `voies de droit`) is must-keep, and none of those segments is listed as an omission | error | 2, 5-8, 10 |
 | `FACT-09` | A medication stays in one block | the block that names a medication also carries its dose, scheme and period, so a reader cannot pair a dose with the wrong drug | error | 3 |
 
 ### New questions for the judge
 
 | Planned id | Question the judge answers | Use cases |
 |------------|----------------------------|-----------|
-| `SEM-09` | Does the block add advice or an evaluation the source does not contain ("leider", "Sie sollten Einsprache erheben")? | 2-8, 10 |
-| `SEM-10` | Does every period keep its start ("nach Empfang", "ab Zustellung")? A period without its start misleads. | 2, 4-8, 10 |
 
 ## Calibration on official easy-language texts
 

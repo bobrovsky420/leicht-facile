@@ -826,6 +826,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-07 (night; examples session, 2): D-AB, the owner's go: a fact-sheet value the source does not contain is no longer known to FACT-06 nor required by FACT-01, and fact coverage (checker metrics, review page, evaluation, diagnosis) counts only facts whose value the source contains (`rules/document.py`: `source_values`, `fact_coverage(..., source)`, `KnownValues`); FACT-05 still warns on the fact sheet. Found in the stored CSCS fact sheets: 8 of 195 values (P1), 12 of 331 (P2 8B), 16 of 207 (70B writer), some invented ("31. März 2026" for "im Frühling"), most normalised into forms no draft could match, which FACT-01 had flagged in every version. Dev rerun on CSCS, old rule patched back in and new rule in sequence on the same cache (`eval/results-cscs-fact06-before`, `-after`): fact coverage 78.8 against 78.8 percent under the new measure, hard facts kept, invented values and rule errors unchanged, 10.6 against 10.5 calls and about 600 tokens per page less; the repair rounds no longer ask for an invented date (`be-birth-registration-de`). The measure alone raises stored fact coverage (P2 8B eval 81.7 to 83.1 percent, 70B writer 73.1 to 77.8): report §5's numbers change with the final run. The KESB decision's invented deadline is now a blocking FACT-06 error. Found on the way: hotline numbers (`0800 33 66 55`) are not found as phone values (WP14 item). Docs: rules.md (FACT-01, FACT-05, FACT-06), architecture §4.4 and the metrics table, prompts.md, report §5's metric definition. 1133 tests.
 - 2026-10-08 (video mock session): a mock of the demo video at the owner's request, to get an impression, built without other apps and kept outside the repo (a Remotion 4 project in the session's scratchpad, not committed). It follows docs/demo-video.md scene by scene and runs 1:56: a placeholder voice from Kokoro (open weights, run locally; transcribed back with Whisper, every chunk heard as written, "Leicht·Facile" heard as "Leistfesil"), music made in code and ducked under the voice, the kitchen table and the envelopes drawn in code where the storyboard asks for generated footage, and the product scene from frames of the real UI (headless Edge against a scratch data folder; the job page's stages are the real example job copied stage by stage; no model call). Written for the mock where the storyboard leaves text open: the evaluation sentence by case B of §13.4 with D-L's wording ("Against a strong single prompt: less than a third of the rule errors. And no fact goes missing unnoticed."; 4.3 against 15.4 per 100 blocks from report §5, labelled provisional), the tagline and the end card. Measured for the rule-check timer: 47 ms median for draft v1 of the premium-reduction letter (15 blocks, after warm-up). Found: P2 on the DE-4 sentence alone (CSCS, job d2c96d2ac2b7) gives no usable before/after. The draft wraps the one sentence in the letter headings ("Der Preis ist nicht genannt"), loses the consequence (no money back), and a repair round adds a contact office the sentence never names ("Sie können die Einwohner·kontrolle fragen"); so the mock shows the team's illustrative rewrite from hard-texts.md, labelled as such on screen. WP11 item added. Second version at the owner's request: the opener as a split screen, DE-4 and FR-4 side by side for the whole scene (the quick cut showed FR-4 for under a second), and "Leicht" with the German ich-sound (`lˈaɪçt`; the voice renders it apart from "sh": far less energy at 2.5 to 4 kHz); demo-video.md §2 and §3 follow. Third version, also the owner's: the "only Apertus" tiles fall one per sentence, with a new sentence for the fourth ("Most fully open ones are built abroad."; it was struck while Apertus was named, so "open data" read as a point against Apertus), the ruling-out part of each tile in red, the Apertus tile only on "Apertus"; 267 words, 1:59. Then, after a comparison of three concepts, the owner chose concept A, "Find the deadline" (docs/demo-video.md §1 and §2; the first concept kept in §5): the viewer looks for the deadline in the example letter for five seconds, then finds it in the first sentence of the letter's real P2 draft (German on screen as the illustration, the instruction also in German, English voice); the app scene follows that deadline (the fact sheet's "By when?", the deadline fact, its code check, the draft sentence linked to its source sentence); the evidence beat follows case B of §13.4 (a strong single prompt in its default mode loses 23 % of the hard facts without a trace; Leicht·Facile lists every missing fact); the "only Apertus" scene is unchanged; 231 words, 1:52. Mocked the same day as a second composition next to the first. It resolves the before/after item of WP11; its product scene uses the premium-reduction letter, not the decision letter of the WP16 list, since the test and the app show the same letter. New in demo-video.md §4: the example draft's ungrammatical "Sie mitschicken" is visible in the test. Then variant B for the opening (demo-video.md §3, "One sentence, step by step"), since a full letter is too much text for a five-second test: the deadline sentence of the example letter, what `leichtfacile check` finds in it (2 errors, 3 warnings), the facts f01 and f03, the real draft's three sentences with the facts each carries, the check again (0 errors, the date present); 251 words, 1:54, mocked as a third composition. Found on the way: the draft's "bei der Sozial·versicherungs·stelle" should be "an die", and the checker does not catch it.
 - 2026-10-08 (session f1, before the freeze): the three pre-freeze code items of the plan. (1) Hotline numbers: `PHONE_RE` takes the ten-digit service numbers (0800, 084x, 090x) in both groupings, so `0800 33 66 55`, `0848 35 45 55` and `0900 55 35 55` are phone values for FACT-01, FACT-06, the masking of NUM-02 and the hard-fact metric instead of four plain numbers each; NUM-08 and NUM-08-FR accept either grouping; golden and value tests. SOURCE and REF recomputed in `eval/results-cscs` and `eval/results` (both git-ignored): the pattern alone adds `0800 33 66 55` to `zh-emergency-numbers-de`, `zh-blue-algae-de` and `zh-heat-de`, `0848 35 45 55` to `zh-emergency-numbers-de` and both `be-emergency-numbers` pairs, `0900 55 35 55` to `zh-emergency-numbers-de`, and removes nothing; the stored REF rows also predated the value kinds of 7 Oct and LEX-07, so more columns moved (`zh-passport-id-de` 23 to 22 hard values, the office-word column new). The stored P1 and P2 rows keep their run-time denominators and `eval/report.md` its REF rows until the final run's `eval report`. (2) Copy guard: the write and repair prompts are rendered with the style guide of both levels, so the guide's lines (without the list marker) and its example values (`044 123 45 67`, `4. Februar 2026`) count as the prompt's own; whole lines only, a part of a line is no copy. (3) Silent losses in P2: already closed by the completion fixes of the cloud sessions 4 and 5; the fifth run and the stored P2 rows that carry the key show none, so the WP13 note says so now. 1,142 tests and ruff green.
+- 2026-10-08 (session f1, decision mode v1): WP15 pieces 1 to 7 in code, the same session as the pre-freeze items. Fetched the Schwyz decision III 2022 132 into `data/cache/decisions/` (git-ignored, docs/sources.md): the ingest reads it, 8 pages, 2,255 words, 65 units, three headings and none of them the operative part, so the text fallback is what carries a court's PDF. `rules/decision.py`: `protected_segments` (operative part by heading or by the `erkennt ... :` sentence, one item per paragraph, the distribution list excluded; the appeal by heading or the `Gegen diesen Entscheid kann` paragraph; FR markers), `protect_factsheet` (must-keep in the parts, code values outside them and the core answers background, no protected omit candidate, one fact without a value per part), FACT-08 (a part in no block or listed as omitted; blocking and missing like FACT-01, first in the repair request, reruns the judge) and FACT-07 (the export's first and last line are the notice; LAY-01 and LAY-02 skip it). `check_draft` and `DocInput` carry the mode; `link_facts` links a part's fact by its segments and FACT-02 leaves such facts to FACT-08. SEM-09 and SEM-10 declared and through the judge filter for a decision job only. The notice in `to_markdown`, `to_html`, the bundle's layout lines, the API and CLI exports and the reader view, as `.notice-banner` on the review page; the "Document type" select on `/new` with the addressee and the notice, `notice_default` per language in `pipeline/labels.py` filled in by the server when the field stays empty, the page's `POST /jobs` with the three fields, the "Decision" tag on the drafts list, `example_sources` with the sidecar's settings so the KESB example prefills the form. The partial (DE, FR) carries the four lessons of the 7 Oct test runs; the standard templates and their hashes are unchanged. Calibrated on the KESB decision (13 items and the appeal, by headings) and the Schwyz decision (2 items and the appeal as its item 3, by text). Tests: `tests/rules/test_decision.py` (13, the Schwyz one skipped without the file), the request and judge-filter tests, three web tests, one example test; 1,161 tests and ruff green. Open for the owner: the KESB decision as a decision job on CSCS into `data/examples/jobs` (the example job of piece 7 and the video's product scene), and a reading of the drafts under the new partial.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -1358,6 +1359,13 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          decision --addressee --notice`; the mode on the job and in the audit bundle.
          *7 Oct, night: the three fields, the summary's `mode`, the CLI flags and the
          API form fields are in; the page's select is open.*
+         *Done 8 Oct: the "Document type" select on `/new` (Standard text, Decision
+         letter) with the addressee and the notice below it, hidden by the script for
+         a standard text and in view without it; the notice's placeholder follows the
+         document language and the server fills `notice_default` from
+         `pipeline/labels.py` (DE, FR) when the field stays empty; the page's `POST
+         /jobs` takes the three fields like the API; the drafts list tags a decision
+         job "Decision".*
       2. *Prompts without touching the frozen ones.* One partial per language,
          `llm/prompts/<lang>/decision.md`, with sections for understand, write, judge
          and repair; the standard templates get one line each, `{% if mode ==
@@ -1389,6 +1397,19 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          no block cites or any omission lists; the hit carries the item's fact id,
          `build_request` treats it like FACT-01 and `blocking_count` counts it, so a
          dropped item goes back to the writer before the reviewer sees the draft.
+         *Done 8 Oct: `rules/decision.py` with `protected_segments` (heading or text
+         marker; one item per paragraph of the operative part, the distribution list
+         `Zustellung an:` and after it excluded; the appeal by its heading or the
+         `Gegen diesen Entscheid kann` paragraph), `protect_factsheet` (must-keep in the
+         parts, code values outside them and the core answers background, no protected
+         omit candidate, one fact without a value per part) and FACT-08; `check_draft`
+         and `DocInput` carry the mode; `link_facts` links a part's fact by its
+         segments and FACT-02 leaves such facts to FACT-08; the orchestrator counts
+         FACT-08 as blocking and missing, puts a dropped part first in the request and
+         reruns the judge on it. Calibrated on the KESB decision (13 items and the
+         appeal, by headings) and the Schwyz decision (2 items and the appeal as its
+         item 3, by text; `data/cache/decisions/`). Tests in
+         `tests/rules/test_decision.py`.*
       4. *SEM-08 to SEM-10.* Declared in `JUDGE_RULES`, the filter in
          `to_judge_report` widened (today it drops anything outside SEM-01 to
          SEM-05), the rows moved from "Planned" into the judge table of rules.md.
@@ -1399,6 +1420,9 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          in the judge filter, in both judge prompts and in rules.md's judge table;
          SEM-09 and SEM-10 stand in the partial's judge section but the filter still
          drops them: widen it with piece 4.*
+         *Done 8 Oct: SEM-09 and SEM-10 declared in `JUDGE_RULES` and pass the filter
+         for a decision job only (`DECISION_JUDGE_RULE_IDS`); rows in the judge table
+         of rules.md, German titles in the locale.*
       5. *The notice and FACT-07.* The three exporters take `notice` and write it as
          the first and last paragraph; the review page shows it as a fixed banner, not
          a block (a block would need provenance and could be rejected); the notice is
@@ -1406,16 +1430,30 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          the first and last lines must be the configured notice. Honest: a guard
          against an empty field and a declaration that the notice is part of the
          contract; the exporter is what writes it.
+         *Done 8 Oct: `to_markdown`, `to_html` and the bundle's `layout_lines` take
+         `notice` (first and last paragraph, unwrapped); the API export, the CLI export
+         and the reader view pass the job's; the review page shows it as `.notice-banner`
+         above the blocks; `Context.notice`, `check_export(notice=)`, FACT-07 (first and
+         last non-empty line) in `rules/decision.py`, LAY-01 and LAY-02 skip the notice
+         line; the bundle's `final` records the notice. Tests in test_decision.py and
+         test_web.py (a decision job through the API).*
       6. *The addressee* in understand, write, repair and judge ("Sie ist immer
          {{ addressee }}; den Beistand und die Behörde nennen Sie bei Rolle oder
          Namen"); no code check, SEM-03 plus this line cover it; the name stays in the
          store like the decision itself.
+         *8 Oct: in all four sections of the partial, DE and FR, with the task's owner
+         (piece 2); no code.*
       7. *Example job and product scene.* The KESB decision (D-T) with a sidecar
          `.json` (`mode`, `addressee`) next to the `.txt`, since `example_sources()`
          reads texts only; the video shows the notice, the case number, the AHV
          number, the 30 days and the court's address as code facts with green ticks,
          FACT-08 catching a dropped operative item and the repair restoring it, the
          omission log for the condensed reasons.
+         *8 Oct: `example_sources` carries the sidecar's `mode`, `addressee` and
+         `notice` (the reader `example_config` existed for `examples build`), so
+         `/new?example=entscheid-beistandschaft-musterwil` and the example buttons
+         prefill the three fields. Open: the example job itself, a run of the KESB
+         decision on CSCS into `data/examples/jobs` (owner's machine, the key).*
 
       Added from the test runs of 7 Oct (use-case-decisions.md §7), for pieces 2 and 3:
       - in decision mode the values of the header and of the reasoning (outside the
@@ -1435,6 +1473,13 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
       - the addressee line in the partial: with "Sie ist immer {{ addressee }}" the 8B
         still gave the deputy's tasks to the person; name the tasks' owner in the
         fact sheet (the deputy) and check it in the judge (SEM-03).
+      *Done 8 Oct, all four: the first by code (`protect_factsheet`) and in the partial's
+      understand section; the period copied as written, with its start and no computed
+      date, in the understand, write, repair and judge sections (SEM-10 names a computed
+      date); the copy guard knows the style guide; the task's owner named in the fact
+      sheet and the draft, and a "Sie" that takes the deputy's task is SEM-03. German
+      and French; the standard templates and their hashes unchanged (docs/prompts.md,
+      row 9 of 8 Oct).*
       Owner's decision, affects standard jobs too: a fact-sheet value that FACT-05
       finds missing from the source still counts as known to FACT-06, so a value the
       Understand model invents reaches the draft with only a warning on the fact sheet.
