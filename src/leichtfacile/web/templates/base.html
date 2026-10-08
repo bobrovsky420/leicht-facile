@@ -19,6 +19,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
   <nav class="mainnav" aria-label="{{ t('site.nav') }}">
     <a href="/"{% if section == 'drafts' %} aria-current="{{ 'page' if section_root else 'true' }}"{% endif %}>{{ t('site.drafts') }}{% if review_count %}<span class="count" title="{{ t('nav.review_count', n=review_count) }}"><span aria-hidden="true">{{ review_count }}</span><span class="visually-hidden">{{ t('nav.review_count', n=review_count) }}</span></span>{% endif %}</a>
     <a href="/new"{% if section == 'new' %} aria-current="page"{% endif %}>{{ t('site.new') }}</a>
+    <a href="/check"{% if section == 'check' %} aria-current="page"{% endif %}>{{ t('site.check') }}</a>
   </nav>
   <span class="spacer"></span>
   <span class="endpoint" id="endpoint-status" data-endpoint data-url="/healthz" title="{{ t('js.endpoint.unknown') }}">

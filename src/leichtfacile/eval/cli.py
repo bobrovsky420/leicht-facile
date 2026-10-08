@@ -111,6 +111,14 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     rep.add_argument("--lang", choices=["de", "fr", "it"], help="only this language")
     rep.set_defaults(handler=_report)
 
+    num = evsub.add_parser(
+        "numbers", help="the headline numbers and the PLAN.md §13.4 case (no model)"
+    )
+    num.add_argument("--results", type=Path, default=Path("eval/results"))
+    num.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
+    num.add_argument("--lang", default="de", choices=["de", "fr", "it"])
+    num.set_defaults(handler=_numbers)
+
 
 def _pairs(args: argparse.Namespace):
     from leichtfacile.eval.dataset import load_manifest, select
@@ -242,6 +250,13 @@ def _rescore(args: argparse.Namespace) -> int:
     print(
         f"rescored rows: {out} (render them with: eval report --results {out} --role {args.role})"
     )
+    return 0
+
+
+def _numbers(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.numbers import render_numbers
+
+    print(render_numbers(args.results, role=args.role, lang=args.lang))
     return 0
 
 

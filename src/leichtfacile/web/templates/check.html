@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
+{% block title %}{{ t('site.check') }} - Leicht·Facile{% endblock %}
+{% block content %}
+<div class="page page-form">
+  <h1 style="margin-bottom: 4px">{{ t('site.check') }}</h1>
+  <p class="lead" style="margin-bottom: 16px">{{ t('check.intro') }}</p>
+
+  {% if error %}
+  <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>
+  {% endif %}
+
+  <form method="post" action="/check" class="newgrid" id="check-form">
+    <section class="card src" aria-labelledby="chk-src-h">
+      <div class="card-head"><h2 id="chk-src-h">{{ t('check.text') }}</h2></div>
+      <div class="card-body">
+        <label class="label" for="text">{{ t('index.text.label') }}</label>
+        <textarea id="text" name="text" rows="18" placeholder="{{ t('check.placeholder') }}" data-max="{{ max_chars }}">{{ form.text or "" }}</textarea>
+        <div class="textmeta">
+          <span>{{ t('js.chars', count=number(chars, ui_lang), max=number(max_chars, ui_lang)) }}</span>
+          <span>{{ t('check.private') }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card settings" aria-labelledby="chk-set-h">
+      <div class="card-head"><h2 id="chk-set-h">{{ t('new.settings') }}</h2></div>
+      <div class="card-body">
+        <div>
+          <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
+          <select id="lang" name="lang">
+            <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
+            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t('lang.' ~ code) }}</option>{% endfor %}
+          </select>
+        </div>
+        <fieldset>
+          <legend>{{ t('index.level') }}</legend>
+          <div class="optlist">
+            {% for level in ('A2', 'B1') %}
+            <label class="opt">
+              <input type="radio" name="level" value="{{ level }}"{% if (form.level or 'A2') == level %} checked{% endif %}>
+              <span class="opt-text"><span class="opt-title">{{ t('level.' ~ level) }}</span><span class="opt-desc">{{ t('new.level.' ~ level ~ '.desc') }}</span></span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        <p class="hint">{{ t('check.rules_hint', count=rules) }}</p>
+      </div>
+      <div class="card-foot">
+        <div class="actions">
+          <button type="submit" class="btn btn-primary btn-lg">{{ t('check.run') }}</button>
+        </div>
+      </div>
+    </section>
+  </form>
+
+  {% if view %}
+  <section class="card check-results" aria-labelledby="chk-res-h" id="results">
+    <div class="card-head">
+      <h2 id="chk-res-h">{{ t('check.results') }}</h2>
+      <span class="meta">{{ t('lang.' ~ view.lang) }} · {{ t('level.' ~ view.level) }}</span>
+    </div>
+    <div class="strip">
+      <span><strong>{{ t('check.per100', errors=view.per_100(view.errors), warnings=view.per_100(view.warnings), infos=view.per_100(view.infos)) }}</strong></span>
+      <span>{{ t('check.summary', blocks=view.rows | length, sentences=view.metrics.sentences, words=view.metrics.avg_words, readability=view.readability_text) }}</span>
+      <span>{{ t('check.shares', passive=view.metrics.pct_passive, genitive=view.metrics.pct_genitive, subordinate=view.metrics.pct_subordinate) }}</span>
+    </div>
+    <div class="card-body">
+      {% for row in view.rows %}
+      <article class="check-block{% if row.worst %} sev-{{ row.worst }}{% endif %}" id="chk-{{ row.block.id }}">
+        <span class="rid">{{ row.block.id }}</span>
+        <p class="check-text{% if row.block.kind == 'heading' %} heading{% endif %}" lang="{{ view.lang }}">{{ row.block.text }}</p>
+        {% if row.issues %}
+        <ul class="check-issues">
+          {% for i in row.issues %}
+          <li class="issue sev-{{ i.severity }}">{{ icons.sev(i.severity, t('sev.' ~ i.severity)) }}<span class="rid">{{ i.rule_id }}</span><span>{{ i.message }}{% if i.suggestion %} <span class="suggestion" lang="{{ view.lang }}">{{ t('check.suggestion', text=i.suggestion) }}</span>{% endif %}</span></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </article>
+      {% endfor %}
+      {% if view.finding_groups %}
+      <h3 class="tabpanel-title" style="margin-top: 16px">{{ t('check.doc_findings') }}</h3>
+      {% for g in view.finding_groups %}
+      <div class="group">
+        <div class="group-head">{{ icons.sev(g.worst, t('sev.' ~ g.worst)) }}<span class="rid">{{ g.rule_id }}</span><span class="title">{{ g.title }}</span><span class="n">{{ g.issues | length }}</span></div>
+        <ul>
+          {% for i in g.issues %}
+          <li class="issue sev-{{ i.severity }}"><span class="ref">{{ i.ref }}</span><span>{{ i.message }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% if not (view.errors or view.warnings or view.infos) %}
+      <p class="section-intro">{{ t('check.no_findings') }}</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

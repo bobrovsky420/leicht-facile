@@ -5,6 +5,7 @@ Texts come from the interface catalogs (`i18n.py`) through the translator `t`.""
 from __future__ import annotations
 
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
@@ -21,6 +22,7 @@ from leichtfacile.schemas import (
     Block,
     CoreAnswer,
     Decision,
+    DocMetrics,
     Draft,
     Fact,
     FactSheet,
@@ -772,3 +774,63 @@ def format_duration(seconds: float) -> str:
         return f"{minutes} min {rest:02d} s"
     hours, minutes = divmod(minutes, 60)
     return f"{hours} h {minutes:02d} min"
+
+
+# -- the Check page: a text checked as it is ---------------------------------------------
+
+
+@dataclass
+class CheckView:
+    """A text the writer pasted, checked by the rules alone (no job, no model): its
+    blocks with their findings, the document findings by rule, the counts."""
+
+    lang: str
+    level: str
+    rows: list[BlockRow]
+    finding_groups: list[FindingGroup]
+    metrics: DocMetrics
+    errors: int
+    warnings: int
+    infos: int
+
+    def per_100(self, count: int) -> float:
+        return round(100 * count / max(1, len(self.rows)), 1)
+
+    @property
+    def readability_text(self) -> str:
+        if self.metrics.readability is None:
+            return "-"
+        return f"{self.metrics.readability:.0f} ({self.metrics.readability_formula})"
+
+
+def check_view(draft: Draft, rules: RuleFindings, t: Translator = ENGLISH) -> CheckView:
+    rows = {b.id: BlockRow(b) for b in draft.blocks}
+    doc_issues: list[Issue] = []
+    for f in rules.findings:
+        issue = Issue(
+            "rule",
+            f.rule_id,
+            f.severity,
+            finding_text(t, f),
+            f.suggestion,
+            evidence=f.evidence,
+            fact_id=f.fact_id,
+            segment_ids=list(f.segment_ids),
+        )
+        if f.block_id in rows:
+            rows[f.block_id].issues.append(issue)
+        else:
+            doc_issues.append(issue)
+    for row in rows.values():
+        row.issues.sort(key=lambda i: SEVERITY_RANK[i.severity])
+    counts = Counter(f.severity for f in rules.findings)
+    return CheckView(
+        draft.lang,
+        draft.level,
+        list(rows.values()),
+        group_findings(doc_issues, t),
+        rules.metrics,
+        counts["error"],
+        counts["warn"],
+        counts["info"],
+    )

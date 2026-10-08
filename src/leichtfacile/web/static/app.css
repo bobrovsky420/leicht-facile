@@ -136,6 +136,18 @@ input[type=checkbox], input[type=radio] { width: 16px; height: 16px; margin: 0; 
 .label .opt { font-weight: 400; color: var(--lf-muted); }
 .hint { font-size: 12px; line-height: 17px; color: var(--lf-muted); }
 .hint.bad { color: var(--lf-error); }
+/* Check my text: the deterministic checker on a pasted text, no job, no model. */
+.check-results { margin-top: 20px; }
+.check-results .strip { border-top: 0; border-bottom: 1px solid var(--lf-hairline); }
+.check-block { display: grid; grid-template-columns: 56px 1fr; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--lf-divider); }
+.check-block > .rid { padding-top: 4px; }
+.check-text { grid-column: 2; margin: 0; font-size: 16px; line-height: 24px; color: var(--lf-ink); }
+.check-text.heading { font-weight: 600; }
+.check-issues { grid-column: 2; margin: 4px 0 0; padding: 0; list-style: none; }
+.check-issues li { display: flex; align-items: flex-start; gap: 8px; padding: 2px 0; color: var(--lf-text-2); font-size: 13px; line-height: 18px; }
+.check-issues .ico { flex: none; margin-top: 2px; }
+.check-issues .rid { flex: none; padding-top: 1px; }
+.check-issues .suggestion { color: var(--lf-ink); }
 /* Decision mode: the authority's fixed notice, shown above the blocks and written as
    the first and last paragraph of the export; not a block, so it has no decision. */
 .notice-banner { margin: 12px 16px; padding: 10px 12px; border: 1px solid var(--lf-border);

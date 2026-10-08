@@ -711,6 +711,14 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   (without JavaScript the two fields stay in view, and an empty notice gets the
   language's default on the server); title, optional model overrides. `POST /jobs`
   answers 400 with the form and the error.
+- **Check my text** (`/check`, since 8 October 2026): the deterministic checker on a
+  text the writer pasted, as the CLI `check` runs it (one block per sentence, the rules
+  of the document's language at the chosen level, German and French), in
+  milliseconds, without a model call and without a job: the page answers with the
+  blocks and their findings, the document findings by rule, and the counts (errors,
+  warnings and notes per 100 blocks, sentences, words per sentence, readability,
+  passive, genitive and subordinate-clause shares). Nothing is stored. Facts and
+  meaning need the pipeline, which the page says.
 - **Job running** (`/jobs/{id}` while queued or running): the stages of the chosen
   condition as a stepper (done, running, waiting, skipped, failed), each with its
   detail line ("14 facts, 14 must survive") and its model usage ("1 call · 2,813
@@ -911,7 +919,10 @@ the original `SARI.py`, checked bit for bit; its tokenizer drops the Mediopunkt,
 an added word), judge statistics where a judge ran.
 Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
 protected pages); `python -m leichtfacile eval report` renders the tables for the
-technical report from aggregates only. If the dataset is published, it follows
+technical report from aggregates only, and `eval numbers` prints the headline means
+(P2 against the Zurich prompt in its complete mode, the plain writer with the most
+pairs per setup) and the case of PLAN.md §13.4 they fall into, with the headline
+sentence filled in, so that README, report and video carry the same numbers. If the dataset is published, it follows
 the Hugging Face `HackApertus/online_hack_template` layout: test cases, model
 responses, and metadata with per-instance licensing.
 

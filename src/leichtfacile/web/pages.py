@@ -22,13 +22,14 @@ from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.orchestrator import PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.rules.base import RULES
-from leichtfacile.schemas import LANGS, Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
 from leichtfacile.web.api import ReviewIn
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import MAX_TEXT_CHARS, Submission, SubmissionError, create_job
 from leichtfacile.web.views import (
     STEP_WHO,
     STEPS_BY_CONDITION,
+    check_view,
     display_title,
     drafts_view,
     format_duration,
@@ -229,6 +230,87 @@ def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
             # The decision mode's settings from the file next to the example, if any.
             form.update({k: found[k] for k in ("mode", "addressee", "notice") if found.get(k)})
     return _new(request, form=form)
+
+
+# -- Check my text: the rules alone, on a text the writer wrote ---------------------------
+
+CHECK_LANGS = ("de", "fr")  # the languages the checker has rules for
+
+
+def _check(
+    request: Request,
+    form: dict,
+    *,
+    error: str | None = None,
+    view=None,
+    status_code: int = 200,
+) -> HTMLResponse:
+    return _render(
+        request,
+        "check.html",
+        status_code,
+        error=error,
+        form=form,
+        view=view,
+        doc_langs=CHECK_LANGS,
+        max_chars=MAX_TEXT_CHARS,
+        chars=len(form.get("text") or ""),
+        rules=rule_count(),
+        section="check",
+    )
+
+
+@router.get("/check", response_class=HTMLResponse)
+def check_page(request: Request) -> HTMLResponse:
+    """The form: a text, its language and the level."""
+    return _check(request, form={})
+
+
+@router.post("/check", response_class=HTMLResponse)
+def check_text(
+    request: Request,
+    text: Annotated[str, Form()] = "",
+    lang: Annotated[str, Form()] = "auto",
+    level: Annotated[str, Form()] = "A2",
+) -> HTMLResponse:
+    """The deterministic checker on the pasted text, as the CLI `check` runs it: one
+    block per sentence, the rules of the document's language at the chosen level.
+    No job, no model call, nothing stored; the page answers with the findings."""
+    from leichtfacile.eval.calibrate import source_as_draft
+    from leichtfacile.ingest import ingest_text
+    from leichtfacile.ingest.errors import IngestError
+    from leichtfacile.rules import check_draft
+
+    t = translator(request)
+    form = {"text": text, "lang": lang, "level": level}
+    if not text.strip():
+        return _check(request, form, error=t("check.error.empty"), status_code=400)
+    if len(text) > MAX_TEXT_CHARS:
+        error = SubmissionError("text_too_long", max=MAX_TEXT_CHARS).text(t)
+        return _check(request, form, error=error, status_code=400)
+    if level not in LEVELS:
+        return _check(
+            request,
+            form,
+            error=SubmissionError("unknown_level", level=level).text(t),
+            status_code=400,
+        )
+    chosen = None if lang in ("", "auto") else lang
+    if chosen is not None and chosen not in CHECK_LANGS:
+        error = t("check.error.lang", lang=t.get(f"lang.{chosen}", chosen))
+        return _check(request, form, error=error, status_code=400)
+    try:
+        doc = ingest_text(text, lang=chosen)
+    except IngestError as exc:
+        return _check(
+            request, form, error=SubmissionError("ingest", detail=str(exc)).text(t), status_code=400
+        )
+    if doc.lang not in CHECK_LANGS:
+        error = t("check.error.lang", lang=t.get(f"lang.{doc.lang}", doc.lang))
+        return _check(request, form, error=error, status_code=400)
+    draft = source_as_draft(doc, level)  # type: ignore[arg-type]
+    view = check_view(draft, check_draft(draft), t)
+    return _check(request, form, view=view)
 
 
 @router.get("/ui/{lang}")

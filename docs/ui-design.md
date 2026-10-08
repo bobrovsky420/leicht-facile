@@ -547,6 +547,21 @@ version's blocking count, for the reader view's list), `facts_by_id` and
   the example's settings), the review page with the banner above the first block, and
   the reader view with the notice between the draft note and the first heading.
 
+### 5.8 Check my text (built 8 October 2026, WP17 pulled forward)
+
+A third entry in the app bar, "Check my text" (`/check`). The page is the New draft
+layout without the pipeline: the text card on the left (textarea, character count, the
+line "checked on this server only; no model call, nothing stored"), the settings card
+on the right (document language, level, a hint with the number of rules) and one
+button, "Check". The answer is rendered on the same page under the form: a results card
+with a strip of counts (errors, warnings and notes per 100 blocks; blocks, sentences,
+words per sentence, readability; passive, genitive and subordinate-clause shares), then
+every block with its id, its text and its findings (severity icon, rule id, message,
+suggestion), then the document findings grouped by rule as on the review page. Errors
+(an empty text, a language without rules, a text over the limit) use the form's alert.
+No JavaScript is needed; the tokens and components are those of §3 and §4
+(`.check-block`, `.check-issues`).
+
 ## 6. Behaviour (`app.js`)
 
 Kept: the source tabs, filling an example, the endpoint check, relative times, the
