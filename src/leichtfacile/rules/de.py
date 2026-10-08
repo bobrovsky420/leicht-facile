@@ -662,6 +662,72 @@ def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
             yield hit("GRAM-07.reported", found=t.text, evidence=t.text)
 
 
+# Prefixes that always separate (`mitschicken`: `schicken ... mit`), longest first. The
+# two-way prefixes (`über`, `unter`, `um`, `durch`, `wieder`, `hinter`, `voll`) stay out:
+# `überweisen` is one word in every form.
+SEPARABLE_PREFIXES = tuple(
+    sorted(
+        (
+            "ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "zurück",
+            "zusammen", "zurecht", "her", "hin", "heraus", "hinaus", "herein", "hinein",
+            "herunter", "hinunter", "hinauf", "herauf", "weiter", "fort", "fest", "frei",
+            "heim", "hoch", "klar", "los", "weg", "statt", "teil", "wahr", "bereit", "preis",
+            "kennen",
+        ),
+        key=len,
+        reverse=True,
+    )
+)  # fmt: skip
+GLUED_ALLOWED = frozenset({"anerkennen"})  # Swiss usage keeps it in one word
+
+
+def separable_split(word: str) -> tuple[str, str] | None:
+    """(prefix, verb) when the lowercase word is a separable prefix plus a known verb
+    infinitive (`mitschicken`: `mit`, `schicken`); None otherwise (`antworten`,
+    `beinhalten`, `einigen`: what follows the prefix is no verb)."""
+    if word in GLUED_ALLOWED:
+        return None
+    for prefix in SEPARABLE_PREFIXES:
+        if word.startswith(prefix):
+            stem = word[len(prefix) :]
+            if (
+                len(stem) >= 4
+                and stem.endswith(("en", "ern", "eln"))
+                and is_known(stem, min_zipf=3.0)
+            ):
+                return prefix, stem
+    return None
+
+
+@rule(
+    "GRAM-08",
+    lang=DE,
+    title="Separable verbs split in a main clause: Sie schicken ... mit",
+    severity=sev("error", "warn"),
+    scope="sentence",
+)
+def gram_08(sent: Span, ctx: Context) -> Iterator[Hit]:
+    """A separable verb written as one finite word in verb-second position (`Sie
+    mitschicken eine Kopie`, found in an example draft on 8 October 2026): the tagger
+    calls it VVFIN by its position, and only the form gives it away. An infinitive at
+    the end of a phrase (`Kopie mitschicken`) or under a modal is fine. No writer
+    instruction (`guide`), so the style guide in the prompts stays as frozen."""
+    tokens = [t for t in sent if not (t.is_punct or t.is_space)]
+    for n, t in enumerate(tokens):
+        if n == 0 or t.tag_ != "VVFIN" or t.text[:1].isupper():
+            continue
+        if any(x.tag_ in FINITE_TAGS for x in tokens[:n]):
+            continue  # a verb before it: not the main clause's verb
+        if not any(x.is_alpha for x in tokens[n + 1 :]):
+            continue  # at the end: an infinitive phrase, not a glued finite verb
+        split = separable_split(t.lower_)
+        if split is None:
+            continue
+        prefix, stem = split
+        expected = f"{stem} ... {prefix}"
+        yield hit("GRAM-08", found=t.text, expected=expected, evidence=t.text, suggestion=expected)
+
+
 # -- negation -----------------------------------------------------------------------
 
 NEGATION_WORDS = frozenset(

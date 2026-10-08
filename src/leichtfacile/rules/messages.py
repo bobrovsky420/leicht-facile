@@ -46,6 +46,8 @@ MESSAGES: dict[str, str] = {
     "GRAM-06.ambiguous": "'{found}' could mean several nouns ({options}): repeat the noun.",
     "GRAM-07": "Indirect speech ('{found}').",
     "GRAM-07.reported": "Reported statement ('{found}').",
+    "GRAM-08": "'{found}' is a separable verb written as one word: in a main clause the "
+    "prefix goes to the end ({expected}).",
     # -- German: negation
     "NEG-01": "Double negation: {found}.",
     "NEG-02": "Negation '{found}': can it be said positively?",

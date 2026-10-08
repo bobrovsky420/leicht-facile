@@ -542,7 +542,10 @@ version's blocking count, for the reader view's list), `facts_by_id` and
   as `.notice-banner` at the top of the draft pane, above the first block, with the
   label as a line of its own rather than a tag, so that it scrolls with the blocks it
   frames; the "Decision" tag on the drafts list; the reader view and both exports
-  write the notice first and last.
+  write the notice first and last. Checked the same day with headless screenshots at
+  1440 px: New draft with the KESB example (select, addressee and notice filled from
+  the example's settings), the review page with the banner above the first block, and
+  the reader view with the notice between the draft note and the first heading.
 
 ## 6. Behaviour (`app.js`)
 

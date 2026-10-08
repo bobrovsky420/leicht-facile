@@ -278,7 +278,9 @@ recorded on the draft version (`code_edits`), shown on the review page and repor
 the evaluation. The same step runs after every repair round, before the check: the 8B
 does not apply the split it is given in a repair, and a warning alone costs a polish
 round. P1 and P2 only; the baselines measure the prompt alone ([rules.md](rules.md),
-"Edits made by code").
+"Edits made by code"). Since 8 October 2026 the same step writes `ss` for `ß`
+(`rules/swiss.py`, CH-01, one edit per word, blocks and glossary): the 8B writes `ß`
+now and then, and a repair round is a poor use of a model call for one character.
 
 ### 4.4 Rule check (code)
 

@@ -56,6 +56,7 @@ sentence limits follow from the calibration on the official French pages (below)
 | GRAM-05 | No nominalisations | a noun, or any part of a compound, ending in `-ung`, `-heit`, `-keit`, `-nis`, `-tum` that is not an everyday word (Zipf frequency below 4.0 for the part and the whole word, stop list: `Wohnung`, `Rechnung`, `Versicherung`, ...) and not in the glossary; substantivised infinitives (`das Einreichen`). Warning in nominal style (with a light verb such as `erfolgen` or `vornehmen`, after `zur`/`bei der`, or with a genitive or `von` attribute), otherwise a note | warn / info |
 | GRAM-06 | Pronouns only with an unambiguous reference | 3rd-person pronoun (`er`, `ihn`, `ihm`, lowercase `sie`, demonstrative `dieser`/`diese`) with no noun of matching gender and number in the same or the previous block, or with several; an object `sie` matches feminine singular and plural nouns; a capital `Sie` is taken as the reader | info (judge confirms: SEM-03) |
 | GRAM-07 | No indirect speech | Konjunktiv I in the 3rd person (`er sei`), or `laut` / `gemäss` / `zufolge` + statement | info |
+| GRAM-08 | Separable verbs split in a main clause: `Sie schicken ... mit`, never `Sie mitschicken` | a finite verb (`VVFIN`) in verb-second position, after a first constituent without a verb and before further words, whose form is a separable prefix (`ab`, `an`, `auf`, `aus`, `bei`, `ein`, `mit`, `nach`, `vor`, `zu`, `zurück`, `zusammen`, ...; never the two-way prefixes `über`, `unter`, `um`, `durch`, `wieder`) plus a known verb infinitive (`mitschicken`, `einreichen`, `mitteilen`); the suggestion names the split (`schicken ... mit`). `anerkennen` is allowed as one word (Swiss usage). An infinitive at the end of a phrase (`Kopie mitschicken`) or under a modal is not flagged. Found 8 October 2026 in an example draft (`Sie mitschicken eine Kopie`); no writer instruction, so the style guide and the prompts stay as frozen | error (A2) / warn (B1) |
 
 ### Negation
 
@@ -93,7 +94,7 @@ sentence limits follow from the calibration on the official French pages (below)
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| CH-01 | `ss`, never `ß` | `ß` anywhere | error |
+| CH-01 | `ss`, never `ß` | `ß` anywhere; since 8 October 2026 code writes `ss` into the blocks and the glossary after the write stage and every repair round, like the Mediopunkt (`rules/swiss.py`, a `CodeEdit` per word, P1 and P2 only), so the rule fires on texts checked as they are | error |
 | CH-02 | No `« »` or `„ “`; use `"` sparingly or none | guillemets, low quotes | info |
 | CH-03 | Helvetisms where the official text uses them | German-German variants on a small map (`Fahrrad`→`Velo`, `parken`→`parkieren`, `Bürgersteig`→`Trottoir`, `Krankenhaus`→`Spital`) | info |
 

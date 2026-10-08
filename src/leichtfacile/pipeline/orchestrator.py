@@ -22,6 +22,7 @@ from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
+from leichtfacile.rules.swiss import apply_ss
 from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
@@ -296,6 +297,7 @@ class Orchestrator:
             if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
             draft, _ = apply_mediopunkt(draft)  # P1 and P2 only; a baseline measures the prompt
+            draft, _ = apply_ss(draft)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop("write")
         rules = self._check(job, draft, source, factsheet)
@@ -464,6 +466,7 @@ class Orchestrator:
         if self.settings.use_vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
         new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
+        new_draft, _ = apply_ss(new_draft)
         self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
         self.store.put_artifact(job.id, "repair", record, new_draft.version)
         new_rules = self._check(job, new_draft, source, factsheet)

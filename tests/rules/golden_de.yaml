@@ -111,6 +111,21 @@ GRAM-07:
     - "Das Gesetz sagt: Sie müssen zahlen."
     - Sie sind krank.
 
+GRAM-08:
+  positive:
+    - Sie mitschicken eine Kopie von der Rechnung.
+    - Die Beiständin einreichen ein Inventar.
+    - Wir mitteilen Ihnen den Entscheid.
+  negative:
+    - Sie schicken eine Kopie mit.
+    - Sie müssen eine Kopie mitschicken.
+    - Kopie mitschicken.
+    - Schicken Sie eine Kopie mit.
+    - Sie anerkennen den Entscheid.
+    - Sie antworten bis Freitag.
+    - Die Rechnungen beinhalten alles.
+    - Sie bekommen einen Brief.
+
 NEG-01:
   positive:
     - Sie müssen nicht ohne Ausweis kommen.
