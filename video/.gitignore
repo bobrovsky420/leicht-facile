@@ -1,0 +1,10 @@
+# Everything generated stays out of git: build packages, renders, the capture's data
+# and browser profile, voice and music, UI frames, fonts copied from the app, timelines
+# and texts written by the scripts, the voice model and its cache.
+node_modules/
+out/
+public/
+src/a/
+src/timeline*.json
+tts/models/
+tts/cache/

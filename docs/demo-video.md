@@ -9,6 +9,10 @@ the authority, and why that leaves Apertus).
 
 Submission limit: at most 2 minutes. Target: 1:50.
 
+Source of the mocks and of the final render: [video/](../video/README.md) (Remotion
+scenes, narration per version, voice, music and capture scripts; generated files are
+not in git). The current draft is version C (§3), composition `DemoC`.
+
 ## 1. Concept: "Find the deadline"
 
 The viewer takes a test instead of being told that official letters are hard: find the
@@ -105,6 +109,25 @@ The second sentence, *"Sie schicken das Formular bei der Sozial·versicherungs·
 say "an die"; the checker does not catch it. Either the review step fixes it on screen
 or the example job is rebuilt after a prompt fix.
 
+### Version C: "Can you read this?" opening with variant B's composition (mocked 8 October)
+
+The owner's combination: the split-screen opening of §5 for the first seconds, then
+variant B's step by step and the rest of §2. The stakes play on the kitchen table with
+the letter, drawn in code for now; the owner decides later whether generated footage
+replaces it. The app scene is shorter, since the step by step already shows facts and
+checks. 231 words, 1:48.
+
+| Time | Picture | Narration (English) |
+|------|---------|---------------------|
+| 0:00-0:08 | The split screen of §5: DE-4 and FR-4 type themselves with their questions; the negations light up. | "Can you read this? Did you understand it right away?" |
+| 0:08-0:20 | The kitchen table with the letter (drawn, or generated footage later); **844,000** with PIAAC 2023; then the letter's money, deadline and rights marked, each labelled. | "If you hesitated, you are not alone. 844,000 adults in Switzerland struggle with reading. Letters like these decide their money, their deadlines, their rights." |
+| 0:20-0:31 | A card *Slow expert work*; then the logo, *with Apertus, the Swiss open model*, *The writers stay in charge*, *A checked first draft*. | "Easy-language versions are slow expert work. Leicht·Facile drafts them with Apertus, the Swiss open model, and gives the writers a checked first draft." |
+| 0:31-0:52 | Variant B's step by step on the real sentence s0007. | "Here is how, on one sentence from a real letter." Then as in variant B. |
+| 0:52-1:05 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
+| 1:05-1:14 | The evidence scene of §2. | As in §2. |
+| 1:14-1:44 | The "only Apertus" scene of §5. | As in §5. |
+| 1:44-1:48 | End card as in §5: *"No one left out."*, team, repo (owner, 8 October). | (music only) |
+
 ## 4. Before recording
 
 - [ ] CSCS runs done: the silent-loss share of the strong single prompt for 1:09 from
@@ -147,5 +170,5 @@ scene (1:29-1:57) is reused there unchanged.
 | 0:32-0:49 | Logo, the Apertus name, and the tagline set as text. | "Leicht·Facile drafts easy-language versions of official texts with Apertus, the Swiss open model. It does not replace the writers. It gives them a checked first draft. Apertus does what needs language understanding. Plain code checks everything that can be counted." |
 | 0:49-1:19 | **Real screen recording**, sped up 2-4x, with zooms on key spots: New draft, paste a letter, choose A2. The running job: the stages tick off, the fact sheet appears with the values as chips. Rule check with a millisecond timer. Judge findings turning from red to green (the version pills: blocking problems per version). The review workbench: select a block and its source sentences light up; approve with the keys. Reader view, then export. | "Apertus turns a letter into a fact sheet: every deadline, amount and phone number. Then it writes a draft. Every sentence links back to its source; every omission is explained. Code checks 42 Swiss easy-language rules, and every date and amount. A larger Apertus model judges the meaning. Only flagged sentences are repaired. The writer approves every block, with a full audit trail." |
 | 1:19-1:29 | DE-4 source on the left, **the tool's real A2 output** on the right. Then one evaluation number, P2 against P0. | "The same sentence, now. Short. Clear. The answer comes first. [One sentence with the evaluation result against a single prompt.]" |
-| 1:29-1:57 | The kitchen table again. Four blank envelopes slide in; the edit labels each and adds a small lock: *Patient letter*, *KESB decision*, *Penal order*, *Tax assessment*. Four tiles follow, their text set in the edit: *Foreign cloud*, *Closed model*, *Open weights, secret training data*, *Open data, built abroad*, each struck through on its own sentence, the part that rules it out turning red (*secret training data*, *built abroad*); only when all four are struck, on "Apertus", a fifth, *Apertus: open data, built in Switzerland, in-house*, with a tick. (The fourth tile has its own sentence since 8 October: in the mock it was struck while Apertus was named, and "open data" read as a point against Apertus.) Under it the three icons on-premise, air-gapped, Swiss cloud; on "Ticino" a caption *Canton of Ticino: Apertus in-house for sensitive documents* (text only, no coat of arms); at the end a small label "This demo: CSCS, Lugano". | "Patient letters, child protection decisions, tax letters: under secrecy, they may not go to a foreign cloud. Closed models stay with their makers. Most open models keep their training data closed. Most fully open ones are built abroad. Apertus is open down to its data, built and trained in Switzerland, and runs in-house. Ticino already runs it for sensitive documents. For these letters, it is the only option." |
+| 1:29-1:57 | The kitchen table again. Four window envelopes slide in, face up as Swiss authorities send them (address window bottom right, blank address lines); the edit labels each top left in German and adds a small lock: *Patientenbrief*, *KESB-Entscheid*, *Strafbefehl*, *Steuerveranlagung* (German labels and the window: owner, 8 October). Four tiles follow, their text set in the edit: *Foreign cloud*, *Closed model*, *Open weights, secret training data*, *Open data, built abroad*, each struck through on its own sentence, the part that rules it out turning red (*secret training data*, *built abroad*); only when all four are struck, on "Apertus", a fifth, *Apertus: open data, built in Switzerland, in-house*, with a tick. (The fourth tile has its own sentence since 8 October: in the mock it was struck while Apertus was named, and "open data" read as a point against Apertus.) Under it the three icons on-premise, air-gapped, Swiss cloud; on "Ticino" a caption *Canton of Ticino: Apertus in-house for sensitive documents* (text only, no coat of arms); at the end a small label "This demo: CSCS, Lugano". | "Patient letters, child protection decisions, tax letters: under secrecy, they may not go to a foreign cloud. Closed models stay with their makers. Most open models keep their training data closed. Most fully open ones are built abroad. Apertus is open down to its data, built and trained in Switzerland, and runs in-house. Ticino already runs it for sensitive documents. For these letters, it is the only option." |
 | 1:57-2:00 | End card: *"No one left out."*, team name (Röstigraben Bridgers), repo URL, "Voice and imagery AI-generated". | (music only) |

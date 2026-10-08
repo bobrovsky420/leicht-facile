@@ -1,0 +1,17 @@
+{
+  "name": "leichtfacile-demo-video-mock",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Mock of the Leicht-Facile demo video, rendered with Remotion",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Demo out/demo-mock.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.534",
+    "puppeteer-core": "25.12.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.534"
+  }
+}
