@@ -315,7 +315,7 @@
   "review.core": "Core questions",
   "review.facts": "Facts",
   "review.fact.background": "Background only",
-  "review.facts_hint": "Code checks every value exactly. The judge checks the meaning. Click a fact to see the blocks that carry it.",
+  "review.facts_hint": "Code checks every value exactly. The judge checks the meaning. Click a fact to see its source and the blocks that carry it. For a missing fact, red marks the blocks where it belongs.",
   "review.doc_findings": "Document findings",
   "review.omissions": "Left out, with reasons",
   "review.glossary": "Glossary",

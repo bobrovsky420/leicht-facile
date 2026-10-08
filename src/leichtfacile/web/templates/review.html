@@ -180,7 +180,7 @@
           <p class="hint">{{ t('review.facts_hint') }}</p>
         </div>
         {% for f in v.facts_sorted %}
-        <button type="button" class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" aria-pressed="false">
+        <button type="button" class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" data-fact-segments="{{ f.fact.segment_ids | join(' ') }}" aria-pressed="false">
           <span class="fact-top">{{ icons.sev(f.status) }}<span class="id">{{ f.fact.id }}</span>{% if f.expected %}<span class="chip" lang="{{ doc_lang }}">{{ f.expected }}</span>{% endif %}<span class="fstatus">{{ t('fact.' ~ f.status) }}</span></span>
           <span class="fact-text" lang="{{ doc_lang }}" title="{{ f.fact.text }}">{{ f.fact.text }}</span>
           {% if f.judge_note %}<span class="fact-note"><span class="tag">{{ t('review.tag.judge') }}</span><span lang="{{ doc_lang }}">{{ f.judge_note }}</span></span>{% endif %}

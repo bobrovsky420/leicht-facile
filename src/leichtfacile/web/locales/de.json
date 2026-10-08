@@ -315,7 +315,7 @@
   "review.core": "Kernfragen",
   "review.facts": "Fakten",
   "review.fact.background": "Nur Hintergrund",
-  "review.facts_hint": "Code prüft jeden Wert genau. Das Prüfmodell prüft die Bedeutung. Klicken Sie auf einen Fakt, um die Blöcke zu sehen, die ihn enthalten.",
+  "review.facts_hint": "Code prüft jeden Wert genau. Das Prüfmodell prüft die Bedeutung. Klicken Sie auf einen Fakt, um seine Quelle und die Blöcke zu sehen, die ihn enthalten. Bei einem fehlenden Fakt zeigt Rot die Blöcke, in die er gehört.",
   "review.doc_findings": "Befunde zum ganzen Dokument",
   "review.omissions": "Weggelassen, mit Begründung",
   "review.glossary": "Glossar",

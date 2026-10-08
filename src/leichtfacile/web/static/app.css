@@ -500,6 +500,7 @@ ol.steps { padding: 6px 0; list-style: none; }
 .block:hover { background: var(--lf-sunken); }
 .block.selected { background: var(--lf-accent-weak); box-shadow: inset 3px 0 0 var(--lf-accent); }
 .block.fact-hit { background: var(--lf-accent-faint); box-shadow: inset 3px 0 0 var(--lf-accent); }
+.block.fact-near { background: var(--lf-error-weak); box-shadow: inset 3px 0 0 var(--lf-error); }
 .block:focus { outline: none; }
 .block:focus-visible { outline: 2px solid var(--lf-accent); outline-offset: -2px; }
 .block .bid { flex: none; width: 56px; padding: 13px 0 0 16px; color: var(--lf-muted); font: 400 11px/16px var(--lf-mono); }

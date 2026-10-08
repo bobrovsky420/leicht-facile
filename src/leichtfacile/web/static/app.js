@@ -325,7 +325,7 @@
   // provenance: the selected block's source sentences, a fact's blocks
   const clearMarks = () => {
     $$(".seg-row.linked").forEach((el) => el.classList.remove("linked"));
-    $$(".block.fact-hit").forEach((el) => el.classList.remove("fact-hit"));
+    $$(".block.fact-hit, .block.fact-near").forEach((el) => el.classList.remove("fact-hit", "fact-near"));
     $$(".fact.hit").forEach((el) => {
       el.classList.remove("hit");
       el.setAttribute("aria-pressed", "false");
@@ -621,8 +621,17 @@
       source.classList.add("hit");
       source.setAttribute("aria-pressed", "true");
     }
-    const hits = blocks.filter((b) => (b.dataset.facts || "").split(" ").includes(id));
-    hits.forEach((b) => b.classList.add("fact-hit"));
+    // the source sentences of the fact, and the blocks that carry it; a fact no block
+    // carries marks the blocks built from its source sentences, where it belongs
+    const segs = ((source && source.dataset.factSegments) || "").split(" ").filter(Boolean);
+    showSegments(segs);
+    let hits = blocks.filter((b) => (b.dataset.facts || "").split(" ").includes(id));
+    let mark = "fact-hit";
+    if (!hits.length) {
+      hits = blocks.filter((b) => (b.dataset.segments || "").split(" ").some((s) => segs.includes(s)));
+      mark = "fact-near";
+    }
+    hits.forEach((b) => b.classList.add(mark));
     if (hits[0]) hits[0].scrollIntoView({ block: "center", behavior: "smooth" });
   };
   $$(".fact[data-fact]").forEach((fact) => {
