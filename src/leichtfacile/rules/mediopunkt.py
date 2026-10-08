@@ -12,14 +12,17 @@ Nouns only: spaCy tags NOUN or PROPN. Adjectives, participles and verbs
 (`zivilrechtlichen`, `anspruchsberechtigt`) keep their LEX-01 warning, because the easy
 language fix for them is another word, not `zivil·rechtlichen`. Tokens with a digit,
 web and e-mail addresses are never touched, so no value of the fact contract can
-change. The suggestion comes from the helper LEX-01 uses, so rule and step agree, and
-the step is idempotent: a second run changes nothing.
+change, and neither are the names of the fact sheet's medications (FACT-09): a reader
+compares them with the package. The suggestion comes from the helper LEX-01 uses, so
+rule and step agree, and the step is idempotent: a second run changes nothing.
 
 The step runs in the conditions P1 and P2 only (orchestrator); a baseline measures the
 prompt alone. The CLI `check` is untouched: it checks a text as it is.
 """
 
 from __future__ import annotations
+
+from collections.abc import Iterable
 
 from spacy.language import Language
 from spacy.tokens import Doc
@@ -39,27 +42,29 @@ NOUN_TAGS = frozenset({"NOUN", "PROPN"})
 LANGS = ("de",)  # French has no long compounds (LEX-01-FR stays a note)
 
 
-def apply_mediopunkt(draft: Draft) -> tuple[Draft, list[CodeEdit]]:
+def apply_mediopunkt(draft: Draft, keep: Iterable[str] = ()) -> tuple[Draft, list[CodeEdit]]:
     """The draft with its compound nouns split, and the edits made. The edits are also
     recorded on the returned draft (`code_edits`, one entry per changed word), after
     those an earlier run recorded on the same version; a run that changes nothing
-    returns the draft as it is."""
+    returns the draft as it is. The words of `keep` (medication names) stay as they
+    are."""
     if draft.lang not in LANGS:
         return draft, []
     limit = params_for(draft.lang, draft.level).max_word_letters
     nlp = pipeline(draft.lang)
     tagged = _has_tagger(nlp)
+    kept = frozenset(word.lower() for name in keep for word in name.split())
     edits: list[CodeEdit] = []
     blocks = []
     for block, doc in zip(draft.blocks, nlp.pipe(b.text for b in draft.blocks), strict=True):
-        text, changes = split_text(doc, limit, tagged)
+        text, changes = split_text(doc, limit, tagged, kept)
         edits += _edits(block.id, changes)
         blocks.append(block.model_copy(update={"text": text}) if changes else block)
     glossary = []
     for entry in draft.glossary:
         # A glossary term is a noun phrase by nature; the tagger is unreliable on a bare
         # phrase, so every capitalised word of the term counts as a noun.
-        term, changes = split_text(nlp(entry.term), limit, tagged=False)
+        term, changes = split_text(nlp(entry.term), limit, tagged=False, kept=kept)
         edits += _edits(GLOSSARY, changes)
         glossary.append(entry.model_copy(update={"term": term}) if changes else entry)
     if not edits:
@@ -72,15 +77,17 @@ def _edits(block_id: str, changes: list[tuple[str, str]]) -> list[CodeEdit]:
     return [CodeEdit(block_id=block_id, rule_id=RULE_ID, before=a, after=b) for a, b in changes]
 
 
-def split_text(doc: Doc, limit: int, tagged: bool) -> tuple[str, list[tuple[str, str]]]:
+def split_text(
+    doc: Doc, limit: int, tagged: bool, kept: frozenset[str] = frozenset()
+) -> tuple[str, list[tuple[str, str]]]:
     """The text of a parsed block with its compound nouns split; and (before, after) per
     changed word. With `tagged` False (no tagger, or a glossary term), a capitalised
-    word counts as a noun."""
+    word counts as a noun. A word of `kept` is never changed."""
     out: list[str] = []
     changes: list[tuple[str, str]] = []
     for t in doc:
         word = t.text
-        if _candidate(t, tagged) and not _before_number(t):
+        if word.lower() not in kept and _candidate(t, tagged) and not _before_number(t):
             lowered = lowercase_after_mediopunkt(word)
             fixed = lowered or word
             split = mediopunkt_suggestion(fixed, limit)

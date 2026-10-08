@@ -256,6 +256,7 @@
   "kind.contact": "contact",
   "kind.procedure": "procedure",
   "kind.definition": "definition",
+  "kind.medication": "medication",
   "kind.other": "other",
 
   "fact.present": "present",

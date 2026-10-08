@@ -13,6 +13,7 @@ So arbeiten Sie:
 5. Was Sie vom Dokument weglassen, schreiben Sie in "omissions", mit einem kurzen Grund.
 6. Schwierige Wörter, die Sie brauchen, erklären Sie in "glossary". Nehmen Sie die Erklärungen aus dem Faktenblatt.
 {% if mode is defined and mode == "decision" %}{% include "de/decision.md" %}{% endif %}
+{% if medication is defined and medication %}{% include "de/medication.md" %}{% endif %}
 
 Antworten Sie nur mit einem JSON-Objekt, ohne anderen Text. Die Form sieht so aus. Die Werte sind nur ein Beispiel von einem anderen Dokument (Hunde·steuer); übernehmen Sie keinen Satz daraus:
 

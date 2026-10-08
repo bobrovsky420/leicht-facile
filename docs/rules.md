@@ -110,6 +110,7 @@ sentence limits follow from the calibration on the official French pages (below)
 | FACT-06 | Every value in the draft appears in the source | the mirror of FACT-01: for each date, amount, phone number, e-mail address, web address, percentage, time, period, identifier and postal address found in a draft block, the value (in any accepted surface form) is found in the source text or is a normalised fact-sheet value that the source contains in another form (a period as its bare count); a fact-sheet value the source does not contain at all, such as an end of a period the model computed (`endet am 15. November 2026` for `innert 30 Tagen seit Mitteilung`), is foreign like any other; a shortened web address that is a prefix of a source address passes, as does a full hour the source writes as a plain number (`8-12 Uhr`) and a period the source writes as a plain number; plain numbers are not checked (`zwei Wochen` may become `14 Tage`: the periods are equal); for a phone number, e-mail, web address, identifier or postal address the suggestion names the source's only one, if it has exactly one (never for dates, amounts and periods: the only date in a document may be a law's) | error |
 | FACT-07 | The fixed notice is present | decision mode only, on the export's lines (`check_export`, since 8 October 2026): the first and the last non-empty line are the notice the authority set for the job (`JobConfig.notice`, for example "Massgebend ist der Entscheid."), word for word; the exporters write it as the first and last paragraph and the review page shows it as a banner, not a block, so the check catches an export made without it and a review edit that removes or changes it. The notice is exempt from LAY-01 and LAY-02 | error |
 | FACT-08 | Nothing from the operative part or the appeal instructions is dropped | decision mode only (`rules/decision.py`, since 8 October 2026): the operative part is found by its heading (`III. Entscheid`, `Dispositiv`) or, without one, by the sentence that names the verb of deciding and ends with a colon (`Demnach erkennt das Verwaltungsgericht:`) followed by numbered items; the appeal instructions by their heading (`Rechtsmittelbelehrung`) or by the paragraph that begins `Gegen diesen Entscheid kann` (French: `Dispositif`, `Par ces motifs`, `voies de droit`, `peut faire l'objet d'un recours`). Every item of the operative part (one per paragraph; the distribution list `Zustellung an:` and what follows it are none) and the instructions must be cited by a block and may not be listed as omitted. The hit carries the part's fact id: `protect_factsheet` adds one fact without a value per part, so a repair round asks for a dropped part like a missing value, and it blocks like FACT-01. Silent in standard mode and when the document has neither part | error |
+| FACT-09 | A medication stays in one block with its dose, scheme and duration | patient letters (`rules/medication.py`, since 8 October 2026), so a reader cannot pair a dose with the wrong drug: for each must-keep fact of kind `medication` and each source sentence that names it, the values that belong to it there are its doses (`quantity` in a dose unit: `mg`, `µg`, `g`, `ml`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `mg/kg`; not a measurement such as `38,5 Grad`), its dosing schemes and its durations (a `period` in days, weeks or months, not after `nach`, `in`, `innert`, `ab`, `bis`, `vor`, `seit`, `après`, `dans`, `dès`, ...: those are points in time, conditions or ages; a frequency such as `alle 2 Tage` stays). With several names in one sentence a value belongs to the nearest one. The draft passes when one block that names the medication carries every one of those values the draft has; the finding names the block with the most of them and lists the others. A value or a name the draft lacks is FACT-01's finding, not this one. Repairable: the repair round rewrites the named block. A table that holds the name and the dose in different cells is not checked (the source keeps cells, not rows) | error |
 
 The value kinds (`rules/values.py`). Every kind feeds the code completion of the fact
 sheet, FACT-01, FACT-05, FACT-06 and "hard facts kept" in the evaluation. Plain
@@ -117,7 +118,10 @@ numbers are extracted but not checked. The kinds `period`, `identifier` and `add
 were added on 7 October 2026 for the decisions use case and the further use cases
 ([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)); the model is
 not told about them, code finds them in the source and parses what the model writes
-as a value.
+as a value. The kind `medication` (8 October 2026) is the exception: code cannot find a
+drug name, so the model names the medications. It is asked to only for a source with
+a dose or a dosing scheme, through the partial `medication.md` (docs/prompts.md); every
+other document gets the standard prompt word for word.
 
 | Kind | Found as | Canonical form and matching |
 |------|----------|-----------------------------|
@@ -131,6 +135,7 @@ as a value.
 | `identifier` | AHV number (`756.1234.5678.97`, spaced or as 13 digits); IBAN and QR-IBAN (`CH`, two check digits and 17 characters, any spacing); postal account (`80-151-4`); UID (`CHE-123.456.789`); a code with a digit after a keyword: `Referenz`, `Dossier`, `Aktenzeichen`, compounds with `-nummer` (`Geschäftsnummer`, `Kundennummer`, `Versichertennummer`, `Policennummer`), `Verfügung Nr.`, `Fall Nr.`; French `référence`, `dossier`, `n° de client`; Italian `riferimento`, `incarto`; a keyword split by code (`Geschäfts·nummer`) and a few small words in between (`Die Nummer von Ihrem Dossier ist 2026-0042`) are allowed; a fact-sheet value that is a bare code (`2026-0042`, `K-4711`) is an identifier too | IBAN and AHV number without spaces, everything else exactly after whitespace normalisation, no checksum test (letters carry specimen numbers; decision D-O); a digits-only identifier also matches the number without its keyword (`Dossier 12345` survives as `Ihre Nummer: 12345`); a form number (`Formular 5100`), a count after a common word (`in diesem Fall 300 Franken`) and a one- or two-digit number after a bare keyword are no identifiers |
 | `quantity` | a number with a unit of a dose or a measurement: `mg`, `µg`, `g`, `kg`, `ml`, `dl`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l`, `mg/dl`, `mg/kg`, as symbol or name in German, French or Italian (`2,5 mg`, `2.5 Milligramm`, `2 Tabletten`, `1½ Tabletten`, `über 38,5 Grad`, `9 Liter`); not a length, a weight of goods or money | number with a decimal point and the unit's symbol (`2.5 mg`, `1.5 Tablette`, `38.5 °C`); a match needs the same number and symbol; a fact given as a bare number is found in the quantity (`2` in `2 Tabletten`), a quantity whose unit the draft dropped is not |
 | `schedule` | a dosing scheme of three or four parts (`1-0-1`, `1-0-0-1`, `½-0-½`, `1,5-0-1`), never a page range (`3-5`) or a date with dashes | the parts with decimal points, joined by hyphens (`0.5-0-0.5`); exactly, part by part |
+| `medication` | not extracted by code (there is no drug list); the fact sheet gives the name as `value_norm` for a fact of kind `medication`, and code takes off what the model adds to it: a dose, a scheme, a strength without unit, a form (`Tabletten`, `Tropfen`, `comprimés`) and a part in brackets (`Dafalgan 500 mg Tabletten (Paracetamol)` is `Dafalgan`) | the name in lowercase; found in a text as a whole word or words, case-insensitive, with a Mediopunkt allowed between any letters (`Panto·prazol`), never inside a longer word (`Pantoprazolum`). It feeds FACT-01, FACT-05 and FACT-09, not FACT-06 (a draft's names are not extracted, so an invented drug is the judge's SEM-06) and not "hard facts kept" in the evaluation. The Mediopunkt step leaves the names as written |
 | `address` | street and house number (a street word at the end: `-strasse`, `-str.`, `-weg`, `-gasse`, `-platz`, `-quai`, ...; French and Italian `Rue`, `Avenue`, `Chemin`, `Route`, `Place`, `Via`, `Piazza`, ...; an adjective of place or kind in front such as `Untere Zollgasse` or `Alte Landstrasse`, never the town or office in front of the street nor the surname above it in an address block), `Postfach` / `Case postale` with or without a number, and a four-digit postcode followed by a place name (`Gerichtsstrasse 12, Postfach, 8000 Musterwil`, also over several lines and with `CH-`); a postcode and place alone count only after a line start, a comma or a colon and before a boundary, never in 1900-2099 without a street or `CH-` (a year and a noun), never a count (`1500 Personen`, `6000 Stimmberechtigte`) or a caption | `street number\|Postfach\|postcode place` with `str.` written out and the Mediopunkt removed; postcode and place must agree (case-insensitive), the street and the Postfach only when the fact has them: an address without its street is a loss (FACT-01), a street the source lacks an invention (FACT-06) |
 
 ### Layout (checked on export)
@@ -327,40 +332,19 @@ entries (`Behörde`, `Merkblatt`) or context-dependent (`Unterlagen`, `obligator
 (`Abklärungs-Stelle`) is no longer flagged. What still fires on the easy pages are
 office words (`genehmigt`, `einreichen`, `Anliegen`).
 
-## Planned fact checks (not implemented)
+## Fact checks for the further use cases
 
-Specified on 6 October 2026 for the decisions use case
+Specified on 6 October 2026 as planned checks for the decisions use case
 ([use-case-decisions.md](use-case-decisions.md)) and the further use cases
-([use-cases.md](use-cases.md)). None of them exists in code yet, except SEM-08 (judge
-table, 7 October 2026) and FACT-07, FACT-08, SEM-09 and SEM-10 (8 October 2026), which
-moved into the tables above. Their ids are written in backticks
-because the registry test reads the rule tables above and expects every bare id there
-to be registered in code. When a check is built, its row moves into its family's table
-above, with golden tests, and loses the backticks.
-
-### New value kinds
-
-Value kinds feed the code completion of the fact sheet, FACT-01 (every must-keep value
-is in the draft), FACT-05 (fact-sheet values are in the source), FACT-06 (no value in
-the draft that the source lacks) and "hard facts kept" in the evaluation. The checked
-kinds are listed under "Facts" above (`rules/values.py`); `period`, `identifier`,
-`address`, `quantity` and `schedule` moved there on 7 October 2026. Plain numbers are
-extracted but not checked.
-
-| Kind | What is extracted | Canonical form and matching | Use cases |
-|------|-------------------|-----------------------------|-----------|
-| `medication` | not extracted by code (there is no drug list yet); the fact sheet gives the name as `value_norm` for facts of kind `medication` | the name exactly, case-insensitive, ignoring the Mediopunkt | 3 |
-
-### New checks
-
-| Planned id | Rule | Detection | Severity | Use cases |
-|------------|------|-----------|----------|-----------|
-| `FACT-09` | A medication stays in one block | the block that names a medication also carries its dose, scheme and period, so a reader cannot pair a dose with the wrong drug | error | 3 |
-
-### New questions for the judge
-
-| Planned id | Question the judge answers | Use cases |
-|------------|----------------------------|-----------|
+([use-cases.md](use-cases.md)), and all built since: the value kinds `period`,
+`identifier`, `address`, `quantity` and `schedule` (7 October 2026), SEM-08 (7 October
+2026), FACT-07, FACT-08, SEM-09 and SEM-10 (8 October 2026), and the value kind
+`medication` with FACT-09 (8 October 2026). Their rows are in the tables above. A
+check planned later gets a row here with its id in backticks, because the registry
+test reads the rule tables and expects every bare id there to be registered in code;
+when it is built, the row moves into its family's table, with tests, and loses the
+backticks. Still open for patient letters (use-cases.md §3): a drug list, so that code
+can find a medication the model did not name, and a medical judge model.
 
 ## Calibration on official easy-language texts
 

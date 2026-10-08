@@ -26,11 +26,13 @@ from leichtfacile.pipeline.models import (
 from leichtfacile.pipeline.prompts import examples, level_name, render
 from leichtfacile.rules.document import KnownValues, display_value
 from leichtfacile.rules.lexicon import MEDIOPUNKT
+from leichtfacile.rules.medication import has_doses, names_medication
 from leichtfacile.rules.nlp import pipeline as nlp_pipeline
 from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
+    contains,
     extract_values,
     format_address,
     format_identifier,
@@ -380,6 +382,7 @@ def understand(
         source.lang,
         "understand",
         **mode_context("understand", mode, addressee),
+        medication=has_doses(source),
         level_name=level_name(source.lang, level),
         source=r.source_text(source),
     )
@@ -643,6 +646,7 @@ def write(
             lang,
             "write",
             **mode_context("write", mode, addressee),
+            medication=names_medication(factsheet),
             level_name=level_name(lang, level),
             level=level,
             style_guide=style_guide(lang, level),
@@ -778,7 +782,7 @@ def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
         segment_ids = list(b.segment_ids)
         values = extract_values(b.text, draft.lang) if targets or worded else []
         for fact_id, target, fact_segments in targets:
-            if any(matches(target, v) for v in values):
+            if contains(target, b.text, values):
                 if fact_id not in ids:
                     ids.append(fact_id)
                 if not b.segment_ids and b.kind != "heading":

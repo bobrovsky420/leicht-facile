@@ -75,13 +75,15 @@ def _block_ids(value: Any) -> list[str]:
 
 FACT_KINDS = {
     "deadline", "amount", "obligation", "right", "condition", "contact", "procedure",
-    "definition", "other",
+    "definition", "medication", "other",
 }  # fmt: skip
 _FACT_KIND_ALIASES = {
     "date": "deadline", "frist": "deadline", "termin": "deadline", "cost": "amount",
     "betrag": "amount", "fee": "amount", "duty": "obligation", "pflicht": "obligation",
     "recht": "right", "bedingung": "condition", "kontakt": "contact", "phone": "contact",
-    "ablauf": "procedure", "begriff": "definition",
+    "ablauf": "procedure", "begriff": "definition", "medikament": "medication",
+    "medicine": "medication", "drug": "medication", "médicament": "medication",
+    "medicament": "medication", "farmaco": "medication",
 }  # fmt: skip
 
 

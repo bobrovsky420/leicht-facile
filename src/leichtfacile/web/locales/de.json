@@ -256,6 +256,7 @@
   "kind.contact": "Kontakt",
   "kind.procedure": "Ablauf",
   "kind.definition": "Begriff",
+  "kind.medication": "Medikament",
   "kind.other": "anderes",
 
   "fact.present": "vorhanden",
@@ -548,6 +549,7 @@
   "finding.FACT-08.omitted": "Punkt {item} des Entscheids ist als weggelassen aufgeführt: {text}",
   "finding.FACT-08.appeal": "Die Rechtsmittelbelehrung steht in keinem Block: {text}",
   "finding.FACT-08.appeal_omitted": "Die Rechtsmittelbelehrung ist als weggelassen aufgeführt: {text}",
+  "finding.FACT-09": "{name} steht hier ohne {values}; das steht in einem anderen Block. Schreiben Sie das Medikament mit Dosis, Schema und Dauer in einen Block, einen Listenpunkt pro Medikament.",
   "finding.LAY-01": "Zeile {line} hat mehr als einen Satz.",
   "finding.LAY-02": "Zeile {line} hat {chars} Zeichen; höchstens {limit}.",
   "finding.LAY-03": "Überschrift mit {words} Wörtern; höchstens {limit}.",
@@ -567,6 +569,7 @@
   "rule.FACT-06": "Jeder Wert im Entwurf steht in der Quelle",
   "rule.FACT-07": "Der feste Hinweis ist da",
   "rule.FACT-08": "Nichts aus dem Entscheid und der Rechtsmittelbelehrung fällt weg",
+  "rule.FACT-09": "Ein Medikament steht mit Dosis, Schema und Dauer in einem Block",
   "rule.GRAM-01": "Kein Passiv",
   "rule.GRAM-02": "Kein Genitiv; von + Dativ",
   "rule.GRAM-03": "Kein Konjunktiv",

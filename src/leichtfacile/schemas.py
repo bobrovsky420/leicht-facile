@@ -26,6 +26,7 @@ FactKind = Literal[
     "contact",
     "procedure",
     "definition",
+    "medication",
     "other",
 ]
 SourceType = Literal["text", "html", "pdf", "image"]
@@ -157,7 +158,7 @@ class Fact(Artifact):
     # --03-31 without year), amount as decimal number (500 or 1500.50), phone as
     # digits (0441234567), e-mail, URL, percent (10%), time (09:00), period in words
     # (30 Tage), identifier as written (2026-0042, 756.1234.5678.97), postal address
-    # (Gerichtsstrasse 12, 8000 Musterwil).
+    # (Gerichtsstrasse 12, 8000 Musterwil), a medication by its name (Dafalgan).
     value_norm: str | None = None
     segment_ids: list[str] = Field(default_factory=list)
     must_keep: bool = True

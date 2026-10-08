@@ -15,7 +15,7 @@ from leichtfacile.rules.values import HARD_KINDS
 from leichtfacile.schemas import Block, Draft
 
 RULES_DIR = Path(rules_package.__file__).parent
-MODULES = ("de.py", "fr.py", "document.py", "decision.py", "layout.py")
+MODULES = ("de.py", "fr.py", "document.py", "decision.py", "medication.py", "layout.py")
 # Keyword arguments of hit() that are fields of the Hit, not placeholders.
 HIT_FIELDS = {"evidence", "suggestion", "severity", "fact_id", "segment_ids", "block_id"}
 

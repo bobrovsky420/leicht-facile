@@ -20,6 +20,7 @@ Ihre Aufgabe:
 4. Listen Sie schwierige Wörter auf: Fachwörter, Namen von Ämtern, Abkürzungen. Erklären Sie jedes Wort einfach, in höchstens 2 kurzen Sätzen.
 5. Listen Sie Stellen auf, die eine Fassung in {{ level_name }} weglassen kann, zum Beispiel Gesetzesartikel, Wiederholungen oder interne Hinweise. Geben Sie die Satznummern und einen kurzen Grund an.
 {% if mode is defined and mode == "decision" %}{% include "de/decision.md" %}{% endif %}
+{% if medication is defined and medication %}{% include "de/medication.md" %}{% endif %}
 
 Schreiben Sie alle Texte auf Deutsch.
 

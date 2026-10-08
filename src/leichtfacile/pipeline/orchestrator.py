@@ -21,6 +21,7 @@ from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
+from leichtfacile.rules.medication import medication_names
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.rules.swiss import apply_ss
 from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
@@ -41,11 +42,12 @@ from leichtfacile.store import Store
 log = logging.getLogger(__name__)
 
 # Rule families whose findings the model can fix by rewriting a block. A value the
-# source does not contain (FACT-06) is fixed the same way; a missing fact value
+# source does not contain (FACT-06) is fixed the same way, and a medication written
+# apart from its dose (FACT-09) on the block that names it; a missing fact value
 # (FACT-01) gets new sentences. Provenance and bookkeeping findings (FACT-02 to
 # FACT-05) and layout go to the reviewer instead.
 REPAIRABLE = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
-REPAIRABLE_RULES = ("FACT-06",)
+REPAIRABLE_RULES = ("FACT-06", "FACT-09")
 # Findings that name a fact the draft lacks: a missing must-keep value, and in decision
 # mode a dropped part of the operative part or the appeal instructions (rules/decision.py).
 MISSING_RULES = ("FACT-01", "FACT-08")
@@ -54,7 +56,16 @@ MAX_MISSING_PER_ROUND = 5
 MISSING_PRIORITY = {
     kind: rank
     for rank, kind in enumerate(
-        ("deadline", "amount", "obligation", "condition", "right", "contact", "procedure")
+        (
+            "medication",
+            "deadline",
+            "amount",
+            "obligation",
+            "condition",
+            "right",
+            "contact",
+            "procedure",
+        )
     )
 }
 ARTIFACTS_FROM = {
@@ -296,7 +307,8 @@ class Orchestrator:
             draft = stages.link_facts(draft, factsheet)
             if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
-            draft, _ = apply_mediopunkt(draft)  # P1 and P2 only; a baseline measures the prompt
+            # P1 and P2 only; a baseline measures the prompt
+            draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
             draft, _ = apply_ss(draft)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop("write")
@@ -465,7 +477,8 @@ class Orchestrator:
         new_draft = stages.link_facts(new_draft, factsheet)
         if self.settings.use_vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
-        new_draft, _ = apply_mediopunkt(new_draft)  # before the check: one text for all
+        # Before the check: one text for all.
+        new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
         new_draft, _ = apply_ss(new_draft)
         self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
         self.store.put_artifact(job.id, "repair", record, new_draft.version)

@@ -74,8 +74,9 @@ decision prevails; judge checks for neutrality and advice.
 Further users, sketched in [use-cases.md](use-cases.md): physicians (patient letters),
 public prosecutors' and debt collection offices, social services, schools, study teams,
 and helpers such as tenants' associations and debt counselling services, who explain
-letters someone else wrote (the received-letter mode planned in PLAN.md, WP12b). They
-need the planned checks of [rules.md](rules.md#planned-fact-checks-not-implemented).
+letters someone else wrote (the received-letter mode planned in PLAN.md, WP12b). The
+fact checks they need are in
+[rules.md](rules.md#fact-checks-for-the-further-use-cases).
 
 ## 3. Architecture overview
 
@@ -330,10 +331,12 @@ score, share of passive sentences, …). The full catalogue is in
   ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"). Every further
   use case turns on one of them
   ([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)).
-- planned, not built: drug names as a value kind, plus checks for the fixed notice,
-  the operative part and appeal instructions, and a medication kept in one block, and
-  three more questions for the judge
-  ([rules.md](rules.md#planned-fact-checks-not-implemented)).
+- the checks for the further use cases, all built by 8 October 2026: the fixed notice
+  (FACT-07) and the operative part and appeal instructions (FACT-08) of the decision
+  mode, the judge's SEM-08 to SEM-10, and for patient letters a medication by its name
+  (the value kind `medication`, which the fact sheet gives: code finds no drug name)
+  kept in one block with its dose, scheme and duration (FACT-09, `rules/medication.py`)
+  ([rules.md](rules.md#fact-checks-for-the-further-use-cases)).
 
 Each rule is registered in code once (`rules/base.py`), with its id, severity per level
 and the instruction for the writer prompt; the style guide is rendered from that

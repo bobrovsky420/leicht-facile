@@ -7,7 +7,9 @@ of the model-independent "hard fact" metric in the evaluation. A value is reduce
 a canonical string, so "31. März 2026", "31.3.2026" and "2026-03-31" are the same
 date, "1'500 Franken", "CHF 1500.-" and "1 500.00" the same amount, "30 Tagen",
 "dreissig Tage" and "30-tägige" the same period, and "2,5 mg" and "2.5 Milligramm"
-the same quantity.
+the same quantity. A medication name is no pattern (there is no drug list): the fact
+sheet gives it as the value of a fact of kind `medication`, and it is searched as
+written, case-insensitive, ignoring the Mediopunkt.
 """
 
 from __future__ import annotations
@@ -16,13 +18,15 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 from typing import Literal
 
 ValueKind = Literal[
     "date", "amount", "number", "phone", "email", "url", "percent", "time",
-    "period", "identifier", "address", "quantity", "schedule",
+    "period", "identifier", "address", "quantity", "schedule", "medication",
 ]  # fmt: skip
-# The kinds a rewrite must keep exactly (plain numbers are not among them).
+# The kinds a rewrite must keep exactly (plain numbers are not among them). A
+# medication is not among them either: no pattern extracts it from a text.
 HARD_KINDS: tuple[ValueKind, ...] = (
     "date", "amount", "phone", "email", "url", "percent", "time",
     "period", "identifier", "address", "quantity", "schedule",
@@ -719,6 +723,54 @@ def _address(m: re.Match[str]) -> str | None:
     return f"{street}|{pobox}|{plz} {_clean(place)}"
 
 
+# -- medication names (patient letters) --------------------------------------------
+
+# The units of a dose, as opposed to a measurement (`38,5 Grad`, `120 mmHg`) or an
+# everyday amount (`2 Liter`, `5 kg`): what FACT-09 keeps next to a medication's name.
+DOSE_UNITS = frozenset(
+    {"mg", "µg", "g", "ml", "IE", "Tropfen", "Tablette", "Kapsel", "Hub", "mg/kg"}
+)
+# Words for the form of a medication, which the fact sheet's name leaves out: the 8B
+# writes `Dafalgan 500 mg Tabletten` where the name is `Dafalgan`.
+_FORM_WORDS = re.compile(
+    r"(?<![\w·])(?:(?:Film|Brause|Retard|Lutsch|Kau|Schmelz)?Tabletten?|Kapseln?|Dragées?"
+    r"|Tropfen|Sirup|Saft|Salbe|Creme|Gel|Spray|Pflaster|Zäpfchen|Injektion(?:en)?|Ampullen?"
+    r"|Inhalation|Lösung|Suspension|comprimés?(?:[ ](?:pelliculés?|effervescents?))?|gélules?"
+    r"|capsules?|gouttes|sirop|pommade|crème|patch|suppositoires?|solution|injection"
+    r"|compress[ae]|capsul[ae]|gocce|sciroppo|pomata|cerotto|supposte?|soluzione|iniezione)"
+    r"(?![\w·])",
+    re.IGNORECASE,
+)
+
+
+def medication_name(value_norm: str) -> str | None:
+    """The name in a medication fact's value, without the dose, scheme, strength, form
+    or a part in brackets that the model added: `Dafalgan 500 mg Tabletten (Paracetamol)`
+    is `Dafalgan`. None when no word is left."""
+    name = re.sub(r"\([^)]*\)", " ", value_norm)
+    name = _SCHEDULE_RE.sub(" ", name)
+    name = _QUANTITY_RE.sub(" ", name)
+    name = _FORM_WORDS.sub(" ", name)
+    name = " ".join(name.split()).strip(" ,;:." + DASHES)
+    name = re.sub(r"(?:[ ]\d+(?:[.,]\d+)?)+$", "", name)  # a strength without its unit
+    return name if re.search(r"[^\W\d_]", name) else None
+
+
+@lru_cache(maxsize=256)
+def _name_pattern(canonical: str) -> re.Pattern[str]:
+    """A name as a word or words of a text, any case, a Mediopunkt between any letters."""
+    words = ["·?".join(re.escape(c) for c in word) for word in canonical.split()]
+    return re.compile(r"(?<!\w)" + r"\s+".join(words) + r"(?!\w)", re.IGNORECASE)
+
+
+def find_medication(target: Value, text: str) -> list[Value]:
+    """The places where a text names the medication."""
+    return [
+        Value("medication", target.canonical, m.group(0), m.start(), m.end())
+        for m in _name_pattern(target.canonical).finditer(text)
+    ]
+
+
 # -- normalised fact values --------------------------------------------------------
 
 
@@ -729,6 +781,11 @@ def parse_value_norm(
     if not value_norm or not value_norm.strip():
         return None
     raw = value_norm.strip()
+    if fact_kind == "medication":
+        name = medication_name(raw)
+        if name is None:
+            return None
+        return Value("medication", " ".join(name.replace("·", "").lower().split()), name)
     if m := re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", raw):
         canonical = canonical_date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
         return Value("date", canonical) if canonical else None
@@ -817,7 +874,18 @@ def matches(target: Value, candidate: Value) -> bool:
 
 
 def find_value(target: Value, text: str, lang: str = "de") -> list[Value]:
+    if target.kind == "medication":
+        return find_medication(target, text)
     return [v for v in extract_values(text, lang) if matches(target, v)]
+
+
+def contains(target: Value, text: str, values: Iterable[Value]) -> bool:
+    """Whether a text carries the fact's value; `values` are the text's values, which a
+    caller extracts once for many facts. A medication is searched by its name, which no
+    pattern extracts."""
+    if target.kind == "medication":
+        return bool(find_medication(target, text))
+    return any(matches(target, v) for v in values)
 
 
 def hard_values(text: str, lang: str = "de") -> set[tuple[str, str]]:

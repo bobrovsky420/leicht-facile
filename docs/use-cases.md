@@ -7,8 +7,8 @@ in their own documents, [use-case-canton.md](use-case-canton.md) and
 document is, which facts must survive, who reviews, and what the checker still needs.
 The value kinds `period`, `identifier` and `address` they share exist since 7 October
 2026 ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"); the
-remaining checks are specified in
-[rules.md](rules.md#planned-fact-checks-not-implemented). Companion to
+checks built for them since are listed in
+[rules.md](rules.md#fact-checks-for-the-further-use-cases). Companion to
 [architecture.md](architecture.md).
 
 ## 1. Overview
@@ -131,11 +131,16 @@ what they learned.
   Apertus-70B-MeditronFO (EPFL).
 - **Works today.** Dates, phone numbers, periods (how long to take a drug, when to
   come back), doses (`5 mg`, `2 Tabletten`), dosing schemes (`1-0-1`) and thresholds
-  (`über 38,5 Grad`) are checked facts; the judge looks for invented statements.
-- **Needs.** The value kind `medication` (drug names, which need a drug list); the
-  check `FACT-09` (a drug's name, dose and scheme in one block); the judge question
-  `SEM-08` (an instruction stays an instruction, a recommendation a recommendation); a
-  medical judge model.
+  (`über 38,5 Grad`) are checked facts; the judge looks for invented statements and
+  asks SEM-08 (an instruction stays an instruction, a recommendation a
+  recommendation). Since 8 October 2026 the drug names too: for a source with a dose
+  the fact sheet names each medication (the value kind `medication`), FACT-01 asks for
+  every name, and FACT-09 keeps each medication in one block with its dose, scheme and
+  duration, so a reader cannot pair a dose with the wrong drug. The write prompt asks
+  for one list item per medication.
+- **Needs.** A drug list (for instance the Swissmedic list of authorised medicines),
+  so that code finds a medication the model did not name and FACT-06 a name the
+  draft invented; a medical judge model.
 - **Limits.** A wrong dose is harm, not just a wrong fact: the physician's review is
   mandatory, and the letter gives no advice beyond the report. Whether such software
   is a medical device (Swiss Medical Devices Ordinance, aligned with the EU MDR) must
@@ -316,7 +321,7 @@ what they learned.
 | Periods as a checked value kind | 2, 4-8, 10, 12 | Built 7 October 2026: [rules.md](rules.md#facts-the-most-important-family), `period` |
 | Identifiers (case and reference numbers, AHV number, IBAN, tax number) | 2, 5-7, 12 | Built 7 October 2026: rules.md, `identifier` |
 | Postal addresses (where to appeal or object) | 2, 4-6, 8, 10, 12 | Built 7 October 2026: rules.md, `address` |
-| Doses, dosing schemes, drug names | 3, 9 | `quantity` and `schedule` built 7 October 2026 (rules.md, Facts); `medication` and `FACT-09` planned |
+| Doses, dosing schemes, drug names | 3, 9 | `quantity` and `schedule` built 7 October 2026, `medication` and FACT-09 8 October 2026 (rules.md, Facts); a drug list open |
 | The decision mode: addressed person, fixed notice, operative part and appeal instructions kept | 2, 5-8, 10 | [use-case-decisions.md §7](use-case-decisions.md#7-what-works-today-and-what-is-planned); rules.md: `FACT-07`, `FACT-08` |
 | The received-letter mode | 4, 6, 12 | PLAN.md WP12b |
 | Obligations, conditions and the start of periods kept; no advice | all | rules.md: `SEM-08`, `SEM-09`, `SEM-10` |

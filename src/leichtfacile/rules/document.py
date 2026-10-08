@@ -13,6 +13,7 @@ from leichtfacile.rules.messages import hit
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
+    contains,
     extract_values,
     format_address,
     format_date,
@@ -68,6 +69,8 @@ def display_value(value: Value, lang: str) -> str:
         return format_identifier(value.canonical)
     if value.kind == "address":
         return format_address(value.canonical)
+    if value.kind == "medication":
+        return value.text or value.canonical  # the name as the fact sheet writes it
     return value.canonical
 
 
@@ -87,6 +90,11 @@ def source_values(source: SourceDocument, lang: str) -> list[Value]:
     return [v for part in (source.title, source.text()) if part for v in extract_values(part, lang)]
 
 
+def full_text(source: SourceDocument) -> str:
+    """The text of a source with its title, where a medication's name is searched."""
+    return "\n".join(part for part in (source.title, source.text()) if part)
+
+
 def fact_coverage(
     draft: Draft, factsheet: FactSheet, lang: str, source: SourceDocument | None = None
 ) -> FactCoverage:
@@ -95,20 +103,20 @@ def fact_coverage(
     model computed or invented it (FACT-05 warns), and the draft may not carry it
     (FACT-06), so it cannot be required either."""
     values_by_block = {b.id: extract_values(b.text, lang) for b in draft.blocks}
+    texts = {b.id: b.text for b in draft.blocks}
     in_source = source_values(source, lang) if source is not None else None
+    source_text = full_text(source) if source is not None else ""
     checkable, missing = [], []
     found: dict[str, list[str]] = {}
     for fact in factsheet.must_keep():
         target = parse_value_norm(fact.value_norm, fact.kind, lang)
         if target is None:
             continue
-        if in_source is not None and not any(matches(target, v) for v in in_source):
+        if in_source is not None and not contains(target, source_text, in_source):
             continue
         checkable.append(fact)
         blocks = [
-            bid
-            for bid, values in values_by_block.items()
-            if any(matches(target, v) for v in values)
+            bid for bid, values in values_by_block.items() if contains(target, texts[bid], values)
         ]
         if blocks:
             found[fact.id] = blocks
@@ -243,6 +251,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         return
     by_id = doc.source.by_id()
     all_values = source_values(doc.source, ctx.lang)
+    source_text = full_text(doc.source)
     for fact in doc.factsheet.facts:
         unknown = [s for s in fact.segment_ids if s not in by_id]
         if unknown:
@@ -257,11 +266,10 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         if target is None:
             continue
         cited = " ".join(by_id[s].text for s in fact.segment_ids if s in by_id)
-        in_cited = any(matches(target, v) for v in extract_values(cited, ctx.lang))
-        if in_cited:
+        if contains(target, cited, extract_values(cited, ctx.lang)):
             continue
         yield hit(
-            "FACT-05.cited" if any(matches(target, v) for v in all_values) else "FACT-05",
+            "FACT-05.cited" if contains(target, source_text, all_values) else "FACT-05",
             fact=fact.id,
             value=fact.value_norm,
             evidence=fact.text,

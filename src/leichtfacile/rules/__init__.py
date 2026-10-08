@@ -1,8 +1,8 @@
 """Deterministic rule checks (docs/rules.md).
 
 Importing the package registers every rule: German rules in `de`, French rules in `fr`,
-language-independent ones in `document` (facts, headings, readability, judge rule ids)
-and `layout` (export).
+language-independent ones in `document` (facts, headings, readability, judge rule ids),
+`decision` (decision mode), `medication` (patient letters) and `layout` (export).
 """
 
 from leichtfacile.rules import (  # noqa: F401  (registers the rules)
@@ -11,6 +11,7 @@ from leichtfacile.rules import (  # noqa: F401  (registers the rules)
     document,
     fr,
     layout,
+    medication,
 )
 from leichtfacile.rules.base import PARAMS, RULES, LevelParams, RuleSpec, params_for
 from leichtfacile.rules.checker import RuleChecker, check_draft, get_checker

@@ -51,7 +51,13 @@ from leichtfacile.pipeline.orchestrator import (
     build_request,
 )
 from leichtfacile.rules.document import fact_coverage
-from leichtfacile.rules.values import MONTH_NAMES, Value, extract_values, matches, parse_value_norm
+from leichtfacile.rules.values import (
+    MONTH_NAMES,
+    Value,
+    contains,
+    extract_values,
+    parse_value_norm,
+)
 from leichtfacile.schemas import (
     Draft,
     FactSheet,
@@ -120,7 +126,7 @@ def mentions(target: Value, text: str, lang: str) -> str | None:
     """Whether a text carries the value: "exact" when FACT-01 would accept it, "loose"
     when its digits or its words are there in another form (a heuristic for a reader:
     `31.3.` for `2026-03-31` is exact, `Ende März 2026` loose), else None."""
-    if any(matches(target, v) for v in extract_values(text, lang)):
+    if contains(target, text, extract_values(text, lang)):
         return "exact"
     lowered = text.lower()
     if target.kind == "date":
@@ -302,13 +308,14 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
                     item.reason = f"asked in the round to v{last}; the model did not write it"
                 item.reason += later
         missing.append(item)
-    final_values = extract_values(drafts[final].text(), lang)
+    final_text = drafts[final].text()
+    final_values = extract_values(final_text, lang)
     background_lost = []
     for fact in factsheet.facts:
         if fact.must_keep:
             continue
         target = parse_value_norm(fact.value_norm, fact.kind, lang)
-        if target is None or any(matches(target, v) for v in final_values):
+        if target is None or contains(target, final_text, final_values):
             continue
         background_lost.append(
             {

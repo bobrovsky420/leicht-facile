@@ -169,7 +169,9 @@ Local environment facts:
   (WP14, D-U); everything else is WP17. *Done 7 Oct: the value kinds `period`,
   `identifier`, `address`, `quantity` and `schedule` (WP14), a day before their slot;
   the decision mode moves to WP15 as a v1 for G4 (planned 7 Oct); the rest stays
-  WP17.*
+  WP17.* *8 Oct: the rest built too (FACT-07, FACT-08, SEM-09, SEM-10 in decision mode
+  v1; the value kind `medication` and FACT-09 at the owner's request); a drug list and
+  a postcode list stay WP17.*
 
 ### Added 7 October: the UI redesign (WP18)
 
@@ -834,6 +836,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-08 (session f1, WP17 pulled forward and the numbers tool): "Check my text" at `/check`, a third entry in the app bar: the deterministic checker on a pasted text as the CLI `check` runs it (one block per sentence, German and French, the chosen level), the blocks with their findings, the document findings by rule, the counts per 100 blocks and the text metrics; no job, no model call, nothing stored; the `app_env` fixture moved to `tests/web/conftest.py` for the new test file (ui-design §5.8, architecture §7). `eval numbers`: the headline means per setup from a results folder (the plain writer with the most pairs; the silent losses of a row without a checklist from the hard facts kept), the §13.4 case with its three comparisons and the headline sentence filled in. On `eval/results-cscs` (eval split, 20 German pairs) it reproduces the known numbers: P2 8B 84 percent fact coverage, 80 hard facts kept, 4.3 errors and 0.1 invented values per 100 blocks; P0-ZH complete 91, 95, 15.4, 0.0, 5 percent silent losses; condensed 77 kept, 23 lost; case B. The stored P1 and P2 rows of this folder predate the silent-loss key (the final run fills it). 1,181 tests and ruff green.
 - 2026-10-08 (Docker check): `make check-docker` before `run`, `stop`, `check-llm` and `smoke`: a stopped Docker daemon, a missing `docker` or a missing Compose v2 now ends with a short message and how to fix it instead of a Compose connection error (tested on Windows with `DOCKER_HOST` pointed at a missing pipe); architecture §10 updated.
 - 2026-10-08 (clean example jobs): `examples build` writes a job only when its final draft shows no errors (rule errors, facts the judge finds missing or distorted, unsupported statements; `--allow-problems` writes it anyway), and `tests/test_examples.py` fails on a shipped job with errors: a first-time visitor reads the red counts as a fault of the application. Two checker false positives from the example letters fixed: FACT-02 no longer repeats a fact whose value FACT-01 reports missing, and `link_facts` gives a block without a source sentence the sentences of the facts whose values it contains (FACT-03) and links a fact without a value to a block that cites its sentences and holds all the values of its text (FACT-02: the French contact, the German move notice); docs/rules.md and architecture §6 updated. Two rebuilds on CSCS: German 5 then 2 errors, French 12 then 10, so neither is written and the 7 Oct bundles stay. Left: German f07 (the residence date 1 January 2027 is missing, a real omission) and a judge false positive (b009 is in the source); French a long sentence, a wrong-meaning sentence (`Vous payez la réduction`), an invented sentence, three blocks without provenance and judge false positives (f07 and f08 "missing" although b006 has both amounts). The two example tests stay red until the owner decides how the examples become clean.
+- 2026-10-08 (medication and FACT-09): the owner asked for every planned rule except Italian; what was left was the value kind `medication` and FACT-09. The fact sheet names each drug (kind `medication`, the name alone; code takes off a dose, form or bracket the model adds), FACT-01 and FACT-05 find the name as a whole word in any case and through a Mediopunkt, and FACT-09 (`rules/medication.py`, error, repairable) asks that a block naming the drug carries every dose, scheme and duration the source sentence gives it and the draft has, a value going to the nearest name when a sentence has several drugs; points in time, ages and measurements are no part of it. The prompts learn the kind from a partial `medication.md` (DE, FR), included in Understand when the source has a dose and in Write when the fact sheet names a drug: none of the 35 evaluation sources and neither decision has a dose, so the frozen prompts render byte for byte as before. Medication facts come first among the missing facts of a repair round; the Mediopunkt step leaves drug names alone. rules.md: the kind in the value-kind table, FACT-09 in the facts table, the planned section renamed "Fact checks for the further use cases" (links updated); use-cases §3 and §13, architecture, prompts change log 10. Tests: `tests/rules/test_medication.py` (28); 1,215 tests, all green except the two example-job tests, which fail on HEAD too until the example jobs are rebuilt without errors (`examples build`). Not done: a drug list, tables with name and dose in separate cells.
 
 ## 12. Draft: consent request to Canton Bern (D-G)
 
@@ -1134,8 +1137,21 @@ three numbers.
       bare number is found in its quantity, a unit the draft dropped is a loss);
       `schedule`: a dosing scheme of three or four parts (`1-0-1`, `½-0-½`). Taken
       before addresses, so `1000 IE` is no postcode and place. Six quantities and no
-      scheme on the 35 pairs (rules.md, calibration note). Still planned:
-      `medication` (needs a drug list) and `FACT-09`.
+      scheme on the 35 pairs (rules.md, calibration note). *`medication` and FACT-09
+      done 8 Oct (below); a drug list stays WP17.*
+- [x] **Medication kind and FACT-09** (2-3 h; *added and done 8 Oct at the owner's
+      request: "implement all besides Italian rules"*). `medication`: the fact sheet
+      names each drug (a fact of kind `medication`, the name alone as the value; code
+      takes off a dose, form or bracket the model adds), matched as a whole word in any
+      case and through a Mediopunkt; it feeds FACT-01 and FACT-05, not FACT-06 (no
+      drug list). FACT-09 (error, repairable): a block that names the medication
+      carries every dose, scheme and duration the source sentence gives it and the
+      draft has; with several drugs in a sentence a value goes to the nearest name.
+      The partial `medication.md` (Understand when the source has a dose, Write when
+      the fact sheet names a drug) keeps every evaluation prompt as frozen: no
+      evaluation source has a dose. The Mediopunkt step leaves drug names alone.
+      Not done: a drug list (code finding a name the model missed, FACT-06 for an
+      invented one), tables with name and dose in separate cells.
 - [x] **Clause recipes** (3-4 h German, 2 h more for French). LEN-02 and LEN-02-FR put
       a rewrite recipe for the conjunction they found into `suggestion`, which repair
       already receives (idea from Zurich's prompt, credited in rules.md; our own
@@ -1611,8 +1627,8 @@ guess.
 | Italian | Rules, prompts, calibration on Ticino pairs | National coverage; Apertus's languages | 1 week |
 | ZIX column | The Canton's index as an extra evaluation column, in the evaluation environment only (it loads pickled models and runs a pip fallback) | Speaks Zurich's language | 0.5 day |
 | Decision mode, beyond v1 | WP15 builds v1 by G4 (mode flag, addressee, notice with FACT-07, protected segments with FACT-08, SEM-08 to SEM-10, form, CLI, example job). Later: whatever its cut order drops (French partial, code facts per operative item, the addressee in the judge, FACT-07), a document-type detector instead of the manual flag, an anonymisation step in front, decisions of social insurance offices and courts as further examples | The strongest sovereignty case: KESB and courts | 1-2 days |
-| Planned fact checks | The rest of `docs/rules.md` "Planned fact checks": the value kind `medication` (the five kinds of 7 Oct exist), a Swiss postcode list for bare postcodes; checks `FACT-07` (fixed notice), `FACT-08` (operative part and appeal instructions kept), `FACT-09` (a medication in one block); judge questions `SEM-08` (modality, conditions), `SEM-09` (no advice, no evaluation), `SEM-10` (every period keeps its start) | The further use cases (`docs/use-cases.md` §13) | 3-4 days |
-| Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, `FACT-09`, `SEM-08`, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
+| Planned fact checks | *Built by 8 Oct: the value kinds of 7 Oct and `medication`, FACT-07 to FACT-09, SEM-08 to SEM-10 (`docs/rules.md`, "Fact checks for the further use cases").* Left: a Swiss postcode list for bare postcodes; a drug list (the Swissmedic list of authorised medicines), so code finds a drug name the model did not give and FACT-06 an invented one | The further use cases (`docs/use-cases.md` §13) | 1-2 days |
+| Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, FACT-09 and SEM-08 exist (7 and 8 Oct); left: a drug list, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
 | Helpers for received letters | Lease terminations and payment orders for tenants' associations, social services and debt counselling: WP12b with the period kind and the facts box (`docs/use-cases.md` §4, §6) | Reach; a 10- or 30-day period decides | with WP12b |
 | Tax letters | A tax office's standard letters in the writer workflow, and a client's tax letter for debt counselling with WP12b and image input; every value kind it needs exists (`docs/use-cases.md` §12) | Tax secrecy: a strong sovereignty case; the WP12 print letter is a tax reminder | a pilot, plus WP12b |
 | WP12b | The end-user letter mode | Reach | as in WP12 |

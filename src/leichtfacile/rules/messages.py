@@ -187,6 +187,10 @@ MESSAGES: dict[str, str] = {
     "FACT-08.omitted": "Item {item} of the operative part is listed as omitted: {text}",
     "FACT-08.appeal": "The appeal instructions are in no block: {text}",
     "FACT-08.appeal_omitted": "The appeal instructions are listed as omitted: {text}",
+    # FACT-09 (patient letters): a medication with its dose, scheme and duration.
+    "FACT-09": "{name} is named here without {values}, which another block has. Write the "
+    "medication with its dose, scheme and duration in one block, one list item per "
+    "medication.",
     # -- layout and readability (every language)
     "LAY-01": "Line {line} has more than one sentence.",
     "LAY-02": "Line {line} has {chars} characters; at most {limit}.",

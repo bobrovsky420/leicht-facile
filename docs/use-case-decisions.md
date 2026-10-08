@@ -194,8 +194,8 @@ Planned, not built:
 - a document-type detector instead of the manual mode;
 - a mode that condenses long legal reasoning, with every omission listed.
 
-The planned checks in backticks are specified in
-[rules.md](rules.md#planned-fact-checks-not-implemented).
+The checks are specified in
+[rules.md](rules.md#fact-checks-for-the-further-use-cases).
 
 ### Tested on 7 October 2026
 
