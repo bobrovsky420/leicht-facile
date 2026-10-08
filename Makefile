@@ -1,4 +1,4 @@
-.PHONY: run stop check-env check-llm test lint format smoke calibrate day1 eval eval-70b bundle
+.PHONY: run stop check-env check-docker check-llm test lint format smoke calibrate day1 eval eval-70b bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
 # Results of one endpoint stay together: `make eval RESULTS=eval/results-cscs`.
@@ -19,13 +19,13 @@ endif
 APP_URL ?= http://localhost:8000
 OPEN_BROWSER ?= 1
 
-run: check-env
+run: check-env check-docker
 	@opener=; \
 	if [ "$(OPEN_BROWSER)" != 0 ]; then sh scripts/open_browser.sh "$(APP_URL)" & opener=$$!; fi; \
 	trap '[ -n "$$opener" ] && kill $$opener 2>/dev/null' EXIT INT TERM; \
 	docker compose up --build
 
-stop:
+stop: check-docker
 	docker compose down
 
 # Fail early with a helpful message instead of a crashing container. Each required
@@ -38,8 +38,24 @@ check-env:
 		fi; \
 	done
 
+# Same for Docker: a stopped daemon otherwise ends in a connection error from Compose.
+check-docker:
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "Docker is not installed or not on PATH. Install Docker Desktop (Windows, macOS) or Docker Engine (Linux)."; \
+		exit 1; \
+	fi; \
+	if ! err=$$(docker info 2>&1 >/dev/null); then \
+		echo "Docker is not running. Start Docker Desktop (Windows, macOS) or the Docker service (Linux: sudo systemctl start docker) and try again."; \
+		echo "$$err" | sed 's/^/  docker: /'; \
+		exit 1; \
+	fi; \
+	if ! docker compose version >/dev/null 2>&1; then \
+		echo "Docker Compose v2 is missing (the 'docker compose' command). Update Docker Desktop or install the Compose plugin."; \
+		exit 1; \
+	fi
+
 # List the endpoint's models and make one short call, inside the container.
-check-llm: check-env
+check-llm: check-env check-docker
 	docker compose run --rm --build app python -m leichtfacile check-llm
 
 test:
@@ -56,7 +72,7 @@ format:
 # One document through the full pipeline in the container, against the live endpoint.
 # Succeeds when the job reaches review; the artifacts land in the volume under /data/out.
 # MSYS_NO_PATHCONV keeps Git Bash on Windows from turning /data/out into a C: path.
-smoke: check-env
+smoke: check-env check-docker
 	MSYS_NO_PATHCONV=1 docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
 
 # Rule checker on the official easy-language pages (no model needed).

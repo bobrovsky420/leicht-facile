@@ -934,7 +934,9 @@ responses, and metadata with per-instance licensing.
 `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` are set, each in the shell or in `.env`,
 and prints a short help text otherwise. The `.env` file is optional: Compose reads it
 when it exists and passes the three variables through from the shell, where a value
-in the shell wins over `.env`. Next to Compose it starts `scripts/open_browser.sh`, which polls
+in the shell wins over `.env`. It then checks that Docker is installed, that the
+daemon answers and that Compose v2 is there, and otherwise says which one is missing
+and how to start Docker (`check-docker`, also before `stop`, `check-llm` and `smoke`). Next to Compose it starts `scripts/open_browser.sh`, which polls
 `/healthz` from the host and opens http://localhost:8000 in the default browser
 (Windows, macOS, Linux desktops, WSL); without a desktop it prints the address, and
 `OPEN_BROWSER=0` turns it off. The helper is stopped with Compose. The image is built from `python:3.14-slim` (the project supports
