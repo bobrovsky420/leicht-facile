@@ -6,12 +6,12 @@
 {%- if label %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true"{% endif -%}
 {%- endmacro %}
 
-{# Severity and fact status: error, warn, info, present, missing, distorted, unchecked,
-   and "none" for a count of zero (grey circle). #}
+{# Severity and fact status: error, warn, info, present, missing, distorted, doubted,
+   unchecked, and "none" for a count of zero (grey circle). #}
 {% macro sev(kind, label="", size=14) -%}
 {%- if kind in ("error", "missing", "none") -%}
 <svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="{{ '#BCC3CC' if kind == 'none' else '#B42318' }}"/><path d="M8 4.4v4.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.4" r="1.05" fill="#fff"/></svg>
-{%- elif kind in ("warn", "distorted") -%}
+{%- elif kind in ("warn", "distorted", "doubted") -%}
 <svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><path d="M8 1.2 15.3 14.3H.7Z" fill="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 5.6v4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="12" r="1" fill="#fff"/></svg>
 {%- elif kind == "present" -%}
 <svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="#1E6B3A"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>

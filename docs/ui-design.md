@@ -180,7 +180,7 @@ the fonts with the version used.
 | Tag | `.tag` | 18 px, `--lf-hover` fill, 11 px 500, optional 12 px icon: Apertus and Judge (chip), Code (brackets), You (person); "Left out" grey; "Not explained" in `--lf-warn-weak` with `--lf-warn-text` |
 | Value chip | `.chip` | Mono 11 to 12 px, `--lf-sunken` fill, hairline border |
 | Keycap | `kbd` | Mono 11 px, 1 px `--lf-keycap` border with a 2 px bottom |
-| Severity icon | macro `sev(kind)` | Error: red circle with "!"; warning: amber triangle with "!"; note: grey ring with "i"; present: green circle with a check; distorted: red triangle |
+| Severity icon | macro `sev(kind)` | Error: red circle with "!"; warning: amber triangle with "!"; note: grey ring with "i"; present: green circle with a check; distorted: red triangle; doubted (code finds the value, the judge misses the statement): amber triangle |
 | Decision icon | macro `decision(kind)` | Undecided: hollow grey ring; approved: green circle with a check; edited: accent circle with a pencil; rejected: red circle with a cross |
 | Field | `.field` | Label above (12/16 500), 34 px control with `--lf-border-input`, hint below (12/16 muted), error below in `--lf-error` with an icon |
 | Radio list | `.optlist` | Framed list, one option per row (title 600, description 13/18); the checked row in `--lf-accent-tint` |
@@ -470,9 +470,11 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 the four panels stack with their headings.
 
 - **Facts:** a summary ("9 of 14 facts present", "facts that must survive"), a
-  stacked bar (present green, distorted red, missing red at 55 percent), the counts
-  in words, the existing hint. Then the facts, problems first: missing, distorted,
-  unchecked, present, then the background facts (`must_keep` false) marked
+  stacked bar (present green, distorted red, missing red at 55 percent, doubted
+  amber), the counts in words ("2 doubted by the judge" only when there are any), the
+  existing hint. Then the facts, problems first: missing, distorted, doubted ("judge
+  doubts": the judge finds a fact missing whose value code finds in the draft, since
+  8 October 2026), unchecked, present, then the background facts (`must_keep` false) marked
   "Background only". Each fact is a button: status icon, id, the expected value as a
   chip (`FactRow.expected`), the status word, the text clamped to two lines (the full
   text in `title`), the judge's note with a "Judge" tag. Selecting a fact marks the
@@ -729,6 +731,7 @@ review.tab.questions      Questions
 review.tab.more           More
 review.facts_must         facts that must survive
 review.facts_counts       {present} present · {distorted} distorted · {missing} missing
+review.facts_doubted      {n} doubted by the judge
 review.findings_hint      Findings about the whole document. Findings on single blocks show in the draft.
 review.core_hint          The five core questions, answered from the fact sheet.
 

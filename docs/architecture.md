@@ -362,6 +362,14 @@ Model: `LLM_JUDGE_NAME` (default `swiss-ai/Apertus-v1.5-70B-thinking`), temperat
 0. The judge never rewrites; it only reports. Its reliability is measured, not
 assumed (§9).
 
+A `missing` on a fact whose value FACT-01 finds in the draft is shown on the review page
+in amber as "judge doubts", with the judge's note, not as a red "missing": code decides
+whether a value is there, and in the cases checked the judge had overlooked it (since
+8 October 2026; in the stored CSCS P2 jobs, 11 of the 24 `missing` verdicts on facts
+with a value left on final drafts were such facts). The pipeline still counts it as
+blocking and asks for the fact again: a dev rerun without that left three of ten German
+drafts worse (docs/prompts.md, "Judge doubts on values").
+
 ### 4.6 Repair (Apertus)
 
 Only flagged blocks are sent back, each with its findings (rule and judge, with the
@@ -753,7 +761,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      move on to it. Unsaved decisions warn before leaving. Without JavaScript every
      block is open.
   3. **Checks** - four tabs (stacked without JavaScript): **Facts**, problems first,
-     with the expected value, the status from code and judge and the judge's note;
+     with the expected value, the status from code and judge (present, missing,
+     distorted, "judge doubts" in amber when code finds the value the judge misses
+     (§4.5), unchecked) and the judge's note;
      selecting a fact marks the blocks that carry it. **Findings**, the document's
      findings grouped by rule with the rule's title; a FACT-04 line marks its source
      sentences, a FACT-01 line selects its fact. **Questions**, the five core questions.

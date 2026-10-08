@@ -841,6 +841,73 @@ Results in `eval/results-cscs-fact06-before` and `-after`.
 - On the KESB decision's stored draft the new rule turns the invented deadline into a
   FACT-06 error, which blocks and goes to repair instead of reaching the reader.
 
+### Judge doubts on values: two loop changes tried on the dev pairs on CSCS (8 October 2026), not taken
+
+Two changes to the repair loop, found in a review of the example jobs (PLAN.md §11,
+8 October), were built, measured and taken out again before the freeze. Neither touched
+a template.
+
+- **A: a judge's "missing" on a value code found as a doubt.** A judge verdict
+  `missing` counts as blocking and sends the fact back to every repair and facts round,
+  also when FACT-01 finds the fact's value in the draft. In `eval/results-cscs` (all
+  stored P2 jobs), 11 of the 24 `missing` verdicts on facts with a value that the judge
+  left on final drafts were such facts; in the French example job, f07 and f08 showed as
+  red "Missing" next to a block with CHF 42'000 and CHF 61'000. The change: such a
+  verdict blocks nothing and no round asks for the fact again.
+- **B: a missing fact asked for by its clause.** Code completion gives a fact the whole
+  source sentence as its text, cut at 200 characters. In the German example job, f07
+  (the residence date 1. Januar 2027) shares its sentence with the income limits; asked
+  for f07 in two rounds, the 8B wrote the CHF 9'000 per child rule both times and never
+  the date. The change: the repair request lists such a fact with the clauses around its
+  value that hold no other value ("Anspruchsberechtigt sind Personen, die am 1. Januar
+  2027 ihren zivilrechtlichen Wohnsitz in der Gemeinde Musterwil haben …"), taken from
+  the full source sentence. On the stored fact sheets it cut 19 of 419 distinct facts
+  with a value.
+
+The measurement: P2 on the 12 dev pairs, the committed code (`cd92aec`, run from a copy)
+and then the code with A and B, in sequence on the same cache, so the second run
+replayed every request that did not change. Results in `eval/results-cscs-ab-before`
+and `eval/results-cscs-ab-after`. German, 10 pairs:
+
+| Mean of the 10 pairs | before | with A and B |
+|---|---|---|
+| Fact coverage | 79 % | 74 % |
+| Hard facts kept | 71 % | 64 % |
+| Silent losses | 0 % | 0 % |
+| Invented values / 100 | 0.77 | 0.77 |
+| Judge: unsupported / 100 | 5.8 | 6.1 |
+| Rule errors / 100 | 3.1 | 4.3 |
+| Must-keep values missing (sum) | 29 | 38 |
+| Model calls per job | 10.6 | 10.4 |
+
+The two French pairs and five German pairs came out identical, every draft version the
+same: no request of theirs changed. Two German pairs (`be-birth-registration-de`,
+`ebgb-inclusion-initiative-de`) got a changed first repair request through B, the full
+source sentence instead of the 200-character copy without any cut, and ended with
+different drafts but the same fact numbers. The other three ended worse, each after one
+fresh 8B answer:
+
+- `zh-blue-algae-de` (A): the second repair round no longer asked for f05, which the
+  judge called missing although "Rufen Sie 0800 33 66 55 an." stood in the draft; the
+  judge was wrong. Asked again in the run before, the 8B had rewritten the contact
+  sentences with their names, and that path kept two more hard values.
+- `sg-el-costs-de` (B): one fact of the second repair round was cut to its clause, and
+  every sentence the 8B added in that round came out as a fragment ("Bei Personen in
+  einer Einrichtung für Menschen mit einer Behinderung."): it took up the style of the
+  excerpt. 8 must-keep values were still missing at the end, against none.
+- `lu-cost-approval-de` (B): the first repair request changed without any cut, since a
+  code fact's text became the full source sentence instead of the 200-character copy;
+  the fresh answer ended with one fact less.
+
+Five changed pairs are too few to separate the changes from the noise of the 8B's
+answers, but three ended worse and none better, so neither change went into the
+pipeline before the final run. The review page keeps the display part of A,
+which changes no number: such a verdict shows in amber as "judge doubts" with the
+judge's note instead of a red "missing" (`FactRow.status` in `web/views.py`), since code
+finds the value and in every case checked (the French example's f07 and f08, f05 above)
+the judge had overlooked it. The pipeline still counts it as blocking and asks for the
+fact again.
+
 ## Change log
 
 | Version | Date | Change |
@@ -865,3 +932,4 @@ Results in `eval/results-cscs-fact06-before` and `-after`.
 | 9 | 2026-10-08 | No template change. Code: the copy guard renders the write and repair prompts with the style guide of both levels, so the guide's lines (without their list marker) and its example values (`044 123 45 67`, `4. Februar 2026`) count as the prompt's own text; a decision-mode draft on the 8B had carried the style guide as a section of the draft (7 October). The value kind `phone` takes the ten-digit service numbers in both groupings (`0800 33 66 55`, `0848 35 45 55`), which were four plain numbers before, so FACT-01, FACT-06 and the hard-fact metric see the emergency pages' hotlines; SOURCE and REF recomputed. |
 | 9 | 2026-10-08 | Decision partial only (`decision.md`, German and French; no standard template and no hash changes), from the test runs of 7 October (use-case-decisions.md §7): the values of the header and the reasoning are background unless a core answer cites them; a period is copied as written, with its start, and never computed to an end date (the Understand model had written "endet am 15. November 2026"); a task stays with its owner in the fact sheet and the draft ("Die Beiständin bezahlt Ihre Rechnungen", not "Sie bezahlen"), and the judge reports a "Sie" that takes the deputy's task as SEM-03 and a computed date as SEM-10. Code the same day: `rules/decision.py` (protected parts, FACT-07, FACT-08), the judge filter for SEM-09 and SEM-10 in decision mode, the notice in the exports, the form fields. |
 | 10 | 2026-10-08 | Understand and write prompts (German and French): one more include line each, `{% if medication is defined and medication %}{% include "<lang>/medication.md" %}{% endif %}`, and the new partial `medication.md`. Code switches it on for Understand when the source has a dose or a dosing scheme (`rules/medication.py`, `has_doses`) and for Write when the fact sheet names a medication; it asks for one fact of kind `medication` per drug with the name alone as the value, and for one list item per medication with name, dose, scheme and duration. No evaluation source has a dose (checked on the 35 standard texts and the decision), so every evaluation prompt renders byte for byte as before; the template hash changes once. Code the same day: the value kind `medication` (rules/values.py), FACT-09 (a medication in one block with its dose, scheme and duration; repairable on the block that names it), medication facts first among the missing facts of a repair round, and the Mediopunkt step leaves the names alone (docs/rules.md). |
+| 10 | 2026-10-08 | No template change and no pipeline change. Tried on the dev pairs and not taken ("Judge doubts on values" above): a judge's `missing` on a fact whose value FACT-01 finds as non-blocking, and a missing fact asked for by the clause of its value; with both, five of ten German jobs took another path, three ended worse and none better. Kept: the review page shows such a verdict in amber as "judge doubts". |

@@ -373,6 +373,31 @@ def test_review_view_groups_findings_sorts_facts_and_offers_apply(env) -> None:
     assert "Saved 09:30 UTC" in page and RULES["FACT-01"].title in page
 
 
+def test_a_fact_the_judge_misses_but_code_finds_is_doubted(env) -> None:
+    client, _, store, settings, _ = env
+    job = reviewable_job(store, settings)
+    # The judge finds f01 missing, but b003 holds its date: code decides on values.
+    checks = [
+        FactCheck(fact_id="f01", status="missing", note="Die Frist fehlt."),
+        FactCheck(fact_id="f04", status="distorted", block_ids=["b002"], note="zu ungenau"),
+    ]
+    report = JudgeReport(draft_version=1, model="j", fact_checks=checks)
+    store.put_artifact(job.id, "judge", report, 1)
+    view = review_view(store, job)
+    assert {f.fact.id: f.status for f in view.facts}["f01"] == "doubted"
+    assert view.fact_counts["doubted"] == 1 and view.fact_counts["missing"] == 2
+    # After the missing and the distorted facts, before the unchecked and present ones.
+    assert [f.fact.id for f in view.facts_sorted] == ["f02", "f06", "f04", "f01", "f05", "f03"]
+
+    store.update_job(job.id, status="needs_review")
+    page = client.get(f"/jobs/{job.id}").text
+    assert 'class="fact fact-doubted"' in page and "judge doubts" in page
+    assert "sb-doubted" in page and "1 doubted by the judge" in page
+    client.get("/ui/de")  # the switcher's cookie
+    german = client.get(f"/jobs/{job.id}").text
+    assert "Prüfmodell zweifelt" in german and "1 vom Prüfmodell bezweifelt" in german
+
+
 def test_reader_preview_is_served_inline(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)

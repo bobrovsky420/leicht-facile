@@ -122,6 +122,11 @@ class FactRow:
 
     @property
     def status(self) -> str:
+        # Code decides whether a value is there: the judge's "missing" on a fact whose
+        # value code finds is a doubt about the statement, shown in amber. The pipeline
+        # still counts it as blocking (docs/prompts.md, "Judge doubts on values").
+        if self.judge_status == "missing" and self.code_found:
+            return "doubted"
         if self.judge_status in ("missing", "distorted") or self.code_found is False:
             return self.judge_status if self.judge_status in ("missing", "distorted") else "missing"
         if self.judge_status == "present" or self.code_found:
@@ -170,8 +175,9 @@ class ReviewView:
 
     @property
     def facts_sorted(self) -> list[FactRow]:
-        """Problems first: missing, distorted, unchecked, present; background facts last."""
-        rank = {"missing": 0, "distorted": 1, "unchecked": 2, "present": 3}
+        """Problems first: missing, distorted, doubted, unchecked, present; background facts
+        last."""
+        rank = {"missing": 0, "distorted": 1, "doubted": 2, "unchecked": 3, "present": 4}
         return sorted(self.facts, key=lambda f: (not f.fact.must_keep, rank.get(f.status, 4)))
 
     @property
@@ -213,7 +219,7 @@ class ReviewView:
 
     @property
     def fact_counts(self) -> dict[str, int]:
-        out = {"present": 0, "missing": 0, "distorted": 0, "unchecked": 0, "total": 0}
+        out = {"present": 0, "missing": 0, "distorted": 0, "doubted": 0, "unchecked": 0, "total": 0}
         for f in self.facts:
             if f.fact.must_keep:
                 out[f.status] += 1

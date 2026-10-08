@@ -172,10 +172,11 @@
         <div class="facts-summary">
           <div class="fs-top"><strong>{{ t('review.facts_present', present=fc.present, total=fc.total) }}</strong><span>{{ t('review.facts_must') }}</span></div>
           {% if fc.total %}
-          <div class="stackbar" role="img" aria-label="{{ t('review.facts_counts', present=fc.present, distorted=fc.distorted, missing=fc.missing) }}">
-            {% if fc.present %}<span class="sb-present" style="flex: {{ fc.present }}"></span>{% endif %}{% if fc.distorted %}<span class="sb-distorted" style="flex: {{ fc.distorted }}"></span>{% endif %}{% if fc.missing %}<span class="sb-missing" style="flex: {{ fc.missing }}"></span>{% endif %}{% if fc.unchecked %}<span class="sb-unchecked" style="flex: {{ fc.unchecked }}"></span>{% endif %}
+          {% set fc_text = t('review.facts_counts', present=fc.present, distorted=fc.distorted, missing=fc.missing) ~ ((' · ' ~ t('review.facts_doubted', n=fc.doubted)) if fc.doubted else '') %}
+          <div class="stackbar" role="img" aria-label="{{ fc_text }}">
+            {% if fc.present %}<span class="sb-present" style="flex: {{ fc.present }}"></span>{% endif %}{% if fc.distorted %}<span class="sb-distorted" style="flex: {{ fc.distorted }}"></span>{% endif %}{% if fc.missing %}<span class="sb-missing" style="flex: {{ fc.missing }}"></span>{% endif %}{% if fc.doubted %}<span class="sb-doubted" style="flex: {{ fc.doubted }}"></span>{% endif %}{% if fc.unchecked %}<span class="sb-unchecked" style="flex: {{ fc.unchecked }}"></span>{% endif %}
           </div>
-          <div class="fs-legend" aria-hidden="true">{{ t('review.facts_counts', present=fc.present, distorted=fc.distorted, missing=fc.missing) }}</div>
+          <div class="fs-legend" aria-hidden="true">{{ fc_text }}</div>
           {% endif %}
           <p class="hint">{{ t('review.facts_hint') }}</p>
         </div>

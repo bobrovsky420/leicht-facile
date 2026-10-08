@@ -127,7 +127,9 @@ def example_config(path: Path) -> dict[str, Any]:
 
 def open_problems(rules: RuleFindings | None, judge: JudgeReport | None) -> int:
     """What the UI shows as errors on a draft: rule findings of severity error, facts
-    the judge finds missing or distorted, and statements it finds unsupported."""
+    the judge finds missing or distorted, and statements it finds unsupported. A fact
+    the judge finds missing although code finds its value counts too, though the review
+    page shows it in amber ("judge doubts"): an example should have neither."""
     count = sum(1 for f in rules.findings if f.severity == "error") if rules else 0
     if judge:
         count += sum(1 for c in judge.fact_checks if c.status != "present")
