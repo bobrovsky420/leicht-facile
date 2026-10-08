@@ -11,7 +11,7 @@
   "scenes": [
     {
       "id": "hook",
-      "lead": 3.9,
+      "lead": 3.6,
       "tail": 0.6,
       "chunks": [
         {
@@ -52,8 +52,13 @@
       "tail": 0.4,
       "chunks": [
         {
+          "id": "lg-br",
+          "text": "For them, there is easy language.",
+          "pause": 0.35
+        },
+        {
           "id": "lg-0",
-          "text": "Easy-language versions are slow expert work.",
+          "text": "But easy-language versions are slow expert work.",
           "pause": 0.35
         },
         {
@@ -193,7 +198,7 @@
     },
     {
       "id": "end",
-      "lead": 3.6,
+      "lead": 3.2,
       "tail": 0,
       "chunks": []
     }

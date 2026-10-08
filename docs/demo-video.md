@@ -115,18 +115,18 @@ The owner's combination: the split-screen opening of §5 for the first seconds, 
 variant B's step by step and the rest of §2. The stakes play on the kitchen table with
 the letter, drawn in code for now; the owner decides later whether generated footage
 replaces it. The app scene is shorter, since the step by step already shows facts and
-checks. 261 words, 1:57 (voice speed 0.89).
+checks. 268 words, 1:59 (voice speed 0.89).
 
 | Time | Picture | Narration (English) |
 |------|---------|---------------------|
-| 0:00-0:08 | The split screen of §5: DE-4 and FR-4 type themselves with their questions; the negations light up. | "Can you read this? Did you understand it right away?" |
+| 0:00-0:08 | The split screen of §5: DE-4 and FR-4 type themselves with their questions, one question per line, each line as it is spoken (owner, 8 October); the negations light up. | "Can you read this? Did you understand it right away?" |
 | 0:08-0:20 | The kitchen table with the letter (drawn, or generated footage later); **844,000** with PIAAC 2023; then the letter's money, deadline and rights marked, each labelled. | "If you hesitated, you are not alone. 844,000 adults in Switzerland struggle with reading. Letters like these decide their money, their deadlines, their rights." |
-| 0:20-0:31 | A card *Slow expert work*; then the logo, *with Apertus, the Swiss open model*, *The writers stay in charge*, *A checked first draft*. | "Easy-language versions are slow expert work. Leicht·Facile drafts them with Apertus, the Swiss open model, and gives the writers a checked first draft." |
-| 0:31-0:56 | Variant B's step by step on the real sentence s0007; after the three new sentences the Mediopunkt in *Antrags·formular* and *Sozial·versicherungs·stelle* lights up, labelled "Mediopunkt: long words in readable parts" (owner, 8 October). | "Here is how, on one sentence from a real letter." Then as in variant B, with "A middle dot splits long words into easier parts." before the check. |
-| 0:52-1:05 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
-| 1:05-1:14 | The evidence scene of §2. | As in §2. |
-| 1:16-1:53 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5. |
-| 1:53-1:57 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
+| 0:20-0:32 | A bridge into easy language (owner, 8 October: the viewer must first learn that it exists): a card *Easy language*, with *Leichte Sprache* and *Langage facile* as the illustration and three of its rules, *Short sentences*, *Everyday words*, *One idea at a time*; below it the card *Slow expert work*; then the logo, *with Apertus, the Swiss open model*, *The writers stay in charge*, *A checked first draft*. | "For them, there is easy language. But easy-language versions are slow expert work. Leicht·Facile drafts them with Apertus, the Swiss open model, and gives the writers a checked first draft." |
+| 0:32-0:57 | Variant B's step by step on the real sentence s0007; after the three new sentences the Mediopunkt in *Antrags·formular* and *Sozial·versicherungs·stelle* lights up, labelled "Mediopunkt: long words in readable parts" (owner, 8 October). | "Here is how, on one sentence from a real letter." Then as in variant B, with "A middle dot splits long words into easier parts." before the check. |
+| 0:57-1:09 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
+| 1:09-1:19 | The evidence scene of §2. | As in §2. |
+| 1:19-1:56 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5. |
+| 1:56-1:59 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
 
 ## 4. Before recording
 

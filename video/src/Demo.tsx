@@ -101,7 +101,7 @@ const StakesC: React.FC<{ offset: number }> = ({ offset }) => (
   <Kitchen offset={offset} sceneId="stakes" number="sk-b" marks="sk-c" push={null} cards={null} chatbot={false} />
 );
 const HookC: React.FC<{ offset: number }> = ({ offset }) => <Hook offset={offset} marksCue="hook-b" />;
-const LogoC: React.FC<{ offset: number }> = ({ offset }) => <LogoA offset={offset} introCue="lg-0" />;
+const LogoC: React.FC<{ offset: number }> = ({ offset }) => <LogoA offset={offset} introCue="lg-0" bridgeCue="lg-br" />;
 const EndC: React.FC<{ offset: number }> = ({ offset }) => <End offset={offset} sub="Every person. Every fact." />;
 
 /** Concept C: the "Can you read this?" opening, then the step by step and B's composition */

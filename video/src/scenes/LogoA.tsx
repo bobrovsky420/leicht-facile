@@ -1,26 +1,71 @@
 // Concept A, 0:33 The wordmark, Apertus, and that the writers get a checked first draft.
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import { CheckCircle, Chip, Hourglass, Person } from "../icons";
+import { Check, CheckCircle, Chip, Hourglass, Person } from "../icons";
 import { C, F, lerp, ramp } from "../theme";
 import { useTL } from "../tl";
 import { SceneFade, useSceneTime } from "../ui";
 import { Statement, Wordmark } from "./Logo";
 
-export const LogoA: React.FC<{ offset: number; introCue?: string }> = ({ offset, introCue }) => {
+// What easy language is, for the bridge "For them, there is easy language." Its names in
+// German and French as the illustration, and three of its rules.
+const EASY_RULES = ["Short sentences", "Everyday words", "One idea at a time"];
+
+const EasyLanguage: React.FC<{ op: number; rules: number[] }> = ({ op, rules }) => (
+  <div style={{ position: "absolute", left: 0, right: 0, top: 170, display: "flex", justifyContent: "center", opacity: op }}>
+    <div style={{ padding: "40px 64px 46px", borderRadius: 22, background: C.surface, boxShadow: "0 12px 40px rgba(16,24,40,0.10)", fontFamily: F.sans, textAlign: "center" }}>
+      <div style={{ fontSize: 64, fontWeight: 600, color: C.ink }}>Easy language</div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 26, marginTop: 10, fontFamily: F.reader, fontSize: 36, color: C.muted }}>
+        <span lang="de">Leichte Sprache</span>
+        <span style={{ width: 2, height: 34, background: C.border }} />
+        <span lang="fr">Langage facile</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 34 }}>
+        {EASY_RULES.map((r, i) => (
+          <span
+            key={r}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 22px 10px 16px",
+              borderRadius: 999,
+              background: C.accentWeak,
+              color: C.accent,
+              fontWeight: 600,
+              fontSize: 30,
+              opacity: rules[i],
+              transform: `translateY(${(1 - rules[i]) * 12}px)`,
+            }}
+          >
+            <Check size={30} color={C.accent} stroke={2.4} />
+            {r}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const LogoA: React.FC<{ offset: number; introCue?: string; bridgeCue?: string }> = ({ offset, introCue, bridgeCue }) => {
   const t = useSceneTime(offset);
   const { cue } = useTL();
   const a = cue("lg-a");
   const b = cue("lg-b");
-  // concept C opens with "Easy-language versions are slow expert work." before the wordmark
+  // concept C opens with "But easy-language versions are slow expert work." before the wordmark
   const intro = introCue ? cue(introCue) : null;
   const markAt = intro ? a.s - 0.25 : -0.1;
   const introOp = intro ? Math.min(ramp(t, intro.s - 0.1, 0.35), 1 - ramp(t, a.s - 0.45, 0.3)) : 0;
+  // concept C first says that easy language exists; its card stays above the expert-work card
+  const bridge = bridgeCue ? cue(bridgeCue) : null;
+  const bridgeOp = bridge ? Math.min(ramp(t, bridge.s - 0.1, 0.35), 1 - ramp(t, a.s - 0.45, 0.3)) : 0;
+  const rules = EASY_RULES.map((_, k) => (bridge ? ramp(t, bridge.s + 0.5 + k * 0.3, 0.35) : 0));
   return (
     <SceneFade offset={offset} bg={C.app}>
       <AbsoluteFill style={{ background: "radial-gradient(ellipse 60% 55% at 50% 40%, #FFFFFF 0%, rgba(255,255,255,0) 70%)" }} />
+      {bridgeOp > 0.001 && <EasyLanguage op={bridgeOp} rules={rules} />}
       {introOp > 0.001 && (
-        <div style={{ position: "absolute", left: 0, right: 0, top: 340, display: "flex", justifyContent: "center", opacity: introOp }}>
+        <div style={{ position: "absolute", left: 0, right: 0, top: bridge ? 560 : 340, display: "flex", justifyContent: "center", opacity: introOp }}>
           <div style={{ display: "flex", alignItems: "center", gap: 28, padding: "34px 48px", borderRadius: 22, background: C.surface, boxShadow: "0 12px 40px rgba(16,24,40,0.10)", fontFamily: F.sans }}>
             <Hourglass size={84} stroke={1.8} color={C.ink} />
             <div>

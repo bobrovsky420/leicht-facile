@@ -22,8 +22,9 @@ export const FR: Seg[] = [
   { t: "ne pourront", neg: true },
   { t: " être remboursés." },
 ];
-export const Q_DE = "Können Sie das lesen? Haben Sie es sofort verstanden?";
-export const Q_FR = "Pouvez-vous lire ceci ? L'avez-vous compris tout de suite ?";
+// one question per line
+export const Q_DE = ["Können Sie das lesen?", "Haben Sie es sofort verstanden?"];
+export const Q_FR = ["Pouvez-vous lire ceci ?", "L'avez-vous compris tout de suite ?"];
 const len = (segs: Seg[]) => segs.reduce((n, s) => n + s.t.length, 0);
 
 const Typed: React.FC<{ segs: Seg[]; chars: number; marks: number[]; caret: boolean; t: number }> = ({ segs, chars, marks, caret, t }) => {
@@ -78,7 +79,7 @@ const Typed: React.FC<{ segs: Seg[]; chars: number; marks: number[]; caret: bool
   );
 };
 
-export const Column: React.FC<{ lang: string; label: string; segs: Seg[]; chars: number; marks: number[]; caret: boolean; question: string; qOp: number; t: number }> = ({
+export const Column: React.FC<{ lang: string; label: string; segs: Seg[]; chars: number; marks: number[]; caret: boolean; question: string[]; qOp: number[]; t: number }> = ({
   lang,
   label,
   segs,
@@ -94,7 +95,13 @@ export const Column: React.FC<{ lang: string; label: string; segs: Seg[]; chars:
     <div style={{ fontFamily: F.reader, color: "#F4F4F2", fontSize: 54, lineHeight: 1.38, letterSpacing: 0.2, minHeight: 54 * 1.38 * 5 }}>
       <Typed segs={segs} chars={chars} marks={marks} caret={caret} t={t} />
     </div>
-    <div style={{ fontFamily: F.reader, color: "#A9B2BE", fontSize: 34, lineHeight: 1.35, marginTop: 34, opacity: qOp }}>{question}</div>
+    <div style={{ fontFamily: F.reader, color: "#A9B2BE", fontSize: 34, lineHeight: 1.35, marginTop: 34 }}>
+      {question.map((q, i) => (
+        <div key={q} style={{ opacity: qOp[i] }}>
+          {q}
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -109,7 +116,9 @@ export const Hook: React.FC<{ offset: number; marksCue?: string }> = ({ offset, 
   const deChars = Math.floor(clamp01((t - typeStart) / typeDur) * len(DE));
   const frChars = Math.floor(clamp01((t - typeStart) / typeDur) * len(FR));
   const typing = t < typeStart + typeDur;
-  const qOp = ramp(t, a.s - 0.1, 0.4);
+  const b = cue("hook-b");
+  // each question appears as it is spoken
+  const qOp = [ramp(t, a.s - 0.1, 0.4), ramp(t, b.s - 0.1, 0.4)];
   // "do I get my money back, or not?": the negations light up, alternating DE and FR
   const mark = (k: number) => ramp(t, c.s + 0.3 + k * 0.28, 0.3);
 
