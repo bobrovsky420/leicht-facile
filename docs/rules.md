@@ -207,6 +207,16 @@ Europe, "L'information pour tous", plus the cantonal FALC pages used as examples
 
 ## Italian (IT-CH, lingua facile)
 
+Out of scope for the hackathon and on the roadmap (PLAN.md, WP17): the rules below are
+specified, not built, and the registry test leaves the ids ending in `-IT` out. An
+Italian text gets the language-independent rules (facts, layout, readability). Two
+findings from scoping them on 8 October 2026: every spaCy Italian model is licensed
+CC BY-NC-SA 3.0 (non-commercial, from its training data UD Italian ISDT), unlike the
+German (MIT) and French (LGPL-LR) models, so how the grammar rules get their parse is
+a decision of its own; and the polite imperative with Lei (`Compili il modulo`) is a
+subjunctive form, so GRAM-03-IT may only fire on a subjunctive after `che` or a
+conjunction.
+
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
 | GRAM-01-IT | No passive, including `si` passivante | `essere`/`venire` + participle; `si` + 3rd person with patient subject | error (A2) / warn (B1) |

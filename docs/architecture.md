@@ -840,8 +840,9 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | - |
 
 German came first in the build order. French followed on 6 October 2026, before the
-CSCS key arrived: rules, prompts, examples and the web form. Italian stays a stretch
-goal. Syllables for readability come from `pyphen` with the `de_CH`, `fr`, `it`
+CSCS key arrived: rules, prompts, examples and the web form. Italian is out of scope
+for the hackathon and on the roadmap (PLAN.md, WP17; [rules.md](rules.md#italian-it-ch-lingua-facile)
+says why its grammar rules need a licence decision first). Syllables for readability come from `pyphen` with the `de_CH`, `fr`, `it`
 dictionaries.
 
 ## 9. Evaluation
