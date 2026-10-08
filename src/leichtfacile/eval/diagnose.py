@@ -205,7 +205,7 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
         v: store.get_artifact(job_id, "repair", RepairRecord, version=v) for v in versions if v > 1
     }
     final = summary.final_version if summary.final_version in drafts else versions[-1]
-    coverage = {v: fact_coverage(drafts[v], factsheet, lang) for v in versions}
+    coverage = {v: fact_coverage(drafts[v], factsheet, lang, source) for v in versions}
     asked = _requests(versions, drafts, rules, judges, records, factsheet)
     flagged: dict[int, set[str]] = {
         v: {f.fact_id for f in r.findings if f.rule_id == "FACT-01" and f.fact_id}

@@ -111,7 +111,7 @@ class RuleChecker:
             for spec in rules_for(self.lang, scope):
                 findings += self._findings(spec.id, spec.check(doc, ctx), ctx, None)
 
-        metrics = self.metrics(infos, draft, factsheet)
+        metrics = self.metrics(infos, draft, factsheet, source)
         return RuleFindings(
             draft_version=draft.version,
             level=draft.level,
@@ -149,7 +149,11 @@ class RuleChecker:
     # -- metrics ------------------------------------------------------------------
 
     def metrics(
-        self, infos: list[BlockInfo], draft: Draft, factsheet: FactSheet | None
+        self,
+        infos: list[BlockInfo],
+        draft: Draft,
+        factsheet: FactSheet | None,
+        source: SourceDocument | None = None,
     ) -> DocMetrics:
         from leichtfacile.rules.readability import readability
 
@@ -178,7 +182,7 @@ class RuleChecker:
             readability_formula=result.formula,
         )
         if factsheet:
-            coverage = fact_coverage(draft, factsheet, self.lang)
+            coverage = fact_coverage(draft, factsheet, self.lang, source)
             metrics.facts_total = len(coverage.checkable)
             metrics.facts_found = len(coverage.found)
             ratio = coverage.ratio

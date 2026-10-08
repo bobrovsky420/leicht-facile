@@ -342,7 +342,7 @@ def review_view(
     fact_rows: list[FactRow] = []
     core_rows: list[CoreRow] = []
     if factsheet:
-        coverage = fact_coverage(draft, factsheet, draft.lang)
+        coverage = fact_coverage(draft, factsheet, draft.lang, source)
         judged = {c.fact_id: c for c in judge.fact_checks} if judge else {}
         for fact in factsheet.facts:
             value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)

@@ -81,14 +81,27 @@ class FactCoverage:
         return len(self.found) / len(self.checkable) if self.checkable else None
 
 
-def fact_coverage(draft: Draft, factsheet: FactSheet, lang: str) -> FactCoverage:
-    """FACT-01: which must-keep facts with a normalised value appear in the draft."""
+def source_values(source: SourceDocument, lang: str) -> list[Value]:
+    """The values of a source, its title included."""
+    return [v for part in (source.title, source.text()) if part for v in extract_values(part, lang)]
+
+
+def fact_coverage(
+    draft: Draft, factsheet: FactSheet, lang: str, source: SourceDocument | None = None
+) -> FactCoverage:
+    """FACT-01: which must-keep facts with a normalised value appear in the draft. With
+    the source, a fact whose value the source does not contain is not checkable: the
+    model computed or invented it (FACT-05 warns), and the draft may not carry it
+    (FACT-06), so it cannot be required either."""
     values_by_block = {b.id: extract_values(b.text, lang) for b in draft.blocks}
+    in_source = source_values(source, lang) if source is not None else None
     checkable, missing = [], []
     found: dict[str, list[str]] = {}
     for fact in factsheet.must_keep():
         target = parse_value_norm(fact.value_norm, fact.kind, lang)
         if target is None:
+            continue
+        if in_source is not None and not any(matches(target, v) for v in in_source):
             continue
         checkable.append(fact)
         blocks = [
@@ -113,7 +126,7 @@ def fact_coverage(draft: Draft, factsheet: FactSheet, lang: str) -> FactCoverage
 def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.factsheet:
         return
-    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.lang)
+    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.lang, doc.source)
     for fact in coverage.missing:
         target = parse_value_norm(fact.value_norm, fact.kind, ctx.lang)
         expected = display_value(target, ctx.lang) if target else fact.value_norm
@@ -224,7 +237,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not (doc.factsheet and doc.source):
         return
     by_id = doc.source.by_id()
-    all_values = extract_values(doc.source.text(), ctx.lang)
+    all_values = source_values(doc.source, ctx.lang)
     for fact in doc.factsheet.facts:
         unknown = [s for s in fact.segment_ids if s not in by_id]
         if unknown:
@@ -271,11 +284,14 @@ class ForeignValue:
 
 @dataclass
 class KnownValues:
-    """The values a draft may contain: those of the source and of the fact sheet.
+    """The values a draft may contain: those of the source, and the fact sheet's
+    normalised values that the source contains in another form (a period as its bare
+    count, an identifier with other spacing).
 
-    The fact sheet's normalised values count as supported so that FACT-01 (the value
-    must be there) and FACT-06 cannot contradict each other; a fact-sheet value that is
-    not in the source is FACT-05's finding."""
+    A fact-sheet value the source does not contain at all (an end of a period the model
+    computed, a sum) is not known: FACT-05 warns on the fact sheet, FACT-06 flags it in
+    the draft, and FACT-01 does not require it, so the two cannot contradict each
+    other."""
 
     lang: str
     source_values: list[Value]
@@ -284,20 +300,18 @@ class KnownValues:
 
     @classmethod
     def of(cls, source: SourceDocument, factsheet: FactSheet | None, lang: str) -> KnownValues:
-        source_values = [
-            v for part in (source.title, source.text()) if part for v in extract_values(part, lang)
-        ]
+        values = source_values(source, lang)
         fact_values: list[Value] = []
         if factsheet:
             for fact in factsheet.facts:
                 target = parse_value_norm(fact.value_norm, fact.kind, lang)
-                if target is not None:
+                if target is not None and any(matches(target, v) for v in values):
                     fact_values.append(target)
         candidates: dict[str, set[str]] = defaultdict(set)
-        for v in source_values:
+        for v in values:
             if v.kind in HARD_KINDS:
                 candidates[v.kind].add(v.canonical)
-        return cls(lang, source_values, fact_values, candidates)
+        return cls(lang, values, fact_values, candidates)
 
     def supports(self, value: Value) -> bool:
         if any(matches(value, v) for v in self.source_values):

@@ -186,7 +186,10 @@ def test_values_the_source_has_in_another_form_are_not_foreign() -> None:
     assert "FACT-06" not in rule_ids(result)
 
 
-def test_a_fact_sheet_value_the_source_lacks_is_fact_05_not_fact_06() -> None:
+def test_a_fact_sheet_value_the_source_lacks_is_fact_05_and_fact_06_not_fact_01() -> None:
+    """A value the model computed or invented (an end of a period, a sum) is not known:
+    FACT-05 warns on the fact sheet, FACT-06 flags it in the draft, and FACT-01 does not
+    ask for it when the draft leaves it out."""
     wrong = FACTS.model_copy(update={"facts": [
         *FACTS.facts,
         Fact(id="f05", kind="deadline", text="Frist 30. April", value_norm="2026-04-30",
@@ -200,7 +203,13 @@ def test_a_fact_sheet_value_the_source_lacks_is_fact_05_not_fact_06() -> None:
         segment_ids=["s0002"],
     )
     ids = rule_ids(check_draft(draft(*GOOD, block), source=SOURCE, factsheet=wrong))
-    assert "FACT-05" in ids and "FACT-06" not in ids
+    assert "FACT-05" in ids and "FACT-06" in ids
+    without = check_draft(draft(*GOOD), source=SOURCE, factsheet=wrong)
+    assert not [f for f in without.findings if f.rule_id == "FACT-01" and f.fact_id == "f05"]
+    assert (
+        without.metrics.facts_total
+        == check_draft(draft(*GOOD), source=SOURCE, factsheet=FACTS).metrics.facts_total
+    )
 
 
 def test_foreign_values_without_a_fact_sheet_suggest_contacts_only() -> None:

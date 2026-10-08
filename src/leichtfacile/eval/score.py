@@ -198,7 +198,7 @@ def score_output(
     row["code_glossary"] = sum(1 for g in draft.glossary if g.origin == "vocabulary")
     row["unexplained_terms"] = len(unexplained_terms(draft))
     if factsheet is not None:
-        coverage = fact_coverage(draft, factsheet, draft.lang)
+        coverage = fact_coverage(draft, factsheet, draft.lang, standard)
         row["facts_checkable"] = len(coverage.checkable)
         row["fact_coverage"] = round(coverage.ratio, 3) if coverage.ratio is not None else None
     row["sari"] = round(

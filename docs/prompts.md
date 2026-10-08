@@ -790,6 +790,52 @@ does. Results in `eval/results-cscs-vocab-round-v2` (and `-rescored-facts`).
 - Cost: 12 rewrite calls of the 8B (1.4 s each) and 10 judge reruns of the 70B (11 s
   each), about 11 s per job. Part of the vocabulary since this run (`USE_VOCABULARY`).
 
+### Fact-sheet values the source lacks: P2 on the dev pairs on CSCS (7 October 2026)
+
+A value the Understand model computes or invents (an end of an appeal period, a day for
+"im Frühling") used to count as known: FACT-01 asked for it and FACT-06 accepted it in
+the draft, with only a FACT-05 warning on the fact sheet. On the team's KESB decision
+this let "Die Beschwerdefrist endet am 15. November 2026" reach the draft
+(use-case-decisions.md §7). Since this run such a value is neither required (FACT-01)
+nor accepted (FACT-06), and fact coverage counts only facts whose value the source
+contains. FACT-01 and the source check use the same matching, so a fact the source check
+rejects could never be satisfied by a faithful draft either.
+
+How often, in the stored fact sheets of `eval/results-cscs`: 8 of 195 values (P1, 23
+pairs), 12 of 331 (P2 8B, 35 pairs), 16 of 207 (70B writer), almost all must-keep. Some
+are inventions ("31. März 2026" for "im Frühling", "1. Januar 2021" for "ab 2021", "30.
+Juni 2025" for "ab Mitte 2025", "1. Januar 2026" for "innerhalb von drei Tagen nach der
+Geburt"); most are normalisations no draft can match ("9" as an amount for "9 Liter",
+"041 43 259 51 00" for "+41 43 259 51 00", "10" for "10 Prozent"), which FACT-01 had
+flagged as missing in every version. A gap of its own: `0800 33 66 55` and `0848 35 45
+55` are not found as phone numbers at all (the pattern knows three-digit area codes), so
+hotline numbers are checked neither by FACT-01 nor by FACT-06. The measure alone, on the stored final drafts:
+fact coverage of P2 8B on the eval pairs 81.7 to 83.1 percent, of the 70B writer 73.1 to
+77.8, of P1 71.1 to 72.4.
+
+The pipeline effect, P2 on the 12 dev pairs, the old rule (patched back in by a scratch
+script) and the new one in sequence on the same cache, both scored with the new measure.
+Results in `eval/results-cscs-fact06-before` and `-after`.
+
+| Mean of the 12 pairs | old rule | new rule |
+|---|---|---|
+| Fact coverage (new measure) | 0.788 | 0.788 |
+| Hard facts kept | 0.718 | 0.718 |
+| Invented values per 100 blocks | 0.47 | 0.47 |
+| Rule errors per 100 blocks | 2.54 | 2.51 |
+| Model calls per job | 10.6 | 10.5 |
+| Tokens per page | 25,205 | 24,587 |
+
+- Four dev pairs have a fact-sheet value the source lacks; none of them reached a final
+  draft on either side. Under the old rule the repair rounds asked for them: in
+  `be-birth-registration-de` the repair round and the facts round both asked for "1.
+  Januar 2026", which the model did not write; under the new rule the job ends a version
+  earlier.
+- No fact lost and no value invented by the change; the facts no draft could match leave
+  the measure, which is why fact coverage reads higher than in earlier runs.
+- On the KESB decision's stored draft the new rule turns the invented deadline into a
+  FACT-06 error, which blocks and goes to repair instead of reaching the reader.
+
 ## Change log
 
 | Version | Date | Change |

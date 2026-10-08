@@ -29,6 +29,8 @@ from leichtfacile.schemas import (
     PipelineSummary,
     RepairRecord,
     RuleFindings,
+    Segment,
+    SourceDocument,
 )
 from leichtfacile.store import Store
 from tests.pipeline import fixtures as fx
@@ -37,6 +39,16 @@ from tests.pipeline import fixtures as fx
 def _fact(fid: str, kind: str, value: str | None, *, keep: bool = True, origin: str = "model"):
     return Fact(id=fid, kind=kind, text=f"Tatsache {fid}", value_norm=value, must_keep=keep,
                 origin=origin, segment_ids=["s0002"])  # type: ignore[arg-type]  # fmt: skip
+
+
+def _source() -> SourceDocument:
+    """The sample letter with one more paragraph that holds the facts' other values: a
+    fact whose value the source lacks is not checked (FACT-01)."""
+    letter = fx.letter()
+    extra = Segment(id="s0007", kind="paragraph", para=5, heading_path=["Prämienverbilligung 2026"],
+                    text="Ab CHF 1'500.- bis 30. April 2026 gibt es 10 % Rabatt, die Gebühr "
+                         "ist CHF 300.-, Fragen an info@musterwil.example.")  # fmt: skip
+    return letter.model_copy(update={"segments": [*letter.segments, extra]})
 
 
 def _draft(version: int, *texts: str) -> Draft:
@@ -65,7 +77,7 @@ def _results(tmp_path: Path) -> Path:
 
     def job(pair: str, fs: FactSheet) -> str:
         j = store.create_job(JobConfig(condition="P2"), title=pair)
-        store.put_artifact(j.id, "source", fx.letter())
+        store.put_artifact(j.id, "source", _source())
         store.put_artifact(j.id, "factsheet", fs)
         rows.append({"pair_id": pair, "job_id": j.id, "role": "dev", "setup": "P2",
                      "status": "needs_review", "writer": "w"})  # fmt: skip

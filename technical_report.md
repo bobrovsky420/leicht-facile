@@ -200,7 +200,7 @@ Two rows need no model: SOURCE (the original, scored as if it were a draft) and 
 (the official easy-language version written by professionals).
 
 **Metrics**, the same for every row, on the final text: *fact coverage* (must-keep
-facts with a normalised value found in the output); *hard facts kept* (the source's
+facts with a source value found in the output); *hard facts kept* (the source's
 dates, amounts, contacts, addresses and other countable values; by code, so
 comparable with REF); *silent losses* (hard values lost without a trace: for a single
 prompt and REF every lost value; for the pipeline the gaps of its code completion);

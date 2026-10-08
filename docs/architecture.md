@@ -309,7 +309,11 @@ score, share of passive sentences, …). The full catalogue is in
   number, e-mail, web address, identifier or address the source's only one is
   suggested, if it has exactly one. On the 12 dev pairs of 6 October the rule found
   the examples' phone numbers in 8 final drafts, the examples' amount and date in 3,
-  and an e-mail address with a dropped letter; the P0 drafts had none.
+  and an e-mail address with a dropped letter; the P0 drafts had none. A value of the
+  fact sheet counts as known only if the source contains it: since 7 October 2026 a
+  value the Understand model computed or invented (an end of an appeal period, a
+  day for "im Frühling") is flagged in the draft and no longer required by FACT-01,
+  instead of reaching the reader with a FACT-05 warning on the fact sheet alone.
 - the value kinds of 7 October: a period (`innert 30 Tagen`, `zwei Wochen`, `30-tägige
   Frist`; `2 Wochen` equals `14 Tage`, working days equal nothing else), an identifier
   (AHV number, IBAN, postal account, UID, a reference after `Referenz`, `Dossier`,
@@ -852,7 +856,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 
 | Metric | How | Why it matters |
 |--------|-----|----------------|
-| Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code) | Did anything important get lost? |
+| Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code); since 7 October 2026 only values the source contains count (FACT-05) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
 | Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
