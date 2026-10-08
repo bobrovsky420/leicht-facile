@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 
+from leichtfacile.ingest.detect import STOPWORDS
 from leichtfacile.llm.client import LLMClient, LLMResult
 from leichtfacile.llm.json_out import LLMOutputError, complete_json
 from leichtfacile.pipeline import render as r
@@ -185,12 +186,18 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
         r"\bimpfausweis",
         r"\bfrontscheibe",
         r"\bwindschutzscheibe",
+        # The office of the examples: the repair example's addition "Rufen Sie die
+        # Einwohner·kontrolle an" came back with a number of the document in 4 P2 jobs of
+        # the CSCS evaluation and 3 example builds (by 8 October 2026), in documents that
+        # never name the office.
+        r"\beinwohnerkontrolle",
     ),
     "fr": (
         r"\bchiens?\b",
         r"\bcarte de stationnement",
         r"\bpare-brise",
         r"\bcarnet de vaccination",
+        r"\bcontrôle des habitants",
     ),
 }
 
@@ -398,7 +405,25 @@ def understand(
     dropped = drop_topical(_understand_texts(out), source.lang, source.text(), "understand")
     if dropped:
         out.facts = [f for f in out.facts if f.text not in dropped]
-    return to_factsheet(out, source.id), results
+    fs = to_factsheet(out, source.id)
+    terms = [t for t in fs.hard_terms if in_source(t.term, source)]
+    if len(terms) < len(fs.hard_terms):
+        log.warning("understand: %d hard terms not in the source", len(fs.hard_terms) - len(terms))
+        fs = fs.model_copy(update={"hard_terms": terms})
+    return fs, results
+
+
+def in_source(term: str, source: SourceDocument) -> bool:
+    """Whether a hard term of the model is a term of the source: written there, or every
+    word of it there in another form (Kantonales Einführungsgesetz, kantonalen
+    Einführungsgesetz). The 8B listed the Understand example's own term for 6 documents
+    of the CSCS evaluation (Einwohnerkontrolle, contrôle des habitants; 8 October 2026),
+    and the writer then sent the reader to that office."""
+    text = source.text()
+    if term.lower().replace(MEDIOPUNKT, "") in text.lower().replace(MEDIOPUNKT, ""):
+        return True
+    words = set(_stems(term, source.lang))
+    return bool(words) and words <= set(_stems(text, source.lang))
 
 
 _DEADLINE_WORDS = re.compile(
@@ -756,15 +781,67 @@ def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
     return [b.model_copy(update={"id": f"b{i:03d}"}) for i, b in enumerate(content, 1)]
 
 
-def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
+# Provenance by wording (FACT-03): words of four letters or more that are no function
+# words, compared by their first five letters (versée, versement; Prämien·verbilligung,
+# Prämienverbilligung). One shared word alone counts from seven letters on: a content
+# word (espèces), not an adverb (sofort).
+_WORD_RE = re.compile(r"[^\W\d_]{4,}")
+_STEM_LETTERS = 5
+_LONG_WORD = 7
+
+
+def _stems(text: str, lang: str) -> dict[str, int]:
+    """The stems of a text's words, each with the length of its longest word."""
+    stop = STOPWORDS.get(lang, frozenset())
+    stems: dict[str, int] = {}
+    for word in _WORD_RE.findall(text.lower().replace(MEDIOPUNKT, "")):
+        if word not in stop:
+            stem = word[:_STEM_LETTERS]
+            stems[stem] = max(stems.get(stem, 0), len(word))
+    return stems
+
+
+def wording_source(text: str, source: SourceDocument) -> str | None:
+    """The source sentence a block says in other words, for a block that names neither
+    a sentence nor a fact: the sentence it shares the most words with, each word
+    weighted by one over the number of sentences that have it. The sentence must reach
+    a weight of 1 (a word no other sentence has, or two words shared with one other
+    sentence each), share two words or one long word, and outweigh every other; else
+    None. In the French example letter the 8B wrote "Vous ne pouvez pas recevoir cet
+    argent en espèces." without a source, so FACT-03 flagged it and the judge, which
+    sees only the cited sentences, called it invented (CSCS, 8 October 2026)."""
+    sentences = [s for s in source.segments if s.kind != "heading"]
+    stems = [set(_stems(s.text, source.lang)) for s in sentences]
+    count: dict[str, int] = {}
+    for words in stems:
+        for w in words:
+            count[w] = count.get(w, 0) + 1
+    block = _stems(text, source.lang)
+    scores = sorted(
+        ((sum(1 / count[w] for w in block.keys() & words), i) for i, words in enumerate(stems)),
+        reverse=True,
+    )
+    if not scores or scores[0][0] < 1 or (len(scores) > 1 and scores[1][0] == scores[0][0]):
+        return None
+    shared = block.keys() & stems[scores[0][1]]
+    if len(shared) < 2 and not any(block[w] >= _LONG_WORD for w in shared):
+        return None
+    return sentences[scores[0][1]].id
+
+
+def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None = None) -> Draft:
     """Bookkeeping the model need not get right: a block that contains a fact's exact
     value conveys that fact, a block that cites a source sentence of a protected part of
     a decision (a code fact without a value, rules/decision.py) conveys that part, and
-    fact ids that do not exist are dropped. A block that cites no source sentence takes
-    those of the facts whose values it contains (FACT-03), and a fact without a value
-    whose text holds values is conveyed by a block that cites one of its sentences and
-    contains all of them (FACT-02: the writer named the narrower facts of those values)."""
+    fact ids and, with the `source`, sentence ids that do not exist are dropped. A
+    block that cites no source sentence (FACT-03) takes those of the facts whose values
+    it contains, else those of the facts it names, else, with the `source`, the sentence
+    it says in other words (`wording_source`). A fact without a value whose text holds
+    values is conveyed by a block that cites one of its sentences and contains all of
+    them (FACT-02: the writer named the narrower facts of those values)."""
     known = factsheet.fact_ids()
+    sources_of = {f.id: f.segment_ids for f in factsheet.facts}
+    source_ids = source.segment_ids() if source is not None else None
     targets = []
     parts = []  # (fact id, its segments) of the facts without a value that code added
     worded = []  # (fact id, its segments, the values in its text) of the model's others
@@ -780,13 +857,28 @@ def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
     for b in draft.blocks:
         ids = [f for f in b.fact_ids if f in known]
         segment_ids = list(b.segment_ids)
+        if source_ids is not None:
+            # An id the source does not have names no sentence: the 8B cited a block id
+            # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
+            segment_ids = [s for s in segment_ids if s in source_ids]
+        cited = bool(segment_ids)
         values = extract_values(b.text, draft.lang) if targets or worded else []
         for fact_id, target, fact_segments in targets:
             if contains(target, b.text, values):
                 if fact_id not in ids:
                     ids.append(fact_id)
-                if not b.segment_ids and b.kind != "heading":
+                if not cited and b.kind != "heading":
                     segment_ids += [s for s in fact_segments if s not in segment_ids]
+        if not segment_ids and b.kind != "heading":
+            for fact_id in b.fact_ids:
+                segment_ids += [s for s in sources_of.get(fact_id, []) if s not in segment_ids]
+        if (
+            not segment_ids
+            and b.kind != "heading"
+            and source is not None
+            and (found := wording_source(b.text, source))
+        ):
+            segment_ids = [found]
         for fact_id, segments in parts:
             if fact_id not in ids and segments & set(segment_ids):
                 ids.append(fact_id)

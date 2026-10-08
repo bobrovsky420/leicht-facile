@@ -304,7 +304,7 @@ class Orchestrator:
                 mode=cfg.mode,
                 addressee=cfg.addressee,
             )
-            draft = stages.link_facts(draft, factsheet)
+            draft = stages.link_facts(draft, factsheet, source)
             if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
             # P1 and P2 only; a baseline measures the prompt
@@ -474,7 +474,7 @@ class Orchestrator:
             self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
             self._round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
             return None
-        new_draft = stages.link_facts(new_draft, factsheet)
+        new_draft = stages.link_facts(new_draft, factsheet, source)
         if self.settings.use_vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
         # Before the check: one text for all.

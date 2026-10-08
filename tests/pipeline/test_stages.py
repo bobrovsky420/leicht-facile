@@ -117,6 +117,69 @@ def test_link_facts_needs_every_value_and_a_cited_sentence_for_a_worded_fact() -
     assert linked[2].segment_ids == []  # no value, no source to take
 
 
+# Sentences of the French example letter (s0010 to s0012, s0016).
+LETTER_FR = SourceDocument(id="doc", lang="fr", source=SourceInfo(type="text"), segments=[
+    Segment(id="s0001", kind="heading", text="Réduction individuelle des primes 2027"),
+    Segment(id="s0010", kind="paragraph", text="La réduction des primes est versée directement "
+            "à l'assureur-maladie et imputée sur les factures de primes courantes."),
+    Segment(id="s0011", kind="paragraph",
+            text="Un versement en espèces à la personne assurée est exclu."),
+    Segment(id="s0012", kind="paragraph", text="Toute modification de la situation personnelle "
+            "ou économique doit être annoncée par écrit dans un délai de 30 jours."),
+    Segment(id="s0016", kind="paragraph", text="Pour tout renseignement, l'agence d'assurances "
+            "sociales se tient à votre disposition au 022 123 45 67."),
+])  # fmt: skip
+
+
+def test_link_facts_finds_the_source_sentence_a_block_says_in_other_words() -> None:
+    # CSCS, 8 October 2026: the 8B wrote these two without a source sentence; FACT-03
+    # flagged them and the judge, without s0010 and s0011, called them invented.
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b013", kind="sentence",
+              text="Vous payez la réduction directement à votre assureur-maladie."),
+        Block(id="b014", kind="sentence",
+              text="Vous ne pouvez pas recevoir cet argent en espèces."),
+        Block(id="b015", kind="heading", text="Les primes"),
+    ])  # fmt: skip
+    linked = link_facts(draft, CONTACT, LETTER_FR).blocks
+    assert [b.segment_ids for b in linked] == [["s0010"], ["s0011"], []]  # no heading
+    assert link_facts(draft, CONTACT).blocks[0].segment_ids == []  # no source, no wording
+
+
+def test_link_facts_drops_a_sentence_id_the_source_does_not_have() -> None:
+    # CSCS, 8 October 2026: the 8B cited a block id as the source of a sentence.
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b009", kind="sentence", segment_ids=["s0009.2"],
+              text="Vous ne pouvez pas recevoir cet argent en espèces."),
+    ])  # fmt: skip
+    (block,) = link_facts(draft, CONTACT, LETTER_FR).blocks
+    assert block.segment_ids == ["s0011"]
+    assert link_facts(draft, CONTACT).blocks[0].segment_ids == ["s0009.2"]  # no source
+
+
+def test_link_facts_gives_a_block_the_sentences_of_the_facts_it_names() -> None:
+    # A repair's addition names its fact and often no source sentence.
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="sentence", fact_ids=["f05"], text="Appelez l'agence."),
+    ])  # fmt: skip
+    (block,) = link_facts(draft, CONTACT, LETTER_FR).blocks
+    assert block.segment_ids == ["s0016", "s0017"]
+
+
+@pytest.mark.parametrize(
+    ("text", "why"),
+    [("Vous pouvez aussi venir demain.", "only short or common words"),
+     ("Les primes sont payées.", "one short word, shared by two sentences"),
+     ("Écrivez une lettre à la commune.", "no shared word")],
+)  # fmt: skip
+def test_a_block_without_a_clear_source_sentence_keeps_none(text: str, why: str) -> None:
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text=text),
+    ])  # fmt: skip
+    (block,) = link_facts(draft, CONTACT, LETTER_FR).blocks
+    assert block.segment_ids == [], why
+
+
 def test_apply_repairs_splits_and_adds_blocks() -> None:
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
@@ -491,6 +554,37 @@ def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps
     draft, results = write(llm, fx.letter(), fs, level="A2")
     assert len(results) == 2 and "Hund" not in " ".join(b.text for b in draft.blocks)
     assert len(draft.blocks) == len(fx.WRITE["blocks"])
+
+
+def test_the_examples_office_is_example_content_unless_the_source_names_it() -> None:
+    from leichtfacile.pipeline.stages import topic_sentences
+
+    # The repair example's addition, with a number of the document (CSCS, 8 Oct 2026).
+    leak = "Rufen Sie die Einwohner·kontrolle an: 044 123 45 67."
+    assert topic_sentences([leak], "de", "Telefon 044 123 45 67.") == [leak]
+    own = "Einwohnerkontrolle, Telefon 044 123 45 67."  # the style guide's number too
+    assert topic_sentences([leak], "de", own) == []
+    leak_fr = "Téléphonez au contrôle des habitants : 022 123 45 67."
+    assert topic_sentences([leak_fr], "fr", "Téléphone 022 123 45 67.") == [leak_fr]
+
+
+def test_understand_keeps_only_hard_terms_of_the_source(endpoint, sleeps) -> None:
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import in_source, understand
+    from tests.conftest import chat_response, make_settings
+
+    source = fx.letter()
+    text = source.text()
+    assert in_source(text.split()[0], source)
+    assert not in_source("Einwohnerkontrolle", source)  # the Understand example's term
+    copied = {**fx.UNDERSTAND, "hard_terms": [
+        {"term": "Einwohnerkontrolle", "explanation": "Das Amt der Gemeinde.",
+         "segment_ids": ["s0002"]},
+    ]}  # fmt: skip
+    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    endpoint.push(chat_response(fx.as_json(copied)))
+    fs, _ = understand(llm, source, level="A2")
+    assert fs.hard_terms == []
 
 
 def test_write_output_drops_empty_blocks() -> None:

@@ -215,7 +215,11 @@ term (`origin: vocabulary`): the 8B's own were often hard or wrong (Franchise an
 Selbstbehalt explained alike, the Urne as the place of the vote; CSCS dev run of
 7 October 2026). Terms of the source the model did not list are added, the rarest
 first, up to 6 and 12 hard terms in all. Context-dependent words (Leistung, Wartezeit)
-are never added by code. Since 7 October 2026; `USE_VOCABULARY=0` switches this and the
+are never added by code. A hard term of the model that the source does not contain,
+neither as written nor word for word in another form, is dropped (`stages.in_source`):
+the 8B listed the Understand example's own office (Einwohnerkontrolle, contrôle des
+habitants) for 6 documents of the CSCS evaluation, and the writer then sent the reader
+to it. Since 7 October 2026; `USE_VOCABULARY=0` switches this and the
 other uses below off, only to measure them.
 
 ### 4.3 Plan and write (Apertus)
@@ -253,8 +257,12 @@ An answer cut off at `max_tokens` is never used (its last objects are incomplete
 the part of the document it was for is written again as two halves, down to six
 sentences. Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
 block to every fact whose exact value it contains, so fact bookkeeping does not depend
-on the model. A block that cites no source sentence takes the sentences of those facts,
-and a fact without a value whose text holds values (a contact with its phone number and
+on the model. A sentence id the source does not have is dropped (the 8B cited a
+block id). A block that cites no source sentence takes the sentences of those facts,
+else those of the facts it names, else the source sentence it says in other words: the
+one it shares the most distinctive words with, by a clear margin (`wording_source`;
+without it, FACT-03 flags the block and the judge, which sees only the cited
+sentences, is apt to call it invented). A fact without a value whose text holds values (a contact with its phone number and
 e-mail) is linked to a block that cites one of its sentences and contains all of them. A sentence that repeats an earlier one is dropped and its references go
 to the first, and a heading left without content goes too: small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
