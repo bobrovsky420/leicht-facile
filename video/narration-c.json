@@ -1,6 +1,6 @@
 {
   "voice": "af_heart",
-  "speed": 0.87,
+  "speed": 0.89,
   "say": {
     "Leicht·Facile": "lˈaɪçt fæsˈiːl",
     "Apertus": "ɑːpˈɛɹtʊs",
@@ -143,16 +143,21 @@
     {
       "id": "sovereign",
       "lead": 0.7,
-      "tail": 0.9,
+      "tail": 0.6,
       "chunks": [
         {
+          "id": "sov-0",
+          "text": "Easy language matters most in the most personal letters.",
+          "pause": 0.5
+        },
+        {
           "id": "sov-a",
-          "text": "Patient letters, child protection decisions, tax letters:",
-          "pause": 0.15
+          "text": "A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment.",
+          "pause": 0.3
         },
         {
           "id": "sov-b",
-          "text": "under secrecy, they may not go to a foreign cloud.",
+          "text": "Under secrecy, they may not go to a foreign cloud.",
           "pause": 0.3
         },
         {
@@ -188,7 +193,7 @@
     },
     {
       "id": "end",
-      "lead": 4.0,
+      "lead": 3.6,
       "tail": 0,
       "chunks": []
     }

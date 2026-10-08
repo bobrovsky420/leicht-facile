@@ -16,6 +16,8 @@ const TILES = [
   { pre: "Open weights, ", bad: "secret training data" },
   { pre: "Open data, ", bad: "built abroad" },
 ];
+// version C: in the order the narration names them (the penal order is not named)
+const LETTERS_C = ["KESB-Entscheid", "Patientenbrief", "Steuerveranlagung", "Strafbefehl"];
 const ROT = [-4, 3, -2, 4];
 const rgb = (a: number[], b: number[], p: number) => `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], p))).join(",")})`;
 const INK = [26, 30, 35];
@@ -24,8 +26,13 @@ const RED = [198, 40, 40];
 
 export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
   const t = useSceneTime(offset);
-  const { cue } = useTL();
+  const { cue, hasCue } = useTL();
   const a = cue("sov-a");
+  // version C opens with "Easy language matters most in the most personal letters." and
+  // names the letters one by one, the child protection decision first
+  const intro = hasCue("sov-0") ? cue("sov-0") : null;
+  const letters = intro ? LETTERS_C : LETTERS;
+  const arrive = intro ? [0, 0.62, 0.86, 0.95] : [0, 0.24, 0.48, 0.72];
   const b = cue("sov-b");
   const c = cue("sov-c");
   const d = cue("sov-d");
@@ -45,10 +52,10 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
   return (
     <SceneFade offset={offset}>
       <Table dim={lerp(0.12, 0.62, up)}>
-        {LETTERS.map((label, k) => {
-          const inP = easeInOut((t - (a.s + k * a.d * 0.24)) / 0.65);
+        {letters.map((label, k) => {
+          const inP = easeInOut((t - (a.s + arrive[k] * a.d)) / 0.65);
           const x = 225 + k * 380;
-          const y = lerp(320, 60, up) + (1 - inP) * 700;
+          const y = lerp(320, 60, up) + (1 - inP) * 900; // starts fully below the frame
           const s = lerp(1, 0.56, up);
           const lock = ramp(t, b.s + 0.45 + k * 0.12, 0.3);
           return (
@@ -90,6 +97,28 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
           );
         })}
       </Table>
+
+      {intro && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 380,
+            textAlign: "center",
+            fontFamily: F.reader,
+            fontWeight: 700,
+            fontSize: 64,
+            color: "#fff",
+            textShadow: "0 6px 30px rgba(0,0,0,0.6)",
+            opacity: Math.min(ramp(t, intro.s - 0.1, 0.4), 1 - ramp(t, a.s - 0.1, 0.35)),
+          }}
+        >
+          Easy language matters most
+          <br />
+          in the most personal letters.
+        </div>
+      )}
 
       {TILES.map((tile, k) => {
         const p = ramp(t, tilesAt + 0.15 + k * 0.08, 0.4);

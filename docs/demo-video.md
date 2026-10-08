@@ -115,7 +115,7 @@ The owner's combination: the split-screen opening of §5 for the first seconds, 
 variant B's step by step and the rest of §2. The stakes play on the kitchen table with
 the letter, drawn in code for now; the owner decides later whether generated footage
 replaces it. The app scene is shorter, since the step by step already shows facts and
-checks. 240 words, 1:52.
+checks. 261 words, 1:57 (voice speed 0.89).
 
 | Time | Picture | Narration (English) |
 |------|---------|---------------------|
@@ -125,8 +125,8 @@ checks. 240 words, 1:52.
 | 0:31-0:56 | Variant B's step by step on the real sentence s0007; after the three new sentences the Mediopunkt in *Antrags·formular* and *Sozial·versicherungs·stelle* lights up, labelled "Mediopunkt: long words in readable parts" (owner, 8 October). | "Here is how, on one sentence from a real letter." Then as in variant B, with "A middle dot splits long words into easier parts." before the check. |
 | 0:52-1:05 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
 | 1:05-1:14 | The evidence scene of §2. | As in §2. |
-| 1:14-1:44 | The "only Apertus" scene of §5. | As in §5. |
-| 1:48-1:52 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
+| 1:16-1:53 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5. |
+| 1:53-1:57 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
 
 ## 4. Before recording
 
