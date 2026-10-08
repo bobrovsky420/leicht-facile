@@ -194,18 +194,34 @@ def _example_key(text: str) -> str:
     return " ".join(text.lower().replace("·", "").split()).rstrip(".!?:")
 
 
+def _static_renders(lang: str, stage: str) -> list[str]:
+    """The prompt without its document, once per level where the level matters: the
+    instructions, the JSON example, the style guide (write and repair) and the few-shot
+    pairs (write). The style guide is in since 8 October 2026: a decision-mode draft on
+    the 8B carried the write prompt's style guide as a section of the draft."""
+    levels = ("A2", "B1") if "style_guide" in _STATIC_CONTEXT[stage] else ("A2",)
+    renders = []
+    for level in levels:
+        context = dict(_STATIC_CONTEXT[stage], level=level, level_name=level_name(lang, level))
+        if "style_guide" in context:
+            context["style_guide"] = style_guide(lang, level)
+        context.update(mode_context(stage))
+        if stage == "write":
+            context["examples"] = examples(lang)
+        renders.append(render(lang, stage, **context))
+    return renders
+
+
 @lru_cache(maxsize=16)
 def example_keys(lang: str, stage: str) -> frozenset[str]:
-    """The sentences of a prompt's own examples, normalised, to recognise an answer that
-    copies them. On the Public AI 8B, 4 of 12 dev drafts were the write prompt's JSON
-    example, word for word (6 October 2026)."""
-    context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
-    context.update(mode_context(stage))
-    if stage == "write":
-        context["examples"] = examples(lang)
-    text = render(lang, stage, **context)
-    keys = {_example_key(line) for line in text.splitlines()}
-    keys |= {_example_key(q) for q in _QUOTED.findall(text)}
+    """The sentences of a prompt's own examples and style guide, normalised, to
+    recognise an answer that copies them. On the Public AI 8B, 4 of 12 dev drafts were
+    the write prompt's JSON example, word for word (6 October 2026). A list marker in
+    front of a line (the style guide's `- `) is not part of the key."""
+    keys: set[str] = set()
+    for text in _static_renders(lang, stage):
+        keys |= {_example_key(line.lstrip(" -*")) for line in text.splitlines()}
+        keys |= {_example_key(q) for q in _QUOTED.findall(text)}
     return frozenset(k for k in keys if len(k) >= 12)
 
 
@@ -221,13 +237,14 @@ def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
 
 @lru_cache(maxsize=16)
 def example_values(lang: str, stage: str) -> tuple[Value, ...]:
-    """The dates, amounts, phone numbers, addresses and times of a prompt's examples."""
-    context = dict(_STATIC_CONTEXT[stage], level_name=level_name(lang, "A2"))
-    context.update(mode_context(stage))
-    if stage == "write":
-        context["examples"] = examples(lang)
-    text = render(lang, stage, **context)
-    return tuple(v for v in extract_values(text, lang) if v.kind in HARD_KINDS)
+    """The dates, amounts, phone numbers, addresses and times of a prompt's examples
+    and style guide (`044 123 45 67`, `4. Februar 2026`), one Value per canonical."""
+    values: dict[tuple[str, str], Value] = {}
+    for text in _static_renders(lang, stage):
+        for v in extract_values(text, lang):
+            if v.kind in HARD_KINDS:
+                values.setdefault(v.key, v)
+    return tuple(values.values())
 
 
 def topic_sentences(

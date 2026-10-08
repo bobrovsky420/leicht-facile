@@ -71,10 +71,13 @@ URL_RE = re.compile(
     r"(?:/[^\s<>()" + _QUOTES + r"]*)?)(?![\w@-])",
     re.IGNORECASE,
 )
+# Service numbers (free 0800, shared-cost 084x, premium 090x) have ten digits and come
+# in two groupings: `0800 123 456` and `0800 33 66 55` (the cantonal emergency pages
+# write the hotlines the second way; found 7 October 2026 as four plain numbers).
 PHONE_RE = re.compile(
     r"(?<![\d+])(?:"
     r"(?:\+41|0041)[ ./-]?(?:\(0\)[ ]?)?\d{2}[ ./-]?\d{3}[ ./-]?\d{2}[ ./-]?\d{2}"
-    r"|0(?:800|84[0-9]|90[0-9])[ ./-]?\d{3}[ ./-]?\d{3}"
+    r"|0(?:800|84[0-9]|90[0-9])[ ./-]?(?:\d{3}[ ./-]?\d{3}|\d{2}[ ./-]?\d{2}[ ./-]?\d{2})"
     r"|0\d{2}[ ./-]?\d{3}[ ./-]?\d{2}[ ./-]?\d{2}"
     r")(?!\d)"
 )

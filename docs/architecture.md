@@ -591,8 +591,10 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   with too few digits, a second value without a list where a key belongs, which is
   dropped because code completion restores any value it carried) and validated with pydantic. On failure the validation error, or the
   syntax error with its position, is fed back once for a repair. An answer that copies
-  the prompt's own example (4 of 12 dev drafts on the Public AI 8B were the JSON form
-  itself, 6 October 2026) is recognised by code and sent back once in the same way.
+  the prompt's own example or its style guide (4 of 12 dev drafts on the Public AI 8B
+  were the JSON form itself, 6 October 2026; a decision-mode draft carried the style
+  guide as a section, 7 October) is recognised by code and sent back once in the same
+  way.
   The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
   but it made no difference in the day-1 check (§12), so it is not used.
 - **Streaming.** Every response is streamed (`LLM_STREAM`, on by default): the

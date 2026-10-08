@@ -1189,8 +1189,10 @@ def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 
 
 ACCEPTED_PHONE_RE = re.compile(
-    r"0\d{2} \d{3} \d{2} \d{2}|\+41 \d{2} \d{3} \d{2} \d{2}|0(?:800|84\d|90\d) \d{3} \d{3}"
-)  # the Zürich easy-language pages write +41 44 123 45 67; that is fine (decision D-J)
+    r"0\d{2} \d{3} \d{2} \d{2}|\+41 \d{2} \d{3} \d{2} \d{2}"
+    r"|0(?:800|84\d|90\d) (?:\d{3} \d{3}|\d{2} \d{2} \d{2})"
+)  # the Zürich easy-language pages write +41 44 123 45 67; that is fine (decision D-J).
+# A service number in either usual grouping (0800 123 456, 0848 35 45 55) is fine too.
 
 
 def format_phone(text: str) -> str:

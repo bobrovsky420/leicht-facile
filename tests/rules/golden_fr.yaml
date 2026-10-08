@@ -263,8 +263,10 @@ NUM-08-FR:
   positive:
     - "Appelez le 0221234567."
     - "Appelez le 022/123 45 67."
+    - "Appelez le 0848354555."
   negative:
     - "Appelez le 022 123 45 67."
+    - "Appelez le 0848 35 45 55."
     - "Appelez le +41 22 123 45 67."
 
 CH-03-FR:

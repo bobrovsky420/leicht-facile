@@ -279,9 +279,11 @@ NUM-08:
     - Rufen Sie 0041 44 123 45 67 an.
     - Rufen Sie 044/123 45 67 an.
     - Rufen Sie 0441234567 an.
+    - Rufen Sie 0800336655 an.
   negative:
     - Rufen Sie 044 123 45 67 an.
     - Rufen Sie 0800 123 456 an.
+    - Rufen Sie 0848 35 45 55 an.
     - Rufen Sie +41 44 123 45 67 an.
 
 CH-01:

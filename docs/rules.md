@@ -87,7 +87,7 @@ sentence limits follow from the calibration on the official French pages (below)
 | NUM-05 | Durations in words and digits: `1 Stunde und 30 Minuten` | `1.5 h`, `1½ Stunden`, `90 min` | info |
 | NUM-06 | Percent written out | `%` → `Prozent` | warn |
 | NUM-07 | Amounts as `500 Franken` or `CHF 500`, no decimals when zero | `CHF 500.00`, `Fr. 500.-`, `500.00 CHF` | info |
-| NUM-08 | Phone numbers spaced: `044 123 45 67` | `0041`, `044/123 45 67`, unspaced or oddly spaced digits; the spaced international format `+41 44 123 45 67` is accepted (decision D-J, calibration) | warn |
+| NUM-08 | Phone numbers spaced: `044 123 45 67` | `0041`, `044/123 45 67`, unspaced or oddly spaced digits; the spaced international format `+41 44 123 45 67` is accepted (decision D-J, calibration), and a service number in either usual grouping (`0800 123 456`, `0848 35 45 55`) | warn |
 
 ### Swiss spelling
 
@@ -120,7 +120,7 @@ as a value.
 |------|----------|-----------------------------|
 | `date` | `31. März 2026`, `31.3.2026`, `2026-03-31`, `31. März`, `31. Jan. 2026` | ISO date; a date without a year matches the same day and month |
 | `amount` | `CHF 1'500.-`, `1 500 Franken`, `Fr. 20.50`, `20.-` | decimal number; an amount matches a plain number with the same value |
-| `phone` | `044 123 45 67`, `+41 44 123 45 67`, `0041 44 123 45 67`, `0800 123 456` | digits only |
+| `phone` | `044 123 45 67`, `+41 44 123 45 67`, `0041 44 123 45 67`, `0800 123 456`, `0848 35 45 55` (the ten-digit service numbers 0800, 084x and 090x in either grouping; since 8 October 2026, before that the emergency pages' hotlines came out as four plain numbers) | digits only |
 | `email`, `url` | as written, with or without `https://` and `www.` | lowercase; a shortened web address that is a prefix of a source address passes FACT-06 |
 | `percent` | `10 %`, `10 Prozent`, `10 pour cent` | the number; a fact sheet carries it as `10%` (the prompt's form, and the code completion's since 7 October 2026: a bare number would parse as a plain number and match no percentage) |
 | `time` | `9.00 Uhr`, `09:00`, `9 Uhr`, `9 h 00`, `8.30 bis 11.30 Uhr` | HH:MM |

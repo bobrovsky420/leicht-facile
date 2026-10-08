@@ -39,6 +39,10 @@ def kinds(text: str) -> list[tuple[str, str]]:
         ("0041 44 123 45 67", ("phone", "0441234567")),
         ("044/123 45 67", ("phone", "0441234567")),
         ("0800 123 456", ("phone", "0800123456")),
+        ("Opfer·hilfe 0800 33 66 55", ("phone", "0800336655")),
+        ("Eltern·notruf 0848 35 45 55", ("phone", "0848354555")),
+        ("Tel. 0900 55 35 55 (Fr. 2.-)", ("phone", "0900553555")),
+        ("0800336655", ("phone", "0800336655")),
         ("info@zh.ch", ("email", "info@zh.ch")),
         ("https://www.zh.ch/ipv.", ("url", "zh.ch/ipv")),
         ("priminfo.ch", ("url", "priminfo.ch")),
@@ -56,6 +60,14 @@ def test_extract_values(text: str, expected: tuple[str, str]) -> None:
 def test_values_do_not_overlap() -> None:
     found = kinds("Rufen Sie 044 123 45 67 an. Frist: 31.03.2026. Kosten: CHF 1'500.-")
     assert found == [("phone", "0441234567"), ("date", "2026-03-31"), ("amount", "1500")]
+
+
+def test_a_hotline_is_one_phone_number_not_four_plain_numbers() -> None:
+    # The emergency pages write the free and shared-cost numbers in pairs; before 8
+    # October 2026 these came out as 0848, 35, 45 and 55, so no fact rule saw them.
+    found = kinds("Eltern·notruf: 0848 35 45 55, Tag und Nacht. Opfer·hilfe: 0800 33 66 55.")
+    assert found == [("phone", "0848354555"), ("phone", "0800336655")]
+    assert hard_values("Rufen Sie 0848 354 555 an.") == {("phone", "0848354555")}
 
 
 def test_url_drops_sentence_dot() -> None:

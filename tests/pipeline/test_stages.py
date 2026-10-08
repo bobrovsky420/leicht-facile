@@ -311,6 +311,19 @@ def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
     assert _example_key("Die Hunde·steuer kostet 120 Franken pro Hund.") in keys  # JSON example
     assert _example_key("Bringen Sie den Impf·ausweis von Ihrem Hund mit.") in keys  # few-shot
     assert _example_key("fact_ids") not in keys
+    # The style guide's lines, at both levels and without the list marker: a draft on
+    # the 8B carried the guide as a section (8 October 2026).
+    guide = "Telefon·nummern schreiben Sie mit Abständen: 044 123 45 67."
+    assert _example_key(guide) in keys and _example_key(guide) in example_keys("de", "repair")
+    assert _example_key("Schreiben Sie kurze Sätze: höchstens 12 Wörter pro Satz.") in keys
+    assert _example_key("Schreiben Sie kurze Sätze: höchstens 15 Wörter pro Satz.") in keys
+    passive = (
+        "Kein Passiv. Sagen Sie, wer etwas tut. "
+        "Nicht: Das Formular wird geprüft. Sondern: Das Amt prüft das Formular."
+    )
+    assert copied_sentences([guide, passive], "de", "write") == 2
+    part = "Kein Passiv. Sagen Sie, wer etwas tut."  # a part of a line is no copy
+    assert copied_sentences([part], "de", "write") == 0
     for lang, stage in (
         ("fr", "write"),
         ("de", "understand"),
