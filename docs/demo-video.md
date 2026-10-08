@@ -1,85 +1,131 @@
 # Demo video: script and storyboard
 
 Status: initial draft, 6 October 2026; on 7 October 2026 the "only Apertus" scene
-(1:29-1:57) added and the BehiG scene dropped for it. Companion to
-[hard-texts.md](hard-texts.md) (hook sentences, the number) and
-[use-cases.md](use-cases.md) (the letters that may not leave the authority, and why
-that leaves Apertus).
+added and the BehiG scene dropped for it. On 8 October 2026 the owner chose concept A,
+"Find the deadline", after mocks of both concepts; the first concept, "Can you read
+this?", is kept in §5 for reference. Companion to [hard-texts.md](hard-texts.md) (hook
+sentences, the number) and [use-cases.md](use-cases.md) (the letters that may not leave
+the authority, and why that leaves Apertus).
 
 Submission limit: at most 2 minutes. Target: 1:50.
 
-## 1. Concept: "Can you read this?"
+## 1. Concept: "Find the deadline"
 
-Start with the viewer's own moment of not understanding, then show the tool solving
-that same sentence. The video itself follows easy-language rules: short sentences,
-one idea per shot, English captions burned in.
+The viewer takes a test instead of being told that official letters are hard: find the
+deadline in a letter in five seconds, then in its easy-language version, where it is in
+the first sentence. The video itself follows easy-language rules: short sentences, one
+idea per shot, English captions burned in.
 
-- Main language: English (narration, captions, titles). German and French appear on
-  screen only as illustrations.
-- Fully AI-generated: voice, music, background footage, titles. The product scenes are
-  real screen recordings (see §3).
+- Main language: English (narration, captions, the instruction). German stays on screen
+  as the illustration: the letter, the draft, the app's content and the instruction's
+  second line "Finden Sie die Frist." (owner, 8 October: German binds the video to
+  Switzerland and Apertus). The test still works without German, since a date is
+  recognizable in any language. French is not shown.
+- Real material: the letter is the team-written example
+  (`data/examples/sources/praemienverbilligung-brief.txt`) and the easy-language text
+  the first blocks of its real P2 draft (`data/examples/jobs/`, before review), word for
+  word and labelled as such. This replaces the illustrative DE-4 rewrite of the first
+  concept, for which P2 gave no usable output (PLAN.md §11, 8 October).
+- The deadline runs through the video: the test, the fact sheet's "By when?", the
+  deadline fact and its code check, the draft sentence linked to its source sentence,
+  the end card ("The deadline. In the first sentence.").
 - Key message: the 844,000 people must not be excluded from the letters that decide
-  their money, deadlines and rights (spoken at 0:12-0:32, written on the end card).
+  their money, deadlines and rights (spoken at 0:18-0:33, written on the end card).
   Same wording as in [hard-texts.md](hard-texts.md) §2, the README and the report.
+- Evidence by case B of PLAN.md §13.4: no fact lost without a trace. A strong single
+  prompt in its default mode loses hard facts and nothing tells the writer; Leicht·Facile
+  lists every missing fact. The numbers come from the final run; Zurich is not named
+  (D-L).
 - Second message: patient letters, child protection decisions and tax letters are
   under secrecy and may not go to a foreign cloud, and for them Apertus is the only
-  model that fits (1:29-1:57). The argument and its sources are in
+  model that fits (1:19-1:49). The argument and its sources are in
   [use-cases.md §2](use-cases.md#why-only-apertus); the README and report §3 say the
   same.
 - Third message: Leicht·Facile does not replace the writers; it gives them a checked
-  first draft (0:32-0:49), and the writer approves every block (end of the product
+  first draft (0:33-0:40), and the writer approves every sentence (end of the product
   scene).
-- Narration: about 250 words, about 1:47 at a calm pace (140 words per minute). Every
-  scene is timed to its narration: if the evaluation sentence at 1:19 runs longer than
-  20 words, take the time from the product scene.
+- Narration: 231 words in the mock of 8 October, 1:52 in all at about 155 words per
+  minute while speaking, with two silent countdowns. Every scene is timed to its
+  narration.
 
 ## 2. Storyboard
 
 | Time | Picture | Narration (English) |
 |------|---------|---------------------|
-| 0:00-0:12 | Black screen. DE-4 types itself in full screen: *"Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können."* Below it: *"Können Sie das lesen? Haben Sie es sofort verstanden?"* Quick cut to FR-4 with *"Pouvez-vous lire ceci ? L'avez-vous compris tout de suite ?"* | "Can you read this? Did you understand it right away? Only one question matters here: do I get my money back, or not?" |
+| 0:00-0:12 | Dark screen. The example letter, German, full text, on a white page. On the right *"Find the deadline."*, below it *"Finden Sie die Frist."*, and a five-second countdown ring with soft ticks. Time's up: the page dims except *"bis spätestens 31. März 2027"*, marked in the third paragraph. | "Find the deadline. You have five seconds." (countdown) "Missed it? It was here, in the third paragraph." |
+| 0:12-0:18 | The first blocks of the letter's real draft (German, labelled "Draft by Leicht·Facile, before review"), the same countdown. After about a second *"31. März 2027"* lights up in the first sentence; the ring stops, a chime: *"Found in 1 second"*. | "Now the easy-language version." (about a second) "There. In the first sentence." |
+| 0:18-0:33 | The kitchen table in evening light (generated footage, or drawn as in the mock): **844,000** with "PIAAC 2023"; the letter's money, deadline and rights marked; the letter pushed away on "shut out"; a card *Slow expert work*. | "844,000 adults in Switzerland struggle with reading. Letters like this decide their money, their deadlines, their rights. No one should be shut out. But easy-language versions are slow expert work." |
+| 0:33-0:40 | Logo, *easy-language drafts of official texts*, *with Apertus, the Swiss open model*; then *The writers stay in charge* and *A checked first draft*. | "Leicht·Facile drafts them with Apertus, the Swiss open model. The writers get a checked first draft." |
+| 0:40-1:09 | **Real screen recording**, sped up, of the same letter: pasted, level A2. The fact sheet's five questions, *By when?* ringed, then the deadline fact with its value 2027-03-31. The draft. The rule check with a millisecond timer (47 ms on draft v1 of this letter). The facts tab with the deadline present. Judge and repair: the version pills from v1 (10 blocking) to the final version (2). The deadline sentence selected, its source sentence lit; approve with the keys; reader view and export. | "Apertus reads the letter the way you just tried to, and writes down every answer: what to do, by when, what it costs, whom to ask. Then it writes the draft. Code checks every date, amount and phone number, and 42 easy-language rules, in milliseconds. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source. The writer approves each one." |
+| 1:09-1:19 | *No fact lost without a trace.* Left: the share of hard facts a strong single prompt in its default mode loses with nothing telling the writer (23 % in report §5, 6 October). Right: Leicht·Facile with the real facts tab, *13 of 14 facts present*, the missing fact first. Footnote: endpoint, model, split, date. | "A strong single prompt, in its default mode, lost almost a quarter of the hard facts, without a word. Leicht·Facile lists every missing fact." |
+| 1:19-1:49 | The "only Apertus" scene of §5, unchanged: the envelopes, the four tiles struck one per sentence, Apertus, the icons, Ticino, CSCS. | As in §5, 1:29-1:57. |
+| 1:49-1:52 | End card: *"The deadline. In the first sentence."* above *"No one left out."*, team name (Röstigraben Bridgers), repo URL, "Voice and imagery AI-generated". | (music only) |
+
+## 3. Production notes
+
+- **Record the product, do not generate it.** The UI scenes (0:40-1:09) are real
+  recordings of the tool, and the test texts (0:00-0:18) are the example letter and its
+  real draft, word for word. Generated screens of the app would misrepresent the
+  prototype.
+- **No readable text in generated footage.** Video generators garble writing. Generate
+  the kitchen-table letter blank and add its text in the edit. Use a made-up sender such
+  as "Gemeinde Musterwil", never a real authority's letterhead or logo. The same for the
+  envelopes at 1:19: blank in the footage, labelled in the edit.
+- **Categories, not competitors.** The struck-through tiles name kinds of models, never
+  a product, a company or a logo. Every claim in that scene has its source in
+  [use-cases.md §2](use-cases.md#why-only-apertus); "only option" is meant for letters
+  under secrecy, not for public web pages, and the scene says so.
+- **The countdowns:** five seconds for the letter, with soft ticks and a low tone when
+  the time is up; the second test stops as soon as the date lights up, with a light
+  chime. Keep both short.
+- **Pronunciation:** set a text-to-speech alias for "Leicht·Facile" and test it first:
+  "Leicht" in High German, with the ich-sound (IPA `ˈlaɪçt`, not "lysht"), then French
+  "fa-SEEL" (owner, 8 October). The same for "Apertus" and "CSCS" (spelled out C-S-C-S).
+- **Voice:** one calm, warm voice, a bit slower than normal (about 140 to 155 words
+  per minute), with pauses after the questions. Quiet music.
+- **Captions:** English, burned in. German only in the picture, not in the captions.
+
+## 4. Before recording
+
+- [ ] CSCS runs done: the silent-loss share of the strong single prompt for 1:09 from
+      the final run, and a real example job for the screen recording.
+- [ ] 844,000 wording re-checked against the SBFI press release
+      ([hard-texts.md](hard-texts.md) §2).
+- [ ] The "only Apertus" scene (1:19-1:49) re-checked against its sources in
+      [use-cases.md §2](use-cases.md#why-only-apertus): the privatim resolution, the
+      Apertus v1.5 model card (open training data, languages) and the CSCS article on
+      the Ticino service.
+- [x] Product scene: the premium-reduction letter, since the test and the screen
+      recording use the same letter (concept A, 8 October).
+- [x] Before/after: replaced by the second test, which shows the example job's real
+      draft (concept A, 8 October).
+- [ ] The draft's fourth sentence, *"Sie mitschicken eine Kopie der Steuer·veranlagung
+      …"*, is ungrammatical and visible in the second test and in the review: rebuild
+      the example job after a prompt fix, or show the reviewed text, labelled as
+      reviewed.
+- [ ] Recording finished by 14 October; two days for edits before the deadline
+      (16 October 2026, 12:00 CEST).
+
+## 5. Earlier concept: "Can you read this?" (6 to 8 October)
+
+Start with the viewer's own moment of not understanding, then show the tool solving
+that same sentence. Mocked on 8 October in three versions; replaced by concept A, whose
+opening needs no illustrative rewrite and works without German. Its "only Apertus"
+scene (1:29-1:57) is reused there unchanged.
+
+- Main language: English (narration, captions, titles). German and French appear on
+  screen only as illustrations.
+- Key message spoken at 0:12-0:32 and written on the end card; second message at
+  1:29-1:57; third message at 0:32-0:49 and at the end of the product scene.
+- Narration: about 250 words planned; the mock counted 267 with its evaluation
+  sentence and fit in 1:59 only at about 165 words per minute.
+
+| Time | Picture | Narration (English) |
+|------|---------|---------------------|
+| 0:00-0:12 | Black screen, split in two: DE-4 on the left (*"Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können."*) and FR-4 on the right type themselves side by side and stay for the whole scene. Under each its question: *"Können Sie das lesen? Haben Sie es sofort verstanden?"* and *"Pouvez-vous lire ceci ? L'avez-vous compris tout de suite ?"* On "do I get my money back, or not?" the negations in both light up. (Split screen instead of a quick cut to FR-4: the owner's decision of 8 October, after the mock showed FR-4 too briefly.) | "Can you read this? Did you understand it right away? Only one question matters here: do I get my money back, or not?" |
 | 0:12-0:32 | AI-generated footage: hands holding an official letter at a kitchen table, evening light. The number fades in: **844,000**, with "PIAAC 2023" small underneath. On "No one should be shut out", the letter is pushed back across the table, unread. | "If you hesitated, you are not alone. 844,000 adults in Switzerland struggle with reading. Letters like this decide their money, their deadlines, their rights. No one should be shut out of them. But easy-language versions are slow expert work, and a chatbot checks nothing." |
 | 0:32-0:49 | Logo, the Apertus name, and the tagline set as text. | "Leicht·Facile drafts easy-language versions of official texts with Apertus, the Swiss open model. It does not replace the writers. It gives them a checked first draft. Apertus does what needs language understanding. Plain code checks everything that can be counted." |
 | 0:49-1:19 | **Real screen recording**, sped up 2-4x, with zooms on key spots: New draft, paste a letter, choose A2. The running job: the stages tick off, the fact sheet appears with the values as chips. Rule check with a millisecond timer. Judge findings turning from red to green (the version pills: blocking problems per version). The review workbench: select a block and its source sentences light up; approve with the keys. Reader view, then export. | "Apertus turns a letter into a fact sheet: every deadline, amount and phone number. Then it writes a draft. Every sentence links back to its source; every omission is explained. Code checks 42 Swiss easy-language rules, and every date and amount. A larger Apertus model judges the meaning. Only flagged sentences are repaired. The writer approves every block, with a full audit trail." |
 | 1:19-1:29 | DE-4 source on the left, **the tool's real A2 output** on the right. Then one evaluation number, P2 against P0. | "The same sentence, now. Short. Clear. The answer comes first. [One sentence with the evaluation result against a single prompt.]" |
-| 1:29-1:57 | The kitchen table again. Four blank envelopes slide in; the edit labels each and adds a small lock: *Patient letter*, *KESB decision*, *Penal order*, *Tax assessment*. Four tiles follow, their text set in the edit: *Foreign cloud*, *Closed model*, *Open weights, secret training data*, *Open data, built abroad*, each struck through as the narration reaches it, then a fifth, *Apertus: open data, built in Switzerland, in-house*, with a tick. Under it the three icons on-premise, air-gapped, Swiss cloud; on "Ticino" a caption *Canton of Ticino: Apertus in-house for sensitive documents* (text only, no coat of arms); at the end a small label "This demo: CSCS, Lugano". | "Patient letters, child protection decisions, tax letters: under secrecy, they may not go to a foreign cloud. Closed models stay with their makers. Most open models keep their training data closed. Apertus is open down to its data, built and trained in Switzerland, and runs in-house. Ticino already runs it for sensitive documents. For these letters, it is the only option." |
+| 1:29-1:57 | The kitchen table again. Four blank envelopes slide in; the edit labels each and adds a small lock: *Patient letter*, *KESB decision*, *Penal order*, *Tax assessment*. Four tiles follow, their text set in the edit: *Foreign cloud*, *Closed model*, *Open weights, secret training data*, *Open data, built abroad*, each struck through on its own sentence, the part that rules it out turning red (*secret training data*, *built abroad*); only when all four are struck, on "Apertus", a fifth, *Apertus: open data, built in Switzerland, in-house*, with a tick. (The fourth tile has its own sentence since 8 October: in the mock it was struck while Apertus was named, and "open data" read as a point against Apertus.) Under it the three icons on-premise, air-gapped, Swiss cloud; on "Ticino" a caption *Canton of Ticino: Apertus in-house for sensitive documents* (text only, no coat of arms); at the end a small label "This demo: CSCS, Lugano". | "Patient letters, child protection decisions, tax letters: under secrecy, they may not go to a foreign cloud. Closed models stay with their makers. Most open models keep their training data closed. Most fully open ones are built abroad. Apertus is open down to its data, built and trained in Switzerland, and runs in-house. Ticino already runs it for sensitive documents. For these letters, it is the only option." |
 | 1:57-2:00 | End card: *"No one left out."*, team name (Röstigraben Bridgers), repo URL, "Voice and imagery AI-generated". | (music only) |
-
-## 3. Production notes
-
-- **Record the product, do not generate it.** The UI scenes (0:49-1:19) and the
-  before/after (1:19-1:29) are real recordings of the tool, as
-  [hard-texts.md](hard-texts.md) §1 requires for the comparison. Generated screens of
-  the app would misrepresent the prototype.
-- **No readable text in generated footage.** Video generators garble writing. Generate
-  the kitchen-table letter blank and add the DE-4 text in the edit. Use a made-up
-  sender such as "Gemeinde Musterwil", never a real authority's letterhead or logo.
-  The same for the envelopes at 1:29: blank in the footage, labelled in the edit.
-- **Categories, not competitors.** The struck-through tiles at 1:29 name kinds of
-  models, never a product, a company or a logo. Every claim in that scene has its
-  source in [use-cases.md §2](use-cases.md#why-only-apertus); "only option" is meant
-  for letters under secrecy, not for public web pages, and the scene says so.
-- **Pronunciation:** set a text-to-speech alias for "Leicht·Facile" (roughly "LYSHT
-  fa-SEEL") and test it first. The same for "Apertus" and "CSCS" (spelled out C-S-C-S).
-- **Voice:** one calm, warm voice, a bit slower than normal (about 140 words per
-  minute), with pauses after the questions in the first scene. Quiet music.
-- **Captions:** English, burned in. German and French only in the picture, not in the
-  captions.
-
-## 4. Before recording
-
-- [ ] CSCS runs done: the evaluation number for 1:19 and a real example job for the
-      screen recording.
-- [ ] 844,000 wording re-checked against the SBFI press release
-      ([hard-texts.md](hard-texts.md) §2).
-- [ ] The "only Apertus" scene (1:29-1:57) re-checked against its sources in
-      [use-cases.md §2](use-cases.md#why-only-apertus): the privatim resolution, the
-      Apertus v1.5 model card (open training data, languages) and the CSCS article on
-      the Ticino service.
-- [ ] French: show it beyond the opening only if the French rules and prompts work by
-      recording day.
-- [ ] Product scene (0:49-1:19): the premium-reduction letter or a KESB decision
-      written by the team ([use-case-decisions.md](use-case-decisions.md)); decide
-      after a test run on 8 October.
-- [ ] Recording finished by 14 October; two days for edits before the deadline
-      (16 October 2026, 12:00 CEST).
