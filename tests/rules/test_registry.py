@@ -23,6 +23,23 @@ def test_every_documented_rule_is_registered() -> None:
     assert documented - pending - set(RULES) == set()
 
 
+def checked_rules(lang: str) -> int:
+    """Rules code checks for a language (the judge's rules have no check function)."""
+    return sum(1 for spec in RULES.values() if spec.check and spec.lang in (None, lang))
+
+
+def test_readme_and_report_state_the_rule_counts() -> None:
+    """The numbers audit (PLAN.md §13.6): the counts a juror reads follow the registry."""
+    de, fr = checked_rules("de"), checked_rules("fr")
+    root = RULES_MD.parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    report = (root / "technical_report.md").read_text(encoding="utf-8")
+    assert f"{de} deterministic rules for German and {fr} for French" in readme
+    assert f"{de} checks for German, {fr} for French" in report
+    stated = re.findall(r"(\d+) (?:deterministic rules|checks for German)", readme + report)
+    assert stated and {int(n) for n in stated} == {de}
+
+
 def test_every_registered_rule_is_documented() -> None:
     assert set(RULES) - documented_ids() == set()
 

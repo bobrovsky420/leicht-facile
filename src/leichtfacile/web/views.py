@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from urllib.parse import urlsplit
 
 from leichtfacile.examples import EXAMPLE_PREFIX
+from leichtfacile.export import glossary_ids
 from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
@@ -27,6 +28,7 @@ from leichtfacile.schemas import (
     Fact,
     FactSheet,
     Finding,
+    GlossaryEntry,
     Job,
     JudgeReport,
     PipelineSummary,
@@ -135,6 +137,15 @@ class FactRow:
 
 
 @dataclass
+class GlossaryRow:
+    """A glossary entry, decided in the review like a block (`gid`: g01, g02, ...)."""
+
+    gid: str
+    entry: GlossaryEntry
+    decision: Decision | None = None
+
+
+@dataclass
 class CoreRow:
     key: str
     label: str
@@ -172,6 +183,7 @@ class ReviewView:
     seconds: float  # model time over all calls
     finding_groups: list[FindingGroup] = field(default_factory=list)  # doc_issues by rule
     saved_at: datetime | None = None  # when the stored review was last saved
+    glossary_rows: list[GlossaryRow] = field(default_factory=list)  # decided like blocks
 
     @property
     def facts_sorted(self) -> list[FactRow]:
@@ -203,7 +215,12 @@ class ReviewView:
 
     @property
     def decided_pct(self) -> int:
-        return round(100 * self.decided / len(self.rows)) if self.rows else 0
+        return round(100 * self.decided / self.items) if self.items else 0
+
+    @property
+    def items(self) -> int:
+        """What the reviewer decides: the blocks and the glossary entries."""
+        return len(self.rows) + len(self.glossary_rows)
 
     @property
     def counts(self) -> dict[str, int]:
@@ -228,7 +245,8 @@ class ReviewView:
 
     @property
     def decided(self) -> int:
-        return sum(1 for r in self.rows if r.decision is not None)
+        rows = [*self.rows, *self.glossary_rows]
+        return sum(1 for r in rows if r.decision is not None)
 
     @property
     def blocks_with_issues(self) -> int:
@@ -342,10 +360,13 @@ def review_view(
                 and issue.evidence != issue.suggestion
                 and issue.evidence in row.block.text
             )
+    glossary_rows = {gid: GlossaryRow(gid, g) for gid, g in glossary_ids(draft).items()}
     if review:
         for d in review.decisions:
             if d.block_id in rows:
                 rows[d.block_id].decision = d
+            elif d.block_id in glossary_rows:
+                glossary_rows[d.block_id].decision = d
 
     fact_rows: list[FactRow] = []
     core_rows: list[CoreRow] = []
@@ -403,6 +424,7 @@ def review_view(
         seconds=sum(u.latency_ms for u in usage) / 1000,
         finding_groups=group_findings(doc_issues, t),
         saved_at=max((d.at for d in review.decisions), default=None) if review else None,
+        glossary_rows=list(glossary_rows.values()),
     )
 
 
@@ -765,7 +787,7 @@ def drafts_view(
                 row.errors, row.warnings = view.counts["error"], view.counts["warn"]
                 row.facts_present = view.fact_counts["present"]
                 row.facts_total = view.fact_counts["total"]
-                row.decided, row.blocks = view.decided, len(view.rows)
+                row.decided, row.blocks = view.decided, view.items
                 row.complete = bool(view.review and view.review.completed)
         rows.append(row)
     return rows

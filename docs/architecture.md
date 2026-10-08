@@ -704,7 +704,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
   need review, **New draft**, the endpoint indicator (the configured model; the dot
   turns green, amber or red from `/healthz`, kept 5 minutes in `sessionStorage`), the
-  EN / DE switch and the API link. A "Skip to content" link comes first.
+  EN / DE / FR switch and the API link. A "Skip to content" link comes first.
 - **Drafts** (`/`): the work queue as a table. Title (an "Example" tag replaces the
   `Example: ` prefix) and where the text came from, language and level, pipeline,
   status (the stage and time while running, the error when failed), the checks of the
@@ -735,7 +735,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 - **Job running** (`/jobs/{id}` while queued or running): the stages of the chosen
   condition as a stepper (done, running, waiting, skipped, failed), each with its
   detail line ("14 facts, 14 must survive") and its model usage ("1 call · 2,813
-  tokens · 47 s"; Check: "41 rules · no model call"); next to it the results as soon
+  tokens · 47 s"; Check: "45 rules · no model call"); next to it the results as soon
   as they exist: the fact sheet with the core questions and the facts that must
   survive, then the latest draft with a severity mark on blocks that have findings.
   The page polls `/jobs/{id}/progress` every two seconds and reloads when the job
@@ -759,7 +759,13 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      Keys, only while the focus is in this pane (WCAG 2.1.4): J and K or the arrows
      move, A, E and R decide, N jumps to the next undecided block; Approve and Reject
      move on to it. Unsaved decisions warn before leaving. Without JavaScript every
-     block is open.
+     block is open. After the blocks, the glossary entries (since 8 October 2026),
+     each with the id `g01`, `g02`, ... in the draft's order, decided like a block:
+     approved, edited (the explanation; the term stays) or rejected, with the same keys
+     and counts; the review API takes their ids in `block_id`, and the exports carry
+     only the entries the review keeps (`final_blocks`), so no model-written
+     explanation reaches print without a decision. The audit bundle's `final` lists
+     them under `glossary`, the undecided ones under `undecided_glossary`.
   3. **Checks** - four tabs (stacked without JavaScript): **Facts**, problems first,
      with the expected value, the status from code and judge (present, missing,
      distorted, "judge doubts" in amber when code finds the value the judge misses
@@ -773,8 +779,14 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   unsaved ones included (`POST /jobs/{id}/preview` renders it and stores nothing; `GET
   /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
   next to an export panel: the format (Markdown, HTML, audit bundle), the download of
-  the saved review, and a "Before publication" list (blocks decided, blocking problems
-  in this version, review complete). The keys are off while it is shown.
+  the saved review, "Print or save as PDF" (prints the reader view on A4 with the
+  export's print styles, unsaved decisions included; the frame's sandbox allows
+  `print()` but no scripts), and a "Before publication" list (blocks decided, blocking
+  problems in this version, review complete). The keys are off while it is shown. The
+  HTML export breaks lines at sense units at most 60 characters long
+  (`HTML_LINE_CHARS`, within LAY-02's 85) in a column of 36em, which holds such a line,
+  so the browser does not break it again, and never inside a value (no-break spaces in
+  a date, an amount or a phone number); printed, it sets 14 points on A4.
 
 Type: IBM Plex Sans and Mono for the interface; the reader view uses Atkinson
 Hyperlegible Next (D-V), injected into the preview response only. The HTML export
@@ -782,7 +794,7 @@ names it first and falls back to Arial and Helvetica, without embedding it. All 
 families are vendored as woff2 under `web/static/fonts/` (SIL OFL 1.1, licences next
 to the files, THIRD_PARTY_NOTICES.md), so nothing is fetched from another host.
 
-**Interface languages.** The UI speaks English and German; the interface language is
+**Interface languages.** The UI speaks English, German and French (French since 8 October 2026); the interface language is
 the reviewer's and independent of the document's, so a German-speaking reviewer can
 check a French draft. Every text lives in one flat JSON catalog per language,
 `web/locales/<code>.json` (keys such as `review.approve`, `{name}` placeholders,
@@ -790,9 +802,9 @@ check a French draft. Every text lives in one flat JSON catalog per language,
 them and provides `t(key, ...)` to the templates and view models. The texts `app.js`
 needs (keys under `js.`) are embedded in each page as JSON, and the script picks
 plural forms and relative times with `Intl`. The language is the choice from the EN /
-DE switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
-`UI_LANG`, else the browser's `Accept-Language`, else English. Adding French or
-Italian means adding `fr.json` or `it.json`: the switcher, the language choice and the
+DE / FR switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
+`UI_LANG`, else the browser's `Accept-Language`, else English. Adding Italian means
+adding `it.json`, as French was added: the switcher, the language choice and the
 tests pick it up, and a test fails until the catalog has every English key with the
 same placeholders. The rule checker's findings follow the switch too: a check reports
 the key of its message and the values for its placeholders (`rules/messages.py` holds

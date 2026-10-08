@@ -54,7 +54,7 @@
       "chunks": [
         { "id": "pa-a", "text": "Apertus reads the letter the way you just tried to, and writes down every answer: what to do, by when, what it costs, whom to ask.", "pause": 0.2 },
         { "id": "pa-b", "text": "Then it writes the draft.", "pause": 0.2 },
-        { "id": "pa-c", "text": "Code checks every date, amount and phone number, and 42 easy-language rules, in milliseconds.", "pause": 0.2 },
+        { "id": "pa-c", "text": "Code checks every date, amount and phone number, and 45 easy-language rules, in milliseconds.", "pause": 0.2 },
         { "id": "pa-d", "text": "A larger Apertus model judges the meaning; only flagged sentences are repaired.", "pause": 0.2 },
         { "id": "pa-e", "text": "Every sentence links to its source. The writer approves each one." }
       ]

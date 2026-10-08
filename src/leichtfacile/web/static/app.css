@@ -517,6 +517,9 @@ ol.steps { padding: 6px 0; list-style: none; }
 .block.edited.is-open .orig-text { display: inline; color: var(--lf-muted); text-decoration: line-through; }
 .block.edited.is-open .edited-text { display: none; }
 .block.rejected .block-text { color: var(--lf-muted); text-decoration: line-through; }
+.draft-section { margin: 0; padding: 16px 16px 6px; border-top: 1px solid var(--lf-border); color: var(--lf-text-2); font-size: 13px; font-weight: 600; }
+.draft-section .hint { margin-left: 6px; font-weight: 400; }
+.kind-glossary .gloss-term { margin-right: 4px; font-weight: 600; }
 .block-state { display: flex; flex: none; justify-content: center; width: 40px; padding-top: 13px; }
 .block-state .st { display: none; }
 .block:not(.decided) .st-undecided, .block.approved .st-approved, .block.edited .st-edited, .block.rejected .st-rejected { display: inline-block; }

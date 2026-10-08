@@ -58,7 +58,8 @@ drafts for hours every day.
 - **Same data.** The view models in `views.py` gain a few fields; the API, the
   schemas, the stored artifacts and the pipeline do not change. The only new route
   is `GET /new`.
-- **English and German** interface as today; every new text in both catalogs.
+- **English and German** interface as today; every new text in both catalogs (French
+  since 8 October 2026: every new text in all three).
 - **WCAG 2.2 AA** (§9).
 
 ## 3. Tokens
@@ -230,7 +231,7 @@ Layout, at most 1440 px wide with 24 px gutters:
 1. Page header: h1 "Drafts", the line "10 drafts. 3 need your review." and the
    primary link button "New draft".
 2. Intro strip "How it works" on one line, four numbered steps: Apertus reads the
-   text and writes the draft; code checks 41 rules (`rule_count()`) and every value;
+   text and writes the draft; code checks 45 rules (`rule_count()`) and every value;
    a second model judges and flagged blocks are repaired; you review every block and
    export. A close button hides it, and `localStorage` remembers that per browser.
    Without JavaScript the strip stays and the button is not shown.
@@ -337,7 +338,7 @@ them into local time and "Today" or "Yesterday".
   - title, who tag (Apertus, Code, You), the state word on the right, the
     description, the detail line (`Step.detail`, as today);
   - new: a usage line, "1 call · 2,813 tokens · 47 s" from the stage's
-    `StageUsage`, and "41 rules · no model call" for Check.
+    `StageUsage`, and "45 rules · no model call" for Check.
 
   The running stage has `--lf-accent-tint` and `aria-current="step"`. The separate
   usage table goes.
@@ -446,6 +447,11 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 - Without JavaScript every row is open, as today; the radios are plain radios.
 - Footer, sticky: "4 of 21 decided" with a meter, "Approve all undecided", and the
   "Review complete" checkbox.
+- After the blocks (since 8 October 2026): a section head "Glossary" with the hint
+  "Explanations of hard words. They go into the export: decide them like the blocks.",
+  then one row per glossary entry (`kind-glossary`, id `g01`, `g02`, ...): the term in
+  bold, the explanation, and the same decision controls; Edit changes the explanation
+  ("Edited explanation"), never the term. The counts, filters and keys include them.
 - The block texts carry the document's `lang`.
 
 ```html
@@ -522,6 +528,9 @@ version's blocking count, for the reader view's list), `facts_by_id` and
     format and version.
   - "Exports use the last saved review. Decisions you have not saved are left out."
     With unsaved decisions on screen, the existing `js.reader_unsaved` text instead.
+  - "Print or save as PDF" (secondary, full width, JavaScript only, since 8 October
+    2026): prints the reader frame on A4, unsaved decisions included, with the hint
+    to choose "Save as PDF" as the printer for a PDF.
   - "Before publication", three lines from the review state: "{decided} of {total}
     blocks decided" (undecided blocks stay in, as drafted), "{n} blocking problems in
     v{version}" (the version pill's number), "Review marked complete" or "Review not
@@ -939,7 +948,7 @@ shipping a half-styled review page.
 
 ## 16. Not in this package
 
-- French and Italian interface catalogs (GAP-17, WP17).
+- The Italian interface catalog (GAP-17, WP17); French shipped on 8 October 2026.
 - Settings for the accent or the density (D-X).
 - Autosave, and saving decisions without JavaScript (reading the review works without
   it; saving needs it today and still will).

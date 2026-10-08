@@ -349,6 +349,8 @@
   "review.apply": "Apply",
   "review.next_undecided": "Next undecided",
   "review.edited_text": "Edited text",
+  "review.edited_explanation": "Edited explanation",
+  "review.glossary_review_hint": "Explanations of hard words. They go into the export: decide them like the blocks.",
   "review.no_match": "No blocks match this filter.",
   "review.decision.undecided": "Undecided",
   "review.decision.approved": "Approved",
@@ -368,6 +370,8 @@
   "review.no_facts": "This draft has no fact sheet.",
 
   "reader.format": "Format",
+  "reader.print": "Print or save as PDF",
+  "reader.print_hint": "Prints the reader view on A4, unsaved decisions included. For a PDF, choose \"Save as PDF\" as the printer.",
   "reader.md.desc": "Plain text with headings, one sentence per line. For a content management system.",
   "reader.html.desc": "A web page in the reader layout, ready to print or to publish.",
   "reader.json.desc": "Source, fact sheet, every draft version, the findings and your decisions.",

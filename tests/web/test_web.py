@@ -109,6 +109,38 @@ def test_review_validation(app_env) -> None:
     assert client.post(f"/api/jobs/{job_id}/review", json=unknown).status_code == 400
     empty_edit = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "edited"}]}
     assert client.post(f"/api/jobs/{job_id}/review", json=empty_edit).status_code == 400
+    no_entry = {"draft_version": 1, "decisions": [{"block_id": "g99", "decision": "approved"}]}
+    assert client.post(f"/api/jobs/{job_id}/review", json=no_entry).status_code == 400
+
+
+def test_glossary_entries_are_decided_like_blocks(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = run_job(client, app, text=LETTER, condition="P1")
+    draft = client.get(f"/api/jobs/{job_id}/artifacts/draft").json()
+    terms = [g["term"] for g in draft["glossary"]]
+    assert terms[0] == "Prämien·verbilligung" and len(terms) == 2  # the model's and Gesuch
+
+    page = client.get(f"/jobs/{job_id}").text
+    assert 'data-block="g01"' in page and 'name="d-g02"' in page
+
+    # g01 edited, g02 rejected: the export carries the edited explanation only.
+    review = {
+        "draft_version": 1,
+        "decisions": [
+            {"block_id": "g01", "decision": "edited", "text": "Der Kanton zahlt einen Teil."},
+            {"block_id": "g02", "decision": "rejected"},
+        ],
+    }
+    assert client.post(f"/api/jobs/{job_id}/review", json=review).status_code == 200
+    md = client.get(f"/api/jobs/{job_id}/export?format=md").text
+    assert "Der Kanton zahlt einen Teil." in md and "Der Kanton bezahlt einen Teil." not in md
+    assert f"**{terms[1]}**" not in md
+    html = client.get(f"/api/jobs/{job_id}/export?format=html").text
+    assert "Der Kanton zahlt einen Teil." in html and f"<dt>{terms[1]}</dt>" not in html
+    bundle = json.loads(client.get(f"/api/jobs/{job_id}/export?format=json").text)
+    assert [g["term"] for g in bundle["final"]["glossary"]] == [terms[0]]
+    assert bundle["final"]["undecided_glossary"] == 0
 
 
 def test_form_submission_redirects_and_lists_the_job(app_env) -> None:

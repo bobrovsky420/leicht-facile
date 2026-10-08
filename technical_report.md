@@ -24,7 +24,7 @@ rule: *Apertus does everything that needs language understanding; plain code doe
 everything that can be counted.* Apertus 1.5 turns the document into a fact sheet,
 writes a draft against it with provenance for every sentence, judges meaning with a
 second, larger model, and repairs only the flagged sentences. Code checks the published
-easy-language rules (43 checks for German, 40 for French), including the exact presence
+easy-language rules (45 checks for German, 41 for French), including the exact presence
 of every fact value. A human reviews source and draft side by side and exports the text
 with an audit trail. The system is one container plus an OpenAI-compatible Apertus
 endpoint, so it runs on-premise, air-gapped or on a Swiss cloud, as letters under
@@ -165,7 +165,9 @@ validated with pydantic; on failure the error goes back to the model once. Respo
 are streamed, so a proxy cannot cut a long answer; broken streams, 429 and 5xx are
 retried with backoff; every call is logged with stage, model, tokens and latency.
 
-**Other models.** None at runtime or in the evaluation. The checker uses spaCy's
+**Other models.** None at runtime. In the evaluation, the 59 labels for the judge's
+agreement were made by Claude (Anthropic), blind to the judge's verdicts; no score
+of the pipeline depends on them. The checker uses spaCy's
 statistical parsers (not generative models) and wordfreq. Without a CSCS key, the
 prompts were tested on a community 4-bit conversion of Apertus 1.5 8B in llama.cpp
 (`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF`); those numbers are never mixed with CSCS
@@ -248,9 +250,15 @@ keeps the fewest. The 8B stays the writer and the 70B the judge; the 70B everywh
 a quality tier for style, on-premise at four GPUs instead of one. Seconds per page
 undercount every setup, because cached calls count as 0 s.
 
-**Judge reliability.** Agreement (Cohen's κ) between the judge and hand labels on 30
-facts and 30 blocks is prepared (`eval sample`, `eval kappa`) but not yet measured;
-until then the judge's verdicts are a signal for the reviewer, not ground truth.
+**Judge reliability.** 30 facts and 30 blocks from the P2 dev drafts of 6 October
+(70B judge), drawn evenly over the judge's verdicts and labelled blind to them (`eval
+sample`, `eval kappa`). Blocks, supported or not: agreement 80 %, Cohen's κ 0.60.
+Facts, present, missing or distorted: 38 %, κ 0.08 (29 items; one fact-sheet entry
+had no content); present or not: 62 %, κ 0.22. In 5 of the 18 disagreements the
+judge's note describes another fact than the one it is filed under. The judge's
+fact verdicts are therefore a hint for the reviewer, not a measure: every fact number
+in this report comes from code, and the review page shows a judge verdict that code
+contradicts as a doubt. The labels were made by an AI assistant (see Other models).
 
 **Checker calibration and tests.** On official pages each error is a real deviation or
 a false positive to fix; calibration cut errors per 100 blocks from 12.6 to 2.0 (30

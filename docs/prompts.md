@@ -908,6 +908,37 @@ finds the value and in every case checked (the French example's f07 and f08, f05
 the judge had overlooked it. The pipeline still counts it as blocking and asks for the
 fact again.
 
+### Judge agreement with blind labels (8 October 2026)
+
+The labelling sheets of `eval/labels/dev` (`eval sample` on the P2 dev drafts of 6
+October, CSCS, judge `Apertus-v1.5-70B-thinking`; 30 facts and 30 blocks, drawn evenly
+over the judge's verdicts) were labelled by an AI assistant (Claude) that saw the sheet
+only, never the key, and then scored with `eval kappa`:
+
+| Items | Labelled | Agreement | Cohen's κ |
+|---|---|---|---|
+| Blocks: supported or unsupported | 30 | 80 % | 0.60 |
+| Facts: present, missing or distorted | 29 | 38 % | 0.08 |
+| Facts: present or not | 29 | 62 % | 0.22 |
+
+One fact item stayed unlabelled: its fact-sheet entry reads "Keine spezifische
+Definition im Dokument." with no value and no source. Readings:
+
+- The block verdicts (SEM-06) are usable as a pointer: 12 of 15 flagged blocks were
+  unsupported (mostly the prompt-example leaks of that day: dog tax, parking card),
+  3 of 15 passed blocks were not ("Montag bis Freitag" added to opening hours, two
+  dog-tax sentences from the examples); the 3 flagged blocks the labels pass are close
+  paraphrases ("Einige Blaualgen bilden giftige Stoffe.").
+- The fact verdicts are not. Seven times the judge said "distorted" where the draft
+  lacks the fact; in 5 of the 18 disagreements its note describes another fact than
+  the one it is filed under (a note about "CHF 40 pour 8 mois" under the fact
+  "Nouvelle date limite: 15 novembre", one about "Uferbereich" under an opening time).
+  The judge receives the facts as a numbered list; filing notes under the wrong id
+  points at the response format, not at the reading. A candidate for the judge prompt
+  after the deadline: one fact per check with its text repeated in the answer.
+- This is why fact coverage, hard facts kept and silent losses are measured by code,
+  and why the review page shows a judge verdict that code contradicts as a doubt.
+
 ## Change log
 
 | Version | Date | Change |

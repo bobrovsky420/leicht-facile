@@ -258,7 +258,10 @@ def test_review_page_shows_core_questions_versions_and_counts(env) -> None:
     assert "What must you do?" in page.text
     assert "Ein Gesuch an die Gemeinde schicken." in page.text
     assert 'class="version current"' in page.text
-    assert f"0 of {len(fx.WRITE['blocks'])} decided" in page.text
+    # Blocks and glossary entries are decided alike (the letter's two glossary entries).
+    draft = app.state.store.get_artifact(job_id, "draft", Draft, version=1)
+    assert len(draft.glossary) == 2
+    assert f"0 of {len(fx.WRITE['blocks']) + 2} decided" in page.text
     assert 'data-filter="issues"' in page.text
     assert "Reader view" in page.text
 
@@ -396,6 +399,40 @@ def test_a_fact_the_judge_misses_but_code_finds_is_doubted(env) -> None:
     client.get("/ui/de")  # the switcher's cookie
     german = client.get(f"/jobs/{job.id}").text
     assert "Prüfmodell zweifelt" in german and "1 vom Prüfmodell bezweifelt" in german
+
+
+def test_the_html_export_breaks_lines_its_column_can_hold_and_prints_on_a4() -> None:
+    from html import unescape
+
+    from leichtfacile.export.html import HTML_LINE_CHARS, to_html
+
+    text = (
+        "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr "
+        "erreichbar, und Sie können auch eine E-Mail schreiben."
+    )
+    draft = Draft(doc_id="d", lang="de", level="A2",
+                  blocks=[Block(id="b001", kind="sentence", text=text)])  # fmt: skip
+    page = to_html(draft)
+    paragraph = re.search(r"<p>(.*?)</p>", page, re.S).group(1)
+    lines = [unescape(line.strip()) for line in paragraph.split("<br>")]
+    assert len(lines) > 1 and all(len(line) <= HTML_LINE_CHARS for line in lines)
+    assert " ".join(lines) == text
+    assert "max-width: 36em" in page  # wide enough for a line of HTML_LINE_CHARS
+    assert "@page { size: A4" in page and "@media print" in page
+
+    # A value never breaks across lines (here the break fell inside the phone number).
+    call = "Für Fragen rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67 oder mailen."
+    draft = draft.model_copy(update={"blocks": [Block(id="b001", kind="sentence", text=call)]})
+    paragraph = re.search(r"<p>(.*?)</p>", to_html(draft), re.S).group(1)
+    assert any("044 123 45 67" in line for line in paragraph.split("<br>"))
+
+
+def test_the_reader_view_offers_print(env) -> None:
+    client, app, _, _, endpoint = env
+    job_id = run_c1(client, app, endpoint)
+    page = client.get(f"/jobs/{job_id}").text
+    assert 'id="reader-print"' in page and "Print or save as PDF" in page
+    assert 'sandbox="allow-same-origin allow-modals"' in page  # print() needs modals
 
 
 def test_reader_preview_is_served_inline(env) -> None:

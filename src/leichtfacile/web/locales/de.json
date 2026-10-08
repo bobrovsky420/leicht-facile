@@ -349,6 +349,8 @@
   "review.apply": "Übernehmen",
   "review.next_undecided": "Nächster offener",
   "review.edited_text": "Bearbeiteter Text",
+  "review.edited_explanation": "Bearbeitete Erklärung",
+  "review.glossary_review_hint": "Erklärungen schwieriger Wörter. Sie kommen in den Export: Entscheiden Sie sie wie die Blöcke.",
   "review.no_match": "Kein Block passt zu diesem Filter.",
   "review.decision.undecided": "Offen",
   "review.decision.approved": "Freigegeben",
@@ -368,6 +370,8 @@
   "review.no_facts": "Zu diesem Entwurf gibt es kein Faktenblatt.",
 
   "reader.format": "Format",
+  "reader.print": "Drucken oder als PDF speichern",
+  "reader.print_hint": "Druckt die Leseansicht auf A4, auch nicht gespeicherte Entscheide. Für ein PDF wählen Sie als Drucker \"Als PDF speichern\".",
   "reader.md.desc": "Reiner Text mit Überschriften, ein Satz pro Zeile. Für ein Redaktionssystem.",
   "reader.html.desc": "Eine Webseite im Leselayout, bereit zum Drucken oder Veröffentlichen.",
   "reader.json.desc": "Quelle, Faktenblatt, jede Entwurfsversion, die Befunde und Ihre Entscheide.",

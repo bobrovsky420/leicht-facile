@@ -37,8 +37,10 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
             "reviewed": text.reviewed,
             "review_complete": text.complete,
             "undecided_blocks": text.undecided,
+            "undecided_glossary": text.undecided_glossary,
             "notice": notice,
             "blocks": [b.model_dump() for b in text.blocks],
+            "glossary": [g.model_dump() for g in text.glossary],
             "layout_findings": [
                 f.model_dump() for f in checker.check_export(lines, draft.level, notice=notice)
             ],

@@ -706,6 +706,11 @@
     });
   });
 
+  // print what the reader view shows (A4, the export's print styles); "Save as PDF"
+  // as the printer gives the PDF
+  const printButton = $("#reader-print");
+  if (printButton) printButton.addEventListener("click", () => frame.contentWindow && frame.contentWindow.print());
+
   refresh();
   if (location.hash === "#reader") showView("reader");
 })();

@@ -51,7 +51,7 @@
         { "id": "product-a", "text": "Apertus turns a letter into a fact sheet: every deadline, amount and phone number.", "pause": 0.2 },
         { "id": "product-b", "text": "Then it writes a draft.", "pause": 0.2 },
         { "id": "product-c", "text": "Every sentence links back to its source; every omission is explained.", "pause": 0.25 },
-        { "id": "product-d", "text": "Code checks 42 Swiss easy-language rules, and every date and amount.", "pause": 0.2 },
+        { "id": "product-d", "text": "Code checks 45 Swiss easy-language rules, and every date and amount.", "pause": 0.2 },
         { "id": "product-e", "text": "A larger Apertus model judges the meaning.", "pause": 0.15 },
         { "id": "product-f", "text": "Only flagged sentences are repaired.", "pause": 0.25 },
         { "id": "product-g", "text": "The writer approves every block, with a full audit trail." }

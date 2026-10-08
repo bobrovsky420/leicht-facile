@@ -9,6 +9,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, Request, Upload
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
+from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.html import to_html
 from leichtfacile.export.markdown import to_markdown
@@ -142,7 +143,7 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
     draft = store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
     if draft is None:
         raise HTTPException(400, f"no draft version {body.draft_version}")
-    known = set(draft.by_id())
+    known = set(draft.by_id()) | set(glossary_ids(draft))  # g01, g02: glossary entries
     unknown = [d.block_id for d in body.decisions if d.block_id not in known]
     if unknown:
         raise HTTPException(400, f"unknown blocks: {', '.join(unknown)}")

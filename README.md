@@ -35,7 +35,7 @@ Technical report: [technical_report.md](technical_report.md) (PDF:
    Code adds every date, amount and contact the model missed.
 2. **Write** (Apertus): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 43 deterministic rules from the published Swiss guidelines
+3. **Check** (code): 45 deterministic rules from the published Swiss guidelines
    (sentence length, passive, genitive, numbers, Swiss spelling, Mediopunkt, ...) and
    an exact check of every fact value in both directions (nothing lost, nothing
    invented), in milliseconds, without a model.
@@ -140,9 +140,9 @@ Done:
 - German pipeline end to end: ingest (text, HTML, PDF with text layer), Understand,
   Write, rule check, judge, repair, review UI, export (Markdown, HTML, JSON audit
   bundle), web API and CLI.
-- German rule checker: 43 deterministic rules with golden tests; 7 meaning rules for
-  the judge. French and Italian texts get the language-independent rules (facts,
-  layout, readability).
+- Rule checker: 45 deterministic rules for German and 41 for French, with golden
+  tests; 8 meaning rules for the judge (10 in decision mode). Italian texts get the
+  language-independent rules (facts, layout, readability).
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P1 and
   P2, SARI, readability, fact coverage, cost and latency.
 - Evaluation on the CSCS endpoint: 23 held-out pairs under P0, P1 and P2, P2 also

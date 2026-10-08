@@ -57,9 +57,9 @@ def to_markdown(
     flush()
     if previous == "list_item":
         out.append("")
-    if draft.glossary:
+    if final.glossary:
         out += [f"## {labels['glossary']}", ""]
-        for g in draft.glossary:
+        for g in final.glossary:
             out += [f"**{g.term}**  ", *wrap_sentence(g.explanation, width), ""]
     if notice:
         out += [notice, ""]

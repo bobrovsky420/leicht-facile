@@ -7,7 +7,7 @@
 {% set fc = v.fact_counts %}
 {% set sc = v.segment_counts %}
 {% set doc_lang = v.draft.lang %}
-{% set total = v.rows | length %}
+{% set total = v.items %}
 <div class="workspace">
 <section class="pagehead">
   <div class="pagehead-row">
@@ -87,7 +87,7 @@
   <section class="pane draft" aria-label="{{ t('review.draft_label') }}">
     <div class="pane-head">
       <h2>{{ t('draft.version', version=v.draft.version) }}</h2>
-      <span class="count">{{ t('review.blocks', n=total) }}</span>
+      <span class="count">{{ t('review.blocks', n=v.rows | length) }}</span>
       <span class="grow"></span>
       <div class="seg seg-sunken seg-sm js-only" role="group" aria-label="{{ t('review.filter') }}">
         <button type="button" class="seg-item filter active" data-filter="all" aria-pressed="true">{{ t('review.filter.all') }}<span class="n">{{ total }}</span></button>
@@ -145,6 +145,35 @@
         </div>
       </article>
     {% endfor %}
+    {% if v.glossary_rows %}
+      <h3 class="draft-section" lang="{{ ui_lang }}">{{ t('review.glossary') }} <span class="hint">{{ t('review.glossary_review_hint') }}</span></h3>
+      {% for g in v.glossary_rows %}
+      {% set d = g.decision.decision if g.decision else "" %}
+      {% set edited_text = g.decision.text if g.decision and g.decision.text else g.entry.explanation %}
+      <article class="block kind-glossary{% if d %} decided {{ d }}{% endif %}" id="blk-{{ g.gid }}"
+               data-block="{{ g.gid }}" data-segments="" data-facts="" tabindex="0">
+        <span class="bid">{{ g.gid }}</span>
+        <span class="block-sev"></span>
+        <div class="block-main">
+          <p class="block-text"><strong class="gloss-term">{{ g.entry.term }}</strong> <span class="orig-text">{{ g.entry.explanation }}</span><span class="edited-text">{{ edited_text }}</span></p>
+        </div>
+        <span class="block-state" lang="{{ ui_lang }}">{{ icons.decision_states() }}</span>
+        <div class="block-details" lang="{{ ui_lang }}">
+          <div class="edit-area">
+            <label class="label" for="t-{{ g.gid }}">{{ t('review.edited_explanation') }}</label>
+            <textarea id="t-{{ g.gid }}" name="t-{{ g.gid }}" rows="2" lang="{{ doc_lang }}">{{ edited_text }}</textarea>
+          </div>
+          {% if g.entry.origin == 'vocabulary' %}<p class="hint">{{ t('review.glossary_vocabulary_title') }}</p>{% endif %}
+          <div class="decision" role="radiogroup" aria-label="{{ t('review.decision_for', block=g.gid) }}">
+            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ g.gid }}" value="approved"{% if d == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
+            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ g.gid }}" value="edited"{% if d == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
+            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ g.gid }}" value="rejected"{% if d == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
+            <button type="button" class="btn btn-quiet btn-sm js-only next-undecided">{{ t('review.next_undecided') }}<kbd aria-hidden="true">N</kbd></button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    {% endif %}
       <p class="no-match" id="no-match" lang="{{ ui_lang }}" hidden>{{ t('review.no_match') }}</p>
     </form>
     <div class="draft-foot">
@@ -286,7 +315,7 @@
 
 <div class="reader" id="reader-pane" hidden>
   <div class="reader-page">
-    <div class="paper"><iframe id="reader-frame" title="{{ t('review.reader_view') }}" sandbox="allow-same-origin"></iframe></div>
+    <div class="paper"><iframe id="reader-frame" title="{{ t('review.reader_view') }}" sandbox="allow-same-origin allow-modals"></iframe></div>
   </div>
   <aside class="reader-side" aria-label="{{ t('review.export') }}">
     <section>
@@ -302,6 +331,8 @@
       </fieldset>
       <a class="btn btn-primary btn-lg btn-block" id="export-download" href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">{{ icons.icon('download') }}<span id="export-label">{{ t('js.download', ext='.html') }}</span></a>
       <p class="hint" id="export-note" style="margin: 10px 0 0">{{ t('js.saved_only') }}</p>
+      <button type="button" class="btn btn-block js-only" id="reader-print" style="margin-top: 16px">{{ t('reader.print') }}</button>
+      <p class="hint js-only" style="margin: 8px 0 0">{{ t('reader.print_hint') }}</p>
     </section>
     <section>
       <h2>{{ t('reader.before') }}</h2>

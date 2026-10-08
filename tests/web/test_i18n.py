@@ -136,7 +136,9 @@ def test_the_language_choice() -> None:
     assert ui_languages()["de"] == "Deutsch"
     assert pick_language(None, None) == "en"
     assert pick_language(None, "de-CH,de;q=0.9,en;q=0.8") == "de"
-    assert pick_language(None, "fr-CH, en;q=0.5, de;q=0.7") == "de"  # no French catalog yet
+    assert ui_languages()["fr"] == "Français"
+    assert pick_language(None, "fr-CH, en;q=0.5, de;q=0.7") == "fr"
+    assert pick_language(None, "it-CH, en;q=0.5, de;q=0.7") == "de"  # no Italian catalog
     assert pick_language(None, "de;q=0, en") == "en"
     assert pick_language(None, "de-CH", default="en") == "en"  # UI_LANG beats the browser
     assert pick_language("en", "de-CH", default="de") == "en"  # the switcher beats both
@@ -172,6 +174,18 @@ def test_pages_follow_the_switcher(client) -> None:
     rejected = client.post("/jobs", data={"text": "Hallo.", "url": "https://example.org"})
     assert rejected.status_code == 400 and "Geben Sie genau eines an" in rejected.text
     assert 'href="/ui/en?next=/"' in rejected.text  # a POST page switches back to the start
+
+
+def test_the_interface_speaks_french(client) -> None:
+    assert 'href="/ui/fr?next=/"' in client.get("/").text
+    client.get("/ui/fr")
+    french = client.get("/")
+    assert '<html lang="fr">' in french.text
+    assert "Nouveau brouillon" in french.text and "Pas encore de brouillon" in french.text
+    assert '"saving": "Enregistrement..."' in french.text  # the texts for app.js
+    assert "Créer le brouillon" in client.get("/new").text
+    checked = client.post("/check", data={"text": "Das Formular wird geprüft.", "level": "A2"})
+    assert "Voix passive" in checked.text  # the checker's findings follow the interface
 
 
 def test_the_switcher_stays_on_this_site(client) -> None:
