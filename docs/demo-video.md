@@ -85,6 +85,26 @@ idea per shot, English captions burned in.
   per minute), with pauses after the questions. Quiet music.
 - **Captions:** English, burned in. German only in the picture, not in the captions.
 
+### Variant B for 0:00-0:18: "One sentence, step by step" (mocked 8 October)
+
+The owner found the five-second test unfair: a full letter is too much text to scan,
+whatever one's reading skill. Variant B shows the simplification itself on one sentence,
+the one the deadline comes from (s0007 of the example letter), with real data only. The
+rest of the video stays as in §2 (the app scene's first line becomes "Apertus reads the
+whole letter like this, …"); 251 words, 1:54.
+
+| Time | Picture | Narration (English) |
+|------|---------|---------------------|
+| 0:00-0:03 | *"Das Antragsformular ist vollständig ausgefüllt und unterzeichnet bis spätestens 31. März 2027 bei der Sozialversicherungsstelle einzureichen."* types itself, labelled "Original". | "One sentence from an official letter." |
+| 0:03-0:07 | What `leichtfacile check` finds, marked on the words: LEN-01 (16 words, at most 12 for A2) and GRAM-01 (passive "ist … einzureichen"), LEN-02 (two clauses), LEX-01 (Antragsformular, Sozialversicherungsstelle): 2 errors, 3 warnings. | "Sixteen words. Nobody acts. The verb comes last." |
+| 0:07-0:13 | Apertus: the facts that must survive, marked in the sentence and set as chips: f01 deadline 2027-03-31, f03 obligation. | "Apertus first takes out what must survive: the deadline, and what you must do." |
+| 0:13-0:17 | The sentence moves up; the real draft's three sentences (b002, b002.1, b003) appear one by one, each with the facts the job records for it. | "Then it writes short sentences. Who does what. One thing each." |
+| 0:17-0:21 | The check again: 0 errors (before: 2); the date lights up in the first sentence, the deadline chip gets a tick. | "Code checks that the date is still there, exactly." |
+
+The second sentence, *"Sie schicken das Formular bei der Sozial·versicherungs·stelle"*, should
+say "an die"; the checker does not catch it. Either the review step fixes it on screen
+or the example job is rebuilt after a prompt fix.
+
 ## 4. Before recording
 
 - [ ] CSCS runs done: the silent-loss share of the strong single prompt for 1:09 from
