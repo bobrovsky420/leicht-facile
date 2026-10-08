@@ -102,7 +102,7 @@ const StakesC: React.FC<{ offset: number }> = ({ offset }) => (
 );
 const HookC: React.FC<{ offset: number }> = ({ offset }) => <Hook offset={offset} marksCue="hook-b" />;
 const LogoC: React.FC<{ offset: number }> = ({ offset }) => <LogoA offset={offset} introCue="lg-0" />;
-const EndC: React.FC<{ offset: number }> = ({ offset }) => <End offset={offset} />;
+const EndC: React.FC<{ offset: number }> = ({ offset }) => <End offset={offset} sub="Every person. Every fact." />;
 
 /** Concept C: the "Can you read this?" opening, then the step by step and B's composition */
 export const DemoC: React.FC = () => (

@@ -4,13 +4,19 @@ import { C, F, ramp } from "../theme";
 import { SceneFade, useSceneTime } from "../ui";
 import { Wordmark } from "./Logo";
 
-export const End: React.FC<{ offset: number; kicker?: string; line?: string }> = ({ offset, kicker, line = "No one left out." }) => {
+export const End: React.FC<{ offset: number; kicker?: string; line?: string; sub?: string }> = ({
+  offset,
+  kicker,
+  line = "No one left out.",
+  sub,
+}) => {
   const t = useSceneTime(offset);
   return (
     <SceneFade offset={offset} bg={C.night}>
       <div style={{ position: "absolute", left: 0, right: 0, top: kicker ? 200 : 250, textAlign: "center" }}>
         {kicker && <div style={{ fontFamily: F.reader, fontSize: 46, color: "#A9B2BE", marginBottom: 26, opacity: ramp(t, 0, 0.4) }}>{kicker}</div>}
         <div style={{ fontFamily: F.reader, fontWeight: 700, fontSize: 118, color: "#fff", opacity: ramp(t, kicker ? 0.3 : 0.05, 0.5) }}>{line}</div>
+        {sub && <div style={{ fontFamily: F.reader, fontSize: 50, color: "#C9CED6", marginTop: 14, opacity: ramp(t, 0.35, 0.5) }}>{sub}</div>}
         <div style={{ marginTop: 70, opacity: ramp(t, 0.45, 0.5) }}>
           <Wordmark size={62} color="#fff" dot="#8FB3E6" />
         </div>

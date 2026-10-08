@@ -23,7 +23,8 @@ export const makeTL = (data: TimelineData) => {
     }
     throw new Error(`no chunk ${id}`);
   };
-  return { total: data.total, scenes: data.scenes, scene, cue };
+  const hasCue = (id: string) => data.scenes.some((sc) => sc.chunks.some((c) => c.id === id));
+  return { total: data.total, scenes: data.scenes, scene, cue, hasCue };
 };
 export type TL = ReturnType<typeof makeTL>;
 

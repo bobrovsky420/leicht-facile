@@ -93,6 +93,11 @@
           "pause": 0.5
         },
         {
+          "id": "st-md",
+          "text": "A middle dot splits long words into easier parts.",
+          "pause": 0.5
+        },
+        {
           "id": "st-e",
           "text": "Code checks that the date is still there, exactly."
         }

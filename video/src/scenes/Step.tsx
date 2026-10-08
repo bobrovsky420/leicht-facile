@@ -42,6 +42,21 @@ const FACTS: Record<string, { kind: string; value: string; color: string; weak: 
 };
 const DATE = "31. März 2027";
 
+/** The Mediopunkt in a text, lit up with strength p (0 to 1). */
+const dots = (text: string, p: number): React.ReactNode =>
+  p <= 0
+    ? text
+    : text.split("·").flatMap((part, i) =>
+        i === 0
+          ? [part]
+          : [
+              <span key={i} style={{ color: `rgba(242,160,40,${0.4 + 0.6 * p})`, fontWeight: 700, textShadow: `0 0 ${18 * p}px rgba(242,160,40,${0.9 * p})` }}>
+                ·
+              </span>,
+              part,
+            ],
+      );
+
 const FactChip: React.FC<{ id: string; p: number; ok?: number; small?: boolean }> = ({ id, p, ok = 0, small }) => {
   const f = FACTS[id];
   return (
@@ -77,12 +92,15 @@ const FactChip: React.FC<{ id: string; p: number; ok?: number; small?: boolean }
 
 export const Step: React.FC<{ offset: number }> = ({ offset }) => {
   const t = useSceneTime(offset);
-  const { cue } = useTL();
+  const { cue, hasCue } = useTL();
   const a = cue("st-a");
   const b = cue("st-b");
   const c = cue("st-c");
   const d = cue("st-d");
   const e = cue("st-e");
+  // version C: "A middle dot splits long words into easier parts."
+  const md = hasCue("st-md") ? cue("st-md") : null;
+  const dotP = md ? Math.min(ramp(t, md.s + 0.1, 0.35), 1 - ramp(t, e.s, 0.4)) : 0;
 
   const chars = Math.floor(clamp01((t - 0.3) / Math.max(0.5, a.e - 0.4)) * LEN);
   const findingAt = [b.s + 0.05, b.s + b.d * 0.32, b.s + b.d * 0.6, b.s + b.d * 0.78];
@@ -191,12 +209,12 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
             <div key={blk.id} style={{ marginBottom: 26, opacity: p, transform: `translateX(${(1 - p) * -24}px)` }}>
               <div lang="de" style={{ fontFamily: F.reader, fontSize: 52, lineHeight: 1.3, color: "#F4F4F2" }}>
                 {at < 0 ? (
-                  blk.text
+                  dots(blk.text, dotP)
                 ) : (
                   <>
-                    {blk.text.slice(0, at)}
+                    {dots(blk.text.slice(0, at), dotP)}
                     <span style={{ backgroundImage: "linear-gradient(rgba(80,190,120,0.45), rgba(80,190,120,0.45))", backgroundSize: `${ok * 100}% 100%`, backgroundRepeat: "no-repeat", borderRadius: 6 }}>{DATE}</span>
-                    {blk.text.slice(at + DATE.length)}
+                    {dots(blk.text.slice(at + DATE.length), dotP)}
                   </>
                 )}
               </div>
@@ -209,6 +227,16 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
           );
         })}
       </div>
+
+      {/* the Mediopunkt, named while it lights up (version C) */}
+      {dotP > 0.001 && (
+        <div style={{ position: "absolute", left: 160, top: 790, display: "flex", alignItems: "center", gap: 18, fontFamily: F.sans, fontSize: 30, color: "#E6E8EB", opacity: dotP }}>
+          <span style={{ fontFamily: F.reader, fontWeight: 700, fontSize: 44, color: "#F2A028", lineHeight: 1 }}>·</span>
+          <span>
+            <b>Mediopunkt</b>: long words in readable parts, as in <span lang="de" style={{ fontFamily: F.reader }}>Sozial·versicherungs·stelle</span>
+          </span>
+        </div>
+      )}
 
       {/* the check again */}
       <div style={{ position: "absolute", left: 160, top: 790, display: "flex", alignItems: "center", gap: 18, fontFamily: F.sans, fontSize: 30, color: "#E6E8EB", opacity: ramp(t, checkAt, 0.3) }}>
