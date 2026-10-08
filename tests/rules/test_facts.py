@@ -102,6 +102,13 @@ def test_unreferenced_fact_and_missing_provenance() -> None:
     assert any(f.block_id == "b003" for f in result.findings if f.rule_id == "FACT-03")
 
 
+def test_a_missing_value_is_one_finding() -> None:
+    # The fee is gone, block and link: FACT-01 says so, FACT-02 does not say it again.
+    result = check_draft(draft(GOOD[0], GOOD[1], GOOD[3]), source=SOURCE, factsheet=FACTS)
+    facts = [(f.rule_id, f.fact_id) for f in result.findings if f.rule_id in ("FACT-01", "FACT-02")]
+    assert facts == [("FACT-01", "f02")]
+
+
 def test_unexplained_omission() -> None:
     result = check_draft(draft(GOOD[0], GOOD[1], GOOD[3]), source=SOURCE, factsheet=FACTS)
     (finding,) = [f for f in result.findings if f.rule_id == "FACT-04"]

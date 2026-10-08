@@ -19,7 +19,15 @@ from leichtfacile.pipeline.stages import (
     to_factsheet,
 )
 from leichtfacile.rules import check_draft, style_guide
-from leichtfacile.schemas import Block, Draft, Segment, SourceDocument, SourceInfo
+from leichtfacile.schemas import (
+    Block,
+    Draft,
+    Fact,
+    FactSheet,
+    Segment,
+    SourceDocument,
+    SourceInfo,
+)
 from tests.pipeline import fixtures as fx
 
 
@@ -70,6 +78,43 @@ def test_link_facts_adds_values_found_by_code() -> None:
     ])  # fmt: skip
     linked = link_facts(draft, fs)
     assert linked.blocks[0].fact_ids == ["f02"]  # f99 does not exist, f02 is the value
+
+
+# The French example letter, 7 Oct: the writer named the phone's and the e-mail's own
+# facts and no source sentence, so FACT-02 missed the contact and FACT-03 the provenance.
+CONTACT = FactSheet(doc_id="doc", facts=[
+    Fact(id="f05", kind="contact", segment_ids=["s0016", "s0017"],
+         text="L'agence, téléphone 022 123 45 67 ou e-mail rip@exempleville.example."),
+    Fact(id="f13", kind="contact", text="téléphone", value_norm="0221234567",
+         segment_ids=["s0016"], origin="code"),
+    Fact(id="f14", kind="contact", text="e-mail", value_norm="rip@exempleville.example",
+         segment_ids=["s0016"], origin="code"),
+])  # fmt: skip
+
+
+def test_link_facts_completes_provenance_and_worded_facts() -> None:
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="sentence", fact_ids=["f13", "f14"],
+              text="Contactez l'agence au 022 123 45 67 ou à rip@exempleville.example."),
+    ])  # fmt: skip
+    (block,) = link_facts(draft, CONTACT).blocks
+    assert block.segment_ids == ["s0016"]  # the sentence of the values it contains
+    assert block.fact_ids == ["f13", "f14", "f05"]  # it holds every value of f05
+
+
+def test_link_facts_needs_every_value_and_a_cited_sentence_for_a_worded_fact() -> None:
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Écrivez à rip@exempleville.example.",
+              segment_ids=["s0016"]),
+        Block(id="b002", kind="sentence", segment_ids=["s0002"],
+              text="Appelez le 022 123 45 67 ou écrivez à rip@exempleville.example."),
+        Block(id="b003", kind="sentence", text="Nos bureaux sont ouverts le matin."),
+    ])  # fmt: skip
+    linked = link_facts(draft, CONTACT).blocks
+    assert "f05" not in linked[0].fact_ids  # the phone number is missing
+    assert "f05" not in linked[1].fact_ids  # another source sentence
+    assert linked[1].segment_ids == ["s0002"]  # a block's own sources stay
+    assert linked[2].segment_ids == []  # no value, no source to take
 
 
 def test_apply_repairs_splits_and_adds_blocks() -> None:

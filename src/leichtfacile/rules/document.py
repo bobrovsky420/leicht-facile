@@ -153,10 +153,12 @@ def fact_02(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.factsheet:
         return
     referenced = {fid for b in doc.draft.blocks for fid in b.fact_ids}
+    # A value that is missing is FACT-01's finding: one missing fact, one error.
+    missing = {f.id for f in fact_coverage(doc.draft, doc.factsheet, ctx.lang, doc.source).missing}
     for fact in doc.factsheet.must_keep():
         if fact.origin == "code" and not fact.value_norm:
             continue  # a protected part of a decision: FACT-08 checks it by its segments
-        if fact.id not in referenced:
+        if fact.id not in referenced and fact.id not in missing:
             yield hit("FACT-02", fact=fact.id, text=fact.text, evidence=fact.text, fact_id=fact.id)
 
 

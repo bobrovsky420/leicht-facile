@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from leichtfacile.examples import example_config, example_sources
-from leichtfacile.schemas import JobConfig
+from leichtfacile.examples import example_config, example_sources, open_problems
+from leichtfacile.schemas import JobConfig, JudgeReport, PipelineSummary, RuleFindings
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "data" / "examples"
 
@@ -53,3 +53,39 @@ def test_example_sources_carry_the_decision_settings() -> None:
     assert kesb["mode"] == "decision" and kesb["addressee"] == "Lea Muster"
     assert kesb["notice"].endswith("Massgebend ist der Entscheid.")
     assert "mode" not in by_id["praemienverbilligung-brief"]
+
+
+def _rules(*severities: str) -> RuleFindings:
+    findings = [
+        {"block_id": "b001", "rule_id": "LEN-01", "severity": s, "message": "m"} for s in severities
+    ]
+    return RuleFindings.model_validate({"draft_version": 1, "level": "A2", "findings": findings})
+
+
+def test_open_problems_count_rule_errors_and_judge_problems() -> None:
+    judge = JudgeReport.model_validate(
+        {
+            "draft_version": 1,
+            "model": "m",
+            "fact_checks": [
+                {"fact_id": "f01", "status": "present"},
+                {"fact_id": "f02", "status": "missing"},
+            ],
+            "unsupported": [{"block_id": "b001", "note": "n"}],
+        }
+    )
+    assert open_problems(_rules("warn", "info"), None) == 0
+    assert open_problems(_rules("error", "warn"), judge) == 3
+
+
+@pytest.mark.parametrize("path", sorted((EXAMPLES / "jobs").glob("*.json")), ids=lambda p: p.stem)
+def test_the_example_jobs_show_no_errors(path: Path) -> None:
+    """A first-time visitor reads a red error count as a fault of the application."""
+    bundle = json.loads(path.read_text(encoding="utf-8"))
+    final = PipelineSummary.model_validate(bundle["summary"]).final_version
+    rules = [RuleFindings.model_validate(r) for r in bundle["rule_findings"]]
+    judges = [JudgeReport.model_validate(j) for j in bundle["judge_reports"]]
+    rules_final = next((r for r in rules if r.draft_version == final), None)
+    judge_final = next((j for j in judges if j.draft_version == final), None)
+    assert rules_final is not None
+    assert open_problems(rules_final, judge_final) == 0

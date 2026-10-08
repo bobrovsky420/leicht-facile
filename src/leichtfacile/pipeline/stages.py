@@ -756,28 +756,47 @@ def link_facts(draft: Draft, factsheet: FactSheet) -> Draft:
     """Bookkeeping the model need not get right: a block that contains a fact's exact
     value conveys that fact, a block that cites a source sentence of a protected part of
     a decision (a code fact without a value, rules/decision.py) conveys that part, and
-    fact ids that do not exist are dropped."""
+    fact ids that do not exist are dropped. A block that cites no source sentence takes
+    those of the facts whose values it contains (FACT-03), and a fact without a value
+    whose text holds values is conveyed by a block that cites one of its sentences and
+    contains all of them (FACT-02: the writer named the narrower facts of those values)."""
     known = factsheet.fact_ids()
     targets = []
     parts = []  # (fact id, its segments) of the facts without a value that code added
+    worded = []  # (fact id, its segments, the values in its text) of the model's others
     for fact in factsheet.facts:
         value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
         if value is not None:
-            targets.append((fact.id, value))
+            targets.append((fact.id, value, fact.segment_ids))
         elif fact.origin == "code":
             parts.append((fact.id, set(fact.segment_ids)))
+        elif in_text := extract_values(fact.text, draft.lang):
+            worded.append((fact.id, set(fact.segment_ids), in_text))
     blocks = []
     for b in draft.blocks:
         ids = [f for f in b.fact_ids if f in known]
-        if targets:
-            values = extract_values(b.text, draft.lang)
-            for fact_id, target in targets:
-                if fact_id not in ids and any(matches(target, v) for v in values):
+        segment_ids = list(b.segment_ids)
+        values = extract_values(b.text, draft.lang) if targets or worded else []
+        for fact_id, target, fact_segments in targets:
+            if any(matches(target, v) for v in values):
+                if fact_id not in ids:
                     ids.append(fact_id)
+                if not b.segment_ids and b.kind != "heading":
+                    segment_ids += [s for s in fact_segments if s not in segment_ids]
         for fact_id, segments in parts:
-            if fact_id not in ids and segments & set(b.segment_ids):
+            if fact_id not in ids and segments & set(segment_ids):
                 ids.append(fact_id)
-        blocks.append(b if ids == b.fact_ids else b.model_copy(update={"fact_ids": ids}))
+        for fact_id, segments, in_text in worded:
+            if (
+                fact_id not in ids
+                and segments & set(segment_ids)
+                and all(any(matches(t, v) for v in values) for t in in_text)
+            ):
+                ids.append(fact_id)
+        if ids == b.fact_ids and segment_ids == b.segment_ids:
+            blocks.append(b)
+        else:
+            blocks.append(b.model_copy(update={"fact_ids": ids, "segment_ids": segment_ids}))
     return draft.model_copy(update={"blocks": blocks})
 
 

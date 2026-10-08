@@ -125,14 +125,28 @@ def example_config(path: Path) -> dict[str, Any]:
     return data
 
 
+def open_problems(rules: RuleFindings | None, judge: JudgeReport | None) -> int:
+    """What the UI shows as errors on a draft: rule findings of severity error, facts
+    the judge finds missing or distorted, and statements it finds unsupported."""
+    count = sum(1 for f in rules.findings if f.severity == "error") if rules else 0
+    if judge:
+        count += sum(1 for c in judge.fact_checks if c.status != "present")
+        count += len(judge.unsupported)
+    return count
+
+
 def build_examples(
     level: str = "A2",
     condition: str = "P2",
     folder: Path | None = None,
     only: list[str] | None = None,
+    allow_problems: bool = False,
 ) -> list[Path]:
     """Run the pipeline on every example source (or the ones named in `only`, by file
-    name without suffix) and write the bundles (needs the endpoint)."""
+    name without suffix) and write the bundles (needs the endpoint). A first-time
+    visitor reads a red error count as a fault of the application, so a job whose final
+    draft still has errors is not written unless `allow_problems` is set; the bundle
+    already in jobs/ stays."""
     from leichtfacile.config import get_settings
     from leichtfacile.export.bundle import build_bundle
     from leichtfacile.ingest import ingest_file
@@ -164,6 +178,15 @@ def build_examples(
         job = store.get_job(job.id)
         if job.status != "needs_review":
             log.error("example %s failed: %s", path.name, job.error)
+            continue
+        summary = store.get_artifact(job.id, "summary", PipelineSummary)
+        final = summary.final_version if summary else None
+        left = open_problems(
+            store.get_artifact(job.id, "rules", RuleFindings, version=final),
+            store.get_artifact(job.id, "judge", JudgeReport, version=final),
+        )
+        if left and not allow_problems:
+            log.error("example %s not written: %d errors left in draft v%s", path.name, left, final)
             continue
         bundle = build_bundle(store, job)
         bundle["job"]["id"] = f"example-{path.stem}"

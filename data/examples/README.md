@@ -41,7 +41,12 @@ uv run python -m leichtfacile examples build --only entscheid-beistandschaft-mus
 ```
 
 The build runs each source through P2 in its own store (`data/examples-build.sqlite`)
-and writes `jobs/<source>.json`; a job that fails writes nothing.
+and writes `jobs/<source>.json`; a job that fails writes nothing. Neither does a job
+whose final draft still shows errors (rule findings of severity error, facts the judge
+finds missing or distorted, unsupported statements): someone opening the application
+for the first time reads a red error count as a fault of the application. The bundle
+already in `jobs/` then stays; `--allow-problems` writes the job anyway, and
+`tests/test_examples.py` fails on a shipped job with errors.
 
 ## Printed letters (image input)
 

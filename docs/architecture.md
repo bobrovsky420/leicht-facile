@@ -252,7 +252,9 @@ An answer cut off at `max_tokens` is never used (its last objects are incomplete
 the part of the document it was for is written again as two halves, down to six
 sentences. Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
 block to every fact whose exact value it contains, so fact bookkeeping does not depend
-on the model. A sentence that repeats an earlier one is dropped and its references go
+on the model. A block that cites no source sentence takes the sentences of those facts,
+and a fact without a value whose text holds values (a contact with its phone number and
+e-mail) is linked to a block that cites one of its sentences and contains all of them. A sentence that repeats an earlier one is dropped and its references go
 to the first, and a heading left without content goes too: small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
 "By when?").

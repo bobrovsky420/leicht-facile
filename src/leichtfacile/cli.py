@@ -82,6 +82,11 @@ def main(argv: list[str] | None = None) -> int:
     examples.add_argument(
         "--only", nargs="+", metavar="NAME", help="build these sources only (file name, no suffix)"
     )
+    examples.add_argument(
+        "--allow-problems",
+        action="store_true",
+        help="also write a job whose final draft still has errors",
+    )
 
     from leichtfacile.eval.cli import add_eval_parser
 
@@ -105,7 +110,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "examples":
         from leichtfacile.examples import build_examples
 
-        written = build_examples(level=args.level, only=args.only)
+        written = build_examples(
+            level=args.level, only=args.only, allow_problems=args.allow_problems
+        )
         for path in written:
             print(f"written: {path}")
         return 0 if written else 1
