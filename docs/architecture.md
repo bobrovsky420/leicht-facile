@@ -548,7 +548,7 @@ could be trained from them - in effect distilling the 70B judge's standard into 
 | Plan & write | Reorder, simplify, explain, record omissions | 8B | off (configurable) | 0.3 | `Draft` JSON |
 | Meaning check | Judge fact fidelity, hallucinations, semantic rules | 70B-thinking | on | 0.0 | `JudgeReport` JSON |
 | Repair | Rewrite flagged blocks | 8B | off | 0.2 | blocks |
-| Recover (review, on demand) | Sentences for one missing fact from its paragraph | 8B | off | 0.2 | sentences, never applied by code |
+| Recover (pipeline round, §4.6; review on demand) | Sentences for one missing fact from its paragraph | 8B | off | 0.2 | sentences: the round adds the accepted ones as a new version; in the review only "Add" applies them |
 | Cross-language check (stretch) | Compare DE/FR/IT fact sheets | 70B | on | 0.0 | diff report |
 | Learning (stretch) | LoRA fine-tune of 8B on approved drafts | 8B | - | - | adapter |
 

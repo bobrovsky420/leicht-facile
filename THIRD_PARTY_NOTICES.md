@@ -9,9 +9,11 @@ message, the user template, the rule list and the two completeness instructions
 `REWRITE_CONDENSED` in `_streamlit_app/utils_prompts.py`), version 1.6.0, commit
 `5462559`, https://github.com/machinelearningZH/simply-simplify-language.
 
-It serves as the single-prompt baseline P0-ZH in the evaluation (docs/architecture.md,
-section 9). Nothing else of that app is used; its post-processing is described in
-docs/prompts.md.
+The prompt is used only for evaluation: it is the single-prompt baseline P0-ZH that
+Leicht·Facile is compared against (docs/architecture.md, section 9). It is not part of
+the final app: the pipeline that produces Leicht·Facile's own texts never uses it, and
+the web UI does not offer it. Nothing else of that app is used; its post-processing is
+described in docs/prompts.md.
 
 Licence of that repository:
 

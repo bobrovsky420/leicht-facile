@@ -1114,15 +1114,25 @@ since:
       PDF), check the 6-page limit, save as `RoestigrabenBridgers_Report.pdf` in the
       root. §2 holds a Mermaid diagram: the export must render it (print the GitHub
       page, or HTML with mermaid.js; plain pandoc prints the code instead).
-- [ ] Stale report: `link to video` and the commit placeholder in report §7
-      (`` `commit of the reported run` ``, known after the final rerun). The status line, the three
+      *First draft 9 Oct: every guiding question of the jury answered in the template's
+      sections (maturity level, user group, why these sizes, where Apertus fell short,
+      coding assistants, what the running system contacts, licences, ten times the
+      volume, the way into use), the settings table set to the code, visible
+      **[PENDING]** and **[OWNER]** placeholders; printed as a draft
+      `RoestigrabenBridgers_Report.pdf` in the root: 6 pages, the last 98 % full with
+      the placeholders, so the final text may not grow (method: docs/submission.md §5).*
+- [ ] Stale report: the **[PENDING]** video link (header) and commit (§7), known after
+      the final rerun. The status line, the three
       **[pending]** markers (report §5 now says κ is not yet measured, report §4 no
       longer announces a dataset decision), French in report §8, the stale NUM-08
       limitation and the test count are fixed.
 - [ ] `README.md`: keep the template text, add a "Leicht·Facile" section on top: what it
       is, `make run` quick start, where the report and video are. Stale on 7 Oct: "825
       tests" (963 now), "Status (6 October 2026)", the Pending list names French; the
-      demo video is "*link follows*".
+      demo video is "*link follows*". *Updated 9 Oct: status of 9 October (French,
+      decision mode v1, Check my text, the recover step, 1,244 tests), what the
+      container contacts at runtime, the maturity line, the coding assistants; the video
+      link and the final numbers as **[PENDING]**.*
 - [x] State the differentiator in README, report §1 and the video: not a translator, and
       not achievable with one chatbot prompt (fact contract, provenance, omission log,
       independent checks, audit trail). P0 is that baseline; cite the P0 vs P2 numbers.
@@ -1154,7 +1164,13 @@ since:
 - [ ] Repo to public (anonymous access gave 404 on 7 October); `.env` absent from
       history (check `git log -p -- .env`); then check that CI is green on the submitted
       commit.
-- [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL.
+- [ ] The owner's answers to the **[OWNER]** placeholders (docs/submission.md): the
+      declared maturity level, the coding-assistant sentence, the first user (none
+      named, D-Q), who submits and with which Devpost e-mail, "Swiss student team", the
+      video platform, and whether docs/submission.md stays in the public repository.
+- [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL, model
+      "8B + 70B v1.5" and the message to the jury; every field with our entry and the
+      checklist before Submit in docs/submission.md (drafted 9 Oct).
 
 ### WP17 - After 16 October (GAP-17, -18)
 
@@ -1391,6 +1407,12 @@ Never cut:
 | Sovereign deployability | `local-llm` compose profile, air-gapped image (no CDN, models baked in), single `LLM_BASE_URL` dependency, hardware statement; the decision letter with personal data, which may not go to a cloud chatbot; the "Why Apertus" box; the decisions use case, where the text may never leave the authority (docs/use-case-decisions.md); the use cases under official, medical or tax secrecy and the three conditions that leave Apertus as the only model (docs/use-cases.md §2) | WP0, WP8 vendoring, WP15, report §2 |
 | Implementation feasibility | `make run` on a clean checkout, example jobs including the decision letter, limitations stated honestly; CI; `main` equals the state in this log | WP0, WP8, WP11, WP16 |
 
+The jury's guiding questions for Track 2B (read from hackapertus.ch on 9 Oct): five
+dimensions, 0 to 5 each; technical rigour is judged against the maturity level the
+team declares; teams declare the external services the running system contacts and
+the use of coding assistants; a named first user counts under feasibility.
+docs/submission.md §6 maps every question to where README and report answer it.
+
 ## 10. Gap register (6 October 2026, night)
 
 Input, all from 6 October:
@@ -1549,3 +1571,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (WP4 closed): the last open item of WP4, the tests, accepted in another shape: a completeness test of the rendered prompts instead of a snapshot, two recorded 8B answers of 6 Oct (local llama.cpp, prompt versions a0224c698e87 and e44d14589893, the current files are 99fdb529e5a9 and a644e7997ea4) with the malformed cases derived in the tests; the write stage proven on Zürich pages by the full runs on CSCS. The section rewritten as a *Done* paragraph. Re-recording the two answers on CSCS with the current prompts stays optional (the fixture README asks for it; the tests test parsing, not the prompt text).
 - 2026-10-09 (more items closed): at the owner's request, every item that could be closed now: WP9 rewritten as a *Done* paragraph (French done, its P2 numbers in report §5; Italian on the WP17 roadmap); in WP16 the video item (superseded by the concept "Find the deadline"); in WP11 the differentiator (in README, report §1 and the video) and the demo video (built as version C; link and final numbers stay in their own items). Everything else waits on the final run of 11 Oct, outside answers or the owner.
 - 2026-10-09 (no outreach): at the owner's request, no outreach during the hackathon: WP16's outreach item, its two mail drafts and its part of the done criterion removed; the professional's drafting time (WP13) and the time-per-page claim (WP15) rest on a published figure only; the mails dropped from the schedule of 7, 8 and 12 Oct; cut-list item 9 removed, the items after it renumbered; D-Q and GAP-09 record the decision.
+- 2026-10-09 (submission drafts): at the owner's request, a first draft of every submission document, with visible placeholders: **[PENDING: ...]** for the final run, the video and the commit, **[OWNER: ...]** for the team's decisions. The submission form's fields and the jury's guiding questions for Track 2B read from hackapertus.ch (§9). Report: maturity level, the users (the people who write official texts, from trained writers to case workers, clerks and physicians, not the few trained writers alone; owner), why these model sizes, where Apertus fell short, other models and coding assistants, what the running system contacts, licences, ten times the volume, the way into use and the first user; the settings table set to the code (Write ran without thinking, on CSCS too; Repair 6,000 tokens; a Recover row) and the subtitle to "every fact value"; tightened to 6 pages, the last 98 % full with the placeholders (headless Edge, A4, 10 pt; the draft PDF in the root). README: status of 9 October, decision mode v1, Check my text, the recover step, what the container contacts, the maturity line, the video placeholder. New docs/submission.md: the deliverables, our entry for each form field, the message to the jury (about 3,100 characters), the video page, the PDF method, the jury's questions with where we answer them, the checklist before Submit. architecture.md: the stage table's Recover row. The tests that read README and report pass.

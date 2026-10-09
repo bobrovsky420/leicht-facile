@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
 
-Leicht·Facile drafts easy-language versions of Swiss official texts (Leichte Sprache,
-Einfache Sprache; French and Italian follow) with Apertus, and proves with code that
+Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
+Sprache and Einfache Sprache, French FALC; Italian follows) with Apertus, and proves with code that
 no deadline, amount or phone number got lost. It is a drafting assistant for the
-professionals who write easy language, not a replacement for them or for the review
-by readers from the target group.
+people who write official texts, from trained easy-language writers to case workers,
+not a replacement for their review or for the test by readers from the target group.
 
 About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
 skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
@@ -15,8 +15,8 @@ letters that decide their money, deadlines and rights.
 Two use cases: a canton's letters and web pages
 ([docs/use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
-that may never leave the authority ([docs/use-case-decisions.md](docs/use-case-decisions.md),
-partly planned). Further use cases, from patient letters and lease terminations to
+that may never leave the authority (decision mode v1;
+[docs/use-case-decisions.md](docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
 [docs/use-cases.md](docs/use-cases.md). Most of them are under official, medical or
 tax secrecy and may not go to a chatbot on a foreign cloud: for them, Apertus is the
@@ -25,7 +25,9 @@ only model that fits ([why](#why-only-apertus)).
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
 Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
 Technical report: [technical_report.md](technical_report.md) (PDF:
-`RoestigrabenBridgers_Report.pdf`). Demo video: *link follows*.
+`RoestigrabenBridgers_Report.pdf`). Demo video: **[PENDING: video URL]**. Maturity: a
+deployable prototype for German and French drafts of public texts and letters, a proof
+of concept for decisions **[OWNER: confirm]**. Built with AI coding assistants (report §3).
 
 > Apertus does everything that needs language understanding. Plain code does
 > everything that can be counted.
@@ -42,7 +44,8 @@ Technical report: [technical_report.md](technical_report.md) (PDF:
 4. **Judge** (a second, larger Apertus model): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
 5. **Repair** (Apertus): only the flagged sentences, until no blocking finding is left
-   (at most 3 rounds).
+   (at most 3 rounds); then one sentence for each must-keep value still missing (at
+   most 10), checked like the rest.
 6. **Review** (human): source and draft side by side, provenance, fact checklist,
    approve, edit or reject each block, export with an audit trail.
 
@@ -110,10 +113,11 @@ endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
 the 8B write. `eval/report.md` compares the three.
 
-In the browser, paste a text, upload a PDF or enter a URL (or click one of the two
-example letters), choose language and level (A2 Leichte Sprache or B1 Einfache
-Sprache; the level names the rule set, not a measured reader level), and follow the
-stages to the review page.
+In the browser (English, German or French), paste a text, upload a PDF or enter a URL
+(or click one of the two example letters), choose language and level (A2 Leichte
+Sprache or B1 Einfache Sprache; the level names the rule set, not a measured reader
+level), and follow the stages to the review page. **Check my text** runs the rule
+checker on any text you paste, without a model and without storing it.
 
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
@@ -132,31 +136,41 @@ says why must-keep facts are missing from the final drafts of a run, without a m
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 
 Documents and review records stay in a SQLite database on a volume the organisation
-controls. Which texts need this, and why it leaves Apertus as the only model:
+controls. At runtime the container contacts only the Apertus endpoint, and a web
+page's server when a user enters a URL: no telemetry, no CDN, no login provider (report
+§2). Which texts need this, and why it leaves Apertus as the only model:
 [Why only Apertus](#why-only-apertus).
 
-## Status (6 October 2026)
+## Status (9 October 2026)
 
 Done:
 
-- German pipeline end to end: ingest (text, HTML, PDF with text layer), Understand,
-  Write, rule check, judge, repair, review UI, export (Markdown, HTML, JSON audit
-  bundle), web API and CLI.
+- German and French pipeline end to end: ingest (text, HTML, PDF with text layer),
+  Understand, Write, rule check, judge, repair, recover, review UI in English, German
+  and French, export (Markdown, HTML, JSON audit bundle), web API and CLI.
 - Rule checker: 45 deterministic rules for German and 41 for French, with golden
   tests; 8 meaning rules for the judge (10 in decision mode). Italian texts get the
   language-independent rules (facts, layout, readability).
-- Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P1 and
-  P2, SARI, readability, fact coverage, cost and latency.
-- Evaluation on the CSCS endpoint: 23 held-out pairs under P0, P1 and P2, P2 also
-  with the 70B writer and with the 70B reading for the 8B; results in
-  `eval/report.md` and the technical report.
-- 825 tests, no network needed; CI runs them, the linter and a start of the Docker
-  image on every push. The whole pipeline ran on a laptop GPU with a local
-  4-bit Apertus 1.5 8B (llama.cpp), and `make run` and `make smoke` against CSCS.
+- Decision mode v1 for letters that accompany decisions of KESB and courts: the
+  operative part and the appeal instructions protected, one named addressee, a notice
+  at the start and the end that only the decision itself is authoritative
+  ([docs/use-case-decisions.md](docs/use-case-decisions.md)).
+- Check my text: the rule checker on any pasted text, no model, nothing stored.
+- Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P0-ZH
+  (the Canton of Zurich's published prompt), P1 and P2, SARI, readability, fact
+  coverage, silent losses, cost and latency.
+- Evaluation on the CSCS endpoint: 23 held-out pairs, results of 6 October in
+  `eval/report.md` and the technical report. **[PENDING: the final run after the
+  prompt freeze (Sun 11 October) replaces them.]**
+- 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
+  runs them, the linter and a start of the Docker image on every push. The whole
+  pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), and
+  `make run` and `make smoke` against CSCS.
 
-Pending: the example jobs, the French and Italian rule sets and prompts, image input for scanned
-letters (what the scans showed: [docs/image-input.md](docs/image-input.md)), and the air-gapped
-bundle (`make bundle`).
+Pending: the final evaluation run and the two example jobs rebuilt after it; image
+input for scanned letters (not built; what the scans showed:
+[docs/image-input.md](docs/image-input.md)); the vLLM profile on a GPU host; the
+air-gapped bundle (`make bundle`); Italian (after the hackathon).
 
 ## Documentation
 
@@ -169,6 +183,7 @@ bundle (`make bundle`).
 - [docs/use-case-canton.md](docs/use-case-canton.md): a walkthrough for a cantonal administration
 - [docs/use-case-decisions.md](docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
 - [docs/use-cases.md](docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
+- [docs/image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
 - [docs/hard-texts.md](docs/hard-texts.md): hard words and sentences for tests and the presentation
 - [docs/demo-video.md](docs/demo-video.md): script and storyboard for the demo video
 
