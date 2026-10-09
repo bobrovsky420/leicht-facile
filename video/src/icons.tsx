@@ -42,6 +42,13 @@ export const Check: React.FC<P> = (p) => (
   </Svg>
 );
 
+export const Scales: React.FC<P> = (p) => (
+  <Svg {...p}>
+    <path d="M12 3v18M8 21h8M4 7h16" />
+    <path d="M4 7l-2.5 7a2.5 2.5 0 0 0 5 0L4 7zM20 7l-2.5 7a2.5 2.5 0 0 0 5 0L20 7z" />
+  </Svg>
+);
+
 export const Lock: React.FC<P> = (p) => (
   <Svg {...p}>
     <rect x="5" y="11" width="14" height="10" rx="2" />

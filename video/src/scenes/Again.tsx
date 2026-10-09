@@ -40,7 +40,7 @@ const Column: React.FC<{ lang: string; label: string; easyLabel: string; source:
       <div style={{ fontFamily: F.sans, fontWeight: 600, fontSize: 22, letterSpacing: 3, textTransform: "uppercase", color: GREEN }}>{easyLabel}</div>
     </div>
     {easy.map((line, k) => {
-      const p = ramp(t, 0.15 + k * 0.25, 0.35);
+      const p = ramp(t, 0.25 + k * 0.35, 0.4);
       return (
         <div key={line} style={{ fontFamily: F.reader, fontSize: 46, lineHeight: 1.3, color: "#F4F4F2", whiteSpace: "nowrap", marginBottom: 12, opacity: p, transform: `translateX(${(1 - p) * -16}px)` }}>
           {line}

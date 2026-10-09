@@ -43,7 +43,8 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
   const d = cue("sov-d");
   const d2 = cue("sov-d2");
   const e = cue("sov-e");
-  const f = cue("sov-f");
+  // version C leaves out Ticino (owner, 9 October): the envelopes stay for "For these letters"
+  const f = hasCue("sov-f") ? cue("sov-f") : null;
   const g = cue("sov-g");
 
   const tilesAt = b.s + b.d * 0.45;
@@ -52,7 +53,7 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
   const strikes = [b.s + b.d * 0.8, c.s + c.d * 0.35, d.s + d.d * 0.55, d2.s + d2.d * 0.6];
   const apertusAt = e.s + 0.1;
   const iconsAt = e.e - 0.5;
-  const envelopesOut = 1 - ramp(t, f.s - 0.1, 0.35);
+  const envelopesOut = f ? 1 - ramp(t, f.s - 0.1, 0.35) : 1;
 
   return (
     <SceneFade offset={offset}>
@@ -202,11 +203,13 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
         ))}
       </div>
 
-      <div style={{ position: "absolute", left: 0, right: 0, top: 120, display: "flex", justifyContent: "center", opacity: ramp(t, f.s + 0.15, 0.4) }}>
-        <div style={{ padding: "16px 34px", borderRadius: 999, background: "rgba(255,255,255,0.96)", fontFamily: F.sans, fontWeight: 600, fontSize: 36, color: C.ink, boxShadow: "0 12px 34px rgba(0,0,0,0.35)" }}>
-          Canton of Ticino: Apertus in-house for sensitive documents
+      {f && (
+        <div style={{ position: "absolute", left: 0, right: 0, top: 120, display: "flex", justifyContent: "center", opacity: ramp(t, f.s + 0.15, 0.4) }}>
+          <div style={{ padding: "16px 34px", borderRadius: 999, background: "rgba(255,255,255,0.96)", fontFamily: F.sans, fontWeight: 600, fontSize: 36, color: C.ink, boxShadow: "0 12px 34px rgba(0,0,0,0.35)" }}>
+            Canton of Ticino: Apertus in-house for sensitive documents
+          </div>
         </div>
-      </div>
+      )}
     </SceneFade>
   );
 };

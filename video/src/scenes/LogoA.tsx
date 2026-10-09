@@ -1,17 +1,21 @@
 // Concept A, 0:33 The wordmark, Apertus, and that the writers get a checked first draft.
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import { Check, CheckCircle, Chip, Hourglass, Person } from "../icons";
+import { Check, CheckCircle, Chip, Hourglass, Person, Scales } from "../icons";
 import { C, F, lerp, ramp } from "../theme";
 import { useTL } from "../tl";
 import { SceneFade, useSceneTime } from "../ui";
 import { Statement, Wordmark } from "./Logo";
 
 // What easy language is, for the bridge "For them, there is easy language." Its names in
-// German and French as the illustration, and three of its rules.
+// German and French as the illustration, three of its rules, and the federal law behind
+// equal access (owner, 9 October), named as in German and French. Its art. 14 names only
+// speech, hearing and visual disabilities; the revision before Parliament (message of
+// 20 December 2024) adds understandable communication for people with learning
+// disabilities. So the card says what the law is for, not that it requires easy language.
 const EASY_RULES = ["Short sentences", "Everyday words", "One idea at a time"];
 
-const EasyLanguage: React.FC<{ op: number; rules: number[] }> = ({ op, rules }) => (
+const EasyLanguage: React.FC<{ op: number; rules: number[]; law: number }> = ({ op, rules, law }) => (
   <div style={{ position: "absolute", left: 0, right: 0, top: 170, display: "flex", justifyContent: "center", opacity: op }}>
     <div style={{ padding: "40px 64px 46px", borderRadius: 22, background: C.surface, boxShadow: "0 12px 40px rgba(16,24,40,0.10)", fontFamily: F.sans, textAlign: "center" }}>
       <div style={{ fontSize: 64, fontWeight: 600, color: C.ink }}>Easy language</div>
@@ -43,6 +47,27 @@ const EasyLanguage: React.FC<{ op: number; rules: number[] }> = ({ op, rules }) 
           </span>
         ))}
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 16,
+          marginTop: 30,
+          paddingTop: 24,
+          borderTop: `1px solid ${C.border}`,
+          fontSize: 30,
+          color: C.muted,
+          opacity: law,
+          transform: `translateY(${(1 - law) * 10}px)`,
+        }}
+      >
+        <Scales size={36} color={C.muted} stroke={1.8} />
+        <span>Equal access by Swiss law:</span>
+        <span lang="de" style={{ fontWeight: 600, color: C.ink }}>BehiG</span>
+        <span style={{ width: 2, height: 28, background: C.border }} />
+        <span lang="fr" style={{ fontWeight: 600, color: C.ink }}>LHand</span>
+      </div>
     </div>
   </div>
 );
@@ -60,12 +85,13 @@ export const LogoA: React.FC<{ offset: number; introCue?: string; bridgeCue?: st
   const bridge = bridgeCue ? cue(bridgeCue) : null;
   const bridgeOp = bridge ? Math.min(ramp(t, bridge.s - 0.1, 0.35), 1 - ramp(t, a.s - 0.45, 0.3)) : 0;
   const rules = EASY_RULES.map((_, k) => (bridge ? ramp(t, bridge.s + 0.5 + k * 0.3, 0.35) : 0));
+  const law = bridge ? ramp(t, bridge.s + 1.6, 0.4) : 0;
   return (
     <SceneFade offset={offset} bg={C.app}>
       <AbsoluteFill style={{ background: "radial-gradient(ellipse 60% 55% at 50% 40%, #FFFFFF 0%, rgba(255,255,255,0) 70%)" }} />
-      {bridgeOp > 0.001 && <EasyLanguage op={bridgeOp} rules={rules} />}
+      {bridgeOp > 0.001 && <EasyLanguage op={bridgeOp} rules={rules} law={law} />}
       {introOp > 0.001 && (
-        <div style={{ position: "absolute", left: 0, right: 0, top: bridge ? 560 : 340, display: "flex", justifyContent: "center", opacity: introOp }}>
+        <div style={{ position: "absolute", left: 0, right: 0, top: bridge ? 610 : 340, display: "flex", justifyContent: "center", opacity: introOp }}>
           <div style={{ display: "flex", alignItems: "center", gap: 28, padding: "34px 48px", borderRadius: 22, background: C.surface, boxShadow: "0 12px 40px rgba(16,24,40,0.10)", fontFamily: F.sans }}>
             <Hourglass size={84} stroke={1.8} color={C.ink} />
             <div>

@@ -186,11 +186,6 @@
           "pause": 0.3
         },
         {
-          "id": "sov-f",
-          "text": "Ticino already runs it for sensitive documents.",
-          "pause": 0.3
-        },
-        {
           "id": "sov-g",
           "text": "For these letters, it is the only option."
         }
@@ -198,8 +193,8 @@
     },
     {
       "id": "again",
-      "lead": 1.0,
-      "tail": 1.0,
+      "lead": 1.6,
+      "tail": 2.0,
       "chunks": [
         {
           "id": "ag-a",
@@ -209,7 +204,7 @@
     },
     {
       "id": "end",
-      "lead": 2.6,
+      "lead": 3.0,
       "tail": 0,
       "chunks": []
     }
