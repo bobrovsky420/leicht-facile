@@ -21,7 +21,7 @@ export const End: React.FC<{ offset: number; kicker?: string; line?: string; sub
           <Wordmark size={62} color="#fff" dot="#8FB3E6" />
         </div>
         <div style={{ marginTop: 18, fontFamily: F.sans, fontSize: 32, color: "rgba(255,255,255,0.78)", opacity: ramp(t, 0.6, 0.5) }}>
-          Röstigraben Bridgers · Hack Apertus 2026
+          Team Röstigraben Bridgers · Hack Apertus 2026
         </div>
         <div style={{ marginTop: 14, fontFamily: F.mono, fontSize: 30, color: "#8FB3E6", opacity: ramp(t, 0.75, 0.5) }}>github.com/bobrovsky420/leicht-facile</div>
       </div>

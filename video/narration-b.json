@@ -120,7 +120,7 @@
       "chunks": [
         {
           "id": "ev-a",
-          "text": "A strong single prompt, in its default mode, lost almost a quarter of the hard facts, without a word.",
+          "text": "A strong single prompt lost almost a quarter of the hard facts, without a word.",
           "pause": 0.3
         },
         {

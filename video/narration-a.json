@@ -64,7 +64,7 @@
       "lead": 0.3,
       "tail": 0.5,
       "chunks": [
-        { "id": "ev-a", "text": "A strong single prompt, in its default mode, lost almost a quarter of the hard facts, without a word.", "pause": 0.3 },
+        { "id": "ev-a", "text": "A strong single prompt lost almost a quarter of the hard facts, without a word.", "pause": 0.3 },
         { "id": "ev-b", "text": "Leicht·Facile lists every one it misses." }
       ]
     },

@@ -564,8 +564,8 @@ these rules, no debate:
 In every case: the same numbers in README, report §5 and the video, and never a number
 without its endpoint and split. Z in case B names its variant: `complete` loses 5
 percent of the hard facts on the stored rows, `condensed` (their default) 23 percent;
-a sentence that says "in its default mode", as the video's evidence scene does, means
-the condensed variant. `python -m leichtfacile eval numbers --results eval/results-cscs`
+a sentence that says "in its default mode", as the video's evidence scene does on its
+card (spoken without it since 9 Oct, owner), means the condensed variant. `python -m leichtfacile eval numbers --results eval/results-cscs`
 applies the table (tool since 8 Oct, WP16): the means per setup, the three comparisons
 with P0-ZH `complete`, the case and the headline sentence filled in.
 
@@ -797,7 +797,8 @@ architecture §4 and docs/prompts.md.
       - *Already precise, keep:* the four conditions of "Why only Apertus" and their
         sources (research-checked 7 Oct); "the CSCS API serves research, not
         administrations"; "no fine-tuning"; the rule counts, kept in step by a test;
-        the video's "a strong single prompt, in its default mode" (D-L). Page and test
+        the video's "a strong single prompt, in its default mode" (D-L), on the evidence
+        card; the narration drops it since 9 Oct (owner). Page and test
         counts belong to the numbers audit (WP16).
 - Hardware statement: the WP10 item (the `local-llm` profile on a GPU host).
 
@@ -1625,3 +1626,5 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (video rebuilt): the demo video rebuilt after the narration changes of 9 October, in a fresh build folder outside OneDrive (C:\Users\bobro\Developer\lf-video): voice, timeline and mix for all four versions (C 117.8 s, A 112.0 s, B 113.6 s, the first concept 118.4 s), the UI frames captured again (21 shots), stills checked and version C rendered to C:\Users\bobro\Videos\leicht-facile-demo-mock-C14.mp4 (1920x1080, 117.8 s). The speech check reads "1.25 million adults in Switzerland struggle with reading" word for word; its other flags are sentence boundaries and the product name, as before. Edge has an update pending and hands over to the new binary, so puppeteer lost it; the capture now takes an EDGE override (`video/scripts/capture.mjs`, README step 7) and ran on Remotion's headless Chrome.
 - 2026-10-09 (evidence card fixed): the facts panel in the evidence scene's right card ran past the card's bottom border since its heading became two lines with the precise claims. `video/src/scenes/Evidence.tsx`: the crop ends after the missing fact's source sentence, the gaps above it are 6 px smaller; the other scenes checked on a contact sheet, no other overflow. Version C rendered again as mock C15 (117.8 s).
 - 2026-10-09 (evidence card, one line): at the owner's request, the right card of the evidence scene reads "lists every hard fact it misses" on one line (", for the writer" dropped), so the facts panel has room again; the crop ends after the missing fact's source sentence. The scene holds 2.0 s after its last sentence instead of 0.4 s (`narration-c.json`), version C now 119.4 s, under the 2-minute limit; demo-video.md's version C times shifted. Rendered as mock C16.
+- 2026-10-09 (end card): at the owner's request, the end card names the team as "Team Röstigraben Bridgers · Hack Apertus 2026" (`video/src/scenes/End.tsx`, demo-video.md); rendered as mock C17.
+- 2026-10-09 (evidence narration): at the owner's request, the narration says "A strong single prompt lost almost a quarter of the hard facts, without a word." ("in its default mode" dropped in narration-a, -b and -c); the evidence card keeps it on screen, so the claim still names the condensed variant (§3 numbers rule and WP15 updated). Voices and mixes rebuilt for A, B and C; version C 118.1 s (was 119.4 s), demo-video.md's times shifted; the speech check reads the new sentence word for word. Rendered as mock C18.
