@@ -44,15 +44,19 @@ Slide 3 must show real tool output, not the illustrative rewrites in §4.
 
 | Figure | Source | Use |
 |--------|--------|-----|
-| **844'000** people aged 16-65 (15%) with low skills in reading, numeracy and adaptive problem solving | PIAAC 2023 (OECD), [SBFI press release, 23 October 2025](https://www.sbfi.admin.ch/de/newnsb/JrHo0f0D4ssv3Nu8Ee678) | Preferred: newest official figure |
+| **1.25 million** people aged 16-65 (22%) with low literacy (level 1 or below) | Swiss Federal Statistical Office (FSO), [first results of PIAAC 2022/2023, Neuchâtel 2024](https://www.bfs.admin.ch/asset/fr/33346105), section 3.3 | Used everywhere (owner, 9 October 2026) |
+| **844'000** people aged 16-65 (15%) with low skills in all three domains: reading, numeracy and adaptive problem solving | FSO, [Leben mit geringen Lese-, Alltagsmathematik- und Problemlösekompetenzen, Neuchâtel 2025](https://dam-api.bfs.admin.ch/hub/api/dam/assets/36075857/master); [SBFI press release, 23 October 2025](https://www.sbfi.admin.ch/de/newnsb/JrHo0f0D4ssv3Nu8Ee678) | Not used: it is not a count of people who struggle with reading |
 | About **800'000** adults (about 1 in 6) who cannot read and write well enough for everyday tasks (Illettrismus) | ALL survey 2003, widely quoted, for example by [SRF](https://www.srf.ch/news/schweiz/funktionaler-analphabetismus-es-ist-nie-zu-spaet-wenn-erwachsene-lesen-lernen) and [swissinfo](https://www.swissinfo.ch/ger/wenn-mann-oder-frau--buchstaeblich--ueberfordert-ist/43497674) | Only as the rounded, familiar number |
 
-Suggested wording: *"At least 844,000 adults in Switzerland struggle with reading.
-Source: PIAAC 2023."* The figure counts people with low skills in reading, numeracy and
-problem solving at once, so "at least" keeps it true; the SBFI release gives no figure
-for reading alone (checked 9 October 2026). As an on-screen illustration:
-*"Mindestens 840'000 Erwachsene in der Schweiz haben Mühe mit Lesen."* / *"Au moins
-840 000 adultes en Suisse ont de la peine à lire."*
+Suggested wording: *"1.25 million adults in Switzerland struggle with reading. Source:
+Swiss Federal Statistical Office, PIAAC 2022/23."* In full text: "about 1.25 million
+adults in Switzerland aged 16 to 65 (22 percent) have low reading skills (Swiss Federal
+Statistical Office, PIAAC 2022/23)". It is the office's own figure for literacy alone,
+checked in its report on 9 October 2026. Name the office in words only: no logo, no
+federal emblem. Its reports allow reproduction for non-commercial use when the source
+is named. As an on-screen illustration: *"1,25 Millionen Erwachsene in der Schweiz
+haben Mühe mit Lesen."* / *"1,25 million d'adultes en Suisse ont de la peine à
+lire."*
 
 Key message, the same in every deliverable (video, pitch, README, report): these
 people must not be excluded. Official letters decide their money, their deadlines and
@@ -67,8 +71,8 @@ Caveats for the slide:
   people learning German or French, people with dementia, prelingually deaf people.
   The number is therefore a conservative lower bound for "people who need easy
   language", not the same thing.
-- Re-check the press release wording before the final recording: it does not give a
-  separate number for reading alone.
+- The 22 percent include about 3 percent who could not take the test in any test
+  language (German, French or Italian); the office assumes they would score low.
 
 ## 3. Words
 

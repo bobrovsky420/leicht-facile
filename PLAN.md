@@ -716,16 +716,17 @@ architecture §4 and docs/prompts.md.
         hand ...". In the canton document name the cantonal act or drop "the canton's
         own accessibility rules". The video's card says only *Equal access by Swiss
         law: BehiG | LHand* (done 9 Oct).
-      - *The number.* 844'000 is the SBFI's count of people aged 16 to 65 (15 percent)
-        with low skills in reading, numeracy and adaptive problem solving at once
-        (PIAAC 2023, press release of 23 October 2025, checked 9 Oct; it gives no
-        figure for reading alone). README, report §1, use-cases.md §1 and the video say
-        "low reading skills" or "struggle with reading": true of these people, but
-        read as the count of people who struggle with reading, which is larger.
-        Wording: "about 844'000 adults aged 16 to 65 (15 percent) have low skills in
-        reading, numeracy and problem solving (PIAAC 2023)", or where the sentence
-        must stay short, as in the video, "at least 844,000 adults struggle with
-        reading"; hard-texts.md §2 carries the rule and demo-video.md §4 the check.
+      - *The number.* 1.25 million (22 percent) of people aged 16 to 65 have low
+        literacy, the Swiss Federal Statistical Office's own count for reading alone
+        (first results of PIAAC 2022/2023, Neuchâtel 2024, section 3.3, checked 9 Oct).
+        The 844'000 (15 percent, low in all three domains at once) is no longer used
+        (owner, 9 Oct). Wording: "about 1.25 million adults in Switzerland aged 16 to 65
+        (22 percent) have low reading skills (Swiss Federal Statistical Office, PIAAC
+        2022/23)", or where the sentence must stay short, as in the video, "1.25
+        million adults in Switzerland struggle with reading" with the office named on
+        screen, in words only (no logo); hard-texts.md §2 carries the rule and
+        demo-video.md §4 the check. Done 9 Oct in README, report §1 and references,
+        use-cases.md, hard-texts.md, demo-video.md and the video.
       - *The voting gap.* Not claimed anywhere now (checked 9 Oct: README, report,
         video, docs). If it comes back: "federal" voting explanations, and Zurich as
         the proof of demand: the canton published its information on the votes of
@@ -1051,7 +1052,7 @@ Numbers audit, at G4 and G6. Fix the text, never the command:
 | Pairs: 35 (30 German, 5 French; 20 and 3 held out) | `data/pairs/manifest.jsonl` |
 | Checker on official pages: about 2 errors per 100 blocks | `make calibrate` |
 | Every evaluation number | `eval/report.md` from `make eval RESULTS=eval/results-cscs` |
-| 844'000 | SBFI press release of 23 October 2025 (wording check in demo-video.md §4) |
+| 1.25 million (22%) | Swiss Federal Statistical Office, first PIAAC 2022/2023 results, section 3.3 (wording check in demo-video.md §4) |
 | Laptop GPU figures | architecture §10, labelled as a community 4-bit build |
 
 #### Outreach drafts (D-Q)
@@ -1612,3 +1613,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (precise claims elaborated): WP15's "Precise claims" item read against README, the report, the video narration, the use-case documents and `publiccode.yml`, each claim with where it stands, its source and the wording that holds: the law (art. 14 para. 1 BehiG; the revision before Parliament since the message of 20 Dec 2024), the 844'000 (the SBFI's count for low skills in all three PIAAC domains, not reading alone; checked against the press release of 23 Oct 2025), the voting gap (no longer claimed; Zurich's Leichte Sprache voting information for 28 Sep 2025 with Pro Infirmis as proof of demand), "every fact" against "every fact value", the 80 against 70 percent next to the official versions, the A2 label, the baseline's name, "the 8B on one GPU" before a GPU run, the price basis of "one cent per page", the half-a-day assumption and the sources of the use-case figures (the penal-order 92 percent from Thommen's SNSF study); D-E noted as in effect. No code or text changed; the sentences a juror reads stay the owner's.
 - 2026-10-09 (example tests, CI): the two red example tests traced. The bundles of 7 Oct still carry 4 (German) and 12 (French) open problems and no rebuild since has been clean; one rebuild on CSCS today with the recover round (`MAX_RECOVER_FACTS=10`, the earlier rounds from the cache) left 2 in German (b010 "Sie erhalten kein Geld zurück" cites no source sentence, FACT-03; the judge calls b009 unsupported because the draft names the canton as the payer, which the letter does not) and 3 in French (a 21-word sentence; FACT-02 on the contact fact, whose phone and e-mail stand in two blocks; an invented sentence about a letter from the tax office). The residence date 1 January 2027 is in both drafts now, through the recover round. The clean parts read worse than the count says: the German recover sentence is "Der Wert ist 1. Januar 2027." and the income limit stands three times; the French draft keeps "Vous payez la réduction". Neither bundle written, the 7 Oct bundles stay. So that CI is green until the rebuild after the freeze: `tests/test_examples.py` marks the two bundles in `KNOWN_PROBLEMS` as expected failures, strict, so a clean rebuild fails the test until its name leaves the set; a third example (the KESB decision) is tested as before. data/examples/README.md says so; WP8 and the risk line carry the state. Open for the owner, with the rebuild after the freeze: how the examples become clean (more fresh builds with `LLM_CACHE=0`, a hand-picked version, or a count without the judge's unsupported verdicts), and whether a clean draft that reads badly is the better showcase. 1,241 tests; 2 xfail.
 - 2026-10-09 (precise claims applied): at the owner's request, the claims of WP15's "Precise claims" item fixed in the texts. Report §1: the law sentence (disability law and the UN convention ask for accessible information, cantons have begun to publish), the 844'000 as low skills in all three PIAAC domains, the official versions "drop values on purpose" next to 80 against 70 percent; §3: the vLLM profile not yet started on a GPU host; §5: the A2 label as a rule set, Zurich's prompt named as a fact, "values not in the source" instead of "invented values" where REF is in the table, the price basis, "drops a value silently". README: the 844'000, "no value lost, no value invented", the GPU claim, the cent at Public AI list prices, the level note, the deployment row. `publiccode.yml`: "fact value" in en, de and fr (short descriptions re-measured, all under 150 characters). Video: "At least 844,000" and "lists every one it misses" in the four narration files, the evidence scene's titles, demo-video.md's quotes and checklist (the voice and the length need a new build). use-case-canton.md §1 (the law, Zurich since September 2025, the half-day labelled as the team's assumption), use-cases.md (the 844'000, the GPU claim, the penal-order source: Thommen's SNSF study via Beobachter, in the references), hard-texts.md (the wording rule, the BehiG row), prompts.md (the baseline's name). Code: the D-M case A and C sentences in `eval numbers` and here, and the generated tables' column names ("Values not in source", "Unsupported (judge)"). The report grew by about 75 words, about 6 lines; WP11's page check at G5 decides the cuts.
+- 2026-10-09 (the number): at the owner's request, the 844'000 (15 percent, low in all three PIAAC domains, from the SBFI press release) replaced everywhere by the Swiss Federal Statistical Office's own figure for reading: 22 percent, 1.25 million people aged 16 to 65 with low literacy (first results of PIAAC 2022/2023, Neuchâtel 2024, section 3.3, read in the report). The office is named as the source in words, no logo; its reports allow reproduction for non-commercial use with the source named. README, report §1 and its reference, use-cases.md §1 and references, hard-texts.md §2 (the 844'000 kept as a row marked not used), demo-video.md, WP15's "The number" and the sources table. Video: the four narrations say "1.25 million adults in Switzerland struggle with reading" (pronunciation added), and the kitchen scene shows "1.25 million" with "22% of adults aged 16-65 struggle with reading" and the source line; the layout checked in a browser mock, the voice and the length need a new build.

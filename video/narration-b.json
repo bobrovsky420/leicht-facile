@@ -5,7 +5,7 @@
     "Leicht·Facile": "lˈaɪçt fæsˈiːl",
     "Apertus": "ɑːpˈɛɹtʊs",
     "Ticino": "tɪtʃˈiːnoʊ",
-    "844,000": "ˈeɪt hˈʌndɹɪd ænd fˈɔːɹɾifˈɔːɹ θˈaʊzənd",
+    "1.25 million": "wˈʌn pˈɔɪnt tˈuː fˈaɪv mˈɪljən",
     "42": "fˈɔːɹɾitˈuː"
   },
   "scenes": [
@@ -47,7 +47,7 @@
       "chunks": [
         {
           "id": "why-a",
-          "text": "At least 844,000 adults in Switzerland struggle with reading.",
+          "text": "1.25 million adults in Switzerland struggle with reading.",
           "pause": 0.3
         },
         {

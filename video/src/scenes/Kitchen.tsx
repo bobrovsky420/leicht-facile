@@ -33,7 +33,7 @@ const Card: React.FC<{ x: number; p: number; icon: React.ReactNode; title: strin
 export const Kitchen: React.FC<{
   offset: number;
   sceneId?: string;
-  number?: string; // "844,000 adults ..."
+  number?: string; // "1.25 million adults ..."
   marks?: string; // "Letters like this decide their money, their deadlines, their rights."
   push?: string | null; // "No one should be shut out ..." (null: the letter stays)
   cards?: string | null; // "But easy-language versions are slow expert work ..." (null: no cards)
@@ -80,10 +80,11 @@ export const Kitchen: React.FC<{
       </Table>
       {numberIn > 0.001 && (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingLeft: 760, paddingBottom: 140, opacity: numberIn }}>
-          <div style={{ fontFamily: F.sans, fontWeight: 600, fontSize: 210, color: "#fff", letterSpacing: -4, textShadow: "0 10px 40px rgba(0,0,0,0.5)", transform: `translateY(${(1 - numberIn) * 24}px)` }}>
-            844,000
+          <div style={{ fontFamily: F.sans, fontWeight: 600, fontSize: 210, color: "#fff", letterSpacing: -4, textShadow: "0 10px 40px rgba(0,0,0,0.5)", transform: `translateY(${(1 - numberIn) * 24}px)`, whiteSpace: "nowrap" }}>
+            1.25<span style={{ fontSize: 120, letterSpacing: -1, marginLeft: 24 }}>million</span>
           </div>
-          <div style={{ fontFamily: F.sans, fontSize: 26, color: "rgba(255,255,255,0.7)", marginTop: 4, letterSpacing: 1 }}>PIAAC 2023</div>
+          <div style={{ fontFamily: F.sans, fontSize: 34, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>22% of adults aged 16-65 struggle with reading</div>
+          <div style={{ fontFamily: F.sans, fontSize: 24, color: "rgba(255,255,255,0.65)", marginTop: 10, letterSpacing: 0.5 }}>Source: Swiss Federal Statistical Office, PIAAC 2022/23</div>
         </AbsoluteFill>
       )}
       {e && <Card x={chatbot ? 420 : 725} p={ramp(t, e.s + 0.35, 0.5)} icon={<Hourglass size={72} stroke={1.8} />} title="Slow expert work" sub="Easy-language versions by hand" />}

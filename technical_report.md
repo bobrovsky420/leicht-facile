@@ -12,8 +12,8 @@ code.
 
 ## 1. Summary
 
-**Problem.** About 844'000 adults in Switzerland aged 16 to 65 (15%) have low skills in
-reading, numeracy and problem solving (PIAAC 2023); people with intellectual
+**Problem.** About 1.25 million adults in Switzerland aged 16 to 65 (22%) have low
+reading skills (Swiss Federal Statistical Office, PIAAC 2022/23); people with intellectual
 disabilities, language learners and people with dementia need easy language too.
 Disability law (BehiG and the UN disability convention) asks authorities for
 accessible information, and cantons have begun to publish in Leichte Sprache, FALC or
@@ -332,8 +332,9 @@ Attribution 4.0 (CC-BY-4.0). All HackApertus projects are open-sourced.
 - EBGB, Leitfaden Leichte Sprache:
   https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf
 - Inclusion Europe, "Information for all" (German, French and Italian editions)
-- SBFI, PIAAC 2023 results for Switzerland (press release, 23 October 2025):
-  https://www.sbfi.admin.ch/de/newnsb/JrHo0f0D4ssv3Nu8Ee678
+- Swiss Federal Statistical Office (FSO), first results of PIAAC 2022/2023
+  (Neuchâtel 2024; 22 percent, 1.25 million people aged 16 to 65, with low literacy):
+  https://www.bfs.admin.ch/asset/fr/33346105
 - Amstad, T. (1978): Wie verständlich sind unsere Zeitungen? (German readability index)
 - Xu, W. et al. (2016): Optimizing Statistical Machine Translation for Text
   Simplification. TACL 4 (SARI)

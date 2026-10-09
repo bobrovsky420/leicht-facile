@@ -37,8 +37,9 @@ Apertus as the only model.
 - The text decides about someone's money, home, health or freedom.
 - It carries exact values: dates, amounts, contacts and, above all, a period such as
   "innert 10 Tagen", whose loss costs a right.
-- Many of its readers cannot read it: about 844'000 adults in Switzerland aged 16 to
-  65 have low skills in reading, numeracy and problem solving (PIAAC 2023), and 49
+- Many of its readers cannot read it: about 1.25 million adults in Switzerland aged
+  16 to 65 (22 percent) have low reading skills (Swiss Federal Statistical Office,
+  PIAAC 2022/23), and 49
   percent of adults have low health literacy (HLS19-21).
 - Someone can review an easy version before it is used.
 - Most of them contain personal data. Data on health, on administrative and criminal
@@ -331,6 +332,9 @@ what they learned.
 
 ## References
 
+- Swiss Federal Statistical Office (FSO), first results of PIAAC 2022/2023
+  (Neuchâtel 2024; 22 percent, 1.25 million people aged 16 to 65, with low literacy):
+  https://www.bfs.admin.ch/asset/fr/33346105
 - Federal Office of Public Health: health literacy survey Switzerland 2019-21
   (HLS19-21-CH, with Careum).
 - "Was hab' ich?": patient letters after hospital stays (PASTA, Dresden heart centre,

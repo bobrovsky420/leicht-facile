@@ -8,8 +8,8 @@ no deadline, amount or phone number got lost. It is a drafting assistant for the
 professionals who write easy language, not a replacement for them or for the review
 by readers from the target group.
 
-About 844'000 adults in Switzerland aged 16 to 65 have low skills in reading, numeracy
-and problem solving (PIAAC 2023). None of them should be excluded from the official
+About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
+skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
 letters that decide their money, deadlines and rights.
 
 Two use cases: a canton's letters and web pages

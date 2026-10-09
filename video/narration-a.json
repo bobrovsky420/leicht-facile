@@ -5,7 +5,7 @@
     "Leicht·Facile": "lˈaɪçt fæsˈiːl",
     "Apertus": "ɑːpˈɛɹtʊs",
     "Ticino": "tɪtʃˈiːnoʊ",
-    "844,000": "ˈeɪt hˈʌndɹɪd ænd fˈɔːɹɾifˈɔːɹ θˈaʊzənd",
+    "1.25 million": "wˈʌn pˈɔɪnt tˈuː fˈaɪv mˈɪljən",
     "42": "fˈɔːɹɾitˈuː"
   },
   "scenes": [
@@ -32,7 +32,7 @@
       "lead": 0.5,
       "tail": 0.4,
       "chunks": [
-        { "id": "why-a", "text": "At least 844,000 adults in Switzerland struggle with reading.", "pause": 0.3 },
+        { "id": "why-a", "text": "1.25 million adults in Switzerland struggle with reading.", "pause": 0.3 },
         { "id": "why-b", "text": "Letters like this decide their money, their deadlines, their rights.", "pause": 0.3 },
         { "id": "why-c", "text": "No one should be shut out.", "pause": 0.35 },
         { "id": "why-d", "text": "But easy-language versions are slow expert work." }
