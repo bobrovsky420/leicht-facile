@@ -84,7 +84,7 @@ correct counts, the positioning paragraph (WP16).
 9. Pre-computed example jobs so the UI is not empty on first start.
 
 Also from the gap register: clause recipes for repair (WP14, done 7 Oct); value numbers
-(WP13); outreach and `publiccode.yml` (WP16). WP12a, image ingest for the reviewed
+(WP13); `publiccode.yml` (WP16). WP12a, image ingest for the reviewed
 workflow, moved up from stretch item 11 (WP15) and was cut on 7 Oct by D-N: the spike
 lost hard values at every setting.
 
@@ -487,9 +487,8 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - our own review time for 3 P2 drafts in the UI, by stopwatch, labelled "team,
         not experts" *(open, Sat 10 Oct in §4: the two example jobs and one eval pair,
         from opening the review to the export)*;
-      - the drafting time per page of a professional, from the outreach answers
-        (WP16) or a published price per page. Without either, the report says so;
-        no invented figure *(open; answers due Mon 12 Oct, D-Q)*.
+      - the drafting time per page of a professional, from a published price per
+        page. Without one, the report says so; no invented figure *(open)*.
 - [ ] **Final evaluation on CSCS** after the prompt freeze (Sun 11 Oct, 18:00; moved
       from Fri 9 Oct on 9 Oct, D-AD), into `eval/results-cscs`:
       - first copy the folder to the next `eval/results-cscs-vN` (v1 holds the run of
@@ -757,8 +756,7 @@ architecture §4 and docs/prompts.md.
         README and the video make no such comparison (checked).
       - *The level.* "A2" names the Leichte Sprache rule set the checker enforces and
         "B1" the team's own thresholds (report §6); neither is a measured reader
-        level, and no reader has tested a draft (report §6 "Not a certification"; the
-        outreach, WP16). One clause where "level A2" first appears in report §5 and in
+        level, and no reader has tested a draft (report §6 "Not a certification"). One clause where "level A2" first appears in report §5 and in
         README's quick start; no CEFR level from a readability score (WP16, rule 5).
         D-E stands in effect: A2 is the evaluated level since 6 Oct, B1 is offered and
         unevaluated.
@@ -779,8 +777,8 @@ architecture §4 and docs/prompts.md.
         and output tokens), not a CSCS price: "at Public AI's list prices" once where
         the cent appears, and on own hardware the GPU is the cost, not the tokens.
       - *Time per page.* use-case-canton.md §1 ("a two-page letter takes them half a
-        day") is the team's assumption: label it so until an outreach answer or a
-        published figure replaces it (WP13, value numbers).
+        day") is the team's assumption: label it so until a published figure
+        replaces it (WP13, value numbers).
       - *Figures in the use-case documents.* "92 percent of convictions for crimes and
         misdemeanours are penal orders" (use-cases.md §5) has no source next to it:
         Marc Thommen's SNSF study (University of Zurich), reported by Beobachter
@@ -956,7 +954,7 @@ among the example jobs; the "Why Apertus" box is in README and report; the spike
 result is in architecture §4.1; WP12a has shipped or been cut by D-N; the KESB
 decision runs as a decision job with the notice in the export and FACT-08 silent.
 
-### WP16 - Credibility and positioning (GAP-08, -09, -11, -12, -13, -16)
+### WP16 - Credibility and positioning (GAP-08, -11, -12, -13, -16)
 
 - [x] **Push the evening work** (owner, 15 min). *Done: on `main` as `56030bb`, pushed.*
       Checked on 6 Oct (night) at `cdb3b8b`, these were missing from `main`:
@@ -1005,10 +1003,6 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
       - validate it with the publiccode parser if available;
       - check whether opensource.admin.ch lists projects of non-public bodies. The
         file is useful either way.
-- [ ] **Outreach** (1 h, D-Q): mail A on Wed 7 Oct, mail B on Thu 8 Oct, with the three
-      example drafts (below). Answers by Mon 12 Oct go into report §6 (quote) and the
-      value numbers. Without an answer the report says the drafts have not yet been
-      reviewed by experts or the target group.
 - [ ] Optional goodwill (owner):
       - a short, friendly issue upstream: `strip_markdown` removes underscores in URLs
         and e-mail addresses;
@@ -1025,7 +1019,7 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
 
 Done when: CI is green on `main` with a badge; the counts in README and report match
 the commands; the positioning paragraph and the "Why Apertus" box are in README and
-report; the outreach is sent and its outcome recorded; `publiccode.yml` validates.
+report; `publiccode.yml` validates.
 
 #### Messaging rules and numbers audit
 
@@ -1059,87 +1053,6 @@ Numbers audit, at G4 and G6. Fix the text, never the command:
 | Every evaluation number | `eval/report.md` from `make eval RESULTS=eval/results-cscs` |
 | 1.25 million (22%) | Swiss Federal Statistical Office, first PIAAC 2022/2023 results, section 3.3 (wording check in demo-video.md §4) |
 | Laptop GPU figures | architecture §10, labelled as a community 4-bit build |
-
-#### Outreach drafts (D-Q)
-
-Only synthetic letters and their outputs leave the team; never a rewrite of a protected
-page. Fill in the placeholders; send A on Wed 7 Oct, B on Thu 8 Oct.
-
-**A. Team Data, Office for Statistics and Data, Canton of Zurich**
-
-```text
-An: datashop@statistik.zh.ch
-Betreff: «Sprache vereinfachen» als Vergleich im Hackathon Hack Apertus: kurze Rückmeldung möglich?
-
-Guten Tag
-
-Wir sind das Team Röstigraben Bridgers und nehmen am Hackathon Hack Apertus teil
-(Track 2B, Abgabe am 16. Oktober 2026). Unser Projekt Leicht·Facile entwirft mit dem
-Schweizer Sprachmodell Apertus Texte in Leichter Sprache. Danach prüft Programmcode
-jede Frist, jeden Betrag und jede Telefonnummer gegen das Original, und eine
-Fachperson entscheidet über jeden Abschnitt. Alles läuft auf Infrastruktur, welche
-die Verwaltung selbst kontrolliert.
-
-Ihre App «Sprache vereinfachen» ist für uns die beste öffentliche Grundlage in der
-Schweiz. Wir verwenden deshalb Ihren Prompt für Leichte Sprache (Version 1.6.0,
-MIT-Lizenz, mit Quellenangabe) in unserer Auswertung als Vergleich: dasselbe Modell,
-einmal mit Ihrem Prompt, einmal mit unserem Ablauf. Die Zahlen senden wir Ihnen gerne.
-
-Zwei Fragen:
-
-1. Verwenden Ihre Mitarbeitenden für Leichte Sprache meistens «Text verdichten» oder
-   die vollständige Fassung? Wir möchten Ihren Prompt fair einsetzen.
-2. Dürfen wir eine kurze Einschätzung von Ihnen (zwei bis drei Sätze) in unserem
-   Bericht zitieren? Eine Antwort bis am 12. Oktober 2026 würde uns sehr helfen.
-
-Beim Vergleich ist uns aufgefallen, dass die Funktion strip_markdown alle Unterstriche
-entfernt, auch in Web-Adressen wie .../praemienverbilligung_krankenversicherung.html
-und in E-Mail-Adressen. Gerne erfassen wir dazu ein Issue auf GitHub.
-
-Freundliche Grüsse
-
-[Name]
-Team Röstigraben Bridgers, Hack Apertus 2026
-[E-Mail]
-[Link zum Repository, sobald es öffentlich ist]
-```
-
-**B. An easy-language office** (Büro für Leichte Sprache of Pro Infirmis, or a
-cantonal office in St. Gallen or Bern; St. Gallen is a main partner of the hackathon)
-
-```text
-An: [Fachstelle]
-Betreff: 20 Minuten Fachblick auf drei Entwürfe in Leichter Sprache? (Hackathon-Projekt)
-
-Guten Tag
-
-Wir sind das Team Röstigraben Bridgers und nehmen am Hackathon Hack Apertus teil.
-Unser Projekt Leicht·Facile ist ein Hilfsmittel für Fachleute wie Sie: Das Schweizer
-Sprachmodell Apertus schreibt einen Entwurf in Leichter Sprache. Programmcode prüft
-jede Frist, jeden Betrag und jede Telefonnummer gegen das Original. Eine Fachperson
-entscheidet über jeden Abschnitt. Das Werkzeug ersetzt die Prüfung durch Menschen aus
-der Zielgruppe nicht.
-
-Wir möchten wissen, ob unsere Entwürfe Fachleuten Arbeit abnehmen. Hätten Sie etwa
-20 Minuten Zeit für drei kurze Entwürfe? Die Ausgangstexte sind von uns erfundene
-Briefe ohne echte Personendaten. Wir senden Ihnen Original und Entwurf als PDF.
-
-Unsere drei Fragen:
-
-1. Wie lange brauchen Sie für eine solche Seite, wenn Sie sie selbst schreiben?
-2. Was müssten Sie an unseren Entwürfen ändern, bevor Sie sie prüfen lassen würden?
-3. Dürfen wir Ihre Einschätzung in unserem Bericht zitieren, mit Ihrem Namen oder
-   ohne?
-
-Eine Antwort bis am 12. Oktober 2026 würde uns sehr helfen. Auch eine kurze Antwort
-hilft uns.
-
-Freundliche Grüsse
-
-[Name]
-Team Röstigraben Bridgers, Hack Apertus 2026
-[E-Mail]
-```
 
 ### WP18 - UI redesign: the reviewer's workbench (added 7 Oct)
 
@@ -1322,12 +1235,12 @@ first; the final CSCS run starts that night.
 | Date | Focus | Gate (end of day) |
 |------|-------|-------------------|
 | Mon 5 to Tue 6 Oct | Design docs, this plan, the CSCS key; the core of WP0 to WP10, first without the key, then on CSCS; the gap review (§10) | **G1**, **G2**; first P0, P1 and P2 numbers on the 23 held-out pairs (§11) |
-| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
-| Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14); UI track (WP18, own session): D-V to D-Y, foundations, start of the review screen *(done 7 Oct)* | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
+| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
+| Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14); UI track (WP18, own session): D-V to D-Y, foundations, start of the review screen *(done 7 Oct)* | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
 | Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); UI: the review screen, the reader view; *prompt freeze moved to Sun 11 Oct (D-AD)* | Pre-freeze changes measured on dev |
 | Sat 10 Oct | Pre-freeze changes and their dev measurement; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | Every pipeline change for the final run in |
 | Sun 11 Oct | Last dev rerun with `--redo`; **prompt freeze 18:00**; final CSCS evaluation overnight; example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS; UI: the job page, the texts, tests and screenshots; the decision mode's form fields and notice banner go into the new templates (WP18) | Final run started; example jobs in the image |
-| Mon 12 Oct | Read the numbers per D-M (WP13); `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G3**, **G4** |
+| Mon 12 Oct | Read the numbers per D-M (WP13); `publiccode.yml`; numbers audit; docs in sync; video storyboard; decision mode: French partial if time, docs | **G3**, **G4** |
 | Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-L | All report tables filled |
 | Wed 14 Oct | Report draft, video recording, clean-checkout test on Linux and on Windows | **G5** |
 | Thu 15 Oct | PDF, numbers audit again, repo public, awesome-apertus pull request prepared | **G6** |
@@ -1396,18 +1309,17 @@ Apply in this order when a gate is missed:
 6. `publiccode.yml`.
 7. Italian.
 8. Clause recipes for French (German stays).
-9. Outreach follow-ups (mails already sent stay sent; no second round).
-10. WP18's later parts, in its own cut order (docs/ui-design.md §13), "Suggest a
+9. WP18's later parts, in its own cut order (docs/ui-design.md §13), "Suggest a
     sentence" for a missing fact first (it touches no evaluated path): the drafts
     list's extras, the job page beyond the stylesheet, New draft as its own page, the
     reader view's export panel.
-11. WP12a, image ingest for the reviewed workflow *(cut 7 Oct, D-N)*.
-12. 70B writer comparison (the 70B judge stays).
-13. P0-ZH `condensed` (`complete` stays).
-14. French.
-15. B1 level.
-16. UI polish: a single review page without the version switcher.
-17. Judge κ labelling: 30 items down to 15, stated in the report.
+10. WP12a, image ingest for the reviewed workflow *(cut 7 Oct, D-N)*.
+11. 70B writer comparison (the 70B judge stays).
+12. P0-ZH `condensed` (`complete` stays).
+13. French.
+14. B1 level.
+15. UI polish: a single review page without the version switcher.
+16. Judge κ labelling: 30 items down to 15, stated in the report.
 
 Mediopunkt by code (WP14) is not on this list: both parts go in before the freeze or
 both move to WP17 with a sentence in report §7. A checker change after the final run
@@ -1421,7 +1333,7 @@ way.
 
 The UI redesign (WP18) goes in as a whole up to its review screen: the stylesheet, the
 app bar and the review screen stay once started, or WP18 is reverted; only the later
-parts in item 10 are cut on their own.
+parts in item 9 are cut on their own.
 
 Never cut:
 - `make run` from a clean checkout;
@@ -1453,7 +1365,7 @@ Never cut:
 | D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. *Decided 7 Oct after four spike runs (8B and 70B, 1,600 px and full resolution): hard values are lost at every setting, and at full resolution the models turn the IBANs, the AVS number and a period into other plausible numbers, the worst case for a fact contract. WP12a cut, WP12b after the deadline; the report names image input as future work with these numbers (docs/prompts.md). 9 Oct: the digit loss came mostly from the server's clamp on image size (1400 x 1400 pixels); with `--strips` at the scan's resolution the 8B keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. Decision unchanged; the owner may reopen WP12a with these numbers.* | done |
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
-| D-Q | Outreach | Mail A to Zurich's Team Data, mail B to one easy-language office (drafts in WP16). Only synthetic letters and their outputs leave the team. Answers by 12 Oct; no second round. | 7 Oct |
+| D-Q | Outreach | No outreach during the hackathon (owner, 9 Oct): no mail to Zurich's team or to an easy-language office was sent. Report §6 ("Not a certification") says the drafts still need testing by readers from the target group. | 9 Oct |
 | D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of D-M (WP13)). *The recover round (D-AC) keeps to this: the 8B writes the sentence, code places it after its block and checks the value, and the judge reads the version.* | 10 Oct |
 | D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. *Decided 7 Oct from the ablation (docs/prompts.md): on. Fact coverage 75 against 68 percent, hard facts kept 72 against 65, no invented value on either side, fewer judge findings. The third run answered the last question: 5 of 30 missing facts had been written into a version the blocking-count rule did not keep, so since 8 Oct the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; `eval rescore --select facts|blocking` reads the rule's effect on the stored jobs without a model call. Read on the same jobs with `eval rescore` (7 Oct, late): facts first gives 80 percent fact coverage and 81 percent hard facts kept against 71 and 68 under the old rule, at 1.2 more judge findings and 1.3 more rule errors per 100 blocks; on the run before, 83 and 84. Open for the Friday decision: the cap of a facts-only round (`MAX_MISSING_PER_FACTS_ROUND`, default 5; 13 of the 30 missing facts were behind it, all in one pair with 22 facts), to be raised only with a measured rerun. Measured 7 Oct (fifth run and the cap-10 run, same cache): cap 10 gives 79 percent fact coverage and 81 percent hard facts kept against 75 and 77, no invented value, judge findings 2.8 against 4.6 per 100 blocks, rule errors 6.7 against 5.4; the default is 10 since then. The fifth run also shows no silent loss and nothing in bucket k.* | done |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
@@ -1525,7 +1437,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-06 | "Why sovereignty?": every demo text is public | `data/examples/`, docs/sources.md §3 | Sovereign deployability | WP15 | Must |
 | GAP-07 | "Why Apertus?": no Apertus-specific feature in use | image input verified on CSCS, not wired into ingest; Italian jobs refused | Purposeful AI | WP15 (WP12a, argument) | Should |
 | GAP-08 | Prior art not addressed | Zurich's app, SUMM AI | Value, purposeful AI | WP16 | Must |
-| GAP-09 | No outside voice, no target-group contact | report §6 | Value; the responsible-AI juror | WP16 (outreach) | Should |
+| GAP-09 | No outside voice, no target-group contact | report §6 | Value; the responsible-AI juror | Not addressed: no outreach during the hackathon (D-Q); report §6 "Not a certification" | Should |
 | GAP-10 | Value stays qualitative | no minutes or francs saved per page | Value, cost | WP13 | Should |
 | GAP-11 | `main` lags this log; stale counts | the evening work is not pushed (§11); README and report say 404 tests | Feasibility | WP16 | Must |
 | GAP-12 | No CI: the tests run only on our machines | no `.github/` | Rigour, feasibility | WP16 | Must |
@@ -1636,3 +1548,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (WP3 closed): the last open item of WP3, the fixtures, has been done since 6 Oct in another shape: synthetic inputs built in the tests (hand-written pages, fpdf2 PDFs, pasted letters) instead of files saved under tests/fixtures; `tests/ingest` green (171 tests), the `ingest` command checked on a text and an HTML file. The section rewritten as a *Done* paragraph like WP0 to WP2.
 - 2026-10-09 (WP4 closed): the last open item of WP4, the tests, accepted in another shape: a completeness test of the rendered prompts instead of a snapshot, two recorded 8B answers of 6 Oct (local llama.cpp, prompt versions a0224c698e87 and e44d14589893, the current files are 99fdb529e5a9 and a644e7997ea4) with the malformed cases derived in the tests; the write stage proven on Zürich pages by the full runs on CSCS. The section rewritten as a *Done* paragraph. Re-recording the two answers on CSCS with the current prompts stays optional (the fixture README asks for it; the tests test parsing, not the prompt text).
 - 2026-10-09 (more items closed): at the owner's request, every item that could be closed now: WP9 rewritten as a *Done* paragraph (French done, its P2 numbers in report §5; Italian on the WP17 roadmap); in WP16 the video item (superseded by the concept "Find the deadline"); in WP11 the differentiator (in README, report §1 and the video) and the demo video (built as version C; link and final numbers stay in their own items). Everything else waits on the final run of 11 Oct, outside answers or the owner.
+- 2026-10-09 (no outreach): at the owner's request, no outreach during the hackathon: WP16's outreach item, its two mail drafts and its part of the done criterion removed; the professional's drafting time (WP13) and the time-per-page claim (WP15) rest on a published figure only; the mails dropped from the schedule of 7, 8 and 12 Oct; cut-list item 9 removed, the items after it renumbered; D-Q and GAP-09 record the decision.
