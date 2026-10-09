@@ -194,11 +194,16 @@
     {
       "id": "again",
       "lead": 1.6,
-      "tail": 2.0,
+      "tail": 0.6,
       "chunks": [
         {
           "id": "ag-a",
-          "text": "Can you read it now?"
+          "text": "Can you read it now?",
+          "pause": 1.2
+        },
+        {
+          "id": "ag-b",
+          "text": "Now you can."
         }
       ]
     },

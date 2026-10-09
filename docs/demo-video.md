@@ -118,8 +118,8 @@ replaces it. The app scene is shorter, since the step by step already shows fact
 checks. On 9 October the opening sentence came back before the end card, now in easy
 language, so that the opening question gets its answer (owner); the easy text there is
 the team's placeholder until the real output is in (§4). The same day the Ticino
-sentence left the "only Apertus" scene, and its time went to that easy text (owner).
-266 words, 1:58 (voice speed 0.90; the silent leads and pauses trimmed by 0.1 to
+sentence left the "only Apertus" scene, and its time went to that easy text (owner),
+which now ends with the answer "Now you can." (owner). 269 words, 1:58 (voice speed 0.90; the silent leads and pauses trimmed by 0.1 to
 0.6 s).
 
 | Time | Picture | Narration (English) |
@@ -131,7 +131,7 @@ sentence left the "only Apertus" scene, and its time went to that easy text (own
 | 0:55-1:08 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
 | 1:08-1:17 | The evidence scene of §2. | As in §2. |
 | 1:17-1:50 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5, without the Ticino sentence and its caption (owner, 9 October); the envelopes stay at the top for "For these letters, it is the only option." |
-| 1:50-1:55 | The split screen of the opening again (owner, 9 October): DE-4 and FR-4 small and dimmed at the top, their negations still marked; below each its easy-language version line by line, labelled *Leichte Sprache* and *Langage facile*; under it *"Können Sie es jetzt lesen?"* and *"Pouvez-vous le lire maintenant ?"* as it is spoken. For now the team's text, labelled on screen as a placeholder: *"Das ist wichtig: / Melden Sie Ihre Kosten rechtzeitig. / Sonst bekommen Sie kein Geld zurück."* and *"C'est important : / Annoncez vos frais à temps. / Sinon, vous ne recevez pas d'argent."* (both pass `leichtfacile check` at A2 without errors or warnings). | "Can you read it now?" |
+| 1:50-1:55 | The split screen of the opening again (owner, 9 October): DE-4 and FR-4 small and dimmed at the top, their negations still marked; below each its easy-language version line by line, labelled *Leichte Sprache* and *Langage facile*; under it *"Können Sie es jetzt lesen?"* and *"Pouvez-vous le lire maintenant ?"* as it is spoken. For now the team's text, labelled on screen as a placeholder: *"Das ist wichtig: / Melden Sie Ihre Kosten rechtzeitig. / Sonst bekommen Sie kein Geld zurück."* and *"C'est important : / Annoncez vos frais à temps. / Sinon, vous ne recevez pas d'argent."* (both pass `leichtfacile check` at A2 without errors or warnings). On the answer a green tick after each question (owner, 9 October: spoken, not a title; the question is already on screen twice). | "Can you read it now?" (1.2 s to try) "Now you can." |
 | 1:55-1:58 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
 
 ## 4. Before recording
