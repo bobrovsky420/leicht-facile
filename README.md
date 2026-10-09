@@ -155,7 +155,8 @@ Done:
   4-bit Apertus 1.5 8B (llama.cpp), and `make run` and `make smoke` against CSCS.
 
 Pending: the example jobs, the French and Italian rule sets and prompts, image input for scanned
-letters, and the air-gapped bundle (`make bundle`).
+letters (what the scans showed: [docs/image-input.md](docs/image-input.md)), and the air-gapped
+bundle (`make bundle`).
 
 ## Documentation
 

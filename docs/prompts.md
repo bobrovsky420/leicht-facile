@@ -768,7 +768,8 @@ photos, the open question of the spike, are still untested. D-N stands (image in
 as future work); a future ingest sends strips under the clamp, never a whole page,
 and checks e-mail addresses and URLs separately. Results in
 `eval/results/image_spike_strips.json` (the committed script) and the variants'
-files next to it, git-ignored; the variants' code was not kept.
+files next to it, git-ignored; the variants' code was not kept. The write-up for the
+jury and the Apertus community, by kind of value: `docs/image-input.md`.
 
 ### Vocabulary in the pipeline: P2 on the dev pairs on CSCS (7 October 2026)
 
