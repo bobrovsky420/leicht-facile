@@ -33,7 +33,12 @@ def main() -> int:
 
     llm = LLMClient(get_settings())
     report = run_spike(
-        llm, args.scans, max_side=args.max_side, model=args.model, names=args.only, strips=args.strips
+        llm,
+        args.scans,
+        max_side=args.max_side,
+        model=args.model,
+        names=args.only,
+        strips=args.strips,
     )
     print(render_spike(report))
     out.parent.mkdir(parents=True, exist_ok=True)

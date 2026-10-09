@@ -706,6 +706,70 @@ turns an IBAN into another plausible IBAN cannot feed a fact contract whose poin
 that such numbers survive exactly; image input stays future work, named in the report
 with these numbers (WP12a and WP12b cut).
 
+### Image input spike, continued (CSCS, 9 October 2026): strips at the scan's resolution
+
+Where the digits go: a probe of one page at many sizes showed that the server keeps
+at most about 7,900 prompt tokens of an image, from 2,000 pixels on the long side
+upward, JPEG or PNG alike (448 px: 666 tokens; 1,200 px: 4,128; 1,600 px: 7,279;
+2,000 to 4,000 px: 7,879). That is the Apertus 1.5 image tokenizer as described
+publicly: one discrete code per 16 x 16 pixel patch, the area clamped to 1400 x 1400
+pixels. So a whole A4 page scanned at 300 dpi is read at about 140 dpi, where a digit
+is a patch or two, and the 1,600 px setting of 7 October was not downscaled at all.
+`scripts/image_spike.py --strips` therefore cuts the page's printed area (the rows
+and columns with ink, the scanner's edge left out) at blank rows into horizontal
+strips of under 1.9 million pixels each, which the server keeps as they are: five
+calls per A4 page, about 1.5 s each on the 8B, about four times the input tokens of a
+whole page. The report names, for every lost hard value, what the transcription has
+in its place. All runs without thinking, temperature 0, the response cache off; the
+whole page is the full scan as on 7 October.
+
+| Setting | Model | steuermahnung-brief (21 values) | bourse-etudes-decision (22 values) | Seconds per capture |
+|---|---|---|---|---|
+| Whole page, two runs | 8B | 16 of 21; CER 0.059, 0.059 | 11 of 22; CER 0.039, 0.064 | 6, 5; 9, 7 |
+| Printed area whole, one call per page | 8B | 17 of 21; CER 0.049 | 15 of 22; CER 0.086 | 6; 8 |
+| Strips, three runs | 8B | 20 of 21; CER 0.011, 0.0095, 0.0095 | 17 of 22; CER 0.018, 0.018, 0.022 | 8, 6, 8; 13, 9, 13 |
+| Strips, grayscale with autocontrast | 8B | 16 of 21; CER 0.119 | 16 of 22; CER 0.026 | 8; 13 |
+| Strips, upscaled 1.5 x (twice the calls) | 8B | 20 of 21; CER 0.035 | 19 of 22; CER 0.096 | 12; 20 |
+| Strips | 70B | 17 of 21; CER 0.091 | 18 of 22; CER 0.024 | 15; 24 |
+
+Whole page: the same kind of loss as on 7 October, and not the same digits twice. The
+German IBAN `CH00 0839 4100 2786 5310 4` came back as `CH00 0830 4100 2786 3510 4` in
+both runs today (7 October: `... 2756 3510 4`), the AVS number `756.4719.2083.50` as
+`755 4716 2083 50` and `733.4716.2083.50`, the file number `BE-2026-04187` as `04137`,
+the postcode 1999 as 1899 and 1889, the 78-day period as `76 Tage`, the direct line
+`022 123 45 68` as `45 69`. The printed area alone, one call per page, gains a little
+(the page arrives at about 160 dpi) and still turns the IBAN into `2788 9310`.
+
+Strips on the 8B: every digit of both letters right in all three runs, the IBANs, the
+AVS number, the tax number, the file number, the amounts, the dates, the times, the
+phone numbers, the period. What is still lost are words the model knows better: the
+invented place name `Exempleville` comes back as `Exampleville` in the address, in
+both e-mail addresses and in the web address (so the two address values, the two
+e-mails and the URL count as lost), and the German footer's small gray
+`www.musterwil.example` as `mustervil` (the running text's Musterwil is right). In
+the running text `Gemeindesteuern` is read as `Gemeindefteuern` (a long s) in every
+run. The three runs differ in line breaks and one word (`Begründen`, `Gründen`):
+temperature 0 is close to deterministic on strips, while the whole-page runs differ
+in their digits. Blank strips (the empty lower half of the French page 2) come back
+as `illisible`, as the prompt asks.
+
+The other variants, each one run: in grayscale with autocontrast the 8B declined the
+first German strip (the header with the logo, `unlesbar`) and lost the sender block.
+Upscaling the strips 1.5 x before cutting (ten strips per page) gained no digit and
+added small errors elsewhere. The 70B on strips dropped the paragraph with the
+opening hours (four times lost), wrote the AVS number as `756.4719.2088.50` and the
+French IBAN with a hyphen, and took twice as long: the 8B is the better reader here.
+
+What it means for D-N: the digit loss was mostly the resolution, not the model's
+reading. In strips the 8B keeps every hard value with digits in both scans; it does
+not keep every hard value, because an e-mail address or a URL with an unfamiliar word
+is normalised to a familiar one, which the go/no-go rule counts as lost. Phone
+photos, the open question of the spike, are still untested. D-N stands (image input
+as future work); a future ingest sends strips under the clamp, never a whole page,
+and checks e-mail addresses and URLs separately. Results in
+`eval/results/image_spike_strips.json` (the committed script) and the variants'
+files next to it, git-ignored; the variants' code was not kept.
+
 ### Vocabulary in the pipeline: P2 on the dev pairs on CSCS (7 October 2026)
 
 Three runs of P2 on the 12 dev pairs (10 German, 2 French) with the settings of the day

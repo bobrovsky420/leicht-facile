@@ -295,8 +295,8 @@ def came_back_as(reference: str, hypothesis: str, lang: str, lost: list[str]) ->
             out[key] = "?"
             continue
         anchor = None
-        for a, b, size in blocks:  # the last matching stretch that starts before the value
-            if size and a <= value.start:
+        for a, b, size in blocks:  # the last real matching stretch before the value
+            if size >= 4 and a <= value.start:
                 anchor = (a, b, size)
         if anchor is None:
             out[key] = "(not aligned)"
@@ -304,7 +304,7 @@ def came_back_as(reference: str, hypothesis: str, lang: str, lost: list[str]) ->
         a, b, size = anchor
         start = value.start + (b - a)
         length = value.end - value.start
-        out[key] = hyp[max(0, start - 2) : start + length + 6].strip()
+        out[key] = hyp[max(0, start - 2) : start + length + 6].strip() or "(nothing)"
     return out
 
 
