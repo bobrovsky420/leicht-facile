@@ -150,50 +150,48 @@ store and resume tests.
 
 ### WP3 - Ingest and segmentation
 
-- [x] `ingest/text.py` (paragraph split) *(ingest agent)*, `ingest/html.py` (trafilatura with
-      `include_links=False`, keep headings and lists; fallback to simple
-      heuristics only if trafilatura returns empty), `ingest/pdf.py` (pdfplumber,
-      per-page text, heading heuristic by font size, page numbers on segments).
-- [x] `ingest/segment.py`: *(ingest agent)* paragraphs → sentences via spaCy sentencizer for the
-      language; stable ids `s0001…`; kinds `heading | paragraph | list_item |
-      table_cell`; heading path.
-- [x] `ingest/detect.py`: *(stopword frequencies instead of lingua: three languages need no extra model)* lingua, restricted to de/fr/it, user override wins.
-- [ ] `ingest/image.py` *(moved to WP12)*: feature-flagged (`FEATURE_IMAGE_INPUT`), implemented only
-      if day-1 check 4 passes; otherwise raises a clear "not supported on this
-      endpoint" error. *(Check 4 passed on Public AI on 6 Oct: the 8B read a rendered
-      letter. Possible now; still cut-list item 4, after the numbers.)*
-- [ ] Fixtures (article-5 or synthetic texts only, see docs/sources.md §4): one HTML
-      page saved locally, one short PDF with text layer,
-      one pasted text. Tests assert segment counts, kinds, and id stability.
-
-Done when: `python -m leichtfacile ingest <file|url>` prints a `SourceDocument` for
-all three input types.
+*Done.* `ingest/text.py` (pasted text or simple Markdown: paragraphs, `#` headings,
+bullet and numbered lists, words hyphenated at a line end joined again), `ingest/html.py`
+(httpx download, trafilatura's XML output without links, headings, lists and tables kept,
+title from og:title or `<title>`), `ingest/pdf.py` (pdfplumber words: running headers and
+footers removed, columns read one after the other, headings by font size, page numbers on
+the segments, a clear error for a PDF without text layer), `ingest/normalize.py` (NFC,
+soft hyphens and invisible characters removed, shared by every path), `ingest/segment.py`
+(spaCy sentencizer per language, stable ids `s0001…`, kinds heading, paragraph,
+list_item and table_cell, heading path), `ingest/detect.py` (function-word frequencies
+instead of lingua, so de, fr and it need no extra model; English rejected; the user's
+language wins), `ingest_url` and `ingest_file` dispatching on content type (magic bytes
+as fallback) and extension, `select_section` for one section of a page, document ids
+from the SHA-256 of the normalised text. Fixtures are synthetic and built in the tests
+(pages written by hand in the shape of official pages, PDFs generated with fpdf2 at test
+time, pasted letters; no official text committed, docs/sources.md §4); the tests assert
+units, kinds, counts and id stability. `python -m leichtfacile ingest <file|url>` prints
+the segments of a text, HTML or PDF input.
 
 ### WP4 - Understand and Write (German)
 
-- [x] `llm/prompts/de/understand.md` and `write.md` *(prompt hash instead of a version header)* as Jinja2 templates with
-      placeholders for style guide, examples, segments, fact sheet. Version header
-      in each file; `docs/prompts.md` logs changes and why.
-- [x] `rules/styleguide.py`: renders the writer style guide from the rule registry
-      (see decision D-A in §8) for a given language and level.
-- [x] `llm/prompts/de/examples/`: *(two synthetic pairs written by the team: Zürich and Bern pages may not be reproduced in a public repo)* 2-3 standard → easy pairs from Canton Zürich or
-      Bern pages, short (under 150 words each), with the source URL and licence note.
-- [x] `pipeline/understand.py`: *(in pipeline/stages.py; unknown ids are kept and reported by FACT-05)* one call over the whole document, `FactSheet` out,
-      model = writer model with thinking, temperature 0.1. Post-check: every cited
-      `segment_id` exists; unknown ids dropped with a warning.
-- [x] `pipeline/write.py`: *(in pipeline/stages.py)* plan-then-write prompt, `Draft` out, temperature 0.3.
-      Documents over ~3,000 words: split by top-level heading, one call per section
-      sharing the fact sheet, blocks re-numbered globally. Post-check: ids unique,
-      `segment_ids` exist, `fact_ids` exist.
-- [x] Normalisation helpers for `value_norm`: *(rules/values.py; plus code completion of the fact sheet)* ISO dates, decimal CHF, digits-only
-      phone, lowercase URL/e-mail. Done in code after the model returns, not trusted
-      from the model.
-- [ ] Tests: prompt rendering snapshot; parsing of 3 recorded real outputs on
-      article-5 or synthetic inputs (saved
-      under `tests/fixtures/llm/`), including one deliberately malformed.
-
-Done when: `python -m leichtfacile simplify sample.html --lang de --level A2 --stop-after write`
-produces a readable draft with provenance on a real Zürich page.
+*Done.* The German understand and write prompts under `llm/prompts/de/` as Jinja2
+templates (style guide, examples, segments and fact sheet as placeholders; each rendered
+prompt carries the short hash of its file instead of a version header, and
+docs/prompts.md logs every change and why), `rules/styleguide.py` (the writer style
+guide rendered from the rule registry, decision D-A), two synthetic example pairs written
+by the team under `llm/prompts/de/examples/` (Zürich and Bern pages may not be
+reproduced in a public repository), understand and write in `pipeline/stages.py` (one
+understand call over the whole document with thinking at temperature 0.1, `FactSheet`
+out; plan-then-write at temperature 0.3, `Draft` out; long documents split by top-level
+heading, one call per section sharing the fact sheet, blocks renumbered globally;
+post-checks on ids, unknown segment ids kept and reported by FACT-05), `value_norm` done
+in code after the model returns (`rules/values.py`: ISO dates, decimal CHF, digits-only
+phones, lowercase URLs and e-mails) plus code completion of the fact sheet. Tests in
+another shape than planned: instead of a snapshot, a test renders all four German prompts
+on the synthetic letter and asserts that no placeholder is left and the key content is in
+(the French prompts likewise); two recorded answers of the 8B on the team's letter under
+`tests/fixtures/llm/` (6 Oct, local 4-bit llama.cpp, older prompt versions; parsing and
+checking only, not evaluation results), with the malformed cases derived from them in the
+tests (an answer cut off is reported as broken and never used, a dropped value comes back
+from code) and more broken JSON in the extraction tests. The write stage ran on real
+Zürich pages in every full pipeline run on CSCS (the P0, P1 and P2 evaluations over the
+13 Zürich pairs, the P0-ZH runs); `--stop-after write` exists for a write-only run.
 
 ### WP5 - Rule checker (German)
 
@@ -315,7 +313,7 @@ the page. Built after WP10 in build order; scope status in §2 (stretch item 11)
       error rate and hard values found against the printed text, a table and a JSON
       report; tested without a key on the committed scans. The run on CSCS is the
       owner's: a LOCAL TEST REQUEST in the session log)*
-- [ ] `ingest/image.py` (was the WP3 item): JPEG/PNG, up to 3 photos per letter
+- [ ] `ingest/image.py`: JPEG/PNG, up to 3 photos per letter
       (pages in order), or a scanned PDF without text layer (its page JPEGs taken out
       unchanged, as for the spike's scans), EXIF rotation, long side scaled to about 1600 px (Pillow);
       one transcription call per photo (8B, thinking off, temperature 0), text joined
@@ -1628,3 +1626,6 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (evidence card, one line): at the owner's request, the right card of the evidence scene reads "lists every hard fact it misses" on one line (", for the writer" dropped), so the facts panel has room again; the crop ends after the missing fact's source sentence. The scene holds 2.0 s after its last sentence instead of 0.4 s (`narration-c.json`), version C now 119.4 s, under the 2-minute limit; demo-video.md's version C times shifted. Rendered as mock C16.
 - 2026-10-09 (end card): at the owner's request, the end card names the team as "Team Röstigraben Bridgers · Hack Apertus 2026" (`video/src/scenes/End.tsx`, demo-video.md); rendered as mock C17.
 - 2026-10-09 (evidence narration): at the owner's request, the narration says "A strong single prompt lost almost a quarter of the hard facts, without a word." ("in its default mode" dropped in narration-a, -b and -c); the evidence card keeps it on screen, so the claim still names the condensed variant (§3 numbers rule and WP15 updated). Voices and mixes rebuilt for A, B and C; version C 118.1 s (was 119.4 s), demo-video.md's times shifted; the speech check reads the new sentence word for word. Rendered as mock C18.
+- 2026-10-09 (WP3 without images): at the owner's request, the stale `ingest/image.py` item removed from WP3; image ingest lives only in WP12 (WP12a cut by D-N, WP12b after the deadline).
+- 2026-10-09 (WP3 closed): the last open item of WP3, the fixtures, has been done since 6 Oct in another shape: synthetic inputs built in the tests (hand-written pages, fpdf2 PDFs, pasted letters) instead of files saved under tests/fixtures; `tests/ingest` green (171 tests), the `ingest` command checked on a text and an HTML file. The section rewritten as a *Done* paragraph like WP0 to WP2.
+- 2026-10-09 (WP4 closed): the last open item of WP4, the tests, accepted in another shape: a completeness test of the rendered prompts instead of a snapshot, two recorded 8B answers of 6 Oct (local llama.cpp, prompt versions a0224c698e87 and e44d14589893, the current files are 99fdb529e5a9 and a644e7997ea4) with the malformed cases derived in the tests; the write stage proven on Zürich pages by the full runs on CSCS. The section rewritten as a *Done* paragraph. Re-recording the two answers on CSCS with the current prompts stays optional (the fixture README asks for it; the tests test parsing, not the prompt text).
