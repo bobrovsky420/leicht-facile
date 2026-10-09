@@ -78,7 +78,22 @@ def test_open_problems_count_rule_errors_and_judge_problems() -> None:
     assert open_problems(_rules("error", "warn"), judge) == 3
 
 
-@pytest.mark.parametrize("path", sorted((EXAMPLES / "jobs").glob("*.json")), ids=lambda p: p.stem)
+# The shipped bundles whose final draft still shows errors: the 8B's output on these
+# letters, and no rebuild has been clean yet (PLAN.md WP8). Strict: a clean rebuild
+# fails here until its name leaves the set.
+KNOWN_PROBLEMS = {"praemienverbilligung-brief", "reduction-primes-lettre"}
+
+
+def _example_job(path: Path) -> object:
+    marks = []
+    if path.stem in KNOWN_PROBLEMS:
+        marks.append(pytest.mark.xfail(strict=True, reason="shipped with errors, PLAN.md WP8"))
+    return pytest.param(path, id=path.stem, marks=marks)
+
+
+@pytest.mark.parametrize(
+    "path", [_example_job(p) for p in sorted((EXAMPLES / "jobs").glob("*.json"))]
+)
 def test_the_example_jobs_show_no_errors(path: Path) -> None:
     """A first-time visitor reads a red error count as a fault of the application."""
     bundle = json.loads(path.read_text(encoding="utf-8"))

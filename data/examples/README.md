@@ -46,7 +46,11 @@ whose final draft still shows errors (rule findings of severity error, facts the
 finds missing or distorted, unsupported statements): someone opening the application
 for the first time reads a red error count as a fault of the application. The bundle
 already in `jobs/` then stays; `--allow-problems` writes the job anyway, and
-`tests/test_examples.py` fails on a shipped job with errors.
+`tests/test_examples.py` fails on a shipped job with errors. The two bundles of 7 October
+still carry such errors (4 in German, 12 in French; the rebuild of 9 October with the
+recover round left 2 and 3, so neither was written): the test marks them as expected
+failures, strictly, so a clean rebuild fails the test until its name leaves
+`KNOWN_PROBLEMS` there.
 
 ## Printed letters (image input)
 
