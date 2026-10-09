@@ -32,7 +32,7 @@
       "lead": 0.5,
       "tail": 0.4,
       "chunks": [
-        { "id": "why-a", "text": "844,000 adults in Switzerland struggle with reading.", "pause": 0.3 },
+        { "id": "why-a", "text": "At least 844,000 adults in Switzerland struggle with reading.", "pause": 0.3 },
         { "id": "why-b", "text": "Letters like this decide their money, their deadlines, their rights.", "pause": 0.3 },
         { "id": "why-c", "text": "No one should be shut out.", "pause": 0.35 },
         { "id": "why-d", "text": "But easy-language versions are slow expert work." }
@@ -65,7 +65,7 @@
       "tail": 0.5,
       "chunks": [
         { "id": "ev-a", "text": "A strong single prompt, in its default mode, lost almost a quarter of the hard facts, without a word.", "pause": 0.3 },
-        { "id": "ev-b", "text": "Leicht·Facile lists every missing fact." }
+        { "id": "ev-b", "text": "Leicht·Facile lists every one it misses." }
       ]
     },
     {

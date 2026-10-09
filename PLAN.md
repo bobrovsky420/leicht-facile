@@ -229,7 +229,11 @@ held-out pairs on CSCS (docs/prompts.md).
 progress, the three-pane review with fact checklist, findings, omissions, glossary and
 versions; restyled by WP18), exports to Markdown, HTML and the JSON audit bundle
 (`export/`), example jobs in `data/examples/` loaded on first start: since 7 Oct the
-team's premium-reduction letter in German and French (P2, CSCS).
+team's premium-reduction letter in German and French (P2, CSCS). Their bundles of 7 Oct
+still show errors (4 and 12), and no rebuild since has been clean, the one of 9 Oct with
+the recover round included (2 and 3 left): `tests/test_examples.py` marks them as expected
+failures (`KNOWN_PROBLEMS`, strict) until the rebuild after the freeze; the log of 9 Oct
+has the details.
 `examples build --only <name>` builds one; a JSON file next to a source sets its job (the KESB
 decision's decision mode).
 
@@ -364,13 +368,15 @@ gone from the store after "Delete now"; the evaluation rows are in the report.
 
 ### WP13 - Fair baselines and the headline (GAP-01, -02, -03, -10)
 
-Goal: by G3, one table that answers "what does the pipeline add over the best single
-prompt, on the same model?", with numbers a juror can trust.
+Goal: by G3 (Mon 12 Oct), one table that answers "what does the pipeline add over the
+best single prompt, on the same model?", with numbers a juror can trust.
 
 - [x] **P0-ZH condition** (3-4 h). Zurich's Leichte Sprache prompt as a single-prompt
       baseline *(implemented 6 Oct, evening: conditions `P0-ZH-complete` and
-      `P0-ZH-condensed`, template verified verbatim, smoke run on CSCS; the eval and
-      dev runs wait for `eval/results-cscs` to be free)*:
+      `P0-ZH-condensed`, template verified verbatim, smoke run on CSCS; run the same
+      evening with P0 on the 20 German eval pairs and the 10 dev pairs, 90 jobs, every
+      answer tagged, about 2 minutes per 30 jobs; the numbers in docs/prompts.md
+      "Zurich's prompt as the second baseline", report §5 and eval/report.md)*:
       - `llm/prompts/de/baseline_zh.md`: their system message and user template of
         v1.6.0 with `RULES_LS`, verbatim. The MIT notice and the source commit go in a
         Jinja comment, so they never reach the model. Add `THIRD_PARTY_NOTICES.md`.
@@ -378,7 +384,7 @@ prompt, on the same model?", with numbers a juror can trust.
         and `condensed` (`REWRITE_CONDENSED`, their default for Leichte Sprache).
       - Same settings as P0: 8B, thinking off, temperature 0.3, 6000 tokens. Take the
         text between the `<leichtesprache>` tags; use the whole answer when the tags
-        are missing, and count how often.
+        are missing, and count how often *(never, in the 90 jobs)*.
       - Post-processing as in their app, with one exception. `ß` becomes `ss`, as
         there. Their `strip_markdown` is not applied: it deletes every underscore, so
         URLs and e-mail addresses break. Applying it would measure their regex, not
@@ -394,7 +400,8 @@ prompt, on the same model?", with numbers a juror can trust.
       (`eval/results-cscs`), classify every must-keep fact missing from the final
       version *(run 7 Oct on the owner's machine, numbers in docs/prompts.md: 50 of
       102 must-keep values missing, 40 of them never asked for, 30 of those because no
-      round reached the final version, 10 behind the cap; after the rerun 16 of 122)*:
+      round reached the final version, 10 behind the cap; after the rerun 16 of 122;
+      the later dev runs under the changed code are in the next item and in D-Z)*:
       - a) never requested in a repair round: more than 5 missing facts, or the loop
         stopped on "no progress";
       - b) requested, but the value came back in a surface form FACT-01 does not
@@ -403,48 +410,71 @@ prompt, on the same model?", with numbers a juror can trust.
         FACT-06 guard);
       - d) requested, but the model did not write it;
       - e) marked droppable by Understand or by code completion although the reader
-        needs it.
+        needs it;
+      - k) requested and written into a version that was not kept as final *(added
+        7 Oct, cloud session 3: 5 facts in the third run; empty since the final
+        version is chosen facts first, 8 Oct)*;
+      - l) present in an earlier version, lost in a later rewrite.
 
-      Result: a table in docs/prompts.md ("Tested so far").
+      Result: a table in docs/prompts.md ("Fact-retention diagnosis").
       *7 Oct, night (cloud session): the tool is `python -m leichtfacile eval diagnose
       --results eval/results-cscs --role dev` (`eval/diagnose.py`, tests on a
       hand-built store). It puts every missing must-keep value into a bucket from the
-      stored artifacts; for the stored runs it decides bucket a exactly (requests
+      stored artifacts; for the runs before 7 Oct it decides bucket a exactly (requests
       recomputed with `build_request`) and reports b, c and d together as "answer not
-      recorded", since the repair record (below) did not exist yet. The method is in
-      docs/prompts.md; the numbers wait for the run on the owner's machine, the cloud
-      session has no `eval/results-cscs`.*
-- [ ] **Fix the largest bucket** (2-6 h), then `eval run --redo` on the dev pairs.
-      Candidates:
-      - a facts-only repair round that "no progress" on other findings does not stop;
-        *in, 7 Oct night: up to `MAX_FACTS_ROUNDS` (default 1) rounds after the loop,
-        missing facts only, no block flagged, measured by the FACT-01 count; off after
-        a failed round and without repair rounds; decision D-Z;*
-      - the exact value in the repair request ("Schreiben Sie genau: 31. März 2026");
-        *in, 7 Oct night: `(Wert: 2026-03-31; schreiben Sie: 31. März 2026)`;*
-      - wider FACT-01 surface forms where the value stays unambiguous; *waits for
-        bucket b of the diagnosis;*
-      - every dropped addition logged with its reason. *In, 7 Oct night: the
-        `RepairRecord` artifact per round (request, answer, dropped texts with reason),
-        in the audit bundle and read by `eval diagnose`.*
+      recorded"; since then the `RepairRecord` per round tells them apart. The method
+      is in docs/prompts.md.*
+- [x] **Fix the largest bucket** (2-6 h), then `eval run --redo` on the dev pairs
+      *(done 7 to 9 Oct in the P2 dev reruns on CSCS, every earlier answer replayed
+      from the cache so that two runs differ only by the change measured; the numbers
+      in docs/prompts.md, D-Z, D-AB and D-AC)*. What went in, in this order:
+      - a facts-only round that "no progress" on other findings does not stop: up to
+        `MAX_FACTS_ROUNDS` (default 1) rounds after the loop, missing facts only, no
+        block flagged, measured by the FACT-01 count; the exact value in the request
+        (`(Wert: 2026-03-31; schreiben Sie: 31. März 2026)`); the cap of missing facts
+        per round as a setting, `MAX_MISSING_PER_FACTS_ROUND`, 5 to 10 after the
+        measured rerun; an unusable repair answer no longer cancels the round (D-Z);
+      - every dropped addition logged with its reason: the `RepairRecord` per round
+        (request, answer, dropped texts with reason) in the audit bundle, read by
+        `eval diagnose`;
+      - the final version chosen facts first, fewest missing must-keep values, then
+        fewest blocking findings (8 Oct; bucket k empty since; `eval rescore --select
+        facts|blocking` reads either rule on stored jobs without a model call);
+      - the code completion's gaps behind the 5 percent silent losses closed (a
+        percentage stored as `10%`, an address over two sentences as one fact with its
+        street, the coverage check in the reader's direction): no silent loss in P2
+        since the fifth run, checked 8 Oct;
+      - fact coverage counts only facts whose value the source contains (D-AB, 7 Oct):
+        the measure alone lifts the stored P2 eval row from 81.7 to 83.1 percent;
+      - a block without a source sentence gets one from the facts it names, a hard term
+        the source lacks leaves the fact sheet, the Understand example's office is a
+        copy-guard topic word (8 Oct): dev fact coverage 76 to 81 percent, within the
+        8B's noise;
+      - the recover round (D-AC, 9 Oct): after the facts rounds, every value FACT-01
+        still misses is asked for one by one with its source paragraph and the value
+        named, and the accepted sentences go after their blocks as one more checked and
+        judged version (`MAX_RECOVER_FACTS=10`, on by default, in the final run). Dev,
+        German: fact coverage 78 to 96 percent, hard facts kept 72 to 90, invented
+        values 0.8 to 0.6 per 100 blocks, about 12 percent more tokens and 5 s more
+        per page; the weak sentences echo the prompt or break a reflexive;
+      - wider FACT-01 surface forms: not needed, bucket b held 2 of the 16 missing
+        values after the rerun.
 
-      *Dev rerun done 7 Oct (owner's machine, CSCS, docs/prompts.md "Fact-retention
-      diagnosis"): with the facts rounds fact coverage 75 against 68 percent without
-      them, hard facts kept 72 against 65, no invented value on either side, 3,400
-      more tokens per page; missing must-keep values 16 of 122 (9 in jobs where no
-      round reached the final version, 2 behind the cap, 2 written in a rejected form,
-      1 dropped by code, 1 not written). The largest bucket is fixed as far as a round
-      can fix it; the final-version choice is the next reading (D-Z). Still open from
-      this run: 5 percent silent losses in P2, which the code completion should not
-      allow (read `silent_loss_kinds`).* *Closed the same day by the completion fixes
-      of the cloud sessions 4 and 5 (three percentages stored as bare numbers, an address
-      completed without its street, a partial fact counted as coverage); the fifth run
-      and the stored P2 rows that carry the key show no silent loss (checked 8 Oct).*
+      Tried on the dev pairs and taken out again (docs/prompts.md): a judge's
+      "missing" on a fact that code finds asked for again, and a missing fact asked for
+      by the clause of its value (8 Oct: fact coverage 79 to 74 percent, hard facts
+      kept 71 to 64); English instructions in every stage (9 Oct, D-AE). Dev numbers
+      by run, German P2: facts rounds 75 percent fact coverage against 68 without them
+      (7 Oct); the fifth run 75 and 77 percent hard facts kept, cap 10 79 and 81; the
+      recover round 96 and 90 (9 Oct; one run per setting, 5 of 12 pairs changed). Two
+      runs of the same code differ a lot per pair, so the eval split decides what the
+      report says.
 - [x] **Headline metrics** (1-2 h) in `eval/score.py` and `eval/report.py` *(7 Oct,
       night: `silent_losses` and `silent_loss_share` per row, the "Silent losses"
       column with its "by design" note in the report tables; the invented values and
-      rule errors per 100 blocks existed; eval/report.md and the §5 column fill with
-      the final run, the baseline rows follow from 100 minus hard facts kept)*:
+      rule errors per 100 blocks existed; `eval numbers` prints the means with the D-M
+      case since 8 Oct, below; eval/report.md and the §5 column fill with the final
+      run, the baseline rows follow from 100 minus hard facts kept)*:
       - *silent losses*: hard values of the source that are neither in the final text
         nor in the review checklist or omission log. For P0 and P0-ZH every missing
         value is silent. For P1 and P2 it is zero by design once identifiers are hard
@@ -452,29 +482,72 @@ prompt, on the same model?", with numbers a juror can trust.
       - invented values per 100 blocks (exists: the FACT-06 count, for every row);
       - rule errors per 100 blocks, fact coverage, hard facts kept (exist).
 - [ ] **Value numbers** (1-2 h):
-      - seconds and tokens per page from the usage log (exists);
+      - seconds, tokens and USD per 250-word page and setup from the usage log
+        *(exist, in `eval/report.md` and report §5; the seconds undercount: a call
+        replayed from the cache counts 0 s, which is P0's 0.0 in eval/report.md since
+        its rescoring of 6 Oct, so the final run's baseline rows need fresh calls,
+        below. Also measured: the recover round costs about 12 percent more tokens and
+        5 s more per German page (dev, 9 Oct); the rule check alone takes 47 ms median
+        on a 15-block letter (8 Oct); the 70B everywhere costs 1.8 times the 8B per
+        page (report §5))*;
       - our own review time for 3 P2 drafts in the UI, by stopwatch, labelled "team,
-        not experts";
+        not experts" *(open, Sat 10 Oct in §4: the two example jobs and one eval pair,
+        from opening the review to the export)*;
       - the drafting time per page of a professional, from the outreach answers
         (WP16) or a published price per page. Without either, the report says so;
-        no invented figure.
+        no invented figure *(open; answers due Mon 12 Oct, D-Q)*.
 - [ ] **Final evaluation on CSCS** after the prompt freeze (Sun 11 Oct, 18:00; moved
-      from Fri 9 Oct on 9 Oct, D-AD):
-      - P0, P0-ZH (both variants), P1 and P2 on the 20 German eval pairs;
-      - P0, P1 and P2 on the 3 French eval pairs;
-      - the 70B writer on 5 pairs (WP10);
-      - `--redo` only where the pipeline changed;
-      - first save the run started on 6 Oct as `eval/results-cscs-v1`, the fallback
-        *(done 6 Oct, evening, after the other session's 70B runs)*.
-        Never overwrite a result that might be needed.
+      from Fri 9 Oct on 9 Oct, D-AD), into `eval/results-cscs`:
+      - first copy the folder to the next `eval/results-cscs-vN` (v1 holds the run of
+        6 Oct, the fallback *(done 6 Oct, evening)*; v2 to v5 the dev reruns). Never
+        overwrite a result that might be needed;
+      - every row again, with `--redo`, not only where the pipeline changed: the
+        scoring changed for all of them since 6 Oct (the value kinds of 7 Oct, the
+        hotline numbers, the D-AB measure, the silent-loss key the stored P1 and P2
+        rows lack). `make eval` has no `--redo`: run its five `eval run` lines with
+        `--redo --results eval/results-cscs`, P1 and P2 first (the 20 German and 3
+        French eval pairs), then P0 and the two P0-ZH variants (German), since a
+        baseline's fact coverage is scored against a P1 or P2 fact sheet of the same
+        pair (`_reference_factsheet`) and that fact sheet should come from the final
+        code; last the two 70B rows of `make eval-70b` with `--redo` on the same 20
+        pairs as on 6 Oct (37 s and USD 0.02 per page), at least 5 if time is short
+        (WP10);
+      - the baseline rows with `LLM_CACHE=0`, so that seconds per page are measured and
+        not 0 s from the cache (63 short calls, about 2 minutes per 30 jobs); or, if
+        the answers of 6 Oct should stay, from the cache with the seconds of the v1
+        rows, stated. P1 and P2 with the cache on, as always: a changed prompt or a new
+        round misses it by itself;
+      - wall-clock about 1 h for the 8B rows (P2 runs the facts, vocabulary and recover
+        rounds now) and 30 min for the 70B rows, overnight is ample; the client's 8
+        retries cover the dropped thinking streams;
+      - then, without a model call: `eval report --results eval/results-cscs --out
+        eval/report.md` (both tables, with the silent-loss column for the first time),
+        `eval numbers --results eval/results-cscs` (the D-M case, below), `eval
+        diagnose --results eval/results-cscs --role eval` (the buckets on the eval
+        split: the sentence for the next step in case B), and the commit of the run
+        into report §7;
+      - if more than a quarter of the pairs fail: case D, the v1 and dev numbers,
+        labelled; P0 and P0-ZH may run on Public AI, labelled as such (§4).
+
+      The example jobs' rebuild and the video's real sentences follow the same freeze
+      (WP11).
 - [ ] **Report §5 table**: SOURCE, REF, P0, P0-ZH complete, P0-ZH condensed, P1, P2,
-      with the silent-loss column. The §1 headline follows D-M (below) *(rows in place 6 Oct,
-      evening; the silent-loss column added 7 Oct night with the identity for the rows
-      without a checklist, 0 by design for P1 and P2; the final run fills the rest)*.
+      with the silent-loss column. The §1 headline follows D-M (below) *(rows in place
+      6 Oct, evening; the silent-loss column added 7 Oct night with the identity for
+      the rows without a checklist, 0 by design for P1 and P2; the final run fills the
+      rest)*. Every place the numbers live, to change in one pass from `eval numbers`
+      and `eval/report.md` once the final run is read: report §5 (the table, its "6
+      October" date, the three reading paragraphs; the κ paragraph stays) and §1 (the
+      "Headline result" paragraph: 80 percent, 4.3, 22.0 and 0.1 today); README's
+      "Status (6 October 2026)" block (825 tests, 23 pairs under P0, P1 and P2, no
+      P0-ZH) and the paragraph under "Why not one chatbot prompt?"; the video's
+      evidence scene (narration C: "lost almost a quarter of the hard facts", the
+      condensed variant's 23 percent; demo-video.md §4 lists it). Every number with its
+      endpoint and split (WP16, rule 4).
 
 Done when: `eval/report.md` (CSCS) has every row on the 20 German eval pairs; the
-headline sentence follows D-M (below); README, report §1 and the video script carry the same
-three numbers.
+headline sentence follows D-M (below); README, report §1 and the video script carry the
+same three numbers, and `eval numbers --results eval/results-cscs` prints them.
 
 #### Reading the numbers at G3 (D-M)
 
@@ -483,20 +556,30 @@ these rules, no debate:
 
 | Case | When | Headline |
 |------|------|----------|
-| A | P2 has fewer invented values and fewer rule errors per 100 blocks, and its fact coverage is at most 5 points below P0-ZH | "Same model, the best public Swiss prompt against our pipeline: X fewer invented values and Y fewer rule errors per 100 blocks, and every missing fact is listed for the reviewer." |
+| A | P2 has fewer invented values and fewer rule errors per 100 blocks, and its fact coverage is at most 5 points below P0-ZH | "Same model, the Canton of Zurich's published prompt against our pipeline: X fewer invented values and Y fewer rule errors per 100 blocks, and every hard fact it misses is listed for the reviewer." |
 | B | P2 is better on invented values or rule errors, but more than 5 points below on fact coverage | Lead with "no silent loss": P0-ZH loses Z % of the hard facts without telling anyone, P2 lists every one. State the coverage gap openly, with the fix from the WP13 diagnosis as next step. No code-written fact sentences in the evaluated text (D-R). |
-| C | P0-ZH is as good or better on rules and facts | Reposition as the verification layer: "We ran the best single prompt through our checks: N invented values and M lost facts that nobody saw." The write stage becomes a replaceable part, and "verify a draft" moves to the top of report §8. |
+| C | P0-ZH is as good or better on rules and facts | Reposition as the verification layer: "We ran the Canton of Zurich's published prompt through our checks: N invented values and M lost facts that nobody saw." The write stage becomes a replaceable part, and "verify a draft" moves to the top of report §8. |
 | D | The final run fails on more than a quarter of the pairs | Report the v1 and dev numbers, labelled, with the failure rate; no headline comparison with P0-ZH. |
 
 In every case: the same numbers in README, report §5 and the video, and never a number
-without its endpoint and split.
+without its endpoint and split. Z in case B names its variant: `complete` loses 5
+percent of the hard facts on the stored rows, `condensed` (their default) 23 percent;
+a sentence that says "in its default mode", as the video's evidence scene does, means
+the condensed variant. `python -m leichtfacile eval numbers --results eval/results-cscs`
+applies the table (tool since 8 Oct, WP16): the means per setup, the three comparisons
+with P0-ZH `complete`, the case and the headline sentence filled in.
 
 Applied on 6 October (evening) to the numbers then on hand (CSCS, 20 German eval pairs,
 8B): **case B**. P2 against P0-ZH `complete`: rule errors 4.3 against 15.4 per 100
 blocks, invented values 0.1 against 0.0, fact coverage 84 against 91 percent (7 points),
 hard facts kept 80 against 95 percent; the condensed variant (their default) keeps 77
-percent of the hard facts. The headline sentence itself waits for the owner (D-M at G3)
-and for the final rerun after the freeze (Sun 11 Oct).
+percent of the hard facts. `eval numbers` reproduces this case on the stored rows
+(8 Oct). Since then the recover round (D-AC) lifted P2's fact coverage on the German
+dev pairs from 78 to 96 percent and hard facts kept from 72 to 90: if the eval split
+moves alike, P2 lands within 5 points of P0-ZH `complete` and case A applies, which
+names Zurich in the video (D-L) and rewrites its evidence scene, so the video's numbers
+wait for the final run (WP11). The headline sentence itself waits for the owner (D-M at
+G3) and for the final rerun after the freeze (Sun 11 Oct).
 
 ### WP14 - Fact contract and repair hardening (GAP-04, -05, -19, -22)
 
@@ -607,14 +690,107 @@ architecture §4 and docs/prompts.md.
         `FEATURE_IMAGE_INPUT`; one synthetic photographed letter in the tests; by G4.
       - WP12b, the end-user mode (`/letter`, facts box, privacy timer): after G4 only
         if everything is green, otherwise WP17.
-- [ ] **Precise claims** (0.5 h):
-      - write "federal voting explanations" wherever the voting gap is claimed. Zurich
-        publishes cantonal voting information in Leichte Sprache since 28 September
-        2025, written with Pro Infirmis and checked by test readers: cite it as proof
-        of demand;
-      - A2 or B1 per D-E after G3;
-      - never read "hard facts kept" as "better than professionals": they leave facts
-        out on purpose.
+- [x] **Precise claims** (1-2 h; GAP-15; elaborated 9 Oct from a read of README, the
+      report, the video narration, the use-case documents and `publiccode.yml`). Every
+      claim a juror reads says what its source says, no more. *Applied 9 Oct at the
+      owner's request: README, report §1, §3 and §5, `publiccode.yml`, the video (the
+      four narration files, the evidence scene, demo-video.md), use-case-canton.md,
+      use-cases.md, hard-texts.md, prompts.md, the D-M sentences below and in `eval
+      numbers`, and the column names of the generated tables; the voice and the video
+      length need a new build (demo-video.md §4); the report grew by about 75 words,
+      WP11's page check stands.* The check repeats with the numbers audit at G4 and G6
+      (WP16). Claim by claim, where it stood, and the wording that holds:
+      - *The law.* Report §1 ("Accessibility law asks authorities to publish important
+        information in Leichte Sprache, FALC or lingua facile") and use-case-canton.md
+        §1 ("Federal law (BehiG) and the canton's own accessibility rules require
+        ...") say more than the law does: art. 14 para. 1 BehiG (SR 151.3) names
+        speech, hearing and visual disabilities, and the partial revision has been
+        before Parliament since the Federal Council's message of 20 December 2024
+        (work, services, sign languages; whether it covers communication with people
+        with learning disabilities, as the video note of 9 Oct says, is to be read in
+        the message before it is cited). Wording that holds: "The Disability Equality
+        Act asks authorities to consider the needs of people with disabilities, the UN
+        Convention on the Rights of Persons with Disabilities (art. 9 and 21, in force
+        for Switzerland since 2014) asks for accessible information, and the cantons
+        have begun to publish in Leichte Sprache; today each version is written by
+        hand ...". In the canton document name the cantonal act or drop "the canton's
+        own accessibility rules". The video's card says only *Equal access by Swiss
+        law: BehiG | LHand* (done 9 Oct).
+      - *The number.* 844'000 is the SBFI's count of people aged 16 to 65 (15 percent)
+        with low skills in reading, numeracy and adaptive problem solving at once
+        (PIAAC 2023, press release of 23 October 2025, checked 9 Oct; it gives no
+        figure for reading alone). README, report §1, use-cases.md §1 and the video say
+        "low reading skills" or "struggle with reading": true of these people, but
+        read as the count of people who struggle with reading, which is larger.
+        Wording: "about 844'000 adults aged 16 to 65 (15 percent) have low skills in
+        reading, numeracy and problem solving (PIAAC 2023)", or where the sentence
+        must stay short, as in the video, "at least 844,000 adults struggle with
+        reading"; hard-texts.md §2 carries the rule and demo-video.md §4 the check.
+      - *The voting gap.* Not claimed anywhere now (checked 9 Oct: README, report,
+        video, docs). If it comes back: "federal" voting explanations, and Zurich as
+        the proof of demand: the canton published its information on the votes of
+        28 September 2025 in Leichte Sprache for the first time, written with Pro
+        Infirmis's Büro für Leichte Sprache and checked by readers with disabilities
+        (Pro Infirmis news; the evaluation pair `zh-voting-de` is that page), while
+        the federal administration does not take part (bluewin, 2025).
+      - *"Every fact".* Code checks values: dates, amounts, phone numbers, e-mail and
+        web addresses, percentages, times, periods, identifiers, addresses,
+        quantities, medication. A fact without a value (an obligation, a condition)
+        rests on the judge, whose fact verdicts are a hint (κ 0.08, report §5). So
+        "every fact value" or "every countable fact" where code is the subject, and
+        "every fact" only where the judge is named with it. Fixed: README step 3
+        ("nothing lost, nothing invented": "no value lost, no value invented"); the
+        short descriptions of `publiccode.yml` ("every fact checked by code", "jede
+        Tatsache prüft Code": "every fact value"); the video's "Leicht·Facile lists
+        every missing fact", now "lists every one it misses" after the hard facts of
+        the sentence before, with the evidence scene's titles to match. README's first
+        sentence ("no deadline, amount or phone number got lost") and report §1 ("the
+        exact presence of every fact value") hold.
+      - *Professionals.* Never "better than professionals": the official versions
+        leave values out on purpose (REF keeps 70 percent of the hard values, 60 on
+        the fact-rich pairs) and add some from elsewhere. Report §1 sets 80 against
+        70 percent and 0.1 against 2.2 "values the source does not have" without
+        saying so: one clause next to the first comparison; in §5 call REF's column
+        "values not in the source" rather than "invented" where REF is in the table.
+        README and the video make no such comparison (checked).
+      - *The level.* "A2" names the Leichte Sprache rule set the checker enforces and
+        "B1" the team's own thresholds (report §6); neither is a measured reader
+        level, and no reader has tested a draft (report §6 "Not a certification"; the
+        outreach, WP16). One clause where "level A2" first appears in report §5 and in
+        README's quick start; no CEFR level from a readability score (WP16, rule 5).
+        D-E stands in effect: A2 is the evaluated level since 6 Oct, B1 is offered and
+        unevaluated.
+      - *The baseline's name.* "The best public Swiss prompt" (report §5 table, the
+        case A sentence of D-M) is a judgement; "the Canton of Zurich's published
+        prompt, the only public Swiss one we found" is a fact. Use the fact, with the
+        credit of WP16 rule 6; Zurich in the video only per D-L.
+      - *Where it runs.* "The 8B on one GPU" (README's Why only Apertus table,
+        use-cases.md §2, architecture §10) rests on the official vLLM image, not on a
+        run of ours: the laptop ran a 4-bit community build, and the `local-llm`
+        profile has not started on a GPU host (WP10; the AWS L4 hour pending). Until
+        it has: "on one GPU with the official vLLM image (not yet run by us)"; after
+        it, the measured numbers. "Air-gapped" always with "images and weights pulled
+        in advance"; `make bundle` is not built (report §6 says so).
+      - *Cost per page.* "About one US cent per page" (README) and the USD columns are
+        Public AI's list prices applied to the token counts (`PRICES_USD_PER_MTOK` in
+        `eval/score.py`: 8B 0.10 and 0.20, 70B 0.82 and 2.92 USD per million input
+        and output tokens), not a CSCS price: "at Public AI's list prices" once where
+        the cent appears, and on own hardware the GPU is the cost, not the tokens.
+      - *Time per page.* use-case-canton.md §1 ("a two-page letter takes them half a
+        day") is the team's assumption: label it so until an outreach answer or a
+        published figure replaces it (WP13, value numbers).
+      - *Figures in the use-case documents.* "92 percent of convictions for crimes and
+        misdemeanours are penal orders" (use-cases.md §5) has no source next to it:
+        Marc Thommen's SNSF study (University of Zurich), reported by Beobachter
+        ("Strafbefehle machen 92 Prozent aller Schweizer Urteile aus"); cite it. "49
+        percent ... low health literacy (HLS19-21, FOPH)", "KESB Region Solothurn
+        since June 2016 (FHNW, 2018)" and the ZGB and StPO periods carry their sources
+        (checked).
+      - *Already precise, keep:* the four conditions of "Why only Apertus" and their
+        sources (research-checked 7 Oct); "the CSCS API serves research, not
+        administrations"; "no fine-tuning"; the rule counts, kept in step by a test;
+        the video's "a strong single prompt, in its default mode" (D-L). Page and test
+        counts belong to the numbers audit (WP16).
 - Hardware statement: the WP10 item (the `local-llm` profile on a GPU host).
 
 - [x] **Decision mode v1** (planned 7 Oct; about 1.5 days, Sat 10 to Mon 12 Oct; *code complete 8 Oct, pieces 1 to 7 below; the CSCS run of the KESB decision as a decision job is the owner's, see §11*;
@@ -1001,7 +1177,8 @@ since:
   v2) and how to start it, also before `stop`, `check-llm` and `smoke`;
 - no pre-computed example jobs: the premium-reduction letter in German and French built
   on CSCS into `data/examples/jobs/` (7 Oct); the KESB decision's job follows with
-  decision mode v1 (WP15). Rebuild after the freeze if the pipeline changes;
+  decision mode v1 (WP15). Rebuild after the freeze if the pipeline changes; until then
+  the two bundles carry errors and their test is an expected failure (9 Oct);
 - the `track_2b/` layout: settled 9 Oct without a question to the organisers; submission
   requirement 3 (judges run `make run` from the root of the project on a clean checkout)
   works only with the Makefile at the root;
@@ -1252,7 +1429,7 @@ Never cut:
 | D-B | `response_format` JSON mode | Use it only if day-1 check 3 shows fewer failures; never rely on it alone. *Decided 6 Oct on Public AI: 20 of 20 parsed in both modes, same answers; not used.* | done |
 | D-C | SARI implementation | Own ~80-line implementation in `eval/metrics.py`, unit-tested against the EASSE example; avoids heavy deps in the image. | 9 Oct |
 | D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. *7 Oct: WP18 replaces water.css with an own stylesheet and vendored fonts, still without a framework or a bundler (docs/ui-design.md).* | 11 Oct |
-| D-E | Primary level A2 or B1 | Day-1 check 6. | 6 Oct |
+| D-E | Primary level A2 or B1 | Day-1 check 6. *In effect since 6 Oct: the evaluation runs at A2, the UI offers B1 with the team's own thresholds (report §6); the claims follow WP15's "Precise claims".* | 6 Oct |
 | D-F | Section-parallel writing | Only if check 5 shows headroom; otherwise sequential. *Decided 6 Oct on Public AI: 8 parallel calls, no 429, 1.4 to 2.2 s each. Headroom exists; use it first for parallel evaluation workers, section-parallel writing stays optional.* | done |
 | D-I | Main demo document | A past Federal Council voting explanation (docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap. Test run of 7 Oct (use-case-decisions.md §7): the KESB decision is not demo-ready on today's pipeline (an invented appeal deadline, the deputy's tasks given to the person); it becomes the demo only with decision mode v1 by G4, otherwise the premium-reduction letter carries the product scene.* | 9 Oct |
 | D-J | NUM-08 and +41 numbers | Decide at checker calibration: accept the international format or lower to `info`. | 8 Oct |
@@ -1264,7 +1441,7 @@ Never cut:
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
 | D-Q | Outreach | Mail A to Zurich's Team Data, mail B to one easy-language office (drafts in WP16). Only synthetic letters and their outputs leave the team. Answers by 12 Oct; no second round. | 7 Oct |
-| D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of D-M (WP13)). | 10 Oct |
+| D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of D-M (WP13)). *The recover round (D-AC) keeps to this: the 8B writes the sentence, code places it after its block and checks the value, and the judge reads the version.* | 10 Oct |
 | D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. *Decided 7 Oct from the ablation (docs/prompts.md): on. Fact coverage 75 against 68 percent, hard facts kept 72 against 65, no invented value on either side, fewer judge findings. The third run answered the last question: 5 of 30 missing facts had been written into a version the blocking-count rule did not keep, so since 8 Oct the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; `eval rescore --select facts|blocking` reads the rule's effect on the stored jobs without a model call. Read on the same jobs with `eval rescore` (7 Oct, late): facts first gives 80 percent fact coverage and 81 percent hard facts kept against 71 and 68 under the old rule, at 1.2 more judge findings and 1.3 more rule errors per 100 blocks; on the run before, 83 and 84. Open for the Friday decision: the cap of a facts-only round (`MAX_MISSING_PER_FACTS_ROUND`, default 5; 13 of the 30 missing facts were behind it, all in one pair with 22 facts), to be raised only with a measured rerun. Measured 7 Oct (fifth run and the cap-10 run, same cache): cap 10 gives 79 percent fact coverage and 81 percent hard facts kept against 75 and 77, no invented value, judge findings 2.8 against 4.6 per 100 blocks, rule errors 6.7 against 5.4; the default is 10 since then. The fifth run also shows no silent loss and nothing in bucket k.* | done |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
 | D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. *Decided 7 Oct by its rule: the KESB decision, written in the layout and wording of the KESB Graubünden's two specimen decisions and the KOKES model decision. The reclaim letter is not written.* | done |
@@ -1431,3 +1608,7 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (plan restructured): each topic in one section, at the owner's request; updates go into the existing section, never a new one (AGENTS.md, §0). The finished WPs (WP1, WP2, WP5 to WP8, WP14, WP18) shortened to what was built. WP13 to WP17 moved from §13.2 into §3; the headline rules of §13.4 into WP13; the messaging rules, the numbers audit (§13.6) and the outreach drafts (§13.7) into WP16; the submission check into WP11; the schedule of §13.3 into §4 and the cut list of §13.5 into §7, replacing the originals; the added parts of §2 and §9 merged; the gap register (§13, §13.1) is §10, in place of the first tasks of 6 Oct, all done. Log lines above keep the old numbers; the references in docs, code and the video now name D-M (WP13), WP16 and §4.
 - 2026-10-09 (video callback): at the owner's request, version C of the demo video brings the opening sentence back before the end card (docs/demo-video.md §3): the split screen again, DE-4 and FR-4 dimmed at the top, their easy-language versions below, "Can you read it now?". The easy text is the team's placeholder (`video/src/scenes/Again.tsx`, labelled on screen; both versions pass `leichtfacile check` at A2 with 0 errors and 0 warnings) until the tool's real output replaces it (WP11 item). The evidence scene stays: the owner asked whether the sentence should replace it, and it is the video's only answer to "why not one prompt". To stay under 2:00, voice speed 0.89 to 0.90 and the silent leads and pauses trimmed by 0.1 to 0.6 s (end card 3.2 to 2.6 s); 273 words, 1:59.0 as before. Rendered as `leicht-facile-demo-mock-C9.mp4`. Then the strike lines of the "only Apertus" tiles: they were turned about their left end from the tile's middle and ran through its upper half; now they start lower by half their rise and cross the middle (owner); `leicht-facile-demo-mock-C10.mp4`. Then BehiG on the easy-language card (owner): *Equal access by Swiss law: BehiG | LHand* under the three rules, on screen only, so the timing stays. The wording stops short of "the law requires easy language": art. 14 para. 1 BehiG names only speech, hearing and visual disabilities, and the revision that would add people with learning disabilities is before Parliament (Federal Council message of 20 December 2024). Found on the way: report §1 ("Accessibility law asks authorities to publish important information in Leichte Sprache") and docs/use-case-canton.md §1 ("Federal law (BehiG) ... require that important information is available in Leichte Sprache") say more than the law does; not changed here. `leicht-facile-demo-mock-C11.mp4`. Then the Ticino sentence and its caption out of the "only Apertus" scene of version C (owner; the scene keeps the other versions' Ticino through `hasCue`), the envelopes staying at the top for "For these letters"; its time went to the callback (lead 1.0 to 1.6 s, hold after the question 1.0 to 2.0 s) and back to the end card (2.6 to 3.0 s); 266 words, 1:57.6. `leicht-facile-demo-mock-C12.mp4`. Then the callback's answer (owner): "Now you can." spoken 1.2 s after the question, with a green tick after both questions; no English title, since the question is on screen twice already; 269 words, 1:58.3. `leicht-facile-demo-mock-C13.mp4`.
 - 2026-10-09 (session 7e, English instructions): at the owner's request, English instructions for German and French documents tested in every model stage, repair first. `llm/prompts/en/` (understand, write, judge, repair and the two partials: the German templates in English line for line, the JSON forms, few-shot pairs and examples in the document's language), the English style guide (`ENGLISH_GUIDES` in `rules/styleguide.py`) and labels (`en`), behind `LLM_ENGLISH_PROMPTS` (empty by default; the default run replayed all 125 dev calls from the cache, so the frozen prompts are unchanged byte for byte); 44 tests in `tests/pipeline/test_english_prompts.py`. Five P2 runs on the 12 dev pairs on CSCS with `MAX_RECOVER_FACTS=0` (`eval/results-cscs-en-before`, `-en-before-fresh`, `-en-repair`, `-en-judge`, `-en-all`) and three fresh judge samples per language on the blind labels (`scripts/prompt_language.py`, `scripts/judge_agreement.py`). Result in docs/prompts.md ("English instructions") and D-AE: not taken, the judge's fact verdicts the one lead. The owner then had the variant removed completely (templates, setting, English style guide and labels, tests, the two scripts; commit `ff0544a` has them), the results kept. Found on the way, not changed: the Understand example's omission (`s0009`, "Gesetzesartikel, für die Leserin nicht nötig") stands in 17 of 104 German fact sheets of `eval/results-cscs` and once made a real value background (`zh-sebe-disability-de`, an e-mail address), because the copy guard checks only the fact texts of an Understand answer. Tests green after the removal, the two example-job tests red as before.
+- 2026-10-09 (WP13 brought up to date): the section read against the log, the decisions and the code, its stale notes replaced: the P0-ZH runs of 6 Oct in their item (90 jobs, every answer tagged), the diagnosis buckets k and l, "Fix the largest bucket" ticked with what went in (facts rounds and cap 10, the repair record, the final version facts first, the completion fixes, D-AB, the provenance fixes of 8 Oct, the recover round) and what was tried and removed; the value numbers that exist named, with the cache's 0 s on P0; the final run spelled out: snapshot first, `--redo` on every row because the scoring changed since 6 Oct, P1 and P2 before the baselines (a baseline is scored against the newest P1 or P2 fact sheet of its pair), the baselines with `LLM_CACHE=0` for real seconds, then `eval report`, `eval numbers` and `eval diagnose --role eval`; the report item lists every place the numbers live; D-M names `eval numbers`, the variant behind Z (the video's "default mode" is `condensed`) and case A as the possible outcome after D-AC, with D-L's consequence for the video; D-R notes that the recover round keeps to it. No code change.
+- 2026-10-09 (precise claims elaborated): WP15's "Precise claims" item read against README, the report, the video narration, the use-case documents and `publiccode.yml`, each claim with where it stands, its source and the wording that holds: the law (art. 14 para. 1 BehiG; the revision before Parliament since the message of 20 Dec 2024), the 844'000 (the SBFI's count for low skills in all three PIAAC domains, not reading alone; checked against the press release of 23 Oct 2025), the voting gap (no longer claimed; Zurich's Leichte Sprache voting information for 28 Sep 2025 with Pro Infirmis as proof of demand), "every fact" against "every fact value", the 80 against 70 percent next to the official versions, the A2 label, the baseline's name, "the 8B on one GPU" before a GPU run, the price basis of "one cent per page", the half-a-day assumption and the sources of the use-case figures (the penal-order 92 percent from Thommen's SNSF study); D-E noted as in effect. No code or text changed; the sentences a juror reads stay the owner's.
+- 2026-10-09 (example tests, CI): the two red example tests traced. The bundles of 7 Oct still carry 4 (German) and 12 (French) open problems and no rebuild since has been clean; one rebuild on CSCS today with the recover round (`MAX_RECOVER_FACTS=10`, the earlier rounds from the cache) left 2 in German (b010 "Sie erhalten kein Geld zurück" cites no source sentence, FACT-03; the judge calls b009 unsupported because the draft names the canton as the payer, which the letter does not) and 3 in French (a 21-word sentence; FACT-02 on the contact fact, whose phone and e-mail stand in two blocks; an invented sentence about a letter from the tax office). The residence date 1 January 2027 is in both drafts now, through the recover round. The clean parts read worse than the count says: the German recover sentence is "Der Wert ist 1. Januar 2027." and the income limit stands three times; the French draft keeps "Vous payez la réduction". Neither bundle written, the 7 Oct bundles stay. So that CI is green until the rebuild after the freeze: `tests/test_examples.py` marks the two bundles in `KNOWN_PROBLEMS` as expected failures, strict, so a clean rebuild fails the test until its name leaves the set; a third example (the KESB decision) is tested as before. data/examples/README.md says so; WP8 and the risk line carry the state. Open for the owner, with the rebuild after the freeze: how the examples become clean (more fresh builds with `LLM_CACHE=0`, a hand-picked version, or a count without the judge's unsupported verdicts), and whether a clean draft that reads badly is the better showcase. 1,241 tests; 2 xfail.
+- 2026-10-09 (precise claims applied): at the owner's request, the claims of WP15's "Precise claims" item fixed in the texts. Report §1: the law sentence (disability law and the UN convention ask for accessible information, cantons have begun to publish), the 844'000 as low skills in all three PIAAC domains, the official versions "drop values on purpose" next to 80 against 70 percent; §3: the vLLM profile not yet started on a GPU host; §5: the A2 label as a rule set, Zurich's prompt named as a fact, "values not in the source" instead of "invented values" where REF is in the table, the price basis, "drops a value silently". README: the 844'000, "no value lost, no value invented", the GPU claim, the cent at Public AI list prices, the level note, the deployment row. `publiccode.yml`: "fact value" in en, de and fr (short descriptions re-measured, all under 150 characters). Video: "At least 844,000" and "lists every one it misses" in the four narration files, the evidence scene's titles, demo-video.md's quotes and checklist (the voice and the length need a new build). use-case-canton.md §1 (the law, Zurich since September 2025, the half-day labelled as the team's assumption), use-cases.md (the 844'000, the GPU claim, the penal-order source: Thommen's SNSF study via Beobachter, in the references), hard-texts.md (the wording rule, the BehiG row), prompts.md (the baseline's name). Code: the D-M case A and C sentences in `eval numbers` and here, and the generated tables' column names ("Values not in source", "Unsupported (judge)"). The report grew by about 75 words, about 6 lines; WP11's page check at G5 decides the cuts.

@@ -1,5 +1,5 @@
 // Concept A, 1:09 One number, by the headline rules (case B of decision D-M in PLAN.md): a strong
-// single prompt loses hard facts without a trace; Leicht·Facile lists every missing fact.
+// single prompt loses hard facts without a trace; Leicht·Facile lists every one it misses.
 // Numbers from report §5 (CSCS, 20 German eval pairs, 6 October 2026), provisional.
 import React from "react";
 import { Img, staticFile } from "remotion";
@@ -39,7 +39,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
   return (
     <SceneFade offset={offset} bg={C.app}>
       <div style={{ position: "absolute", left: 0, right: 0, top: 96, textAlign: "center", fontFamily: F.sans, fontWeight: 600, fontSize: 50, color: C.ink, opacity: ramp(t, -0.1, 0.4) }}>
-        No fact lost without a trace
+        No hard fact lost without a trace
       </div>
       <div style={{ ...card, left: 150, borderTop: `8px solid ${C.error}`, opacity: ramp(t, a.s - 0.1, 0.4) }}>
         <div style={{ fontSize: 30, color: C.muted, fontWeight: 500 }}>A strong single prompt, in its default mode</div>
@@ -53,7 +53,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
           <CheckCircle size={46} color={C.ok} stroke={2.2} />
           <Wordmark size={40} />
         </div>
-        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>lists every missing fact for the writer</div>
+        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>lists every hard fact it misses, for the writer</div>
         <div style={{ position: "relative", width: CROP_W, height: CROP.h * SCALE * k, marginTop: 30, overflow: "hidden", borderRadius: 12, border: "1px solid #D7DBE0" }}>
           <Img
             src={staticFile(`capture/${file}`)}

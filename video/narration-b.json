@@ -47,7 +47,7 @@
       "chunks": [
         {
           "id": "why-a",
-          "text": "844,000 adults in Switzerland struggle with reading.",
+          "text": "At least 844,000 adults in Switzerland struggle with reading.",
           "pause": 0.3
         },
         {
@@ -125,7 +125,7 @@
         },
         {
           "id": "ev-b",
-          "text": "Leicht·Facile lists every missing fact."
+          "text": "Leicht·Facile lists every one it misses."
         }
       ]
     },

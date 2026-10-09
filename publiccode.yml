@@ -18,15 +18,15 @@ softwareType: standalone/web
 description:
   en:
     shortDescription: >-
-      Drafts easy-language versions of Swiss official texts with the open Swiss model
-      Apertus, with every fact checked by code and reviewed by a person.
+      Easy-language drafts of Swiss official texts with the open Swiss model Apertus;
+      every fact value checked by code, every draft reviewed by a person.
     longDescription: >-
       Leicht·Facile helps cantonal and municipal writers turn an official text (a web
       page, a letter, a decision) into Leichte Sprache or FALC. A fact sheet lists what
       must survive: deadlines, amounts, phone numbers, addresses, case numbers, periods.
       The draft is written by Apertus, the open Swiss language model, and then checked
       twice: by deterministic rules (sentence length, passive, genitive, numbers, dates,
-      Swiss spelling, every fact of the fact sheet present and no value the source lacks)
+      Swiss spelling, every fact value of the fact sheet present and no value the source lacks)
       and by a second model that judges meaning. A repair loop fixes what the checks
       find; what cannot be fixed goes to the reviewer with the finding next to the block.
       Every sentence of the draft names the source sentences it comes from, and the
@@ -37,7 +37,7 @@ description:
       own hardware; no text leaves the chosen deployment.
     features:
       - Fact sheet with the reader's core questions and every hard value of the source
-      - Deterministic checks for easy-language rules, facts and Swiss spelling
+      - Deterministic checks for easy-language rules, fact values and Swiss spelling
       - A second model judges meaning; a repair loop fixes what the checks find
       - Every draft sentence linked to its source sentences; omissions listed
       - Review workbench with keyboard shortcuts; Markdown, HTML and audit-bundle export
@@ -45,7 +45,7 @@ description:
   de:
     shortDescription: >-
       Leichte-Sprache-Fassungen von Schweizer Behördentexten mit dem offenen Schweizer
-      Modell Apertus; jede Tatsache prüft Code, ein Mensch gibt frei.
+      Modell Apertus; jeden Faktenwert prüft Code, ein Mensch gibt frei.
     longDescription: >-
       Leicht·Facile hilft Schreibenden in Kantonen und Gemeinden, einen Behördentext
       (eine Webseite, einen Brief, einen Entscheid) in Leichte Sprache oder FALC zu
@@ -53,7 +53,7 @@ description:
       Telefonnummern, Adressen, Geschäftsnummern, Zeiträume. Den Entwurf schreibt
       Apertus, das offene Schweizer Sprachmodell. Danach prüfen ihn zwei Instanzen:
       deterministische Regeln (Satzlänge, Passiv, Genitiv, Zahlen, Daten, Schweizer
-      Rechtschreibung, jede Tatsache des Faktenblatts vorhanden, kein Wert, den die
+      Rechtschreibung, jeder Wert des Faktenblatts vorhanden, kein Wert, den die
       Quelle nicht hat) und ein zweites Modell, das den Sinn beurteilt. Eine
       Reparaturschlaufe behebt, was die Prüfungen finden; was sich nicht beheben lässt,
       geht mit dem Befund neben dem Block an die Person, die freigibt. Jeder Satz des
@@ -65,7 +65,7 @@ description:
       gewählte Umgebung.
     features:
       - Faktenblatt mit den Kernfragen der Leserin oder des Lesers und jedem harten Wert der Quelle
-      - Deterministische Prüfung der Regeln für Leichte Sprache, der Tatsachen und der Schweizer Rechtschreibung
+      - Deterministische Prüfung der Regeln für Leichte Sprache, der Faktenwerte und der Schweizer Rechtschreibung
       - Ein zweites Modell beurteilt den Sinn; eine Reparaturschlaufe behebt die Befunde
       - Jeder Satz des Entwurfs mit seinen Quellensätzen verknüpft; Weglassungen aufgeführt
       - Freigabe-Arbeitsplatz mit Tastaturkürzeln; Export als Markdown, HTML und Prüfpaket
@@ -73,7 +73,7 @@ description:
   fr:
     shortDescription: >-
       Versions FALC de textes officiels suisses avec Apertus, le modèle ouvert suisse ;
-      chaque fait est vérifié par du code et relu par une personne.
+      chaque valeur vérifiée par du code, relecture par une personne.
     longDescription: >-
       Leicht·Facile aide les rédactrices et rédacteurs des cantons et des communes à
       mettre un texte officiel (une page web, une lettre, une décision) en langage FALC
@@ -81,7 +81,7 @@ description:
       montants, numéros de téléphone, adresses, numéros de dossier, périodes. Le brouillon
       est écrit par Apertus, le modèle de langue ouvert suisse, puis vérifié deux fois :
       par des règles déterministes (longueur des phrases, passif, nombres, dates,
-      orthographe suisse, chaque fait de la fiche présent et aucune valeur absente de la
+      orthographe suisse, chaque valeur de la fiche présente et aucune valeur absente de la
       source) et par un second modèle qui juge le sens. Une boucle de réparation corrige
       ce que les vérifications trouvent ; ce qui ne peut pas être corrigé va à la personne
       qui relit, avec le constat à côté du bloc. Chaque phrase du brouillon nomme les
@@ -93,7 +93,7 @@ description:
       aucun texte ne quitte l'environnement choisi.
     features:
       - Fiche de faits avec les questions principales du lecteur et chaque valeur dure de la source
-      - Vérification déterministe des règles FALC, des faits et de l'orthographe suisse
+      - Vérification déterministe des règles FALC, des valeurs des faits et de l'orthographe suisse
       - Un second modèle juge le sens ; une boucle de réparation corrige les constats
       - Chaque phrase du brouillon liée à ses phrases source ; les omissions listées
       - Poste de relecture avec raccourcis clavier ; export Markdown, HTML et dossier d'audit

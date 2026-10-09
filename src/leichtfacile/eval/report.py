@@ -102,7 +102,8 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
         "",
         "| Setup | Pairs | Fact coverage | Hard facts kept | Silent losses "
         "| Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability "
-        "| SARI | Invented / 100 blocks | Invented values / 100 blocks | Tokens / page "
+        "| SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks "
+        "| Tokens / page "
         "| USD / page | Seconds / page |",
         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]

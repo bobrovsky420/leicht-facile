@@ -25,7 +25,7 @@
       "tail": 0.5,
       "chunks": [
         { "id": "kitchen-a", "text": "If you hesitated, you are not alone.", "pause": 0.3 },
-        { "id": "kitchen-b", "text": "844,000 adults in Switzerland struggle with reading.", "pause": 0.3 },
+        { "id": "kitchen-b", "text": "At least 844,000 adults in Switzerland struggle with reading.", "pause": 0.3 },
         { "id": "kitchen-c", "text": "Letters like this decide their money, their deadlines, their rights.", "pause": 0.3 },
         { "id": "kitchen-d", "text": "No one should be shut out of them.", "pause": 0.35 },
         { "id": "kitchen-e", "text": "But easy-language versions are slow expert work, and a chatbot checks nothing." }

@@ -12,12 +12,13 @@ code.
 
 ## 1. Summary
 
-**Problem.** About 844'000 adults in Switzerland aged 16 to 65 (15%) have low reading
-skills (PIAAC 2023); people with intellectual disabilities, people learning a national
-language and people with dementia need easy language too. Accessibility law asks
-authorities to publish important information in Leichte Sprache, FALC or lingua
-facile, but each version is written by hand by a few trained writers, who must check
-every deadline, amount and phone number against the original.
+**Problem.** About 844'000 adults in Switzerland aged 16 to 65 (15%) have low skills in
+reading, numeracy and problem solving (PIAAC 2023); people with intellectual
+disabilities, language learners and people with dementia need easy language too.
+Disability law (BehiG and the UN disability convention) asks authorities for
+accessible information, and cantons have begun to publish in Leichte Sprache, FALC or
+lingua facile; each version is written by hand by a few trained writers, who must
+check every deadline, amount and phone number against the original.
 
 **Approach.** Leicht·Facile is a drafting assistant for those writers, built on one
 rule: *Apertus does everything that needs language understanding; plain code does
@@ -35,10 +36,11 @@ no independent check; it is our baseline P0, the full pipeline is P2.
 
 **Headline result.** On 20 held-out German pairs on the CSCS endpoint, the pipeline
 keeps 80 percent of the source's countable facts (dates, amounts, phone numbers,
-addresses) against 70 percent in the official easy-language versions, with 4.3 rule
-errors per 100 blocks against 2.7 for the official versions and 22.0 for the one-prompt
-baseline, which keeps every fact because it hardly simplifies. Its drafts contain 0.1
-values per 100 blocks that the source does not have; the official versions 2.2.
+addresses) against 70 percent in the official easy-language versions, which drop
+values on purpose, with 4.3 rule errors per 100 blocks against 2.7 for the official
+versions and 22.0 for the one-prompt baseline, which keeps every fact because it hardly
+simplifies. Its drafts contain 0.1 values per 100 blocks that the source does not have;
+the official versions 2.2.
 
 ## 2. Architecture
 
@@ -109,7 +111,7 @@ variable.
 
 | Architecture | How it is met |
 |--------------|---------------|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU (not yet run on a GPU host); the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. |
 | c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint; the hackathon demo runs against the CSCS inference API in Lugano. |
 
@@ -188,13 +190,14 @@ are published (Copyright Act articles 24a and 24d; our reading, not legal advice
 
 ## 5. Evaluation
 
-**Task.** Simplify a standard-language official text to level A2 (Leichte Sprache) and
-keep every fact. Each held-out pair runs under these conditions with the 8B writer:
+**Task.** Simplify a standard-language official text to level A2 (Leichte Sprache: the
+rule set the checker enforces, not a measured reader level) and keep every fact. Each
+held-out pair runs under these conditions with the 8B writer:
 
 | Code | Condition | Measures |
 |------|-----------|----------|
 | P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
-| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim (`complete`: keep everything; `condensed`: essentials only, their default); German only | The best public Swiss prompt |
+| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim (`complete`: keep everything; `condensed`: essentials only, their default); German only | Zurich's published prompt, the only public Swiss one we found |
 | P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning, provenance |
 | P2 | Full pipeline with judge and repair | Checking and repairing |
 
@@ -206,15 +209,15 @@ facts with a source value found in the output); *hard facts kept* (the source's
 dates, amounts, contacts, addresses and other countable values; by code, so
 comparable with REF); *silent losses* (hard values lost without a trace: for a single
 prompt and REF every lost value; for the pipeline the gaps of its code completion);
-*invented values* (values the source lacks, by code); *unsupported blocks* (by the 70B
-judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against the
-official version (a port of `SARI.py`, checked bit for bit); cost and speed per
-250-word page.
+*values not in the source* (invented or added; by code); *unsupported blocks* (by the
+70B judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against the
+official version (a port of `SARI.py`, checked bit for bit); cost (at Public AI's token
+prices) and speed per 250-word page.
 
 Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026, means over
 pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full tables):
 
-| Setup | Fact coverage | Hard facts kept | Silent losses | Invented values /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
+| Setup | Fact coverage | Hard facts kept | Silent losses | Values not in source /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
 |-------|---------------|-----------------|---------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
 | SOURCE | - | 100 % | 0 % | 0.0 | - | 31.3 | 36 | - | - | - |
 | REF (official) | - | 70 % | 30 % | 2.2 | - | 2.7 | 62 | - | - | - |
@@ -228,19 +231,20 @@ pairs; "/100" is per 100 blocks ([eval/report.md](eval/report.md) has the full t
 
 **Reading the table.** The baseline keeps everything as it rewrites little (7.7 words
 per sentence; SARI rewards closeness to the source). The pipeline nears the official
-sentence length (6.8 words against 6.1) and keeps more hard facts, but is less
-readable (51 against 62). Judge and repair (P1 to P2) raise fact coverage from 72 to
-84 percent and cut errors per 100 blocks from 9.9 to 4.3, invented values from 3.2 to
-0.1. On the 14 pairs with 3 or more hard facts P2 keeps 77 percent, the official
-versions 60. French (3 pairs): 73 percent fact coverage, 4.6 errors per 100 blocks,
-readability 75 (official 85), nothing invented.
+sentence length (6.8 words against 6.1) and keeps more hard facts than the official
+versions, which condense on purpose (their 2.2 are values taken from elsewhere), but
+is less readable (51 against 62). Judge and repair (P1 to P2) raise fact coverage
+from 72 to 84 percent and cut errors per 100 blocks from 9.9 to 4.3, values not in the
+source from 3.2 to 0.1. On the 14 pairs with 3 or more hard facts P2 keeps 77 percent,
+the official versions 60. French (3 pairs): 73 percent fact coverage, 4.6 errors per
+100 blocks, readability 75 (official 85), no value the source lacks.
 
 **Zurich's prompt as the second baseline.** To avoid a strawman, the Canton of
 Zurich's prompt from its open-source app (39 rules and clause recipes) runs verbatim
 on the same 8B. Its complete variant reaches 91 percent fact coverage, 7 points above
 the pipeline, but with 15.4 errors per 100 blocks against 4.3 and readability 47
 against 51; its condensed default keeps 77 percent of the hard facts. A single prompt
-drops a fact silently; the pipeline lists it for the reviewer. Closing that gap is the
+drops a value silently; the pipeline lists it for the reviewer. Closing that gap is the
 next prompt work.
 
 **8B and 70B.** The 70B at every stage writes cleaner easy language (1.4 errors,

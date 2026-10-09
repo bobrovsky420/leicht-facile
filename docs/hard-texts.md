@@ -47,10 +47,12 @@ Slide 3 must show real tool output, not the illustrative rewrites in §4.
 | **844'000** people aged 16-65 (15%) with low skills in reading, numeracy and adaptive problem solving | PIAAC 2023 (OECD), [SBFI press release, 23 October 2025](https://www.sbfi.admin.ch/de/newnsb/JrHo0f0D4ssv3Nu8Ee678) | Preferred: newest official figure |
 | About **800'000** adults (about 1 in 6) who cannot read and write well enough for everyday tasks (Illettrismus) | ALL survey 2003, widely quoted, for example by [SRF](https://www.srf.ch/news/schweiz/funktionaler-analphabetismus-es-ist-nie-zu-spaet-wenn-erwachsene-lesen-lernen) and [swissinfo](https://www.swissinfo.ch/ger/wenn-mann-oder-frau--buchstaeblich--ueberfordert-ist/43497674) | Only as the rounded, familiar number |
 
-Suggested wording: *"About 844,000 adults in Switzerland struggle with reading.
-Source: PIAAC 2023."* As an on-screen illustration: *"Rund 840'000 Erwachsene in der
-Schweiz haben Mühe mit Lesen."* / *"Environ 840 000 adultes en Suisse ont de la peine
-à lire."*
+Suggested wording: *"At least 844,000 adults in Switzerland struggle with reading.
+Source: PIAAC 2023."* The figure counts people with low skills in reading, numeracy and
+problem solving at once, so "at least" keeps it true; the SBFI release gives no figure
+for reading alone (checked 9 October 2026). As an on-screen illustration:
+*"Mindestens 840'000 Erwachsene in der Schweiz haben Mühe mit Lesen."* / *"Au moins
+840 000 adultes en Suisse ont de la peine à lire."*
 
 Key message, the same in every deliverable (video, pitch, README, report): these
 people must not be excluded. Official letters decide their money, their deadlines and
@@ -87,7 +89,7 @@ at the top are the most interesting: the code checker cannot see them, only the 
 | Prämienverbilligung | Long compound, abstract noun | LEX-01, GRAM-05 |
 | Rechtsmittelbelehrung | Legal jargon; `Rechtsmittel` is unknown | LEX-01, SEM-04 |
 | Ergänzungsleistungen (EL) | Abstract compound, usually abbreviated | LEX-01, LEX-02 |
-| Behindertengleichstellungsgesetz (BehiG) | 32 letters plus an abbreviation; the name of the law that requires easy access fails the easy-language rules itself | LEX-01, LEX-02, GRAM-05 |
+| Behindertengleichstellungsgesetz (BehiG) | 32 letters plus an abbreviation; the name of the law on equal access for people with disabilities fails the easy-language rules itself | LEX-01, LEX-02, GRAM-05 |
 | Kostengutsprache | Swiss administrative term; `Gutsprache` is unknown | LEX-01, LEX-03 |
 | innert, gemäss, ggf., bzw. | Bureaucratic prepositions and abbreviations | LEX-02 |
 | Art. 14 Abs. 1 lit. b ELG | A chain of abbreviations | LEX-02 |

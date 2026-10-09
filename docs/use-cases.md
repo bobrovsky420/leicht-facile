@@ -37,9 +37,9 @@ Apertus as the only model.
 - The text decides about someone's money, home, health or freedom.
 - It carries exact values: dates, amounts, contacts and, above all, a period such as
   "innert 10 Tagen", whose loss costs a right.
-- Many of its readers cannot read it: about 844'000 adults in Switzerland have low
-  reading skills (PIAAC 2023), and 49 percent of adults have low health literacy
-  (HLS19-21).
+- Many of its readers cannot read it: about 844'000 adults in Switzerland aged 16 to
+  65 have low skills in reading, numeracy and problem solving (PIAAC 2023), and 49
+  percent of adults have low health literacy (HLS19-21).
 - Someone can review an easy version before it is used.
 - Most of them contain personal data. Data on health, on administrative and criminal
   proceedings and sanctions, and on social assistance are particularly sensitive under
@@ -99,7 +99,8 @@ consideration to Swiss data protection and copyright law, trained on the Alps
 supercomputer in Lugano on more than 1,000 languages, with dedicated Swiss German and
 Romansh data, and released under Apache 2.0 with an acceptable use policy. Swisscom
 and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one GPU in the
-organisation's own building
+organisation's own building with the official vLLM image, so far run by the team only
+as a 4-bit build on a laptop GPU
 ([architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The Canton of
 Ticino already runs Apertus in-house to translate sensitive government documents. The
 hackathon demo runs on the CSCS inference API, which serves research, not
@@ -177,7 +178,8 @@ what they learned.
 
 - **Document.** A penal order (Strafbefehl) is a conviction by the public prosecutor
   without a court hearing. 92 percent of convictions for crimes and misdemeanours in
-  Switzerland are penal orders.
+  Switzerland are penal orders (Marc Thommen's SNSF study, University of Zurich, as
+  reported by Beobachter).
 - **Why.** The person has 10 days to object (art. 354 para. 1 StPO); without an
   objection the order becomes a final judgment. Researchers ask whether people who do
   not object agree with the order, or did not understand it for linguistic or
@@ -362,3 +364,6 @@ what they learned.
   https://www.cscs.ch/science/computer-science-hpc/2026/apertus-15-building-the-next-generation-of-open-ai-infrastructure
 - Fully open models built abroad: EuroLLM-22B (arXiv 2602.05879), SmolLM3
   (https://huggingface.co/HuggingFaceTB/SmolLM3-3B)
+- Beobachter, "Strafbefehle machen 92 Prozent aller Schweizer Urteile aus" (on Marc
+  Thommen's SNSF study, University of Zurich):
+  https://www.beobachter.ch/gesetze-recht/strafbefehle-machen-92-aller-schweizer-urteile-aus-staatsanwalte-verhangen-immer-mehr-freiheitsstrafen-553045

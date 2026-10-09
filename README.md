@@ -8,9 +8,9 @@ no deadline, amount or phone number got lost. It is a drafting assistant for the
 professionals who write easy language, not a replacement for them or for the review
 by readers from the target group.
 
-About 844'000 adults in Switzerland have low reading skills (PIAAC 2023). None of them
-should be excluded from the official letters that decide their money, deadlines and
-rights.
+About 844'000 adults in Switzerland aged 16 to 65 have low skills in reading, numeracy
+and problem solving (PIAAC 2023). None of them should be excluded from the official
+letters that decide their money, deadlines and rights.
 
 Two use cases: a canton's letters and web pages
 ([docs/use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
@@ -37,7 +37,7 @@ Technical report: [technical_report.md](technical_report.md) (PDF:
    sentences it comes from, every omission explained.
 3. **Check** (code): 45 deterministic rules from the published Swiss guidelines
    (sentence length, passive, genitive, numbers, Swiss spelling, Mediopunkt, ...) and
-   an exact check of every fact value in both directions (nothing lost, nothing
+   an exact check of every fact value in both directions (no value lost, no value
    invented), in milliseconds, without a model.
 4. **Judge** (a second, larger Apertus model): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
@@ -64,14 +64,15 @@ secrecy. Four conditions follow, and only Apertus meets all four:
 
 | Condition | Rules out | Apertus |
 |-----------|-----------|---------|
-| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped, the 8B on one GPU; Swisscom and Infomaniak serve the 70B in Switzerland |
+| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped: the 8B on one GPU with the official vLLM image (the team's own runs so far: a 4-bit build on a laptop GPU); Swisscom and Infomaniak serve the 70B in Switzerland |
 | The organisation runs the model itself | Closed models | Open weights |
 | The organisation can account for what the model learned | Open-weight models that keep their training data secret (Llama, Gemma, Qwen, Mistral) | Open training data and code; website opt-outs honoured, also for older crawls |
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
 
 The Canton of Ticino already runs Apertus in-house to translate sensitive government
-documents. Tokens are nearly free (about one US cent per page for the full pipeline,
-report §5); the hardware is the cost. The legal basis, the sources and the use cases:
+documents. Tokens are nearly free (about one US cent per page for the full pipeline at
+Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
+basis, the sources and the use cases:
 [docs/use-cases.md §2](docs/use-cases.md#why-only-apertus).
 
 ## Quick start
@@ -111,7 +112,8 @@ the 8B write. `eval/report.md` compares the three.
 
 In the browser, paste a text, upload a PDF or enter a URL (or click one of the two
 example letters), choose language and level (A2 Leichte Sprache or B1 Einfache
-Sprache), and follow the stages to the review page.
+Sprache; the level names the rule set, not a measured reader level), and follow the
+stages to the review page.
 
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
@@ -125,7 +127,7 @@ says why must-keep facts are missing from the final drafts of a run, without a m
 
 | Target architecture | How |
 |---------------------|-----|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU (official image); set `LLM_BASE_URL=http://vllm:8000/v1` |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU (official image; not yet started by the team on a GPU host); set `LLM_BASE_URL=http://vllm:8000/v1` |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and the UI assets are inside the image: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 

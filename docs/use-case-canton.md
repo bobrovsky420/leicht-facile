@@ -8,11 +8,14 @@ is in [use-case-decisions.md](use-case-decisions.md); all use cases at a glance 
 
 ## 1. Who and why
 
-The communications office of a Swiss canton. Federal law (BehiG) and the canton's
-own accessibility rules require that important information is available in Leichte
-Sprache. Today one or two trained writers produce those versions by hand. A two-page
-letter takes them half a day: reading, deciding what to keep, rewriting, checking
-every number against the original, and formatting the result.
+The communications office of a Swiss canton. Federal disability law (art. 14 BehiG)
+and the UN Convention on the Rights of Persons with Disabilities ask authorities for
+accessible information, and cantons have begun to publish important information in
+Leichte Sprache; Zurich's voting information has been available in Leichte Sprache
+since September 2025. Today one or two trained writers produce those versions by hand.
+A two-page letter takes them half a day (the team's assumption, until a writer's own
+figure replaces it): reading, deciding what to keep, rewriting, checking every number
+against the original, and formatting the result.
 
 The office does not want a machine that publishes texts. It wants its writers to
 spend their time reviewing instead of drafting, and it wants proof that nothing

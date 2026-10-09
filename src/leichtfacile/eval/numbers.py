@@ -166,21 +166,21 @@ def sentence(h: Headline) -> str:
         )
     if h.case.startswith("A"):
         return (
-            "Same model, the best public Swiss prompt against our pipeline: "
+            "Same model, the Canton of Zurich's published prompt against our pipeline: "
             f"{_num((zh.invented or 0) - (p2.invented or 0))} fewer invented values and "
             f"{_num((zh.errors or 0) - (p2.errors or 0))} fewer rule errors per 100 blocks, "
-            "and every missing fact is listed for the reviewer."
+            "and every hard fact it misses is listed for the reviewer."
         )
     if h.case == "B":
         return (
             f"Against a strong single prompt: {_num(p2.errors)} against {_num(zh.errors)} rule "
             f"errors per 100 blocks. The prompt in its complete mode loses "
             f"{_pct(zh.silent_losses)} % of the hard facts without a trace; the pipeline lists "
-            f"every missing fact (fact coverage {_pct(p2.fact_coverage)} against "
+            f"every hard fact it misses (fact coverage {_pct(p2.fact_coverage)} against "
             f"{_pct(zh.fact_coverage)} percent, stated openly)."
         )
     return (
-        "We ran the best single prompt through our checks: "
+        "We ran the Canton of Zurich's published prompt through our checks: "
         f"{_num(zh.invented)} invented values per 100 blocks and "
         f"{_pct(zh.silent_losses)} % of the hard facts lost that nobody saw."
     )
@@ -196,7 +196,7 @@ def render_numbers(results_dir: Path, *, role: str = "eval", lang: str = "de") -
         "fact checklist follow from the hard facts kept.",
         "",
         "| Setup | Writer | Pairs | Fact coverage | Hard facts kept | Silent losses "
-        "| Errors / 100 | Invented / 100 | Unsupported / 100 |",
+        "| Errors / 100 | Not in source / 100 | Unsupported / 100 |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for s in sorted(h.setups, key=lambda s: ORDER.get(s.setup, 9)):
