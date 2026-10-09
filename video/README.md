@@ -8,7 +8,7 @@ generated is ignored by git (see `.gitignore`).
 
 | Composition | Version | Narration |
 |-------------|---------|-----------|
-| `DemoC` | **The current draft** (8 October 2026): "Can you read this?" opening, kitchen table, one sentence step by step, short app scene, evidence, "only Apertus", "No one left out." | `narration-c.json` |
+| `DemoC` | **The current draft** (8 October 2026): "Can you read this?" opening, kitchen table, one sentence step by step, short app scene, evidence, "only Apertus", the opening sentence in easy language, "No one left out." | `narration-c.json` |
 | `DemoB` | Concept A with the step-by-step opening | `narration-b.json` |
 | `DemoA` | Concept A, "Find the deadline" | `narration-a.json` |
 | `Demo` | The first concept, "Can you read this?" | `narration.json` |
@@ -47,12 +47,14 @@ and 7. Remotion lists a composition only for the versions whose timeline step 4 
 
 ## What is still a placeholder
 
-- The voice is Kokoro `af_heart` (open weights, run locally) at speed 0.87, with
+- The voice is Kokoro `af_heart` (open weights, run locally) at speed 0.90, with
   pronunciations in each narration file's `say` block. The final voice replaces
   `public/audio/narration-c.wav` sentence by sentence; the timeline follows the audio.
 - The kitchen table, the letter and the envelopes are drawn in code; generated
   footage may replace the table later (docs/demo-video.md).
 - The music is made in code.
 - The evidence number (23 %) is report §5 of 6 October, provisional until the final run.
+- The easy-language text of the opening sentence before the end card (`src/scenes/Again.tsx`)
+  is the team's rewrite, labelled on screen; the tool's real output replaces it.
 - Every frame carries a "MOCK-UP" label (`src/ui.tsx`), and the end card a mock-up note
   (`src/scenes/End.tsx`); both go for the final render.

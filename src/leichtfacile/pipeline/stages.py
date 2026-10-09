@@ -25,7 +25,7 @@ from leichtfacile.pipeline.models import (
     WriteOut,
     clean_text,
 )
-from leichtfacile.pipeline.prompts import ENGLISH, ENGLISH_STAGES, examples, level_name, render
+from leichtfacile.pipeline.prompts import examples, level_name, render
 from leichtfacile.rules.checker import check_draft
 from leichtfacile.rules.document import KnownValues, display_value
 from leichtfacile.rules.lexicon import MEDIOPUNKT
@@ -97,16 +97,6 @@ STAGES: dict[str, StageSettings] = {
 def thinking_for(llm: LLMClient, stage: str) -> bool:
     """Whether a stage uses the thinking model (LLM_THINKING_STAGES)."""
     return stage in llm.settings.thinking_stages
-
-
-def english_for(llm: LLMClient, stage: str) -> bool:
-    """Whether a stage's instructions are English (LLM_ENGLISH_PROMPTS, prompts/en/)."""
-    return stage in ENGLISH_STAGES and stage in llm.settings.english_prompt_stages
-
-
-def labels_for(lang: str, english: bool) -> str:
-    """The language of the words code writes into a prompt around its items."""
-    return ENGLISH if english else lang
 
 
 def mode_context(stage: str, mode: str = "standard", addressee: str | None = None) -> dict:
@@ -220,42 +210,39 @@ def _example_key(text: str) -> str:
     return " ".join(text.lower().replace("·", "").split()).rstrip(".!?:")
 
 
-def _static_renders(lang: str, stage: str, english: bool = False) -> list[str]:
+def _static_renders(lang: str, stage: str) -> list[str]:
     """The prompt without its document, once per level where the level matters: the
     instructions, the JSON example, the style guide (write and repair) and the few-shot
     pairs (write). The style guide is in since 8 October 2026: a decision-mode draft on
-    the 8B carried the write prompt's style guide as a section of the draft. With
-    `english`, the prompt with English instructions."""
+    the 8B carried the write prompt's style guide as a section of the draft."""
     levels = ("A2", "B1") if "style_guide" in _STATIC_CONTEXT[stage] else ("A2",)
     renders = []
     for level in levels:
-        context = dict(
-            _STATIC_CONTEXT[stage], level=level, level_name=level_name(lang, level, english)
-        )
+        context = dict(_STATIC_CONTEXT[stage], level=level, level_name=level_name(lang, level))
         if "style_guide" in context:
-            context["style_guide"] = style_guide(lang, level, english)
+            context["style_guide"] = style_guide(lang, level)
         context.update(mode_context(stage))
         if stage == "write":
             context["examples"] = examples(lang)
-        renders.append(render(lang, stage, english=english, **context))
+        renders.append(render(lang, stage, **context))
     return renders
 
 
 @lru_cache(maxsize=16)
-def example_keys(lang: str, stage: str, english: bool = False) -> frozenset[str]:
+def example_keys(lang: str, stage: str) -> frozenset[str]:
     """The sentences of a prompt's own examples and style guide, normalised, to
     recognise an answer that copies them. On the Public AI 8B, 4 of 12 dev drafts were
     the write prompt's JSON example, word for word (6 October 2026). A list marker in
     front of a line (the style guide's `- `) is not part of the key."""
     keys: set[str] = set()
-    for text in _static_renders(lang, stage, english):
+    for text in _static_renders(lang, stage):
         keys |= {_example_key(line.lstrip(" -*")) for line in text.splitlines()}
         keys |= {_example_key(q) for q in _QUOTED.findall(text)}
     return frozenset(k for k in keys if len(k) >= 12)
 
 
-def copied_sentences(texts: list[str], lang: str, stage: str, english: bool = False) -> int:
-    keys = example_keys(lang, stage, english)
+def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
+    keys = example_keys(lang, stage)
     return sum(1 for t in texts if _example_key(t) in keys)
 
 
@@ -265,11 +252,11 @@ def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
 
 
 @lru_cache(maxsize=16)
-def example_values(lang: str, stage: str, english: bool = False) -> tuple[Value, ...]:
+def example_values(lang: str, stage: str) -> tuple[Value, ...]:
     """The dates, amounts, phone numbers, addresses and times of a prompt's examples
     and style guide (`044 123 45 67`, `4. Februar 2026`), one Value per canonical."""
     values: dict[tuple[str, str], Value] = {}
-    for text in _static_renders(lang, stage, english):
+    for text in _static_renders(lang, stage):
         for v in extract_values(text, lang):
             if v.kind in HARD_KINDS:
                 values.setdefault(v.key, v)
@@ -277,7 +264,7 @@ def example_values(lang: str, stage: str, english: bool = False) -> tuple[Value,
 
 
 def topic_sentences(
-    texts: list[str], lang: str, source_text: str, stage: str = "write", english: bool = False
+    texts: list[str], lang: str, source_text: str, stage: str = "write"
 ) -> list[str]:
     """The texts about the examples' topics, or with one of the examples' values (their
     phone numbers, dates, amounts and hours), that the source does not have. In the
@@ -287,9 +274,7 @@ def topic_sentences(
     patterns = [p for p in _topic_patterns(lang) if not p.search(source)]
     source_values = extract_values(source_text, lang)
     foreign = [
-        v
-        for v in example_values(lang, stage, english)
-        if not any(matches(v, s) for s in source_values)
+        v for v in example_values(lang, stage) if not any(matches(v, s) for s in source_values)
     ]
 
     def topical(text: str) -> bool:
@@ -300,35 +285,35 @@ def topic_sentences(
     return [t for t in texts if topical(t)]
 
 
-def _copy_check(lang: str, stage: str, texts_of, english: bool = False):
+def _copy_check(lang: str, stage: str, texts_of):
     """A `check` for complete_json: an answer whose sentences are mostly from the prompt's
     examples (COPY_LIMIT or more, and more than half of them) is sent back once with a
-    message in the prompt's language; a second copy fails the stage. A generic
+    message in the document's language; a second copy fails the stage. A generic
     sentence or two that an honest draft shares with an example ("Sie haben dafür 14
     Tage Zeit.") is no copy."""
 
     def check(out) -> str | None:
         texts = texts_of(out)
-        copies = copied_sentences(texts, lang, stage, english)
+        copies = copied_sentences(texts, lang, stage)
         if copies >= COPY_LIMIT and copies * 2 > len(texts):
             log.warning("stage %s: the answer copies %d sentences of the example", stage, copies)
-            return label(labels_for(lang, english), "copied_example", count=copies)
+            return label(lang, "copied_example", count=copies)
         return None
 
     return check
 
 
-def _topic_check(lang: str, stage: str, texts_of, source_text: str, english: bool = False):
+def _topic_check(lang: str, stage: str, texts_of, source_text: str):
     """A soft `check` for complete_json: an answer with sentences about the examples'
     topics, in a document that has none, is sent back once; what the second answer
     still has, the stage drops (`drop_topical`). One such sentence is not worth a
     failed stage: on CSCS two P1 jobs failed over a single one (6 October 2026)."""
 
     def check(out) -> str | None:
-        topical = topic_sentences(texts_of(out), lang, source_text, stage, english)
+        topical = topic_sentences(texts_of(out), lang, source_text, stage)
         if topical:
             log.warning("stage %s: %d sentences about the examples' topics", stage, len(topical))
-            return label(labels_for(lang, english), "copied_example", count=len(topical))
+            return label(lang, "copied_example", count=len(topical))
         return None
 
     return check
@@ -347,11 +332,9 @@ def _soft_checks(*checks):
     return check
 
 
-def drop_topical(
-    texts: list[str], lang: str, source_text: str, stage: str, english: bool = False
-) -> set[str]:
+def drop_topical(texts: list[str], lang: str, source_text: str, stage: str) -> set[str]:
     """The texts a stage drops from the answer it uses: still about the examples' topics."""
-    dropped = set(topic_sentences(texts, lang, source_text, stage, english))
+    dropped = set(topic_sentences(texts, lang, source_text, stage))
     if dropped:
         log.warning("dropping %d sentences about the examples' topics", len(dropped))
     return dropped
@@ -373,7 +356,7 @@ def _repair_texts(out: RepairOut) -> list[str]:
     ]
 
 
-def _foreign_check(lang: str, known: KnownValues, texts_of, english: bool = False):
+def _foreign_check(lang: str, known: KnownValues, texts_of):
     """A `check` for complete_json: an answer with a date, amount, phone number, e-mail
     or web address, percentage or time that neither the source nor the fact sheet
     contains (the check of rule FACT-06) is sent back with the values named. Used as a
@@ -389,7 +372,7 @@ def _foreign_check(lang: str, known: KnownValues, texts_of, english: bool = Fals
         if not seen:
             return None
         log.warning("the answer has values not in the document: %s", ", ".join(seen))
-        return label(labels_for(lang, english), "foreign_values", values=", ".join(seen))
+        return label(lang, "foreign_values", values=", ".join(seen))
 
     return check
 
@@ -406,14 +389,12 @@ def understand(
     mode: str = "standard",
     addressee: str | None = None,
 ) -> tuple[FactSheet, list[LLMResult]]:
-    english = english_for(llm, "understand")
     prompt = render(
         source.lang,
         "understand",
-        english=english,
         **mode_context("understand", mode, addressee),
         medication=has_doses(source),
-        level_name=level_name(source.lang, level, english),
+        level_name=level_name(source.lang, level),
         source=r.source_text(source),
     )
     out, results = _call(
@@ -422,14 +403,10 @@ def understand(
         prompt,
         UnderstandOut,
         model,
-        check=_copy_check(source.lang, "understand", _understand_texts, english),
-        soft_check=_topic_check(
-            source.lang, "understand", _understand_texts, source.text(), english
-        ),
+        check=_copy_check(source.lang, "understand", _understand_texts),
+        soft_check=_topic_check(source.lang, "understand", _understand_texts, source.text()),
     )
-    dropped = drop_topical(
-        _understand_texts(out), source.lang, source.text(), "understand", english
-    )
+    dropped = drop_topical(_understand_texts(out), source.lang, source.text(), "understand")
     if dropped:
         out.facts = [f for f in out.facts if f.text not in dropped]
     fs = to_factsheet(out, source.id)
@@ -637,11 +614,9 @@ def to_factsheet(out: UnderstandOut, doc_id: str) -> FactSheet:
 
 
 def split_sections(
-    source: SourceDocument, max_words: int = SECTION_WORDS, labels: str | None = None
+    source: SourceDocument, max_words: int = SECTION_WORDS
 ) -> list[tuple[str, list[Segment]]]:
-    """Group segments by top-level heading, then pack groups up to max_words. `labels`:
-    the language of a title without a heading, when the prompt's is not the document's."""
-    labels = labels or source.lang
+    """Group segments by top-level heading, then pack groups up to max_words."""
     levels = [s.heading_level for s in source.segments if s.kind == "heading" and s.heading_level]
     top = min(levels) if levels else None
     groups: list[list[Segment]] = []
@@ -655,11 +630,11 @@ def split_sections(
     for group in groups:
         words = sum(len(s.text.split()) for s in current + group)
         if current and words > max_words:
-            sections.append((_section_title(current, labels), current))
+            sections.append((_section_title(current, source.lang), current))
             current = []
         current = current + group
     if current:
-        sections.append((_section_title(current, labels), current))
+        sections.append((_section_title(current, source.lang), current))
     return sections
 
 
@@ -679,10 +654,8 @@ def write(
     addressee: str | None = None,
 ) -> tuple[Draft, list[LLMResult]]:
     lang = source.lang
-    english = english_for(llm, "write")
-    labels = labels_for(lang, english)
     if source.word_count() > LONG_DOCUMENT_WORDS:
-        sections = split_sections(source, labels=labels)
+        sections = split_sections(source)
     else:
         sections = [("", source.segments)]
     blocks: list[Block] = []
@@ -701,15 +674,14 @@ def write(
         prompt = render(
             lang,
             "write",
-            english=english,
             **mode_context("write", mode, addressee),
             medication=names_medication(factsheet),
-            level_name=level_name(lang, level, english),
+            level_name=level_name(lang, level),
             level=level,
-            style_guide=style_guide(lang, level, english),
+            style_guide=style_guide(lang, level),
             examples=examples(lang),
             section=title if sectioned else "",
-            factsheet=r.factsheet_text(factsheet, fact_ids, labels),
+            factsheet=r.factsheet_text(factsheet, fact_ids, lang),
             source=r.source_lines(segments),
         )
         try:
@@ -719,8 +691,8 @@ def write(
                 prompt,
                 WriteOut,
                 model,
-                check=_copy_check(lang, "write", _write_texts, english),
-                soft_check=_topic_check(lang, "write", _write_texts, source.text(), english),
+                check=_copy_check(lang, "write", _write_texts),
+                soft_check=_topic_check(lang, "write", _write_texts, source.text()),
             )
         except LLMOutputError as exc:
             results += exc.results
@@ -734,11 +706,11 @@ def write(
             half = len(segments) // 2
             log.warning("write: answer cut off for %d sentences; writing two halves", len(segments))
             halves = [segments[:half], segments[half:]]
-            pending[:0] = [(_section_title(part, labels), part) for part in halves]
+            pending[:0] = [(_section_title(part, lang), part) for part in halves]
             sectioned = True
             continue
         results += res
-        dropped = drop_topical(_write_texts(out), lang, source.text(), "write", english)
+        dropped = drop_topical(_write_texts(out), lang, source.text(), "write")
         for b in out.blocks:
             if b.text in dropped:
                 continue
@@ -943,19 +915,16 @@ def judge(
 ) -> tuple[JudgeReport, list[LLMResult]]:
     cited = {s for b in draft.blocks for s in b.segment_ids}
     cited |= {s for f in factsheet.facts for s in f.segment_ids}
-    english = english_for(llm, "judge")
-    labels = labels_for(draft.lang, english)
-    excerpt = r.cited_source(source, cited, labels) if cited else r.source_text(source)
+    excerpt = r.cited_source(source, cited) if cited else r.source_text(source)
     prompt = render(
         draft.lang,
         "judge",
-        english=english,
         **mode_context("judge", mode, addressee),
-        level_name=level_name(draft.lang, draft.level, english),
-        factsheet=r.factsheet_text(factsheet, lang=labels),
+        level_name=level_name(draft.lang, draft.level),
+        factsheet=r.factsheet_text(factsheet, lang=draft.lang),
         source=excerpt,
         draft=r.draft_lines(draft, refs=False),
-        glossary=r.glossary_text(draft, labels),
+        glossary=r.glossary_text(draft),
     )
     out, results = _call(llm, "judge", prompt, JudgeOut, model)
     name = results[-1].usage.model if results else llm.resolve_model(model, False)[0]
@@ -1018,20 +987,18 @@ _SPELLED_OUT_KINDS = frozenset(
 )
 
 
-def missing_value_label(fact: Fact, lang: str, labels: str | None = None) -> str:
+def missing_value_label(fact: Fact, lang: str) -> str:
     """The value a missing fact must get, with the exact form the draft should write it
     in when that differs from the fact sheet's form (`2026-03-31`: `31. März 2026`).
-    A small model asked for `2026-03-31` sometimes writes it as it stands. `labels`: the
-    language of the words around the value, when the prompt's is not the document's."""
-    labels = labels or lang
+    A small model asked for `2026-03-31` sometimes writes it as it stands."""
     if not fact.value_norm:
         return ""
     target = parse_value_norm(fact.value_norm, fact.kind, lang)
     if target is not None and target.kind in _SPELLED_OUT_KINDS:
         exact = display_value(target, lang)
         if exact and exact != fact.value_norm:
-            return label(labels, "missing_value_exact", value=fact.value_norm, exact=exact)
-    return label(labels, "missing_value", value=fact.value_norm)
+            return label(lang, "missing_value_exact", value=fact.value_norm, exact=exact)
+    return label(lang, "missing_value", value=fact.value_norm)
 
 
 def repair(
@@ -1053,8 +1020,6 @@ def repair(
     vocabulary round starts from the best version, not the latest)."""
     version = version if version is not None else draft.version + 1
     lang = draft.lang
-    english = english_for(llm, "repair")
-    labels = labels_for(lang, english)
     by_id = draft.by_id()
     facts = {f.id: f for f in factsheet.facts}
     flagged_lines = []
@@ -1062,29 +1027,28 @@ def repair(
     for block_id, problems in request.problems.items():
         block = by_id[block_id]
         cited |= set(block.segment_ids)
-        lines = [f"[{block_id}] {block.text}", "  " + label(labels, "problems"), *problems]
+        lines = [f"[{block_id}] {block.text}", "  " + label(lang, "problems"), *problems]
         needed = [facts[f] for f in block.fact_ids if f in facts]
         if needed:
-            lines.append("  " + label(labels, "keep_facts"))
+            lines.append("  " + label(lang, "keep_facts"))
             lines += [f"  - {f.id}: {f.text}" for f in needed]
         flagged_lines.append("\n".join(lines))
     missing_lines = []
     for fact in request.missing:
         cited |= set(fact.segment_ids)
-        missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, lang, labels)}")
+        missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}")
     prompt = render(
         draft.lang,
         "repair",
-        english=english,
         **mode_context("repair", mode, addressee),
-        level_name=level_name(draft.lang, draft.level, english),
+        level_name=level_name(draft.lang, draft.level),
         level=draft.level,
-        style_guide=style_guide(draft.lang, draft.level, english),
-        flagged="\n\n".join(flagged_lines) or label(labels, "none"),
+        style_guide=style_guide(draft.lang, draft.level),
+        flagged="\n\n".join(flagged_lines) or label(lang, "none"),
         missing="\n".join(missing_lines),
-        factsheet=r.factsheet_text(factsheet, lang=labels),
+        factsheet=r.factsheet_text(factsheet, lang=lang),
         draft=r.draft_lines(draft, refs=False, marked=set(request.problems)),
-        source=r.cited_source(source, cited, labels),
+        source=r.cited_source(source, cited),
     )
     known = KnownValues.of(source, factsheet, lang)
     out, results = _call(
@@ -1093,10 +1057,10 @@ def repair(
         prompt,
         RepairOut,
         model,
-        check=_copy_check(lang, "repair", _repair_texts, english),
+        check=_copy_check(lang, "repair", _repair_texts),
         soft_check=_soft_checks(
-            _topic_check(lang, "repair", _repair_texts, source.text(), english),
-            _foreign_check(lang, known, _repair_texts, english),
+            _topic_check(lang, "repair", _repair_texts, source.text()),
+            _foreign_check(lang, known, _repair_texts),
         ),
     )
     record = RepairRecord(
@@ -1111,7 +1075,7 @@ def repair(
             for a in out.additions
         ],
     )
-    topical = drop_topical(_repair_texts(out), lang, source.text(), "repair", english)
+    topical = drop_topical(_repair_texts(out), lang, source.text(), "repair")
     if topical:
         for item in out.repairs:
             record.dropped += [
@@ -1427,8 +1391,9 @@ def recover_fact(
 
 
 def add_sentences(draft: Draft, block_id: str, texts: list[str], fact: Fact) -> Draft:
-    """The draft with the sentences of a recovered fact as new blocks right after
-    `block_id` (`b009.1`, `b009.2`, ...), each carrying the fact."""
+    """The draft with the sentences of a recovered fact as new blocks after `block_id`
+    (`b009.1`, `b009.2`, ...), each carrying the fact. They go after the blocks that
+    follow it under its id, so a second fact for the same block comes after the first."""
     ids = {b.id for b in draft.blocks}
 
     def new_id() -> str:
@@ -1438,15 +1403,18 @@ def add_sentences(draft: Draft, block_id: str, texts: list[str], fact: Fact) -> 
         ids.add(f"{block_id}.{n}")
         return f"{block_id}.{n}"
 
-    blocks: list[Block] = []
-    for b in draft.blocks:
-        blocks.append(b)
-        if b.id == block_id:
-            blocks += [
-                Block(id=new_id(), kind="sentence", text=t, fact_ids=[fact.id],
-                      segment_ids=list(fact.segment_ids))
-                for t in texts
-            ]  # fmt: skip
+    blocks = list(draft.blocks)
+    at = next((i for i, b in enumerate(blocks) if b.id == block_id), None)
+    if at is None:
+        return draft
+    at += 1
+    while at < len(blocks) and blocks[at].id.startswith(f"{block_id}."):
+        at += 1
+    blocks[at:at] = [
+        Block(id=new_id(), kind="sentence", text=t, fact_ids=[fact.id],
+              segment_ids=list(fact.segment_ids))
+        for t in texts
+    ]  # fmt: skip
     return draft.model_copy(update={"blocks": blocks})
 
 

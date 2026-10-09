@@ -1,4 +1,4 @@
-"""`eval numbers`: the headline means and the PLAN.md §13.4 case, on synthetic rows."""
+"""`eval numbers`: the headline means and the D-M case of PLAN.md, on synthetic rows."""
 
 from __future__ import annotations
 

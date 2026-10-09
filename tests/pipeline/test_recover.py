@@ -119,3 +119,20 @@ def test_the_window_without_a_block_from_the_paragraph() -> None:
     d.blocks[1].segment_ids = []  # no block is built from paragraph 1
     window = fact_window(d, fx.letter(), {"s0002", "s0003"})
     assert [b.id for b in window] == ["b001", "b002"]
+
+
+def test_sentences_of_two_facts_after_one_block_keep_their_order() -> None:
+    from leichtfacile.pipeline.stages import add_sentences
+
+    fs = factsheet()
+    d = add_sentences(draft(), "b002", ["Erster Satz."], fs.facts[0])
+    d = add_sentences(d, "b002", ["Zweiter Satz.", "Dritter Satz."], fs.facts[1])
+    assert [(b.id, b.text) for b in d.blocks[1:6]] == [
+        ("b002", "Schicken Sie das Gesuch an die Gemeinde."),
+        ("b002.1", "Erster Satz."),
+        ("b002.2", "Zweiter Satz."),
+        ("b002.3", "Dritter Satz."),
+        ("b003", "Das kostet 20 Franken."),
+    ]
+    assert d.blocks[3].fact_ids == [fs.facts[1].id]
+    assert add_sentences(d, "b999", ["Nirgends."], fs.facts[0]) == d

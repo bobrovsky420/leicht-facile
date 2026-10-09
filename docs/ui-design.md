@@ -926,7 +926,7 @@ Checks before WP18 counts as done:
 
 The review screen comes first: it is the video's main scene. The redesign touches no
 pipeline file, so it runs next to the prompt freeze and the final evaluation without
-disturbing them (PLAN.md §13.3 has the days).
+disturbing them (PLAN.md §4 has the days).
 
 Cut order if G4 comes close:
 

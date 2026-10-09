@@ -23,6 +23,11 @@ const rgb = (a: number[], b: number[], p: number) => `rgb(${a.map((v, i) => Math
 const INK = [26, 30, 35];
 const GREY = [138, 144, 153];
 const RED = [198, 40, 40];
+// the strike line grows from its left end and is turned about it, so it starts below the
+// tile's middle (150 px tile, 6 px line) by half its rise: its middle crosses the text's
+const STRIKE_W = 354;
+const STRIKE_DEG = 6;
+const STRIKE_TOP = 150 / 2 - 3 + (STRIKE_W / 2) * Math.sin((STRIKE_DEG * Math.PI) / 180);
 
 export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
   const t = useSceneTime(offset);
@@ -151,7 +156,7 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
               <span style={{ color: rgb(INK, GREY, s) }}>{tile.pre}</span>
               <span style={{ color: rgb(INK, RED, s) }}>{tile.bad}</span>
             </span>
-            <div style={{ position: "absolute", left: 18, top: 72, height: 6, borderRadius: 3, background: "rgba(198,40,40,0.85)", width: 354 * s, transform: "rotate(-6deg)", transformOrigin: "left center" }} />
+            <div style={{ position: "absolute", left: 18, top: STRIKE_TOP, height: 6, borderRadius: 3, background: "rgba(198,40,40,0.85)", width: STRIKE_W * s, transform: `rotate(-${STRIKE_DEG}deg)`, transformOrigin: "left center" }} />
           </div>
         );
       })}

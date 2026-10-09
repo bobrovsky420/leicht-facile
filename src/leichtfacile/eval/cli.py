@@ -112,7 +112,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     rep.set_defaults(handler=_report)
 
     num = evsub.add_parser(
-        "numbers", help="the headline numbers and the PLAN.md §13.4 case (no model)"
+        "numbers", help="the headline numbers and their D-M case in PLAN.md (no model)"
     )
     num.add_argument("--results", type=Path, default=Path("eval/results"))
     num.add_argument("--role", default="eval", choices=["dev", "eval", "all"])

@@ -29,7 +29,7 @@ def checked_rules(lang: str) -> int:
 
 
 def test_readme_and_report_state_the_rule_counts() -> None:
-    """The numbers audit (PLAN.md §13.6): the counts a juror reads follow the registry."""
+    """The numbers audit (PLAN.md, WP16): the counts a juror reads follow the registry."""
     de, fr = checked_rules("de"), checked_rules("fr")
     root = RULES_MD.parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")

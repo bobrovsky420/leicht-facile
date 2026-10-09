@@ -133,7 +133,6 @@ def build_request(
     limit: int = MAX_MISSING_PER_ROUND,
     vocabulary: bool = True,
     only: tuple[str, ...] = (),
-    labels: str | None = None,
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
@@ -141,10 +140,9 @@ def build_request(
     facts-only round asks for the missing facts alone and flags no block. Without
     `vocabulary` the office words of LEX-07 are left to the reviewer. With `only`, the
     round asks for the findings of these rules alone, no fact and no judge's problem:
-    the vocabulary round. `labels`: the language of the words code writes into the
-    problem lines, when the repair prompt's is not the document's."""
+    the vocabulary round."""
     severities = ("error", "warn") if include_warnings else ("error",)
-    lang = labels or draft.lang
+    lang = draft.lang
     blocks = draft.by_id()
     if only:
         flagged: dict[str, list[str]] = defaultdict(list)
@@ -343,7 +341,6 @@ class Orchestrator:
                 factsheet,
                 include_warnings=blocking == 0,
                 vocabulary=self.settings.use_vocabulary,
-                labels=self._repair_labels(draft.lang),
             )
             if not request:
                 reason = "no problems left"
@@ -390,7 +387,6 @@ class Orchestrator:
                 factsheet,
                 facts_only=True,
                 limit=self.settings.max_missing_per_facts_round,
-                labels=self._repair_labels(draft.lang),
             )
             step = self._round(
                 job, source, factsheet, draft, rules, judge, request, facts_rounds, kind="facts"
@@ -436,9 +432,7 @@ class Orchestrator:
             and getattr(self, "_round_failure", None) != "endpoint"
         ):
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-            request = build_request(
-                *base, factsheet, only=OFFICE_RULES, labels=self._repair_labels(source.lang)
-            )
+            request = build_request(*base, factsheet, only=OFFICE_RULES)
             if request:
                 latest = max(h[0].version for h in history)
                 step = self._round(
@@ -536,6 +530,10 @@ class Orchestrator:
                     self.llm, source, factsheet, current, fact.id, model=job.config.writer_model
                 )
             except LLMError as exc:  # the endpoint is down: keep what came back so far
+                self._notes.append(f"recover {fact.id} failed: {_short(exc)}")
+                break
+            except Exception as exc:  # the round is on by default: it never costs the job
+                log.exception("recover %s failed", fact.id)  # the versions it has
                 self._notes.append(f"recover {fact.id} failed: {_short(exc)}")
                 break
             record.dropped += [
@@ -672,7 +670,7 @@ class Orchestrator:
             judge_model=(job.config.judge_model or self.llm.judge_model())
             if job.config.condition == "P2" and job.config.use_judge
             else None,
-            prompt_versions=prompt_versions(source.lang, self.settings.english_prompt_stages),
+            prompt_versions=prompt_versions(source.lang),
             blocking_findings=blocking,
             notes=list(getattr(self, "_notes", [])),
             vocabulary=vocabulary_version(source.lang)
@@ -682,11 +680,6 @@ class Orchestrator:
         self.store.put_artifact(job.id, "summary", summary)
 
     # -- helpers ----------------------------------------------------------------------
-
-    def _repair_labels(self, lang: str) -> str:
-        """The language of the words in a repair request's problem lines: the repair
-        prompt's (English with LLM_ENGLISH_PROMPTS), else the document's."""
-        return stages.labels_for(lang, stages.english_for(self.llm, "repair"))
 
     def _understand_model(self, cfg: JobConfig) -> str | None:
         """The Understand stage's model: the job's, else LLM_UNDERSTAND_NAME, else the

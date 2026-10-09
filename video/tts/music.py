@@ -42,6 +42,7 @@ PLAN = [
     ("compare", ["Gmaj7", "A", "Dadd9"], 0.8, 4),
     ("evidence", ["Gmaj7", "A", "Dadd9"], 0.8, 4),
     ("sovereign", ["Bm7", "Gmaj7", "Dadd9", "A", "Bm7", "Gmaj7", "Asus", "A"], 0.95, 8),
+    ("again", ["Gmaj7", "Asus"], 0.8, 0),
 ]
 PLAN = [p for p in PLAN if p[0] in scenes]
 

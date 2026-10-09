@@ -1,4 +1,4 @@
-// Concept A, 1:09 One number, by the headline rules (case B of PLAN.md §13.4): a strong
+// Concept A, 1:09 One number, by the headline rules (case B of decision D-M in PLAN.md): a strong
 // single prompt loses hard facts without a trace; Leicht·Facile lists every missing fact.
 // Numbers from report §5 (CSCS, 20 German eval pairs, 6 October 2026), provisional.
 import React from "react";

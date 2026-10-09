@@ -24,6 +24,7 @@ def store(tmp_path) -> Store:
 
 def orchestrator(store, endpoint, sleeps, **settings) -> Orchestrator:
     settings.setdefault("use_vocabulary", False)  # its own tests: test_vocabulary.py
+    settings.setdefault("max_recover_facts", 0)  # its own tests: test_recover.py
     cfg = make_settings(llm_max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, cfg)
@@ -160,3 +161,23 @@ def test_a_failing_repair_keeps_the_drafts(store, endpoint, sleeps) -> None:
     assert summary.stop_reason == "a repair round failed"
     assert summary.final_version == 1 and summary.rounds == 0
     assert store.get_artifact(job_id, "draft", Draft, version=1) is not None
+
+
+def test_a_failing_recover_round_keeps_the_drafts(store, endpoint, sleeps) -> None:
+    """The recover round is on by default: an error in it, of any kind, leaves the job
+    with the versions it has and a note."""
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),  # the number of f03 is wrong: FACT-01
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response("kaputt"),
+        chat_response("immer noch kaputt"),  # repair: invalid twice
+        RuntimeError("boom"),  # the recover call
+    )
+    job_id = new_job(store, condition="P2", max_facts_rounds=0)
+    orchestrator(store, endpoint, sleeps, max_recover_facts=3).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 1
+    assert any(n.startswith("recover f03 failed") for n in summary.notes)

@@ -40,11 +40,6 @@ class Settings(BaseSettings):
     # to easy language in the first local tests (docs/prompts.md); the day-1 checks
     # on the CSCS endpoint decide the final setting.
     llm_thinking_stages: str = "understand,judge"
-    # Stages whose instructions are English (llm/prompts/en/) instead of the document's
-    # language; the document, the examples and every text the model writes stay German
-    # or French. An experiment of 9 October 2026 (docs/prompts.md, "English
-    # instructions"); empty, the default, renders the frozen templates.
-    llm_english_prompts: str = ""
     # Streamed responses: the endpoint sends the answer as it is generated, so a proxy in
     # front of it cannot time out a long answer (Cloudflare in front of the Public AI
     # gateway does so after about 100 seconds). Off only for a server without streaming.
@@ -72,8 +67,10 @@ class Settings(BaseSettings):
     # The recover round after the facts rounds: up to this many must-keep values still
     # missing in the best version, each asked for alone with its source paragraph
     # (stages.recover_fact, the review page's "Suggest a sentence"), as one new version.
-    # 0, off: the pipeline runs as before (PLAN.md D-AC, measured on dev first).
-    max_recover_facts: int = Field(default=0, ge=0, le=20)
+    # On by default since 9 October 2026 (PLAN.md D-AC): on the dev pairs German fact
+    # coverage rose from 78 to 96 percent, no invented value added (docs/prompts.md).
+    # 0 turns it off.
+    max_recover_facts: int = Field(default=10, ge=0, le=20)
     # The vocabulary of hard words (rules/data/vocabulary_<lang>.toml) in the pipeline:
     # the checked explanations in the fact sheet, missing glossary entries by code, the
     # LEX-07 findings in the repair rounds and the vocabulary round, a last round for the
@@ -119,10 +116,6 @@ class Settings(BaseSettings):
     @property
     def thinking_stages(self) -> set[str]:
         return {s.strip() for s in self.llm_thinking_stages.split(",") if s.strip()}
-
-    @property
-    def english_prompt_stages(self) -> set[str]:
-        return {s.strip() for s in self.llm_english_prompts.split(",") if s.strip()}
 
 
 @lru_cache(maxsize=1)

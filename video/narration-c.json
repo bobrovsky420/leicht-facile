@@ -1,6 +1,6 @@
 {
   "voice": "af_heart",
-  "speed": 0.89,
+  "speed": 0.9,
   "say": {
     "Leicht·Facile": "lˈaɪçt fæsˈiːl",
     "Apertus": "ɑːpˈɛɹtʊs",
@@ -11,7 +11,7 @@
   "scenes": [
     {
       "id": "hook",
-      "lead": 3.6,
+      "lead": 3.2,
       "tail": 0.6,
       "chunks": [
         {
@@ -28,7 +28,7 @@
     {
       "id": "stakes",
       "lead": 0.3,
-      "tail": 0.5,
+      "tail": 0.3,
       "chunks": [
         {
           "id": "sk-a",
@@ -49,7 +49,7 @@
     {
       "id": "logo",
       "lead": 0.3,
-      "tail": 0.4,
+      "tail": 0.3,
       "chunks": [
         {
           "id": "lg-br",
@@ -75,12 +75,12 @@
     {
       "id": "step",
       "lead": 0.4,
-      "tail": 0.6,
+      "tail": 0.4,
       "chunks": [
         {
           "id": "st-a",
           "text": "Here is how, on one sentence from a real letter.",
-          "pause": 0.8
+          "pause": 0.6
         },
         {
           "id": "st-b",
@@ -110,7 +110,7 @@
     },
     {
       "id": "product",
-      "lead": 0.6,
+      "lead": 0.45,
       "tail": 0.4,
       "chunks": [
         {
@@ -132,7 +132,7 @@
     {
       "id": "evidence",
       "lead": 0.3,
-      "tail": 0.5,
+      "tail": 0.4,
       "chunks": [
         {
           "id": "ev-a",
@@ -147,8 +147,8 @@
     },
     {
       "id": "sovereign",
-      "lead": 0.7,
-      "tail": 0.6,
+      "lead": 0.5,
+      "tail": 0.3,
       "chunks": [
         {
           "id": "sov-0",
@@ -197,8 +197,19 @@
       ]
     },
     {
+      "id": "again",
+      "lead": 1.0,
+      "tail": 1.0,
+      "chunks": [
+        {
+          "id": "ag-a",
+          "text": "Can you read it now?"
+        }
+      ]
+    },
+    {
       "id": "end",
-      "lead": 3.2,
+      "lead": 2.6,
       "tail": 0,
       "chunks": []
     }

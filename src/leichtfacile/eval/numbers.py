@@ -1,6 +1,6 @@
 """The headline numbers of a results folder (`eval numbers`): the means README, report
 §1 and §5 and the video quote, P2 against the Zurich prompt in its complete mode, and
-the case of PLAN.md §13.4 (decision D-M) the numbers fall into. No model call, no text
+the case of decision D-M (PLAN.md, WP13) the numbers fall into. No model call, no text
 of the protected pages: the numbers audit at G4 and G6 becomes a diff, not a hunt.
 """
 
@@ -99,7 +99,7 @@ def setup_numbers(setup: str, rows: list[dict]) -> SetupNumbers | None:
 def decide_case(
     p2: SetupNumbers | None, zh: SetupNumbers | None, failed_share: float
 ) -> tuple[str, list[str]]:
-    """The case of PLAN.md section 13.4, with the comparisons it rests on."""
+    """The case of decision D-M (PLAN.md, WP13), with the comparisons it rests on."""
     if failed_share > FAILURE_LIMIT:
         share = f"{100 * failed_share:.0f} %"
         return "D", [f"the P2 run failed on {share} of the pairs (more than a quarter)"]
@@ -126,7 +126,7 @@ def decide_case(
         return "C", reasons
     reasons.append(
         "better on one of the two counts only, coverage within 5 points: the rules of "
-        "section 13.4 do not cover this mix; read as A and name the count"
+        "D-M do not cover this mix; read as A and name the count"
     )
     return "A?", reasons
 
@@ -205,7 +205,7 @@ def render_numbers(results_dir: Path, *, role: str = "eval", lang: str = "de") -
             f"| {_pct(s.hard_facts_kept)} % | {_pct(s.silent_losses)} % | {_num(s.errors)} "
             f"| {_num(s.invented)} | {_num(s.unsupported)} |"
         )
-    out += ["", f"Case {h.case} of PLAN.md section 13.4 (P2 against P0-ZH complete):"]
+    out += ["", f"Case {h.case} of PLAN.md, decision D-M (P2 against P0-ZH complete):"]
     out += [f"- {reason}" for reason in h.reasons]
     out += [
         "",

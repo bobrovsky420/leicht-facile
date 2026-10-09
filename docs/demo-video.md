@@ -36,7 +36,7 @@ idea per shot, English captions burned in.
 - Key message: the 844,000 people must not be excluded from the letters that decide
   their money, deadlines and rights (spoken at 0:18-0:33, written on the end card).
   Same wording as in [hard-texts.md](hard-texts.md) §2, the README and the report.
-- Evidence by case B of PLAN.md §13.4: no fact lost without a trace. A strong single
+- Evidence by case B of decision D-M (PLAN.md, WP13): no fact lost without a trace. A strong single
   prompt in its default mode loses hard facts and nothing tells the writer; Leicht·Facile
   lists every missing fact. The numbers come from the final run; Zurich is not named
   (D-L).
@@ -115,21 +115,30 @@ The owner's combination: the split-screen opening of §5 for the first seconds, 
 variant B's step by step and the rest of §2. The stakes play on the kitchen table with
 the letter, drawn in code for now; the owner decides later whether generated footage
 replaces it. The app scene is shorter, since the step by step already shows facts and
-checks. 268 words, 1:59 (voice speed 0.89).
+checks. On 9 October the opening sentence came back before the end card, now in easy
+language, so that the opening question gets its answer (owner); the easy text there is
+the team's placeholder until the real output is in (§4). 273 words, 1:59 (voice speed
+0.90; the silent leads and pauses trimmed by 0.1 to 0.6 s to make room).
 
 | Time | Picture | Narration (English) |
 |------|---------|---------------------|
-| 0:00-0:08 | The split screen of §5: DE-4 and FR-4 type themselves with their questions, one question per line, each line as it is spoken (owner, 8 October); the negations light up. | "Can you read this? Did you understand it right away?" |
-| 0:08-0:20 | The kitchen table with the letter (drawn, or generated footage later); **844,000** with PIAAC 2023; then the letter's money, deadline and rights marked, each labelled. | "If you hesitated, you are not alone. 844,000 adults in Switzerland struggle with reading. Letters like these decide their money, their deadlines, their rights." |
-| 0:20-0:32 | A bridge into easy language (owner, 8 October: the viewer must first learn that it exists): a card *Easy language*, with *Leichte Sprache* and *Langage facile* as the illustration and three of its rules, *Short sentences*, *Everyday words*, *One idea at a time*; below it the card *Slow expert work*; then the logo, *with Apertus, the Swiss open model*, *The writers stay in charge*, *A checked first draft*. | "For them, there is easy language. But easy-language versions are slow expert work. Leicht·Facile drafts them with Apertus, the Swiss open model, and gives the writers a checked first draft." |
-| 0:32-0:57 | Variant B's step by step on the real sentence s0007; after the three new sentences the Mediopunkt in *Antrags·formular* and *Sozial·versicherungs·stelle* lights up, labelled "Mediopunkt: long words in readable parts" (owner, 8 October). | "Here is how, on one sentence from a real letter." Then as in variant B, with "A middle dot splits long words into easier parts." before the check. |
-| 0:57-1:09 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
-| 1:09-1:19 | The evidence scene of §2. | As in §2. |
-| 1:19-1:56 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5. |
+| 0:00-0:07 | The split screen of §5: DE-4 and FR-4 type themselves with their questions, one question per line, each line as it is spoken (owner, 8 October); the negations light up. | "Can you read this? Did you understand it right away?" |
+| 0:07-0:19 | The kitchen table with the letter (drawn, or generated footage later); **844,000** with PIAAC 2023; then the letter's money, deadline and rights marked, each labelled. | "If you hesitated, you are not alone. 844,000 adults in Switzerland struggle with reading. Letters like these decide their money, their deadlines, their rights." |
+| 0:19-0:31 | A bridge into easy language (owner, 8 October: the viewer must first learn that it exists): a card *Easy language*, with *Leichte Sprache* and *Langage facile* as the illustration and three of its rules, *Short sentences*, *Everyday words*, *One idea at a time*; below it the card *Slow expert work*; then the logo, *with Apertus, the Swiss open model*, *The writers stay in charge*, *A checked first draft*. | "For them, there is easy language. But easy-language versions are slow expert work. Leicht·Facile drafts them with Apertus, the Swiss open model, and gives the writers a checked first draft." |
+| 0:31-0:55 | Variant B's step by step on the real sentence s0007; after the three new sentences the Mediopunkt in *Antrags·formular* and *Sozial·versicherungs·stelle* lights up, labelled "Mediopunkt: long words in readable parts" (owner, 8 October). | "Here is how, on one sentence from a real letter." Then as in variant B, with "A middle dot splits long words into easier parts." before the check. |
+| 0:55-1:08 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 10 to 2 blocking), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
+| 1:08-1:17 | The evidence scene of §2. | As in §2. |
+| 1:17-1:53 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5. |
+| 1:53-1:56 | The split screen of the opening again (owner, 9 October): DE-4 and FR-4 small and dimmed at the top, their negations still marked; below each its easy-language version line by line, labelled *Leichte Sprache* and *Langage facile*; under it *"Können Sie es jetzt lesen?"* and *"Pouvez-vous le lire maintenant ?"* as it is spoken. For now the team's text, labelled on screen as a placeholder: *"Das ist wichtig: / Melden Sie Ihre Kosten rechtzeitig. / Sonst bekommen Sie kein Geld zurück."* and *"C'est important : / Annoncez vos frais à temps. / Sinon, vous ne recevez pas d'argent."* (both pass `leichtfacile check` at A2 without errors or warnings). | "Can you read it now?" |
 | 1:56-1:59 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), team, repo (owner, 8 October). | (music only) |
 
 ## 4. Before recording
 
+- [ ] The easy text of DE-4 and FR-4 at 1:53 (version C) is the team's placeholder:
+      replace it with the tool's real output after the prompt freeze (Sun 11 October),
+      in `video/src/scenes/Again.tsx`, and drop the placeholder note. Run the sentences
+      inside a short letter: alone, DE-4 came back wrapped in letter headings and
+      without its consequence (PLAN.md §11, 8 October).
 - [ ] CSCS runs done: the silent-loss share of the strong single prompt for 1:09 from
       the final run, and a real example job for the screen recording.
 - [ ] 844,000 wording re-checked against the SBFI press release

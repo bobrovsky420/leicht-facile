@@ -85,47 +85,6 @@ LABELS: dict[str, dict[str, str]] = {
         "notice_default": "Cette explication vous aide à comprendre la décision. "
         "Seule la décision fait foi.",
     },
-    # The words around the items of a prompt with English instructions (prompts/en/,
-    # LLM_ENGLISH_PROMPTS); the items themselves stay German or French.
-    "en": {
-        "core_what": "What is it about?",
-        "core_must_do": "What must the reader do?",
-        "core_deadline": "By when?",
-        "core_cost": "What does it cost?",
-        "core_contact": "Whom can the reader ask?",
-        "doc_type": "Type: {doc_type}. For: {audience}.",
-        "core": "Core questions:",
-        "unanswered": "The document does not answer:",
-        "facts": "Facts:",
-        "background": "background",
-        "fact_value": " | value: {value}",
-        "fact_from": " | from: {ids}",
-        "hard_terms": "Hard words:",
-        "omit": "Can be left out:",
-        "none": "(none)",
-        "empty": "(empty)",
-        "block_refs": "   (facts: {facts}; source: {sources})",
-        "suggestion": "Suggestion: {text}",
-        "problems": "Problems:",
-        "keep_facts": "The block must keep these facts:",
-        "missing_value": " (value: {value})",
-        "missing_value_exact": " (value: {value}; write: {exact})",
-        "unsupported": "This is not in the original.",
-        "distorted": "Fact {fact_id} is wrong: {note} Correct is: {fact}",
-        "section": "the sentences {first} to {last}",
-        "copied_example": "The answer contains {count} sentences from the example in the "
-        "instructions (the dog tax). The example only shows the form. Write about the "
-        "document below, with its facts and sentence numbers.",
-        "foreign_values": "The answer contains values that are not in the document: "
-        "{values}. Every value must come from the fact sheet or from the sentences of the "
-        "original. Write these sentences without the foreign value, or leave them out.",
-        "recover_value": "Your sentences do not have the value {value}. Write it exactly "
-        "like this.",
-        "recover_foreign": "These values are not in the paragraph of the original: {values}. "
-        "Write only what is in the paragraph.",
-        "notice_default": "This explanation helps you understand the decision. "
-        "Only the decision is binding.",
-    },
 }
 
 

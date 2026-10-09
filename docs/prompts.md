@@ -14,7 +14,7 @@ can always be traced to the exact prompt that produced it.
 
 | Choice | Why |
 |--------|-----|
-| Instructions in the language of the document | The model reads and writes German for German documents and French for French ones; instructions in the same language avoid another language leaking into fact texts, omission reasons and glossary entries that the reviewers read. The French templates (`prompts/fr/`) follow the German ones line by line, with French JSON examples and two French few-shot pairs on the same topics. The few words code adds around the items (fact sheet headings, "Vorschlag:" or "Suggestion :", the problem lines of a repair round) come from one table per language (`pipeline/labels.py`). Italian has no templates yet. |
+| Instructions in the language of the document | The model reads and writes German for German documents and French for French ones; instructions in the same language avoid another language leaking into fact texts, omission reasons and glossary entries that the reviewers read. The French templates (`prompts/fr/`) follow the German ones line by line, with French JSON examples and two French few-shot pairs on the same topics. The few words code adds around the items (fact sheet headings, "Vorschlag:" or "Suggestion :", the problem lines of a repair round) come from one table per language (`pipeline/labels.py`). Italian has no templates yet. English instructions for German and French documents were measured against these on 9 October 2026, not taken and removed again ("English instructions" below). |
 | A concrete JSON example in each prompt instead of the JSON schema | Small models copy a filled example more reliably than they follow a schema, and the example is a fraction of the tokens. The pydantic models still validate every answer; the validation error goes back to the model once (`llm/json_out.py`). |
 | Lenient parsing of the answer (`pipeline/models.py`) | An 8B model gets details wrong that do not matter: `s4` instead of `s0004`, `Deadline` instead of `deadline`, a string where a list was asked for. These are normalised; only real problems (no blocks, an empty text) count as invalid. A complete answer without the `facts` list, seen on a page with nothing countable, is read as a fact sheet with no model facts; code completion adds the countable values. On long pages the 8B abbreviates a run of ids as a range (`"s0064" bis "s0087"`), which is not JSON: the parser writes the range out, repairs trailing and missing commas, closes an object the model forgot to close before a top-level key (the schema's fields say where) and turns the straight quote that ends a German quotation inside a string into the closing German one; an answer that is still broken is reported with the position of the error, never replaced by an object from inside it. |
 | The style guide is generated from the rule registry (`rules/styleguide.py`) | The writer is asked for exactly what the checker checks, with the thresholds of the chosen level. The guide changes when a rule changes; no second copy can drift. |
@@ -398,7 +398,7 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as P1
   15.4), fewer warnings, the same sentence length and better readability; the complete
   prompt keeps more facts (91 against 84 percent coverage, 95 against 80 percent of the
   hard facts; on the 14 fact-rich pairs 93 against 73, the official versions 60). By
-  the rules of PLAN.md §13.4 this is case B: lead with "no silent loss" and state the
+  the rules of decision D-M (PLAN.md, WP13) this is case B: lead with "no silent loss" and state the
   coverage gap openly; the fact-retention diagnosis (WP13) is the next step.
 - **The condensed variant, their default for Leichte Sprache, drops a quarter of the
   hard facts** (77 percent kept, 69 on the fact-rich pairs) and nobody is told. That is
@@ -982,9 +982,9 @@ code checks the value, not the meaning; the reviewer decides.
 
 One fact on one letter is not a rate: at temperature 0.2 the runs are close to
 identical. The dev pairs' facts still missing at the end are the measurement before the
-feature shows in the report or the video. In the pipeline it runs only as the recover
-round, off by default (`MAX_RECOVER_FACTS`, architecture §4.6); the dev run with it on
-decides PLAN.md D-AC.
+feature shows in the report or the video. In the pipeline it runs as the recover round
+(`MAX_RECOVER_FACTS`, architecture §4.6), on by default since the dev run below (PLAN.md
+D-AC).
 
 **The recover round on the dev pairs** (CSCS, 9 October 2026). `MAX_RECOVER_FACTS=10`,
 P2, into `eval/results-cscs-recover-on`, right after session 7e's default run
@@ -1014,7 +1014,147 @@ difference is the round alone.
   (addresses, numbers, e-mail addresses).
 - Cost: about 12 percent more tokens per page and 5 s more per German page.
 
-Twelve pairs, five of them changed: the eval split decides what the report says.
+Twelve pairs, five of them changed: the eval split decides what the report says. The
+comparison is paired (the same answers up to the round), but two independent runs of
+the same code differ a lot per pair (session 7e, cache off: zh-oral-health-de fact
+coverage 1.0 against 0.5, zh-shelters-de 0.58 against 1.0), so how much the round adds
+depends on how many values are missing before it, and that varies from run to run.
+
+### English instructions: tried on the dev pairs on CSCS (9 October 2026), not taken
+
+The owner asked whether English instructions would serve the 8B better than German and
+French ones, in every stage that matters and in repair first. Small models often follow
+English instructions a little more reliably; against that stood the design choice above
+(no other language in the texts reviewers read) and Apertus' large share of German and
+French training data.
+
+**What was built for the test** (removed again the same day, see the decision; commit
+`ff0544a` has it). English templates for understand, write, judge and repair and the two
+partials (`llm/prompts/en/`), each the German template in English line for line. Write
+and repair got one more line that names the language of the answer ("Write every text
+in German."); understand and judge already had one. The JSON examples, the few-shot
+pairs, the reader's example headings, the example words of SEM-03 and SEM-08 and every
+example in the style guide stayed in the document's language, word for word (a test
+compared the JSON examples character for character with the frozen templates). The
+style guide came in English from the same registry (one English text per rule guide),
+the words code writes around the items (fact sheet headings, "Suggestion:", the problem
+lines) from an English entry in `pipeline/labels.py`. A setting named the stages with
+English instructions and was empty by default; then every prompt was the frozen one
+byte for byte (the baseline below replayed all 125 calls from the response cache,
+whose key is the whole prompt). The English prompts were only 2 to 4 percent shorter in
+tokens, since most of a prompt is the document, the fact sheet and the draft.
+
+**The measurement.** P2 on the 12 dev pairs (10 German, 2 French) on CSCS, 8B writer,
+70B judge, the recover round off (`MAX_RECOVER_FACTS=0`), one folder per run:
+
+- `en-before`: the frozen prompts, replayed from the cache (the same as
+  `prov-after` of 8 October);
+- `en-before-fresh`: the frozen prompts again with the cache off: a second sample of
+  the same pipeline, to see the 8B's noise from run to run;
+- `en-repair`: repair in English, everything else as `en-before`. Understand, write
+  and the first judge call came from the cache, so the first repair round of every job
+  got the same request as in `en-before`: the two repair prompts on equal input;
+- `en-judge`: the judge in English, everything else as `en-before`;
+- `en-all`: all four stages in English, every call fresh.
+
+One script read the folders: the evaluation rows, the repair rounds from the stored
+artifacts (the rule findings on the blocks a round was asked to fix that are gone, stay
+or are new in the version it produced, and the must-keep values it added) and the
+model's texts that read as English (more English than German or French function words,
+two at least). Another judged the 11 labelled jobs of `eval/labels/dev` again, three
+fresh samples per prompt language, and scored them with `eval kappa`'s scoring against
+the blind labels of 8 October. Both went with the variant; the result folders
+(`eval/results-cscs-en-*`) and the judge's key files (`eval/labels/dev/*.key.jsonl`)
+stay local and git-ignored.
+
+**Noise first.** The two runs of the frozen prompts differ more than any English
+variant differs from them: hard facts kept, pooled over the 12 pairs, 100 against 82
+of 140; rule errors 2.0 against 4.2 per 100 blocks; per pair, `sg-el-costs-de` 19
+against 9 of 22 hard facts, `zh-shelters-de` 7 against 12 of 12. A mean over 12 pairs
+moves by 10 points on one pair (`ebgb-inclusion-initiative-de` has one hard fact).
+
+**Repair on equal input** (the first round of the 12 jobs, the same 61 blocks with 54
+rule problems and 33 missing values asked for):
+
+| First repair round | German | English |
+|---|---|---|
+| Rule problems fixed on the asked blocks | 21 | 15 |
+| New rule problems on them | 26 | 45 |
+| Of these errors: fixed / new | 11 / 5 | 11 / 9 |
+| Missing values added | 12 | 13 |
+| Blocking count, 125 before | 117 | 136 |
+| Answered sentences: mean words / over 12 words | 8.1 / 9 of 93 | 9.3 / 23 of 113 |
+| Sentences code dropped as repeats | 6 | 20 |
+
+The second German run has 28 new problems on 62 in its first round, close to the first;
+English stands apart. Under English instructions the 8B's German gets longer and less
+plain (more LEN, LEX and GRAM findings), and on one page it left blocks as they were,
+added an invented sentence and wrote two long sentences with brackets where the German
+answer split them into short ones. It adds missing values as often as the German
+prompt.
+
+**Whole jobs** (means over the 12 pairs; pooled hard facts in brackets):
+
+| | German | German, 2nd run | English repair | English judge |
+|---|---|---|---|---|
+| Hard facts kept | 76 % (100/140) | 70 % (82/140) | 84 % (104/140) | 84 % (110/140) |
+| Rule errors / 100 blocks | 2.3 | 4.8 | 2.9 | 2.9 |
+| Warnings / 100 blocks | 40 | 57 | 51 | 46 |
+| Invented values / 100 blocks | 0.85 | 0.00 | 0.21 | 0.20 |
+
+Against the first German run, English repair keeps more hard facts on 4 pairs and fewer
+on 2, the English judge on 3 and 2; most of the English judge's 10 more facts are one
+page (`be-pregnancy-counselling-de`, 25 against 13 of 37, where the two German runs had
+13 and 11). The two German runs span 82 to 100 hard facts: English repair is just above
+(104), the English judge 10 above (110), mostly through that one page; on rule errors
+both are inside the band.
+
+**All four stages in English.** 3 of the 12 pairs failed, and failed again when run a
+second time with fresh calls: `zh-voting-de` (the write answer gives its omissions as
+an object with sentence ids as keys, twice in each pass), `sg-el-costs-de` (Understand
+copied three facts of the JSON example, then the example's omission `s0009` with an
+unquoted id), `ebgb-inclusion-initiative-de` (Understand did not validate, twice in each
+pass). The second German run lost one pair in its first pass
+(`bwl-emergency-supplies-fr`, Understand) and had it on the second. On the 9 pairs it
+completed, English keeps 100 of 110 hard facts against 74 and 67, 24 of the 26 more on
+`be-pregnancy-counselling-de` (37 against 13); pair by pair 4 better, 4 worse, 1 the
+same, with 59 percent more blocks and 3.4 rule errors per 100 blocks against 1.8 and
+3.6. The fact sheets change more than the drafts: on the 9 pairs Understand marks 33
+passages as droppable against 13 and 11, so code makes their values background and
+the sheets hold 114 must-keep facts against 176 and 150; 8 of 9 name the document type
+in English ("Information sheet", from the template's English list of document kinds),
+one answer was a list of keywords with no fact and the example's omission, and 2
+omission entries of the final drafts are English ("Details of the contact hours Not
+needed for the reader"). No other English text of three words or more appeared in any
+run, apart from one sentence the source itself has (a link to an English form).
+
+**The judge against the blind labels** (three samples per language; the same 11
+drafts):
+
+| | German | English |
+|---|---|---|
+| Blocks: supported or unsupported | 78 % (κ 0.56) | 79 % (κ 0.58) |
+| Facts with a verdict, of 29 labelled | 28 | 19 |
+| Facts both judged (19): three classes | 37 % (κ 0.03) | 65 % (κ 0.42) |
+| Facts both judged (19): present or not | 61 % | 79 % |
+
+On blocks the two are the same. On facts the English judge agrees with the labels far
+more often where it gives a verdict, in each of its three samples (63, 68 and 63
+percent), but on the labelled draft of `sg-el-costs-de` it returned an empty fact list
+every time (9 of the 10 items without a verdict; in the pipeline it checked all 27
+facts of that page's first draft). The German judge itself gave another verdict than on
+6 October on 4 of 29 facts and 6 of 30 blocks of the same drafts.
+
+**Decision.** No change before the freeze: the final run uses the German and French
+templates. English instructions make the 8B's German repairs longer and less plain on
+equal input, make Understand drop content and fail on pages the German prompt handles,
+and bring English into omission entries and fact sheets; their gains on facts stay
+within the noise of two German runs. The one lead is the judge's fact verdicts: before
+an English judge could replace the German one it needs more labelled facts than 19
+from 10 drafts and an answer to the empty fact list. At the owner's request the variant
+was then removed completely (templates, setting, English style guide and labels, tests,
+the two scripts), and only these results are kept; a further try should keep the
+template's example document kinds in the document's language.
 
 ## Change log
 
@@ -1043,3 +1183,4 @@ Twelve pairs, five of them changed: the eval split decides what the report says.
 | 10 | 2026-10-08 | No template change and no pipeline change. Tried on the dev pairs and not taken ("Judge doubts on values" above): a judge's `missing` on a fact whose value FACT-01 finds as non-blocking, and a missing fact asked for by the clause of its value; with both, five of ten German jobs took another path, three ended worse and none better. Kept: the review page shows such a verdict in amber as "judge doubts". |
 | 10 | 2026-10-08 | No template change. Code, from the example jobs: a block without a source sentence takes those of the facts it names, else the one it says in other words (`stages.wording_source`), and a sentence id the source does not have is dropped (FACT-03, and the judge sees the sentence); a hard term of the model that the source does not contain leaves the fact sheet (`stages.in_source`; the Understand example's office for 6 documents); the examples' office (`Einwohnerkontrolle`, `contrôle des habitants`) is a topic word of the copy guard. P2 on the 12 dev pairs on CSCS, the committed code (`eval/results-cscs-ab-before`) against these changes on the same cache (`eval/results-cscs-prov-after`): five pairs identical; fact coverage 76 to 81 percent, hard facts kept 69 to 76, must-keep values missing 43 to 33 in all, rule errors 2.7 to 2.3 per 100 blocks, unsupported 5.3 to 6.2, invented values 0.64 to 0.85. Of the seven changed pairs three ended better (be-tax-extension-fr, fact coverage 13 to 94 percent after the copied term "case number" left its fact sheet), two worse (sg-el-costs-de lost three values after the copy guard sent back an Understand answer with the office; bwl-emergency-supplies-fr gained an invented period), two mixed: too few pairs to separate the changes from the 8B's noise. |
 | 11 | 2026-10-09 | New template `recover.md` (German and French), used only by the review page's "Suggest a sentence" for one missing fact, never by the pipeline: no other template changes, the evaluated runs render the same prompts. It names the missing value and its source sentence, and gets only the fact's paragraph and the blocks at its place ("Recovering a missing fact" above). Labels `recover_value` and `recover_foreign` for the two checks that send an answer back. |
+| 11 | 2026-10-09 | No change to the German and French templates. English templates for German and French documents (understand, write, judge, repair and the two partials, with an English style guide and labels, behind a setting that named the stages) were built, measured on the dev pairs on CSCS and not taken ("English instructions" above): longer, less plain German in repair on equal input, Understand failing on 2 of 12 pages and dropping content, English in omission entries, and gains on facts within the noise of two German runs. Removed the same day with their tests and measurement scripts (commit `ff0544a` has them); the results are kept above. |

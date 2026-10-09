@@ -27,3 +27,6 @@ working here and can only be relaxed by an explicit instruction from the owner.
 - The plan (order, dates, gates, cuts) lives in `PLAN.md`. Update it when something is
   implemented (tick its box, add a line to §11 Progress log) and when something new is
   planned (add the item to its work package, the schedule or the open decisions).
+- Update `PLAN.md` in place, in the section where the topic lives (PLAN.md §0 lists
+  them). Never append a new section, an "Added on ..." block or a revised copy of an
+  existing section.

@@ -423,8 +423,8 @@ the limit; none runs without repair rounds or after a round the endpoint failed 
 an answer the code could not use, it still runs: a smaller prompt, a new try). Since
 7 October 2026 (PLAN.md WP13).
 
-**The recover round** (since 9 October 2026, off by default: `MAX_RECOVER_FACTS=0`).
-With `MAX_RECOVER_FACTS` above 0, the must-keep values still missing (FACT-01) in the
+**The recover round** (since 9 October 2026, on by default: `MAX_RECOVER_FACTS=10`,
+PLAN.md D-AC; 0 turns it off). The must-keep values still missing (FACT-01) in the
 best version after the facts rounds, the most important kinds first and at most that
 many, are asked for one by one through `stages.recover_fact`, the call behind the
 review page's "Suggest a sentence" (§4.7): the fact's paragraph, the blocks at its
@@ -435,8 +435,9 @@ version as its parent; code's edits, the rule check and the judge follow as afte
 round, and its repair record has the kind `recover`. A fact without a suggestion, or
 with one FACT-01 does not accept, is left out with a note in the summary. Not without
 repair rounds and not after a round the endpoint failed; it runs before the vocabulary
-round, so office words in its sentences go there too. Whether it is on for the final
-run is PLAN.md D-AC, after a dev run.
+round, so office words in its sentences go there too. An error of any other kind in a
+call ends the round with a note, never the job. On the dev pairs it raised German fact
+coverage from 78 to 96 percent (docs/prompts.md, "The recover round on the dev pairs").
 
 **The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
 rounds, the office words still in the best version (LEX-07, LEX-07-FR) go to one more
@@ -521,7 +522,7 @@ sentences next to the source sentence and adds them to the block as an edit, or 
 code checks the value, not the meaning. On the premium letter's f07 (CSCS, 8B) the
 value came back in 3 of 3 runs, and 2 of them said "Der Anspruch gilt ab 1. Januar
 2027", which loses the residence condition (docs/prompts.md, "Recovering a missing
-fact"). The pipeline calls it only as the recover round, off by default (§4.6).
+fact"). The pipeline calls it as the recover round (§4.6).
 
 Export formats:
 
@@ -666,15 +667,6 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   the stages that use the thinking model. When the reasoning of a thinking call runs
   out of tokens before the answer, the stage is answered once more without thinking;
   both calls are counted in the usage log.
-- **Prompt language per stage.** `LLM_ENGLISH_PROMPTS` (default empty) names the
-  stages whose instructions are English (`llm/prompts/en/`; understand, write, judge
-  and repair have them). The document, the JSON examples, the few-shot pairs and every
-  text the model writes stay in the document's language; the style guide (from the
-  same rule registry, `rules/styleguide.py`) and the words code writes around the
-  items (`pipeline/labels.py`, `en`) follow the prompt. The job summary names an
-  English template's version as `en:<hash>`. An experiment of 9 October 2026, measured
-  on the dev pairs (docs/prompts.md, "English instructions"); empty, the default,
-  renders the frozen templates byte for byte.
 - **Graceful degradation.** A failing judge or repair round does not fail the job:
   the reviewer gets the best draft so far with its rule and fact checks, and the job
   summary names the step that failed.
@@ -1002,7 +994,7 @@ October 2026) the complete variant kept 95 percent of the hard facts (fact cover
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Value, cost & scalability |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
-| Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on in case B of PLAN.md §13.4: nothing is lost in silence |
+| Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on in case B of decision D-M (PLAN.md, WP13): nothing is lost in silence |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).
@@ -1015,7 +1007,7 @@ Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
 protected pages); `python -m leichtfacile eval report` renders the tables for the
 technical report from aggregates only, and `eval numbers` prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
-pairs per setup) and the case of PLAN.md §13.4 they fall into, with the headline
+pairs per setup) and the case of decision D-M (PLAN.md, WP13) they fall into, with the headline
 sentence filled in, so that README, report and video carry the same numbers.
 
 ## 10. Deployment and sovereignty
@@ -1129,9 +1121,6 @@ src/leichtfacile/
                           decision.md (the decision mode's partial, included by the four
                           standard templates when mode is "decision");
                           de/baseline_zh.md (Zurich's prompt, verbatim)
-  llm/prompts/en/         English instructions for German and French documents
-                          (LLM_ENGLISH_PROMPTS): understand, write, judge, repair and
-                          their two partials; no document language of its own
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,

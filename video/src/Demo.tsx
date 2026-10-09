@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile } from "remotion";
+import { Again } from "./scenes/Again";
 import { Compare } from "./scenes/Compare";
 import { End } from "./scenes/End";
 import { Evidence } from "./scenes/Evidence";
@@ -104,7 +105,8 @@ const HookC: React.FC<{ offset: number }> = ({ offset }) => <Hook offset={offset
 const LogoC: React.FC<{ offset: number }> = ({ offset }) => <LogoA offset={offset} introCue="lg-0" bridgeCue="lg-br" />;
 const EndC: React.FC<{ offset: number }> = ({ offset }) => <End offset={offset} sub="Every person. Every fact." />;
 
-/** Concept C: the "Can you read this?" opening, then the step by step and B's composition */
+/** Concept C: the "Can you read this?" opening, then the step by step and B's composition;
+ * the opening sentence comes back in easy language before the end card */
 export const DemoC: React.FC = () => (
   <Video
     tl={TIMELINES.c}
@@ -117,6 +119,7 @@ export const DemoC: React.FC = () => (
       { id: "product", C: ProductC },
       { id: "evidence", C: Evidence },
       { id: "sovereign", C: Sovereign },
+      { id: "again", C: Again },
       { id: "end", C: EndC },
     ]}
   />
