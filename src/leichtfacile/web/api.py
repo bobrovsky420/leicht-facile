@@ -13,9 +13,21 @@ from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.html import to_html
 from leichtfacile.export.markdown import to_markdown
+from leichtfacile.llm.client import LLMError
+from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.orchestrator import ARTIFACTS_FROM, PipelineError
-from leichtfacile.schemas import Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.pipeline.prompts import PromptNotAvailable
+from leichtfacile.schemas import (
+    Decision,
+    Draft,
+    FactSheet,
+    PipelineSummary,
+    ReviewState,
+    SourceDocument,
+)
+from leichtfacile.web.i18n import COOKIE, Translator, pick_language
 from leichtfacile.web.jobs import Submission, SubmissionError, create_job
+from leichtfacile.web.views import finding_text
 
 router = APIRouter(prefix="/api")
 ARTIFACT_NAMES = (
@@ -186,6 +198,61 @@ def export(
         return _download(body, "text/markdown", f"{job_id}.md")
     body = to_html(draft, review, title=job.title, notice=notice)
     return _download(body, "text/html", f"{job_id}.html")
+
+
+@router.post("/jobs/{job_id}/facts/{fact_id}/recover")
+def recover(request: Request, job_id: str, fact_id: str, version: int | None = None) -> dict:
+    """Sentences for a missing fact from its source paragraph, one writer call
+    (stages.recover_fact). Nothing is stored but the call's usage: the reviewer adds the
+    sentences to a block, as an edit, or leaves them. The rule findings come in the
+    interface language."""
+    job = _job_or_404(request, job_id)
+    state = _state(request)
+    store = state.store
+    if version is None:
+        summary = store.get_artifact(job_id, "summary", PipelineSummary)
+        version = summary.final_version if summary else None
+    source = store.get_artifact(job_id, "source", SourceDocument)
+    factsheet = store.get_artifact(job_id, "factsheet", FactSheet)
+    draft = store.get_artifact(job_id, "draft", Draft, version=version)
+    if source is None or factsheet is None or draft is None:
+        raise HTTPException(409, "the job has no draft yet")
+    if fact_id not in factsheet.fact_ids():
+        raise HTTPException(404, f"no fact {fact_id}")
+    try:
+        with state.llm.recording(lambda usage: store.add_usage(job_id, usage)):
+            rec, results = stages.recover_fact(
+                state.llm, source, factsheet, draft, fact_id, model=job.config.writer_model
+            )
+    except PromptNotAvailable as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except LLMError as exc:
+        raise HTTPException(502, f"the model endpoint failed: {exc}") from exc
+    t = Translator(
+        pick_language(
+            request.cookies.get(COOKIE),
+            request.headers.get("accept-language"),
+            state.settings.ui_lang,
+        )
+    )
+    fact = next(f for f in factsheet.facts if f.id == fact_id)
+    segments = source.by_id()
+    return {
+        "fact_id": fact_id,
+        "draft_version": draft.version,
+        "block_id": rec.block_id,
+        "texts": rec.texts,
+        "resolved": rec.resolved,
+        "rejected": rec.rejected,
+        "foreign": rec.foreign,
+        "dropped": rec.dropped,
+        "findings": [
+            {"rule_id": f.rule_id, "severity": f.severity, "message": finding_text(t, f)}
+            for f in rec.findings
+        ],
+        "source": [{"id": i, "text": segments[i].text} for i in fact.segment_ids if i in segments],
+        "calls": len(results),
+    }
 
 
 @router.post("/jobs/{job_id}/rerun")

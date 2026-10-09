@@ -363,8 +363,9 @@ class RepairRecord(Artifact):
     draft_version: int  # the version the round produced
     parent_version: int
     # facts: a round that asks for facts only; vocabulary: the last round, for the
-    # office words of the best version (LEX-07)
-    kind: Literal["repair", "facts", "vocabulary"] = "repair"
+    # office words of the best version (LEX-07); recover: the missing values asked for
+    # one by one with their source paragraphs (MAX_RECOVER_FACTS)
+    kind: Literal["repair", "facts", "vocabulary", "recover"] = "repair"
     requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
     requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
     repairs: list[AnsweredRepair] = Field(default_factory=list)

@@ -98,13 +98,13 @@ topic is covered in the evaluation by the BAG pair above.
 
 | Source | Terms | Consequence |
 |--------|-------|-------------|
-| Swiss Copyright Act, [article 5](https://www.droit-bilingue.ch/en-de/2/23/231.1-5-8.html) | Laws, ordinances, other official enactments, and decisions, minutes and reports of authorities are not protected | Such texts can be committed, published in a dataset and shown freely |
-| [zh.ch](https://www.zh.ch/de/nutzungshinweise.html) | Viewing, download and printing for personal use only; any further use needs consent | Manifest and fetch script only; no texts in the repository or dataset |
-| [be.ch](https://www.be.ch/de/tools/rechtliches.html) | Written consent required in advance for any reproduction | Same as Zürich. Bern is a hackathon partner: ask for consent if we want to publish the dataset. |
+| Swiss Copyright Act, [article 5](https://www.droit-bilingue.ch/en-de/2/23/231.1-5-8.html) | Laws, ordinances, other official enactments, and decisions, minutes and reports of authorities are not protected | Such texts can be committed and shown freely |
+| [zh.ch](https://www.zh.ch/de/nutzungshinweise.html) | Viewing, download and printing for personal use only; any further use needs consent | Manifest and fetch script only; no texts in the repository |
+| [be.ch](https://www.be.ch/de/tools/rechtliches.html) | Written consent required in advance for any reproduction | Same as Zürich |
 | [admin.ch](https://www.admin.ch/de/rechtliches) | Rights reserved by the federal authorities | Web pages and fact sheets: manifest only unless article 5 clearly applies |
 | [sg.ch](https://www.sg.ch/content/dam/sgch/kanton-stgallen/personalhandbuch/Legal_Disclaimer.pdf) | Reuse with full attribution for private use; other use needs written permission | Same as Zürich |
 | [ahv-iv.ch](https://www.ahv-iv.ch/de/Merkblätter) | Even partial reprints need written consent of the Informationsstelle AHV/IV | Not used |
-| Federal voting explanations | Three layers (research of 5 October 2026, not legal advice). The bill text is an enactment (article 5 para. 1a): free. The Federal Council's own parts ("In Kürze", "Im Detail", the Federal Council's arguments) are very likely a report of an authority (para. 1c): legally required, a government act, published to reach everybody. The committees' argument pages (about 2,500 characters each) are written by the committees: treat them as third-party text. Infographics and photos may be protected separately. The admin.ch notice asks for consent for any reproduction, but a website notice cannot create copyright in a text article 5 excludes; the booklets themselves carry no reuse note. | Federal Council parts and bill text can be used in the video, as fixtures and in a dataset, with the source named. Committee pages: short quotes only, unless the committee consents. No images. A written confirmation from the Federal Chancellery is optional and need not be awaited. |
+| Federal voting explanations | Three layers (research of 5 October 2026, not legal advice). The bill text is an enactment (article 5 para. 1a): free. The Federal Council's own parts ("In Kürze", "Im Detail", the Federal Council's arguments) are very likely a report of an authority (para. 1c): legally required, a government act, published to reach everybody. The committees' argument pages (about 2,500 characters each) are written by the committees: treat them as third-party text. Infographics and photos may be protected separately. The admin.ch notice asks for consent for any reproduction, but a website notice cannot create copyright in a text article 5 excludes; the booklets themselves carry no reuse note. | Federal Council parts and bill text can be used in the video and as fixtures, with the source named. Committee pages: short quotes only, unless the committee consents. No images. A written confirmation from the Federal Chancellery is optional and need not be awaited. |
 
 None of the sources above uses an open licence such as CC BY.
 
@@ -131,31 +131,10 @@ Anything public needs either consent or an article-5 text:
 | Example jobs in `data/examples/` | Article-5 texts or synthetic letters written by the team, since the repository is public. |
 | Test fixtures in `tests/fixtures/` | Article-5 texts or synthetic letters, including recorded model outputs. |
 | Technical report | Metrics and tables freely; short quoted excerpts with the source named. |
-| Hugging Face dataset (plan decision D-G) | Manifest, metrics, and article-5 texts with our outputs on them. Our rewrites of protected pages are adaptations and stay out unless the publisher consents. |
 
 A practical risk comes with live fetching: judging happens after the deadline, and
 pages can change, move or go offline. The application reports a failed fetch clearly,
 and the article-5 example jobs serve as the fallback.
-
-### Hugging Face dataset (optional, decision D-G)
-
-What the hackathon asks for (template `HackApertus/online_hack_template` and the terms
-and conditions §6, checked on 5 October 2026):
-
-- Three components: test cases, the model's response to each case, and a metadata file
-  with the licence of every single item. File names and formats are free; three JSONL
-  files joined on `id` work.
-- The dataset is licensed under CDLA-Permissive-2.0, irrevocably from submission, and
-  must be public (the template is gated: remove the gate).
-- Only data the team created or has the right to publish. Data from human subjects
-  would need a consent form; ours has none, and no personal data.
-- The card has many sections (curation, sources, consent, personal data, risks); a
-  card with placeholders scores zero in the Track 1B rubric, so every section must be
-  filled.
-
-What ours would contain: the manifest (URLs and metrics only for protected pages), the
-team-written texts and article-5 texts with our outputs on them, and per item the
-licence basis (`team-written`, `URG art. 5`, or `URL only`).
 
 ## 5. Findings that affect the design
 

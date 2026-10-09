@@ -510,3 +510,68 @@ def test_a_dropped_part_of_a_decision_blocks_and_is_asked_for_first() -> None:
     request = build_request(draft, rules, None, fs)
     assert [f.id for f in request.missing] == ["f02", "f01"]
     assert request.problems == {}
+
+
+def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
+    store, endpoint, sleeps
+) -> None:
+    """MAX_RECOVER_FACTS: after the facts rounds, the value still missing is asked for
+    alone with its source paragraph; its sentence goes after its block as a new version,
+    judged, and the final version when it has fewer values missing."""
+    settings = make_settings(
+        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False,
+        max_recover_facts=3,
+    )  # fmt: skip
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    judge_missing = {"fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}]}
+    judge_present = {"fact_checks": [{"fact_id": "f03", "status": "present",
+                                      "block_ids": ["b004.1"]}]}  # fmt: skip
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge_missing)),
+        chat_response(fx.as_json(no_number)),  # repair 1: the number is gone
+        chat_response(fx.as_json(judge_missing)),
+        chat_response(fx.as_json({"repairs": [], "additions": []})),  # facts 1: nothing
+        chat_response(fx.as_json(judge_missing)),
+        chat_response(fx.as_json({"after": "b004", "texts": ["Die Nummer ist 044 123 45 67."]})),
+        chat_response(fx.as_json(judge_present)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
+    Orchestrator(store, llm, settings).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert len(job.usage) == 9 and [u.stage for u in job.usage][7] == "recover"
+    recover_prompt = endpoint.chat_bodies()[7]["messages"][0]["content"]
+    assert "Im Text fehlt dieser Wert: 044 123 45 67" in recover_prompt
+    assert "Gebühr" not in recover_prompt  # another paragraph
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 4 and summary.stop_reason == "a facts round brought no progress"
+    final = store.get_artifact(job_id, "draft", Draft, version=4)
+    added = final.by_id()["b004.1"]
+    assert added.text == "Die Nummer ist 044 123 45 67." and added.fact_ids == ["f03"]
+    record = store.get_artifact_json(job_id, "repair", 4)
+    assert record["kind"] == "recover" and record["requested_facts"] == ["f03"]
+    rules = store.get_artifact(job_id, "rules", RuleFindings, version=4)
+    assert not [f for f in rules.findings if f.rule_id == "FACT-01"]
+
+
+def test_without_max_recover_facts_there_is_no_recover_round(store, endpoint, sleeps) -> None:
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    judge_missing = {"fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}]}
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(judge_missing)),
+        chat_response(fx.as_json(no_number)),
+        chat_response(fx.as_json(judge_missing)),
+        chat_response(fx.as_json({"repairs": [], "additions": []})),
+        chat_response(fx.as_json(judge_missing)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    assert len(store.get_job(job_id).usage) == 7 and not endpoint.queue
+    assert "recover" not in [u.stage for u in store.get_job(job_id).usage]

@@ -35,6 +35,7 @@ can always be traced to the exact prompt that produced it.
 | judge | on | 0.0 | 6000 / 12000 |
 | repair | off | 0.2 | 6000 / 12000 |
 | baseline (P0, P0-ZH) | off | 0.3 | 6000 / 12000 |
+| recover (review page; the recover round with `MAX_RECOVER_FACTS`) | off | 0.2 | 1500 / 6000 |
 
 `LLM_THINKING_STAGES` overrides the first column. Thinking models need a generous
 `max_tokens`: the reasoning can be several times longer than the answer. When the
@@ -943,6 +944,78 @@ Definition im Dokument." with no value and no source. Readings:
 - This is why fact coverage, hard facts kept and silent losses are measured by code,
   and why the review page shows a judge verdict that code contradicts as a doubt.
 
+### Recovering a missing fact: one fact on CSCS (9 October 2026)
+
+The review page's "Suggest a sentence" (architecture §4.7) asks the writer for one
+missing fact. Before it was built, three prompts were tried on fact f07 of the example
+job `praemienverbilligung-brief` (draft v5, CSCS, Apertus 1.5 8B, no thinking,
+temperature 0.2, response cache off). f07 is s0005: who lives in Musterwil on
+1 January 2027 and stays under the income limits; FACT-01 misses `1. Januar 2027`. The
+paragraph also holds s0006, the child increment; the draft already has the income
+limits (b009.1) and the increment. The job itself had asked for f07 alone twice through
+the repair prompt (repair round 3, facts round 4): both answers were about s0006, and
+code dropped them as repeats.
+
+| Prompt | What the call gets | Value back | Prompt tokens |
+|--------|--------------------|------------|---------------|
+| Repair prompt, f07 alone | the whole fact sheet and draft, the fact's sentence | 1 of 1 (the job's own 2 tries: 0) | 3,578 |
+| Paragraph only | the fact, its paragraph, the blocks at its place, the style guide | 0 of 3 | 1,355 |
+| Paragraph, value named | as above, plus "Im Text fehlt dieser Wert: 1. Januar 2027. Er steht im Original in Satz [s0005]." and a check that sends an answer without the value back once | 3 of 3, each at the first try | 1,412 |
+
+- Without the value named, the 8B wrote the income limits and the child increment
+  again every time: a narrow context alone does not point it at the right sentence.
+- The repair prompt's one success copied the source ("Anspruchsberechtigt sind
+  Personen, die ... ihren zivilrechtlichen Wohnsitz ...", one LEN-01 error) and put the
+  sentence after the heading b005.
+- No answer of any prompt had a value outside the paragraph.
+- The named-value answers came with a second sentence that repeated the income limits,
+  and once with `"after": "s0005"`, a sentence id: code now leaves out a sentence without
+  the value whose values the draft already has, and maps a sentence id to its block.
+
+Three more runs through `stages.recover_fact` itself: the value came back 3 of 3, the
+repeated income limits were left out 3 of 3, in 0.5 to 3 s per call. Two of the three
+sentences were "Der Anspruch gilt ab 1. Januar 2027.": the value is there, so FACT-01 is
+content, but the residence condition is lost and the date reads as a start. The third was
+"Der Anspruch gilt für Personen, die am 1. Januar 2027 in Musterwil wohnen." Hence the
+card on the review page shows the source sentence next to the suggestion and says that
+code checks the value, not the meaning; the reviewer decides.
+
+One fact on one letter is not a rate: at temperature 0.2 the runs are close to
+identical. The dev pairs' facts still missing at the end are the measurement before the
+feature shows in the report or the video. In the pipeline it runs only as the recover
+round, off by default (`MAX_RECOVER_FACTS`, architecture §4.6); the dev run with it on
+decides PLAN.md D-AC.
+
+**The recover round on the dev pairs** (CSCS, 9 October 2026). `MAX_RECOVER_FACTS=10`,
+P2, into `eval/results-cscs-recover-on`, right after session 7e's default run
+`eval/results-cscs-en-before` on the same code, so the cache replayed every call before
+the round: the seven pairs with no value missing came out identical, and the
+difference is the round alone.
+
+| Dev pairs | Fact coverage | Hard facts kept | Judge: distorted (fact-rich) | Invented values / 100 blocks | Tokens / page |
+|-----------|---------------|-----------------|------------------------------|------------------------------|---------------|
+| German (10), round off | 78 % | 72 % | 3 % | 0.8 | 24,946 |
+| German (10), round on | 96 % | 90 % | 5 % | 0.6 | 28,002 |
+| French (2), round off | 97 % | 94 % | 0 % | 1.2 | 23,524 |
+| French (2), round on | 100 % | 97 % | 8 % | 1.2 | 25,432 |
+
+- The round ran in 5 of 12 jobs: 20 facts asked for, 16 added, 4 with nothing new (each
+  sentence repeated the draft), none rejected for a value outside the paragraph. No job
+  gained an invented value. The final versions keep 27 of the 28 added sentences.
+- By pair: zh-shelters-de 58 to 100 percent fact coverage, be-pregnancy-counselling-de
+  36 to 64, sg-el-costs-de 86 to 100, ebgb-inclusion-initiative-de 0 to 100 (its one
+  checkable fact), be-tax-extension-fr 94 to 100.
+- The judge, run again on the new version, calls 3 of the 13 recovered facts it checked
+  distorted, and 6 added blocks unsupported (two of these notes say "Korrekt" in the
+  same breath). Read by hand, the weak sentences are of three kinds: the prompt's word
+  echoed ("Der Wert ist 052 213 08 78."), a broken reflexive ("Sie können sich
+  anrufen."), and a sentence without the value added to the right one ("Sie können dort
+  mehr Informationen finden."). Most recovered facts are contacts of several offices
+  (addresses, numbers, e-mail addresses).
+- Cost: about 12 percent more tokens per page and 5 s more per German page.
+
+Twelve pairs, five of them changed: the eval split decides what the report says.
+
 ## Change log
 
 | Version | Date | Change |
@@ -969,3 +1042,4 @@ Definition im Dokument." with no value and no source. Readings:
 | 10 | 2026-10-08 | Understand and write prompts (German and French): one more include line each, `{% if medication is defined and medication %}{% include "<lang>/medication.md" %}{% endif %}`, and the new partial `medication.md`. Code switches it on for Understand when the source has a dose or a dosing scheme (`rules/medication.py`, `has_doses`) and for Write when the fact sheet names a medication; it asks for one fact of kind `medication` per drug with the name alone as the value, and for one list item per medication with name, dose, scheme and duration. No evaluation source has a dose (checked on the 35 standard texts and the decision), so every evaluation prompt renders byte for byte as before; the template hash changes once. Code the same day: the value kind `medication` (rules/values.py), FACT-09 (a medication in one block with its dose, scheme and duration; repairable on the block that names it), medication facts first among the missing facts of a repair round, and the Mediopunkt step leaves the names alone (docs/rules.md). |
 | 10 | 2026-10-08 | No template change and no pipeline change. Tried on the dev pairs and not taken ("Judge doubts on values" above): a judge's `missing` on a fact whose value FACT-01 finds as non-blocking, and a missing fact asked for by the clause of its value; with both, five of ten German jobs took another path, three ended worse and none better. Kept: the review page shows such a verdict in amber as "judge doubts". |
 | 10 | 2026-10-08 | No template change. Code, from the example jobs: a block without a source sentence takes those of the facts it names, else the one it says in other words (`stages.wording_source`), and a sentence id the source does not have is dropped (FACT-03, and the judge sees the sentence); a hard term of the model that the source does not contain leaves the fact sheet (`stages.in_source`; the Understand example's office for 6 documents); the examples' office (`Einwohnerkontrolle`, `contrôle des habitants`) is a topic word of the copy guard. P2 on the 12 dev pairs on CSCS, the committed code (`eval/results-cscs-ab-before`) against these changes on the same cache (`eval/results-cscs-prov-after`): five pairs identical; fact coverage 76 to 81 percent, hard facts kept 69 to 76, must-keep values missing 43 to 33 in all, rule errors 2.7 to 2.3 per 100 blocks, unsupported 5.3 to 6.2, invented values 0.64 to 0.85. Of the seven changed pairs three ended better (be-tax-extension-fr, fact coverage 13 to 94 percent after the copied term "case number" left its fact sheet), two worse (sg-el-costs-de lost three values after the copy guard sent back an Understand answer with the office; bwl-emergency-supplies-fr gained an invented period), two mixed: too few pairs to separate the changes from the 8B's noise. |
+| 11 | 2026-10-09 | New template `recover.md` (German and French), used only by the review page's "Suggest a sentence" for one missing fact, never by the pipeline: no other template changes, the evaluated runs render the same prompts. It names the missing value and its source sentence, and gets only the fact's paragraph and the blocks at its place ("Recovering a missing fact" above). Labels `recover_value` and `recover_foreign` for the two checks that send an answer back. |

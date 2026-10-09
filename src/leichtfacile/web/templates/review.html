@@ -216,6 +216,12 @@
           {% if f.judge_note %}<span class="fact-note"><span class="tag">{{ t('review.tag.judge') }}</span><span lang="{{ doc_lang }}">{{ f.judge_note }}</span></span>{% endif %}
           {% if not f.fact.must_keep %}<span class="fact-note muted">{{ t('review.fact.background') }}</span>{% endif %}
         </button>
+        {% if f.status == 'missing' and f.fact.segment_ids %}
+        <div class="fact-recover js-only" data-recover="{{ f.fact.id }}">
+          <button type="button" class="btn btn-sm" data-recover-ask>{{ icons.icon('chip', 12) }}{{ t('review.recover') }}</button>
+          <div class="recover-out" role="status" aria-live="polite"></div>
+        </div>
+        {% endif %}
         {% endfor %}
         {% else %}
         <p class="section-intro">{{ t('review.no_facts') }}</p>

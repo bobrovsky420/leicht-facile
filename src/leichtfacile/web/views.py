@@ -548,7 +548,7 @@ def progress_view(
 
     stage = job.stage or ""
     stage_key = stage.split(" ")[0]
-    if stage_key in ("facts", "vocabulary"):  # rounds for facts or office words: repair
+    if stage_key in ("facts", "vocabulary", "recover"):  # rounds for facts or words: repair
         stage_key = "repair"
     in_loop = len(drafts) > 1 or stage_key == "repair"
     if job.status in ("needs_review", "done"):
@@ -591,7 +591,7 @@ def progress_view(
     by_stage: dict[str, StageUsage] = {}
     for u in job.usage:
         key = u.stage.split(" ")[0]
-        key = "repair" if key in ("facts", "vocabulary") else key  # repair calls
+        key = "repair" if key in ("facts", "vocabulary", "recover") else key  # repair calls
         row = by_stage.setdefault(key, StageUsage(key))
         row.calls += 1
         row.cached += int(u.cached)

@@ -29,9 +29,12 @@ def source_text(doc: SourceDocument) -> str:
     return source_lines(doc.segments)
 
 
-def cited_source(doc: SourceDocument, segment_ids: Iterable[str]) -> str:
+def cited_source(doc: SourceDocument, segment_ids: Iterable[str], labels: str | None = None) -> str:
+    """The cited sentences; `labels`: the language of the prompt's own words, when it is
+    not the document's (English instructions)."""
     wanted = set(segment_ids)
-    return source_lines(s for s in doc.segments if s.id in wanted) or label(doc.lang, "none")
+    lines = source_lines(s for s in doc.segments if s.id in wanted)
+    return lines or label(labels or doc.lang, "none")
 
 
 def factsheet_text(fs: FactSheet, fact_ids: Iterable[str] | None = None, lang: str = "de") -> str:
@@ -83,9 +86,9 @@ def draft_lines(draft: Draft, *, refs: bool = True, marked: set[str] | None = No
     return "\n".join(lines)
 
 
-def glossary_text(draft: Draft) -> str:
+def glossary_text(draft: Draft, labels: str | None = None) -> str:
     entries = "\n".join(f"- {g.term}: {g.explanation}" for g in draft.glossary)
-    return entries or label(draft.lang, "empty")
+    return entries or label(labels or draft.lang, "empty")
 
 
 def finding_line(f: Finding, lang: str = "de") -> str:

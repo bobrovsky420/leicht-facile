@@ -643,6 +643,91 @@
   $$("[data-fact-ref]").forEach((el) => {
     onActivate(el, () => showFact(el.dataset.factRef, $(`.fact[data-fact="${el.dataset.factRef}"]`)));
   });
+
+  // a missing fact: sentences from its source paragraph, one Apertus call
+  // (POST /api/jobs/{id}/facts/{fact}/recover); the reviewer adds them to a block as an edit
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const docLang = form.getAttribute("lang") || "";
+  const addToBlock = (blockId, texts) => {
+    const block = document.getElementById(`blk-${blockId}`);
+    if (!block) return false;
+    const area = areaOf(block);
+    const editing = chosen(block) && chosen(block).value === "edited";
+    const base = (editing ? area.value : $(".orig-text", block).textContent).trimEnd();
+    area.value = [base, ...texts].join(" ");
+    radios(block).find((r) => r.value === "edited").checked = true;
+    markDirty();
+    refresh();
+    select(block, { scroll: true });
+    area.focus({ preventScroll: true });
+    return true;
+  };
+  $$("[data-recover]").forEach((box) => {
+    const ask = $("[data-recover-ask]", box);
+    const out = $(".recover-out", box);
+    ask.addEventListener("click", async () => {
+      ask.disabled = true;
+      out.replaceChildren(el("p", "hint", t("recover_asking")));
+      let data = null;
+      try {
+        const res = await fetch(`/api/jobs/${form.dataset.job}/facts/${box.dataset.recover}/recover?version=${form.dataset.version}`, { method: "POST" });
+        data = await res.json();
+        if (!res.ok) throw new Error(data.detail || res.status);
+      } catch (e) {
+        out.replaceChildren(el("p", "recover-check bad", t("recover_failed", { detail: String(e.message || e) })));
+        ask.disabled = false;
+        return;
+      }
+      ask.disabled = false;
+      ask.lastChild.textContent = t("recover_again");
+      if (data.rejected) {
+        const reason = el("p", "recover-check bad", t(`recover_rejected.${data.rejected}`, { values: (data.foreign || []).join(", ") }));
+        out.replaceChildren(reason);
+        return;
+      }
+      const card = el("div", "recover-box");
+      card.append(el("p", "label", t("recover_title")));
+      data.texts.forEach((text) => {
+        const p = el("p", "recover-text", text);
+        p.lang = docLang;
+        card.append(p);
+      });
+      data.source.forEach((seg) => {
+        const p = el("p", "recover-src");
+        const text = el("span", "", seg.text);
+        text.lang = docLang;
+        p.append(el("span", "ref", seg.id), text);
+        card.append(p);
+      });
+      const check = data.resolved === true ? ["ok", "recover_resolved"] : data.resolved === false ? ["bad", "recover_unresolved"] : ["", "recover_no_value"];
+      card.append(el("p", `recover-check ${check[0]}`, t(check[1])));
+      if (data.findings.length) {
+        const list = el("ul");
+        data.findings.forEach((f) => {
+          const li = el("li", `sev-${f.severity}`);
+          li.append(el("span", "rid", f.rule_id), el("span", "", f.message));
+          list.append(li);
+        });
+        card.append(list);
+      }
+      const actions = el("div", "recover-actions");
+      const add = el("button", "btn btn-sm btn-primary", t("recover_add", { block: data.block_id }));
+      add.type = "button";
+      add.addEventListener("click", () => {
+        if (addToBlock(data.block_id, data.texts)) {
+          actions.replaceChildren(el("span", "recover-check ok", t("recover_added", { block: data.block_id })));
+        }
+      });
+      actions.append(add);
+      card.append(actions);
+      out.replaceChildren(card);
+    });
+  });
   $$(".linkable[data-segments]").forEach((el) => {
     onActivate(el, () => {
       clearMarks();

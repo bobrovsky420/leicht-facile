@@ -402,6 +402,22 @@ class AdditionItem(LLMOut):
         return _BLOCK_KIND_ALIASES.get(str(v or "").strip().lower(), "sentence")
 
 
+class RecoverOut(LLMOut):
+    """The sentences of one missing fact (stages.recover_fact)."""
+
+    after: str | None = None
+    texts: list[str] = Field(default_factory=list)
+
+    @field_validator("texts", mode="before")
+    @classmethod
+    def _texts(cls, v: Any) -> list[str]:
+        texts = [clean_text(str(t)) for t in (v if isinstance(v, list) else [v])]
+        texts = [t for t in texts if t]
+        if not texts:
+            raise ValueError("the answer needs at least one sentence")
+        return texts
+
+
 class RepairOut(LLMOut):
     _list_field = "repairs"
 

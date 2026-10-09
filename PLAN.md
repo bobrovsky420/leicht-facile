@@ -76,11 +76,6 @@ Risks:
       calls: the usage of failed jobs seems under-reported. Fixed 7 Oct: usage was
       stored only when a stage returned; now each call is stored as it is made (§11).
 
-Optional:
-
-- [ ] Hugging Face dataset: decide by 13 October (also clears the §4 **[pending]**
-      marker).
-
 ## 0. How to use this plan
 
 - Work packages (WP) are listed in build order in §3. Each has a "done when" line;
@@ -581,6 +576,26 @@ the pipeline, the schemas, the store layout or the API; one new page route (`GET
       German at every width (ui-design §17).*
 - [x] Docs: architecture §7 rewritten for the new UI (the purple and teal sentence
       goes), README docs list, `docs/demo-video.md`, `THIRD_PARTY_NOTICES.md` (§11).
+- [x] "Suggest a sentence" for a missing fact (added 9 Oct at the owner's request):
+      one writer call with the fact's source paragraph only, the value named; code
+      checks the value, the paragraph's values and repeats; the reviewer adds the
+      sentences to a block as an edit (architecture §4.7, ui-design §5.5, prompts.md
+      "Recovering a missing fact"). In the pipeline only as the recover round (next).
+- [x] The recover round in the pipeline (owner's go, 9 Oct, after the freeze moved to
+      Sun 11 Oct, D-AD): after the facts rounds, the values still missing in the best
+      version asked for one by one with `stages.recover_fact`, one new version, checked
+      and judged; `MAX_RECOVER_FACTS`, default 0, so the default path is unchanged
+      (architecture §4.6).
+- [x] The dev run with the round on (`MAX_RECOVER_FACTS=10`, P2, CSCS, into
+      `eval/results-cscs-recover-on`), right after session 7e's default-prompt dev run
+      `eval/results-cscs-en-before`, so the cache replays every call before the round:
+      fact coverage, hard facts kept, the judge's verdicts on the recovered facts (does
+      it call them distorted?), invented values, time per job. It is also the
+      measurement of the review page's suggestion. Then D-AC, before Sun 11 Oct 18:00.
+      *Done 9 Oct: German fact coverage 78 to 96 percent, hard facts kept 72 to 90,
+      no invented value added; the judge calls 3 of 13 recovered facts distorted
+      (docs/prompts.md, "The recover round on the dev pairs"). D-AC waits for the
+      owner.*
 
 Order as listed; the review screen first, since it is the video's main scene. WP15's
 form fields and notice banner (pieces 1 and 5) go into the new templates (ui-design
@@ -617,10 +632,7 @@ run` loads nothing from another host.
 - [ ] Clean-checkout test on a different machine or a fresh clone directory:
       `git clone`, `.env`, `make run`, run one job.
 - [ ] Repo to public; `.env` absent from history (check `git log -p -- .env`).
-- [ ] Optional HF dataset in the `HackApertus/online_hack_template` layout, only if
-      the manifest licensing is clean (decision by 13 October).
-- [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL,
-      dataset URL if any.
+- [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL.
 
 ### Dependencies
 
@@ -661,7 +673,7 @@ they gain the gap items. The table below stays as the original plan.*
 | Sat 10 Oct | WP7 harness, P0/P1/P2 runs (overnight if needed) | **G3**: P0/P1/P2 numbers on 15+ German pairs. If missed: cut Italian now, French becomes stretch |
 | Sun 11 Oct | WP8 API + review UI | Review page shows provenance, findings, fact checklist |
 | Mon 12 Oct | WP8 export + examples, WP9 French | **G4**: UI demoable; export works; pipeline feature freeze (bug fixes only) |
-| Tue 13 Oct | WP10 comparisons, labelling, κ; Italian only if G3 and G4 were on time | All report tables filled; decide on HF dataset |
+| Tue 13 Oct | WP10 comparisons, labelling, κ; Italian only if G3 and G4 were on time | All report tables filled |
 | Wed 14 Oct | WP11 report draft, README, video script and recording | **G5**: report draft complete (6 pages), video recorded, clean-checkout test passed |
 | Thu 15 Oct | Buffer: fixes from the clean-checkout test, report polish, PDF export, repo public | **G6**: everything submission-ready, nothing left to do on the 16th but click |
 | Fri 16 Oct | Submit before 12:00 CEST | Submitted, confirmation saved |
@@ -738,13 +750,12 @@ comparison, the report, the video.
 | D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. *7 Oct: WP18 replaces water.css with an own stylesheet and vendored fonts, still without a framework or a bundler (docs/ui-design.md).* | 11 Oct |
 | D-E | Primary level A2 or B1 | Day-1 check 6. | 6 Oct |
 | D-F | Section-parallel writing | Only if check 5 shows headroom; otherwise sequential. *Decided 6 Oct on Public AI: 8 parallel calls, no 429, 1.4 to 2.2 s each. Headroom exists; use it first for parallel evaluation workers, section-parallel writing stays optional.* | done |
-| D-G | Publish an HF dataset | Development and evaluation need no consent (docs/sources.md §4). Publishing protected texts or our rewrites of them does. Default: manifest, metrics, and article-5 texts with outputs; ask Bern only if a Swiss reference set should be public. | 13 Oct |
 | D-I | Main demo document | A past Federal Council voting explanation (docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap. Test run of 7 Oct (use-case-decisions.md §7): the KESB decision is not demo-ready on today's pipeline (an invented appeal deadline, the deputy's tasks given to the person); it becomes the demo only with decision mode v1 by G4, otherwise the premium-reduction letter carries the product scene.* | 9 Oct |
 | D-J | NUM-08 and +41 numbers | Decide at checker calibration: accept the international format or lower to `info`. | 8 Oct |
 | D-H | Team name | Decided 5 Oct: **Röstigraben Bridgers**; file name `RoestigrabenBridgers_Report.pdf`. Report §1 frames the name as bridging the gap between authorities and readers, not as translation. | done |
 | D-K | P0-ZH variants | Run both on the 20 German eval pairs: `complete` (same task as ours, keep every fact; used for the headline) and `condensed` (their default for Leichte Sprache). One 8B call per pair, cheap. | 7 Oct |
 | D-L | Name Zurich in the video | Report: yes, with credit, link and licence. Video: only in case A of §13.4; otherwise "a strong single prompt". | 13 Oct |
-| D-M | Headline metric and sentence | The rules of §13.4, applied to the final CSCS numbers, no debate. | 10 Oct (G3) |
+| D-M | Headline metric and sentence | The rules of §13.4, applied to the final CSCS numbers, no debate. | 12 Oct (G3, moved from 10 Oct with the freeze, D-AD) |
 | D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. *Decided 7 Oct after four spike runs (8B and 70B, 1,600 px and full resolution): hard values are lost at every setting, and at full resolution the models turn the IBANs, the AVS number and a period into other plausible numbers, the worst case for a fact contract. WP12a cut, WP12b after the deadline; the report names image input as future work with these numbers (docs/prompts.md).* | done |
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
@@ -760,6 +771,8 @@ comparison, the report, the video.
 | D-Y | Per-row checks and review progress in the drafts list (WP18) | Computed per request with `review_view` for the at most 50 rows shown; a stored summary per job only if the page needs more than 300 ms with 50 jobs. *Decided 7 Oct, implemented (`drafts_view`).* | done |
 | D-AA | The vocabulary in the pipeline: after 16 October (WP17) or now | Now (owner, 7 Oct): checked explanations in the fact sheet, missing glossary entries by code, rule LEX-07 / LEX-07-FR (docs/rules.md "Vocabulary"); `USE_VOCABULARY=0` switches them off for the measurement. A last vocabulary round rewrites the office words left in the best version (42 to 19 office words in the final drafts, no fact lost). The writer gets no list of office words: tried, it primed the 8B to write those words; removed (owner, 7 Oct), worth another try with a later Apertus. Keep the rest on for the final run unless a rerun shows a loss of facts or style (docs/prompts.md, "Vocabulary in the pipeline"). *Decided 7 Oct, implemented.* | done |
 | D-AB | A fact-sheet value the source does not contain (FACT-05): known to FACT-06 and required by FACT-01, or neither | Neither: the model computed or invented it (an end of an appeal period, a day for "im Frühling"), or normalised it into a form no faithful draft can match; FACT-01 and the source check use the same matching. FACT-05 keeps warning on the fact sheet, FACT-06 flags the value in a draft, fact coverage counts only facts whose value the source contains. *Decided 7 Oct (owner) after the KESB decision's invented deadline, implemented. Dev rerun on CSCS with the old and the new rule on the same cache: fact coverage 78.8 against 78.8 percent under the new measure, hard facts kept, invented values and rule errors unchanged, about 600 tokens per page less; the measure alone raises stored P2 fact coverage on the eval pairs from 81.7 to 83.1 percent (docs/prompts.md).* | done |
+| D-AC | "Suggest a sentence" for a missing fact (9 Oct): on the review page only, or also as a round in the pipeline | Review page only until 16 October: a pipeline round would change the evaluated numbers after the prompt freeze (Sun 11 Oct, 18:00, D-AD) and the final run, and on f07 two of three sentences kept the value but lost the residence condition, which only a reader sees. As a pipeline round after the facts rounds, behind a setting with default off, only after the dev measurement (WP18 item) and a rerun; otherwise report §8 as next step. | owner |
+| D-AD | Prompt freeze: Fri 9 Oct, 18:00, or later | Sun 11 Oct, 18:00 (owner, 9 Oct). Prompt and pipeline changes for the final run go in until then and are measured on dev first; the final CSCS run starts on Sunday night, G3 and D-M move to Mon 12 Oct, G4 stays on Mon 12 Oct. | done |
 
 ## 9. Judging criteria → evidence we must produce
 
@@ -853,54 +866,11 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-08 (session 64, quick wins, rule count, judge agreement): (1) The HTML export breaks lines at sense units of at most 60 characters (`HTML_LINE_CHARS`, within LAY-02's 85) in a 36em column, so the reader view no longer breaks a line twice ("8.30 bis 11.30 Uhr" / "Uhr" alone), and never inside a value (no-break spaces in dates, amounts, phone numbers); print styles set A4 at 14 points, and the reader view's export panel has "Print or save as PDF" (the frame's sandbox allows modals, no scripts). (2) French interface: `web/locales/fr.json`, all 594 keys including the checker's messages and the rule titles, the switcher shows EN / DE / FR (GAP-17 for French). (3) Glossary entries are decided like blocks: ids `g01`, `g02` in a decision's `block_id`, rows after the blocks in the review, the same keys and counts; exports and the audit bundle (`final.glossary`, `undecided_glossary`) carry only what the review keeps. (4) Rule count: README and report say 45 for German and 41 for French, the registry's count (the UI's `rule_count()`), the older narrations 45 too; a test in `tests/rules/test_registry.py` keeps README and report in step. (5) Judge agreement: the 59 items of `eval/labels/dev` (P2 dev drafts of 6 Oct, 70B judge) labelled blind by an AI assistant (Claude), then scored: blocks 80 percent agreement, κ 0.60; facts 38 percent, κ 0.08 (present or not: 62 percent, κ 0.22); in 5 of 18 disagreements the judge's note concerns another fact than the one it is filed under, a lead for the judge prompt. Report §5 and §3 (Other models) say so; the hackathon rules name open-weights models as evaluation helpers, so the owner decides whether these labels stand or are redone by hand. architecture §7, ui-design and docs/prompts.md updated; tests for each part.
 - 2026-10-08 (session 76, example jobs, root causes): the CI failure of the two example tests traced and the code-side causes fixed, with tests. (1) Provenance (FACT-03): a block without a source sentence takes those of the facts it names, else the sentence it says in other words (`stages.wording_source`: the most distinctive shared words, a clear margin, two words or one of seven letters or more; 13 of 13 links right on the stored final P2 drafts), and a sentence id the source does not have is dropped (the 8B cited `s0009.2`); without a source sentence the judge, which sees only the cited sentences, had called the French letter's correct cash-payment sentence invented. (2) A hard term of the model that the source does not contain leaves the fact sheet (`stages.in_source`): the 8B copied the Understand example's office for 6 evaluation documents. (3) That office (`Einwohnerkontrolle`, `contrôle des habitants`) is a topic word of the copy guard: the repair example's addition came back with a real number in 4 evaluation P2 jobs and 3 example builds. P2 on the 12 dev pairs on CSCS against the committed code on the same cache (`eval/results-cscs-prov-after`; docs/prompts.md change log 10): fact coverage 76 to 81 percent, hard facts kept 69 to 76, rule errors 2.7 to 2.3 per 100 blocks, unsupported 5.3 to 6.2, invented values 0.64 to 0.85; three pairs better, two worse, two mixed, five identical, so within the 8B's noise. The examples are still not clean: nine builds (three with the cache, six fresh with `LLM_CACHE=0`), none without errors, so `jobs/` keeps the 7 Oct bundles and the two example tests stay red. What remains is model output: the 8B drops the residence date 1 January 2027 (s0005) in nearly every German and fresh French job and the repair rounds never add it (its code fact's text is the whole sentence with the income limits), and the judge calls about one harmless block per job unsupported. Found on the way, not changed (each changes every judge call, so it needs the owner and a measurement before the freeze): the judge sees code facts as the same cut-off sentence and assigns its verdicts to the wrong fact ids (on French v4 it called f06 to f09 missing with notes about other sentences); it sees only the cited sentences, so a wrong citation by the writer becomes an unsupported verdict. 1,229 tests; all green except the two example tests.
 - 2026-10-09 (layout risk closed): the `track_2b/` layout risk is ticked without asking the organisers: submission requirement 3 (`make run` from the root of the project on a clean checkout) needs the template's `track_2b/` contents at the root, as the repository has them.
-
-## 12. Draft: consent request to Canton Bern (D-G)
-
-Only needed if the Hugging Face dataset should contain the Bern texts. Not sent.
-
-```text
-Betreff: Anfrage zur Veröffentlichung von Texten in Leichter Sprache in einem Forschungs-Datensatz (Hack Apertus)
-
-Sehr geehrte Damen und Herren
-
-Wir nehmen als Team Röstigraben Bridgers am Hackathon Hack Apertus teil (Track 2B).
-Unser Projekt Leicht·Facile entwirft mit dem Schweizer Sprachmodell Apertus Fassungen
-amtlicher Texte in Leichter Sprache. Ein Prüfprogramm kontrolliert danach jede Frist,
-jeden Betrag und jede Telefonnummer, und eine Fachperson prüft den Entwurf, bevor er
-veröffentlicht wird.
-
-Für die Auswertung vergleichen wir unsere Entwürfe mit Seiten in Leichter Sprache, die
-Fachleute geschrieben haben. Dazu gehören diese Seiten des Kantons Bern, jeweils mit
-der Seite in Standardsprache:
-
-- Steuererklärung, Frist verlängern (Deutsch und Französisch):
-  https://www.sv.fin.be.ch/de/start/leichte-sprache/steuern.html
-  https://www.sv.fin.be.ch/fr/start/leichte-sprache/steuern.html
-- Notrufnummern (Deutsch und Französisch):
-  https://www.police.be.ch/de/start/leichte-sprache/notfall.html
-  https://www.police.be.ch/fr/start/leichte-sprache/notfall.html
-- Sozialhilfe: https://www.gsi.be.ch/de/start/leichte-sprache/soziales/sozialhilfe/sozial-hilfe.html
-- Geburt melden: https://www.zivilstand.sid.be.ch/de/start/leichte-sprache/geburt.html
-- Namensänderung: https://www.zivilstand.sid.be.ch/de/start/leichte-sprache/namensaenderung.html
-- Abstimmung zur Berner Bildungsinitiative (PDF in Leichter Sprache vom 28. August 2026)
-
-Bis jetzt verwenden wir die Texte nur intern. Öffentlich zeigen wir nur die Links und
-Kennzahlen. Gemäss Ihren rechtlichen Hinweisen fragen wir deshalb um Ihre Zustimmung:
-Dürfen wir die Texte dieser Seiten zusammen mit unseren Entwürfen in einem öffentlichen
-Datensatz auf Hugging Face veröffentlichen, mit Quellenangabe und unter der Lizenz
-CDLA-Permissive-2.0? Der Datensatz dient der Forschung zur Leichten Sprache und ist
-für Behörden frei nutzbar.
-
-Eine Antwort bis am 12. Oktober 2026 würde uns sehr helfen. Wir senden Ihnen den
-Datensatz gerne vorher zur Durchsicht. Wenn Sie nur einem Teil der Seiten zustimmen,
-hilft uns das auch.
-
-Freundliche Grüsse
-
-[Name]
-Team Röstigraben Bridgers, Hack Apertus 2026
-[E-Mail]
-```
+- 2026-10-09 (recover session): "Suggest a sentence" for a missing fact, at the owner's request (WP18 item, D-AC). First a spike on f07 of the example job `praemienverbilligung-brief` (CSCS, 8B, cache off): the paragraph alone brought the value back in 0 of 3 runs, the paragraph with the value and its sentence named in 3 of 3, the repair prompt with f07 alone in 1 of 1 (the job's own two tries: 0); no run had a value outside the paragraph (docs/prompts.md). Built: `stages.recover_fact` with the templates `de/recover.md` and `fr/recover.md` (prompt version 11, used by no pipeline stage), `POST /api/jobs/{id}/facts/{fact}/recover`, the card under a missing fact on the review page with the source sentence, the code check, the rule findings and "Add to block", texts in en, de and fr, 8 tests. Checked in headless Edge against CSCS on the example job: the suggestion came back, "Add" made block b009.2 an edit. Two of three live sentences said "Der Anspruch gilt ab 1. Januar 2027": the value is there, the residence condition is not; the card says that code does not check the meaning. Open: the dev measurement (WP18).
+- 2026-10-09 (recover session, 2): the recover round in the pipeline, behind `MAX_RECOVER_FACTS` (default 0, the default path unchanged, as session 7e's comparison runs need). After the facts rounds it takes the best version, asks for each must-keep value FACT-01 still misses (the most important kinds first, at most `MAX_RECOVER_FACTS`) through `stages.recover_fact`, puts the accepted sentences after their blocks (`stages.add_sentences`) as one new version, and checks and judges it like a round (`Orchestrator._recover`; the round's shared tail is now `_finish`). Repair record kind `recover`; the job page counts its calls under Repair. Two orchestrator tests (on and off). The dev run with it on waits for 7e's `eval/results-cscs-en-before`.
+- 2026-10-09 (recover session, 3): the dev run with the recover round on (`MAX_RECOVER_FACTS=10`, `eval/results-cscs-recover-on`) right after 7e's default run `eval/results-cscs-en-before`, the cache replaying everything before the round. German dev pairs: fact coverage 78 to 96 percent, hard facts kept 72 to 90, invented values 0.8 to 0.6 per 100 blocks, judge distorted (fact-rich) 3 to 5 percent, tokens per page plus 12 percent; French: 97 to 100, 94 to 97. Five of 12 jobs changed, 16 facts added, the judge calls 3 of the 13 it checked distorted; weak sentences echo the prompt ("Der Wert ist ...") or break a reflexive. D-AC for the owner.
+- 2026-10-09 (freeze moved): the owner moved the prompt freeze from Fri 9 Oct, 18:00, to Sun 11 Oct, 18:00 (D-AD). The final CSCS evaluation starts on Sunday night; G3 (every §5 row on CSCS, headline per §13.4) moves from Sat 10 to Mon 12 Oct, next to G4. §13.3, the final evaluation item of WP13, D-M and D-AC updated; the running sessions told.
+- 2026-10-09 (no dataset): the owner dropped the optional Hugging Face dataset. Decision D-G, its WP item, the 13 Oct schedule entries, the consent letter to Canton Bern (old §12; §13 keeps its number so that references to it hold), the dataset parts of docs/sources.md §4, architecture §9 and report §4 removed.
 
 ## 13. Closing the gaps (added 6 October 2026, night)
 
@@ -1067,7 +1037,8 @@ prompt, on the same model?", with numbers a juror can trust.
       - the drafting time per page of a professional, from the outreach answers
         (§13.7) or a published price per page. Without either, the report says so;
         no invented figure.
-- [ ] **Final evaluation on CSCS** after the prompt freeze (Fri 9 Oct, 18:00):
+- [ ] **Final evaluation on CSCS** after the prompt freeze (Sun 11 Oct, 18:00; moved
+      from Fri 9 Oct on 9 Oct, D-AD):
       - P0, P0-ZH (both variants), P1 and P2 on the 20 German eval pairs;
       - P0, P1 and P2 on the 3 French eval pairs;
       - the 70B writer on 5 pairs (WP10);
@@ -1421,7 +1392,7 @@ eval row; the dev rerun shows the effect, whatever it is, in docs/prompts.md.
          and repair; the standard templates get one line each, `{% if mode ==
          "decision" %}{% include %}{% endif %}`, which renders to nothing for a
          standard job (same cache keys, same results; the template hash changes once).
-         The include lines and the SEM-08 line go in before the Friday freeze; the
+         The include lines and the SEM-08 line go in before the prompt freeze; the
          partial is free to change afterwards. *7 Oct, night: the include lines are in
          all eight standard templates (`mode is defined and mode == "decision"`, so
          every existing render call works), with a first draft of `decision.md` in
@@ -1658,17 +1629,19 @@ the owner relaxed the condition.*
 ### 13.3 Schedule from 7 October
 
 The gates keep their names and dates from §4 and gain the items below (G1 and G2 were
-passed on 6 Oct).
+passed on 6 Oct). *9 Oct: the prompt freeze moved from Fri 9 Oct, 18:00, to Sun 11 Oct,
+18:00 (owner's decision, D-AD); the final CSCS run starts on Sunday night, so G3 moves
+from Sat 10 to Mon 12 Oct, the same day as G4.*
 
 | Date | Focus | Gate (end of day) |
 |------|-------|-------------------|
 | Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); mail A; save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
 | Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); mail B with three drafts; KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14); UI track (WP18, own session): D-V to D-Y, foundations, start of the review screen *(done 7 Oct)* | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
-| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); **prompt freeze 18:00**; final CSCS evaluation overnight; UI: the review screen, the reader view | Final run started |
-| Sat 10 Oct | Read the numbers per §13.4; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | **G3**: every §5 row on CSCS, P0-ZH included; headline decided (D-M) |
-| Sun 11 Oct | Example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS; UI: the job page, the texts, tests and screenshots; the decision mode's form fields and notice banner go into the new templates (WP18) | Example jobs in the image |
-| Mon 12 Oct | `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G4**: feature freeze, as before; decision mode v1 in or cut per its order; WP18 in or cut per its order |
-| Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-G, D-L | All report tables filled |
+| Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); UI: the review screen, the reader view; *prompt freeze moved to Sun 11 Oct (D-AD)* | Pre-freeze changes measured on dev |
+| Sat 10 Oct | Pre-freeze changes and their dev measurement; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | Every pipeline change for the final run in |
+| Sun 11 Oct | Last dev rerun with `--redo`; **prompt freeze 18:00**; final CSCS evaluation overnight; example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS; UI: the job page, the texts, tests and screenshots; the decision mode's form fields and notice banner go into the new templates (WP18) | Final run started; example jobs in the image |
+| Mon 12 Oct | Read the numbers per §13.4; `publiccode.yml`; numbers audit; docs in sync; outreach answers in; video storyboard; decision mode: French partial if time, docs | **G3** (moved from Sat 10 Oct): every §5 row on CSCS, P0-ZH included; headline decided (D-M). **G4**: feature freeze, as before; decision mode v1 in or cut per its order; WP18 in or cut per its order |
+| Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-L | All report tables filled |
 | Wed 14 Oct | Report draft, video recording, clean-checkout test on Linux and on Windows | **G5** as before, plus CI green on the final commit |
 | Thu 15 Oct | PDF, numbers audit again, repo public, awesome-apertus pull request prepared | **G6**, as before |
 | Fri 16 Oct | Submit before 12:00 CEST | Submitted |
@@ -1701,7 +1674,7 @@ Applied on 6 October (evening) to the numbers then on hand (CSCS, 20 German eval
 blocks, invented values 0.1 against 0.0, fact coverage 84 against 91 percent (7 points),
 hard facts kept 80 against 95 percent; the condensed variant (their default) keeps 77
 percent of the hard facts. The headline sentence itself waits for the owner (D-M at G3)
-and for the Friday rerun.
+and for the final rerun after the freeze (Sun 11 Oct).
 
 ### 13.5 Cut list, revised (replaces §7 from 7 October)
 
@@ -1716,7 +1689,8 @@ Apply in this order when a gate is missed:
 7. Italian.
 8. Clause recipes for French (German stays).
 9. Outreach follow-ups (mails already sent stay sent; no second round).
-10. WP18's later parts, in its own cut order (docs/ui-design.md §13): the drafts
+10. WP18's later parts, in its own cut order (docs/ui-design.md §13), "Suggest a
+    sentence" for a missing fact first (it touches no evaluated path): the drafts
     list's extras, the job page beyond the stylesheet, New draft as its own page, the
     reader view's export panel.
 11. WP12a, image ingest for the reviewed workflow *(cut 7 Oct, D-N)*.

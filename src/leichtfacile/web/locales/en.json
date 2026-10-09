@@ -347,6 +347,7 @@
   "review.tag.judge": "Judge",
   "review.carries": "Carries",
   "review.apply": "Apply",
+  "review.recover": "Suggest a sentence",
   "review.next_undecided": "Next undecided",
   "review.edited_text": "Edited text",
   "review.edited_explanation": "Edited explanation",
@@ -434,5 +435,18 @@
   "js.saved_only": "Exports use the last saved review. Decisions you have not saved are left out.",
   "js.reader_decided": "{decided} of {total} blocks decided",
   "js.reader_complete": "Review marked complete",
-  "js.reader_not_complete": "Review not marked complete"
+  "js.reader_not_complete": "Review not marked complete",
+  "js.recover_asking": "Asking Apertus for a sentence from the source paragraph...",
+  "js.recover_title": "Suggestion from Apertus, from the source paragraph only",
+  "js.recover_resolved": "Code finds the fact's value with this sentence. Code does not check the meaning: compare it with the source sentence.",
+  "js.recover_unresolved": "Code still does not find the fact's value with this sentence.",
+  "js.recover_no_value": "This fact has no value code can check. Compare the sentence with the source sentence.",
+  "js.recover_add": "Add to block {block}",
+  "js.recover_added": "Added to block {block} as an edit. Read it and save the review.",
+  "js.recover_again": "Ask again",
+  "js.recover_failed": "No suggestion: {detail}",
+  "js.recover_rejected.no_source": "No suggestion: the fact has no source sentence.",
+  "js.recover_rejected.no_answer": "No suggestion: Apertus gave no usable sentence in two tries.",
+  "js.recover_rejected.foreign": "No suggestion: the sentence had values the source paragraph does not have ({values}).",
+  "js.recover_rejected.nothing_new": "No suggestion: every sentence repeated the draft."
 }

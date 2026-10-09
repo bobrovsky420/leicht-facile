@@ -184,8 +184,7 @@ results.
 for the reported numbers. No personal data is used. Developing and evaluating against
 protected pages needs no consent as long as neither the texts nor our rewrites of them
 are published (Copyright Act articles 24a and 24d; our reading, not legal advice;
-[docs/sources.md](docs/sources.md) §4), so a published dataset could hold only the
-manifest, the metrics, and texts free under article 5 with our outputs.
+[docs/sources.md](docs/sources.md) §4), so the repository holds the manifest of the pairs, not their texts.
 
 ## 5. Evaluation
 

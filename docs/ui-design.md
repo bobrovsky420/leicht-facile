@@ -485,6 +485,19 @@ the four panels stack with their headings.
   chip (`FactRow.expected`), the status word, the text clamped to two lines (the full
   text in `title`), the judge's note with a "Judge" tag. Selecting a fact marks the
   blocks that carry it (`--lf-accent-faint` and the bar) and scrolls to the first.
+  Under a missing fact with a source sentence (since 9 October 2026), a small "Suggest a
+  sentence" button (JavaScript only; it sits next to the fact's button, not in it).
+  While Apertus answers, the box says so (`role=status`). Then a sunken card: "Suggestion
+  from Apertus, from the source paragraph only", the sentences (ink, 500), the fact's
+  source sentence with its id in mono, the code check (green when FACT-01 finds the
+  value with the sentences, and always "Code does not check the meaning: compare it with
+  the source sentence"), the rule findings on the sentences (rule id, message), and
+  "Add to block b009.2" (primary, small). Adding appends the sentences to the block's
+  text, chooses Edit, selects and scrolls to the block, and marks the review unsaved;
+  the card then says "Added to block ... as an edit". The button becomes "Ask again".
+  No suggestion gives one line in red with the reason (no source sentence, no usable
+  answer in two tries, values not in the paragraph, only repeats). The fact's status
+  does not change before the next run: the checks stay those of the version.
 - **Findings:** the document findings grouped by rule (on the premium-reduction
   letter: FACT-01 4, FACT-02 5, FACT-04 3, FACT-05 1, READ-01 1): the group's worst
   severity icon, the rule id, the rule's title (`RuleSpec.title`, translated, §8), the
@@ -727,6 +740,7 @@ review.tag.code           Code
 review.tag.judge          Judge
 review.carries            Carries
 review.apply              Apply
+review.recover            Suggest a sentence
 review.next_undecided     Next undecided
 review.edited_text        Edited text
 review.no_match           No blocks match this filter.
@@ -756,6 +770,11 @@ reader.blocking.other     {n} blocking problems in v{version}
 reader.complete_hint      Mark it complete in the review once every block is decided.
 
 js.unsaved                Unsaved changes
+js.recover_title          Suggestion from Apertus, from the source paragraph only
+js.recover_resolved       Code finds the fact's value with this sentence. Code does not check the meaning: compare it with the source sentence.
+js.recover_add            Add to block {block}
+js.recover_added          Added to block {block} as an edit. Read it and save the review.
+js.recover_rejected.*     No suggestion: {reason} (no_source, no_answer, foreign, nothing_new)
 js.saved_at               Saved {time}
 js.confirm_delete         Delete this draft and everything it produced? This cannot be undone.
 js.chars                  {count} of {max} characters

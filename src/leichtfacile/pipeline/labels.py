@@ -38,6 +38,10 @@ LABELS: dict[str, dict[str, str]] = {
         "foreign_values": "Die Antwort enthält Werte, die nicht im Dokument stehen: {values}. "
         "Jeder Wert muss aus dem Faktenblatt oder aus den Sätzen des Originals kommen. "
         "Schreiben Sie diese Sätze ohne den fremden Wert, oder lassen Sie sie weg.",
+        # A missing fact asked for from the review page (stages.recover_fact).
+        "recover_value": "Ihre Sätze haben den Wert {value} nicht. Schreiben Sie ihn genau so.",
+        "recover_foreign": "Diese Werte stehen nicht im Absatz des Originals: {values}. "
+        "Schreiben Sie nur, was im Absatz steht.",
         # Decision mode: the authority's notice, the first and last paragraph of the
         # export, when the job sets none (docs/use-case-decisions.md).
         "notice_default": "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. "
@@ -75,8 +79,52 @@ LABELS: dict[str, dict[str, str]] = {
         "foreign_values": "La réponse contient des valeurs qui ne sont pas dans le document : "
         "{values}. Chaque valeur doit venir de la fiche de faits ou des phrases de "
         "l'original. Écrivez ces phrases sans la valeur étrangère, ou laissez-les de côté.",
+        "recover_value": "Vos phrases n'ont pas la valeur {value}. Écrivez-la exactement ainsi.",
+        "recover_foreign": "Ces valeurs ne sont pas dans le paragraphe de l'original : "
+        "{values}. Écrivez seulement ce qui est dans le paragraphe.",
         "notice_default": "Cette explication vous aide à comprendre la décision. "
         "Seule la décision fait foi.",
+    },
+    # The words around the items of a prompt with English instructions (prompts/en/,
+    # LLM_ENGLISH_PROMPTS); the items themselves stay German or French.
+    "en": {
+        "core_what": "What is it about?",
+        "core_must_do": "What must the reader do?",
+        "core_deadline": "By when?",
+        "core_cost": "What does it cost?",
+        "core_contact": "Whom can the reader ask?",
+        "doc_type": "Type: {doc_type}. For: {audience}.",
+        "core": "Core questions:",
+        "unanswered": "The document does not answer:",
+        "facts": "Facts:",
+        "background": "background",
+        "fact_value": " | value: {value}",
+        "fact_from": " | from: {ids}",
+        "hard_terms": "Hard words:",
+        "omit": "Can be left out:",
+        "none": "(none)",
+        "empty": "(empty)",
+        "block_refs": "   (facts: {facts}; source: {sources})",
+        "suggestion": "Suggestion: {text}",
+        "problems": "Problems:",
+        "keep_facts": "The block must keep these facts:",
+        "missing_value": " (value: {value})",
+        "missing_value_exact": " (value: {value}; write: {exact})",
+        "unsupported": "This is not in the original.",
+        "distorted": "Fact {fact_id} is wrong: {note} Correct is: {fact}",
+        "section": "the sentences {first} to {last}",
+        "copied_example": "The answer contains {count} sentences from the example in the "
+        "instructions (the dog tax). The example only shows the form. Write about the "
+        "document below, with its facts and sentence numbers.",
+        "foreign_values": "The answer contains values that are not in the document: "
+        "{values}. Every value must come from the fact sheet or from the sentences of the "
+        "original. Write these sentences without the foreign value, or leave them out.",
+        "recover_value": "Your sentences do not have the value {value}. Write it exactly "
+        "like this.",
+        "recover_foreign": "These values are not in the paragraph of the original: {values}. "
+        "Write only what is in the paragraph.",
+        "notice_default": "This explanation helps you understand the decision. "
+        "Only the decision is binding.",
     },
 }
 

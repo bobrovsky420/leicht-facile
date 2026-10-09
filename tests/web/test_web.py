@@ -350,3 +350,28 @@ def test_the_form_fills_the_notice_default_for_a_decision_without_one(app_env) -
     )
     listed = client.get("/")
     assert ">Decision</span>" in listed.text
+
+
+def test_a_missing_fact_gets_a_suggested_sentence_from_its_paragraph(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Brief")
+    # The draft has the office's number wrong (044 123 45 76): f03 is missing.
+    page = client.get(f"/jobs/{job_id}").text
+    assert 'data-recover="f03"' in page and 'data-recover="f01"' not in page
+    endpoint.push(chat_response(fx.as_json(
+        {"after": "b004", "texts": ["Rufen Sie das Sozial·amt an: 044 123 45 67."]}
+    )))  # fmt: skip
+    res = client.post(f"/api/jobs/{job_id}/facts/f03/recover?version=1")
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert data["texts"] == ["Rufen Sie das Sozial·amt an: 044 123 45 67."]
+    assert data["block_id"] == "b004" and data["resolved"] is True and data["rejected"] is None
+    assert data["source"] == [
+        {"id": "s0005", "text": "Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67."}
+    ]
+    assert all({"rule_id", "severity", "message"} <= set(f) for f in data["findings"])
+    assert client.get(f"/api/jobs/{job_id}").json()["usage"]["calls"] == 3  # billed to the job
+    draft = client.get(f"/api/jobs/{job_id}/artifacts/draft").json()
+    assert draft["version"] == 1  # nothing stored
+    assert client.post(f"/api/jobs/{job_id}/facts/f99/recover").status_code == 404

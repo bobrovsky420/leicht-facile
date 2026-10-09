@@ -423,6 +423,21 @@ the limit; none runs without repair rounds or after a round the endpoint failed 
 an answer the code could not use, it still runs: a smaller prompt, a new try). Since
 7 October 2026 (PLAN.md WP13).
 
+**The recover round** (since 9 October 2026, off by default: `MAX_RECOVER_FACTS=0`).
+With `MAX_RECOVER_FACTS` above 0, the must-keep values still missing (FACT-01) in the
+best version after the facts rounds, the most important kinds first and at most that
+many, are asked for one by one through `stages.recover_fact`, the call behind the
+review page's "Suggest a sentence" (§4.7): the fact's paragraph, the blocks at its
+place, the value and its sentence named. Each call sees the sentences accepted before
+it. The accepted sentences go after their blocks as new blocks carrying the fact
+(`stages.add_sentences`), in one new version with the next free number and the best
+version as its parent; code's edits, the rule check and the judge follow as after a
+round, and its repair record has the kind `recover`. A fact without a suggestion, or
+with one FACT-01 does not accept, is left out with a note in the summary. Not without
+repair rounds and not after a round the endpoint failed; it runs before the vocabulary
+round, so office words in its sentences go there too. Whether it is on for the final
+run is PLAN.md D-AC, after a dev run.
+
 **The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
 rounds, the office words still in the best version (LEX-07, LEX-07-FR) go to one more
 round through the repair prompt: the flagged sentences alone, each with its everyday
@@ -479,7 +494,36 @@ removed or changed it.
 
 The reviewer sees the final draft with provenance, findings and the fact checklist,
 and records a decision per block: `approved`, `edited` (with the new text), or
-`rejected`. Export formats:
+`rejected`.
+
+**A missing fact on demand** (since 9 October 2026). For a fact the review shows as
+missing, "Suggest a sentence" makes one writer call (`stages.recover_fact`, template
+`recover.md`, stage settings `recover`: temperature 0.2, thinking off). The call gets the
+fact with its exact value form, the paragraphs its source sentences belong to
+(`Segment.para`), the blocks built from them with one block before and after
+(`fact_window`), and the style guide; no fact sheet and no rest of the draft, so no
+other value of the letter is at hand. The prompt names the missing value and its
+sentence; code then
+- sends an answer without the fact's value back once, and gives no suggestion when the
+  second answer lacks it too (`no_answer`);
+- leaves out a sentence that repeats the draft: the same text, or one without the value
+  whose hard values the draft already has;
+- sends an answer back once when a kept sentence has a value the paragraph lacks, and
+  gives no suggestion when it still has one (`foreign`), a stricter test than FACT-06;
+- places the sentences after the answer's block, after the block built from the source
+  sentence the answer names instead, or after the window's last block from the
+  paragraph, a heading passing on to the next block;
+- runs the rules on the sentences placed there and says whether FACT-01 then finds the
+  value.
+
+Nothing is stored except the call's usage, billed to the job. The reviewer reads the
+sentences next to the source sentence and adds them to the block as an edit, or not:
+code checks the value, not the meaning. On the premium letter's f07 (CSCS, 8B) the
+value came back in 3 of 3 runs, and 2 of them said "Der Anspruch gilt ab 1. Januar
+2027", which loses the residence condition (docs/prompts.md, "Recovering a missing
+fact"). The pipeline calls it only as the recover round, off by default (§4.6).
+
+Export formats:
 
 - Markdown and HTML with one sentence per line, lines ≤ 85 characters, headings and
   lists preserved;
@@ -503,6 +547,7 @@ could be trained from them - in effect distilling the 70B judge's standard into 
 | Plan & write | Reorder, simplify, explain, record omissions | 8B | off (configurable) | 0.3 | `Draft` JSON |
 | Meaning check | Judge fact fidelity, hallucinations, semantic rules | 70B-thinking | on | 0.0 | `JudgeReport` JSON |
 | Repair | Rewrite flagged blocks | 8B | off | 0.2 | blocks |
+| Recover (review, on demand) | Sentences for one missing fact from its paragraph | 8B | off | 0.2 | sentences, never applied by code |
 | Cross-language check (stretch) | Compare DE/FR/IT fact sheets | 70B | on | 0.0 | diff report |
 | Learning (stretch) | LoRA fine-tune of 8B on approved drafts | 8B | - | - | adapter |
 
@@ -621,6 +666,15 @@ file (`llm_cache.sqlite`). Standard library only, no ORM.
   the stages that use the thinking model. When the reasoning of a thinking call runs
   out of tokens before the answer, the stage is answered once more without thinking;
   both calls are counted in the usage log.
+- **Prompt language per stage.** `LLM_ENGLISH_PROMPTS` (default empty) names the
+  stages whose instructions are English (`llm/prompts/en/`; understand, write, judge
+  and repair have them). The document, the JSON examples, the few-shot pairs and every
+  text the model writes stay in the document's language; the style guide (from the
+  same rule registry, `rules/styleguide.py`) and the words code writes around the
+  items (`pipeline/labels.py`, `en`) follow the prompt. The job summary names an
+  English template's version as `en:<hash>`. An experiment of 9 October 2026, measured
+  on the dev pairs (docs/prompts.md, "English instructions"); empty, the default,
+  renders the frozen templates byte for byte.
 - **Graceful degradation.** A failing judge or repair round does not fail the job:
   the reviewer gets the best draft so far with its rule and fact checks, and the job
   summary names the step that failed.
@@ -690,6 +744,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
 | `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete |
 | `GET` or `POST /api/jobs/{id}/export?format=md\|html\|json` | Download: Markdown, HTML, or the JSON audit bundle |
+| `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again |
 | `DELETE /api/jobs/{id}` | Remove a job and its artifacts |
 | `GET /healthz` | Liveness; also checks the LLM endpoint's `/v1/models` |
@@ -778,7 +833,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      with the expected value, the status from code and judge (present, missing,
      distorted, "judge doubts" in amber when code finds the value the judge misses
      (§4.5), unchecked) and the judge's note;
-     selecting a fact marks the blocks that carry it. **Findings**, the document's
+     selecting a fact marks the blocks that carry it. Under a missing fact with a
+     source sentence, "Suggest a sentence" (JavaScript only) shows Apertus's sentences
+     with the source sentence, the code check and the rule findings, and "Add to block
+     ..." appends them to that block as an edit (§4.7). **Findings**, the document's
      findings grouped by rule with the rule's title; a FACT-04 line marks its source
      sentences, a FACT-01 line selects its fact. **Questions**, the five core questions.
      **More**, omissions with reasons, glossary, measures, and the run (models, usage,
@@ -958,9 +1016,7 @@ protected pages); `python -m leichtfacile eval report` renders the tables for th
 technical report from aggregates only, and `eval numbers` prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the case of PLAN.md §13.4 they fall into, with the headline
-sentence filled in, so that README, report and video carry the same numbers. If the dataset is published, it follows
-the Hugging Face `HackApertus/online_hack_template` layout: test cases, model
-responses, and metadata with per-instance licensing.
+sentence filled in, so that README, report and video carry the same numbers.
 
 ## 10. Deployment and sovereignty
 
@@ -1069,10 +1125,13 @@ src/leichtfacile/
   store.py                SQLite access
   examples.py             example jobs: import on start, build
   llm/                    client.py, json_out.py, reasoning.py, cache.py
-  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, examples/;
+  llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md, recover.md, examples/;
                           decision.md (the decision mode's partial, included by the four
                           standard templates when mode is "decision");
                           de/baseline_zh.md (Zurich's prompt, verbatim)
+  llm/prompts/en/         English instructions for German and French documents
+                          (LLM_ENGLISH_PROMPTS): understand, write, judge, repair and
+                          their two partials; no document language of its own
   ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
   pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
   rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,

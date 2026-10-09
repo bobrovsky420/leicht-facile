@@ -27,13 +27,16 @@ from leichtfacile.rules.swiss import apply_ss
 from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
+    AnsweredAddition,
     Draft,
+    DroppedText,
     FactSheet,
     Finding,
     Job,
     JobConfig,
     JudgeReport,
     PipelineSummary,
+    RepairRecord,
     RuleFindings,
     SourceDocument,
 )
@@ -130,6 +133,7 @@ def build_request(
     limit: int = MAX_MISSING_PER_ROUND,
     vocabulary: bool = True,
     only: tuple[str, ...] = (),
+    labels: str | None = None,
 ) -> RepairRequest:
     """What a repair round should fix. Without warnings, the round concentrates on what
     blocks the draft: rule errors, missing fact values and the judge's problems. A small
@@ -137,9 +141,10 @@ def build_request(
     facts-only round asks for the missing facts alone and flags no block. Without
     `vocabulary` the office words of LEX-07 are left to the reviewer. With `only`, the
     round asks for the findings of these rules alone, no fact and no judge's problem:
-    the vocabulary round."""
+    the vocabulary round. `labels`: the language of the words code writes into the
+    problem lines, when the repair prompt's is not the document's."""
     severities = ("error", "warn") if include_warnings else ("error",)
-    lang = draft.lang
+    lang = labels or draft.lang
     blocks = draft.by_id()
     if only:
         flagged: dict[str, list[str]] = defaultdict(list)
@@ -338,6 +343,7 @@ class Orchestrator:
                 factsheet,
                 include_warnings=blocking == 0,
                 vocabulary=self.settings.use_vocabulary,
+                labels=self._repair_labels(draft.lang),
             )
             if not request:
                 reason = "no problems left"
@@ -384,6 +390,7 @@ class Orchestrator:
                 factsheet,
                 facts_only=True,
                 limit=self.settings.max_missing_per_facts_round,
+                labels=self._repair_labels(draft.lang),
             )
             step = self._round(
                 job, source, factsheet, draft, rules, judge, request, facts_rounds, kind="facts"
@@ -403,6 +410,21 @@ class Orchestrator:
         else:
             if facts_rounds:
                 reason = f"stopped after {facts_rounds} facts rounds"
+        # The recover round (MAX_RECOVER_FACTS, off by default): the must-keep values
+        # still missing in the best version, each asked for alone with its source
+        # paragraph and its value named (stages.recover_fact, the review page's "Suggest
+        # a sentence"); the sentences code accepts go after their blocks as one new
+        # version, checked and judged. The choice below keeps it only if it is better.
+        if (
+            self.settings.max_recover_facts
+            and cfg.max_repair_rounds
+            and getattr(self, "_round_failure", None) != "endpoint"
+        ):
+            base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
+            latest = max(h[0].version for h in history)
+            step = self._recover(job, source, factsheet, *base, version=latest + 1)
+            if step is not None:
+                history.append(step)
         # The vocabulary round: the office words still in the best version, each sentence
         # rewritten with its everyday word (LEX-07), after everything else, so that the
         # repair rounds stay on the facts. Its version is a new one after the latest;
@@ -414,7 +436,9 @@ class Orchestrator:
             and getattr(self, "_round_failure", None) != "endpoint"
         ):
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-            request = build_request(*base, factsheet, only=OFFICE_RULES)
+            request = build_request(
+                *base, factsheet, only=OFFICE_RULES, labels=self._repair_labels(source.lang)
+            )
             if request:
                 latest = max(h[0].version for h in history)
                 step = self._round(
@@ -474,6 +498,82 @@ class Orchestrator:
             self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
             self._round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
             return None
+        return self._finish(job, source, factsheet, draft, rules, judge, new_draft, record)
+
+    def _recover(
+        self,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        draft: Draft,
+        rules: RuleFindings,
+        judge: JudgeReport | None,
+        *,
+        version: int,
+    ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
+        """The recover round: one call per missing must-keep value (FACT-01), the most
+        important kinds first, up to MAX_RECOVER_FACTS; each call sees the draft with the
+        sentences recovered before it. None when no sentence was accepted."""
+        facts = {f.id: f for f in factsheet.facts}
+        missing = {f.fact_id for f in rules.findings if f.rule_id == "FACT-01" and f.fact_id}
+        wanted = sorted(
+            (facts[i] for i in missing if i in facts),
+            key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
+        )[: self.settings.max_recover_facts]
+        if not wanted:
+            return None
+        self._set(job.id, stage="recover")
+        record = RepairRecord(
+            draft_version=version,
+            parent_version=draft.version,
+            kind="recover",
+            requested_facts=[f.id for f in wanted],
+        )
+        current = draft
+        for fact in wanted:
+            try:
+                rec, _ = stages.recover_fact(
+                    self.llm, source, factsheet, current, fact.id, model=job.config.writer_model
+                )
+            except LLMError as exc:  # the endpoint is down: keep what came back so far
+                self._notes.append(f"recover {fact.id} failed: {_short(exc)}")
+                break
+            record.dropped += [
+                DroppedText(text=t, reason="repeat", block_id=rec.block_id, fact_ids=[fact.id])
+                for t in rec.dropped
+            ]
+            if rec.rejected or rec.resolved is False or not rec.block_id:
+                self._notes.append(f"recover {fact.id}: {rec.rejected or 'value not found'}")
+                continue
+            record.additions.append(
+                AnsweredAddition(after=rec.block_id, texts=list(rec.texts), fact_ids=[fact.id])
+            )
+            current = stages.add_sentences(current, rec.block_id, rec.texts, fact)
+        if not record.additions:
+            return None
+        new_draft = current.model_copy(
+            update={
+                "version": version,
+                "parent_version": draft.version,
+                "origin": "repair",
+                "code_edits": [],
+            }
+        )
+        return self._finish(job, source, factsheet, draft, rules, judge, new_draft, record)
+
+    def _finish(
+        self,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        draft: Draft,
+        rules: RuleFindings,
+        judge: JudgeReport | None,
+        new_draft: Draft,
+        record: RepairRecord,
+    ) -> tuple[Draft, RuleFindings, JudgeReport | None]:
+        """A round's new version after the model: code's edits, stored, checked and
+        judged (again when facts were involved, else the judge's findings carried over)."""
         new_draft = stages.link_facts(new_draft, factsheet, source)
         if self.settings.use_vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
@@ -572,7 +672,7 @@ class Orchestrator:
             judge_model=(job.config.judge_model or self.llm.judge_model())
             if job.config.condition == "P2" and job.config.use_judge
             else None,
-            prompt_versions=prompt_versions(source.lang),
+            prompt_versions=prompt_versions(source.lang, self.settings.english_prompt_stages),
             blocking_findings=blocking,
             notes=list(getattr(self, "_notes", [])),
             vocabulary=vocabulary_version(source.lang)
@@ -582,6 +682,11 @@ class Orchestrator:
         self.store.put_artifact(job.id, "summary", summary)
 
     # -- helpers ----------------------------------------------------------------------
+
+    def _repair_labels(self, lang: str) -> str:
+        """The language of the words in a repair request's problem lines: the repair
+        prompt's (English with LLM_ENGLISH_PROMPTS), else the document's."""
+        return stages.labels_for(lang, stages.english_for(self.llm, "repair"))
 
     def _understand_model(self, cfg: JobConfig) -> str | None:
         """The Understand stage's model: the job's, else LLM_UNDERSTAND_NAME, else the
