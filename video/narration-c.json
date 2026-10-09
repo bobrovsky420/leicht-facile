@@ -132,7 +132,7 @@
     {
       "id": "evidence",
       "lead": 0.3,
-      "tail": 0.4,
+      "tail": 2.0,
       "chunks": [
         {
           "id": "ev-a",

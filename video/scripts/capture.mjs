@@ -6,7 +6,9 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import puppeteer from "puppeteer-core";
 
-const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
+// EDGE overrides the browser, for example Remotion's headless Chrome while an Edge update
+// is pending (msedge.exe then hands over to the new binary and puppeteer loses it)
+const EDGE = process.env.EDGE || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const BASE = "http://127.0.0.1:8791";
 const OUT = "public/capture";
 const STAGE = "scripts/stage_demo.py";

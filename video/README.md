@@ -35,7 +35,7 @@ set LF_REPO=C:\Users\bobro\OneDrive\Developer\leicht-facile
 | 4. Voice and timeline | `uv run --python 3.12 --with kokoro-onnx --with soundfile python tts/synth.py c` | `public/audio/narration-c.wav`, `src/timeline-c.json` |
 | 5. Check the voice without listening | `uv run --python 3.12 --with faster-whisper --with soundfile --with scipy python tts/verify.py c` | word error rate per sentence |
 | 6. Music and mix | `uv run --python 3.12 --with soundfile --with scipy --with numpy python tts/music.py c` | `public/audio/mix-c.wav` |
-| 7. UI frames | start the app with `DATA_DIR=<build folder>/out/capture-data`, a dead `LLM_BASE_URL` (for example `http://127.0.0.1:9/v1`) and `--port 8791`; then `node scripts/capture.mjs` | `public/capture/` |
+| 7. UI frames | start the app with `DATA_DIR=<build folder>/out/capture-data`, a dead `LLM_BASE_URL` (for example `http://127.0.0.1:9/v1`) and `--port 8791`; then `node scripts/capture.mjs` (if Edge has an update pending, `npx remotion browser ensure` and set `EDGE` to the `chrome-headless-shell.exe` it names) | `public/capture/` |
 | 8. Look at stills | `COMP=DemoC node scripts/stills.mjs 6.9 45 106` and `uv run --python 3.12 --with pillow python scripts/sheet.py out/stills/*.png` | `out/stills/`, `out/sheets/` |
 | 9. Render | `npx remotion render src/index.ts DemoC out/demo.mp4` (about 3 minutes) | `out/demo.mp4` |
 

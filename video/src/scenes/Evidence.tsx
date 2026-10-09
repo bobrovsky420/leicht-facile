@@ -12,7 +12,7 @@ import { Wordmark } from "./Logo";
 
 const LOST = 23; // P0-ZH condensed: hard facts kept 77 percent, silent losses 23 percent
 // the facts panel of the review, as captured: "13 of 14 facts present", the missing fact first
-const CROP = { x: 1040, y: 208, w: 400, h: 280 }; // CSS px of the capture
+const CROP = { x: 1040, y: 208, w: 400, h: 256 }; // CSS px of the capture: the panel down to the missing fact's source sentence
 const SCALE = 2; // the capture's device scale
 const CROP_W = 700;
 
@@ -53,8 +53,8 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
           <CheckCircle size={46} color={C.ok} stroke={2.2} />
           <Wordmark size={40} />
         </div>
-        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>lists every hard fact it misses, for the writer</div>
-        <div style={{ position: "relative", width: CROP_W, height: CROP.h * SCALE * k, marginTop: 30, overflow: "hidden", borderRadius: 12, border: "1px solid #D7DBE0" }}>
+        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>lists every hard fact it misses</div>
+        <div style={{ position: "relative", width: CROP_W, height: CROP.h * SCALE * k, marginTop: 24, overflow: "hidden", borderRadius: 12, border: "1px solid #D7DBE0" }}>
           <Img
             src={staticFile(`capture/${file}`)}
             style={{ position: "absolute", width: 2880 * k, height: 1620 * k, left: -CROP.x * SCALE * k, top: -CROP.y * SCALE * k }}
