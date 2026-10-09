@@ -237,19 +237,15 @@ decision's decision mode).
 
 ### WP9 - French and Italian
 
-- [x] French: `prompts/fr/*`, 2 example pairs, `rules/fr.py` (the FR table in
-      rules.md), golden tests, 5+ pairs in the manifest, Kandel-Moles verified.
-      *(done 6 Oct without the key: 27 rules, calibrated on the 5 official pages to
-      2.2 errors per 100 blocks, French limits 15/18 words; French syllables 93 percent
-      exact; French letter in data/examples; web form and API accept French. The P2
-      numbers on the French pairs need the key.)*
-- [ ] Italian (stretch): same shape; Gulpease; Ticino pairs. *Out of scope for the
-      hackathon (owner, 8 Oct): moved to the WP17 roadmap.*
-- [x] spaCy model `fr_core_news_md` in the image *(image 1.97 to 2.19 GB)*;
-      `it_core_news_md` only when Italian ships (its licence is CC BY-NC-SA 3.0; see
-      the WP17 row "Italian").
-
-Done when: P2 runs on the French pairs and the French numbers are in the report.
+*Done.* French: the prompts under `prompts/fr/`, two example pairs, `rules/fr.py` (the FR
+table in rules.md, 27 rules at the time, calibrated on the 5 official pages to 2.2 errors
+per 100 blocks, limits 15/18 words), golden tests, 5 French pairs in the manifest,
+Kandel-Moles verified (French syllables 93 percent exact), the French example letter in
+data/examples, web form and API in French; `fr_core_news_md` in the image (1.97 to 2.19
+GB). P2 ran on the 3 French eval pairs on CSCS, and report §5 has their numbers; the
+final run refreshes them (WP13). Italian is out of scope for the hackathon (owner, 8
+Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
+"Italian").
 
 ### WP10 - Comparisons and reliability
 
@@ -1018,7 +1014,10 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
         and e-mail addresses;
       - once the repo is public, a pull request to awesome-apertus (maintained by
         Patrick Arnecke of the Zurich team, GitHub `rnckp`).
-- [ ] **Video** (docs/demo-video.md):
+- [x] **Video** (docs/demo-video.md): *Closed 9 Oct: the concept "Find the deadline" of
+      8 Oct replaced the first two points (the product scene is the example letter, no
+      FACT-06 scene); the evidence scene follows case B of D-M and does not name Zurich
+      (D-L); its final number comes with the final run (WP13, report §5 item).*
       - the decision letter as the product scene;
       - FACT-06 catching an invented phone number, then repaired;
       - the headline from D-M (WP13);
@@ -1211,13 +1210,20 @@ since:
       is, `make run` quick start, where the report and video are. Stale on 7 Oct: "825
       tests" (963 now), "Status (6 October 2026)", the Pending list names French; the
       demo video is "*link follows*".
-- [ ] State the differentiator in README, report §1 and the video: not a translator, and
+- [x] State the differentiator in README, report §1 and the video: not a translator, and
       not achievable with one chatbot prompt (fact contract, provenance, omission log,
       independent checks, audit trail). P0 is that baseline; cite the P0 vs P2 numbers.
-- [ ] Demo video (at most 2 minutes): 15 s problem, 60 s live run on a cantonal page
+      *Done: README "Why not one chatbot prompt?", report §1 (Approach and the headline
+      with P0 against P2) and the video's evidence scene; the numbers change with the
+      final run (WP13, report §5 item).*
+- [x] Demo video (at most 2 minutes): 15 s problem, 60 s live run on a cantonal page
       with the review UI, 30 s numbers and sovereignty, 15 s close. Record with the
       example job pre-loaded as a fallback if CSCS is slow; link it in README and
       report.
+      *Done in another shape: the concept "Find the deadline" (docs/demo-video.md)
+      replaced this storyboard on 8 Oct; version C is built, 118.1 s, with a real screen
+      recording of the example letter. Left in other items: the opening sentence (below),
+      the link in README and report, the final numbers (WP13).*
 - [x] Video, before/after (1:19): the storyboard wants the tool's real A2 output for
       DE-4, and P2 on the sentence alone gives none that can be shown (§11, 8 October).
       *Resolved 8 Oct by concept A ("Find the deadline", docs/demo-video.md): the viewer
@@ -1629,3 +1635,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (WP3 without images): at the owner's request, the stale `ingest/image.py` item removed from WP3; image ingest lives only in WP12 (WP12a cut by D-N, WP12b after the deadline).
 - 2026-10-09 (WP3 closed): the last open item of WP3, the fixtures, has been done since 6 Oct in another shape: synthetic inputs built in the tests (hand-written pages, fpdf2 PDFs, pasted letters) instead of files saved under tests/fixtures; `tests/ingest` green (171 tests), the `ingest` command checked on a text and an HTML file. The section rewritten as a *Done* paragraph like WP0 to WP2.
 - 2026-10-09 (WP4 closed): the last open item of WP4, the tests, accepted in another shape: a completeness test of the rendered prompts instead of a snapshot, two recorded 8B answers of 6 Oct (local llama.cpp, prompt versions a0224c698e87 and e44d14589893, the current files are 99fdb529e5a9 and a644e7997ea4) with the malformed cases derived in the tests; the write stage proven on Zürich pages by the full runs on CSCS. The section rewritten as a *Done* paragraph. Re-recording the two answers on CSCS with the current prompts stays optional (the fixture README asks for it; the tests test parsing, not the prompt text).
+- 2026-10-09 (more items closed): at the owner's request, every item that could be closed now: WP9 rewritten as a *Done* paragraph (French done, its P2 numbers in report §5; Italian on the WP17 roadmap); in WP16 the video item (superseded by the concept "Find the deadline"); in WP11 the differentiator (in README, report §1 and the video) and the demo video (built as version C; link and final numbers stay in their own items). Everything else waits on the final run of 11 Oct, outside answers or the owner.
