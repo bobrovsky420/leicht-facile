@@ -7,7 +7,7 @@
 <title>{% block title %}Leicht·Facile{% endblock %}</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="/static/app.css">
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 document.documentElement.classList.add("js");
 try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElement.classList.add("intro-hidden"); } catch (e) {}
 </script>
@@ -22,7 +22,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
     <a href="/check"{% if section == 'check' %} aria-current="page"{% endif %}>{{ t('site.check') }}</a>
   </nav>
   <span class="spacer"></span>
-  <span class="endpoint" id="endpoint-status" data-endpoint data-url="/healthz" title="{{ t('js.endpoint.unknown') }}">
+  <span class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz" title="{{ t('js.endpoint.unknown') }}">
     <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') }}</span>
     <code>{{ settings.llm_name }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
   </span>

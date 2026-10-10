@@ -65,7 +65,7 @@
   // -- endpoint status in the app bar and on the New draft page, cached for 5 minutes ---
   const endpoints = $$("[data-endpoint]");
   if (endpoints.length) {
-    const KEY = "lf-healthz";
+    const KEY = "lf-readyz";
     const show = (data) => {
       const llm = (data && data.llm) || {};
       let state = "unknown";
@@ -97,7 +97,7 @@
     } else {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
-      fetch(endpoints[0].dataset.url || "/healthz", { signal: controller.signal })
+      fetch(endpoints[0].dataset.url || "/readyz", { signal: controller.signal })
         .then((res) => res.json())
         .then((data) => {
           show(data);

@@ -6,16 +6,19 @@ The three variables required by the hackathon template are `LLM_BASE_URL`,
 
 from __future__ import annotations
 
+import ipaddress
 import re
 from collections.abc import Iterable
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ThinkingMode = Literal["model-suffix", "chat-template", "off"]
+AuthMode = Literal["none", "token", "proxy"]
+Network = ipaddress.IPv4Network | ipaddress.IPv6Network
 
 # The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
 # 70B judges by default when the endpoint serves it.
@@ -93,6 +96,40 @@ class Settings(BaseSettings):
     # header overrides it per browser.
     ui_lang: str = "auto"
 
+    # Deployment (track_2b/docs/architecture.md §10, web/security.py). The interface the
+    # port is published on: docker-compose.yml reads the same variable, so one line in
+    # .env publishes the app and tells it so. Published on anything but the loopback
+    # interface, the app refuses to start without one of the two logins below.
+    bind_host: str = "127.0.0.1"
+    # A shared secret: browsers are asked for it (HTTP Basic, any user name, the token as
+    # the password), scripts send `Authorization: Bearer <token>`. Empty: no login.
+    auth_token: SecretStr | None = None
+    # Or the header a reverse proxy fills with the user it has logged in
+    # (`X-Forwarded-User`, `Remote-User`), trusted only when the request comes from one
+    # of the proxy's addresses or networks in AUTH_PROXY_FROM (comma-separated).
+    auth_proxy_header: str | None = None
+    auth_proxy_from: str = ""
+    # Writes and other costly requests (POST, PUT, PATCH, DELETE) one client address may
+    # make per minute; 0 turns the limit off.
+    rate_limit_per_minute: int = Field(default=120, ge=0)
+
+    @model_validator(mode="after")
+    def _deployment_is_consistent(self) -> Settings:
+        if self.auth_token_value and self.auth_proxy_header:
+            raise ValueError("set AUTH_TOKEN or AUTH_PROXY_HEADER, not both")
+        if self.auth_proxy_header and not self.proxy_networks:
+            raise ValueError(
+                "AUTH_PROXY_HEADER needs AUTH_PROXY_FROM, the proxy's addresses or networks "
+                "(comma-separated), so that nobody else can send the header"
+            )
+        if not self.bound_to_loopback and self.auth_mode == "none":
+            raise ValueError(
+                f"BIND_HOST={self.bind_host!r} publishes the app beyond this machine: set "
+                "AUTH_TOKEN (a shared secret) or AUTH_PROXY_HEADER and AUTH_PROXY_FROM (the "
+                "reverse proxy's user header), or keep BIND_HOST=127.0.0.1"
+            )
+        return self
+
     @property
     def judge_name(self) -> str:
         """LLM_JUDGE_NAME, else the writer's model. What the endpoint serves can change
@@ -122,6 +159,38 @@ class Settings(BaseSettings):
     @property
     def thinking_stages(self) -> set[str]:
         return {s.strip() for s in self.llm_thinking_stages.split(",") if s.strip()}
+
+    @property
+    def auth_token_value(self) -> str:
+        """The shared secret, "" when none is set."""
+        return self.auth_token.get_secret_value() if self.auth_token else ""
+
+    @property
+    def auth_mode(self) -> AuthMode:
+        if self.auth_proxy_header:
+            return "proxy"
+        return "token" if self.auth_token_value else "none"
+
+    @property
+    def proxy_networks(self) -> list[Network]:
+        """The reverse proxy's addresses from AUTH_PROXY_FROM (an address is a network
+        of one). Raises ValueError for an entry that is neither."""
+        return [
+            ipaddress.ip_network(entry.strip(), strict=False)
+            for entry in self.auth_proxy_from.split(",")
+            if entry.strip()
+        ]
+
+    @property
+    def bound_to_loopback(self) -> bool:
+        """True when BIND_HOST reaches this machine alone (127.0.0.1, ::1, localhost)."""
+        host = self.bind_host.strip().strip("[]").lower()
+        if host == "localhost":
+            return True
+        try:
+            return ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            return False
 
 
 @lru_cache(maxsize=1)

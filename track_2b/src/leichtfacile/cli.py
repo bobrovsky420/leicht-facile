@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -124,6 +125,9 @@ def main(argv: list[str] | None = None) -> int:
 def _serve(host: str, port: int) -> int:
     import uvicorn
 
+    # The app refuses to start published beyond this machine without a login
+    # (web/security.py); `--host` says where it is published, as BIND_HOST does in Compose.
+    os.environ.setdefault("BIND_HOST", host)
     uvicorn.run("leichtfacile.web.app:create_app", factory=True, host=host, port=port)
     return 0
 

@@ -109,6 +109,12 @@ For these three, a value in the shell wins over `.env`; every other setting come
 machine without a desktop it prints the address instead (`make run OPEN_BROWSER=0`
 turns the browser off).
 
+The app is published on this machine only (`127.0.0.1:8000`). To reach it from other
+machines, set `BIND_HOST=0.0.0.0` in `.env` together with a login: `AUTH_TOKEN=<secret>`
+(the browser asks for it, scripts send it as a bearer token) or the user header of your
+reverse proxy (`AUTH_PROXY_HEADER`, `AUTH_PROXY_FROM`; see `.env.example`). Without a
+login the app refuses to start beyond localhost.
+
 The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_URL`.
 `.env.example` lists the profiles: CSCS, a local vLLM (`docker compose --profile
 local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.

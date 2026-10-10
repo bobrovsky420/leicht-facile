@@ -771,11 +771,19 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again |
 | `DELETE /api/jobs/{id}` | Remove a job and its artifacts |
-| `GET /healthz` | Liveness; also checks the LLM endpoint's `/v1/models` |
+| `GET /healthz` | Liveness: the process answers; no call leaves the server |
+| `GET /readyz` | Readiness: the model endpoint reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 
 Jobs execute on a single worker thread with a queue; the UI polls status. That is
 enough for a reviewer's workload and avoids a message broker. Jobs that were queued or
 running when the service stopped are queued again on start.
+
+Every request passes the hardening layer first (`web/security.py`, §10): a body over
+16 MB is refused with 413, more than `RATE_LIMIT_PER_MINUTE` writes per client address
+and minute with 429, a write from a page on another site with 403, and with a login
+configured everything but the probes and the static files needs it (401). `limit` takes
+1 to 200; a review's edit holds at most 10,000 characters, a comment 2,000, a review
+2,000 decisions.
 
 ### Review UI
 
@@ -790,7 +798,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
   need review, **New draft**, the endpoint indicator (the configured model; the dot
-  turns green, amber or red from `/healthz`, kept 5 minutes in `sessionStorage`), the
+  turns green, amber or red from `/readyz`, kept 5 minutes in `sessionStorage`), the
   EN / DE / FR switch and the API link. A "Skip to content" link comes first.
 - **Drafts** (`/`): the work queue as a table. Title (an "Example" tag replaces the
   `Example: ` prefix) and where the text came from, language and level, pipeline,
@@ -1065,8 +1073,10 @@ are in the image; the Italian model is added when Italian ships. The
 vendored UI assets are copied in the same way. At **runtime** the container needs
 exactly one outbound connection: `LLM_BASE_URL`. It runs as a non-root user, keeps
 its data in the named volume `appdata` (mounted at `/data`), and has a Docker health
-check on `/healthz`. The app listens on `:8000`, with pre-computed example jobs
-so the UI is not empty before the first live run (clearly labelled as examples): the
+check on `/healthz`. Compose publishes the app on `127.0.0.1:8000`, this machine only
+(`BIND_HOST=0.0.0.0` publishes it on every interface and then needs a login, below), with
+pre-computed example jobs so the UI is not empty before the first live run (clearly
+labelled as examples): the
 premium-reduction letter in German and in French; the KESB decision with personal data
 follows once decision mode v1 is in (PLAN.md WP15). The example jobs are audit bundles in
 `track_2b/data/examples/jobs/`, built from the team's sample documents with `python -m
@@ -1135,16 +1145,42 @@ at runtime.
   sensitive case: before anonymisation they name a person and describe their health,
   family and finances ([use-case-decisions.md](use-case-decisions.md) §2). Why such
   texts leave Apertus as the only model that fits: [use-cases.md §2](use-cases.md#why-only-apertus).
-- No authentication in the prototype; it is meant to run behind the organisation's
-  reverse proxy. Noted as a limitation.
+- Published on this machine only by default (`127.0.0.1:8000`); the organisation's
+  reverse proxy publishes it further. Two optional logins (`web/security.py`): a
+  shared token (`AUTH_TOKEN`; browsers are asked for it with HTTP Basic, any user
+  name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
+  tries per minute and client, then 429) or the proxy's user header
+  (`AUTH_PROXY_HEADER`, trusted only from the proxy's addresses in `AUTH_PROXY_FROM`;
+  the user lands in `request.state.user`). The probes and the static files need no
+  login. `BIND_HOST` names the published interface; beyond the loopback interface the
+  app refuses to start without one of the two. No accounts or roles of its own: that
+  limitation stays, every logged-in user sees every job.
+- Every response carries a Content-Security-Policy (scripts from this server only,
+  the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
+  plug-ins; the API docs pages, which load Swagger UI from a CDN, get the other
+  headers only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, a
+  `Referrer-Policy` that keeps job addresses on the site and a `Permissions-Policy`.
+  HTTPS and `Strict-Transport-Security` belong to the proxy that ends TLS.
+- A request body over 16 MB is refused with 413 by its `Content-Length` before a byte
+  is read, else as soon as the count passes the limit; the 15 MB file limit, the
+  200,000 characters of text and the bounds on the review fields (§7) hold inside it.
+  Writes (POST, PUT, PATCH, DELETE) are limited to `RATE_LIMIT_PER_MINUTE` (120) per
+  client address and minute, 429 with `Retry-After` beyond; behind the trusted proxy
+  the client is the address it forwards. In memory, per process.
+- `/healthz` answers from the process alone; `/readyz` asks the model endpoint at most
+  once in 30 s, whoever asks, and answers booleans and the configured names, never the
+  endpoint's catalogue, so a caller cannot make the server spend the key's quota or
+  learn what the endpoint serves.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API.
 - The server fetches the URLs users submit, so a URL that resolves to a private,
   loopback or link-local address is refused (server-side request forgery). The check
   runs on every hop of a redirect chain (at most 5 hops) and the connection goes to
   the address that was checked, the name in the Host header and as the TLS server
   name, so a DNS answer that changes between the check and the connect cannot redirect
-  the fetch (`ingest/fetch.py`). `ALLOW_PRIVATE_URLS=1` lifts the address check for an
-  intranet that needs internal pages.
+  the fetch (`ingest/fetch.py`). Three budgets end a slow or hostile server's hold on
+  a thread: 30 s per connect and read, 120 s for the whole fetch, 15 MB of body.
+  `ALLOW_PRIVATE_URLS=1` lifts the address check for an intranet that needs internal
+  pages.
 - A state-changing request from a page on another site (cross-site request forgery)
   is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
   `Origin` that is not this server (`web/security.py`). Requests without these
@@ -1208,7 +1244,7 @@ track_2b/                   the template's folder, as the organisers require it
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
     web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py,
-                            security.py (the cross-site guard), templates/,
+                            security.py (the hardening layer), health.py, templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
     export/                 markdown.py, html.py, bundle.py
     eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,

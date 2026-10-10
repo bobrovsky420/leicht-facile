@@ -53,9 +53,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the image
         run: docker build -t leicht-facile:ci .
-      - name: Start it with an unreachable endpoint and call /healthz
+      - name: Start it with an unreachable endpoint and call /healthz and /readyz
         run: |
-          docker run -d --name app -p 8000:8000 \
+          docker run -d --name app -p 127.0.0.1:8000:8000 \
             -e LLM_BASE_URL=http://127.0.0.1:9/v1 \
             -e LLM_API_KEY=none \
             -e LLM_NAME=swiss-ai/Apertus-v1.5-8B \
@@ -63,8 +63,10 @@ jobs:
           for i in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:8000/healthz -o healthz.json; then
               cat healthz.json
-              # Liveness is 200 even when the endpoint is down; the body says so.
-              grep -q '"reachable": *false' healthz.json
+              # Liveness is 200 even when the endpoint is down; readiness says so.
+              curl -fsS http://127.0.0.1:8000/readyz -o readyz.json
+              cat readyz.json
+              grep -q '"reachable": *false' readyz.json
               exit 0
             fi
             sleep 2

@@ -124,8 +124,9 @@ What the running system contacts:
 Nothing else: no telemetry, CDN, outside fonts or scripts, update check or login
 provider; on-premise or air-gapped, no data leaves the organisation at runtime. Build
 time: PyPI (`uv.lock`), spaCy wheels from GitHub, images from Docker Hub and GHCR.
-The container runs as non-root, logs no document text above `DEBUG` and has no
-login, so it belongs behind the organisation's reverse proxy. Licences: Apertus 1.5 Apache 2.0 with an acceptable use
+The container runs as non-root, logs no document text above `DEBUG` and listens on
+localhost; published further, it insists on a shared token or the reverse proxy's user
+header (the organisation's login). Licences: Apertus 1.5 Apache 2.0 with an acceptable use
 policy (accepted once for the gated download), code Apache 2.0, spaCy models MIT
 (German) and LGPL-LR (French), fonts OFL. Any OpenAI-compatible server works (used:
 CSCS, Public AI, llama.cpp; vLLM on-premise): no single provider is needed.
@@ -311,7 +312,7 @@ fire, one that must not).
 - **Decision mode v1** is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), DOCX export, an air-gapped image
-  bundle, login.
+  bundle, user accounts of its own (a shared token or the proxy's user header stand in).
 - **Unmeasured:** the rewrite recipes the checker hands the writer for a subordinate
   clause, in German and French; the dev runs measured the rounds, not them.
 
@@ -334,8 +335,8 @@ fire, one that must not).
 
 ## 8. Next steps
 
-- **Into use.** Before a canton's first real letter: login through its own proxy and
-  DOCX export (writers work in Word), to build; a GPU host and the weights under the
+- **Into use.** Before a canton's first real letter: its login proxy in front (the app
+  reads the proxy's user header) and DOCX export (writers work in Word), to build; a GPU host and the weights under the
   acceptable use policy, to obtain; its IT security review and a data protection
   assessment, to approve. The target-group test stays with the office. First user:
   **[OWNER: none is named yet; say so plainly, or name one that agrees.]**

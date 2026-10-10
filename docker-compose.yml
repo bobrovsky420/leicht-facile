@@ -30,6 +30,10 @@ services:
         required: false
     environment:
       DATA_DIR: /data
+      # The interface the port is published on (below), so the app knows where it is
+      # reachable: beyond the loopback interface it refuses to start without a login
+      # (AUTH_TOKEN or AUTH_PROXY_HEADER in .env; track_2b/docs/architecture.md §10).
+      BIND_HOST: ${BIND_HOST:-127.0.0.1}
       # Passed through from the shell when set there; otherwise the value from .env.
       LLM_BASE_URL:
       LLM_API_KEY:
@@ -37,7 +41,10 @@ services:
     volumes:
       - appdata:/data
     ports:
-      - "8000:8000"
+      # This machine only, by default: http://localhost:8000. A reverse proxy on the host
+      # publishes the app to the organisation; BIND_HOST=0.0.0.0 in .env publishes it on
+      # every interface itself, which needs a login (above).
+      - "${BIND_HOST:-127.0.0.1}:8000:8000"
     restart: unless-stopped
 
   vllm:

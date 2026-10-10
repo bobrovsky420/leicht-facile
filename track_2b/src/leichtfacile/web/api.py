@@ -36,16 +36,24 @@ ARTIFACT_NAMES = (
 )  # fmt: skip
 
 
+# Bounds on what a review may carry: an edit is a sentence or a short paragraph, a
+# comment a note; beyond them a body is a mistake or an attack, not a review.
+MAX_EDIT_CHARS = 10_000
+MAX_COMMENT_CHARS = 2_000
+MAX_DECISIONS = 2_000
+MAX_LIST_LIMIT = 200
+
+
 class DecisionIn(BaseModel):
-    block_id: str
+    block_id: str = Field(max_length=16)
     decision: Literal["approved", "edited", "rejected"]
-    text: str | None = None
-    comment: str | None = None
+    text: str | None = Field(default=None, max_length=MAX_EDIT_CHARS)
+    comment: str | None = Field(default=None, max_length=MAX_COMMENT_CHARS)
 
 
 class ReviewIn(BaseModel):
-    draft_version: int
-    decisions: list[DecisionIn] = Field(default_factory=list)
+    draft_version: int = Field(ge=1)
+    decisions: list[DecisionIn] = Field(default_factory=list, max_length=MAX_DECISIONS)
     completed: bool = False
 
 
@@ -107,7 +115,9 @@ async def post_job(
 
 
 @router.get("/jobs")
-def list_jobs(request: Request, limit: int = 50) -> list[dict]:
+def list_jobs(
+    request: Request, limit: Annotated[int, Query(ge=1, le=MAX_LIST_LIMIT)] = 50
+) -> list[dict]:
     return [
         {"id": j.id, "title": j.title, "status": j.status, "stage": j.stage,
          "created_at": j.created_at.isoformat(), "condition": j.config.condition}

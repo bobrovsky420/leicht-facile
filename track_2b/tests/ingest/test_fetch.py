@@ -5,6 +5,7 @@ and the transport a mock."""
 from __future__ import annotations
 
 import ipaddress
+import time
 from datetime import UTC
 
 import httpx
@@ -201,6 +202,44 @@ def test_fetch_errors(handler, message):
         fetch_url(
             "https://www.example.ch/", max_bytes=100, client=_client(handler), resolve=resolve
         )
+
+
+def test_the_total_budget_ends_a_trickling_download():
+    """One byte every few seconds stays under the read timeout; the budget for the whole
+    fetch ends it (the audit's T2)."""
+
+    class Trickle(httpx.SyncByteStream):
+        def __iter__(self):
+            for _ in range(20):
+                time.sleep(0.02)
+                yield b"x"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, stream=Trickle(), headers={"content-type": "text/plain"})
+
+    with pytest.raises(FetchError, match="took longer than 0.1 s"):
+        fetch_url(
+            "https://www.example.ch/", total_timeout_s=0.1, client=_client(handler), resolve=resolve
+        )
+    whole = fetch_url(
+        "https://www.example.ch/", total_timeout_s=10, client=_client(handler), resolve=resolve
+    )
+    assert whole.content == b"x" * 20
+
+
+def test_the_total_budget_spans_the_redirect_chain():
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        time.sleep(0.06)
+        return httpx.Response(302, headers={"location": f"https://www.example.ch/hop{len(seen)}"})
+
+    with pytest.raises(FetchError, match="took longer than 0.1 s"):
+        fetch_url(
+            "https://www.example.ch/", total_timeout_s=0.1, client=_client(handler), resolve=resolve
+        )
+    assert len(seen) <= 2, "no hop starts after the deadline"
 
 
 def test_fetch_timeout_scheme_and_host():

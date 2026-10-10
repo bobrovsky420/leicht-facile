@@ -207,7 +207,7 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
   `needs_review` (`aria-label` "3 drafts need review") and **New draft** (`/new`).
   The current section has a 2 px accent underline and `aria-current`.
 - Right: the endpoint indicator, a dot, "Endpoint" and the configured model name
-  (`settings.llm_name`, mono 12). The dot is grey until `app.js` has the `/healthz`
+  (`settings.llm_name`, mono 12). The dot is grey until `app.js` has the `/readyz`
   answer: green when the endpoint is reachable and the model listed, amber when it
   is reachable without the model, red when it is unreachable. The full sentence
   (the existing `js.endpoint.*` texts) goes into the indicator's `title` and

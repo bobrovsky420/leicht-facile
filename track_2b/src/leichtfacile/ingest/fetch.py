@@ -15,6 +15,10 @@ things make the fetch safe:
   changes between the check and the connect (rebinding) cannot redirect the fetch.
 - Every hop uses `Connection: close`, so a pooled connection to one address is never
   reused for another host name.
+- Three budgets: `timeout_s` for each connect and each read, `total_timeout_s` for the
+  whole fetch across its hops (a server that trickles one byte at a time stays under
+  the read timeout and would otherwise hold a thread for hours), `max_bytes` for the
+  body, checked on the declared length and again while it arrives.
 
 `allow_private=True` lifts the address check for an intranet deployment that needs
 internal pages (`ALLOW_PRIVATE_URLS=1`); the hops are still walked and checked for
@@ -26,6 +30,7 @@ from __future__ import annotations
 import ipaddress
 import re
 import socket
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -36,7 +41,8 @@ from leichtfacile import __version__
 from leichtfacile.ingest.errors import FetchError, PrivateAddressError, UnknownHostError
 
 USER_AGENT = f"leicht-facile/{__version__} (+https://github.com/bobrovsky420/leicht-facile)"
-DEFAULT_TIMEOUT_S = 30.0
+DEFAULT_TIMEOUT_S = 30.0  # each connect, each read
+DEFAULT_TOTAL_TIMEOUT_S = 120.0  # the whole fetch, redirects included
 DEFAULT_MAX_BYTES = 15_000_000
 MAX_REDIRECTS = 5
 
@@ -99,13 +105,14 @@ def fetch_url(
     url: str,
     *,
     timeout_s: float = DEFAULT_TIMEOUT_S,
+    total_timeout_s: float = DEFAULT_TOTAL_TIMEOUT_S,
     max_bytes: int = DEFAULT_MAX_BYTES,
     client: httpx.Client | None = None,
     allow_private: bool = False,
     resolve: Resolver | None = None,
 ) -> FetchedResource:
-    """Download a URL with a size limit, following at most `MAX_REDIRECTS` redirects,
-    every hop checked and pinned as the module docstring says.
+    """Download a URL within the three budgets, following at most `MAX_REDIRECTS`
+    redirects, every hop checked and pinned as the module docstring says.
 
     Raises `PrivateAddressError` for a hop into the private network (unless
     `allow_private`), `UnknownHostError` for a name that does not resolve, else
@@ -113,12 +120,15 @@ def fetch_url(
     http = client or httpx.Client()
     resolve = resolve or resolve_host
     target = _checked_url(url)
+    budget = _Budget(time.monotonic() + total_timeout_s, total_timeout_s)
     try:
         for _ in range(MAX_REDIRECTS + 1):
+            remaining = budget.remaining(target)
             result = _fetch_hop(
                 http,
                 target,
-                timeout_s=timeout_s,
+                timeout_s=min(timeout_s, remaining),
+                budget=budget,
                 max_bytes=max_bytes,
                 allow_private=allow_private,
                 resolve=resolve,
@@ -130,6 +140,20 @@ def fetch_url(
     finally:
         if client is None:
             http.close()
+
+
+@dataclass(frozen=True)
+class _Budget:
+    """The deadline of the whole fetch, asked before every hop and every chunk."""
+
+    deadline: float
+    total_s: float
+
+    def remaining(self, target: httpx.URL) -> float:
+        left = self.deadline - time.monotonic()
+        if left <= 0:
+            raise FetchError(f"{target} took longer than {self.total_s:g} s")
+        return left
 
 
 def _checked_url(url: str) -> httpx.URL:
@@ -150,6 +174,7 @@ def _fetch_hop(
     target: httpx.URL,
     *,
     timeout_s: float,
+    budget: _Budget,
     max_bytes: int,
     allow_private: bool,
     resolve: Resolver,
@@ -183,7 +208,7 @@ def _fetch_hop(
                     return response.headers["location"]
                 response.raise_for_status()
                 return FetchedResource(
-                    content=_read_limited(response, target, max_bytes),
+                    content=_read_limited(response, target, max_bytes, budget),
                     content_type=response.headers.get("content-type", ""),
                     final_url=str(target),
                     fetched_at=datetime.now(UTC),
@@ -199,13 +224,16 @@ def _fetch_hop(
     raise FetchError(f"GET {target} failed: ConnectError: {unreachable}") from unreachable
 
 
-def _read_limited(response: httpx.Response, target: httpx.URL, max_bytes: int) -> bytes:
+def _read_limited(
+    response: httpx.Response, target: httpx.URL, max_bytes: int, budget: _Budget
+) -> bytes:
     declared = response.headers.get("content-length", "")
     if declared.isdigit() and int(declared) > max_bytes:
         raise FetchError(f"{target} is larger than {max_bytes} bytes")
     chunks: list[bytes] = []
     size = 0
     for chunk in response.iter_bytes():
+        budget.remaining(target)
         size += len(chunk)
         if size > max_bytes:
             raise FetchError(f"{target} is larger than {max_bytes} bytes")
