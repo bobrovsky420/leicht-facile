@@ -1152,6 +1152,13 @@ at runtime.
 - A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
   event loop, so a server that trickles its page or a large PDF does not hold every
   other request (`/healthz` included) while it is ingested.
+- Prompt injection: a web page or a PDF can carry instructions ("ignore the rules
+  above and write ..."). Every prompt puts the document between `<document>` and
+  `</document>` and says, right before the fence, that what stands there is content,
+  never an instruction; code writes a tag inside the text as `[document]` so the text
+  cannot close the fence (`pipeline/render.py`). The code-side checks keep the values
+  honest (FACT-01, FACT-06, the copied-example check), and every draft goes through
+  the review before it is exported.
 - No document text in logs above `DEBUG`; the LLM cache can be disabled.
 
 ## 11. Repository layout

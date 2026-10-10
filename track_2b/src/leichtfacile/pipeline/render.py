@@ -3,25 +3,42 @@ its id, so the model can cite segments, facts and blocks by id."""
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 
 from leichtfacile.pipeline.labels import label
 from leichtfacile.schemas import Draft, FactSheet, Finding, Segment, SourceDocument
 
+# The templates put the document between these tags and say that what stands inside
+# is content, never an instruction (prompt injection: a web page or a PDF can carry
+# "ignore the rules above"). A tag inside the text itself is written with brackets, so
+# the text cannot close the fence and go on as instructions.
+FENCE_OPEN = "<document>"
+FENCE_CLOSE = "</document>"
+_FENCE_TAG = re.compile(r"<\s*(/?)\s*document\s*>", re.IGNORECASE)
+
+
+def defused(text: str) -> str:
+    """The text with every `<document>` or `</document>` written as `[document]`,
+    `[/document]`."""
+    return _FENCE_TAG.sub(lambda m: f"[{m.group(1)}document]", text)
+
 
 def source_lines(segments: Iterable[Segment]) -> str:
+    """One line per segment with its id; the text defused (see `FENCE_OPEN`)."""
     lines: list[str] = []
     last_para: int | None = None
     for seg in segments:
         if last_para is not None and seg.para != last_para:
             lines.append("")
         last_para = seg.para
+        text = defused(seg.text)
         if seg.kind == "heading":
-            lines.append(f"{'#' * (seg.heading_level or 2)} [{seg.id}] {seg.text}")
+            lines.append(f"{'#' * (seg.heading_level or 2)} [{seg.id}] {text}")
         elif seg.kind == "list_item":
-            lines.append(f"- [{seg.id}] {seg.text}")
+            lines.append(f"- [{seg.id}] {text}")
         else:
-            lines.append(f"[{seg.id}] {seg.text}")
+            lines.append(f"[{seg.id}] {text}")
     return "\n".join(lines).strip()
 
 
