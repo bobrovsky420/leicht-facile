@@ -25,8 +25,9 @@ working here and can only be relaxed by an explicit instruction from the owner.
   project (Makefile, README, technical report and its PDF, `data/`, `docs/`, `eval/`,
   `scripts/`, `src/`, `tests/`); the root holds the build and tooling files (Makefile,
   Docker, Compose, `pyproject.toml`, CI), PLAN.md, `video/` and the local untracked
-  folders (`.venv/`, `.vscode/`, caches, `.env`). The root Makefile has the targets;
-  `track_2b/Makefile` passes every target on to it.
+  folders (`.venv/`, `.vscode/`, caches, `.env`). `track_2b/Makefile` has the targets;
+  the root Makefile includes it. The recipes run from the root, also when make is
+  called inside `track_2b/`, so their paths are written from the root.
 - Write paths from the repository root (`track_2b/docs/rules.md`) in prose, comments
   and code. Markdown link targets are relative to the file that contains them.
 - `README.md`, `technical_report.md` and `RoestigrabenBridgers_Report.pdf` exist twice,

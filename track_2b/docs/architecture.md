@@ -1144,7 +1144,7 @@ at runtime.
 
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, Docker image built and started against an unreachable endpoint
-Makefile                    run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval
+Makefile                    includes track_2b/Makefile; the judges run `make run` here
 docker-compose.yml          app (+ profile local-llm: vllm; profile local-llm-small: llamacpp)
 Dockerfile                  the image keeps the repository's layout under /app
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+; .python-version pins 3.14
@@ -1156,7 +1156,8 @@ THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline
 PLAN.md, AGENTS.md          the plan; the rules for AI agents
 video/                      the demo video as code (Remotion)
 track_2b/                   the template's folder, as the organisers require it
-  Makefile                  passes every target on to the root Makefile
+  Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval;
+                            the recipes run from the root, also when called here
   README.md                 the root README's text; its links written from track_2b/
   technical_report.md       the report, the same text at the root
   RoestigrabenBridgers_Report.pdf  the report printed (links absolute), the same file at the root
