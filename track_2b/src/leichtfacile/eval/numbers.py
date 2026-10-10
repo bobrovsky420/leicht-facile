@@ -167,8 +167,10 @@ def sentence(h: Headline) -> str:
     if h.case.startswith("A"):
         return (
             "Same model, the Canton of Zurich's published prompt against our pipeline: "
-            f"{_num((zh.invented or 0) - (p2.invented or 0))} fewer invented values and "
-            f"{_num((zh.errors or 0) - (p2.errors or 0))} fewer rule errors per 100 blocks, "
+            # differences of the rounded means, so the sentence agrees with the table
+            f"{_num(round(zh.invented or 0, 1) - round(p2.invented or 0, 1))} fewer invented "
+            f"values and {_num(round(zh.errors or 0, 1) - round(p2.errors or 0, 1))} fewer rule "
+            "errors per 100 blocks, "
             "and every hard fact it misses is listed for the reviewer."
         )
     if h.case == "B":

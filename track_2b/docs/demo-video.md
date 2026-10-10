@@ -3,7 +3,9 @@
 Status: initial draft, 6 October 2026; on 7 October 2026 the "only Apertus" scene
 added and the BehiG scene dropped for it. On 8 October 2026 the owner chose concept A,
 "Find the deadline", after mocks of both concepts; the first concept, "Can you read
-this?", is kept in §5 for reference. Companion to [hard-texts.md](hard-texts.md) (hook
+this?", is kept in §5 for reference. On 10 October 2026 the final CSCS run gave case A of
+decision D-M, so the evidence scene names the Canton of Zurich and carries the final
+numbers (§2, §4). Companion to [hard-texts.md](hard-texts.md) (hook
 sentences, the number) and [use-cases.md](use-cases.md) (the letters that may not leave
 the authority, and why that leaves Apertus).
 
@@ -36,11 +38,13 @@ idea per shot, English captions burned in.
 - Key message: the 1.25 million people must not be excluded from the letters that decide
   their money, deadlines and rights (spoken at 0:18-0:33, written on the end card).
   Same wording as in [hard-texts.md](hard-texts.md) §2, the README and the report.
-- Evidence by case B of decision D-M (PLAN.md, WP13): no hard fact lost without a trace. A strong single
-  prompt in its default mode loses hard facts and nothing tells the writer; Leicht·Facile
-  lists every one it misses (code checks the values; a fact without a value rests on
-  the judge). The numbers come from the final run; Zurich is not named
-  (D-L).
+- Evidence by case A of decision D-M (PLAN.md, WP13; the final run of 10 October 2026):
+  same model, the Canton of Zurich's published prompt against our pipeline: a tenth of
+  the rule errors (2.0 against 19.5 per 100 blocks), no invented value (0.0 against
+  0.2), and every hard fact Leicht·Facile misses is listed for the writer, where the
+  prompt loses 7 percent of them without a trace (code checks the values; a fact
+  without a value rests on the judge). Zurich is named (D-L, case A); the end card
+  carries the credit.
 - Second message: patient letters, child protection decisions and tax letters are
   under secrecy and may not go to a foreign cloud, and for them Apertus is the only
   model that fits (1:19-1:49). The argument and its sources are in
@@ -62,7 +66,7 @@ idea per shot, English captions burned in.
 | 0:18-0:33 | The kitchen table in evening light (generated footage, or drawn as in the mock): **1.25 million** with "22% of adults aged 16-65" and the source "Swiss Federal Statistical Office, PIAAC 2022/23"; the letter's money, deadline and rights marked; the letter pushed away on "shut out"; a card *Slow expert work*. | "1.25 million adults in Switzerland struggle with reading. Letters like this decide their money, their deadlines, their rights. No one should be shut out. But easy-language versions are slow expert work." |
 | 0:33-0:40 | Logo, *easy-language drafts of official texts*, *with Apertus, the Swiss open model*; then *The writers stay in charge* and *A checked first draft*. | "Leicht·Facile drafts them with Apertus, the Swiss open model. The writers get a checked first draft." |
 | 0:40-1:09 | **Real screen recording**, sped up, of the same letter: pasted, level A2. The fact sheet's five questions, *By when?* ringed, then the deadline fact with its value 2027-03-31. The draft. The rule check with a millisecond timer (47 ms on draft v1 of this letter). The facts tab with the deadline present. Judge and repair: the version pills from v1 (10 blocking) to the final version (2). The deadline sentence selected, its source sentence lit; approve with the keys; reader view and export. | "Apertus reads the letter the way you just tried to, and writes down every answer: what to do, by when, what it costs, whom to ask. Then it writes the draft. Code checks every date, amount and phone number, and 45 easy-language rules, in milliseconds. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source. The writer approves each one." |
-| 1:09-1:19 | *No hard fact lost without a trace.* Left: the share of hard facts a strong single prompt in its default mode loses with nothing telling the writer (23 % in report §5, 6 October). Right: Leicht·Facile, *lists every hard fact it misses* (one line), with the real facts tab of the example job's draft v2, *15 of 16 facts present*, the missing fact (f07, 1. Januar 2027) first; the final draft v6 carries all 16, so it has none to show, and a later round puts f07 back (10 October). Footnote: endpoint, model, split, date. | "A strong single prompt lost almost a quarter of the hard facts, without a word. Leicht·Facile lists every one it misses." ("in its default mode" only on the card since 9 October, owner) |
+| 1:09-1:19 | *Same model. Zurich's published prompt against our pipeline.* Left: *The Canton of Zurich's published prompt*, the counter runs to **19.5** *rule errors per 100 blocks; 7 % of the hard facts lost, and nothing tells the writer* (report §5, final run of 10 October). Right: Leicht·Facile, *2.0 rule errors per 100 blocks* and *lists every hard fact it misses* (one line each), with the real facts tab of the example job's draft v2, *15 of 16 facts present*, the missing fact (f07, 1. Januar 2027) first; the final draft v6 carries all 16, so it has none to show, and a later round puts f07 back (10 October). Footnote: same model, Apertus 1.5 8B on CSCS, the prompt in its complete mode, 20 German test pairs, final run of 10 October 2026. | "Same model: the Canton of Zurich's published prompt against our pipeline. A tenth of the rule errors. And Leicht·Facile lists every hard fact it misses." (24 words, 4 more than the case B sentence of 9 October; the voice, the length and the 2 s hold are re-checked at the re-render, §4) |
 | 1:19-1:49 | The "only Apertus" scene of §5, unchanged: the envelopes, the four tiles struck one per sentence, Apertus, the icons, Ticino, CSCS. | As in §5, 1:29-1:57. |
 | 1:49-1:52 | End card: *"The deadline. In the first sentence."* above *"No one left out."*, team name (Röstigraben Bridgers), repo URL, "Voice and imagery AI-generated", the credit to Zurich's simply-simplify-language (as in version C). | (music only) |
 
@@ -147,9 +151,15 @@ which now ends with the answer "Now you can." (owner). 267 words, 1:58 (voice sp
       in `video/src/scenes/Again.tsx`, and drop the placeholder note. Run the sentences
       inside a short letter: alone, DE-4 came back wrapped in letter headings and
       without its consequence (PLAN.md §11, 8 October).
-- [ ] CSCS runs done: the silent-loss share of the strong single prompt for 1:09 from
-      the final run. The real example job for the screen recording is done: the
-      bundles rebuilt on 10 October, the app frames retaken from them the same day.
+- [x] CSCS runs done (final run, 10 October): case A of D-M, so the evidence scene at
+      1:09 names the Canton of Zurich (D-L) and carries the final numbers (§2). Narration
+      C (`ev-a`, `ev-b`), the titles, the counter and the footnote in
+      `video/src/scenes/Evidence.tsx` (the right card gets a line for 2.0 rule errors,
+      the facts panel is narrower to make room) and the bars in `Compare.tsx` (the
+      earlier concept) updated the same day, not yet rendered: the voice, the length
+      (4 words more) and the cards' layout are checked at the re-render. The real
+      example job for the screen recording is done: the bundles rebuilt on 10 October,
+      the app frames retaken from them the same day.
 - [ ] The rebuilt job's fact sheet answers "What does it cost?" with the junk word
       *text* (`core.cost` in the bundle, no source sentence), visible in the app scene's
       job page (0:54-0:57): rebuild the example once Understand drops such answers, or

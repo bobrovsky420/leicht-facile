@@ -996,20 +996,23 @@ Each run with the 8B writer; P2 also with the 70B writer (every stage on the 70B
 with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
 runs both. The judge is always the 70B-thinking model, so P1 and P2 are judged by the
 same instrument; in the 70B-writer run it grades its own model's drafts, which the
-report notes. Result (6 October 2026, 23 pairs): the 70B everywhere writes cleaner
-easy language (1.4 against 4.3 errors per 100 blocks) but keeps fewer facts (78
-against 84 percent coverage) at 1.8 times the price per page; the hybrid keeps the
-fewest (66 percent). The 8B writer stays the default; track_2b/docs/prompts.md has the tables.
+report notes. Result (final run, 10 October 2026, 20 German eval pairs): the 70B
+everywhere writes cleaner easy language (1.0 against 2.0 errors per 100 blocks) and
+finds as many must-keep facts (97 against 98 percent coverage; 91 against 87 percent
+of the hard facts) at 1.5 times the price per page; the hybrid finds the most (99
+percent, 94 percent of the hard facts) at the 8B's price. The 8B writer stays the
+default, since it runs on one GPU; track_2b/docs/prompts.md has the tables.
 
 P0-ZH runs with the settings of P0 (no thinking, temperature 0.3, 6000 tokens) and
 with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags
 is taken and ß becomes ss. Their Markdown stripping is not applied, because it deletes
 the underscores of web and e-mail addresses. An answer without the tags is used whole
 and noted in the job summary. The prompt file is a Jinja template whose licence note
-is a comment; track_2b/docs/prompts.md has the details. On the 20 German eval pairs (CSCS, 6
-October 2026) the complete variant kept 95 percent of the hard facts (fact coverage
-91 percent) with 15.4 rule errors per 100 blocks, the condensed variant 77 percent at
-8.7 errors; P2 on the 8B kept 80 percent (84) with 4.3 errors.
+is a comment; track_2b/docs/prompts.md has the details. On the 20 German eval pairs (CSCS,
+final run of 10 October 2026) the complete variant kept 93 percent of the hard facts
+(fact coverage 91 percent) with 19.5 rule errors per 100 blocks and 7 percent silent
+losses, the condensed variant 75 percent at 9.6 errors; P2 on the 8B kept 87 percent
+(98) with 2.0 errors and no silent loss.
 
 ### Metrics
 

@@ -38,14 +38,16 @@ only Apertus fits (§3). A single prompt ("rewrite this in Leichte Sprache"), wi
 fact contract, provenance or independent check, is our baseline P0; the full pipeline
 is P2.
 
-**Headline result.** **[PENDING: final run after Sun 11 Oct, and D-M; below, the
-numbers of 6 Oct, without the recover round.]** On 20 held-out German pairs on the CSCS endpoint, the
-pipeline keeps 80 percent of the source's countable facts (dates, amounts, phone
-numbers, addresses) against 70 percent in the official easy-language versions, which
-drop values on purpose, with 4.3 rule errors per 100 blocks against 2.7 for the
-official versions and 22.0 for the one-prompt baseline, which keeps every fact because
-it hardly simplifies. Its drafts contain 0.1 values per 100 blocks that the source does
-not have; the official versions 2.2.
+**Headline result.** Same model, the Canton of Zurich's published prompt against our
+pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 10 October
+2026): 0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks (0.0
+against 0.2, and 2.0 against 19.5), and every hard fact it misses is listed for the
+reviewer. The pipeline finds 98 percent of the must-keep facts against 91 for the
+prompt in its complete mode; it keeps 87 percent of the source's countable values
+(dates, amounts, phone numbers, addresses) against 93 for that prompt and 67 for the
+official easy-language versions, which drop values on purpose, and lists every one it
+loses, where the prompt loses 7 percent (complete) or 25 percent (condensed, Zurich's
+default) without a trace.
 
 ## 2. Architecture
 
@@ -148,11 +150,13 @@ card's memory bandwidth. A laptop RTX 4060 8 GB (llama.cpp, 4-bit) gave about 37
   for what it learned. Only Apertus combines open weights, open training data
   (website opt-outs honoured), Swiss public origin and German, French and Italian
   ([track_2b/docs/use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus)).
-- **Why these sizes:** the 8B is enough to read and write: it kept more facts than the
-  70B running every stage, at about half the price per page (§5), and runs on one
-  24 GB GPU (§2), where the 70B needs four. The 70B judges,
-  because meaning needs a second, larger model than the one that wrote the draft. The
-  70B reading for the 8B kept the fewest facts.
+- **Why these sizes:** the 8B is enough to read and write: it finds as many must-keep
+  facts as the 70B running every stage (98 against 97 percent) at two thirds of the
+  price per page (§5), and runs on one 24 GB GPU (§2), where the 70B needs four. The
+  70B judges, because meaning needs a second, larger model than the one that wrote the
+  draft. The 70B writes cleaner (1.0 against 2.0 rule errors per 100 blocks) and keeps
+  more countable values (91 against 87 percent); the 70B reading for the 8B keeps the
+  most (94 percent) at the 8B's price, for an organisation that runs the 70B anyway.
 
 | Stage | Model | Thinking | Temperature | max_tokens |
 |-------|-------|----------|-------------|------------|
@@ -163,7 +167,7 @@ card's memory bandwidth. A laptop RTX 4060 8 GB (llama.cpp, 4-bit) gave about 37
 | Recover | 8B | off | 0.2 | 1500 |
 | Baseline P0 | 8B | off | 0.3 | 6000 |
 
-**[PENDING: check the table against the final run's settings.]** **Prompts and parsing** ([track_2b/docs/prompts.md](track_2b/docs/prompts.md)), in the document's
+**Prompts and parsing** ([track_2b/docs/prompts.md](track_2b/docs/prompts.md)), in the document's
 language, each with one filled JSON example instead of the schema. Sentences and blocks
 carry ids (`[s0004]`, `[b007]`): the model cites, code verifies; the judge's unsupported
 verdicts must quote words that stand in the draft. The writer plans first
@@ -183,8 +187,8 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   0.08, §5), so every fact number comes from code.
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
   without, 28 seconds and easy language. Write runs without thinking.
-- 8B drafts read worse than the official versions (Amstad 51 against 62); the 70B
-  writes cleaner but keeps fewer facts.
+- 8B drafts read worse than the official versions (Amstad 54 against 62); the 70B
+  writes cleaner (59) at 1.5 times the price per page.
 - On a whole scanned page both models change digits (an IBAN into another IBAN); names
   and e-mail addresses are unsafe in every setting. Image input is not built
   ([track_2b/docs/image-input.md](track_2b/docs/image-input.md)).
@@ -233,35 +237,43 @@ judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against
 official version (a port of `SARI.py`, checked bit for bit); cost at Public AI's token
 prices and speed per 250-word page.
 
-Results on the 20 held-out German pairs, CSCS endpoint, 6 October 2026, means over
-pairs; "/100" is per 100 blocks; seconds undercount, as cached calls count 0 s
-([track_2b/eval/report.md](track_2b/eval/report.md) has the full tables). **[PENDING: the final run replaces this table, the paragraphs below it and §1; the
-recover round, on by default since 9 October, is not in these rows.]**
+Results on the 20 held-out German pairs, CSCS endpoint, final run of 10 October 2026
+(commit 760a210), means over pairs; "/100" is per 100 blocks. The baselines ran with
+the cache off; in P1 and P2 the Understand answers, and in P2 the first draft that P1
+had just written, came from the cache and count 0 s, so their seconds undercount
+([track_2b/eval/report.md](track_2b/eval/report.md) has the full tables, also for French).
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Values not in source /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
 |-------|---------------|-----------------|---------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
 | SOURCE | - | 100 % | 0 % | 0.0 | - | 31.3 | 36 | - | - | - |
-| REF (official) | - | 70 % | 30 % | 2.2 | - | 2.7 | 62 | - | - | - |
-| P0 | 93 % | 100 % | 0 % | 0.0 | - | 22.0 | 50 | 44.5 | 0.0001 | 2.0 |
-| P0-ZH complete | 91 % | 95 % | 5 % | 0.0 | - | 15.4 | 47 | 43.2 | 0.0003 | 2.4 |
-| P0-ZH condensed | 75 % | 77 % | 23 % | 0.0 | - | 8.7 | 48 | 41.7 | 0.0002 | 1.4 |
-| P1 | 72 % | 69 % | - | 3.2 | - | 9.9 | 50 | 38.8 | 0.0012 | 10.9 |
-| **P2 (ours)** | 84 % | 80 % | - | 0.1 | 6.9 | 4.3 | 51 | 40.6 | 0.0105 | 23.3 |
-| P2, 70B everywhere | 78 % | 75 % | - | 0.3 | 4.7 | 1.4 | 58 | 41.7 | 0.0191 | 37.3 |
-| P2, 70B reads, 8B writes | 66 % | 65 % | - | 0.6 | 6.2 | 2.1 | 54 | 39.0 | 0.0103 | 21.6 |
+| REF (official) | - | 67 % | 33 % | 2.8 | - | 2.7 | 62 | - | - | - |
+| P0 | 88 % | 88 % | 12 % | 0.2 | - | 22.2 | 50 | 42.6 | 0.0001 | 2.5 |
+| P0-ZH complete | 91 % | 93 % | 7 % | 0.2 | - | 19.5 | 46 | 42.7 | 0.0003 | 2.4 |
+| P0-ZH condensed | 74 % | 75 % | 25 % | 0.0 | - | 9.6 | 47 | 42.2 | 0.0002 | 1.6 |
+| P1 | 53 % | 51 % | 0 % | 0.1 | - | 7.0 | 50 | 38.7 | 0.0012 | 6.5 |
+| **P2 (ours)** | 98 % | 87 % | 0 % | 0.0 | 1.8 | 2.0 | 54 | 41.2 | 0.0171 | 33.6 |
+| P2, 70B everywhere | 97 % | 91 % | 0 % | 0.0 | 0.5 | 1.0 | 59 | 41.7 | 0.0260 | 44.5 |
+| P2, 70B reads, 8B writes | 99 % | 94 % | 0 % | 0.0 | 1.7 | 1.8 | 54 | 42.2 | 0.0166 | 32.5 |
 
-**Reading the table.** The baseline keeps everything because it rewrites little (7.7
-words per sentence; SARI rewards closeness to the source). The pipeline nears the
-official sentence length (6.8 words against 6.1) and keeps more hard facts than the
-official versions, which condense on purpose, but reads worse (51 against 62). Judge
-and repair (P1 to P2) raise fact coverage from 72 to 84 percent and cut rule errors
-from 9.9 to 4.3 and values not in the source from 3.2 to 0.1 per 100 blocks. On the 14
-pairs with 3 or more hard facts P2 keeps 77 percent, the official versions 60. French
-(3 pairs): 73 percent fact coverage, 4.6 errors, readability 75 (official 85).
+**Reading the table.** The one-sentence prompt and Zurich's complete prompt keep most
+values because they rewrite little (7.9 and 7.5 words per sentence; SARI rewards
+closeness to the source) and lose the rest without a trace; the condensed prompt,
+Zurich's default, simplifies more and drops a quarter of the values. The pipeline
+nears the official sentence length (7.0 words against 6.1), keeps more hard facts
+than the official versions, which condense on purpose, and reads worse (54 against
+62). Judge, repair and the recover round (P1 to P2) raise fact coverage from 53 to 98
+percent and cut rule errors from 7.0 to 2.0 per 100 blocks; the must-keep facts the 8B
+still misses stand in the checklist (8 of 184 on the 23 pairs, 6 of them on one page
+with 23 must-keep values, behind the cap of facts asked for per round). On the 17
+pairs with 3 or more hard facts P2 keeps 85 percent, the official versions 61. French
+(3 pairs): 94 percent fact coverage, 70 percent of the hard facts, 2.1 errors,
+readability 71 (official 85). The 70B's seconds include one call the server closed
+eight times before it answered.
 
 **Cost, and ten times the volume.** At Public AI's list prices the pipeline costs about
-one US cent per 250-word page (P2: 0.0105 USD; the recover round adds about 12 percent
-of tokens and 5 s per page), so ten times the volume costs ten times the cents. On own
+two US cents per 250-word page (P2: 0.0171 USD, the recover and polish rounds
+included; the 70B everywhere 0.0260), so ten times the volume costs ten times the
+cents. On own
 hardware the GPU is a fixed cost until it is busy. Speed is the limit: one job runs at
 a time, so at ten times the volume jobs wait in a queue; vLLM serves parallel requests,
 so more workers on the same GPU are the next step (not built, not measured). The rule
@@ -286,9 +298,9 @@ fire, one that must not).
 
 ## 6. Limitations
 
-- **A2 with an 8B model.** Drafts match the official sentence length, not the
-  readability (51 against 62), and keep 84 percent of the must-keep facts, listing the
-  rest. **[PENDING: final numbers]**
+- **A2 with an 8B model.** Drafts near the official sentence length, not the
+  readability (54 against 62), find 98 percent of the must-keep facts and keep 87
+  percent of the countable values (20 German eval pairs, CSCS), listing the rest.
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
 - **Italian** gets only the language-independent rules (facts, layout, readability).

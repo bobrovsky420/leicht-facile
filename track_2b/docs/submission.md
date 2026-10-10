@@ -66,7 +66,7 @@ Try it. Set LLM_BASE_URL, LLM_API_KEY and LLM_NAME (the CSCS values work as they
 
 What the running system contacts: only the Apertus endpoint in LLM_BASE_URL (the document text, inside prompts) and, when a user enters a URL, that page's server. No telemetry, no CDN, no login provider; on-premise or air-gapped, no data leaves the organisation. Why Apertus is the only model that fits letters under official, medical or tax secrecy: README, "Why only Apertus".
 
-Results. [PENDING: the headline sentence after the final CSCS run (D-M), with endpoint and split.]
+Results. Same model, the Canton of Zurich's published prompt against our pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 10 October 2026): 0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks (0.0 against 0.2, and 2.0 against 19.5), fact coverage 98 against 91 percent, and every hard fact the pipeline misses is listed for the reviewer, where the prompt loses 7 percent of them without a trace.
 
 Where Apertus fell short, and what we did about it: the 8B drops facts while writing and ignores word-level instructions, so code completes the fact sheet and checks every value; the 70B judge's fact verdicts agree with blind labels hardly better than chance (kappa 0.08), so every fact number in the report comes from code; on scanned letters both models change digits on a whole page and names in every setting, so image input is not built (track_2b/docs/image-input.md has every run).
 
@@ -123,11 +123,11 @@ answer each question:
 | Dimension | Question | Where we answer it | State |
 |-----------|----------|--------------------|-------|
 | Purposeful use of AI | Is Apertus suited to the task, and is that choice reasoned? | Report §1 and §3 ("why only Apertus"); README, "Why only Apertus"; [use-cases.md](use-cases.md) §2 | Answered |
-| | Is the model size justified, 8B where sufficient, 70B where needed? | Report §3 "Why these sizes"; §5 table (70B everywhere, hybrid) | Answered; numbers wait for the final run |
+| | Is the model size justified, 8B where sufficient, 70B where needed? | Report §3 "Why these sizes"; §5 table (70B everywhere, hybrid) | Answered with the final run of 10 October (report §3 and §5) |
 | | Is every other model right-sized? | Report §3 "Other models and coding assistants": none at runtime; spaCy and wordfreq | Answered |
 | | Does it say where Apertus fell short? | Report §3 "Where Apertus fell short"; §5 judge reliability; [image-input.md](image-input.md) | Answered |
 | Technical rigour | Does it run reproducibly from the documented command? | `make run`; report §7 | Clean checkout passed on Windows and Linux. **[PENDING: CI green on the submitted commit]** |
-| | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | **[PENDING: final run]** |
+| | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | Answered with the final run of 10 October 2026: every row on the 20 German and 3 French held-out pairs (report §5) |
 | | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured, nor the vLLM profile's FP8 KV cache (its memory effect is, report §2) |
 | | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | Answered |
 | | (Maturity level declared) | Report header; README; message §3 | **[OWNER: confirm]** |

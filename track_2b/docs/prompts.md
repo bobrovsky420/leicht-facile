@@ -398,8 +398,10 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as P1
   15.4), fewer warnings, the same sentence length and better readability; the complete
   prompt keeps more facts (91 against 84 percent coverage, 95 against 80 percent of the
   hard facts; on the 14 fact-rich pairs 93 against 73, the official versions 60). By
-  the rules of decision D-M (PLAN.md, WP13) this is case B: lead with "no silent loss" and state the
-  coverage gap openly; the fact-retention diagnosis (WP13) is the next step.
+  the rules of decision D-M (PLAN.md, WP13) this was case B on 6 October: lead with "no
+  silent loss" and state the coverage gap openly; the fact-retention diagnosis (WP13)
+  was the next step. The final run of 10 October gives case A ("The final run on the
+  eval split", below).
 - **The condensed variant, their default for Leichte Sprache, drops a quarter of the
   hard facts** (77 percent kept, 69 on the fact-rich pairs) and nobody is told. That is
   the silent loss in numbers.
@@ -482,7 +484,7 @@ The full dev split under P2 with the step (10 of 10 pairs): fact coverage 58 per
 hard facts kept 63 percent, 3.0 rule errors and 47.5 warnings per 100 blocks, no
 invented values.
 
-### Fact-retention diagnosis (WP13): the method, numbers pending (7 October 2026, night)
+### Fact-retention diagnosis (WP13): the method (7 October 2026, night)
 
 Why does P2 keep fewer facts than Zurich's complete prompt (84 against 91 percent fact
 coverage on the eval split)? `python -m leichtfacile eval diagnose --results
@@ -1320,6 +1322,63 @@ coverage 95 to 96 percent, hard facts kept 86 to 87, unsupported 0.8 to 1.0, tok
 per page plus 3 percent; French unchanged. In the final drafts the error findings of
 all kinds went from 55 to 53, FACT-01 from 19 to 16, the rest equal. A layout change
 with no effect beyond the day's sampling noise, kept on for the final run.
+
+### The final run on the eval split (CSCS, 10 October 2026)
+
+Every row again with `--redo` on the frozen pipeline (commit 760a210, the code of
+3131a02) into `track_2b/eval/results-cscs`, after a snapshot to `results-cscs-v6`: P1
+and P2 on the 23 held-out pairs (20 German, 3 French) with the cache on, P0 and both
+P0-ZH variants with the cache off (fresh calls, so their seconds are measured), the
+70B writer and the hybrid on the same 23 pairs; 908 fresh calls, 4 retried, no failed
+pair. Every row carries the scoring of 10 October (the value kinds of 7 October, the
+D-AB measure, the silent-loss key). German means over the 20 eval pairs
+(`track_2b/eval/report.md` has every column, also for French):
+
+| Setup | Fact coverage | Hard facts kept | Silent losses | Errors / 100 | Warnings / 100 | Readability | Unsupported / 100 | Invented values / 100 | Tokens / page | USD / page | s / page |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
+| P0 | 88 % | 88 % | 12 % | 22.2 | 103.3 | 50 | - | 0.2 | 944 | 0.0001 | 2.5 |
+| P0-ZH complete | 91 % | 93 % | 7 % | 19.5 | 100.3 | 46 | - | 0.2 | 2,385 | 0.0003 | 2.4 |
+| P0-ZH condensed | 74 % | 75 % | 25 % | 9.6 | 74.2 | 47 | - | 0.0 | 2,218 | 0.0002 | 1.6 |
+| P1 | 53 % | 51 % | 0 % | 7.0 | 40.0 | 50 | - | 0.1 | 8,661 | 0.0012 | 6.5 |
+| P2, 8B | 98 % | 87 % | 0 % | 2.0 | 36.5 | 54 | 1.8 | 0.0 | 32,775 | 0.0171 | 33.6 |
+| P2, 70B everywhere | 97 % | 91 % | 0 % | 1.0 | 20.3 | 59 | 0.5 | 0.0 | 23,223 | 0.0260 | 44.5 |
+| P2, hybrid: 70B reads, 8B writes | 99 % | 94 % | 0 % | 1.8 | 34.3 | 54 | 1.7 | 0.0 | 26,775 | 0.0166 | 32.5 |
+
+- **Case A of decision D-M** (`eval numbers`): P2 against P0-ZH complete has fewer
+  invented values (0.0 against 0.2 per 100 blocks), fewer rule errors (2.0 against
+  19.5) and higher fact coverage (98 against 91 percent). The owner confirmed the case
+  the same night; the sentence stands in the report's §1. On hard facts kept the
+  complete prompt is ahead (93 against 87 percent), and its losses are silent (7
+  percent), where P2 lists every one.
+- **Since 6 October** (then P2: 84 percent fact coverage, 80 hard facts kept, 4.3
+  errors, 0.1 invented values per 100 blocks) the facts rounds, the recover round, the
+  polish round and the judge's quotes went in, each measured on the dev pairs (above);
+  the eval split moved alike. P1 reads 53 percent fact coverage against 72 then: the
+  scoring changed (the value kinds of 7 October count more values, D-AB counts only
+  facts the source contains) and so did the writer's prompt, and P1 has no round that
+  asks for the facts a first draft drops. The gap from P1 to P2 is what the rounds add.
+- **The tiers** (6 October: the 70B kept fewer facts, the hybrid the fewest): with the
+  rounds all three find 97 to 99 percent of the must-keep facts. The 70B everywhere
+  writes the cleanest text (1.0 errors, readability 59, half the warnings) at 1.5
+  times the 8B's price; its seconds per page hold one Write call that the server
+  closed eight times before it answered (42.0 s without that pair). The hybrid keeps
+  the most hard facts (94 percent) at the 8B's price. The 8B writer stays the default:
+  it runs on one 24 GB GPU.
+- **Fact-retention diagnosis on the eval split** (`eval diagnose --role eval --writer
+  swiss-ai/Apertus-v1.5-8B`, 23 jobs): 184 checkable must-keep facts, 8 missing in the
+  final versions (96 percent found); 6 of the 8 on one page with 23 must-keep values
+  (`zh-passport-id-de`), never asked for behind the cap of facts per round, 1 written
+  and dropped by code, 1 asked for and not written. The hybrid: 237 checkable, 3
+  missing. `track_2b/eval/results-cscs/diagnosis_final.md` has the details (local: it
+  quotes the pages).
+- **French** (3 pairs, 8B): fact coverage 94 percent, hard facts kept 70, 2.1 errors
+  per 100 blocks, readability 71 (official 85); the 70B everywhere 100, 89 and 6.1;
+  the hybrid 100, 88 and 17.8 errors (its sentences grew to 10.8 words).
+- **Seconds per page** are measured for the baselines (cache off). In P1 and P2 the
+  Understand answers came from the cache, and P2's first draft from P1's call minutes
+  before, so their seconds undercount; the 33.6 s of P2 on the 8B are the judge,
+  repair, facts, recover and polish calls.
 
 ## Change log
 

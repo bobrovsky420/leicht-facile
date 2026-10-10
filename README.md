@@ -57,7 +57,14 @@ foreign clouds. Leicht·Facile adds exactly those four things, a review workflow
 an audit trail, and runs on infrastructure the organisation controls. The evaluation
 measures the difference: the single prompt is the baseline condition P0, the full
 pipeline is P2 (P as in pipeline, not a language level;
-[track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md) §4).
+[track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md) §4). The fairer second
+baseline is the Canton of Zurich's published Leichte Sprache prompt
+([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
+MIT), on the same model. Final run, 20 held-out German pairs on the CSCS endpoint
+(10 October 2026): the pipeline makes 0.0 instead of 0.2 invented values and 2.0 instead
+of 19.5 rule errors per 100 blocks, finds 98 instead of 91 percent of the must-keep
+facts, and lists every hard fact it misses, where the prompt loses 7 percent of them
+without a trace (25 percent in its default, condensed mode); report §5.
 
 ### Why only Apertus
 
@@ -73,7 +80,7 @@ secrecy. Four conditions follow, and only Apertus meets all four:
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
 
 The Canton of Ticino already runs Apertus in-house to translate sensitive government
-documents. Tokens are nearly free (about one US cent per page for the full pipeline at
+documents. Tokens are nearly free (about two US cents per page for the full pipeline at
 Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
 [track_2b/docs/use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus).
@@ -141,7 +148,7 @@ page's server when a user enters a URL: no telemetry, no CDN, no login provider 
 §2). Which texts need this, and why it leaves Apertus as the only model:
 [Why only Apertus](#why-only-apertus).
 
-## Status (9 October 2026)
+## Status (10 October 2026)
 
 Done:
 
@@ -160,9 +167,12 @@ Done:
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P0-ZH
   (the Canton of Zurich's published prompt), P1 and P2, SARI, readability, fact
   coverage, silent losses, cost and latency.
-- Evaluation on the CSCS endpoint: 23 held-out pairs, results of 6 October in
-  `track_2b/eval/report.md` and the technical report. **[PENDING: the final run after the
-  prompt freeze (10 October) replaces them.]**
+- Final evaluation on the CSCS endpoint (10 October, after the prompt freeze): 23
+  held-out pairs (20 German, 3 French) under P0, P0-ZH in both variants, P1 and P2, and
+  P2 with the 70B writer and with the 70B reading for the 8B; on the German pairs P2
+  finds 98 percent of the must-keep facts with 0.0 invented values and 2.0 rule errors
+  per 100 blocks, against 91 percent, 0.2 and 19.5 for Zurich's prompt
+  (`track_2b/eval/report.md`, report §5).
 - 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
   runs them, the linter and a start of the Docker image on every push. The whole
   pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), on one
@@ -170,8 +180,7 @@ Done:
   [track_2b/eval/hardware/](track_2b/eval/hardware/aws-l4-2026-10-10/)), and `make run` and `make smoke`
   against CSCS.
 
-Pending: the final evaluation run and the two example jobs rebuilt after it; image
-input for scanned letters (not built; what the scans showed:
+Pending: image input for scanned letters (not built; what the scans showed:
 [track_2b/docs/image-input.md](track_2b/docs/image-input.md)); the air-gapped bundle (`make bundle`);
 Italian (after the hackathon).
 

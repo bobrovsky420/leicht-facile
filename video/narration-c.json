@@ -136,12 +136,12 @@
       "chunks": [
         {
           "id": "ev-a",
-          "text": "A strong single prompt lost almost a quarter of the hard facts, without a word.",
+          "text": "Same model: the Canton of Zurich's published prompt against our pipeline. A tenth of the rule errors.",
           "pause": 0.3
         },
         {
           "id": "ev-b",
-          "text": "Leicht·Facile lists every one it misses."
+          "text": "And Leicht·Facile lists every hard fact it misses."
         }
       ]
     },
