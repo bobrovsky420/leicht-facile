@@ -125,7 +125,7 @@ thinking.
 ## Tested so far
 
 No CSCS key yet. The prompts were tested against Apertus v1.5 8B through llama.cpp on a
-laptop GPU (RTX 4060, 8 GB): the community text-only conversion
+laptop GPU (RTX 4060 8 GB): the community text-only conversion
 `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (4-bit, unofficial, derived from
 `andreasmartin/apertus-v1.5-8b-text`). Numbers from this setup are labelled as such and
 never mixed with CSCS results.

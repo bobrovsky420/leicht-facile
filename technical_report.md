@@ -108,7 +108,7 @@ variable.
 
 | Architecture | How it is met |
 |--------------|---------------|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU (run on a 24 GB L4, below); the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU (run on an L4 24 GB, below); the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. |
 | c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint; the hackathon demo runs against the CSCS inference API in Lugano. |
 
@@ -128,10 +128,10 @@ policy (accepted once for the gated download), code Apache 2.0, spaCy models MIT
 (German) and LGPL-LR (French), fonts OFL. Any OpenAI-compatible server works (used:
 CSCS, Public AI, llama.cpp; vLLM on-premise): no single provider is needed.
 
-Hardware for (a) and (b), measured on one NVIDIA L4 (24 GB, AWS Zurich,
-`track_2b/eval/hardware/`): the 8B in bf16 takes 17.2 GiB, and with the profile's FP8 KV cache
+Hardware for (a) and (b), measured on one NVIDIA L4 24 GB
+(`track_2b/eval/hardware/`): the 8B in bf16 takes 17.2 GiB, and with the profile's FP8 KV cache
 one 32k request fits. It generates 16 tokens per second, close to the limit of the
-card's memory bandwidth. A laptop RTX 4060 (8 GB, llama.cpp, 4-bit) gave about 37 tokens per second.
+card's memory bandwidth. A laptop RTX 4060 8 GB (llama.cpp, 4-bit) gave about 37 tokens per second.
 
 ## 3. Use of Apertus
 

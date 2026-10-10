@@ -2,7 +2,7 @@
 
 The `local-llm` compose profile (vLLM from the official Apertus image, the official bf16
 weights) ran for the first time on a GPU host: an AWS g6.xlarge in Zurich with one
-NVIDIA L4 (24 GB). The repository was a clean clone of `main` at 6936d05. `make run`
+NVIDIA L4 24 GB. The repository was a clean clone of `main` at 6936d05. `make run`
 started the app unchanged next to the vLLM service, and two jobs on the example letter
 went through the app's own API. This folder holds what the hardware statements in the
 technical report and in track_2b/docs/architecture.md rest on.

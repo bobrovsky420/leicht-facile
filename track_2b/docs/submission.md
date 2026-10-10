@@ -135,7 +135,7 @@ answer each question:
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
 | | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | **[PENDING: review time by stopwatch; a published drafting time, or none found]** |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost, and ten times the volume" | Answered; more workers neither built nor measured |
-| Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one 24 GB NVIDIA L4 (`track_2b/eval/hardware/`) |
+| Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
 | | Are weights, licences and dependencies free of blocking terms? | Report §2 licences | Answered |
 | | Is it independent of any single commercial provider? | Report §2 (any OpenAI-compatible server) | Answered |

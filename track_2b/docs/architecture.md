@@ -1050,7 +1050,7 @@ container; it is the first thing to run once a key is set.
 | b) Air-gapped | Same as (a) with images and weights pulled in advance; spaCy models and UI assets are inside the image; no telemetry, no CDN, no package installs at runtime. A `make bundle` target saves the images to a tarball. |
 | c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B). The hackathon demo itself runs against the CSCS inference API in Lugano, which serves research, not administrations. |
 
-Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 (24 GB) in an AWS
+Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
 g6.xlarge in Zurich (`track_2b/eval/hardware/aws-l4-2026-10-10/`): the official checkpoint
 (bf16 with the image encoder) takes 17.23 GiB on the GPU. With a bf16 KV cache vLLM
 refused to start: one 32k request needs 4.0 GiB of KV cache, and 2.13 GiB were left at
@@ -1073,7 +1073,7 @@ checkpoint.
 
 A smaller on-premise option was tested on 5-6 October 2026: llama.cpp (`llama-server`,
 Vulkan build b9637) with the community 4-bit text-only conversion
-`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (5.06 GB) on a laptop GPU (RTX 4060, 8 GB),
+`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (5.06 GB) on a laptop GPU (RTX 4060 8 GB),
 16k context with an 8-bit KV cache. It generated about 37 tokens per second at short
 context and about 17 near 16k; Understand took about 1.5 minutes and Write, with
 thinking, about 12 minutes for a 400-word letter. It runs the whole pipeline
