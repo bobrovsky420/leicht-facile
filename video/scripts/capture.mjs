@@ -13,7 +13,7 @@ const BASE = "http://127.0.0.1:8791";
 const OUT = "public/capture";
 const STAGE = "scripts/stage_demo.py";
 const REPO = process.env.LF_REPO || ".."; // set it when building outside the repo
-const LETTER = readFileSync(`${REPO}/data/examples/sources/praemienverbilligung-brief.txt`, "utf8");
+const LETTER = readFileSync(`${REPO}/track_2b/data/examples/sources/praemienverbilligung-brief.txt`, "utf8");
 mkdirSync(OUT, { recursive: true });
 
 const browser = await puppeteer.launch({

@@ -25,12 +25,14 @@ COPY pyproject.toml uv.lock README.md ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-project
 
-COPY src ./src
+# /app keeps the repository's layout (track_2b/src, track_2b/data), so the relative
+# default paths work in the container as they do on a checkout.
+COPY track_2b/src ./track_2b/src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
 # Example documents and pre-computed example jobs (team-written texts only).
-COPY data/examples ./data/examples
+COPY track_2b/data/examples ./track_2b/data/examples
 
 RUN useradd --create-home --uid 10001 app \
     && mkdir -p /data \

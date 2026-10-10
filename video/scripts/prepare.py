@@ -9,15 +9,16 @@ from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
 REPO = Path(os.environ.get("LF_REPO", VIDEO.parent))  # set it when building outside the repo
+TRACK = REPO / "track_2b"
 OUT = VIDEO / "src" / "a"
 OUT.mkdir(parents=True, exist_ok=True)
 
 FONTS = VIDEO / "public" / "fonts"
 FONTS.mkdir(parents=True, exist_ok=True)
-for font in (REPO / "src/leichtfacile/web/static/fonts").glob("*latin-[4-7]00-normal.woff2"):
+for font in (TRACK / "src/leichtfacile/web/static/fonts").glob("*latin-[4-7]00-normal.woff2"):
     shutil.copy2(font, FONTS / font.name)
 
-text = (REPO / "data/examples/sources/praemienverbilligung-brief.txt").read_text(encoding="utf-8")
+text = (TRACK / "data/examples/sources/praemienverbilligung-brief.txt").read_text(encoding="utf-8")
 paras = [p.strip() for p in text.split("\n\n") if p.strip()]
 title = paras[0].lstrip("# ").strip()
 (OUT / "letter.json").write_text(
@@ -26,7 +27,7 @@ title = paras[0].lstrip("# ").strip()
 )
 
 bundle = json.loads(
-    (REPO / "data/examples/jobs/praemienverbilligung-brief.json").read_text(encoding="utf-8")
+    (TRACK / "data/examples/jobs/praemienverbilligung-brief.json").read_text(encoding="utf-8")
 )
 final = bundle["summary"]["final_version"]
 draft = next(d for d in bundle["drafts"] if d["version"] == final)

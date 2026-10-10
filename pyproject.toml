@@ -47,15 +47,17 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/leichtfacile"]
+packages = ["track_2b/src/leichtfacile"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["track_2b/tests"]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# First-party packages for the import order: leichtfacile and the tests.
+src = ["track_2b/src", "track_2b"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -13,19 +13,19 @@ skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be
 letters that decide their money, deadlines and rights.
 
 Two use cases: a canton's letters and web pages
-([docs/use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
+([track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md)), and easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
 that may never leave the authority (decision mode v1;
-[docs/use-case-decisions.md](docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
+[track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
-[docs/use-cases.md](docs/use-cases.md). Most of them are under official, medical or
+[track_2b/docs/use-cases.md](track_2b/docs/use-cases.md). Most of them are under official, medical or
 tax secrecy and may not go to a chatbot on a foreign cloud: for them, Apertus is the
 only model that fits ([why](#why-only-apertus)).
 
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
 Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
-Technical report: [technical_report.md](technical_report.md) (PDF:
-`RoestigrabenBridgers_Report.pdf`). Demo video: **[PENDING: video URL]**. Maturity: a
+Technical report: [track_2b/technical_report.md](track_2b/technical_report.md) (PDF:
+`track_2b/RoestigrabenBridgers_Report.pdf`). Demo video: **[PENDING: video URL]**. Maturity: a
 deployable prototype for German and French drafts of public texts and letters, a proof
 of concept for decisions **[OWNER: confirm]**. Built with AI coding assistants (report §3).
 
@@ -57,7 +57,7 @@ foreign clouds. Leicht·Facile adds exactly those four things, a review workflow
 an audit trail, and runs on infrastructure the organisation controls. The evaluation
 measures the difference: the single prompt is the baseline condition P0, the full
 pipeline is P2 (P as in pipeline, not a language level;
-[docs/use-case-canton.md](docs/use-case-canton.md) §4).
+[track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md) §4).
 
 ### Why only Apertus
 
@@ -76,7 +76,7 @@ The Canton of Ticino already runs Apertus in-house to translate sensitive govern
 documents. Tokens are nearly free (about one US cent per page for the full pipeline at
 Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
-[docs/use-cases.md §2](docs/use-cases.md#why-only-apertus).
+[track_2b/docs/use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus).
 
 ## Quick start
 
@@ -111,7 +111,7 @@ Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (wh
 endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
-the 8B write. `eval/report.md` compares the three.
+the 8B write. `track_2b/eval/report.md` compares the three.
 
 In the browser (English, German or French), paste a text, upload a PDF or enter a URL
 (or click one of the two example letters), choose language and level (A2 Leichte
@@ -122,7 +122,7 @@ checker on any text you paste, without a model and without storing it.
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on
 official easy-language pages, no model needed), `make day1` (endpoint checks),
-`make eval` (conditions P0, P1, P2 on the reference pairs; `RESULTS=eval/results-cscs`
+`make eval` (conditions P0, P1, P2 on the reference pairs; `RESULTS=track_2b/eval/results-cscs`
 keeps one endpoint's results together). `python -m leichtfacile eval sample` writes the
 hand-labelling sheets for the judge and `eval kappa` scores a filled sheet; `eval diagnose`
 says why must-keep facts are missing from the final drafts of a run, without a model call.
@@ -131,7 +131,7 @@ says why must-keep facts are missing from the final drafts of a run, without a m
 
 | Target architecture | How |
 |---------------------|-----|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [eval/hardware/](eval/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [track_2b/eval/hardware/](track_2b/eval/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and the UI assets are inside the image: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 
@@ -154,46 +154,46 @@ Done:
 - Decision mode v1 for letters that accompany decisions of KESB and courts: the
   operative part and the appeal instructions protected, one named addressee, a notice
   at the start and the end that only the decision itself is authoritative
-  ([docs/use-case-decisions.md](docs/use-case-decisions.md)).
+  ([track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md)).
 - Check my text: the rule checker on any pasted text, no model, nothing stored.
 - Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P0-ZH
   (the Canton of Zurich's published prompt), P1 and P2, SARI, readability, fact
   coverage, silent losses, cost and latency.
 - Evaluation on the CSCS endpoint: 23 held-out pairs, results of 6 October in
-  `eval/report.md` and the technical report. **[PENDING: the final run after the
+  `track_2b/eval/report.md` and the technical report. **[PENDING: the final run after the
   prompt freeze (Sun 11 October) replaces them.]**
 - 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
   runs them, the linter and a start of the Docker image on every push. The whole
   pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), on one
   NVIDIA L4 with the official 8B in vLLM (`make run` on a clean Linux clone,
-  [eval/hardware/](eval/hardware/aws-l4-2026-10-10/)), and `make run` and `make smoke`
+  [track_2b/eval/hardware/](track_2b/eval/hardware/aws-l4-2026-10-10/)), and `make run` and `make smoke`
   against CSCS.
 
 Pending: the final evaluation run and the two example jobs rebuilt after it; image
 input for scanned letters (not built; what the scans showed:
-[docs/image-input.md](docs/image-input.md)); the air-gapped bundle (`make bundle`);
+[track_2b/docs/image-input.md](track_2b/docs/image-input.md)); the air-gapped bundle (`make bundle`);
 Italian (after the hackathon).
 
 ## Documentation
 
-- [technical_report.md](technical_report.md): the technical report (PDF: `RoestigrabenBridgers_Report.pdf`)
-- [docs/architecture.md](docs/architecture.md): design and architecture
-- [docs/ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
-- [docs/rules.md](docs/rules.md): the rule catalogue the checker implements
-- [docs/prompts.md](docs/prompts.md): prompt design and change log
-- [docs/sources.md](docs/sources.md): reference pairs, demo documents, licences
-- [docs/use-case-canton.md](docs/use-case-canton.md): a walkthrough for a cantonal administration
-- [docs/use-case-decisions.md](docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
-- [docs/use-cases.md](docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
-- [docs/image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
-- [docs/hard-texts.md](docs/hard-texts.md): hard words and sentences for tests and the presentation
-- [docs/demo-video.md](docs/demo-video.md): script and storyboard for the demo video
+- [track_2b/technical_report.md](track_2b/technical_report.md): the technical report (PDF: `track_2b/RoestigrabenBridgers_Report.pdf`)
+- [track_2b/docs/architecture.md](track_2b/docs/architecture.md): design and architecture
+- [track_2b/docs/ui-design.md](track_2b/docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
+- [track_2b/docs/rules.md](track_2b/docs/rules.md): the rule catalogue the checker implements
+- [track_2b/docs/prompts.md](track_2b/docs/prompts.md): prompt design and change log
+- [track_2b/docs/sources.md](track_2b/docs/sources.md): reference pairs, demo documents, licences
+- [track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md): a walkthrough for a cantonal administration
+- [track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
+- [track_2b/docs/use-cases.md](track_2b/docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
+- [track_2b/docs/image-input.md](track_2b/docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
+- [track_2b/docs/hard-texts.md](track_2b/docs/hard-texts.md): hard words and sentences for tests and the presentation
+- [track_2b/docs/demo-video.md](track_2b/docs/demo-video.md): script and storyboard for the demo video
 
 ## Licence
 
 Code: Apache License 2.0, see [LICENSE](LICENSE). Texts from cantonal and federal web
 pages are not part of the repository; the evaluation fetches them from their URLs
-([docs/sources.md](docs/sources.md) §4).
+([track_2b/docs/sources.md](track_2b/docs/sources.md) §4).
 
 ---
 
@@ -253,7 +253,7 @@ The submission must:
 - Submit the URL of YOUR Git repo.
 
 ### Technical Report (pdf)
-- Update [technical_report.md](technical_report.md) in this repository with all the details for your submission.
+- Update [technical_report.md](track_2b/technical_report.md) in this repository with all the details for your submission.
 - Upload a pdf of your technical report to this directory, named as `TeamName_Report.pdf`.
 - Format: pdf, max. 6 pages
 - Submit the pdf of the technical report.

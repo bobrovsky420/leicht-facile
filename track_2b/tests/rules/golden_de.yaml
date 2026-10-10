@@ -1,0 +1,325 @@
+# Golden sentences for the German rules (track_2b/docs/rules.md, "Test plan for the checker").
+# For every rule: sentences that must trigger it (positive) and sentences that must not
+# (negative). Each entry is one block; an entry may be a mapping with `text`, `kind`
+# (sentence | list_item | heading) and `level` (A2 | B1, default A2).
+# All sentences are written by the team for these tests.
+
+LEN-01:
+  positive:
+    - Sie können das Formular am Schalter in Ihrer Gemeinde oder online ausfüllen und abgeben.
+    - Wenn Sie im letzten Jahr weniger als 30'000 Franken verdient haben, bekommen Sie vielleicht Geld.
+  negative:
+    - Sie bekommen einen Brief.
+    - "Rufen Sie uns an: 044 123 45 67."
+    - Die Frist endet am 31. März 2026.
+    - {text: "Sie können das Formular am Schalter in Ihrer Gemeinde oder online ausfüllen und abgeben.", level: B1}
+
+LEN-02:
+  positive:
+    - Sie bekommen Geld, weil Sie wenig verdienen.
+    - Das ist das Formular, das Sie brauchen.
+    - Um das Geld zu bekommen, müssen Sie ein Gesuch stellen.
+    - Sie gehen zum Amt und Sie zeigen Ihren Ausweis.
+    - {text: "Sie bekommen Geld, weil Sie wenig verdienen, wenn Sie das Formular schicken.", level: B1}
+  negative:
+    - Sie bekommen Geld.
+    - Sie können anrufen oder eine E-Mail schreiben.
+    - Möchten Sie einen Termin?
+    - {text: "Sie bekommen Geld, weil Sie wenig verdienen.", level: B1}
+
+LEN-03:
+  positive:
+    - Sie brauchen den Ausweis, die Bestätigung und das Formular.
+    - Bringen Sie Ihren Pass, Ihre Kranken·kassen·karte, Ihren Lohn·ausweis und ein Foto mit.
+  negative:
+    - Sie brauchen den Ausweis und das Formular.
+    - Sie können anrufen oder schreiben.
+
+ORD-01:
+  positive:
+    - Am 31. März endet die Frist.
+    - Morgen kommt der Brief.
+  negative:
+    - Die Frist endet am 31. März.
+    - Rufen Sie uns an.
+    - Was kostet das?
+
+GRAM-01:
+  positive:
+    - Das Formular wird vom Amt geprüft.
+    - Das Formular muss bis zum 31. März eingereicht werden.
+    - Der Antrag ist geprüft worden.
+    - Das Gesuch ist bis zum 31. März einzureichen.
+  negative:
+    - Sie werden das Formular morgen bekommen.
+    - Das Amt ist am Montag geschlossen.
+    - Das Amt prüft das Formular.
+
+GRAM-02:
+  positive:
+    - Die Frist des Amtes endet bald.
+    - Wegen des Umbaus ist das Büro zu.
+  negative:
+    - Am Anfang des Jahres bekommen Sie einen Brief.
+    - Das Auto von meinem Vater ist rot.
+    - Sie bekommen die Hälfte von den Kosten zurück.
+
+GRAM-03:
+  positive:
+    - Wir würden uns freuen.
+    - Sie hätten das Formular schicken müssen.
+  negative:
+    - Möchten Sie einen Termin?
+    - Wir freuen uns auf Ihren Anruf.
+    - Sie können uns anrufen.
+
+GRAM-04:
+  positive:
+    - Sie bekamen einen Brief.
+    - Letztes Jahr gab es keine Hilfe.
+  negative:
+    - Sie haben einen Brief bekommen.
+    - Das war schwierig.
+    - Sie mussten lange warten.
+
+GRAM-05:
+  positive:
+    - Die Einreichung erfolgt online.
+    - Das Einreichen ist wichtig.
+    - Die Berechtigung prüft das Amt.
+  negative:
+    - Sie wohnen in einer Wohnung.
+    - Ihre Gesundheit ist wichtig.
+    - Sie brauchen eine Versicherung.
+    - Das Schreiben kam gestern.
+    - Die Steuer·erklärung kommt im Februar.
+
+GRAM-06:
+  positive:
+    - Er kommt morgen.
+    - Die Frau gibt der Mutter das Geld und sie freut sich.
+  negative:
+    - Ihr Vater ruft an und er erklärt alles.
+    - Sie bekommen einen Brief.
+    - Das Amt hilft Ihnen.
+
+GRAM-07:
+  positive:
+    - Laut Gesetz müssen Sie zahlen.
+    - Er sagt, er sei krank.
+  negative:
+    - "Das Gesetz sagt: Sie müssen zahlen."
+    - Sie sind krank.
+
+GRAM-08:
+  positive:
+    - Sie mitschicken eine Kopie von der Rechnung.
+    - Die Beiständin einreichen ein Inventar.
+    - Wir mitteilen Ihnen den Entscheid.
+  negative:
+    - Sie schicken eine Kopie mit.
+    - Sie müssen eine Kopie mitschicken.
+    - Kopie mitschicken.
+    - Schicken Sie eine Kopie mit.
+    - Sie anerkennen den Entscheid.
+    - Sie antworten bis Freitag.
+    - Die Rechnungen beinhalten alles.
+    - Sie bekommen einen Brief.
+
+NEG-01:
+  positive:
+    - Sie müssen nicht ohne Ausweis kommen.
+    - Niemand bekommt nichts.
+    - Das ist nicht unmöglich.
+  negative:
+    - Sie müssen nicht kommen.
+    - Sie bekommen kein Geld.
+    - Bringen Sie Ihren Ausweis mit.
+
+NEG-02:
+  positive:
+    - Sie müssen nicht kommen.
+    - Sie bekommen kein Geld.
+  negative:
+    - Sie müssen kommen.
+    - Bringen Sie Ihren Ausweis mit.
+
+LEX-01:
+  positive:
+    - Die Prämienverbilligung hilft Ihnen.
+    - Die Ergänzungsleistungen kommen jeden Monat.
+    - Die Prämien·Verbilligung hilft Ihnen.
+    # A glossary entry explains the compound but does not make it shorter.
+    - text: Die Krankenversicherungspolice kommt per Post.
+      glossary: [Krankenversicherungspolice]
+  negative:
+    - Die Prämien·verbilligung hilft Ihnen.
+    - Die Kranken·kasse bezahlt.
+    - Sie wohnen im Kanton Zürich.
+    # A long word that is no compound needs no note once it is explained.
+    - text: Die Organisationen helfen Ihnen.
+      glossary: [Organisationen]
+
+LEX-02:
+  positive:
+    - Bringen Sie z.B. Ihren Pass mit.
+    - Das steht in Art. 5 vom Gesetz.
+    - Das KVG regelt die Prämien.
+    - Das Büro ist Mo-Fr offen.
+    - Sie bekommen ca. 20 Franken.
+  negative:
+    - Die AHV zahlt die Rente.
+    - Bringen Sie Ihren Ausweis mit.
+    - Sie bekommen das PDF per E-Mail.
+    - Das Büro ist in St. Gallen.
+    - Das ist eine andere Art.
+
+LEX-03:
+  positive:
+    - Die Subsidiarität gilt.
+    - Die Sistierung dauert 3 Monate.
+  negative:
+    - Sie bekommen einen Brief.
+    - Die Kranken·kasse bezahlt die Rechnung.
+
+LEX-04:
+  positive:
+    - Das Büro ist offen; danach nicht.
+    - Bringen Sie den Ausweis (oder den Pass) mit.
+    - Der Mieter/die Mieterin zahlt.
+    - Sie & Ihre Familie.
+  negative:
+    - Die Adresse ist www.zh.ch/ipv.
+    - Sie zahlen 10 Franken.
+
+LEX-05:
+  positive:
+    - Die Mitarbeiter*innen helfen Ihnen.
+    - Die Mitarbeitenden helfen Ihnen.
+    - Die MitarbeiterInnen helfen.
+  negative:
+    - Die Mitarbeiterinnen und Mitarbeiter helfen Ihnen.
+    - Sie wohnen in Zürich.
+
+LEX-06:
+  positive:
+    - Ihr Antrag kommt an. Die gesuchstellende Person muss warten.
+    - Wir schicken Ihnen Post. Versicherte müssen die Prämie zahlen.
+    - Der Antragsteller wartet.
+  negative:
+    - Sie müssen Ihren Antrag schicken.
+    - Die Gemeinde prüft den Antrag.
+
+LEX-07:
+  positive:
+    - Sie zahlen innert 30 Tagen.
+    - Gemäss dem Gesetz zahlen Sie weniger.
+    - Sie reichen das Gesuch bis Ende Mai ein.
+    - Das neue Gesetz tritt am 1. Januar in Kraft.
+  negative:
+    - Sie zahlen innerhalb von 30 Tagen.
+    - Die Formulare stehen Ihnen zur Verfügung.
+    - Schreiben Sie uns einen Brief.
+    - Der Gesuchsteller bekommt Geld.
+
+NUM-01:
+  positive:
+    - Sie haben zwei Kinder.
+    - Das dauert drei Wochen.
+    - Das ist der zweite Brief.
+  negative:
+    - Sie haben 2 Kinder.
+    - Sie bekommen einen Brief.
+    - Das ist der erste Brief.
+
+NUM-02:
+  positive:
+    - Sie bekommen 25000 Franken.
+    - Die Prämie kostet CHF 1500.
+    - Die Gemeinde hat 120000 Einwohner.
+  negative:
+    - Sie bekommen 25'000 Franken.
+    - Das war im Jahr 2026.
+    - Die Adresse ist 8090 Zürich.
+    - Lesen Sie das Merkblatt 5100.
+    - Rufen Sie 044 123 45 67 an.
+
+NUM-03:
+  positive:
+    - Die Frist endet am 31.03.2026.
+    - Die Frist endet am 2026-03-31.
+    - Schicken Sie den Brief bis 31.3.
+  negative:
+    - Die Frist endet am 31. März 2026.
+    - Das kostet 1.50 Franken.
+    - Das Büro öffnet um 9.00 Uhr.
+
+NUM-04:
+  positive:
+    - Das Büro ist von 08:00 bis 12:00 offen.
+    - Das Büro ist von 8-12 Uhr offen.
+    - Kommen Sie um 9h.
+  negative:
+    - Das Büro ist von 8.00 Uhr bis 12.00 Uhr offen.
+    - Kommen Sie um 9.30 Uhr.
+    - Das kostet 2.50 Franken.
+    - Kommen Sie um 9 Uhr.
+    - Das Büro ist von 8.30 bis 11.30 Uhr offen.
+
+NUM-05:
+  positive:
+    - Das dauert 1.5 h.
+    - Das dauert 90 min.
+  negative:
+    - Das dauert 1 Stunde und 30 Minuten.
+
+NUM-06:
+  positive:
+    - Sie zahlen 10 % selbst.
+    - Sie zahlen 10% selbst.
+  negative:
+    - Sie zahlen 10 Prozent selbst.
+
+NUM-07:
+  positive:
+    - Die Gebühr kostet CHF 20.00.
+    - Die Gebühr kostet Fr. 20.-.
+    - Die Gebühr kostet 20 CHF.
+  negative:
+    - Die Gebühr kostet 20 Franken.
+    - Die Gebühr kostet CHF 20.
+
+NUM-08:
+  positive:
+    - Rufen Sie 0041 44 123 45 67 an.
+    - Rufen Sie 044/123 45 67 an.
+    - Rufen Sie 0441234567 an.
+    - Rufen Sie 0800336655 an.
+  negative:
+    - Rufen Sie 044 123 45 67 an.
+    - Rufen Sie 0800 123 456 an.
+    - Rufen Sie 0848 35 45 55 an.
+    - Rufen Sie +41 44 123 45 67 an.
+
+CH-01:
+  positive:
+    - Die Straße ist gesperrt.
+    - Das ist großartig.
+  negative:
+    - Die Strasse ist gesperrt.
+
+CH-02:
+  positive:
+    - Das heisst «Prämien·verbilligung».
+    - Klicken Sie auf „Senden“.
+  negative:
+    - Das heisst Prämien·verbilligung.
+
+CH-03:
+  positive:
+    - Sie fahren mit dem Fahrrad.
+    - Sie gehen ins Krankenhaus.
+    - Sie können hier parken.
+  negative:
+    - Sie fahren mit dem Velo.
+    - Sie gehen ins Spital.

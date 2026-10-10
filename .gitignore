@@ -10,8 +10,8 @@
 *.ckpt
 *.pt
 
-# Labelling sheets quote the reference pages (docs/sources.md)
-eval/labels/
+# Labelling sheets quote the reference pages (track_2b/docs/sources.md)
+track_2b/eval/labels/
 
 # Python
 __pycache__/
@@ -30,12 +30,12 @@ build/
 .vscode/
 
 # Leicht·Facile runtime data and tool caches
-data/cache/
-data/*.sqlite
-data/*.sqlite-*
-data/*.db
-eval/results/
-eval/results-*/
+track_2b/data/cache/
+track_2b/data/*.sqlite
+track_2b/data/*.sqlite-*
+track_2b/data/*.db
+track_2b/eval/results/
+track_2b/eval/results-*/
 out/
 .pytest_cache/
 .ruff_cache/

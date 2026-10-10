@@ -5,22 +5,22 @@ Written 5 October 2026, evening; the gap register (§10) and WP13 to WP17 added 
 2026, night; restructured 9 October 2026 so that each topic has one section.
 Deadline: **16 October 2026, 12:00 CEST**, no extension.
 
-Source of truth for *what* we build: [docs/architecture.md](docs/architecture.md) and
-[docs/rules.md](docs/rules.md). This file is about *in which order*, *by when*, and
+Source of truth for *what* we build: [track_2b/docs/architecture.md](track_2b/docs/architecture.md) and
+[track_2b/docs/rules.md](track_2b/docs/rules.md). This file is about *in which order*, *by when*, and
 *what gets cut*. When the two disagree, fix the docs, not this plan - AGENTS.md requires
 the docs to stay in sync with the code.
 
 ## Next steps before submission (as of Sat 10 October 2026)
 
 The short path to the deadline, in dependency order. Each step points to where it lives
-(§3, §4, docs/submission.md); tick it here and there when it is done.
+(§3, §4, track_2b/docs/submission.md); tick it here and there when it is done.
 
 1. [ ] **Close the pipeline before the prompt freeze (Sun 11 Oct, 18:00; D-AD).**
    Any last pipeline change goes in and is measured on dev with `--redo` first. Take the
    review stopwatch for 3 P2 drafts (WP13 value numbers). After 18:00 nothing in the
    pipeline moves except bug fixes.
 2. [ ] **Final CSCS evaluation (Sun 11 Oct, night; WP13).**
-   Snapshot `eval/results-cscs` to the next vN, then every row with `--redo`: P1 and P2
+   Snapshot `track_2b/eval/results-cscs` to the next vN, then every row with `--redo`: P1 and P2
    first, then P0 and both P0-ZH variants with the cache off, last the two 70B rows.
    Then `eval report`, `eval numbers` and `eval diagnose`, without model calls.
 3. [ ] **Read the numbers and decide the headline (Mon 12 Oct, G3; D-M).**
@@ -37,21 +37,23 @@ The short path to the deadline, in dependency order. Each step points to where i
 6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**
    WP16's positioning paragraph and messaging pass, the owner's answers to every
    **[OWNER]** placeholder, the **[PENDING]** video link and final-run commit. Export to
-   PDF, 6 pages, `RoestigrabenBridgers_Report.pdf` in the root.
+   PDF, 6 pages, `track_2b/RoestigrabenBridgers_Report.pdf`.
 7. [x] **Hardware statement for the on-prem profile (parallel; cut if blocked; WP10).**
    Done 10 Oct: `local-llm` ran on an AWS g6.xlarge (one L4, 24 GB) in Zurich and took
-   the example letter end to end; eval/hardware/aws-l4-2026-10-10/, report §2.
-8. [x] **Clean-checkout test on Linux or a second machine (by Wed 14 Oct, G5; WP11).**
+   the example letter end to end; track_2b/eval/hardware/aws-l4-2026-10-10/, report §2.
+8. [ ] **Clean-checkout test on Linux or a second machine (by Wed 14 Oct, G5; WP11).**
    Done 10 Oct on the same Linux machine (commit 6936d05): clone, `.env`, `make run`
    unchanged, one job end to end against the local vLLM. Repeat only if the Dockerfile,
-   the dependencies or the Makefile change before the submission.
+   the dependencies or the Makefile change before the submission. *Due again: the move
+   into `track_2b/` (10 Oct) changed the Dockerfile and the Makefile; from a fresh clone,
+   `make run` from the root and from `track_2b/`.*
 9. [ ] **Repo public, CI green (Thu 15 Oct, G6; WP11).**
    Check that `git log -p -- .env` is empty, make the repository public, confirm CI is
    green on the final commit. Optional afterwards: the awesome-apertus pull request
    (WP16).
 10. [ ] **Submit (Thu 15 Oct; at the latest Fri 16 Oct before 12:00 CEST; WP11).**
-    Fill the form from docs/submission.md §2: repo URL, PDF, video URL, model "8B + 70B
-    v1.5", the message to the jury. Work through the checklist in docs/submission.md §7
+    Fill the form from track_2b/docs/submission.md §2: repo URL, PDF, video URL, model "8B + 70B
+    v1.5", the message to the jury. Work through the checklist in track_2b/docs/submission.md §7
     before pressing Submit.
 
 ## 0. How to use this plan
@@ -83,14 +85,16 @@ From the template and the hackathon rules (verified 2026-10-05):
 - `make run` must start the whole thing in Docker from a clean checkout. Env vars:
   `LLM_NAME`, `LLM_BASE_URL`, `LLM_API_KEY`. Judges will try this; it is the single
   most important deliverable after the report.
-- `data/` stays under 100 MB. Texts and caches are git-ignored; only the manifest,
+- `track_2b/data/` stays under 100 MB. Texts and caches are git-ignored; only the manifest,
   examples, and clearly redistributable texts are committed.
 - Repo must be public before submission. Report PDF max 6 pages, named
-  `TeamName_Report.pdf`, in the repo root. Demo video max 2 minutes.
+  `TeamName_Report.pdf`, in `track_2b/`. Demo video max 2 minutes.
 - Only Apertus models at runtime. Other open models may help with evaluation only, and
   their role must be described in the report. (Plan: none; the judge is Apertus 70B.)
 - Repository conventions (AGENTS.md): never commit or push; plain hyphens only, no
-  en/em dashes anywhere; the template's `track_2b/` contents are the repo root.
+  en/em dashes anywhere; the project lives in the template's `track_2b/` folder, the
+  Makefile with the targets at the root (organisers, 10 Oct); README.md exists twice
+  with the same text.
 
 Local environment facts:
 
@@ -138,10 +142,10 @@ lost hard values at every setting.
 
 The reviewer's workbench (WP18, done 7 Oct): a calmer and denser web UI for people who
 review drafts all day, designed and approved by the owner on 7 Oct and specified in
-`docs/ui-design.md`; it touches no pipeline file, so the evaluation numbers do not move.
+`track_2b/docs/ui-design.md`; it touches no pipeline file, so the evaluation numbers do not move.
 
-The further use cases (`docs/use-cases.md`, 6 Oct) and the fact checks they need
-(`docs/rules.md`), built 7 and 8 Oct: the value kinds `period`, `identifier`, `address`,
+The further use cases (`track_2b/docs/use-cases.md`, 6 Oct) and the fact checks they need
+(`track_2b/docs/rules.md`), built 7 and 8 Oct: the value kinds `period`, `identifier`, `address`,
 `quantity`, `schedule`, and `medication` with FACT-09 (WP14); FACT-07, FACT-08, SEM-09
 and SEM-10 (decision mode v1, WP15). A drug list and a postcode list stay WP17.
 
@@ -160,7 +164,7 @@ only).
 
 ## 3. Work packages
 
-Package root: `src/leichtfacile/` (layout per architecture §11). Every WP ends with:
+Package root: `track_2b/src/leichtfacile/` (layout per architecture §11). Every WP ends with:
 tests green, `ruff` clean, docs updated where behaviour changed, one proposed commit
 message per logical chunk (the owner commits). Effort, where given, is in focused hours;
 model run time is not counted. WP13 to WP17 come from the gap register (§10).
@@ -183,14 +187,14 @@ statement).
 *Done.* `llm/client.py` (retries on 429, 5xx and connection errors with backoff and
 `Retry-After`; thinking modes `model-suffix`, `chat-template`, `off`; reasoning from the
 field or inline tokens), `llm/json_out.py` (JSON extraction with one repair call), the
-SQLite response cache (`LLM_CACHE=1`), `check-llm`, `scripts/day1_checks.py` (checks
+SQLite response cache (`LLM_CACHE=1`), `check-llm`, `track_2b/scripts/day1_checks.py` (checks
 3-6 run on Public AI on 6 Oct, answers in architecture §12), usage records in
 `llm_calls`; tests against a fake OpenAI-compatible endpoint.
 
 ### WP2 - Schemas, store, orchestrator skeleton
 
 *Done.* The pydantic v2 schemas of architecture §5 (plus `PipelineSummary` and
-`Fact.origin`; prompts show a filled JSON example, see docs/prompts.md), `store.py`
+`Fact.origin`; prompts show a filled JSON example, see track_2b/docs/prompts.md), `store.py`
 (SQLite in WAL mode, no ORM; the response cache stays a separate file),
 `pipeline/orchestrator.py` (stages persisted in order, resume from the last good stage,
 errors on the job row), one worker thread for the web app and the CLI; round-trip,
@@ -212,7 +216,7 @@ language wins), `ingest_url` and `ingest_file` dispatching on content type (magi
 as fallback) and extension, `select_section` for one section of a page, document ids
 from the SHA-256 of the normalised text. Fixtures are synthetic and built in the tests
 (pages written by hand in the shape of official pages, PDFs generated with fpdf2 at test
-time, pasted letters; no official text committed, docs/sources.md §4); the tests assert
+time, pasted letters; no official text committed, track_2b/docs/sources.md §4); the tests assert
 units, kinds, counts and id stability. `python -m leichtfacile ingest <file|url>` prints
 the segments of a text, HTML or PDF input.
 
@@ -221,7 +225,7 @@ the segments of a text, HTML or PDF input.
 *Done.* The German understand and write prompts under `llm/prompts/de/` as Jinja2
 templates (style guide, examples, segments and fact sheet as placeholders; each rendered
 prompt carries the short hash of its file instead of a version header, and
-docs/prompts.md logs every change and why), `rules/styleguide.py` (the writer style
+track_2b/docs/prompts.md logs every change and why), `rules/styleguide.py` (the writer style
 guide rendered from the rule registry, decision D-A), two synthetic example pairs written
 by the team under `llm/prompts/de/examples/` (Zürich and Bern pages may not be
 reproduced in a public repository), understand and write in `pipeline/stages.py` (one
@@ -234,7 +238,7 @@ phones, lowercase URLs and e-mails) plus code completion of the fact sheet. Test
 another shape than planned: instead of a snapshot, a test renders all four German prompts
 on the synthetic letter and asserts that no placeholder is left and the key content is in
 (the French prompts likewise); two recorded answers of the 8B on the team's letter under
-`tests/fixtures/llm/` (6 Oct, local 4-bit llama.cpp, older prompt versions; parsing and
+`track_2b/tests/fixtures/llm/` (6 Oct, local 4-bit llama.cpp, older prompt versions; parsing and
 checking only, not evaluation results), with the malformed cases derived from them in the
 tests (an answer cut off is reported as broken and never used, a dropped value comes back
 from code) and more broken JSON in the extraction tests. The write stage ran on real
@@ -248,7 +252,7 @@ rules.md in `rules/de.py`, the fact checks in `rules/values.py` and `rules/docum
 (FACT-01 to FACT-05, surface forms of dates, amounts, phones, URLs and e-mails),
 readability (Amstad, Kandel-Moles, Gulpease with `pyphen`), golden tests (no official
 sentences committed, for copyright), calibration on 30 official pages: 2.0 errors per
-100 blocks over 3,450 blocks (docs/rules.md). A test keeps rules.md and the registry in
+100 blocks over 3,450 blocks (track_2b/docs/rules.md). A test keeps rules.md and the registry in
 sync.
 
 ### WP6 - Judge, repair, full CLI
@@ -261,23 +265,23 @@ on CSCS, 7 calls, 26k tokens; Git Bash needs `MSYS_NO_PATHCONV=1`, in the recipe
 
 ### WP7 - Dataset and evaluation harness
 
-*Done.* `data/pairs/manifest.jsonl` with 35 pairs (30 German, 5 French; roles dev and
-eval), all 70 texts fetched by `scripts/fetch_pairs.py`, the conditions as job configs
+*Done.* `track_2b/data/pairs/manifest.jsonl` with 35 pairs (30 German, 5 French; roles dev and
+eval), all 70 texts fetched by `track_2b/scripts/fetch_pairs.py`, the conditions as job configs
 of the orchestrator, `eval/metrics.py` and `eval/score.py` (fact coverage, judge fact
 status, rule findings per 100 blocks, readability, own SARI tested against the EASSE
 example, tokens, latency, USD at Public AI list prices), the resumable `eval/run.py`,
 `eval/report.py` and `make eval`. First numbers 6 Oct: P0, P1 and P2 on the 23
-held-out pairs on CSCS (docs/prompts.md).
+held-out pairs on CSCS (track_2b/docs/prompts.md).
 
 ### WP8 - Review UI and export
 
 *Done.* The API in `web/api.py`, the pages in `web/pages.py` (job list and form,
 progress, the three-pane review with fact checklist, findings, omissions, glossary and
 versions; restyled by WP18), exports to Markdown, HTML and the JSON audit bundle
-(`export/`), example jobs in `data/examples/` loaded on first start: since 7 Oct the
+(`export/`), example jobs in `track_2b/data/examples/` loaded on first start: since 7 Oct the
 team's premium-reduction letter in German and French (P2, CSCS). Their bundles of 7 Oct
 still show errors (4 and 12), and no rebuild since has been clean, the one of 9 Oct with
-the recover round included (2 and 3 left): `tests/test_examples.py` marks them as expected
+the recover round included (2 and 3 left): `track_2b/tests/test_examples.py` marks them as expected
 failures (`KNOWN_PROBLEMS`, strict) until the rebuild after the freeze; the log of 9 Oct
 has the details.
 `examples build --only <name>` builds one; a JSON file next to a source sets its job (the KESB
@@ -289,7 +293,7 @@ decision's decision mode).
 table in rules.md, 27 rules at the time, calibrated on the 5 official pages to 2.2 errors
 per 100 blocks, limits 15/18 words), golden tests, 5 French pairs in the manifest,
 Kandel-Moles verified (French syllables 93 percent exact), the French example letter in
-data/examples, web form and API in French; `fr_core_news_md` in the image (1.97 to 2.19
+track_2b/data/examples, web form and API in French; `fr_core_news_md` in the image (1.97 to 2.19
 GB). P2 ran on the 3 French eval pairs on CSCS, and report §5 has their numbers; the
 final run refreshes them (WP13). Italian is out of scope for the hackathon (owner, 8
 Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
@@ -300,19 +304,19 @@ Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
 - [x] P2 with the 70B writer on 5-10 pairs; 8B vs 70B table (quality, tokens, CHF,
       latency) *(6 Oct: 5 pairs, technical report §5)*.
 - [x] Judge reliability: 30 (fact, draft) items labelled by hand; Cohen's κ *(tooling
-      done 6 Oct: `eval sample --results eval/results-cscs` writes
-      `eval/labels/judge_facts.jsonl` without the verdicts plus a key file,
+      done 6 Oct: `eval sample --results track_2b/eval/results-cscs` writes
+      `track_2b/eval/labels/judge_facts.jsonl` without the verdicts plus a key file,
       `eval kappa <sheet>` scores the filled sheet; the labelling itself is open)*.
       *8 Oct: labelled blind by an AI assistant (Claude), κ 0.08 for facts (0.22 present
       or not), technical report §5; the owner may relabel by hand and rerun `eval kappa`.*
 - [x] Hallucination spot check: 30 blocks flagged/unflagged by the judge, labelled
-      by hand *(same tooling: `eval/labels/judge_blocks.jsonl`, 15 flagged and 15
+      by hand *(same tooling: `track_2b/eval/labels/judge_blocks.jsonl`, 15 flagged and 15
       passed; labelling open)* *8 Oct: same labeller, agreement 80 %, κ 0.60.*
 - [x] Prompt language: English instructions for German and French documents against
       the frozen templates, in understand, write, judge and repair, repair first
       *(9 Oct, at the owner's request: P2 on the dev pairs on CSCS and the judge against
-      the blind labels, docs/prompts.md "English instructions"; not taken, D-AE; the
-      variant removed the same day, the results kept in docs/prompts.md)*.
+      the blind labels, track_2b/docs/prompts.md "English instructions"; not taken, D-AE; the
+      variant removed the same day, the results kept in track_2b/docs/prompts.md)*.
 - [x] Hardware statement for the on-prem profile: start the `local-llm` compose profile
       once on a GPU host; otherwise cite the official vLLM guide numbers and say so
       *(no GPU host reachable on 6 Oct; the `local-llm-small` llama.cpp profile ran on
@@ -326,8 +330,8 @@ Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
       docker-compose.yml since (owner). 17.23 GiB of weights, 16.2 tokens per second for
       one request; the example letter took 63 min with the 8B judging with thinking and
       22 min with thinking only in Understand; the owner reviewed job 1 as a reference.
-      Evidence in eval/hardware/aws-l4-2026-10-10/; report §2, README, architecture.md
-      §10, use-cases.md §2 and docs/submission.md updated.*
+      Evidence in track_2b/eval/hardware/aws-l4-2026-10-10/; report §2, README, architecture.md
+      §10, use-cases.md §2 and track_2b/docs/submission.md updated.*
 
 Done when: the report's §5 has every table filled with real numbers.
 
@@ -351,15 +355,15 @@ the page. Built after WP10 in build order; scope status in §2 (stretch item 11)
       and phone number survives. Stop here if hard values are lost. *Run 7 Oct on
       CSCS with the two scans at 1,600 px: the German page came back as "unlesbar",
       the French letter with 5.7 percent character errors and wrong digits in the AVS
-      number, the IBAN, the postcode and a date (docs/prompts.md, "Image input
+      number, the IBAN, the postcode and a date (track_2b/docs/prompts.md, "Image input
       spike"). Hard values are lost: no-go at this setting (D-N). Full resolution and
       the 70B are one run each before the decision is final.*
       *(7 Oct: two printable letters with their printed text as reference in
-      `data/examples/print/`, from `scripts/print_letters.py`: a German tax reminder
+      `track_2b/data/examples/print/`, from `track_2b/scripts/print_letters.py`: a German tax reminder
       and a French grant decision over two pages; both printed, folded in three and
       scanned at 300 dpi without OCR, one PDF per letter in `print/scans/`; phone
       photos and a third letter still needed. 7 Oct, night: the spike itself is
-      `scripts/image_spike.py` with `eval/image_spike.py`: the page JPEGs out of the
+      `track_2b/scripts/image_spike.py` with `eval/image_spike.py`: the page JPEGs out of the
       scans unchanged, scaled to 1600 px, one transcription call per page, character
       error rate and hard values found against the printed text, a table and a JSON
       report; tested without a key on the committed scans. The run on CSCS is the
@@ -401,7 +405,7 @@ the page. Built after WP10 in build order; scope status in §2 (stretch item 11)
       facts box, explanation, the transcription folded away for comparison with the
       paper, print and Markdown download. Reuses the WP8 static assets, no framework.
 - [ ] Evaluation: 6 synthetic letters (DE and FR, including the two in
-      `data/examples/`), each as clean text and as phone photos. Report: character
+      `track_2b/data/examples/`), each as clean text and as phone photos. Report: character
       error rate of the transcription, hard-fact recall on the transcription, and
       P2 fact coverage and invented values per 100 blocks for photo against clean
       text ("the photo costs X points"). Synthetic letters only, never a real one.
@@ -424,8 +428,8 @@ best single prompt, on the same model?", with numbers a juror can trust.
       baseline *(implemented 6 Oct, evening: conditions `P0-ZH-complete` and
       `P0-ZH-condensed`, template verified verbatim, smoke run on CSCS; run the same
       evening with P0 on the 20 German eval pairs and the 10 dev pairs, 90 jobs, every
-      answer tagged, about 2 minutes per 30 jobs; the numbers in docs/prompts.md
-      "Zurich's prompt as the second baseline", report §5 and eval/report.md)*:
+      answer tagged, about 2 minutes per 30 jobs; the numbers in track_2b/docs/prompts.md
+      "Zurich's prompt as the second baseline", report §5 and track_2b/eval/report.md)*:
       - `llm/prompts/de/baseline_zh.md`: their system message and user template of
         v1.6.0 with `RULES_LS`, verbatim. The MIT notice and the source commit go in a
         Jinja comment, so they never reach the model. Add `THIRD_PARTY_NOTICES.md`.
@@ -444,10 +448,10 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - German only: their app has no French prompt.
 - [x] **Like-for-like dev runs** (run time only): P0 and P0-ZH also on the 10 German
       dev pairs on CSCS, so the dev comparison with P2 uses the same pairs *(done 6 Oct,
-      evening; rows in `eval/results-cscs`, numbers in docs/prompts.md)*.
+      evening; rows in `track_2b/eval/results-cscs`, numbers in track_2b/docs/prompts.md)*.
 - [x] **Fact-retention diagnosis** (2-3 h, no model calls). On the stored P2 dev drafts
-      (`eval/results-cscs`), classify every must-keep fact missing from the final
-      version *(run 7 Oct on the owner's machine, numbers in docs/prompts.md: 50 of
+      (`track_2b/eval/results-cscs`), classify every must-keep fact missing from the final
+      version *(run 7 Oct on the owner's machine, numbers in track_2b/docs/prompts.md: 50 of
       102 must-keep values missing, 40 of them never asked for, 30 of those because no
       round reached the final version, 10 behind the cap; after the rerun 16 of 122;
       the later dev runs under the changed code are in the next item and in D-Z)*:
@@ -465,18 +469,18 @@ best single prompt, on the same model?", with numbers a juror can trust.
         version is chosen facts first, 8 Oct)*;
       - l) present in an earlier version, lost in a later rewrite.
 
-      Result: a table in docs/prompts.md ("Fact-retention diagnosis").
+      Result: a table in track_2b/docs/prompts.md ("Fact-retention diagnosis").
       *7 Oct, night (cloud session): the tool is `python -m leichtfacile eval diagnose
-      --results eval/results-cscs --role dev` (`eval/diagnose.py`, tests on a
+      --results track_2b/eval/results-cscs --role dev` (`eval/diagnose.py`, tests on a
       hand-built store). It puts every missing must-keep value into a bucket from the
       stored artifacts; for the runs before 7 Oct it decides bucket a exactly (requests
       recomputed with `build_request`) and reports b, c and d together as "answer not
       recorded"; since then the `RepairRecord` per round tells them apart. The method
-      is in docs/prompts.md.*
+      is in track_2b/docs/prompts.md.*
 - [x] **Fix the largest bucket** (2-6 h), then `eval run --redo` on the dev pairs
       *(done 7 to 9 Oct in the P2 dev reruns on CSCS, every earlier answer replayed
       from the cache so that two runs differ only by the change measured; the numbers
-      in docs/prompts.md, D-Z, D-AB and D-AC)*. What went in, in this order:
+      in track_2b/docs/prompts.md, D-Z, D-AB and D-AC)*. What went in, in this order:
       - a facts-only round that "no progress" on other findings does not stop: up to
         `MAX_FACTS_ROUNDS` (default 1) rounds after the loop, missing facts only, no
         block flagged, measured by the FACT-01 count; the exact value in the request
@@ -509,7 +513,7 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - wider FACT-01 surface forms: not needed, bucket b held 2 of the 16 missing
         values after the rerun.
 
-      Tried on the dev pairs and taken out again (docs/prompts.md): a judge's
+      Tried on the dev pairs and taken out again (track_2b/docs/prompts.md): a judge's
       "missing" on a fact that code finds asked for again, and a missing fact asked for
       by the clause of its value (8 Oct: fact coverage 79 to 74 percent, hard facts
       kept 71 to 64); English instructions in every stage (9 Oct, D-AE). Dev numbers
@@ -522,7 +526,7 @@ best single prompt, on the same model?", with numbers a juror can trust.
       night: `silent_losses` and `silent_loss_share` per row, the "Silent losses"
       column with its "by design" note in the report tables; the invented values and
       rule errors per 100 blocks existed; `eval numbers` prints the means with the D-M
-      case since 8 Oct, below; eval/report.md and the §5 column fill with the final
+      case since 8 Oct, below; track_2b/eval/report.md and the §5 column fill with the final
       run, the baseline rows follow from 100 minus hard facts kept)*:
       - *silent losses*: hard values of the source that are neither in the final text
         nor in the review checklist or omission log. For P0 and P0-ZH every missing
@@ -532,8 +536,8 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - rule errors per 100 blocks, fact coverage, hard facts kept (exist).
 - [ ] **Value numbers** (1-2 h):
       - seconds, tokens and USD per 250-word page and setup from the usage log
-        *(exist, in `eval/report.md` and report §5; the seconds undercount: a call
-        replayed from the cache counts 0 s, which is P0's 0.0 in eval/report.md since
+        *(exist, in `track_2b/eval/report.md` and report §5; the seconds undercount: a call
+        replayed from the cache counts 0 s, which is P0's 0.0 in track_2b/eval/report.md since
         its rescoring of 6 Oct, so the final run's baseline rows need fresh calls,
         below. Also measured: the recover round costs about 12 percent more tokens and
         5 s more per German page (dev, 9 Oct); the rule check alone takes 47 ms median
@@ -545,15 +549,15 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - the drafting time per page of a professional, from a published price per
         page. Without one, the report says so; no invented figure *(open)*.
 - [ ] **Final evaluation on CSCS** after the prompt freeze (Sun 11 Oct, 18:00; moved
-      from Fri 9 Oct on 9 Oct, D-AD), into `eval/results-cscs`:
-      - first copy the folder to the next `eval/results-cscs-vN` (v1 holds the run of
+      from Fri 9 Oct on 9 Oct, D-AD), into `track_2b/eval/results-cscs`:
+      - first copy the folder to the next `track_2b/eval/results-cscs-vN` (v1 holds the run of
         6 Oct, the fallback *(done 6 Oct, evening)*; v2 to v5 the dev reruns). Never
         overwrite a result that might be needed;
       - every row again, with `--redo`, not only where the pipeline changed: the
         scoring changed for all of them since 6 Oct (the value kinds of 7 Oct, the
         hotline numbers, the D-AB measure, the silent-loss key the stored P1 and P2
         rows lack). `make eval` has no `--redo`: run its five `eval run` lines with
-        `--redo --results eval/results-cscs`, P1 and P2 first (the 20 German and 3
+        `--redo --results track_2b/eval/results-cscs`, P1 and P2 first (the 20 German and 3
         French eval pairs), then P0 and the two P0-ZH variants (German), since a
         baseline's fact coverage is scored against a P1 or P2 fact sheet of the same
         pair (`_reference_factsheet`) and that fact sheet should come from the final
@@ -568,10 +572,10 @@ best single prompt, on the same model?", with numbers a juror can trust.
       - wall-clock about 1 h for the 8B rows (P2 runs the facts, vocabulary and recover
         rounds now) and 30 min for the 70B rows, overnight is ample; the client's 8
         retries cover the dropped thinking streams;
-      - then, without a model call: `eval report --results eval/results-cscs --out
-        eval/report.md` (both tables, with the silent-loss column for the first time),
-        `eval numbers --results eval/results-cscs` (the D-M case, below), `eval
-        diagnose --results eval/results-cscs --role eval` (the buckets on the eval
+      - then, without a model call: `eval report --results track_2b/eval/results-cscs --out
+        track_2b/eval/report.md` (both tables, with the silent-loss column for the first time),
+        `eval numbers --results track_2b/eval/results-cscs` (the D-M case, below), `eval
+        diagnose --results track_2b/eval/results-cscs --role eval` (the buckets on the eval
         split: the sentence for the next step in case B), and the commit of the run
         into report §7;
       - if more than a quarter of the pairs fail: case D, the v1 and dev numbers,
@@ -584,7 +588,7 @@ best single prompt, on the same model?", with numbers a juror can trust.
       6 Oct, evening; the silent-loss column added 7 Oct night with the identity for
       the rows without a checklist, 0 by design for P1 and P2; the final run fills the
       rest)*. Every place the numbers live, to change in one pass from `eval numbers`
-      and `eval/report.md` once the final run is read: report §5 (the table, its "6
+      and `track_2b/eval/report.md` once the final run is read: report §5 (the table, its "6
       October" date, the three reading paragraphs; the κ paragraph stays) and §1 (the
       "Headline result" paragraph: 80 percent, 4.3, 22.0 and 0.1 today); README's
       "Status (6 October 2026)" block (825 tests, 23 pairs under P0, P1 and P2, no
@@ -593,9 +597,9 @@ best single prompt, on the same model?", with numbers a juror can trust.
       condensed variant's 23 percent; demo-video.md §4 lists it). Every number with its
       endpoint and split (WP16, rule 4).
 
-Done when: `eval/report.md` (CSCS) has every row on the 20 German eval pairs; the
+Done when: `track_2b/eval/report.md` (CSCS) has every row on the 20 German eval pairs; the
 headline sentence follows D-M (below); README, report §1 and the video script carry the
-same three numbers, and `eval numbers --results eval/results-cscs` prints them.
+same three numbers, and `eval numbers --results track_2b/eval/results-cscs` prints them.
 
 #### Reading the numbers at G3 (D-M)
 
@@ -613,7 +617,7 @@ In every case: the same numbers in README, report §5 and the video, and never a
 without its endpoint and split. Z in case B names its variant: `complete` loses 5
 percent of the hard facts on the stored rows, `condensed` (their default) 23 percent;
 a sentence that says "in its default mode", as the video's evidence scene does on its
-card (spoken without it since 9 Oct, owner), means the condensed variant. `python -m leichtfacile eval numbers --results eval/results-cscs`
+card (spoken without it since 9 Oct, owner), means the condensed variant. `python -m leichtfacile eval numbers --results track_2b/eval/results-cscs`
 applies the table (tool since 8 Oct, WP16): the means per setup, the three comparisons
 with P0-ZH `complete`, the case and the headline sentence filled in.
 
@@ -631,8 +635,8 @@ G3) and for the final rerun after the freeze (Sun 11 Oct).
 
 ### WP14 - Fact contract and repair hardening (GAP-04, -05, -19, -22)
 
-*Done 6 to 8 Oct.* Details in docs/rules.md (value kinds, calibration notes),
-architecture §4 and docs/prompts.md.
+*Done 6 to 8 Oct.* Details in track_2b/docs/rules.md (value kinds, calibration notes),
+architecture §4 and track_2b/docs/prompts.md.
 
 - Value kinds in `rules/values.py`, each with code completion of the fact sheet,
   FACT-01 and FACT-05; SOURCE and REF recomputed: `identifier` (AHV, IBAN, postal
@@ -645,7 +649,7 @@ architecture §4 and docs/prompts.md.
   (D-P).
 - Edits by code, P1 and P2 only (D-S): LEX-01 no longer exempts a glossary compound;
   `rules/mediopunkt.py` splits long nouns after write and every repair, recorded as
-  `Draft.code_edits` and counted in the eval row (dev rerun in docs/prompts.md,
+  `Draft.code_edits` and counted in the eval row (dev rerun in track_2b/docs/prompts.md,
   "Mediopunkt by code"); CH-01 `ß` to `ss` the same way (`rules/swiss.py`, 8 Oct).
   GRAM-08 (a separable verb written as one word, 8 Oct).
 - Still open: the reading check of the French recipes against the 5 official French
@@ -656,7 +660,7 @@ architecture §4 and docs/prompts.md.
 
 - [x] **A decision letter with personal data** (1-2 h). *Replaced by the KESB decision
       below (D-T, 7 Oct); not written.* Team-written, at
-      `data/examples/sources/verfuegung-rueckforderung-musterwil.txt` (French
+      `track_2b/data/examples/sources/verfuegung-rueckforderung-musterwil.txt` (French
       counterpart if time allows). Topic: a premium reduction paid too much is
       reclaimed. It contains:
       - name and address of an invented person in Musterwil;
@@ -672,9 +676,9 @@ architecture §4 and docs/prompts.md.
       drop the appeal (the veto example of use-case-canton.md).
 - [x] **Alternative per D-T: a KESB decision with personal data** (2-3 h; added 6 Oct,
       night; cloud session). Team-written, at
-      `data/examples/sources/entscheid-beistandschaft-musterwil.txt`: the KESB of an
+      `track_2b/data/examples/sources/entscheid-beistandschaft-musterwil.txt`: the KESB of an
       invented region appoints a deputy (Beistand) for an invented woman in Musterwil
-      who keeps deciding where she lives (docs/use-case-decisions.md §3). It contains:
+      who keeps deciding where she lives (track_2b/docs/use-case-decisions.md §3). It contains:
       - name, date of birth and address of the person; an AHV number as a specimen
         (WP14);
       - the case number;
@@ -691,7 +695,7 @@ architecture §4 and docs/prompts.md.
       the model wanted to drop the appeal. Until the decision mode exists (WP17) it
       is an ordinary P2 job; the fixed notice ("Massgebend ist der Entscheid") is
       added by hand in the review, and the video says so.
-      *Written 7 Oct (evening): `data/examples/sources/entscheid-beistandschaft-musterwil.txt`,
+      *Written 7 Oct (evening): `track_2b/data/examples/sources/entscheid-beistandschaft-musterwil.txt`,
       1,000 words, 26 hard values (the AHV number with a wrong check digit, the IBAN
       with 00), with `entscheid-beistandschaft-musterwil.json` for decision mode and
       the addressee. A research agent found no KESB header with "in Sachen" or
@@ -703,7 +707,7 @@ architecture §4 and docs/prompts.md.
 - [x] **One published, anonymised decision as a test** (1 h plus run time, Thu 8 Oct;
       added 6 Oct, night; cloud session): a cantonal court on an appeal against a
       KESB decision, or the Federal Supreme Court on disability insurance (free under
-      Copyright Act art. 5; docs/sources.md §3). Run P2 on CSCS, read the result, note
+      Copyright Act art. 5; track_2b/docs/sources.md §3). Run P2 on CSCS, read the result, note
       how the placeholders (`A.________`) and the long reasoning come out. Input for
       D-I and D-T. *Done 7 Oct (evening): Verwaltungsgericht Schwyz, III 2022 132 (8
       pages), P2 on CSCS in decision mode and as a standard job, and the KESB decision
@@ -722,18 +726,18 @@ architecture §4 and docs/prompts.md.
       *Done 7 Oct as "Why only Apertus": four conditions (the text stays inside, the
       organisation runs the model, it can account for what the model learned, the
       model is Swiss) with the secrecy laws and sources behind them, in
-      docs/use-cases.md §2, a table in the README, a bullet in report §3 and a scene
+      track_2b/docs/use-cases.md §2, a table in the README, a bullet in report §3 and a scene
       in the video (1:29-1:57, in place of BehiG). The image line is left out: WP12a
       is cut (D-N).*
 - [x] **WP12 split** (D-N). The spike moves to Thu 8 Oct (half a day, as in WP12).
       *Decided 7 Oct: the spike ran on the two scans at 1,600 px and at full
       resolution, with the 8B and the 70B; every setting lost hard values, and at
       full resolution both models turned the IBANs, the AVS number and a period into
-      other plausible numbers (docs/prompts.md, "Image input spike"). WP12a is cut,
+      other plausible numbers (track_2b/docs/prompts.md, "Image input spike"). WP12a is cut,
       WP12b stays after the deadline; the report names image input as future work
       with these numbers. 9 Oct: most of the digit loss was the server's image size,
       not the model: CSCS keeps at most 1400 x 1400 pixels of any image, so a whole
-      page arrives at about 140 dpi. `scripts/image_spike.py --strips` sends the
+      page arrives at about 140 dpi. `track_2b/scripts/image_spike.py --strips` sends the
       printed area in strips at the scan's resolution; the 8B then keeps every digit
       of both scans in three runs (20 of 21 and 17 of 22 hard values; the lost ones
       are the invented place name read as "Exampleville" inside the address, the
@@ -909,8 +913,8 @@ architecture §4 and docs/prompts.md.
          FACT-08 as blocking and missing, puts a dropped part first in the request and
          reruns the judge on it. Calibrated on the KESB decision (13 items and the
          appeal, by headings) and the Schwyz decision (2 items and the appeal as its
-         item 3, by text; `data/cache/decisions/`). Tests in
-         `tests/rules/test_decision.py`.*
+         item 3, by text; `track_2b/data/cache/decisions/`). Tests in
+         `track_2b/tests/rules/test_decision.py`.*
       4. *SEM-08 to SEM-10.* Declared in `JUDGE_RULES`, the filter in
          `to_judge_report` widened (today it drops anything outside SEM-01 to
          SEM-05), the rows moved from "Planned" into the judge table of rules.md.
@@ -954,7 +958,7 @@ architecture §4 and docs/prompts.md.
          `notice` (the reader `example_config` existed for `examples build`), so
          `/new?example=entscheid-beistandschaft-musterwil` and the example buttons
          prefill the three fields. Open: the example job itself, a run of the KESB
-         decision on CSCS into `data/examples/jobs` (owner's machine, the key).*
+         decision on CSCS into `track_2b/data/examples/jobs` (owner's machine, the key).*
 
       Added from the test runs of 7 Oct (use-case-decisions.md §7), for pieces 2 and 3:
       - in decision mode the values of the header and of the reasoning (outside the
@@ -979,7 +983,7 @@ architecture §4 and docs/prompts.md.
       date, in the understand, write, repair and judge sections (SEM-10 names a computed
       date); the copy guard knows the style guide; the task's owner named in the fact
       sheet and the draft, and a "Sie" that takes the deputy's task is SEM-03. German
-      and French; the standard templates and their hashes unchanged (docs/prompts.md,
+      and French; the standard templates and their hashes unchanged (track_2b/docs/prompts.md,
       row 9 of 8 Oct).*
       Owner's decision, affects standard jobs too: a fact-sheet value that FACT-05
       finds missing from the source still counts as known to FACT-06, so a value the
@@ -987,7 +991,7 @@ architecture §4 and docs/prompts.md.
       Proposal: such a value is not known to FACT-06 and not required by FACT-01.
       *Decided and done 7 Oct (D-AB), for every job, before the freeze.*
 
-      Tests: `tests/rules/test_decision.py` (protected segments with and without
+      Tests: `track_2b/tests/rules/test_decision.py` (protected segments with and without
       headings, FACT-08 on a dropped item and an omitted Rechtsmittelbelehrung, silent
       in standard mode, FACT-07 on export lines); orchestrator with stub stages (a
       decision job's prompts carry the addressee and the partial, a standard job's not
@@ -1028,11 +1032,11 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
         only as a non-blocking step;
       - a badge at the top of README.
 - [ ] **Numbers audit** (0.5 h at G4, again at G6): every number in README, report and
-      *(tool since 8 Oct: `python -m leichtfacile eval numbers --results eval/results-cscs`
+      *(tool since 8 Oct: `python -m leichtfacile eval numbers --results track_2b/eval/results-cscs`
       prints the headline means per setup, the D-M case (WP13) with its three comparisons and
       the filled headline sentence; the audit is a diff against it)*
       video traced to a command (table below). First fix: "404 tests" *(README says
-      the current count since 56030bb; the first P0 scorings in `eval/results-cscs`
+      the current count since 56030bb; the first P0 scorings in `track_2b/eval/results-cscs`
       used a fact sheet without code completion, fixed 6 Oct evening in `eval/run.py`;
       rescore P0 with `--redo` from the cache before the numbers are final)*.
 - [ ] **Positioning paragraph** (1 h). README gets "And the Canton of Zurich's app?"
@@ -1061,7 +1065,7 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
         and e-mail addresses;
       - once the repo is public, a pull request to awesome-apertus (maintained by
         Patrick Arnecke of the Zurich team, GitHub `rnckp`).
-- [x] **Video** (docs/demo-video.md): *Closed 9 Oct: the concept "Find the deadline" of
+- [x] **Video** (track_2b/docs/demo-video.md): *Closed 9 Oct: the concept "Find the deadline" of
       8 Oct replaced the first two points (the product scene is the example letter, no
       FACT-06 scene); the evidence scene follows case B of D-M and does not name Zurich
       (D-L); its final number comes with the final run (WP13, report §5 item).*
@@ -1099,17 +1103,17 @@ Numbers audit, at G4 and G6. Fix the text, never the command:
 
 | Claim | Command or source |
 |-------|-------------------|
-| Number of rules (42, plus any new ones) | the rule registry; `tests/rules/test_registry.py` compares it with rules.md |
+| Number of rules (42, plus any new ones) | the rule registry; `track_2b/tests/rules/test_registry.py` compares it with rules.md |
 | Number of tests | `uv run pytest --collect-only -q`, last line |
-| Pairs: 35 (30 German, 5 French; 20 and 3 held out) | `data/pairs/manifest.jsonl` |
+| Pairs: 35 (30 German, 5 French; 20 and 3 held out) | `track_2b/data/pairs/manifest.jsonl` |
 | Checker on official pages: about 2 errors per 100 blocks | `make calibrate` |
-| Every evaluation number | `eval/report.md` from `make eval RESULTS=eval/results-cscs` |
+| Every evaluation number | `track_2b/eval/report.md` from `make eval RESULTS=track_2b/eval/results-cscs` |
 | 1.25 million (22%) | Swiss Federal Statistical Office, first PIAAC 2022/2023 results, section 3.3 (wording check in demo-video.md §4) |
 | Laptop GPU figures | architecture §10, labelled as a community 4-bit build |
 
 ### WP18 - UI redesign: the reviewer's workbench (added 7 Oct)
 
-*Done.* Designed and approved by the owner on 7 Oct, specified in `docs/ui-design.md`
+*Done.* Designed and approved by the owner on 7 Oct, specified in `track_2b/docs/ui-design.md`
 (design canvas: https://claude.ai/artifact/8Js1ncMf4ceXmg3uUcPqCU, private to the
 owner); D-V to D-Y decided. Built 7 Oct: an own `app.css` with tokens and vendored fonts
 (IBM Plex Sans and Mono, Atkinson Hyperlegible Next, SIL OFL 1.1), the app bar, the
@@ -1121,9 +1125,9 @@ into the new templates on 8 Oct.
 
 Added 9 Oct: "Suggest a sentence" for a missing fact on the review page (architecture
 §4.7) and the recover round in the pipeline behind `MAX_RECOVER_FACTS` (architecture
-§4.6). Dev run with the round on (`eval/results-cscs-recover-on`): German fact coverage
+§4.6). Dev run with the round on (`track_2b/eval/results-cscs-recover-on`): German fact coverage
 78 to 96 percent, hard facts kept 72 to 90, no invented value added; the judge calls 3
-of 13 recovered facts distorted (docs/prompts.md, "The recover round on the dev pairs").
+of 13 recovered facts distorted (track_2b/docs/prompts.md, "The recover round on the dev pairs").
 D-AC decided by the owner the same day: the round is on by default
 (`MAX_RECOVER_FACTS=10`) and in the final run.
 
@@ -1133,7 +1137,7 @@ Submission check of 7 Oct against the template's submission requirements (README
 "Submission Requirements & Deliverables") and the five judging criteria, at commit
 `40a8b5c`; the two "submission check" lines in §11 have the details. Passed: the Docker
 image builds and serves `/healthz` and the UI with no external assets; tests and ruff
-green on the committed state (963 tests); `data/` has 44 KB tracked; no key in git
+green on the committed state (963 tests); `track_2b/data/` has 44 KB tracked; no key in git
 history; first commit on 5 October, inside the hackathon period; the report keeps the
 template's sections; only Apertus at runtime; code Apache 2.0, report CC-BY-4.0. Fixed
 since:
@@ -1148,12 +1152,16 @@ since:
   `check-docker` says that Docker is not running (or not installed, or without Compose
   v2) and how to start it, also before `stop`, `check-llm` and `smoke`;
 - no pre-computed example jobs: the premium-reduction letter in German and French built
-  on CSCS into `data/examples/jobs/` (7 Oct); the KESB decision's job follows with
+  on CSCS into `track_2b/data/examples/jobs/` (7 Oct); the KESB decision's job follows with
   decision mode v1 (WP15). Rebuild after the freeze if the pipeline changes; until then
   the two bundles carry errors and their test is an expected failure (9 Oct);
-- the `track_2b/` layout: settled 9 Oct without a question to the organisers; submission
-  requirement 3 (judges run `make run` from the root of the project on a clean checkout)
-  works only with the Makefile at the root;
+- the `track_2b/` layout: settled 9 Oct without a question to the organisers, with the
+  template's `track_2b/` contents at the root; on 10 Oct the organisers confirmed that
+  the original `track_2b/` folder must stay and the Makefile must be at the root, where
+  they run `make run`: the project moved into `track_2b/` (docs, src, data, eval,
+  scripts, tests, report), the root keeps the Makefile, Docker, Compose, uv, CI and
+  PLAN.md, `track_2b/Makefile` passes every target on, README.md is in both places
+  (track_2b/docs/architecture.md §11);
 - literal U+2010 to U+2014 characters in the regexes of `rules/values.py`: the classes
   are built from `DASHES` (`leicht-facile-a3`), which also removed an unintended `/`
   range that rejected a value right after a colon;
@@ -1163,8 +1171,8 @@ since:
 - [x] Report cut to the page limit: it was 8 A4 pages at 10 pt with 2 cm margins (4,427
       words), limit 6; now 3,171 words, 6 pages, the last 37 % full, so about half a
       page is left for the names, the video link, κ and the final rerun.
-- [ ] `technical_report.md` filled (sections 1-8); export to PDF (pandoc or print to
-      PDF), check the 6-page limit, save as `RoestigrabenBridgers_Report.pdf` in the
+- [ ] `track_2b/technical_report.md` filled (sections 1-8); export to PDF (pandoc or print to
+      PDF), check the 6-page limit, save as `track_2b/RoestigrabenBridgers_Report.pdf` in the
       root. §2 holds a Mermaid diagram: the export must render it (print the GitHub
       page, or HTML with mermaid.js; plain pandoc prints the code instead).
       *First draft 9 Oct: every guiding question of the jury answered in the template's
@@ -1172,8 +1180,8 @@ since:
       coding assistants, what the running system contacts, licences, ten times the
       volume, the way into use), the settings table set to the code, visible
       **[PENDING]** and **[OWNER]** placeholders; printed as a draft
-      `RoestigrabenBridgers_Report.pdf` in the root: 6 pages, the last 98 % full with
-      the placeholders, so the final text may not grow (method: docs/submission.md §5).*
+      `track_2b/RoestigrabenBridgers_Report.pdf`: 6 pages, the last 98 % full with
+      the placeholders, so the final text may not grow (method: track_2b/docs/submission.md §5).*
 - [ ] Stale report: the **[PENDING]** video link (header) and commit (§7), known after
       the final rerun. The status line, the three
       **[pending]** markers (report §5 now says κ is not yet measured, report §4 no
@@ -1196,13 +1204,13 @@ since:
       with the review UI, 30 s numbers and sovereignty, 15 s close. Record with the
       example job pre-loaded as a fallback if CSCS is slow; link it in README and
       report.
-      *Done in another shape: the concept "Find the deadline" (docs/demo-video.md)
+      *Done in another shape: the concept "Find the deadline" (track_2b/docs/demo-video.md)
       replaced this storyboard on 8 Oct; version C is built, 118.1 s, with a real screen
       recording of the example letter. Left in other items: the opening sentence (below),
       the link in README and report, the final numbers (WP13).*
 - [x] Video, before/after (1:19): the storyboard wants the tool's real A2 output for
       DE-4, and P2 on the sentence alone gives none that can be shown (§11, 8 October).
-      *Resolved 8 Oct by concept A ("Find the deadline", docs/demo-video.md): the viewer
+      *Resolved 8 Oct by concept A ("Find the deadline", track_2b/docs/demo-video.md): the viewer
       is tested on the example letter and its real draft; no DE-4 rewrite is shown.*
       Either run DE-4 inside a short letter, or take the pair from the example job (a
       source sentence and its block) and change "The same sentence, now" to match.
@@ -1221,13 +1229,13 @@ since:
 - [ ] Repo to public (anonymous access gave 404 on 7 October); `.env` absent from
       history (check `git log -p -- .env`); then check that CI is green on the submitted
       commit.
-- [ ] The owner's answers to the **[OWNER]** placeholders (docs/submission.md): the
+- [ ] The owner's answers to the **[OWNER]** placeholders (track_2b/docs/submission.md): the
       declared maturity level, the coding-assistant sentence, the first user (none
       named, D-Q), who submits and with which Devpost e-mail, "Swiss student team", the
-      video platform, and whether docs/submission.md stays in the public repository.
+      video platform, and whether track_2b/docs/submission.md stays in the public repository.
 - [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL, model
       "8B + 70B v1.5" and the message to the jury; every field with our entry and the
-      checklist before Submit in docs/submission.md (drafted 9 Oct).
+      checklist before Submit in track_2b/docs/submission.md (drafted 9 Oct).
 
 ### WP17 - After 16 October (GAP-17, -18)
 
@@ -1237,7 +1245,7 @@ guess.
 | Item | What | Why | Effort |
 |------|------|-----|--------|
 | Termbase | Per organisation: hard term, approved easy term, explanation, banned words. Injected into the write prompt; code checks use, consistency ("same thing, same word") and banned words | Consistent naming across all texts of a canton; Zurich planned it | 2-3 days |
-| Vocabulary in prompt and checker | Done 7 Oct, pulled forward (D-AA): the fact sheet gets the checked explanations, code adds missing glossary entries, LEX-07 / LEX-07-FR flag the office words left (docs/rules.md "Vocabulary"); a vocabulary round rewrites the office words left. The writer's word list was tried and removed (it primed the 8B). Left for here: a word list for the writer with a later Apertus, or one that names only the everyday words, and the per-organisation termbase above overriding the vocabulary | The writer and the 8B get the same words every time; glossary texts that pass the checker | done |
+| Vocabulary in prompt and checker | Done 7 Oct, pulled forward (D-AA): the fact sheet gets the checked explanations, code adds missing glossary entries, LEX-07 / LEX-07-FR flag the office words left (track_2b/docs/rules.md "Vocabulary"); a vocabulary round rewrites the office words left. The writer's word list was tried and removed (it primed the 8B). Left for here: a word list for the writer with a later Apertus, or one that names only the everyday words, and the per-organisation termbase above overriding the vocabulary | The writer and the 8B get the same words every time; glossary texts that pass the checker | done |
 | House-style profiles | Quotation marks, numbers in words, `14.00 Uhr`, thousands separator, hyphen or Mediopunkt as one profile per organisation, read by prompt and checker | Every canton has its own rules; Zurich's prompt and our checker disagree on five of them | 2 days |
 | Check my own text | Done 8 Oct, pulled forward (the code of WP13-16 was complete): `/check`, a third entry in the app bar, the deterministic checker on a pasted text as the CLI `check` runs it, German and French, blocks with their findings, document findings by rule, the counts; no job, no model call, nothing stored (ui-design §5.8, architecture §7) | Useful without AI, offline, in milliseconds | done |
 | Complete or essentials | A switch that decides how many `omit_candidates` may go; the omission log shows what went | A real need; Zurich builds it from contradictory prompt text | 1 day |
@@ -1245,13 +1253,13 @@ guess.
 | DOCX | Easy-language layout (about 14 pt, left-aligned, one sentence per line) and a footer with date, model and prompt hash | Writers work in Word | 1 day |
 | Verify a draft | Source plus any draft (Zurich's app, a person): fact sheet, FACT-01, FACT-06, rules, judge | Makes us a complement to existing tools | 2 days |
 | UI in German and French | Labels and help texts in the writers' languages | The users are cantonal writers | 1-2 days |
-| Italian | *Out of scope for the hackathon (owner, 8 Oct).* The 9 rules of `docs/rules.md` (Italian section), prompts and few-shot examples, calibration on Ticino pairs, the UI and the web form. Decide first how the grammar rules get their parse: `it_core_news_md` (and every spaCy Italian model) is CC BY-NC-SA 3.0, non-commercial, from its training data UD Italian ISDT, unlike the German (MIT) and French (LGPL-LR) models; options are an optional extra outside the Docker image, the model in the image with a notice, or word lists and verb endings without a model. The polite imperative with Lei (`Compili il modulo`) is a subjunctive form, so the subjunctive rule may only fire after `che` or a conjunction | National coverage; Apertus's languages | 1 week |
+| Italian | *Out of scope for the hackathon (owner, 8 Oct).* The 9 rules of `track_2b/docs/rules.md` (Italian section), prompts and few-shot examples, calibration on Ticino pairs, the UI and the web form. Decide first how the grammar rules get their parse: `it_core_news_md` (and every spaCy Italian model) is CC BY-NC-SA 3.0, non-commercial, from its training data UD Italian ISDT, unlike the German (MIT) and French (LGPL-LR) models; options are an optional extra outside the Docker image, the model in the image with a notice, or word lists and verb endings without a model. The polite imperative with Lei (`Compili il modulo`) is a subjunctive form, so the subjunctive rule may only fire after `che` or a conjunction | National coverage; Apertus's languages | 1 week |
 | ZIX column | The Canton's index as an extra evaluation column, in the evaluation environment only (it loads pickled models and runs a pip fallback) | Speaks Zurich's language | 0.5 day |
 | Decision mode, beyond v1 | WP15 builds v1 by G4 (mode flag, addressee, notice with FACT-07, protected segments with FACT-08, SEM-08 to SEM-10, form, CLI, example job). Later: whatever its cut order drops (French partial, code facts per operative item, the addressee in the judge, FACT-07), a document-type detector instead of the manual flag, an anonymisation step in front, decisions of social insurance offices and courts as further examples | The strongest sovereignty case: KESB and courts | 1-2 days |
-| Planned fact checks | *Built by 8 Oct: the value kinds of 7 Oct and `medication`, FACT-07 to FACT-09, SEM-08 to SEM-10 (`docs/rules.md`, "Fact checks for the further use cases").* Left: a Swiss postcode list for bare postcodes; a drug list (the Swissmedic list of authorised medicines), so code finds a drug name the model did not give and FACT-06 an invented one | The further use cases (`docs/use-cases.md` §13) | 1-2 days |
-| Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, FACT-09 and SEM-08 exist (7 and 8 Oct); left: a drug list, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
-| Helpers for received letters | Lease terminations and payment orders for tenants' associations, social services and debt counselling: WP12b with the period kind and the facts box (`docs/use-cases.md` §4, §6) | Reach; a 10- or 30-day period decides | with WP12b |
-| Tax letters | A tax office's standard letters in the writer workflow, and a client's tax letter for debt counselling with WP12b and image input; every value kind it needs exists (`docs/use-cases.md` §12) | Tax secrecy: a strong sovereignty case; the WP12 print letter is a tax reminder | a pilot, plus WP12b |
+| Planned fact checks | *Built by 8 Oct: the value kinds of 7 Oct and `medication`, FACT-07 to FACT-09, SEM-08 to SEM-10 (`track_2b/docs/rules.md`, "Fact checks for the further use cases").* Left: a Swiss postcode list for bare postcodes; a drug list (the Swissmedic list of authorised medicines), so code finds a drug name the model did not give and FACT-06 an invented one | The further use cases (`track_2b/docs/use-cases.md` §13) | 1-2 days |
+| Patient letters | Medical mode: the kinds `quantity`, `schedule`, `medication`, FACT-09 and SEM-08 exist (7 and 8 Oct); left: a drug list, Apertus-70B-MeditronFO as judge, an assessment under the Medical Devices Ordinance, a pilot with a hospital (`track_2b/docs/use-cases.md` §3) | Health data, 49 percent low health literacy; the strongest case after courts | 1-2 weeks plus the legal assessment |
+| Helpers for received letters | Lease terminations and payment orders for tenants' associations, social services and debt counselling: WP12b with the period kind and the facts box (`track_2b/docs/use-cases.md` §4, §6) | Reach; a 10- or 30-day period decides | with WP12b |
+| Tax letters | A tax office's standard letters in the writer workflow, and a client's tax letter for debt counselling with WP12b and image input; every value kind it needs exists (`track_2b/docs/use-cases.md` §12) | Tax secrecy: a strong sovereignty case; the WP12 print letter is a tax reminder | a pilot, plus WP12b |
 | WP12b | The end-user letter mode | Reach | as in WP12 |
 | Pilot | A canton's easy-language office, target-group tests | Value | weeks |
 | LoRA | From reviewer edits (architecture §4.8) | Cost, quality | as before |
@@ -1308,7 +1316,7 @@ first; the final CSCS run starts that night.
 | Date | Focus | Gate (end of day) |
 |------|-------|-------------------|
 | Mon 5 to Tue 6 Oct | Design docs, this plan, the CSCS key; the core of WP0 to WP10, first without the key, then on CSCS; the gap review (§10) | **G1**, **G2**; first P0, P1 and P2 numbers on the 23 held-out pairs (§11) |
-| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); save the CSCS run of 6 Oct as `eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
+| Wed 7 Oct | Push the evening work; CI; P0-ZH condition and its runs (eval and dev); save the CSCS run of 6 Oct as `track_2b/eval/results-cscs-v1` and read its numbers; *done this day as well: the value kinds `identifier`, `period` and `address` (WP14), REF rows recomputed* | CI green on `main`; P0-ZH numbers on 20 eval pairs |
 | Thu 8 Oct | Identifier kind; decision letter; fact-retention diagnosis; WP12 spike (half a day); KESB decision (D-T) and one published, anonymised decision as a test (WP15); period kind if the identifier kind is in (D-U, WP14); UI track (WP18, own session): D-V to D-Y, foundations, start of the review screen *(done 7 Oct)* | D-N and D-O decided; diagnosis table in prompts.md; D-T decided and D-I revisited; D-U decided |
 | Fri 9 Oct | Fix the largest fact-loss bucket; clause recipes (German); Mediopunkt by code (WP14, D-S); dev rerun with `--redo`; before the freeze the decision mode's hooks (three `JobConfig` fields with defaults, the include lines in the standard templates, the SEM-08 line; about 1 h); UI: the review screen, the reader view; *prompt freeze moved to Sun 11 Oct (D-AD)* | Pre-freeze changes measured on dev |
 | Sat 10 Oct | Pre-freeze changes and their dev measurement; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | Every pipeline change for the final run in |
@@ -1333,8 +1341,8 @@ cache on while UI work happens.
 
 ## 5. Day-1 verification script (WP1)
 
-`scripts/day1_checks.py`, run as soon as `.env` exists. Record each answer in
-`docs/architecture.md` §12 and remove the `[verify]` marker it resolves.
+`track_2b/scripts/day1_checks.py`, run as soon as `.env` exists. Record each answer in
+`track_2b/docs/architecture.md` §12 and remove the `[verify]` marker it resolves.
 
 1. **Models and host.** `GET {LLM_BASE_URL}/models`. Expect `swiss-ai/Apertus-v1.5-8B`,
    `-8B-thinking`, `-70B`, `-70B-thinking`. Note the exact host that works.
@@ -1361,7 +1369,7 @@ page, to size `max_tokens` and estimate the eval budget.
 | Layer | What | How | Runs in |
 |-------|------|-----|---------|
 | Unit | Rules, readability, surface forms, JSON extraction, schemas, export wrapping | pytest, golden YAML, no network | `make test`, every commit |
-| Recorded | Prompt rendering snapshots; parsing of real model outputs saved as fixtures | pytest with fixtures under `tests/fixtures/llm/` | `make test` |
+| Recorded | Prompt rendering snapshots; parsing of real model outputs saved as fixtures | pytest with fixtures under `track_2b/tests/fixtures/llm/` | `make test` |
 | Integration | Orchestrator with stub stages; API routes with the FastAPI test client | pytest | `make test` |
 | Smoke | One real page through P2 against the live endpoint | `make smoke` | before each gate |
 | Acceptance | Clean clone + `.env` + `make run` + one job in the browser | manual | G5, G6 |
@@ -1382,7 +1390,7 @@ Apply in this order when a gate is missed:
 6. `publiccode.yml`.
 7. Italian.
 8. Clause recipes for French (German stays).
-9. WP18's later parts, in its own cut order (docs/ui-design.md §13), "Suggest a
+9. WP18's later parts, in its own cut order (track_2b/docs/ui-design.md §13), "Suggest a
     sentence" for a missing fact first (it touches no evaluated path): the drafts
     list's extras, the job page beyond the stylesheet, New draft as its own page, the
     reader view's export panel.
@@ -1423,36 +1431,36 @@ Never cut:
 
 | ID | Question | Recommendation | Decide by |
 |----|----------|----------------|-----------|
-| D-A | Where do rules live: parse `docs/rules.md` at runtime, or a code registry with a test that both contain the same ids? | Code registry (`rules/catalog.py`) with id, families, severities per level, prose; `styleguide.py` renders from it; a test diffs ids and severities against `rules.md`. Markdown parsing at runtime is brittle. | 7 Oct |
+| D-A | Where do rules live: parse `track_2b/docs/rules.md` at runtime, or a code registry with a test that both contain the same ids? | Code registry (`rules/catalog.py`) with id, families, severities per level, prose; `styleguide.py` renders from it; a test diffs ids and severities against `rules.md`. Markdown parsing at runtime is brittle. | 7 Oct |
 | D-B | `response_format` JSON mode | Use it only if day-1 check 3 shows fewer failures; never rely on it alone. *Decided 6 Oct on Public AI: 20 of 20 parsed in both modes, same answers; not used.* | done |
 | D-C | SARI implementation | Own ~80-line implementation in `eval/metrics.py`, unit-tested against the EASSE example; avoids heavy deps in the image. | 9 Oct |
-| D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. *7 Oct: WP18 replaces water.css with an own stylesheet and vendored fonts, still without a framework or a bundler (docs/ui-design.md).* | 11 Oct |
+| D-D | UI styling | One vendored classless CSS file (pico.css or water.css, MIT) plus hand-written `app.js`; no framework, no bundler. *7 Oct: WP18 replaces water.css with an own stylesheet and vendored fonts, still without a framework or a bundler (track_2b/docs/ui-design.md).* | 11 Oct |
 | D-E | Primary level A2 or B1 | Day-1 check 6. *In effect since 6 Oct: the evaluation runs at A2, the UI offers B1 with the team's own thresholds (report §6); the claims follow WP15's "Precise claims".* | 6 Oct |
 | D-F | Section-parallel writing | Only if check 5 shows headroom; otherwise sequential. *Decided 6 Oct on Public AI: 8 parallel calls, no 429, 1.4 to 2.2 s each. Headroom exists; use it first for parallel evaluation workers, section-parallel writing stays optional.* | done |
-| D-I | Main demo document | A past Federal Council voting explanation (docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap. Test run of 7 Oct (use-case-decisions.md §7): the KESB decision is not demo-ready on today's pipeline (an invented appeal deadline, the deputy's tasks given to the person); it becomes the demo only with decision mode v1 by G4, otherwise the premium-reduction letter carries the product scene.* | 9 Oct |
+| D-I | Main demo document | A past Federal Council voting explanation (track_2b/docs/sources.md §3); confirm its article-5 status first. Backup: the radio and TV fee exemption fact sheet. *Revisit on 8 Oct after the WP15 test run (added 6 Oct, night; cloud session): a KESB decision is the stronger sovereignty demo (track_2b/docs/use-case-decisions.md); the voting explanation can stay as one sentence on the federal gap. Test run of 7 Oct (use-case-decisions.md §7): the KESB decision is not demo-ready on today's pipeline (an invented appeal deadline, the deputy's tasks given to the person); it becomes the demo only with decision mode v1 by G4, otherwise the premium-reduction letter carries the product scene.* | 9 Oct |
 | D-J | NUM-08 and +41 numbers | Decide at checker calibration: accept the international format or lower to `info`. | 8 Oct |
-| D-H | Team name | Decided 5 Oct: **Röstigraben Bridgers**; file name `RoestigrabenBridgers_Report.pdf`. Report §1 frames the name as bridging the gap between authorities and readers, not as translation. | done |
+| D-H | Team name | Decided 5 Oct: **Röstigraben Bridgers**; file name `track_2b/RoestigrabenBridgers_Report.pdf`. Report §1 frames the name as bridging the gap between authorities and readers, not as translation. | done |
 | D-K | P0-ZH variants | Run both on the 20 German eval pairs: `complete` (same task as ours, keep every fact; used for the headline) and `condensed` (their default for Leichte Sprache). One 8B call per pair, cheap. | 7 Oct |
 | D-L | Name Zurich in the video | Report: yes, with credit, link and licence. Video: only in case A of D-M (WP13); otherwise "a strong single prompt". | 13 Oct |
 | D-M | Headline metric and sentence | The case table in WP13, applied to the final CSCS numbers, no debate. | 12 Oct (G3, moved from 10 Oct with the freeze, D-AD) |
-| D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. *Decided 7 Oct after four spike runs (8B and 70B, 1,600 px and full resolution): hard values are lost at every setting, and at full resolution the models turn the IBANs, the AVS number and a period into other plausible numbers, the worst case for a fact contract. WP12a cut, WP12b after the deadline; the report names image input as future work with these numbers (docs/prompts.md). 9 Oct: the digit loss came mostly from the server's clamp on image size (1400 x 1400 pixels); with `--strips` at the scan's resolution the 8B keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. Decision unchanged; the owner may reopen WP12a with these numbers.* | done |
+| D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. *Decided 7 Oct after four spike runs (8B and 70B, 1,600 px and full resolution): hard values are lost at every setting, and at full resolution the models turn the IBANs, the AVS number and a period into other plausible numbers, the worst case for a fact contract. WP12a cut, WP12b after the deadline; the report names image input as future work with these numbers (track_2b/docs/prompts.md). 9 Oct: the digit loss came mostly from the server's clamp on image size (1400 x 1400 pixels); with `--strips` at the scan's resolution the 8B keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. Decision unchanged; the owner may reopen WP12a with these numbers.* | done |
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
 | D-Q | Outreach | No outreach during the hackathon (owner, 9 Oct): no mail to Zurich's team or to an easy-language office was sent. Report §6 ("Not a certification") says the drafts still need testing by readers from the target group. | 9 Oct |
 | D-R | Fact-retention fallback | If P2 still keeps fewer facts than P0-ZH after the WP13 fix: no code-written fact sentences in the evaluated text; report the trade-off and the "no silent loss" property instead (case B of D-M (WP13)). *The recover round (D-AC) keeps to this: the 8B writes the sentence, code places it after its block and checks the value, and the judge reads the version.* | 10 Oct |
-| D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. *Decided 7 Oct from the ablation (docs/prompts.md): on. Fact coverage 75 against 68 percent, hard facts kept 72 against 65, no invented value on either side, fewer judge findings. The third run answered the last question: 5 of 30 missing facts had been written into a version the blocking-count rule did not keep, so since 8 Oct the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; `eval rescore --select facts|blocking` reads the rule's effect on the stored jobs without a model call. Read on the same jobs with `eval rescore` (7 Oct, late): facts first gives 80 percent fact coverage and 81 percent hard facts kept against 71 and 68 under the old rule, at 1.2 more judge findings and 1.3 more rule errors per 100 blocks; on the run before, 83 and 84. Open for the Friday decision: the cap of a facts-only round (`MAX_MISSING_PER_FACTS_ROUND`, default 5; 13 of the 30 missing facts were behind it, all in one pair with 22 facts), to be raised only with a measured rerun. Measured 7 Oct (fifth run and the cap-10 run, same cache): cap 10 gives 79 percent fact coverage and 81 percent hard facts kept against 75 and 77, no invented value, judge findings 2.8 against 4.6 per 100 blocks, rule errors 6.7 against 5.4; the default is 10 since then. The fifth run also shows no silent loss and nothing in bucket k.* | done |
+| D-Z | Facts-only rounds on or off for the final run | Default on (`MAX_FACTS_ROUNDS=1`) since 7 Oct (night). Decide from the dev rerun with and without them and from the diagnosis: keep them when fact coverage rises and invented values do not; set 0 when the missing facts are mostly written and rejected or dropped (buckets b and c), which is prompt and matcher work, not a round. *Decided 7 Oct from the ablation (track_2b/docs/prompts.md): on. Fact coverage 75 against 68 percent, hard facts kept 72 against 65, no invented value on either side, fewer judge findings. The third run answered the last question: 5 of 30 missing facts had been written into a version the blocking-count rule did not keep, so since 8 Oct the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; `eval rescore --select facts|blocking` reads the rule's effect on the stored jobs without a model call. Read on the same jobs with `eval rescore` (7 Oct, late): facts first gives 80 percent fact coverage and 81 percent hard facts kept against 71 and 68 under the old rule, at 1.2 more judge findings and 1.3 more rule errors per 100 blocks; on the run before, 83 and 84. Open for the Friday decision: the cap of a facts-only round (`MAX_MISSING_PER_FACTS_ROUND`, default 5; 13 of the 30 missing facts were behind it, all in one pair with 22 facts), to be raised only with a measured rerun. Measured 7 Oct (fifth run and the cap-10 run, same cache): cap 10 gives 79 percent fact coverage and 81 percent hard facts kept against 75 and 77, no invented value, judge findings 2.8 against 4.6 per 100 blocks, rule errors 6.7 against 5.4; the default is 10 since then. The fifth run also shows no silent loss and nothing in bucket k.* | done |
 | D-S | Mediopunkt by code (WP14): where and for what | P1 and P2 only; P0 and P0-ZH measure the prompt alone, as with Zurich's `strip_markdown`. Nouns only; adjectives keep the LEX-01 warning. The count of code splits is reported next to the LEX column. Optional at G3, if a juror could ask how much of the LEX gain is the cheap part: a rescored "P0 + code" row from the cache, no model calls. | 8 Oct |
-| D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. *Decided 7 Oct by its rule: the KESB decision, written in the layout and wording of the KESB Graubünden's two specimen decisions and the KOKES model decision. The reclaim letter is not written.* | done |
-| D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (docs/use-cases.md §13). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
-| D-V | Reader typeface (WP18): Atkinson Hyperlegible Next for the reader view and the HTML export | In the reader view yes: the vendored font, injected into the preview response only. In the HTML export first in the font stack with Arial and Helvetica behind it, not embedded, so exported files stay small (docs/ui-design.md §14). *Decided 7 Oct as recommended, implemented.* | done |
+| D-T | WP15 demo letter: premium-reduction reclaim or KESB decision | A team-written KESB decision (a deputyship) instead of the premium-reduction reclaim: it shows personal data and the second use case (track_2b/docs/use-case-decisions.md) at once. Keep the reclaim letter only if the KESB decision does not read like a real one after the check against published decisions. *Decided 7 Oct by its rule: the KESB decision, written in the layout and wording of the KESB Graubünden's two specimen decisions and the KOKES model decision. The reclaim letter is not written.* | done |
+| D-U | Period value kind (`innert 30 Tagen`) before the freeze | Yes, if the identifier kind is in by Thu 8 Oct: same module (`rules/values.py`), 2-3 h, it makes the 30-day appeal period of the KESB demo a fact checked by code, and every further use case needs it first (track_2b/docs/use-cases.md §13). Otherwise WP17, with one sentence in report §7. *Decided 7 Oct: yes; period, identifier and address kinds done together, before the freeze.* | done |
+| D-V | Reader typeface (WP18): Atkinson Hyperlegible Next for the reader view and the HTML export | In the reader view yes: the vendored font, injected into the preview response only. In the HTML export first in the font stack with Arial and Helvetica behind it, not embedded, so exported files stay small (track_2b/docs/ui-design.md §14). *Decided 7 Oct as recommended, implemented.* | done |
 | D-W | New draft as its own page at `/new` (WP18); the start page becomes the drafts list | Yes; `POST /jobs` and the API stay; the demo's "paste a letter" scene starts at `/new`, one click from the list. *Decided 7 Oct, implemented.* | done |
 | D-X | Accent colour and density as settings (WP18) | No settings in v1: the accent is one CSS variable with its tints, the density stays "comfortable"; WP17 if reviewers ask. *Decided 7 Oct.* | done |
 | D-Y | Per-row checks and review progress in the drafts list (WP18) | Computed per request with `review_view` for the at most 50 rows shown; a stored summary per job only if the page needs more than 300 ms with 50 jobs. *Decided 7 Oct, implemented (`drafts_view`).* | done |
-| D-AA | The vocabulary in the pipeline: after 16 October (WP17) or now | Now (owner, 7 Oct): checked explanations in the fact sheet, missing glossary entries by code, rule LEX-07 / LEX-07-FR (docs/rules.md "Vocabulary"); `USE_VOCABULARY=0` switches them off for the measurement. A last vocabulary round rewrites the office words left in the best version (42 to 19 office words in the final drafts, no fact lost). The writer gets no list of office words: tried, it primed the 8B to write those words; removed (owner, 7 Oct), worth another try with a later Apertus. Keep the rest on for the final run unless a rerun shows a loss of facts or style (docs/prompts.md, "Vocabulary in the pipeline"). *Decided 7 Oct, implemented.* | done |
-| D-AB | A fact-sheet value the source does not contain (FACT-05): known to FACT-06 and required by FACT-01, or neither | Neither: the model computed or invented it (an end of an appeal period, a day for "im Frühling"), or normalised it into a form no faithful draft can match; FACT-01 and the source check use the same matching. FACT-05 keeps warning on the fact sheet, FACT-06 flags the value in a draft, fact coverage counts only facts whose value the source contains. *Decided 7 Oct (owner) after the KESB decision's invented deadline, implemented. Dev rerun on CSCS with the old and the new rule on the same cache: fact coverage 78.8 against 78.8 percent under the new measure, hard facts kept, invented values and rule errors unchanged, about 600 tokens per page less; the measure alone raises stored P2 fact coverage on the eval pairs from 81.7 to 83.1 percent (docs/prompts.md).* | done |
+| D-AA | The vocabulary in the pipeline: after 16 October (WP17) or now | Now (owner, 7 Oct): checked explanations in the fact sheet, missing glossary entries by code, rule LEX-07 / LEX-07-FR (track_2b/docs/rules.md "Vocabulary"); `USE_VOCABULARY=0` switches them off for the measurement. A last vocabulary round rewrites the office words left in the best version (42 to 19 office words in the final drafts, no fact lost). The writer gets no list of office words: tried, it primed the 8B to write those words; removed (owner, 7 Oct), worth another try with a later Apertus. Keep the rest on for the final run unless a rerun shows a loss of facts or style (track_2b/docs/prompts.md, "Vocabulary in the pipeline"). *Decided 7 Oct, implemented.* | done |
+| D-AB | A fact-sheet value the source does not contain (FACT-05): known to FACT-06 and required by FACT-01, or neither | Neither: the model computed or invented it (an end of an appeal period, a day for "im Frühling"), or normalised it into a form no faithful draft can match; FACT-01 and the source check use the same matching. FACT-05 keeps warning on the fact sheet, FACT-06 flags the value in a draft, fact coverage counts only facts whose value the source contains. *Decided 7 Oct (owner) after the KESB decision's invented deadline, implemented. Dev rerun on CSCS with the old and the new rule on the same cache: fact coverage 78.8 against 78.8 percent under the new measure, hard facts kept, invented values and rule errors unchanged, about 600 tokens per page less; the measure alone raises stored P2 fact coverage on the eval pairs from 81.7 to 83.1 percent (track_2b/docs/prompts.md).* | done |
 | D-AC | "Suggest a sentence" for a missing fact (9 Oct): on the review page only, or also as a round in the pipeline | Review page only until 16 October: a pipeline round would change the evaluated numbers after the prompt freeze (Sun 11 Oct, 18:00, D-AD) and the final run, and on f07 two of three sentences kept the value but lost the residence condition, which only a reader sees. As a pipeline round after the facts rounds, behind a setting with default off, only after the dev measurement (WP18 item) and a rerun; otherwise report §8 as next step. *Decided 9 Oct by the owner after the dev run (German fact coverage 78 to 96 percent, no invented value added): the recover round is on by default, `MAX_RECOVER_FACTS=10`, and in the final run.* | done |
 | D-AD | Prompt freeze: Fri 9 Oct, 18:00, or later | Sun 11 Oct, 18:00 (owner, 9 Oct). Prompt and pipeline changes for the final run go in until then and are measured on dev first; the final CSCS run starts on Sunday night, G3 and D-M move to Mon 12 Oct, G4 stays on Mon 12 Oct. | done |
-| D-AE | Prompt language (9 Oct): instructions in the document's language, as frozen, or English instructions for German and French documents, in some or all of understand, write, judge and repair | The document's language, as frozen. On the dev pairs English repair wrote longer, less plain German on equal input (45 new rule problems against 26), English Understand failed on 2 of 12 pages in two passes and dropped content (114 must-keep facts against 176 and 150), and English reached omission entries; the gains on facts stayed within the noise of two German runs (docs/prompts.md, "English instructions"). The one lead is the English judge's fact verdicts (65 against 37 percent agreement with the blind labels on 19 facts), worth more labels after the final run. *Decided 9 Oct by the owner: not taken; the variant removed completely, the results kept in docs/prompts.md.* | done |
+| D-AE | Prompt language (9 Oct): instructions in the document's language, as frozen, or English instructions for German and French documents, in some or all of understand, write, judge and repair | The document's language, as frozen. On the dev pairs English repair wrote longer, less plain German on equal input (45 new rule problems against 26), English Understand failed on 2 of 12 pages in two passes and dropped content (114 must-keep facts against 176 and 150), and English reached omission entries; the gains on facts stayed within the noise of two German runs (track_2b/docs/prompts.md, "English instructions"). The one lead is the English judge's fact verdicts (65 against 37 percent agreement with the blind labels on 19 facts), worth more labels after the final run. *Decided 9 Oct by the owner: not taken; the variant removed completely, the results kept in track_2b/docs/prompts.md.* | done |
 
 ## 9. Judging criteria → evidence we must produce
 
@@ -1460,15 +1468,15 @@ Never cut:
 |-----------|----------|-------------|
 | Purposeful use of AI | The "Apertus understands, code counts" split; P0 vs P1 vs P2 table showing what each AI stage adds; the not-a-translator comparison (use-case-canton.md §4); P0-ZH: what the pipeline adds over the best public single prompt on the same model; Apertus image input in the reviewed workflow (WP12a, cut by D-N) | WP5, WP7, WP13, report §3 and §5 |
 | Technical rigour | Golden tests, FACT-01 exact coverage, judge κ, recorded fixtures, resumable pipeline, cache for reproducible reruns; a fair baseline; the fact-retention diagnosis; identifiers in the fact contract; CI green on the submitted commit; numbers audit | WP5, WP7, WP10, WP13, WP14, WP16 |
-| Value, cost and scalability | CHF per page 8B vs 70B, latency per stage, reviewer workflow with provenance; minutes per page including review; an outside voice; `publiccode.yml`; the WP17 roadmap (termbase, house styles) in report §8; one engine, many documents: the further use cases in `docs/use-cases.md` | WP1 usage log, WP10, WP13, WP16, WP17 |
-| Sovereign deployability | `local-llm` compose profile, air-gapped image (no CDN, models baked in), single `LLM_BASE_URL` dependency, hardware statement; the decision letter with personal data, which may not go to a cloud chatbot; the "Why Apertus" box; the decisions use case, where the text may never leave the authority (docs/use-case-decisions.md); the use cases under official, medical or tax secrecy and the three conditions that leave Apertus as the only model (docs/use-cases.md §2) | WP0, WP8 vendoring, WP15, report §2 |
+| Value, cost and scalability | CHF per page 8B vs 70B, latency per stage, reviewer workflow with provenance; minutes per page including review; an outside voice; `publiccode.yml`; the WP17 roadmap (termbase, house styles) in report §8; one engine, many documents: the further use cases in `track_2b/docs/use-cases.md` | WP1 usage log, WP10, WP13, WP16, WP17 |
+| Sovereign deployability | `local-llm` compose profile, air-gapped image (no CDN, models baked in), single `LLM_BASE_URL` dependency, hardware statement; the decision letter with personal data, which may not go to a cloud chatbot; the "Why Apertus" box; the decisions use case, where the text may never leave the authority (track_2b/docs/use-case-decisions.md); the use cases under official, medical or tax secrecy and the three conditions that leave Apertus as the only model (track_2b/docs/use-cases.md §2) | WP0, WP8 vendoring, WP15, report §2 |
 | Implementation feasibility | `make run` on a clean checkout, example jobs including the decision letter, limitations stated honestly; CI; `main` equals the state in this log | WP0, WP8, WP11, WP16 |
 
 The jury's guiding questions for Track 2B (read from hackapertus.ch on 9 Oct): five
 dimensions, 0 to 5 each; technical rigour is judged against the maturity level the
 team declares; teams declare the external services the running system contacts and
 the use of coding assistants; a named first user counts under feasibility.
-docs/submission.md §6 maps every question to where README and report answer it.
+track_2b/docs/submission.md §6 maps every question to where README and report answer it.
 
 ## 10. Gap register (6 October 2026, night)
 
@@ -1508,28 +1516,28 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 
 | ID | Gap | Evidence | Criterion | Closed by | Priority |
 |----|-----|----------|-----------|-----------|----------|
-| GAP-01 | No headline number: P2 against P0 on CSCS still pending | `eval/report.md` holds SOURCE, REF and P0 (Public AI, 10 pairs) only | All | WP13 | Must |
+| GAP-01 | No headline number: P2 against P0 on CSCS still pending | `track_2b/eval/report.md` holds SOURCE, REF and P0 (Public AI, 10 pairs) only | All | WP13 | Must |
 | GAP-02 | P0 is a one-sentence prompt; a juror can call it a strawman | `llm/prompts/de/baseline.md` | Rigour, purposeful AI | WP13 (P0-ZH) | Must |
 | GAP-03 | P2 may keep fewer facts than P0 | P0, eval, Public AI: 83 % fact coverage, 90 % hard facts kept. P2, dev, CSCS with guard: 61 % fact coverage. Repair "no progress" on 9 of 12 dev pairs (Public AI). Different splits and endpoints, but the risk is real | Rigour, value | WP13 | Must |
 | GAP-04 | Identifiers are outside the fact contract: a lost reference or AHV number is a silent loss | `HARD_KINDS` = date, amount, phone, email, url, percent, time (`rules/values.py:19`) | Rigour, sovereignty story | WP14; *closed 7 Oct: `identifier` in `HARD_KINDS`* | Must |
 | GAP-05 | Repair gets no concrete recipe for subordinate clauses | LEN-02 carries no suggestion; Zurich's prompt has a recipe per conjunction | Rigour | WP14 | Should |
-| GAP-06 | "Why sovereignty?": every demo text is public | `data/examples/`, docs/sources.md §3 | Sovereign deployability | WP15 | Must |
+| GAP-06 | "Why sovereignty?": every demo text is public | `track_2b/data/examples/`, track_2b/docs/sources.md §3 | Sovereign deployability | WP15 | Must |
 | GAP-07 | "Why Apertus?": no Apertus-specific feature in use | image input verified on CSCS, not wired into ingest; Italian jobs refused | Purposeful AI | WP15 (WP12a, argument) | Should |
 | GAP-08 | Prior art not addressed | Zurich's app, SUMM AI | Value, purposeful AI | WP16 | Must |
 | GAP-09 | No outside voice, no target-group contact | report §6 | Value; the responsible-AI juror | Not addressed: no outreach during the hackathon (D-Q); report §6 "Not a certification" | Should |
 | GAP-10 | Value stays qualitative | no minutes or francs saved per page | Value, cost | WP13 | Should |
 | GAP-11 | `main` lags this log; stale counts | the evening work is not pushed (§11); README and report say 404 tests | Feasibility | WP16 | Must |
 | GAP-12 | No CI: the tests run only on our machines | no `.github/` | Rigour, feasibility | WP16 | Must |
-| GAP-13 | Generic pitch vocabulary; too much architecture for 2 minutes | README first screen, docs/demo-video.md | All | WP16 (messaging rules) | Should |
+| GAP-13 | Generic pitch vocabulary; too much architecture for 2 minutes | README first screen, track_2b/docs/demo-video.md | All | WP16 (messaging rules) | Should |
 | GAP-14 | Live-run risk | example jobs pending; CSCS cuts about 1 in 4 long thinking calls; `local-llm` ran once on an L4 (10 Oct, WP10); no bundle | Feasibility | WP8, WP10, WP16 | Must (example jobs) |
 | GAP-15 | Claims not precise enough | the voting gap is federal (Zurich publishes cantonal voting information in Leichte Sprache since 28 September 2025); A2 or B1 still open (D-E) | All | WP15, WP16 | Must |
 | GAP-16 | Not listable as public-sector software | no `publiccode.yml` | Value, scalability | WP16 | Should |
 | GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17; *German since `3ef69d3` (6 Oct), French and Italian stay WP17* | Later |
 | GAP-18 | Zurich's good ideas not captured | termbase, house styles, check my own text, completeness switch, several drafts, DOCX | Value, scalability | WP17, report §8 | Later |
 | GAP-19 | Long compounds reach the reviewer unsplit: the glossary exempts them from LEX-01, and the 8B ignores the split suggestion | job `287fea3aadd2` (6 Oct, web UI, CSCS): `Krankenversicherungspolice` and `Sozialversicherungsstelle` in the final draft, `Alleinstehende` flagged through two rounds | Rigour, value (the first thing a juror sees in a draft) | WP14 | Should; in by the freeze or WP17 |
-| GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP15 "Decision mode v1", planned 7 Oct for Sat 10 to Mon 12 Oct; the rest WP17 | Must (docs, demo), Should (mode v1 by G4) |
-| GAP-21 | The further use cases were not described: patient letters, lease terminations, penal orders, payment orders, social and school decisions, information for study participants, migration, private-sector letters | Raised 6 Oct (night): one engine, many documents; penal orders are 92 percent of Swiss convictions with a 10-day objection period; 49 percent of adults have low health literacy | Value, scalability | `docs/use-cases.md` and the planned fact checks in `docs/rules.md`, written 6 Oct (night; cloud session, 2). Modes and checks: WP17 | Should (docs), Later (modes) |
-| GAP-22 | A period is no checked value: `innert 30 Tagen` yields a plain number, so a changed or invented period passes FACT-01 and FACT-06 unless the fact sheet carries it as a value | `rules/values.py` (`ValueKind`, `HARD_KINDS`); step 4 of `docs/use-case-decisions.md` claimed otherwise (corrected 6 Oct, night) | Rigour; the KESB demo's 30-day appeal period | WP14 (period kind, D-U); *closed 7 Oct, with the address kind* | Should; by the freeze or WP17 |
+| GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `track_2b/docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP15 "Decision mode v1", planned 7 Oct for Sat 10 to Mon 12 Oct; the rest WP17 | Must (docs, demo), Should (mode v1 by G4) |
+| GAP-21 | The further use cases were not described: patient letters, lease terminations, penal orders, payment orders, social and school decisions, information for study participants, migration, private-sector letters | Raised 6 Oct (night): one engine, many documents; penal orders are 92 percent of Swiss convictions with a 10-day objection period; 49 percent of adults have low health literacy | Value, scalability | `track_2b/docs/use-cases.md` and the planned fact checks in `track_2b/docs/rules.md`, written 6 Oct (night; cloud session, 2). Modes and checks: WP17 | Should (docs), Later (modes) |
+| GAP-22 | A period is no checked value: `innert 30 Tagen` yields a plain number, so a changed or invented period passes FACT-01 and FACT-06 unless the fact sheet carries it as a value | `rules/values.py` (`ValueKind`, `HARD_KINDS`); step 4 of `track_2b/docs/use-case-decisions.md` claimed otherwise (corrected 6 Oct, night) | Rigour; the KESB demo's 30-day appeal period | WP14 (period kind, D-U); *closed 7 Oct, with the address kind* | Should; by the freeze or WP17 |
 
 ## 11. Progress log
 
@@ -1631,3 +1639,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (submission drafts): at the owner's request, a first draft of every submission document, with visible placeholders: **[PENDING: ...]** for the final run, the video and the commit, **[OWNER: ...]** for the team's decisions. The submission form's fields and the jury's guiding questions for Track 2B read from hackapertus.ch (§9). Report: maturity level, the users (the people who write official texts, from trained writers to case workers, clerks and physicians, not the few trained writers alone; owner), why these model sizes, where Apertus fell short, other models and coding assistants, what the running system contacts, licences, ten times the volume, the way into use and the first user; the settings table set to the code (Write ran without thinking, on CSCS too; Repair 6,000 tokens; a Recover row) and the subtitle to "every fact value"; tightened to 6 pages, the last 98 % full with the placeholders (headless Edge, A4, 10 pt; the draft PDF in the root). README: status of 9 October, decision mode v1, Check my text, the recover step, what the container contacts, the maturity line, the video placeholder. New docs/submission.md: the deliverables, our entry for each form field, the message to the jury (about 3,100 characters), the video page, the PDF method, the jury's questions with where we answer them, the checklist before Submit. architecture.md: the stage table's Recover row. The tests that read README and report pass.
 - 2026-10-10 (next steps): at the owner's request, the ten open steps to the submission as a numbered list at the top of this plan, in dependency order (freeze, final run, D-M, numbers, example jobs and video, report and README, hardware statement, clean checkout, repo public, submit), each pointing to its work package, gate or docs/submission.md; §0 says how to keep it.
 - 2026-10-10 (AWS L4): at the owner's request, the `local-llm` profile ran for the first time on a GPU host, an AWS g6.xlarge in Zurich (one NVIDIA L4, 24 GB). As it stood, vLLM refused the 32k context on 24 GB (4.0 GiB of KV cache needed, 2.13 GiB left); with `--kv-cache-dtype=fp8` and `--max-num-seqs=16` it starts (38,752 tokens of KV cache), and both flags are now defaults in docker-compose.yml (owner). One request runs at 16.2 tokens per second, near the card's bandwidth limit. Through `make run` on a clean Linux clone (the clean-checkout test), the example letter took 63 min with the 8B judging with thinking and 22 min with thinking only in Understand; Understand's reasoning hit the 12,000-token cap in both. The owner reviewed job 1 as a reference. Evidence in eval/hardware/aws-l4-2026-10-10/ (audit bundles, vLLM log, GPU samples, README); report §2, §3, §6 and §7, README, architecture.md, use-cases.md and docs/submission.md updated.
+- 2026-10-10 (track_2b layout): the organisers confirmed that the repository must keep the template's original `track_2b/` folder and have the Makefile at the root, where they run `make run`. At the owner's request the project moved into `track_2b/` with `git mv` (docs, src, data, eval, scripts, tests, the report and its PDF; the git-ignored contents of data/ and eval/ moved along); the root keeps the Makefile with the targets, Docker, Compose, uv, CI, PLAN.md, video/ and the local tool folders, and `track_2b/Makefile` passes every target on. README.md is in both places with the same text, each copy's links written from its own folder (AGENTS.md; `track_2b/tests/test_readme.py` checks text and links). The default paths (DATA_DIR, EXAMPLES_DIR, the manifest, `--results`, the scripts) and the image's layout (/app/track_2b) follow; paths in prose, comments and code are written from the root, except the frozen prompt templates, the UI's locale strings, the template's text and this log. Ruff clean, 1244 tests passed and the 2 expected failures; `make run` and `make stop` from the root and from `track_2b/` in a separate Compose project: healthy, both example jobs imported from the new path. The clean-checkout test (next step 8) is due again.

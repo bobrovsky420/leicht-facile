@@ -2,7 +2,7 @@
 
 ## simply-simplify-language (Canton of Zurich)
 
-`src/leichtfacile/llm/prompts/de/baseline_zh.md` reproduces, verbatim, the Leichte
+`track_2b/src/leichtfacile/llm/prompts/de/baseline_zh.md` reproduces, verbatim, the Leichte
 Sprache prompt of the Canton of Zurich's app "simply-simplify-language": the system
 message, the user template, the rule list and the two completeness instructions
 (`SYSTEM_MESSAGE_LS`, `TEMPLATE_LS`, `RULES_LS`, `REWRITE_COMPLETE` and
@@ -10,10 +10,10 @@ message, the user template, the rule list and the two completeness instructions
 `5462559`, https://github.com/machinelearningZH/simply-simplify-language.
 
 The prompt is used only for evaluation: it is the single-prompt baseline P0-ZH that
-Leicht·Facile is compared against (docs/architecture.md, section 9). It is not part of
+Leicht·Facile is compared against (track_2b/docs/architecture.md, section 9). It is not part of
 the final app: the pipeline that produces Leicht·Facile's own texts never uses it, and
 the web UI does not offer it. Nothing else of that app is used; its post-processing is
-described in docs/prompts.md.
+described in track_2b/docs/prompts.md.
 
 Licence of that repository:
 
@@ -44,8 +44,8 @@ SOFTWARE.
 ## Fonts of the web UI
 
 The web UI ships three font families, vendored as woff2 files in
-`src/leichtfacile/web/static/fonts/` so that it fetches nothing from another host
-(docs/ui-design.md, section 3.4). The files are the `latin` and `latin-ext` subsets of
+`track_2b/src/leichtfacile/web/static/fonts/` so that it fetches nothing from another host
+(track_2b/docs/ui-design.md, section 3.4). The files are the `latin` and `latin-ext` subsets of
 the Fontsource npm packages, version 5.3.0, unchanged:
 
 | Family | Weights | Package | Licence text |

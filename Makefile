@@ -1,8 +1,8 @@
 .PHONY: run stop check-env check-docker check-llm test lint format smoke calibrate day1 eval eval-70b bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
-# Results of one endpoint stay together: `make eval RESULTS=eval/results-cscs`.
-RESULTS ?= eval/results
+# Results of one endpoint stay together: `make eval RESULTS=track_2b/eval/results-cscs`.
+RESULTS ?= track_2b/eval/results
 
 # The recipes need a POSIX shell. On Windows, make falls back to cmd.exe unless
 # sh.exe is on PATH, so use the one from Git for Windows (override GIT_SH_DIR if
@@ -21,7 +21,7 @@ OPEN_BROWSER ?= 1
 
 run: check-env check-docker
 	@opener=; \
-	if [ "$(OPEN_BROWSER)" != 0 ]; then sh scripts/open_browser.sh "$(APP_URL)" & opener=$$!; fi; \
+	if [ "$(OPEN_BROWSER)" != 0 ]; then sh track_2b/scripts/open_browser.sh "$(APP_URL)" & opener=$$!; fi; \
 	trap '[ -n "$$opener" ] && kill $$opener 2>/dev/null' EXIT INT TERM; \
 	docker compose up --build
 
@@ -73,7 +73,7 @@ format:
 # Succeeds when the job reaches review; the artifacts land in the volume under /data/out.
 # MSYS_NO_PATHCONV keeps Git Bash on Windows from turning /data/out into a C: path.
 smoke: check-env check-docker
-	MSYS_NO_PATHCONV=1 docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
+	MSYS_NO_PATHCONV=1 docker compose run --rm --build app python -m leichtfacile simplify track_2b/data/examples/sources/praemienverbilligung-brief.txt --out /data/out
 
 # Rule checker on the official easy-language pages (no model needed).
 calibrate:
@@ -81,9 +81,9 @@ calibrate:
 	uv run python -m leichtfacile eval calibrate --role all --lang de
 	uv run python -m leichtfacile eval calibrate --role all --lang fr
 
-# Day-1 questions about the endpoint (docs/architecture.md §12).
+# Day-1 questions about the endpoint (track_2b/docs/architecture.md §12).
 day1: check-env
-	uv run python scripts/day1_checks.py
+	uv run python track_2b/scripts/day1_checks.py
 
 # Evaluation: conditions P0, P0-ZH (the Canton of Zurich's prompt, German only), P1 and
 # P2 on the held-out pairs, then the report tables.
@@ -96,14 +96,14 @@ eval: check-env
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P0-ZH-condensed --lang de --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P1 --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P2 --results $(RESULTS)
-	uv run python -m leichtfacile eval report --results $(RESULTS) --out eval/report.md
+	uv run python -m leichtfacile eval report --results $(RESULTS) --out track_2b/eval/report.md
 
 # The 70B comparison: P2 with the 70B writer (every stage on the 70B) and the hybrid
 # (the 70B reads, the 8B writes), then the report tables again.
 eval-70b: check-env
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
-	uv run python -m leichtfacile eval report --results $(RESULTS) --out eval/report.md
+	uv run python -m leichtfacile eval report --results $(RESULTS) --out track_2b/eval/report.md
 
 bundle:
 	@echo "make bundle: the air-gapped image bundle is not implemented yet."; exit 1

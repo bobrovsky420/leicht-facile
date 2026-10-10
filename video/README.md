@@ -3,7 +3,7 @@
 The demo video is made in code: [Remotion](https://www.remotion.dev/) scenes in
 `src/`, a narration script per version (`narration*.json`), and scripts for the
 voice, the music, the UI frames and the checks. The storyboard and the decisions are
-in [docs/demo-video.md](../docs/demo-video.md). Only source lives here; everything
+in [track_2b/docs/demo-video.md](../track_2b/docs/demo-video.md). Only source lives here; everything
 generated is ignored by git (see `.gitignore`).
 
 | Composition | Version | Narration |
@@ -51,7 +51,7 @@ and 7. Remotion lists a composition only for the versions whose timeline step 4 
   pronunciations in each narration file's `say` block. The final voice replaces
   `public/audio/narration-c.wav` sentence by sentence; the timeline follows the audio.
 - The kitchen table, the letter and the envelopes are drawn in code; generated
-  footage may replace the table later (docs/demo-video.md).
+  footage may replace the table later (track_2b/docs/demo-video.md).
 - The music is made in code.
 - The evidence number (23 %) is report §5 of 6 October, provisional until the final run.
 - The easy-language text of the opening sentence before the end card (`src/scenes/Again.tsx`)
