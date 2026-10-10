@@ -136,6 +136,8 @@ const revRects = {
   versions: ".versions",
   pillFirst: ".versions a.version:first-of-type",
   pillLast: ".versions a.version:last-of-type",
+  // the final version, which need not be the last: a later round may score worse
+  pillFinal: ".versions a.version:has(.final)",
   source: ".pane.source",
   draft: ".pane.draft",
   checks: ".pane.checks",
@@ -156,6 +158,10 @@ const revRects = {
 await page.goto(`${BASE}/jobs/demo-run?version=1`, { waitUntil: "networkidle0" });
 await settle();
 await shot("rev-v1", revRects);
+// version 2 still misses facts that a later round puts back: the evidence scene's facts panel
+await page.goto(`${BASE}/jobs/demo-run?version=2`, { waitUntil: "networkidle0" });
+await settle();
+await shot("rev-v2", revRects);
 await page.goto(`${BASE}/jobs/demo-run`, { waitUntil: "networkidle0" });
 await settle();
 await shot("rev-final", revRects);

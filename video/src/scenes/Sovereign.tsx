@@ -191,14 +191,16 @@ export const Sovereign: React.FC<{ offset: number }> = ({ offset }) => {
 
       <div style={{ position: "absolute", left: 0, right: 0, top: 730, display: "flex", justifyContent: "center", gap: 130 }}>
         {[
-          { icon: <Server size={58} color="#fff" />, label: "On-premise" },
+          // on-premise: the local-llm profile on an AWS L4 in Zurich, 10 October (track_2b/eval/hardware/);
+          // not air-gapped, the machine had network
+          { icon: <Server size={58} color="#fff" />, label: "On-premise", note: "Tested: one NVIDIA L4 GPU" },
           { icon: <AirGap size={58} color="#fff" />, label: "Air-gapped" },
-          { icon: <Cloud size={58} color="#fff" />, label: "Swiss cloud" },
+          { icon: <Cloud size={58} color="#fff" />, label: "Swiss cloud", note: "This demo: CSCS, Lugano" },
         ].map((it, k) => (
           <div key={it.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, opacity: ramp(t, iconsAt + k * 0.12, 0.35) }}>
             {it.icon}
             <div style={{ fontFamily: F.sans, fontWeight: 500, fontSize: 30, color: "#fff" }}>{it.label}</div>
-            {k === 2 && <div style={{ fontFamily: F.sans, fontSize: 22, color: "rgba(255,255,255,0.75)", opacity: ramp(t, g.s + 0.2, 0.4) }}>This demo: CSCS, Lugano</div>}
+            {it.note && <div style={{ fontFamily: F.sans, fontSize: 22, color: "rgba(255,255,255,0.75)", opacity: ramp(t, g.s + 0.2, 0.4) }}>{it.note}</div>}
           </div>
         ))}
       </div>

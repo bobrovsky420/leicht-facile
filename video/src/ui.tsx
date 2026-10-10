@@ -1,4 +1,4 @@
-// Shared overlays: burned-in English captions, the mock-up label, scene wrapper.
+// Shared overlays: burned-in English captions, scene wrapper.
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { C, F, ramp } from "./theme";
@@ -78,25 +78,6 @@ export const Captions: React.FC = () => {
     </AbsoluteFill>
   );
 };
-
-export const MockLabel: React.FC = () => (
-  <AbsoluteFill style={{ alignItems: "flex-end", padding: "26px 30px" }}>
-    <div
-      style={{
-        fontFamily: F.sans,
-        fontWeight: 600,
-        fontSize: 17,
-        letterSpacing: 2,
-        color: "rgba(255,255,255,0.92)",
-        background: "rgba(14,17,21,0.55)",
-        padding: "6px 14px",
-        borderRadius: 999,
-      }}
-    >
-      MOCK-UP
-    </div>
-  </AbsoluteFill>
-);
 
 /** Scene time in seconds (0 at the scene's start; negative during the cross-fade in). */
 export const useSceneTime = (offset: number) => {

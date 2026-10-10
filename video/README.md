@@ -39,7 +39,7 @@ into the repo afterwards.
 | 4. Voice and timeline | `uv run --python 3.12 --with kokoro-onnx --with soundfile python tts/synth.py c` | `public/audio/narration-c.wav`, `src/timeline-c.json` |
 | 5. Check the voice without listening | `uv run --python 3.12 --with faster-whisper --with soundfile --with scipy python tts/verify.py c` | word error rate per sentence |
 | 6. Music and mix | `uv run --python 3.12 --with soundfile --with scipy --with numpy python tts/music.py c` | `public/audio/mix-c.wav` |
-| 7. UI frames | start the app with `DATA_DIR=<build folder>/out/capture-data`, a dead `LLM_BASE_URL` (for example `http://127.0.0.1:9/v1`) and `--port 8791`; then `node scripts/capture.mjs` (if Edge has an update pending, `npx remotion browser ensure` and set `EDGE` to the `chrome-headless-shell.exe` it names) | `public/capture/` |
+| 7. UI frames | start the app (`<repo>/.venv/Scripts/leichtfacile serve --port 8791`) with a new, empty `DATA_DIR=<build folder>/out/capture-data`, `EXAMPLES_DIR=<repo>/track_2b/data/examples` (the default is relative to the working folder), a dead `LLM_BASE_URL` (for example `http://127.0.0.1:9/v1`), any `LLM_API_KEY` and the model names `LLM_NAME` and `LLM_JUDGE_NAME`; then `node scripts/capture.mjs` (if Edge has an update pending, `npx remotion browser ensure` and set `EDGE` to the `chrome-headless-shell.exe` it names) | `public/capture/` |
 | 8. Look at stills | `COMP=DemoC node scripts/stills.mjs 6.9 45 106` and `uv run --python 3.12 --with pillow python scripts/sheet.py out/stills/*.png` | `out/stills/`, `out/sheets/` |
 | 9. Render | `npx remotion render src/index.ts DemoC out/demo.mp4` (about 3 minutes) | `out/demo.mp4` |
 
@@ -49,16 +49,14 @@ The other versions need step 4 and 6 with their own argument; all share steps 1,
 and 7. Remotion lists a composition only for the versions whose timeline step 4 wrote
 (`npx remotion compositions src/index.ts`).
 
-## What is still a placeholder
+## What is still a placeholder, and the voice
 
 - The voice is Kokoro `af_heart` (open weights, run locally) at speed 0.90, with
-  pronunciations in each narration file's `say` block. The final voice replaces
-  `public/audio/narration-c.wav` sentence by sentence; the timeline follows the audio.
+  pronunciations in each narration file's `say` block; it stays (owner, 10 October,
+  after a mock with `af_bella`).
 - The kitchen table, the letter and the envelopes are drawn in code; generated
   footage may replace the table later (track_2b/docs/demo-video.md).
 - The music is made in code.
 - The evidence number (23 %) is report §5 of 6 October, provisional until the final run.
 - The easy-language text of the opening sentence before the end card (`src/scenes/Again.tsx`)
   is the team's rewrite, labelled on screen; the tool's real output replaces it.
-- Every frame carries a "MOCK-UP" label (`src/ui.tsx`), and the end card a mock-up note
-  (`src/scenes/End.tsx`); both go for the final render.

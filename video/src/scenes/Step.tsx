@@ -1,7 +1,7 @@
 // Concept B, 0:00 "One sentence, step by step": the deadline sentence of the example
 // letter (s0007), what the rule checker finds in it, the facts Apertus takes out (f01,
-// f03), the three sentences of the real draft (b002, b002.1, b003) with the facts each
-// carries, and the check again. All of it from the example job and `leichtfacile check`.
+// f06), the two sentences of the real draft (b002, b003) with the facts each carries,
+// and the check again. All of it from the example job and `leichtfacile check`.
 import React from "react";
 import easy from "../a/easy.json";
 import { Check, Chip, Code } from "../icons";
@@ -33,14 +33,16 @@ const FINDINGS = [
   { sev: "warn", rule: "LEN-02", text: "2 clauses in one sentence" },
   { sev: "warn", rule: "LEX-01", text: "Long words: Antragsformular, Sozialversicherungsstelle" },
 ];
-const BLOCKS = ["b002", "b002.1", "b003"].map((id) => easy.blocks.find((b) => b.id === id)!);
+const BLOCKS = ["b002", "b003"].map((id) => easy.blocks.find((b) => b.id === id)!);
 // the facts each block carries, as the job records them
-const CARRIES: Record<string, string[]> = { b002: ["f03", "f01"], "b002.1": ["f03", "f01"], b003: ["f03"] };
+const CARRIES: Record<string, string[]> = { b002: ["f01", "f06"], b003: ["f06"] };
 const FACTS: Record<string, { kind: string; value: string; color: string; weak: string }> = {
   f01: { kind: "deadline", value: "2027-03-31", color: C.warn, weak: "#FFF4E0" },
-  f03: { kind: "obligation", value: "vollständig ausgefüllt und unterzeichnet einreichen", color: C.apertus, weak: "#F1ECF9" },
+  f06: { kind: "procedure", value: "vollständig ausgefüllt und unterzeichnet", color: C.apertus, weak: "#F1ECF9" },
 };
 const DATE = "31. März 2027";
+// the original's two long words, with the Mediopunkt
+const MEDIO = ["Antrags·formular", "Sozial·versicherungs·stelle"];
 
 /** The Mediopunkt in a text, lit up with strength p (0 to 1). */
 const dots = (text: string, p: number): React.ReactNode =>
@@ -104,9 +106,9 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
 
   const chars = Math.floor(clamp01((t - 0.3) / Math.max(0.5, a.e - 0.4)) * LEN);
   const findingAt = [b.s + 0.05, b.s + b.d * 0.32, b.s + b.d * 0.6, b.s + b.d * 0.78];
-  const factAt = { f01: c.s + c.d * 0.55, f03: c.s + c.d * 0.78 };
+  const factAt = { f01: c.s + c.d * 0.55, f06: c.s + c.d * 0.78 };
   const morph = easeInOut((t - (d.s - 0.35)) / 0.75); // the source moves up, the draft appears
-  const lineAt = [d.s + 0.35, d.s + d.d * 0.5, d.s + d.d * 0.78];
+  const lineAt = [d.s + 0.35, d.s + d.d * 0.55];
   const checkAt = e.s + 0.25;
   const tickAt = e.s + 0.9;
   const errors = Math.round(lerp(2, 0, easeInOut((t - (checkAt + 0.2)) / 0.5)));
@@ -114,14 +116,15 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
   const markStyle = (m?: Mark): React.CSSProperties => {
     if (m === "passive") {
       const p = ramp(t, findingAt[1], 0.3);
-      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "wavy", textDecorationColor: `rgba(229,72,77,${p})`, textUnderlineOffset: 10, textDecorationThickness: 3 };
+      // dotted, not wavy: a wavy red line reads as a spell checker's mark
+      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "dotted", textDecorationColor: `rgba(229,72,77,${p})`, textUnderlineOffset: 10, textDecorationThickness: 4 };
     }
     if (m === "lex") {
       const p = ramp(t, findingAt[3], 0.3);
-      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "dotted", textDecorationColor: `rgba(242,160,40,${p})`, textUnderlineOffset: 10, textDecorationThickness: 4 };
+      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "wavy", textDecorationColor: `rgba(242,160,40,${p})`, textUnderlineOffset: 10, textDecorationThickness: 1.5 };
     }
     if (m === "deadline" || m === "oblig") {
-      const p = ramp(t, m === "deadline" ? factAt.f01 - 0.1 : factAt.f03 - 0.1, 0.35);
+      const p = ramp(t, m === "deadline" ? factAt.f01 - 0.1 : factAt.f06 - 0.1, 0.35);
       const col = m === "deadline" ? "rgba(242,160,40,0.45)" : "rgba(160,120,220,0.45)";
       return { backgroundImage: `linear-gradient(${col}, ${col})`, backgroundSize: `${p * 100}% 100%`, backgroundRepeat: "no-repeat", borderRadius: 6 };
     }
@@ -191,11 +194,11 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
         </div>
         <div>
           <FactChip id="f01" p={ramp(t, factAt.f01, 0.35)} />
-          <FactChip id="f03" p={ramp(t, factAt.f03, 0.35)} />
+          <FactChip id="f06" p={ramp(t, factAt.f06, 0.35)} />
         </div>
       </div>
 
-      {/* the three sentences of the real draft, with the facts they carry */}
+      {/* the two sentences of the real draft, with the facts they carry */}
       <div style={{ position: "absolute", left: 160, top: 250, width: 1600, opacity: ramp(t, d.s, 0.4) }}>
         <div style={{ ...head, color: "#8FD6A6" }}>
           {tag(C.apertus, "#F1ECF9", <Chip size={22} color={C.apertus} />, "Apertus")}
@@ -228,13 +231,18 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
         })}
       </div>
 
-      {/* the Mediopunkt, named while it lights up (version C) */}
+      {/* the Mediopunkt, named while it lights up (version C); the two sentences have none,
+          so two example words show it */}
       {dotP > 0.001 && (
-        <div style={{ position: "absolute", left: 160, top: 790, display: "flex", alignItems: "center", gap: 18, fontFamily: F.sans, fontSize: 30, color: "#E6E8EB", opacity: dotP }}>
-          <span style={{ fontFamily: F.reader, fontWeight: 700, fontSize: 44, color: "#F2A028", lineHeight: 1 }}>·</span>
-          <span>
-            <b>Mediopunkt</b>: long words in readable parts, as in <span lang="de" style={{ fontFamily: F.reader }}>Sozial·versicherungs·stelle</span>
-          </span>
+        <div style={{ position: "absolute", left: 160, top: 610, opacity: dotP, transform: `translateY(${(1 - dotP) * 14}px)` }}>
+          <div lang="de" style={{ display: "flex", gap: 52, whiteSpace: "nowrap", fontFamily: F.reader, fontSize: 52, lineHeight: 1.3, color: "#F4F4F2" }}>
+            {MEDIO.map((word) => (
+              <span key={word}>{dots(word, dotP)}</span>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, fontFamily: F.sans, fontSize: 30, color: "#E6E8EB" }}>
+            <b>Mediopunkt</b>: long words in readable parts, as later in this draft
+          </div>
         </div>
       )}
 

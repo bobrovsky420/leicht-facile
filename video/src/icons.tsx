@@ -9,9 +9,14 @@ const Svg: React.FC<P & { children: React.ReactNode; vb?: string }> = ({ size = 
   </svg>
 );
 
+// a sand clock: frame, glass narrowing to the neck, sand left on top, a heap below
 export const Hourglass: React.FC<P> = (p) => (
   <Svg {...p}>
-    <path d="M6 2h12M6 22h12M7 2c0 5 10 6 10 10S7 17 7 22M17 2c0 5-10 6-10 10s10 5 10 10" />
+    <path d="M5 2h14M5 22h14" />
+    <path d="M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4a2 2 0 0 0 .6-1.4V2M7 22v-4.2a2 2 0 0 1 .6-1.4L12 12l4.4 4.4a2 2 0 0 1 .6 1.4V22" />
+    <path d="M9.2 7.6h5.6L12 10.4z" fill={p.color ?? "currentColor"} strokeWidth={0.8} />
+    <path d="M12 12v6" strokeWidth={0.8} />
+    <path d="M8.4 20.4c0-1.6 1.8-2.6 3.6-2.6s3.6 1 3.6 2.6z" fill={p.color ?? "currentColor"} strokeWidth={0.8} />
   </Svg>
 );
 

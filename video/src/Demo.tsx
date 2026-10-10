@@ -16,7 +16,7 @@ import { Step } from "./scenes/Step";
 import { TestEasy, TestLetter } from "./scenes/Tests";
 import { TIMELINES } from "./timelines";
 import { TL, TLContext, sec } from "./tl";
-import { Captions, MockLabel } from "./ui";
+import { Captions } from "./ui";
 
 type Part = { id: string; C: React.FC<{ offset: number }> };
 const OVERLAP = 0.3; // each scene fades in over the end of the one before
@@ -36,7 +36,6 @@ const Video: React.FC<{ tl: TL; audio: string; parts: Part[] }> = ({ tl, audio, 
         );
       })}
       <Captions />
-      <MockLabel />
     </AbsoluteFill>
   </TLContext.Provider>
 );

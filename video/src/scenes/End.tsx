@@ -27,7 +27,6 @@ export const End: React.FC<{ offset: number; kicker?: string; line?: string; sub
       </div>
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 64, textAlign: "center", fontFamily: F.sans, fontSize: 21, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", opacity: ramp(t, 0.9, 0.5) }}>
         <div>Inspired by simply-simplify-language, Team Data, Canton of Zurich.</div>
-        <div>Mock-up, 8 October 2026. Placeholder voice: Kokoro, an open model run locally. Illustrations and music made in code.</div>
       </div>
     </SceneFade>
   );

@@ -87,7 +87,7 @@ export const Kitchen: React.FC<{
           <div style={{ fontFamily: F.sans, fontSize: 24, color: "rgba(255,255,255,0.65)", marginTop: 10, letterSpacing: 0.5 }}>Source: Swiss Federal Statistical Office, PIAAC 2022/23</div>
         </AbsoluteFill>
       )}
-      {e && <Card x={chatbot ? 420 : 725} p={ramp(t, e.s + 0.35, 0.5)} icon={<Hourglass size={72} stroke={1.8} />} title="Slow expert work" sub="Easy-language versions by hand" />}
+      {e && <Card x={chatbot ? 420 : 725} p={ramp(t, e.s + 0.35, 0.5)} icon={<Hourglass size={72} stroke={1.4} />} title="Slow expert work" sub="Easy-language versions by hand" />}
       {e && chatbot && <Card x={1030} p={ramp(t, e.s + e.d * 0.62, 0.5)} icon={<ChatNoCheck size={72} stroke={1.8} />} title="A chatbot checks nothing" sub="No proof that facts survived" />}
     </SceneFade>
   );

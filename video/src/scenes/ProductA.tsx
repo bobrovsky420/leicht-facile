@@ -15,7 +15,8 @@ export const ProductA: React.FC<{ offset: number }> = ({ offset }) => {
   const D = cue("pa-d"); // A larger Apertus model judges ...; only flagged sentences are repaired
   const E = cue("pa-e"); // Every sentence links to its source. The writer approves each one.
 
-  const versions = frame([160, 95, 640, 280]);
+  // the pills from v1 to the final version, with the draft's first lines below them
+  const versions = frame(union([160, 95, 640, 280], rect("rev-final", "pillFinal")));
   const approve = frame([443, 330, 597, 480]);
   const repairAt = D.s + D.d * 0.5;
   const approveAt = E.s + E.d * 0.5;
@@ -27,7 +28,7 @@ export const ProductA: React.FC<{ offset: number }> = ({ offset }) => {
     { from: A.s + A.d * 0.3, img: "job-write", cam: frame(rect("job-write", "coreList")), label: "1  Read: Apertus answers the letter's questions" },
     { from: A.s + A.d * 0.86, img: "job-write", cam: frame([425, 520, 720, 290]), label: "Each answer is a fact: the deadline 2027-03-31" },
     { from: B.s - 0.05, img: "job-check", cam: frame(rect("job-check", "draft")), label: "2  Write: the easy-language draft" },
-    { from: Cc.s, img: "job-judge", cam: frame([24, 380, 620, 260]), label: "3  Check: every value, 42 rules, by code" },
+    { from: Cc.s, img: "job-judge", cam: frame([24, 380, 620, 260]), label: "3  Check: every value, 45 rules, by code" },
     { from: Cc.s + Cc.d * 0.55, img: "rev-final", cam: frame([1040, 208, 400, 420]), label: "The deadline is present: checked by code" },
     { from: D.s, img: "job-repair", cam: frame([24, 500, 620, 230]), label: "4  Judge: Apertus 70B checks the meaning" },
     { from: repairAt, img: "rev-v1", cam: versions, label: "5  Repair: only flagged sentences" },
@@ -76,11 +77,11 @@ export const ProductA: React.FC<{ offset: number }> = ({ offset }) => {
         {
           from: repairAt + 0.1,
           to: E.s,
-          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillLast"), pillP(t)) as R,
+          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillFinal"), pillP(t)) as R,
           color: (t) => (pillP(t) < 0.5 ? C.error : C.ok),
         },
       ]}
-      timer={{ from: Cc.s + 0.3, to: Cc.s + Cc.d * 0.55, ms: 47, title: "Rule check of draft v1", sub: "every value · 42 rules · no model call" }}
+      timer={{ from: Cc.s + 0.3, to: Cc.s + Cc.d * 0.55, ms: 47, title: "Rule check of draft v1", sub: "every value · 45 rules · no model call" }}
     />
   );
 };

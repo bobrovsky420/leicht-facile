@@ -16,7 +16,8 @@ export const Product: React.FC<{ offset: number }> = ({ offset }) => {
   const Fq = cue("product-f");
   const G = cue("product-g");
 
-  const versions = frame([160, 95, 640, 280]);
+  // the pills from v1 to the final version, with the draft's first lines below them
+  const versions = frame(union([160, 95, 640, 280], rect("rev-final", "pillFinal")));
   const approve = frame([443, 330, 597, 480]);
   const shots: Shot[] = [
     { from: 0, img: "list", cam: FULL, label: "Drafts" },
@@ -30,7 +31,7 @@ export const Product: React.FC<{ offset: number }> = ({ offset }) => {
     { from: Cc.s, img: "rev-final", cam: FULL, label: "Every sentence linked to its source" },
     { from: Cc.s + 0.75, img: "rev-select", cam: frame(union(rect("rev-select", "b002"), rect("rev-select", "linked"))), label: "Every sentence linked to its source" },
     { from: Cc.s + Cc.d * 0.58, img: "rev-omitted", cam: frame([0, 300, 560, 300]), label: "Every omission explained" },
-    { from: D.s, img: "job-judge", cam: frame([24, 380, 620, 260]), label: "3  Check: 42 rules, by code" },
+    { from: D.s, img: "job-judge", cam: frame([24, 380, 620, 260]), label: "3  Check: 45 rules, by code" },
     { from: D.s + D.d * 0.55, img: "rev-final", cam: frame([1040, 208, 400, 420]), label: "Every date and amount, checked by code" },
     { from: E.s, img: "job-repair", cam: frame([24, 500, 620, 230]), label: "4  Judge: Apertus 70B checks the meaning" },
     { from: Fq.s, img: "rev-v1", cam: versions, label: "5  Repair: only flagged blocks" },
@@ -76,11 +77,11 @@ export const Product: React.FC<{ offset: number }> = ({ offset }) => {
         {
           from: Fq.s + 0.15,
           to: G.s,
-          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillLast"), pillP(t)),
+          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillFinal"), pillP(t)),
           color: (t) => (pillP(t) < 0.5 ? C.error : C.ok),
         },
       ]}
-      timer={{ from: D.s + 0.3, to: D.s + D.d * 0.55, ms: 47, title: "Rule check of draft v1", sub: "42 rules · every value · no model call" }}
+      timer={{ from: D.s + 0.3, to: D.s + D.d * 0.55, ms: 47, title: "Rule check of draft v1", sub: "45 rules · every value · no model call" }}
     />
   );
 };

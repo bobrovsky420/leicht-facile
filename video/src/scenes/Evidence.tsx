@@ -11,7 +11,8 @@ import { SceneFade, useSceneTime } from "../ui";
 import { Wordmark } from "./Logo";
 
 const LOST = 23; // P0-ZH condensed: hard facts kept 77 percent, silent losses 23 percent
-// the facts panel of the review, as captured: "13 of 14 facts present", the missing fact first
+// the facts panel of the review at version 2, as captured: the facts still missing there come
+// first (the final version carries every fact, so it has none to show)
 const CROP = { x: 1040, y: 208, w: 400, h: 256 }; // CSS px of the capture: the panel down to the missing fact's source sentence
 const SCALE = 2; // the capture's device scale
 const CROP_W = 700;
@@ -23,13 +24,13 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
   const b = cue("ev-b");
   const n = Math.round(LOST * easeInOut((t - (a.s + 0.5)) / 1.0));
   const k = CROP_W / (CROP.w * SCALE);
-  const file = (manifest.shots as Record<string, { file: string }>)["rev-final"].file;
+  const file = (manifest.shots as Record<string, { file: string }>)["rev-v2"].file;
 
   const card: React.CSSProperties = {
     position: "absolute",
-    top: 178,
+    top: 196,
     width: 790,
-    height: 712,
+    height: 676, // the crop and the bottom padding still fit; more room to the title and the footnote
     borderRadius: 22,
     background: C.surface,
     boxShadow: "0 12px 40px rgba(16,24,40,0.10)",

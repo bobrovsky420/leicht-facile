@@ -13,7 +13,8 @@ export const ProductC: React.FC<{ offset: number }> = ({ offset }) => {
   const B = cue("pc-b"); // A larger Apertus model judges the meaning; only flagged sentences are repaired.
   const Cc = cue("pc-c"); // Every sentence links to its source, and the writer approves each one.
 
-  const versions = frame([160, 95, 640, 280]);
+  // the pills from v1 to the final version, with the draft's first lines below them
+  const versions = frame(union([160, 95, 640, 280], rect("rev-final", "pillFinal")));
   const approve = frame([443, 330, 597, 480]);
   const repairAt = B.s + B.d * 0.5;
   const approveAt = Cc.s + Cc.d * 0.48;
@@ -21,7 +22,7 @@ export const ProductC: React.FC<{ offset: number }> = ({ offset }) => {
   const shots: Shot[] = [
     { from: 0, img: "new-filled", cam: frame([110, 200, 800, 420]), label: "New draft: the whole letter" },
     { from: 0.6, img: "new-hover", cam: frame([900, 380, 540, 380]), label: "Level A2, full pipeline" },
-    { from: 1.2, img: "job-check", cam: frame([24, 150, 1392, 620]), label: "Fact sheet, draft, 42 rules" },
+    { from: 1.2, img: "job-check", cam: frame([24, 150, 1392, 620]), label: "Fact sheet, draft, 45 rules" },
     { from: B.s, img: "job-repair", cam: frame([24, 500, 620, 230]), label: "Judge: Apertus 70B checks the meaning" },
     { from: repairAt, img: "rev-v1", cam: versions, label: "Repair: only flagged sentences" },
     { from: repairAt + 0.9, img: "rev-final", cam: versions, label: "Repair: only flagged sentences" },
@@ -52,7 +53,7 @@ export const ProductC: React.FC<{ offset: number }> = ({ offset }) => {
         {
           from: repairAt + 0.1,
           to: Cc.s,
-          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillLast"), pillP(t)) as R,
+          rect: (t) => lerpRect(rect("rev-v1", "pillFirst"), rect("rev-final", "pillFinal"), pillP(t)) as R,
           color: (t) => (pillP(t) < 0.5 ? C.error : C.ok),
         },
       ]}

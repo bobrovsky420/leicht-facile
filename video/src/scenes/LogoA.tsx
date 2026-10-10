@@ -93,7 +93,7 @@ export const LogoA: React.FC<{ offset: number; introCue?: string; bridgeCue?: st
       {introOp > 0.001 && (
         <div style={{ position: "absolute", left: 0, right: 0, top: bridge ? 610 : 340, display: "flex", justifyContent: "center", opacity: introOp }}>
           <div style={{ display: "flex", alignItems: "center", gap: 28, padding: "34px 48px", borderRadius: 22, background: C.surface, boxShadow: "0 12px 40px rgba(16,24,40,0.10)", fontFamily: F.sans }}>
-            <Hourglass size={84} stroke={1.8} color={C.ink} />
+            <Hourglass size={84} stroke={1.4} color={C.ink} />
             <div>
               <div style={{ fontSize: 52, fontWeight: 600, color: C.ink }}>Slow expert work</div>
               <div style={{ fontSize: 30, color: C.muted, marginTop: 6 }}>Easy-language versions by hand</div>
