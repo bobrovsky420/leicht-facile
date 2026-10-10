@@ -317,7 +317,8 @@ fire, one that must not).
   through the response cache, and each result stores the hash of its prompt template.
 - **Hardware and commit:** the CSCS endpoint for all reported numbers except §2's L4
   figures (`track_2b/eval/hardware/`); commit
-  **[PENDING: hash of the reported run]**.
+  760a210 (the final run of 10 October 2026; its pipeline code is that of 3131a02,
+  unchanged since).
 
 ## 8. Next steps
 
