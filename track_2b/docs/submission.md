@@ -133,7 +133,7 @@ answer each question:
 | | (Maturity level declared) | Report header; README; message §3 | **[OWNER: confirm]** |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
-| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | **[PENDING: review time by stopwatch; a published drafting time, or none found]** |
+| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). **[PENDING: a published drafting time, or none found]** |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost, and ten times the volume" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |

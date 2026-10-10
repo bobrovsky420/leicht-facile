@@ -266,8 +266,10 @@ hardware the GPU is a fixed cost until it is busy. Speed is the limit: one job r
 a time, so at ten times the volume jobs wait in a queue; vLLM serves parallel requests,
 so more workers on the same GPU are the next step (not built, not measured). The rule
 check takes 47 ms (median, a 15-block letter). The writer's time is the cost that
-matters: **[PENDING: our review time per page by stopwatch (team, not experts), and a
-published drafting time per page, or the statement that we found none.]**
+matters: our own review of three P2 drafts in the UI (the two example letters and one
+dev pair, 1,079 source words together), from opening the review to the export, took
+15 minutes by stopwatch, about 3.5 minutes per 250-word page (the team, not experts).
+**[PENDING: a published drafting time per page, or the statement that we found none.]**
 
 **Judge reliability.** 30 facts and 30 blocks from the P2 dev drafts of 6 October
 (70B judge), drawn evenly over the verdicts and labelled blind to them (`eval sample`,
