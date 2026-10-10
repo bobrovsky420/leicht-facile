@@ -95,8 +95,8 @@ flowchart LR
 Key decisions ([track_2b/docs/architecture.md](docs/architecture.md)): countable rules in code,
 meaning in the model (exact, free, reproducible, no self-grading;
 [track_2b/docs/rules.md](docs/rules.md)). Every must-keep value must appear in an accepted form
-(`31. März 2026`, `31.3.2026`), so a deadline that became 30 March is caught (FACT-01);
-FACT-06 flags every value the source does not contain. Typed artifacts in SQLite let a
+(`31. März 2026`, `31.3.2026`), so a deadline that became 30 March is caught;
+every value the source does not contain is flagged. Typed artifacts in SQLite let a
 failed job resume and the UI and the evaluation show every intermediate result. One
 service: FastAPI, a server-rendered UI, one worker thread; no Node build, no CDN.
 
@@ -131,9 +131,7 @@ CSCS, Public AI, llama.cpp; vLLM on-premise): no single provider is needed.
 Hardware for (a) and (b), measured on one NVIDIA L4 (24 GB, AWS Zurich,
 `track_2b/eval/hardware/`): the 8B in bf16 takes 17.2 GiB, and with the profile's FP8 KV cache
 one 32k request fits. It generates 16 tokens per second, close to the limit of the
-card's memory bandwidth. With the 8B also judging (profile B in `.env.example`; our
-numbers use the 70B judge) the example letter took 63 minutes, 22 with thinking only in
-Understand. A laptop RTX 4060 (8 GB, llama.cpp, 4-bit) gave about 37 tokens per second.
+card's memory bandwidth. A laptop RTX 4060 (8 GB, llama.cpp, 4-bit) gave about 37 tokens per second.
 
 ## 3. Use of Apertus
 
