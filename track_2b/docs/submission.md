@@ -17,7 +17,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 | Deliverable | Where | State |
 |-------------|-------|-------|
 | Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
-| Technical report (PDF, at most 6 pages) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` | Draft of 9 October: 6 pages, the last 98 % full, placeholders included (method in §5). **[PENDING: export again after the final numbers; check the 6 pages]** |
+| Technical report (PDF, at most 6 pages) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md`; the same file at the root, next to the root copy of the report | Draft reprinted 10 October from the current text, links absolute: 6 pages, the last 94 % full, placeholders included (method in §5). **[PENDING: export again after the final numbers; check the 6 pages]** |
 | Demo video (URL), at most 2 minutes | Version C, 118.1 s ([demo-video.md](demo-video.md)) | **[PENDING: final render with the final numbers and the opening sentence's real output; upload; URL]** |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
 | `make run` from the root on a clean checkout | Makefile (at the root; `track_2b/Makefile` passes every target on), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
@@ -96,13 +96,22 @@ Voice and imagery AI-generated; the voice is Kokoro (open weights, run locally).
 ## 5. The report PDF
 
 The draft PDF was printed like the page check of 7 October: `track_2b/technical_report.md`
-rendered with markdown-it-py (tables on), the Mermaid diagrams drawn by mermaid 11
+rendered with markdown-it-py (tables on), with `<base
+href="https://github.com/bobrovsky420/leicht-facile/blob/main/track_2b/">` in the page's
+head, the Mermaid diagrams drawn by mermaid 11
 from jsDelivr, printed by headless Edge (`--print-to-pdf --no-pdf-header-footer
 --virtual-time-budget=15000`) on A4 with 2 cm margins, Arial 10 pt, line height 1.35,
 tables 8.5 pt, headings kept with the text that follows. Plain pandoc would print the
-Mermaid code instead of the diagrams. With the placeholders in, the draft fills 6 pages
-to 98 %: the final text may not grow. **[OWNER: the export method for the final PDF;
-the page count depends on it.]**
+Mermaid code instead of the diagrams. The base URL matters: the browser writes every
+link of the PDF as an absolute address, and without it the report's relative links
+became paths on the printing machine (the draft of 9 October had nine such
+`file:///C:/Users/...` links). With it they point to the repository on GitHub, which
+works from both copies and from the file uploaded with the form. The one PDF is copied
+to `track_2b/` and to the root; `track_2b/tests/test_copies.py` checks that the two are
+the same file and that no link is a local path. With the placeholders in, the draft of
+10 October fills 6 pages, the last to 94 % (the line of its last word): the final text
+may not grow. **[OWNER: the export method for the final PDF; the page count depends on
+it.]**
 
 ## 6. The jury's questions
 
@@ -142,7 +151,7 @@ answer each question:
 - [ ] No **[PENDING]** or **[OWNER]** left in README.md and track_2b/technical_report.md.
 - [ ] Tests and ruff green; CI green on the submitted commit.
 - [ ] Report exported to PDF (§5), at most 6 pages, saved as
-      `track_2b/RoestigrabenBridgers_Report.pdf`, committed.
+      `track_2b/RoestigrabenBridgers_Report.pdf` and the same file at the root, committed.
 - [ ] Video rendered, uploaded, URL in README, report and form.
 - [ ] Repository public; `git log -p -- .env` empty.
 - [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job

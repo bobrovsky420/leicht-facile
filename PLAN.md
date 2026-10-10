@@ -37,7 +37,8 @@ The short path to the deadline, in dependency order. Each step points to where i
 6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**
    WP16's positioning paragraph and messaging pass, the owner's answers to every
    **[OWNER]** placeholder, the **[PENDING]** video link and final-run commit. Export to
-   PDF, 6 pages, `track_2b/RoestigrabenBridgers_Report.pdf`.
+   PDF, 6 pages, `track_2b/RoestigrabenBridgers_Report.pdf` and the same file at the root
+   (track_2b/docs/submission.md §5); the report's root copy changed with it.
 7. [x] **Hardware statement for the on-prem profile (parallel; cut if blocked; WP10).**
    Done 10 Oct: `local-llm` ran on an AWS g6.xlarge (one L4, 24 GB) in Zurich and took
    the example letter end to end; track_2b/eval/hardware/aws-l4-2026-10-10/, report §2.
@@ -93,8 +94,8 @@ From the template and the hackathon rules (verified 2026-10-05):
   their role must be described in the report. (Plan: none; the judge is Apertus 70B.)
 - Repository conventions (AGENTS.md): never commit or push; plain hyphens only, no
   en/em dashes anywhere; the project lives in the template's `track_2b/` folder, the
-  Makefile with the targets at the root (organisers, 10 Oct); README.md exists twice
-  with the same text.
+  Makefile with the targets at the root (organisers, 10 Oct); README.md, the report and
+  its PDF exist twice, the same in both places.
 
 Local environment facts:
 
@@ -1160,8 +1161,8 @@ since:
   the original `track_2b/` folder must stay and the Makefile must be at the root, where
   they run `make run`: the project moved into `track_2b/` (docs, src, data, eval,
   scripts, tests, report), the root keeps the Makefile, Docker, Compose, uv, CI and
-  PLAN.md, `track_2b/Makefile` passes every target on, README.md is in both places
-  (track_2b/docs/architecture.md §11);
+  PLAN.md, `track_2b/Makefile` passes every target on, README.md, the report and its
+  PDF are in both places (track_2b/docs/architecture.md §11);
 - literal U+2010 to U+2014 characters in the regexes of `rules/values.py`: the classes
   are built from `DASHES` (`leicht-facile-a3`), which also removed an unintended `/`
   range that rejected a value right after a colon;
@@ -1172,8 +1173,8 @@ since:
       words), limit 6; now 3,171 words, 6 pages, the last 37 % full, so about half a
       page is left for the names, the video link, κ and the final rerun.
 - [ ] `track_2b/technical_report.md` filled (sections 1-8); export to PDF (pandoc or print to
-      PDF), check the 6-page limit, save as `track_2b/RoestigrabenBridgers_Report.pdf` in the
-      root. §2 holds a Mermaid diagram: the export must render it (print the GitHub
+      PDF), check the 6-page limit, save as `track_2b/RoestigrabenBridgers_Report.pdf` and
+      the same file at the root. §2 holds a Mermaid diagram: the export must render it (print the GitHub
       page, or HTML with mermaid.js; plain pandoc prints the code instead).
       *First draft 9 Oct: every guiding question of the jury answered in the template's
       sections (maturity level, user group, why these sizes, where Apertus fell short,
@@ -1182,6 +1183,9 @@ since:
       **[PENDING]** and **[OWNER]** placeholders; printed as a draft
       `track_2b/RoestigrabenBridgers_Report.pdf`: 6 pages, the last 98 % full with
       the placeholders, so the final text may not grow (method: track_2b/docs/submission.md §5).*
+      *Reprinted 10 Oct from the current text with a base URL, so its links point to
+      GitHub (the 9 Oct draft had nine links to local files), and copied to the root
+      next to the report's root copy: 6 pages, the last 94 % full.*
 - [ ] Stale report: the **[PENDING]** video link (header) and commit (§7), known after
       the final rerun. The status line, the three
       **[pending]** markers (report §5 now says κ is not yet measured, report §4 no
@@ -1640,3 +1644,4 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-10 (next steps): at the owner's request, the ten open steps to the submission as a numbered list at the top of this plan, in dependency order (freeze, final run, D-M, numbers, example jobs and video, report and README, hardware statement, clean checkout, repo public, submit), each pointing to its work package, gate or docs/submission.md; §0 says how to keep it.
 - 2026-10-10 (AWS L4): at the owner's request, the `local-llm` profile ran for the first time on a GPU host, an AWS g6.xlarge in Zurich (one NVIDIA L4, 24 GB). As it stood, vLLM refused the 32k context on 24 GB (4.0 GiB of KV cache needed, 2.13 GiB left); with `--kv-cache-dtype=fp8` and `--max-num-seqs=16` it starts (38,752 tokens of KV cache), and both flags are now defaults in docker-compose.yml (owner). One request runs at 16.2 tokens per second, near the card's bandwidth limit. Through `make run` on a clean Linux clone (the clean-checkout test), the example letter took 63 min with the 8B judging with thinking and 22 min with thinking only in Understand; Understand's reasoning hit the 12,000-token cap in both. The owner reviewed job 1 as a reference. Evidence in eval/hardware/aws-l4-2026-10-10/ (audit bundles, vLLM log, GPU samples, README); report §2, §3, §6 and §7, README, architecture.md, use-cases.md and docs/submission.md updated.
 - 2026-10-10 (track_2b layout): the organisers confirmed that the repository must keep the template's original `track_2b/` folder and have the Makefile at the root, where they run `make run`. At the owner's request the project moved into `track_2b/` with `git mv` (docs, src, data, eval, scripts, tests, the report and its PDF; the git-ignored contents of data/ and eval/ moved along); the root keeps the Makefile with the targets, Docker, Compose, uv, CI, PLAN.md, video/ and the local tool folders, and `track_2b/Makefile` passes every target on. README.md is in both places with the same text, each copy's links written from its own folder (AGENTS.md; `track_2b/tests/test_readme.py` checks text and links). The default paths (DATA_DIR, EXAMPLES_DIR, the manifest, `--results`, the scripts) and the image's layout (/app/track_2b) follow; paths in prose, comments and code are written from the root, except the frozen prompt templates, the UI's locale strings, the template's text and this log. Ruff clean, 1244 tests passed and the 2 expected failures; `make run` and `make stop` from the root and from `track_2b/` in a separate Compose project: healthy, both example jobs imported from the new path. The clean-checkout test (next step 8) is due again.
+- 2026-10-10 (report in both places): at the owner's request, technical_report.md and RoestigrabenBridgers_Report.pdf are kept in the root as well as in `track_2b/`, like README.md: the same text, each copy's links written from its own folder. The draft PDF of 9 October had nine links to local files (Edge wrote the report's relative links as paths in the scratch folder it printed from); reprinted from the current text with a base URL for `track_2b/` on GitHub, its links work from both copies and from the uploaded file, and one file goes to both places: 6 pages, the last 94 % full. `track_2b/tests/test_readme.py` became `test_copies.py`: the text and links of both Markdown pairs, the two PDFs the same file, no local link in the PDF. AGENTS.md, track_2b/docs/architecture.md §11 and track_2b/docs/submission.md (§1, §5, §7) updated.

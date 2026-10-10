@@ -15,6 +15,7 @@ track_2b/scripts
 track_2b/tests
 track_2b/docs
 track_2b/*.pdf
+*.pdf
 out
 PLAN.md
 video

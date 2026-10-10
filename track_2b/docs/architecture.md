@@ -1118,13 +1118,16 @@ Dockerfile                  the image keeps the repository's layout under /app
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+; .python-version pins 3.14
 .env.example                endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                   project overview, quick start, status; Track 2B challenge text (template)
+technical_report.md         the report; RoestigrabenBridgers_Report.pdf, its PDF
+                            (both copies of the files in track_2b/, see there)
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 PLAN.md, AGENTS.md          the plan; the rules for AI agents
 video/                      the demo video as code (Remotion)
 track_2b/                   the template's folder, as the organisers require it
   Makefile                  passes every target on to the root Makefile
   README.md                 the root README's text; its links written from track_2b/
-  technical_report.md       the report (PDF: RoestigrabenBridgers_Report.pdf)
+  technical_report.md       the report, the same text at the root
+  RoestigrabenBridgers_Report.pdf  the report printed (links absolute), the same file at the root
   docs/
     architecture.md         this document
     ui-design.md            the web UI's specification (WP18)
@@ -1166,7 +1169,7 @@ track_2b/                   the template's folder, as the organisers require it
     hardware/               measured runs on rented hardware (AWS L4, 10 October 2026)
     results*/, labels/      evaluation outputs, labelling sheets (git-ignored)
   tests/                    rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
-                            eval, web; test_readme.py (the two README copies)
+                            eval, web; test_copies.py (README, report and PDF in both places)
 ```
 
 `track_2b/data/` stays well under the 100 MB limit because texts and caches are not committed.

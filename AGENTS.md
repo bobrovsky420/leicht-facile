@@ -29,9 +29,11 @@ working here and can only be relaxed by an explicit instruction from the owner.
   `track_2b/Makefile` passes every target on to it.
 - Write paths from the repository root (`track_2b/docs/rules.md`) in prose, comments
   and code. Markdown link targets are relative to the file that contains them.
-- `README.md` exists twice, in the root and in `track_2b/`. Both copies have the same
-  text; only relative link targets differ, each written from its own file's folder.
-  Change both in the same edit. `track_2b/tests/test_readme.py` checks it.
+- `README.md`, `technical_report.md` and `RoestigrabenBridgers_Report.pdf` exist twice,
+  in the root and in `track_2b/`. The Markdown copies have the same text; only relative
+  link targets differ, each written from its own file's folder. Change both copies in
+  the same edit. The PDF is printed once (links absolute, track_2b/docs/submission.md
+  §5) and copied to both places. `track_2b/tests/test_copies.py` checks all three.
 - Design lives in `track_2b/docs/architecture.md`, the rule specification in
   `track_2b/docs/rules.md`. Keep both in sync with the code.
 - The plan (order, dates, gates, cuts) lives in `PLAN.md`. Update it when something is
