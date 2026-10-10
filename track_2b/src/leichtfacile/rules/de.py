@@ -699,6 +699,34 @@ def separable_split(word: str) -> tuple[str, str] | None:
     return None
 
 
+# A clause these open puts the finite verb at its end, in one word (`wenn Sie
+# wegziehen`, `Personen, die wegziehen`): subordinating conjunctions and relative or
+# interrogative pronouns, as the tagger names them.
+SUBORDINATOR_TAGS = frozenset({"KOUS", "PRELS", "PRELAT", "PWS", "PWAV", "PWAT"})
+
+
+def verb_final_positions(sent: Span) -> set[int]:
+    """Indices into the sentence's non-punctuation tokens that stand in a verb-final
+    clause: from a subordinator up to the next comma. Found 10 October 2026 in the
+    example rebuild: `Wenn Sie wegziehen, melden Sie das` was flagged as a glued verb."""
+    out: set[int] = set()
+    inside = False
+    n = 0
+    for t in sent:
+        if t.is_space:
+            continue
+        if t.is_punct:
+            if t.text == ",":
+                inside = False
+            continue
+        if t.tag_ in SUBORDINATOR_TAGS:
+            inside = True
+        elif inside:
+            out.add(n)
+        n += 1
+    return out
+
+
 @rule(
     "GRAM-08",
     lang=DE,
@@ -710,12 +738,16 @@ def gram_08(sent: Span, ctx: Context) -> Iterator[Hit]:
     """A separable verb written as one finite word in verb-second position (`Sie
     mitschicken eine Kopie`, found in an example draft on 8 October 2026): the tagger
     calls it VVFIN by its position, and only the form gives it away. An infinitive at
-    the end of a phrase (`Kopie mitschicken`) or under a modal is fine. No writer
-    instruction (`guide`), so the style guide in the prompts stays as frozen."""
+    the end of a phrase (`Kopie mitschicken`) or under a modal is fine, and so is a
+    verb-final clause (`wenn Sie wegziehen`, 10 October 2026). No writer instruction
+    (`guide`), so the style guide in the prompts stays as frozen."""
     tokens = [t for t in sent if not (t.is_punct or t.is_space)]
+    verb_final = verb_final_positions(sent)
     for n, t in enumerate(tokens):
         if n == 0 or t.tag_ != "VVFIN" or t.text[:1].isupper():
             continue
+        if n in verb_final:
+            continue  # `wenn Sie wegziehen`: the verb ends the clause, in one word
         if any(x.tag_ in FINITE_TAGS for x in tokens[:n]):
             continue  # a verb before it: not the main clause's verb
         if not any(x.is_alpha for x in tokens[n + 1 :]):

@@ -176,7 +176,8 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
 - The 8B drops must-keep facts while writing, ignored compound splits it was given,
   copied values from the prompt's example and broke JSON: code completes the fact
   sheet, splits compounds, returns answers with values the document lacks and repairs
-  the JSON; facts rounds and the recover round ask again.
+  the JSON; facts rounds and the recover round ask again, a polish round repairs the
+  sentences they add.
 - The 70B judge's fact verdicts agree with blind labels hardly better than chance (κ
   0.08, §5), so every fact number comes from code.
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;

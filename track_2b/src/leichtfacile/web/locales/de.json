@@ -193,6 +193,8 @@
   "detail.rounds.other": "{n} Runden, {reason}",
   "detail.facts_rounds.one": ", dann {n} Runde nur für die fehlenden Fakten",
   "detail.facts_rounds.other": ", dann {n} Runden nur für die fehlenden Fakten",
+  "detail.polish_rounds.one": ", dann {n} Runde Feinschliff für die Sprachregeln",
+  "detail.polish_rounds.other": ", dann {n} Runden Feinschliff für die Sprachregeln",
   "detail.blocking_left": ". Verbleibende blockierende Probleme: {versions}",
   "detail.ready": "bereit für Ihre Prüfung",
   "detail.reviewed": "Prüfung abgeschlossen",

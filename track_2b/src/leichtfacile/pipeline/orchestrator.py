@@ -421,6 +421,42 @@ class Orchestrator:
             step = self._recover(job, source, factsheet, *base, version=latest + 1)
             if step is not None:
                 history.append(step)
+        # The polish round (MAX_POLISH_ROUNDS, 1 by default since 10 October 2026, PLAN.md
+        # D-AF): the facts and recover rounds add the source's sentences nearly verbatim,
+        # and the loop above never sees them again. Up to that many repair rounds on the
+        # best version, for its rule findings alone: the errors, or the warnings once no
+        # error is left; no fact and no judge's problem, so the round cannot fall into
+        # the loop's no-progress spiral. Office words stay with the vocabulary round. The
+        # choice below keeps a polished version only if it loses no fact and adds no
+        # blocking finding.
+        polish_rounds = 0
+        if (
+            self.settings.max_polish_rounds
+            and cfg.max_repair_rounds
+            and getattr(self, "_round_failure", None) != "endpoint"
+        ):
+            for number in range(1, self.settings.max_polish_rounds + 1):
+                base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
+                blocks = base[0].by_id()
+                errors = any(
+                    f.severity == "error" and f.block_id in blocks and repairable(f)
+                    for f in base[1].findings
+                )
+                request = build_request(
+                    base[0], base[1], None, factsheet,
+                    include_warnings=not errors, limit=0, vocabulary=False,
+                )  # fmt: skip
+                if not request:
+                    break
+                latest = max(h[0].version for h in history)
+                step = self._round(
+                    job, source, factsheet, *base, request, number, kind="polish",
+                    version=latest + 1,
+                )  # fmt: skip
+                if step is None:
+                    break
+                history.append(step)
+                polish_rounds = number
         # The vocabulary round: the office words still in the best version, each sentence
         # rewritten with its everyday word (LEX-07), after everything else, so that the
         # repair rounds stay on the facts. Its version is a new one after the latest;
@@ -453,6 +489,7 @@ class Orchestrator:
             reason=reason,
             history=history,
             vocabulary_rounds=vocabulary_rounds,
+            polish_rounds=polish_rounds,
         )
 
     def _round(
@@ -647,6 +684,7 @@ class Orchestrator:
         history: list | None = None,
         facts_rounds: int = 0,
         vocabulary_rounds: int = 0,
+        polish_rounds: int = 0,
     ) -> None:
         blocking = (
             [blocking_count(h[1], h[2]) for h in history]
@@ -662,6 +700,7 @@ class Orchestrator:
             rounds=rounds,
             facts_rounds=facts_rounds,
             vocabulary_rounds=vocabulary_rounds,
+            polish_rounds=polish_rounds,
             stop_reason=reason,
             writer_model=writer,
             understand_model=reader

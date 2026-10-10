@@ -815,7 +815,7 @@ fixes of the matcher (the lemma of a noun no longer stands for a verb: `recourir
 - The word list primes the 8B. With it, the first drafts have 58 office words; without
   it 20, and 33 without any vocabulary. Words the writer without the vocabulary never
   used turn up from the list: `grundsätzlich`, `Wohnsitz`, `falls`, `zugestellt`,
-  `elterliche Sorge`. The polish round with LEX-07 removes most of them again, so the
+  `elterliche Sorge`. The loop's warnings round with LEX-07 removes most of them again, so the
   final drafts end in the same range (37, 42 and 46 office words). The list was
   therefore removed again (version 9): about the same final drafts without the detour.
   Worth another try with a later Apertus; not tried yet: a list that names only the
@@ -1221,6 +1221,34 @@ was then removed completely (templates, setting, English style guide and labels,
 the two scripts), and only these results are kept; a further try should keep the
 template's example document kinds in the document's language.
 
+### The polish round on the dev pairs (10 October 2026)
+
+One more repair round after the recover round, for the rule findings of the best version
+alone (PLAN.md D-AF; `MAX_POLISH_ROUNDS`, default 1): its repairable errors, or its
+warnings once no error is left; no fact, no judge's problem, no office word. Run on the
+12 dev pairs on CSCS into `track_2b/eval/results-cscs-polish`, with the cache replaying
+every call before the round, against the recover-on run of 9 October (same code
+otherwise, plus the GRAM-08 fix of the same day, which fired in no dev final).
+
+| Dev split | Run | Fact coverage | Hard facts kept | Rule errors per 100 blocks | Warnings per 100 | Invented per 100 | Unsupported per 100 | Tokens per page |
+|---|---|---|---|---|---|---|---|---|
+| German (10) | recover on | 96 % | 90 % | 1.9 | 38.1 | 0.6 | 5.8 | 28,003 |
+| German (10) | polish | 96 % | 90 % | 1.3 | 34.3 | 0.6 | 5.3 | 32,680 |
+| French (2) | recover on | 100 % | 97 % | 3.3 | 47.7 | 1.2 | 4.5 | 25,433 |
+| French (2) | polish | 100 % | 97 % | 3.2 | 47.2 | 1.2 | 3.4 | 29,400 |
+
+The round ran in all 12 jobs and asked for 1 to 16 blocks. In 8 jobs the final draft
+descends from the polished version (the vocabulary round builds on it); in 4 the choice
+discarded it because the judge flagged the rewritten blocks (blocking findings 4 to 12
+in `zh-blue-algae-de`, 7 to 8, 5 to 6, 30 to 33). No job lost a must-keep value: the
+missing counts before and after are equal everywhere. The judge's distorted verdicts in
+the final drafts fell from 13 to 7, the error findings of all kinds from 67 to 65: what
+remains are provenance and bookkeeping findings (FACT-02 22, FACT-03 18), missing values
+(FACT-01 13) and the judge's unsupported verdicts (26), none of which a rewrite of the
+flagged block can fix. Cost: about 17 percent more tokens per page. Seconds per page are
+not comparable, since the recover-on run replayed most calls from the cache. Kept on by
+default for the final run.
+
 ## Change log
 
 | Version | Date | Change |
@@ -1249,3 +1277,4 @@ template's example document kinds in the document's language.
 | 10 | 2026-10-08 | No template change. Code, from the example jobs: a block without a source sentence takes those of the facts it names, else the one it says in other words (`stages.wording_source`), and a sentence id the source does not have is dropped (FACT-03, and the judge sees the sentence); a hard term of the model that the source does not contain leaves the fact sheet (`stages.in_source`; the Understand example's office for 6 documents); the examples' office (`Einwohnerkontrolle`, `contrôle des habitants`) is a topic word of the copy guard. P2 on the 12 dev pairs on CSCS, the committed code (`track_2b/eval/results-cscs-ab-before`) against these changes on the same cache (`track_2b/eval/results-cscs-prov-after`): five pairs identical; fact coverage 76 to 81 percent, hard facts kept 69 to 76, must-keep values missing 43 to 33 in all, rule errors 2.7 to 2.3 per 100 blocks, unsupported 5.3 to 6.2, invented values 0.64 to 0.85. Of the seven changed pairs three ended better (be-tax-extension-fr, fact coverage 13 to 94 percent after the copied term "case number" left its fact sheet), two worse (sg-el-costs-de lost three values after the copy guard sent back an Understand answer with the office; bwl-emergency-supplies-fr gained an invented period), two mixed: too few pairs to separate the changes from the 8B's noise. |
 | 11 | 2026-10-09 | New template `recover.md` (German and French), used only by the review page's "Suggest a sentence" for one missing fact, never by the pipeline: no other template changes, the evaluated runs render the same prompts. It names the missing value and its source sentence, and gets only the fact's paragraph and the blocks at its place ("Recovering a missing fact" above). Labels `recover_value` and `recover_foreign` for the two checks that send an answer back. |
 | 11 | 2026-10-09 | No change to the German and French templates. English templates for German and French documents (understand, write, judge, repair and the two partials, with an English style guide and labels, behind a setting that named the stages) were built, measured on the dev pairs on CSCS and not taken ("English instructions" above): longer, less plain German in repair on equal input, Understand failing on 2 of 12 pages and dropping content, English in omission entries, and gains on facts within the noise of two German runs. Removed the same day with their tests and measurement scripts (commit `ff0544a` has them); the results are kept above. |
+| 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`MAX_POLISH_ROUNDS`, default 1, PLAN.md D-AF): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |

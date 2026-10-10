@@ -146,7 +146,8 @@ page's server when a user enters a URL: no telemetry, no CDN, no login provider 
 Done:
 
 - German and French pipeline end to end: ingest (text, HTML, PDF with text layer),
-  Understand, Write, rule check, judge, repair, recover, review UI in English, German
+  Understand, Write, rule check, judge, repair, recover, polish, review UI in English,
+  German
   and French, export (Markdown, HTML, JSON audit bundle), web API and CLI.
 - Rule checker: 45 deterministic rules for German and 41 for French, with golden
   tests; 8 meaning rules for the judge (10 in decision mode). Italian texts get the

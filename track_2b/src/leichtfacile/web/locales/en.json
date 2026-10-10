@@ -193,6 +193,8 @@
   "detail.rounds.other": "{n} rounds, {reason}",
   "detail.facts_rounds.one": ", then {n} round for the missing facts alone",
   "detail.facts_rounds.other": ", then {n} rounds for the missing facts alone",
+  "detail.polish_rounds.one": ", then {n} polish round for the language rules",
+  "detail.polish_rounds.other": ", then {n} polish rounds for the language rules",
   "detail.blocking_left": ". Blocking problems left: {versions}",
   "detail.ready": "ready for your review",
   "detail.reviewed": "review complete",

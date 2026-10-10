@@ -364,8 +364,9 @@ class RepairRecord(Artifact):
     parent_version: int
     # facts: a round that asks for facts only; vocabulary: the last round, for the
     # office words of the best version (LEX-07); recover: the missing values asked for
-    # one by one with their source paragraphs (MAX_RECOVER_FACTS)
-    kind: Literal["repair", "facts", "vocabulary", "recover"] = "repair"
+    # one by one with their source paragraphs (MAX_RECOVER_FACTS); polish: the rule
+    # findings of the best version after the recover round (MAX_POLISH_ROUNDS)
+    kind: Literal["repair", "facts", "vocabulary", "recover", "polish"] = "repair"
     requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
     requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
     repairs: list[AnsweredRepair] = Field(default_factory=list)
@@ -414,6 +415,7 @@ class PipelineSummary(Artifact):
     # The version of the vocabulary the job used (rules/vocabulary.py); None: not used.
     vocabulary: str | None = None
     vocabulary_rounds: int = 0  # the last round, for the office words (0 or 1)
+    polish_rounds: int = 0  # rounds for the rule findings after the recover round
 
     @field_validator("condition", mode="before")
     @classmethod

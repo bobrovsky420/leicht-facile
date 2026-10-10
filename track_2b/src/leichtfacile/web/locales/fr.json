@@ -181,6 +181,8 @@
   "detail.rounds.other": "{n} tours, {reason}",
   "detail.facts_rounds.one": ", puis {n} tour pour les faits manquants seulement",
   "detail.facts_rounds.other": ", puis {n} tours pour les faits manquants seulement",
+  "detail.polish_rounds.one": ", puis {n} tour de finition pour les règles de langue",
+  "detail.polish_rounds.other": ", puis {n} tours de finition pour les règles de langue",
   "detail.blocking_left": ". Problèmes bloquants restants : {versions}",
   "detail.ready": "prêt pour votre relecture",
   "detail.reviewed": "relecture terminée",

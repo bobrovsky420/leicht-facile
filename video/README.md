@@ -19,11 +19,15 @@ The repository sits in OneDrive, and `node_modules/` alone is about 300 MB. Buil
 copy of this folder outside OneDrive and tell the scripts where the repo is:
 
 ```
-robocopy video C:\Users\bobro\Developer\lf-video /MIR /XD node_modules out public tts\models tts\cache
+robocopy video C:\Users\bobro\Developer\lf-video /MIR /XD node_modules out public models cache a /XF timeline*.json
 set LF_REPO=C:\Users\bobro\OneDrive\Developer\leicht-facile
 ```
 
-(Git Bash: `export LF_REPO=...`.) Copy changed source back into the repo afterwards.
+(Git Bash: `export LF_REPO=...`.) `/MIR` deletes everything in the build folder that is
+not in the repo and not excluded; `/XD` matches folder names, not relative paths
+(`tts\models` would not protect the voice models), so the generated `src/a/`,
+`src/timeline*.json` and `tts/models/` are excluded by name. Copy changed source back
+into the repo afterwards.
 
 ## Steps (version C; the argument is the version: none, `a`, `b` or `c`)
 

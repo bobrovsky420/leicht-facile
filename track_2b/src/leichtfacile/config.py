@@ -71,6 +71,12 @@ class Settings(BaseSettings):
     # coverage rose from 78 to 96 percent, no invented value added (track_2b/docs/prompts.md).
     # 0 turns it off.
     max_recover_facts: int = Field(default=10, ge=0, le=20)
+    # The polish round after the recover round: up to this many repair rounds on the
+    # best version for the rule findings alone, its errors first, then its warnings once
+    # no error is left; no fact and no judge's problem. The facts and recover rounds add
+    # the source's sentences nearly verbatim, and the loop never sees them again (PLAN.md
+    # D-AF, 10 October 2026; measured in track_2b/docs/prompts.md). 0 turns it off.
+    max_polish_rounds: int = Field(default=1, ge=0, le=3)
     # The vocabulary of hard words (rules/data/vocabulary_<lang>.toml) in the pipeline:
     # the checked explanations in the fact sheet, missing glossary entries by code, the
     # LEX-07 findings in the repair rounds and the vocabulary round, a last round for the

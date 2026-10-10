@@ -4,7 +4,7 @@ track_2b/docs/architecture.md §4.3).
 Rule LEX-01 detects a long compound and proposes the split; this step writes it. The two
 halves only work together: the 8B writer does not apply the split it is given in a
 repair round (job 287fea3aadd2 on CSCS, 6 October 2026, kept `Alleinstehende` and
-`Einkommensgrenze` unsplit through two rounds), and a warning alone costs a polish
+`Einkommensgrenze` unsplit through two rounds), and a warning alone costs a warnings
 round. So after the write stage and after every repair round, before the check, every
 compound noun with a part longer than the level's limit gets its Mediopunkt, in the
 blocks and in the glossary terms, and a capital after an existing dot is lowered.

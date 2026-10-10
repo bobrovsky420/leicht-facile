@@ -34,6 +34,7 @@ def orchestrator(store: Store, endpoint: FakeEndpoint, sleeps: list[float]) -> O
         llm_max_retries=0,
         use_vocabulary=False,
         max_recover_facts=0,
+        max_polish_rounds=0,
     )
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, settings)
@@ -523,7 +524,7 @@ def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
     judged, and the final version when it has fewer values missing."""
     settings = make_settings(
         llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False,
-        max_recover_facts=3,
+        max_recover_facts=3, max_polish_rounds=0,
     )  # fmt: skip
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
@@ -578,3 +579,79 @@ def test_without_max_recover_facts_there_is_no_recover_round(store, endpoint, sl
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert len(store.get_job(job_id).usage) == 7 and not endpoint.queue
     assert "recover" not in [u.stage for u in store.get_job(job_id).usage]
+
+
+# -- the polish round (MAX_POLISH_ROUNDS) ---------------------------------------------
+
+REPAIR_LONG = {
+    "repairs": [
+        {"id": "b002", "texts": [
+            "Schicken Sie das Gesuch an die Gemeinde.",
+            "Das Gesuch muss bis 31. März 2026 dort sein, sonst kann die Gemeinde das "
+            "Gesuch leider nicht mehr annehmen und auch nicht mehr bearbeiten.",
+        ]},
+        {"id": "b004", "texts": "Rufen Sie das Sozial·amt an: 044 123 45 67."},
+        {"id": "b005", "texts": ["Sie haben wenig Geld?"]},
+    ],
+    "additions": [],
+}  # fmt: skip
+POLISH = {
+    "repairs": [{"id": "b002.1", "texts": ["Das Gesuch muss bis 31. März 2026 dort sein."]}],
+    "additions": [],
+}
+
+
+def test_the_polish_round_repairs_the_rule_errors_the_loop_left(store, endpoint, sleeps) -> None:
+    """MAX_POLISH_ROUNDS: after the facts and recover rounds, the best version's rule
+    errors go to one more repair round, without facts and without the judge's problems;
+    its version is the final one when it loses no fact and adds no blocking finding."""
+    settings = make_settings(
+        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False,
+        max_recover_facts=0, max_polish_rounds=1,
+    )  # fmt: skip
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(REPAIR_LONG)),  # repair 1: a 21-word sentence comes in
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),  # no fact problem left: the loop stops
+        chat_response(fx.as_json(POLISH)),  # polish 1: the sentence shortened
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=0)
+    Orchestrator(store, llm, settings).run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert len(job.usage) == 6 and not endpoint.queue  # the sixth call: the polish round
+    polish_prompt = endpoint.chat_bodies()[5]["messages"][0]["content"]
+    assert "[b002.1]" in polish_prompt and "LEN-01" in polish_prompt
+    record = store.get_artifact_json(job_id, "repair", 3)
+    assert record["kind"] == "polish" and record["parent_version"] == 2
+    assert record["requested_blocks"] == ["b002.1"] and record["requested_facts"] == []
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 3 and summary.polish_rounds == 1
+    assert summary.rounds == 1 and summary.stop_reason == "stopped after 1 repair rounds"
+    before = store.get_artifact(job_id, "rules", RuleFindings, version=2)
+    after = store.get_artifact(job_id, "rules", RuleFindings, version=3)
+    assert [f.rule_id for f in before.findings if f.severity == "error"] == ["LEN-01"]
+    assert not [f for f in after.findings if f.severity == "error"]
+    final = store.get_artifact(job_id, "draft", Draft, version=3)
+    assert final.by_id()["b002.1"].text == "Das Gesuch muss bis 31. März 2026 dort sein."
+    assert final.by_id()["b002.1"].fact_ids == ["f01"]  # the deadline stays linked
+
+
+def test_without_max_polish_rounds_there_is_no_polish_round(store, endpoint, sleeps) -> None:
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(REPAIR_LONG)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=0)
+    orchestrator(store, endpoint, sleeps).run(job_id)  # max_polish_rounds=0 in the helper
+    job = store.get_job(job_id)
+    assert job.status == "needs_review" and not endpoint.queue
+    assert "polish 1" not in [u.stage for u in job.usage]
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 2 and summary.polish_rounds == 0

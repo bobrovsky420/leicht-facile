@@ -287,7 +287,7 @@ stays on its stem (`Sozial·arbeiterinnen`, never `Schweizer·innen`); and the s
 LEX-01 proposes, so the rule is silent on the result. The edits are
 recorded on the draft version (`code_edits`), shown on the review page and reported in
 the evaluation. The same step runs after every repair round, before the check: the 8B
-does not apply the split it is given in a repair, and a warning alone costs a polish
+does not apply the split it is given in a repair, and a warning alone costs a warnings
 round. P1 and P2 only; the baselines measure the prompt alone ([rules.md](rules.md),
 "Edits made by code"). Since 8 October 2026 the same step writes `ss` for `ß`
 (`rules/swiss.py`, CH-01, one edit per word, blocks and glossary): the 8B writes `ß`
@@ -439,11 +439,28 @@ round, so office words in its sentences go there too. An error of any other kind
 call ends the round with a note, never the job. On the dev pairs it raised German fact
 coverage from 78 to 96 percent (track_2b/docs/prompts.md, "The recover round on the dev pairs").
 
+**The polish round** (since 10 October 2026, on by default: `MAX_POLISH_ROUNDS=1`,
+PLAN.md D-AF; 0 turns it off). The facts and recover rounds add the source's sentences
+nearly verbatim, and the loop never sees them again: in the example rebuild of
+10 October the long passive sentences in the final drafts had all come in that way.
+After the recover round, the rule findings of the best version alone go to up to that
+many more rounds through the repair prompt: its errors, or its warnings once no error
+is left; no fact and no judge's problem, so the round cannot run into the loop's
+no-progress stop, and no office word, which stays with the vocabulary round. Its
+version takes the next free number with the best version as its parent and is checked
+and judged as after a round (the judge runs again when its last report had problems,
+else its findings carry over); the choice below keeps it only when it loses no
+must-keep value and adds no blocking finding. Not without repair rounds, not after a
+round the endpoint failed. On the 12 dev pairs (track_2b/docs/prompts.md, "The polish
+round on the dev pairs"): German rule errors 1.9 to 1.3 per 100 blocks, warnings 38 to
+34, facts unchanged, no must-keep value lost, about 17 percent more tokens; the final
+draft descends from the polished version in 8 of 12 jobs.
+
 **The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
 rounds, the office words still in the best version (LEX-07, LEX-07-FR) go to one more
 round through the repair prompt: the flagged sentences alone, each with its everyday
 word as the suggestion, no fact and no judge's problem. Before it, office words reach a
-round only as warnings, in the polish round that many jobs never get to, so the repair
+round only as warnings, in the loop's warnings round that many jobs never get to, so the repair
 rounds stay on what blocks a draft. The round starts from the best version, so its new
 version takes the next free number and names that version as its parent. The choice
 below keeps it only when it loses no must-keep value and adds no blocking finding; at a

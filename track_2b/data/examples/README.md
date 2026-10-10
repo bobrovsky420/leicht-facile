@@ -48,7 +48,9 @@ for the first time reads a red error count as a fault of the application. The bu
 already in `jobs/` then stays; `--allow-problems` writes the job anyway, and
 `track_2b/tests/test_examples.py` fails on a shipped job with errors. The two bundles of 7 October
 still carry such errors (4 in German, 12 in French; the rebuild of 9 October with the
-recover round left 2 and 3, so neither was written): the test marks them as expected
+recover round left 2 and 3, so neither was written; six fresh attempts per letter on
+10 October, with the response cache off, left 3 to 7 in German and 1 to 9 in French,
+most often a judge verdict the draft does not deserve): the test marks them as expected
 failures, strictly, so a clean rebuild fails the test until its name leaves
 `KNOWN_PROBLEMS` there.
 
