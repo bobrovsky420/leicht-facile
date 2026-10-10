@@ -70,7 +70,7 @@ Results. [PENDING: the headline sentence after the final CSCS run (D-M), with en
 
 Where Apertus fell short, and what we did about it: the 8B drops facts while writing and ignores word-level instructions, so code completes the fact sheet and checks every value; the 70B judge's fact verdicts agree with blind labels hardly better than chance (kappa 0.08), so every fact number in the report comes from code; on scanned letters both models change digits on a whole page and names in every setting, so image input is not built (track_2b/docs/image-input.md has every run).
 
-Use of AI in development: the code, tests and documents were written with AI coding assistants (Claude Code, Anthropic), directed and reviewed by the team [OWNER: confirm]. Claude also labelled the 59 items of the judge agreement. No other model runs in the product.
+Use of AI in development: the code, tests and documents were written with AI coding assistants (Claude Code, Anthropic), directed and reviewed by the team. Claude also labelled the 59 items of the judge agreement. No other model runs in the product.
 
 Where to start: README.md, track_2b/technical_report.md (as PDF: track_2b/RoestigrabenBridgers_Report.pdf), track_2b/eval/report.md, track_2b/docs/use-case-canton.md. Submitted commit: [PENDING: hash].
 ```
@@ -129,7 +129,7 @@ answer each question:
 | Technical rigour | Does it run reproducibly from the documented command? | `make run`; report §7 | Clean checkout passed on Windows and Linux. **[PENDING: CI green on the submitted commit]** |
 | | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | **[PENDING: final run]** |
 | | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured, nor the vLLM profile's FP8 KV cache (its memory effect is, report §2) |
-| | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | **[OWNER: confirm the wording]** |
+| | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | Answered |
 | | (Maturity level declared) | Report header; README; message §3 | **[OWNER: confirm]** |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |

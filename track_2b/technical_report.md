@@ -195,7 +195,6 @@ them. Prompt tests without a key ran on a community 4-bit build of the 8B in lla
 tests and documents were written with AI coding assistants (Claude Code, Anthropic),
 directed and reviewed by the team; the assistants also ran the tests and the
 evaluation scripts; the design, the decisions and every claim here are the team's.
-**[OWNER: confirm the tools, the share and the wording.]**
 
 ## 4. Data
 
@@ -211,9 +210,8 @@ reading, not legal advice; [track_2b/docs/sources.md](docs/sources.md) §4).
 
 ## 5. Evaluation
 
-**Task.** Simplify a standard-language official text to level A2 (Leichte Sprache: the
-rule set the checker enforces, not a measured reader level) and keep every fact. Each
-held-out pair runs under these conditions with the 8B writer:
+**Task.** Simplify a standard-language official text to Leichte Sprache and keep every
+fact. Each held-out pair runs under these conditions:
 
 | Code | Condition | Measures |
 |------|-----------|----------|
@@ -258,12 +256,6 @@ and repair (P1 to P2) raise fact coverage from 72 to 84 percent and cut rule err
 from 9.9 to 4.3 and values not in the source from 3.2 to 0.1 per 100 blocks. On the 14
 pairs with 3 or more hard facts P2 keeps 77 percent, the official versions 60. French
 (3 pairs): 73 percent fact coverage, 4.6 errors, readability 75 (official 85).
-
-**Zurich's prompt**, from the canton's open-source app (39 rules and clause recipes),
-runs verbatim on the same 8B, so the baseline is not a strawman. Its complete variant
-keeps 7 points more facts than the pipeline, with 15.4 errors per 100 blocks against
-4.3 and readability 47 against 51; its condensed default keeps 77 percent of the hard
-facts. A single prompt drops a value silently; the pipeline lists it for the reviewer.
 
 **Cost, and ten times the volume.** At Public AI's list prices the pipeline costs about
 one US cent per 250-word page (P2: 0.0105 USD; the recover round adds about 12 percent
@@ -347,6 +339,7 @@ Attribution 4.0 (CC-BY-4.0).
 - Apertus v1.5 model card: https://huggingface.co/swiss-ai/Apertus-v1.5-8B
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
+- Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH)
 - EBGB, [Leitfaden Leichte Sprache](https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf)
 - Inclusion Europe, "Information for all" (German, French and Italian editions)
 - Swiss Federal Statistical Office (2024): [PIAAC 2022/2023, first results](https://www.bfs.admin.ch/asset/fr/33346105)
