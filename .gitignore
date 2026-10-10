@@ -39,3 +39,6 @@ track_2b/eval/results-*/
 out/
 .pytest_cache/
 .ruff_cache/
+
+# Local audit notes (not part of the submission)
+AUDIT.md

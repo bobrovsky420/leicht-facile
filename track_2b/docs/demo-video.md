@@ -66,7 +66,7 @@ idea per shot, English captions burned in.
 | 0:18-0:33 | The kitchen table in evening light (generated footage, or drawn as in the mock): **1.25 million** with "22% of adults aged 16-65" and the source "Swiss Federal Statistical Office, PIAAC 2022/23"; the letter's money, deadline and rights marked; the letter pushed away on "shut out"; a card *Slow expert work*. | "1.25 million adults in Switzerland struggle with reading. Letters like this decide their money, their deadlines, their rights. No one should be shut out. But easy-language versions are slow expert work." |
 | 0:33-0:40 | Logo, *easy-language drafts of official texts*, *with Apertus, the Swiss open model*; then *The writers stay in charge* and *A checked first draft*. | "Leicht·Facile drafts them with Apertus, the Swiss open model. The writers get a checked first draft." |
 | 0:40-1:09 | **Real screen recording**, sped up, of the same letter: pasted, level A2. The fact sheet's five questions, *By when?* ringed, then the deadline fact with its value 2027-03-31. The draft. The rule check with a millisecond timer (47 ms on draft v1 of this letter). The facts tab with the deadline present. Judge and repair: the version pills from v1 (10 blocking) to the final version (2). The deadline sentence selected, its source sentence lit; approve with the keys; reader view and export. | "Apertus reads the letter the way you just tried to, and writes down every answer: what to do, by when, what it costs, whom to ask. Then it writes the draft. Code checks every date, amount and phone number, and 45 easy-language rules, in milliseconds. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source. The writer approves each one." |
-| 1:09-1:19 | *Same model. Zurich's published prompt against our pipeline.* Left: *The Canton of Zurich's published prompt*, the counter runs to **19.5** *rule errors per 100 blocks; 7 % of the hard facts lost, and nothing tells the writer* (report §5, final run of 10 October). Right: Leicht·Facile, *2.0 rule errors per 100 blocks* and *lists every hard fact it misses* (one line each), with the real facts tab of the example job's draft v2, *15 of 16 facts present*, the missing fact (f07, 1. Januar 2027) first; the final draft v6 carries all 16, so it has none to show, and a later round puts f07 back (10 October). Footnote: same model, Apertus 1.5 8B on CSCS, the prompt in its complete mode, 20 German test pairs, final run of 10 October 2026. | "Same model: the Canton of Zurich's published prompt against our pipeline. A tenth of the rule errors. And Leicht·Facile lists every hard fact it misses." (24 words, 4 more than the case B sentence of 9 October; the voice, the length and the 2 s hold are re-checked at the re-render, §4) |
+| 1:09-1:19 | *Same model. Zurich's published prompt against our pipeline.* Left: *The Canton of Zurich's published prompt*, the counter runs to **19.5** *rule errors per 100 blocks; 7 % of the hard facts lost, and nothing tells the writer* (report §5, final run of 10 October). Right: Leicht·Facile, *2.0 rule errors per 100 blocks* and *lists every hard fact it misses* (one line each), with the real facts tab of the example job's draft v2, *15 of 16 facts present*, the missing fact (f07, 1. Januar 2027) first; the final draft v6 carries all 16, so it has none to show, and a later round puts f07 back (10 October). Footnote: same model, Apertus 1.5 8B on CSCS, the prompt in its complete mode, 20 German test pairs, final run of 10 October 2026. | "Same model. Zurich's published prompt against our pipeline: a tenth of the rule errors. And Leicht·Facile lists every hard fact it misses." (21 words, one more than the case B sentence of 9 October; with "the Canton of" in the spoken line the mix ran to 120.4 s, over the limit, so the voice says "Zurich's published prompt" and the cards name the canton; rendered 10 October, night, 119.4 s in all) |
 | 1:19-1:49 | The "only Apertus" scene of §5, unchanged: the envelopes, the four tiles struck one per sentence, Apertus, the icons, Ticino, CSCS. | As in §5, 1:29-1:57. |
 | 1:49-1:52 | End card: *"The deadline. In the first sentence."* above *"No one left out."*, team name (Röstigraben Bridgers), repo URL, "Voice and imagery AI-generated", the credit to Zurich's simply-simplify-language (as in version C). | (music only) |
 
@@ -130,7 +130,9 @@ sentence left the "only Apertus" scene, and its time went to that easy text (own
 which now ends with the answer "Now you can." (owner). 267 words, 1:58 (voice speed 0.90; the silent leads and pauses trimmed by 0.1 to
 0.6 s; the evidence scene held 1.6 s longer and "in its default mode" no longer spoken on
 9 October; "1.25 million" spoken as "one and a quarter million" on 10 October
-(owner: the voice paused inside "one point two five"), 117.6 s in all).
+(owner: the voice paused inside "one point two five"), 117.6 s in all; the evidence
+scene for case A on 10 October, night: 268 words, 119.4 s, rendered as
+`leicht-facile-demo-C27.mp4`).
 
 | Time | Picture | Narration (English) |
 |------|---------|---------------------|
@@ -141,23 +143,35 @@ which now ends with the answer "Now you can." (owner). 267 words, 1:58 (voice sp
 | 0:54-1:07 | Real app, short: the letter pasted, the pipeline, judge and repair (the version pills from 4 blocking in v1 to 0 in the final v6; v7, a later round with 4, is left at the edge), the deadline sentence linked to its source, approval, reader view and export. | "The same for the whole letter. A larger Apertus model judges the meaning; only flagged sentences are repaired. Every sentence links to its source, and the writer approves each one." |
 | 1:07-1:16 | The evidence scene of §2, held 2 s after its last sentence so the facts panel can be read (owner, 9 October). | As in §2. |
 | 1:16-1:49 | The "only Apertus" scene of §5, opened by a bridge (owner, 8 October): the title *Easy language matters most in the most personal letters.* over the table, then the envelopes in the order they are named, the KESB decision first. | "Easy language matters most in the most personal letters. A child protection decision for a person with a learning disability. A letter from the hospital. A tax assessment. Under secrecy, they may not go to a foreign cloud." Then as in §5, without the Ticino sentence and its caption (owner, 9 October); the envelopes stay at the top for "For these letters, it is the only option." |
-| 1:49-1:55 | The split screen of the opening again (owner, 9 October): DE-4 and FR-4 small and dimmed at the top, their negations still marked; below each its easy-language version line by line, labelled *Leichte Sprache* and *Langage facile*; under it *"Können Sie es jetzt lesen?"* and *"Pouvez-vous le lire maintenant ?"* as it is spoken. For now the team's text, labelled on screen as a placeholder: *"Das ist wichtig: / Melden Sie Ihre Kosten rechtzeitig. / Sonst bekommen Sie kein Geld zurück."* and *"C'est important : / Annoncez vos frais à temps. / Sinon, vous ne recevez pas d'argent."* (both pass `leichtfacile check` at A2 without errors or warnings). On the answer a green tick after each question (owner, 9 October: spoken, not a title; the question is already on screen twice). | "Can you read it now?" (1.2 s to try) "Now you can." |
+| 1:49-1:55 | The split screen of the opening again (owner, 9 October): DE-4 and FR-4 small and dimmed at the top, their negations still marked; below each its easy-language version line by line, labelled *Leichte Sprache* and *Langage facile*; under it *"Können Sie es jetzt lesen?"* and *"Pouvez-vous le lire maintenant ?"* as it is spoken. The team's illustrative rewrite, labelled so on screen (10 October: the frozen pipeline's real output for the two sentences inside a short letter was not usable, §4): *"Das ist wichtig: / Melden Sie Ihre Kosten rechtzeitig. / Sonst bekommen Sie kein Geld zurück."* and *"C'est important : / Annoncez vos frais à temps. / Sinon, vous ne recevez pas d'argent."* (both pass `leichtfacile check` at A2 without errors or warnings). On the answer a green tick after each question (owner, 9 October: spoken, not a title; the question is already on screen twice). | "Can you read it now?" (1.2 s to try) "Now you can." |
 | 1:55-1:58 | End card: *"No one left out."*, below it *"Every person. Every fact."* (both readings of the line: the people, and the facts of the evidence scene), *Team Röstigraben Bridgers · Hack Apertus 2026* ("Team" added by the owner, 9 October), repo (owner, 8 October); in the small footer, its only line since 10 October (owner), *Inspired by simply-simplify-language, Team Data, Office for Statistics and Data, Canton of Zurich.* (owner, 10 October; the institution, no person named, its name as in their licence (THIRD_PARTY_NOTICES.md) without the department; the wording is final with D-L). | (music only) |
 
 ## 4. Before recording
 
-- [ ] The easy text of DE-4 and FR-4 at 1:49 (version C) is the team's placeholder:
+- [x] The easy text of DE-4 and FR-4 at 1:49 (version C) was the team's placeholder:
       replace it with the tool's real output after the prompt freeze (declared 10 October),
       in `video/src/scenes/Again.tsx`, and drop the placeholder note. Run the sentences
       inside a short letter: alone, DE-4 came back wrapped in letter headings and
-      without its consequence (PLAN.md §11, 8 October).
+      without its consequence (PLAN.md §11, 8 October). *Run 10 October, night, each
+      inside a short team-written letter (`video/letters/`, the outputs in
+      `video/letters/p2-2026-10-10/`, frozen pipeline, CSCS): the German final version
+      renders DE-4 as "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen
+      werden." (a grammar slip; version 3 had "Das Amt vergütet keine Kosten, die nicht
+      fristgerecht geltend gemacht werden.", correct but no easier) and repeats it; the
+      French draft keeps the deadline and drops the consequence of FR-4 in every version.
+      So the team's rewrite stays, labelled "Illustrative rewrite by the team, not tool
+      output", and the note in `Again.tsx` says why; the owner decides whether that
+      stands or the scene changes.*
 - [x] CSCS runs done (final run, 10 October): case A of D-M, so the evidence scene at
       1:09 names the Canton of Zurich (D-L) and carries the final numbers (§2). Narration
       C (`ev-a`, `ev-b`), the titles, the counter and the footnote in
       `video/src/scenes/Evidence.tsx` (the right card gets a line for 2.0 rule errors,
       the facts panel is narrower to make room) and the bars in `Compare.tsx` (the
-      earlier concept) updated the same day, not yet rendered: the voice, the length
-      (4 words more) and the cards' layout are checked at the re-render. The real
+      earlier concept) updated the same day and rendered the same night (C27, 119.4 s):
+      the speech check reads "Zurich" word for word, the cards fit (stills at 70 and
+      73 s); the first voice, with "the Canton of" in the line, made the mix 120.4 s,
+      over the limit, so the spoken line says "Zurich's published prompt" and the cards
+      name the canton. The real
       example job for the screen recording is done: the bundles rebuilt on 10 October,
       the app frames retaken from them the same day.
 - [ ] The rebuilt job's fact sheet answers "What does it cost?" with the junk word

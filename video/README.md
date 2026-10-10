@@ -57,6 +57,10 @@ and 7. Remotion lists a composition only for the versions whose timeline step 4 
 - The kitchen table, the letter and the envelopes are drawn in code; generated
   footage may replace the table later (track_2b/docs/demo-video.md).
 - The music is made in code.
-- The evidence number (23 %) is report §5 of 6 October, provisional until the final run.
+- The evidence scene carries the final run of 10 October 2026 (report §5): 19.5 against
+  2.0 rule errors per 100 blocks, 7 % of the hard facts lost without a trace.
 - The easy-language text of the opening sentence before the end card (`src/scenes/Again.tsx`)
-  is the team's rewrite, labelled on screen; the tool's real output replaces it.
+  is the team's illustrative rewrite, labelled on screen. The frozen pipeline's real P2
+  output for the two sentences inside a short letter each (`letters/`, run 10 October
+  2026, outputs in `letters/p2-2026-10-10/`) was not usable: a grammar slip in German,
+  the consequence dropped in French (track_2b/docs/demo-video.md §4).

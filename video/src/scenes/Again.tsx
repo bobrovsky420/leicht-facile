@@ -1,9 +1,11 @@
 // Version C, before the end card: the sentence from the start again, split screen as in
 // the hook, now with its easy-language version: "Can you read it now?", and after a pause
 // to try, "Now you can.", with a tick on both questions.
-// PLACEHOLDER: the easy texts are the team's rewrite, not tool output (both pass
-// `leichtfacile check` at A2 without errors or warnings). Replace them with the real P2
-// output for DE-4 and FR-4 after the prompt freeze, and drop the note.
+// The easy texts are the team's illustrative rewrite, labelled so on screen (both pass
+// `leichtfacile check` at A2 without errors or warnings). The frozen pipeline's real P2
+// output for the two sentences inside a short letter (10 October 2026, video/letters/)
+// was not usable here: the German final version has a grammar slip, the French draft
+// drops the consequence (track_2b/docs/demo-video.md §4).
 import React from "react";
 import { Check } from "../icons";
 import { F, ramp } from "../theme";
@@ -72,7 +74,7 @@ export const Again: React.FC<{ offset: number }> = ({ offset }) => {
         <Column lang="fr" label="Français" easyLabel="Langage facile" source={FR} easy={EASY_FR} question={Q_FR} t={t} qAt={a.s} tickAt={b.s} />
       </div>
       <div style={{ position: "absolute", left: 30, top: 26, fontFamily: F.sans, fontSize: 18, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.08)", padding: "6px 14px", borderRadius: 999 }}>
-        Placeholder: the team's rewrite, not tool output yet
+        Illustrative rewrite by the team, not tool output
       </div>
     </SceneFade>
   );

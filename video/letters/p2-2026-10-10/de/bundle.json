@@ -1,0 +1,2408 @@
+{
+  "format": "leicht-facile/audit-bundle@1",
+  "tool": "leicht-facile 0.1.0",
+  "exported_at": "2026-10-10T19:23:20.924503+00:00",
+  "job": {
+    "id": "534c87a610ff",
+    "status": "needs_review",
+    "stage": "review",
+    "title": "Rückerstattung von Krankheitskosten 2026",
+    "created_at": "2026-10-10T19:22:21.475158Z",
+    "updated_at": "2026-10-10T19:23:20.921986Z",
+    "config": {
+      "lang": "de",
+      "level": "A2",
+      "condition": "P2",
+      "writer_model": null,
+      "understand_model": null,
+      "judge_model": null,
+      "use_judge": true,
+      "max_repair_rounds": 3,
+      "max_facts_rounds": 1,
+      "mode": "standard",
+      "addressee": null,
+      "notice": null
+    },
+    "usage": [
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B-thinking",
+        "tokens_in": 1389,
+        "tokens_out": 3070,
+        "latency_ms": 19725,
+        "cached": false
+      },
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B-thinking",
+        "tokens_in": 2158,
+        "tokens_out": 3156,
+        "latency_ms": 19354,
+        "cached": false
+      },
+      {
+        "stage": "write",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 2784,
+        "tokens_out": 700,
+        "latency_ms": 4221,
+        "cached": false
+      },
+      {
+        "stage": "write",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3552,
+        "tokens_out": 662,
+        "latency_ms": 3990,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+        "tokens_in": 1722,
+        "tokens_out": 150,
+        "latency_ms": 2297,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 2188,
+        "tokens_out": 125,
+        "latency_ms": 827,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+        "tokens_in": 1750,
+        "tokens_out": 175,
+        "latency_ms": 2606,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 2049,
+        "tokens_out": 54,
+        "latency_ms": 415,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 2490,
+        "tokens_out": 257,
+        "latency_ms": 1620,
+        "cached": false
+      }
+    ],
+    "error": null
+  },
+  "summary": {
+    "condition": "P2",
+    "mode": "standard",
+    "final_version": 4,
+    "rounds": 1,
+    "facts_rounds": 0,
+    "stop_reason": "a repair round brought no progress",
+    "writer_model": "swiss-ai/Apertus-v1.5-8B",
+    "understand_model": null,
+    "judge_model": "swiss-ai/Apertus-v1.5-70B",
+    "prompt_versions": {
+      "understand": "99fdb529e5a9",
+      "write": "a644e7997ea4",
+      "judge": "c1d7232e7600",
+      "repair": "bb833c25eb84",
+      "baseline": "b6d5ec5f7df8",
+      "baseline_zh": "54bcbe5ea8e6"
+    },
+    "blocking_findings": [
+      2,
+      2,
+      1,
+      0
+    ],
+    "notes": [],
+    "vocabulary": "263e8c3601b6",
+    "vocabulary_rounds": 1,
+    "polish_rounds": 1
+  },
+  "source": {
+    "id": "doc-463328d40c",
+    "lang": "de",
+    "title": "Rückerstattung von Krankheitskosten 2026",
+    "source": {
+      "type": "text",
+      "uri": "de-4-brief.txt",
+      "fetched_at": null,
+      "license_note": null
+    },
+    "segments": [
+      {
+        "id": "s0001",
+        "kind": "heading",
+        "text": "Rückerstattung von Krankheitskosten 2026",
+        "heading_path": [],
+        "heading_level": 1,
+        "para": 0,
+        "page": null
+      },
+      {
+        "id": "s0002",
+        "kind": "paragraph",
+        "text": "Sehr geehrte Damen und Herren",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 1,
+        "page": null
+      },
+      {
+        "id": "s0003",
+        "kind": "paragraph",
+        "text": "Sie haben Anspruch auf die Rückerstattung von Krankheitskosten, die Ihre Krankenversicherung nicht übernimmt.",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 2,
+        "page": null
+      },
+      {
+        "id": "s0004",
+        "kind": "paragraph",
+        "text": "Die Belege sind bis spätestens 30. Juni 2027 bei der Sozialversicherungsstelle Musterwil einzureichen.",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 2,
+        "page": null
+      },
+      {
+        "id": "s0005",
+        "kind": "paragraph",
+        "text": "Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können.",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 2,
+        "page": null
+      },
+      {
+        "id": "s0006",
+        "kind": "paragraph",
+        "text": "Für Auskünfte erreichen Sie uns unter Telefon 044 123 45 67.",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 3,
+        "page": null
+      },
+      {
+        "id": "s0007",
+        "kind": "paragraph",
+        "text": "Freundliche Grüsse",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": null,
+        "para": 4,
+        "page": null
+      },
+      {
+        "id": "s0008",
+        "kind": "heading",
+        "text": "Sozialversicherungsstelle Musterwil",
+        "heading_path": [
+          "Rückerstattung von Krankheitskosten 2026"
+        ],
+        "heading_level": 2,
+        "para": 5,
+        "page": null
+      }
+    ]
+  },
+  "factsheet": {
+    "doc_id": "doc-463328d40c",
+    "doc_type": "Information letter / Merkblatt",
+    "audience": "Personen mit nicht gedeckten Krankheitskosten",
+    "core": {
+      "what": {
+        "text": "Rückerstattung von Krankheitskosten, die nicht von der Krankenversicherung übernommen werden.",
+        "segment_ids": [
+          "s0003"
+        ]
+      },
+      "must_do": {
+        "text": "Die Belege für die Krankheitskosten bis spätestens 30. Juni 2027 bei der Sozialversicherungsstelle Musterwil einreichen.",
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      "deadline": {
+        "text": "30. Juni 2027",
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      "cost": {
+        "text": null,
+        "segment_ids": []
+      },
+      "contact": {
+        "text": "Telefon 044 123 45 67",
+        "segment_ids": [
+          "s0006"
+        ]
+      }
+    },
+    "facts": [
+      {
+        "id": "f01",
+        "kind": "condition",
+        "text": "Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0005"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f02",
+        "kind": "contact",
+        "text": "Telefonnummer der Sozialversicherungsstelle Musterwil: 044 123 45 67",
+        "value_norm": "0441234567",
+        "segment_ids": [
+          "s0006"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f03",
+        "kind": "deadline",
+        "text": "Die Belege sind bis spätestens 30. Juni 2027 bei der Sozialversicherungsstelle Musterwil einzureichen.",
+        "value_norm": "2027-06-30",
+        "segment_ids": [
+          "s0004"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      }
+    ],
+    "hard_terms": [
+      {
+        "term": "Sozialversicherungsstelle",
+        "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+        "segment_ids": [
+          "s0008"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "Krankenversicherung",
+        "explanation": "Die Versicherung, die bestimmte Kosten übernimmt.",
+        "segment_ids": [
+          "s0003"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "Krankheitskosten",
+        "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+        "segment_ids": [
+          "s0003"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "Anspruch",
+        "explanation": "Sie haben einen Anspruch heisst: Sie haben ein Recht darauf. Zum Beispiel auf Geld.",
+        "segment_ids": [
+          "s0003"
+        ],
+        "origin": "vocabulary"
+      }
+    ],
+    "omit_candidates": []
+  },
+  "drafts": [
+    {
+      "doc_id": "doc-463328d40c",
+      "lang": "de",
+      "level": "A2",
+      "version": 1,
+      "parent_version": null,
+      "origin": "write",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie erhalten die Rück·erstattung von Krankheits·kosten.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie müssen die Belege für Ihre Krankheits·kosten einreichen.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Die Frist ist der 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "heading",
+          "text": "Bis wann?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Die Belege sind bis zum 30. Juni 2027 einzureichen.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "heading",
+          "text": "Wen können Sie fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie rufen die Sozial·versicherungs·stelle Musterwil an.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "sentence",
+          "text": "Die Telefonnummer ist 044 123 45 67.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "sentence",
+          "text": "Sie können von Montag bis Freitag anrufen.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "sentence",
+          "text": "Schwierige Wörter erklärt das Wörterbuch.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "list_item",
+          "text": "Sozial·versicherungs·stelle Musterwil",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0008"
+          ]
+        }
+      ],
+      "omissions": [],
+      "glossary": [
+        {
+          "term": "Sozial·versicherungs·stelle",
+          "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+          "origin": "model"
+        },
+        {
+          "term": "Krankheits·kosten",
+          "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+          "origin": "model"
+        },
+        {
+          "term": "Anspruch",
+          "explanation": "Ein Recht darauf, zum Beispiel auf Geld.",
+          "origin": "model"
+        },
+        {
+          "term": "Frist",
+          "explanation": "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "glossary",
+          "rule_id": "SEM-05",
+          "before": "",
+          "after": "Frist"
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-01",
+          "before": "Rückerstattung",
+          "after": "Rück·erstattung"
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-01",
+          "before": "Krankheitskosten",
+          "after": "Krankheits·kosten"
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-01",
+          "before": "Krankheitskosten",
+          "after": "Krankheits·kosten"
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b012",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "glossary",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "glossary",
+          "rule_id": "LEX-01",
+          "before": "Krankheitskosten",
+          "after": "Krankheits·kosten"
+        }
+      ]
+    },
+    {
+      "doc_id": "doc-463328d40c",
+      "lang": "de",
+      "level": "A2",
+      "version": 2,
+      "parent_version": 1,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie erhalten die Rück·erstattung von Krankheits·kosten.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie müssen die Belege für Ihre Krankheits·kosten einreichen.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Die Frist ist der 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "heading",
+          "text": "Bis wann?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Das Amt prüft die Belege bis zum 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b006.1",
+          "kind": "sentence",
+          "text": "Kosten, die nicht fristgerecht geltend gemacht werden, werden nicht vergütet.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "heading",
+          "text": "Wen können Sie fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie rufen die Sozial·versicherungs·stelle Musterwil an.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "sentence",
+          "text": "Die Telefonnummer ist 044 123 45 67.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "sentence",
+          "text": "Sie können von Montag bis Freitag anrufen.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "sentence",
+          "text": "Schwierige Wörter erklärt das Wörterbuch.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "list_item",
+          "text": "Sozial·versicherungs·stelle Musterwil",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0008"
+          ]
+        }
+      ],
+      "omissions": [],
+      "glossary": [
+        {
+          "term": "Sozial·versicherungs·stelle",
+          "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+          "origin": "model"
+        },
+        {
+          "term": "Krankheits·kosten",
+          "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+          "origin": "model"
+        },
+        {
+          "term": "Anspruch",
+          "explanation": "Ein Recht darauf, zum Beispiel auf Geld.",
+          "origin": "model"
+        },
+        {
+          "term": "Frist",
+          "explanation": "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": []
+    },
+    {
+      "doc_id": "doc-463328d40c",
+      "lang": "de",
+      "level": "A2",
+      "version": 3,
+      "parent_version": 2,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie erhalten die Rück·erstattung von Krankheits·kosten.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie müssen die Belege für Ihre Krankheits·kosten einreichen.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Die Frist ist der 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "heading",
+          "text": "Bis wann?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Das Amt prüft die Belege bis zum 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b006.1",
+          "kind": "sentence",
+          "text": "Das Amt vergütet keine Kosten, die nicht fristgerecht geltend gemacht werden.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "heading",
+          "text": "Wen können Sie fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie rufen die Sozial·versicherungs·stelle Musterwil an.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "sentence",
+          "text": "Die Telefonnummer ist 044 123 45 67.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "sentence",
+          "text": "Sie können von Montag bis Freitag anrufen.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "sentence",
+          "text": "Schwierige Wörter erklärt das Wörterbuch.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "list_item",
+          "text": "Sozial·versicherungs·stelle Musterwil",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0008"
+          ]
+        }
+      ],
+      "omissions": [],
+      "glossary": [
+        {
+          "term": "Sozial·versicherungs·stelle",
+          "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+          "origin": "model"
+        },
+        {
+          "term": "Krankheits·kosten",
+          "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+          "origin": "model"
+        },
+        {
+          "term": "Anspruch",
+          "explanation": "Ein Recht darauf, zum Beispiel auf Geld.",
+          "origin": "model"
+        },
+        {
+          "term": "Frist",
+          "explanation": "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": []
+    },
+    {
+      "doc_id": "doc-463328d40c",
+      "lang": "de",
+      "level": "A2",
+      "version": 4,
+      "parent_version": 3,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie bekommen Rückzahlung von Krankheits·kosten.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b002.1",
+          "kind": "sentence",
+          "text": "Die Belege schicken Sie bis zum 30. Juni 2027 an die Sozial·versicherungs·stelle Musterwil.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0003"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie schicken Papier als Beweis für Ihre Krankheits·kosten.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b003.1",
+          "kind": "sentence",
+          "text": "Bis zum 30. Juni 2027 schicken Sie die Belege an die Sozial·versicherungs·stelle Musterwil.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Die Frist ist der 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "heading",
+          "text": "Bis wann?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Das Amt prüft das Papier als Beweis bis zum 30. Juni 2027.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "id": "b006.2",
+          "kind": "sentence",
+          "text": "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden.",
+          "fact_ids": [
+            "f03",
+            "f01"
+          ],
+          "segment_ids": [
+            "s0004",
+            "s0005"
+          ]
+        },
+        {
+          "id": "b006.1.1",
+          "kind": "sentence",
+          "text": "Kosten, die nicht rechtzeitig verlangen werden, kann das Amt nicht bezahlen.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "heading",
+          "text": "Wen können Sie fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie rufen die Sozial·versicherungs·stelle Musterwil an.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "sentence",
+          "text": "Die Telefonnummer ist 044 123 45 67.",
+          "fact_ids": [
+            "f02"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "sentence",
+          "text": "Sie können von Montag bis Freitag anrufen.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "sentence",
+          "text": "Schwierige Wörter erklärt das Wörterbuch.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "list_item",
+          "text": "Sozial·versicherungs·stelle Musterwil",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0008"
+          ]
+        }
+      ],
+      "omissions": [],
+      "glossary": [
+        {
+          "term": "Sozial·versicherungs·stelle",
+          "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+          "origin": "model"
+        },
+        {
+          "term": "Krankheits·kosten",
+          "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+          "origin": "model"
+        },
+        {
+          "term": "Anspruch",
+          "explanation": "Ein Recht darauf, zum Beispiel auf Geld.",
+          "origin": "model"
+        },
+        {
+          "term": "Frist",
+          "explanation": "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-01",
+          "before": "Krankheitskosten",
+          "after": "Krankheits·kosten"
+        },
+        {
+          "block_id": "b002.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-01",
+          "before": "Krankheitskosten",
+          "after": "Krankheits·kosten"
+        },
+        {
+          "block_id": "b003.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        }
+      ]
+    }
+  ],
+  "rule_findings": [
+    {
+      "draft_version": 1,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b002",
+          "rule_id": "GRAM-05",
+          "severity": "warn",
+          "message": "Nominal style 'Rück·erstattung': use a verb.",
+          "message_key": "GRAM-05",
+          "message_params": {
+            "found": "Rück·erstattung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Rück·erstattung': simpler is Rückzahlung.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Rück·erstattung",
+            "easy": "Rückzahlung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": "Rückzahlung",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'einreichen': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "einreichen",
+            "easy": "schicken"
+          },
+          "evidence": "einreichen",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "GRAM-01",
+          "severity": "error",
+          "message": "Passive voice: 'sind ... einzureichen'. Say who does what.",
+          "message_key": "GRAM-01",
+          "message_params": {
+            "found": "sind ... einzureichen"
+          },
+          "evidence": "sind ... einzureichen",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'einzureichen': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "einzureichen",
+            "easy": "schicken"
+          },
+          "evidence": "einzureichen",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Wörterbuch' comes after the verb 'erklärt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Wörterbuch",
+            "verb": "erklärt"
+          },
+          "evidence": "Schwierige Wörter erklärt das Wörterbuch.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0002 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0002"
+          },
+          "evidence": "Sehr geehrte Damen und Herren",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0007 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0007"
+          },
+          "evidence": "Freundliche Grüsse",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 44 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "44",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 12,
+        "sentences": 9,
+        "words": 54,
+        "avg_words": 6.0,
+        "max_words": 9,
+        "pct_passive": 11.1,
+        "pct_genitive": 0.0,
+        "pct_subordinate": 0.0,
+        "readability": 44.4,
+        "readability_formula": "amstad",
+        "facts_total": 2,
+        "facts_found": 2,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "draft_version": 2,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b002",
+          "rule_id": "GRAM-05",
+          "severity": "warn",
+          "message": "Nominal style 'Rück·erstattung': use a verb.",
+          "message_key": "GRAM-05",
+          "message_params": {
+            "found": "Rück·erstattung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Rück·erstattung': simpler is Rückzahlung.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Rück·erstattung",
+            "easy": "Rückzahlung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": "Rückzahlung",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'einreichen': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "einreichen",
+            "easy": "schicken"
+          },
+          "evidence": "einreichen",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "GRAM-01",
+          "severity": "error",
+          "message": "Passive voice: 'gemacht werden'. Say who does what.",
+          "message_key": "GRAM-01",
+          "message_params": {
+            "found": "gemacht werden"
+          },
+          "evidence": "gemacht werden",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "GRAM-01",
+          "severity": "error",
+          "message": "Passive voice: 'werden nicht vergütet'. Say who does what.",
+          "message_key": "GRAM-01",
+          "message_params": {
+            "found": "werden nicht vergütet"
+          },
+          "evidence": "werden nicht vergütet",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('die'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "die",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Kosten, die nicht fristgerecht geltend gemacht werden, werden nicht vergütet.",
+          "suggestion": "Machen Sie 2 Sätze und wiederholen Sie das Nomen. (Das ist das Formular. Das Formular brauchen Sie.)",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'fristgerecht': simpler is rechtzeitig.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "fristgerecht",
+            "easy": "rechtzeitig"
+          },
+          "evidence": "fristgerecht",
+          "suggestion": "rechtzeitig",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'geltend ... gemacht': simpler is verlangen.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "geltend ... gemacht",
+            "easy": "verlangen"
+          },
+          "evidence": "geltend ... gemacht",
+          "suggestion": "verlangen",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'vergütet': simpler is bezahlen.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "vergütet",
+            "easy": "bezahlen"
+          },
+          "evidence": "vergütet",
+          "suggestion": "bezahlen",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Wörterbuch' comes after the verb 'erklärt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Wörterbuch",
+            "verb": "erklärt"
+          },
+          "evidence": "Schwierige Wörter erklärt das Wörterbuch.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0002 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0002"
+          },
+          "evidence": "Sehr geehrte Damen und Herren",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0007 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0007"
+          },
+          "evidence": "Freundliche Grüsse",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 51 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "51",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 13,
+        "sentences": 10,
+        "words": 65,
+        "avg_words": 6.5,
+        "max_words": 10,
+        "pct_passive": 10.0,
+        "pct_genitive": 0.0,
+        "pct_subordinate": 10.0,
+        "readability": 51.1,
+        "readability_formula": "amstad",
+        "facts_total": 2,
+        "facts_found": 2,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "draft_version": 3,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b002",
+          "rule_id": "GRAM-05",
+          "severity": "warn",
+          "message": "Nominal style 'Rück·erstattung': use a verb.",
+          "message_key": "GRAM-05",
+          "message_params": {
+            "found": "Rück·erstattung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Rück·erstattung': simpler is Rückzahlung.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Rück·erstattung",
+            "easy": "Rückzahlung"
+          },
+          "evidence": "Rück·erstattung",
+          "suggestion": "Rückzahlung",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'einreichen': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "einreichen",
+            "easy": "schicken"
+          },
+          "evidence": "einreichen",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "GRAM-01",
+          "severity": "error",
+          "message": "Passive voice: 'gemacht werden'. Say who does what.",
+          "message_key": "GRAM-01",
+          "message_params": {
+            "found": "gemacht werden"
+          },
+          "evidence": "gemacht werden",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('die'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "die",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Das Amt vergütet keine Kosten, die nicht fristgerecht geltend gemacht werden.",
+          "suggestion": "Machen Sie 2 Sätze und wiederholen Sie das Nomen. (Das ist das Formular. Das Formular brauchen Sie.)",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'vergütet': simpler is bezahlen.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "vergütet",
+            "easy": "bezahlen"
+          },
+          "evidence": "vergütet",
+          "suggestion": "bezahlen",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'fristgerecht': simpler is rechtzeitig.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "fristgerecht",
+            "easy": "rechtzeitig"
+          },
+          "evidence": "fristgerecht",
+          "suggestion": "rechtzeitig",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'geltend ... gemacht': simpler is verlangen.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "geltend ... gemacht",
+            "easy": "verlangen"
+          },
+          "evidence": "geltend ... gemacht",
+          "suggestion": "verlangen",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Wörterbuch' comes after the verb 'erklärt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Wörterbuch",
+            "verb": "erklärt"
+          },
+          "evidence": "Schwierige Wörter erklärt das Wörterbuch.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0002 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0002"
+          },
+          "evidence": "Sehr geehrte Damen und Herren",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0007 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0007"
+          },
+          "evidence": "Freundliche Grüsse",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 52 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "52",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 13,
+        "sentences": 10,
+        "words": 66,
+        "avg_words": 6.6,
+        "max_words": 11,
+        "pct_passive": 10.0,
+        "pct_genitive": 0.0,
+        "pct_subordinate": 10.0,
+        "readability": 52.1,
+        "readability_formula": "amstad",
+        "facts_total": 2,
+        "facts_found": 2,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "draft_version": 4,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b002.1",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Die Belege schicken Sie bis zum 30. Juni 2027 an die Sozial·versicherungs·stelle Musterwil.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b002.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b002.1",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schicken'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schicken"
+          },
+          "evidence": "Die Belege schicken Sie bis zum 30. Juni 2027 an die Sozial·versicherungs·stelle Musterwil.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003.1",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Bis zum 30. Juni 2027 schicken Sie die Belege an die Sozial·versicherungs·stelle Musterwil.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003.1",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Belege': simpler is Papier als Beweis.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Belege",
+            "easy": "Papier als Beweis"
+          },
+          "evidence": "Belege",
+          "suggestion": "Papier als Beweis",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b003.1",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schicken'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schicken"
+          },
+          "evidence": "Bis zum 30. Juni 2027 schicken Sie die Belege an die Sozial·versicherungs·stelle Musterwil.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.2",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('die'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "die",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden.",
+          "suggestion": "Machen Sie 2 Sätze und wiederholen Sie das Nomen. (Das ist das Formular. Das Formular brauchen Sie.)",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006.1.1",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('die'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "die",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Kosten, die nicht rechtzeitig verlangen werden, kann das Amt nicht bezahlen.",
+          "suggestion": "Machen Sie 2 Sätze und wiederholen Sie das Nomen. (Das ist das Formular. Das Formular brauchen Sie.)",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Wörterbuch' comes after the verb 'erklärt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Wörterbuch",
+            "verb": "erklärt"
+          },
+          "evidence": "Schwierige Wörter erklärt das Wörterbuch.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0002 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0002"
+          },
+          "evidence": "Sehr geehrte Damen und Herren",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0007 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0007"
+          },
+          "evidence": "Freundliche Grüsse",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 53 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "53",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 16,
+        "sentences": 13,
+        "words": 103,
+        "avg_words": 7.92,
+        "max_words": 13,
+        "pct_passive": 0.0,
+        "pct_genitive": 0.0,
+        "pct_subordinate": 15.4,
+        "readability": 53.3,
+        "readability_formula": "amstad",
+        "facts_total": 2,
+        "facts_found": 2,
+        "fact_coverage": 1.0
+      }
+    }
+  ],
+  "judge_reports": [
+    {
+      "draft_version": 1,
+      "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "missing",
+          "block_ids": [],
+          "note": "Die Tatsache \"Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können\" fehlt im Entwurf."
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b009"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b004",
+            "b006"
+          ],
+          "note": ""
+        }
+      ],
+      "unsupported": [],
+      "semantic_findings": [],
+      "dropped": []
+    },
+    {
+      "draft_version": 2,
+      "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        }
+      ],
+      "unsupported": [],
+      "semantic_findings": [],
+      "dropped": []
+    },
+    {
+      "draft_version": 3,
+      "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        }
+      ],
+      "unsupported": [],
+      "semantic_findings": [],
+      "dropped": []
+    },
+    {
+      "draft_version": 4,
+      "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        }
+      ],
+      "unsupported": [],
+      "semantic_findings": [],
+      "dropped": []
+    }
+  ],
+  "repair_records": [
+    {
+      "draft_version": 2,
+      "parent_version": 1,
+      "kind": "repair",
+      "requested_blocks": [
+        "b006"
+      ],
+      "requested_facts": [
+        "f01"
+      ],
+      "repairs": [
+        {
+          "block_id": "b006",
+          "texts": [
+            "Das Amt prüft die Belege bis zum 30. Juni 2027."
+          ]
+        }
+      ],
+      "additions": [
+        {
+          "after": "b006",
+          "texts": [
+            "Kosten, die nicht fristgerecht geltend gemacht werden, werden nicht vergütet."
+          ],
+          "fact_ids": [
+            "f01"
+          ]
+        }
+      ],
+      "dropped": []
+    },
+    {
+      "draft_version": 3,
+      "parent_version": 2,
+      "kind": "polish",
+      "requested_blocks": [
+        "b006.1"
+      ],
+      "requested_facts": [],
+      "repairs": [
+        {
+          "block_id": "b006.1",
+          "texts": [
+            "Das Amt vergütet keine Kosten, die nicht fristgerecht geltend gemacht werden."
+          ]
+        }
+      ],
+      "additions": [],
+      "dropped": []
+    },
+    {
+      "draft_version": 4,
+      "parent_version": 3,
+      "kind": "vocabulary",
+      "requested_blocks": [
+        "b002",
+        "b003",
+        "b006",
+        "b006.1"
+      ],
+      "requested_facts": [],
+      "repairs": [
+        {
+          "block_id": "b002",
+          "texts": [
+            "Sie bekommen Rückzahlung von Krankheitskosten.",
+            "Die Belege schicken Sie bis zum 30. Juni 2027 an die Sozialversicherungsstelle Musterwil."
+          ]
+        },
+        {
+          "block_id": "b003",
+          "texts": [
+            "Sie schicken Papier als Beweis für Ihre Krankheitskosten.",
+            "Bis zum 30. Juni 2027 schicken Sie die Belege an die Sozialversicherungsstelle Musterwil."
+          ]
+        },
+        {
+          "block_id": "b006",
+          "texts": [
+            "Das Amt prüft das Papier als Beweis bis zum 30. Juni 2027.",
+            "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden."
+          ]
+        },
+        {
+          "block_id": "b006.1",
+          "texts": [
+            "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden.",
+            "Kosten, die nicht rechtzeitig verlangen werden, kann das Amt nicht bezahlen."
+          ]
+        }
+      ],
+      "additions": [],
+      "dropped": [
+        {
+          "text": "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden.",
+          "reason": "repeat",
+          "block_id": "b006.1",
+          "fact_ids": [
+            "f01"
+          ]
+        }
+      ]
+    }
+  ],
+  "review": null,
+  "final": {
+    "draft_version": 4,
+    "reviewed": false,
+    "review_complete": false,
+    "undecided_blocks": 0,
+    "undecided_glossary": 0,
+    "notice": null,
+    "blocks": [
+      {
+        "id": "b001",
+        "kind": "heading",
+        "text": "Was müssen Sie tun?",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0003"
+        ]
+      },
+      {
+        "id": "b002",
+        "kind": "sentence",
+        "text": "Sie bekommen Rückzahlung von Krankheits·kosten.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0003"
+        ]
+      },
+      {
+        "id": "b002.1",
+        "kind": "sentence",
+        "text": "Die Belege schicken Sie bis zum 30. Juni 2027 an die Sozial·versicherungs·stelle Musterwil.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0003"
+        ]
+      },
+      {
+        "id": "b003",
+        "kind": "sentence",
+        "text": "Sie schicken Papier als Beweis für Ihre Krankheits·kosten.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      {
+        "id": "b003.1",
+        "kind": "sentence",
+        "text": "Bis zum 30. Juni 2027 schicken Sie die Belege an die Sozial·versicherungs·stelle Musterwil.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      {
+        "id": "b004",
+        "kind": "sentence",
+        "text": "Die Frist ist der 30. Juni 2027.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      {
+        "id": "b005",
+        "kind": "heading",
+        "text": "Bis wann?",
+        "fact_ids": [],
+        "segment_ids": []
+      },
+      {
+        "id": "b006",
+        "kind": "sentence",
+        "text": "Das Amt prüft das Papier als Beweis bis zum 30. Juni 2027.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0004"
+        ]
+      },
+      {
+        "id": "b006.2",
+        "kind": "sentence",
+        "text": "Das Amt bezahlt keine Kosten, die nicht rechtzeitig verlangen werden.",
+        "fact_ids": [
+          "f03",
+          "f01"
+        ],
+        "segment_ids": [
+          "s0004",
+          "s0005"
+        ]
+      },
+      {
+        "id": "b006.1.1",
+        "kind": "sentence",
+        "text": "Kosten, die nicht rechtzeitig verlangen werden, kann das Amt nicht bezahlen.",
+        "fact_ids": [
+          "f01"
+        ],
+        "segment_ids": [
+          "s0005"
+        ]
+      },
+      {
+        "id": "b007",
+        "kind": "heading",
+        "text": "Wen können Sie fragen?",
+        "fact_ids": [],
+        "segment_ids": []
+      },
+      {
+        "id": "b008",
+        "kind": "sentence",
+        "text": "Sie rufen die Sozial·versicherungs·stelle Musterwil an.",
+        "fact_ids": [
+          "f02"
+        ],
+        "segment_ids": [
+          "s0006"
+        ]
+      },
+      {
+        "id": "b009",
+        "kind": "sentence",
+        "text": "Die Telefonnummer ist 044 123 45 67.",
+        "fact_ids": [
+          "f02"
+        ],
+        "segment_ids": [
+          "s0006"
+        ]
+      },
+      {
+        "id": "b010",
+        "kind": "sentence",
+        "text": "Sie können von Montag bis Freitag anrufen.",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0006"
+        ]
+      },
+      {
+        "id": "b011",
+        "kind": "sentence",
+        "text": "Schwierige Wörter erklärt das Wörterbuch.",
+        "fact_ids": [
+          "f01"
+        ],
+        "segment_ids": [
+          "s0005"
+        ]
+      },
+      {
+        "id": "b012",
+        "kind": "list_item",
+        "text": "Sozial·versicherungs·stelle Musterwil",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0008"
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "Sozial·versicherungs·stelle",
+        "explanation": "Das Amt, das für die Rückerstattung von Krankheitskosten zuständig ist.",
+        "origin": "model"
+      },
+      {
+        "term": "Krankheits·kosten",
+        "explanation": "Kosten für ärztliche Behandlung oder Medikamente.",
+        "origin": "model"
+      },
+      {
+        "term": "Anspruch",
+        "explanation": "Ein Recht darauf, zum Beispiel auf Geld.",
+        "origin": "model"
+      },
+      {
+        "term": "Frist",
+        "explanation": "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun.",
+        "origin": "vocabulary"
+      }
+    ],
+    "layout_findings": []
+  }
+}
