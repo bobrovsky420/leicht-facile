@@ -143,7 +143,7 @@ which now ends with the answer "Now you can." (owner). 267 words, 1:58 (voice sp
 ## 4. Before recording
 
 - [ ] The easy text of DE-4 and FR-4 at 1:49 (version C) is the team's placeholder:
-      replace it with the tool's real output after the prompt freeze (Sun 11 October),
+      replace it with the tool's real output after the prompt freeze (declared 10 October),
       in `video/src/scenes/Again.tsx`, and drop the placeholder note. Run the sentences
       inside a short letter: alone, DE-4 came back wrapped in letter headings and
       without its consequence (PLAN.md §11, 8 October).

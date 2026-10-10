@@ -162,7 +162,7 @@ Done:
   coverage, silent losses, cost and latency.
 - Evaluation on the CSCS endpoint: 23 held-out pairs, results of 6 October in
   `track_2b/eval/report.md` and the technical report. **[PENDING: the final run after the
-  prompt freeze (Sun 11 October) replaces them.]**
+  prompt freeze (10 October) replaces them.]**
 - 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
   runs them, the linter and a start of the Docker image on every push. The whole
   pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), on one

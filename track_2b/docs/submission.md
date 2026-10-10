@@ -7,7 +7,7 @@ documents answer them. A working document for the team. **[OWNER: delete it, or 
 it, before the repository goes public.]**
 
 Placeholders, here and in README.md and track_2b/technical_report.md: **[PENDING: ...]** waits for
-a scheduled step (the final CSCS run after the prompt freeze on Sun 11 October, the
+a scheduled step (the final CSCS run after the prompt freeze of 10 October, the
 video upload, the submitted commit); **[OWNER: ...]** needs a decision or a fact from
 the team. `grep -n "\[PENDING\|\[OWNER" README.md track_2b/technical_report.md track_2b/docs/submission.md`
 lists them all; none may be left in README.md and track_2b/technical_report.md when we submit.
