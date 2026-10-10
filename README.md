@@ -67,7 +67,7 @@ secrecy. Four conditions follow, and only Apertus meets all four:
 
 | Condition | Rules out | Apertus |
 |-----------|-----------|---------|
-| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped: the 8B on one GPU with the official vLLM image (the team's own runs so far: a 4-bit build on a laptop GPU); Swisscom and Infomaniak serve the 70B in Switzerland |
+| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped: the 8B on one 24 GB GPU with the official vLLM image (run by the team on an NVIDIA L4); Swisscom and Infomaniak serve the 70B in Switzerland |
 | The organisation runs the model itself | Closed models | Open weights |
 | The organisation can account for what the model learned | Open-weight models that keep their training data secret (Llama, Gemma, Qwen, Mistral) | Open training data and code; website opt-outs honoured, also for older crawls |
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
@@ -131,7 +131,7 @@ says why must-keep facts are missing from the final drafts of a run, without a m
 
 | Target architecture | How |
 |---------------------|-----|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU (official image; not yet started by the team on a GPU host); set `LLM_BASE_URL=http://vllm:8000/v1` |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [eval/hardware/](eval/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and the UI assets are inside the image: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 
@@ -164,13 +164,15 @@ Done:
   prompt freeze (Sun 11 October) replaces them.]**
 - 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
   runs them, the linter and a start of the Docker image on every push. The whole
-  pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), and
-  `make run` and `make smoke` against CSCS.
+  pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), on one
+  NVIDIA L4 with the official 8B in vLLM (`make run` on a clean Linux clone,
+  [eval/hardware/](eval/hardware/aws-l4-2026-10-10/)), and `make run` and `make smoke`
+  against CSCS.
 
 Pending: the final evaluation run and the two example jobs rebuilt after it; image
 input for scanned letters (not built; what the scans showed:
-[docs/image-input.md](docs/image-input.md)); the vLLM profile on a GPU host; the
-air-gapped bundle (`make bundle`); Italian (after the hackathon).
+[docs/image-input.md](docs/image-input.md)); the air-gapped bundle (`make bundle`);
+Italian (after the hackathon).
 
 ## Documentation
 

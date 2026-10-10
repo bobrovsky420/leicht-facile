@@ -1,0 +1,16 @@
+# AWS L4 test, 10 Oct 2026, on this server only (not in the repo):
+# a 24 GB GPU needs an FP8 KV cache for the 32k context, and fewer parallel
+# sequences so that the CUDA graphs and the sampler warm-up fit next to it.
+services:
+  vllm:
+    command:
+      - swiss-ai/Apertus-v1.5-8B
+      - --served-model-name=swiss-ai/Apertus-v1.5-8B
+      - --chat-template-content-format=string
+      - --reasoning-parser=apertus
+      - --max-model-len=32768
+      - --gpu-memory-utilization=0.9
+      - --kv-cache-dtype=fp8
+      - --max-num-seqs=16
+      - --host=0.0.0.0
+      - --port=8000

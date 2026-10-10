@@ -1,0 +1,125 @@
+{
+  "id": "a516c6801eb6",
+  "status": "needs_review",
+  "stage": "review",
+  "created_at": "2026-10-10T09:24:38.202553Z",
+  "updated_at": "2026-10-10T09:46:41.044682Z",
+  "config": {
+    "lang": "de",
+    "level": "A2",
+    "condition": "P2",
+    "writer_model": null,
+    "understand_model": null,
+    "judge_model": null,
+    "use_judge": true,
+    "max_repair_rounds": 3,
+    "max_facts_rounds": 1,
+    "mode": "standard",
+    "addressee": null,
+    "notice": null
+  },
+  "usage": {
+    "calls": 12,
+    "tokens_in": 45868,
+    "tokens_out": 21295,
+    "latency_ms": 1319583,
+    "by_call": [
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 1829,
+        "tokens_out": 12000,
+        "latency_ms": 743877,
+        "cached": false
+      },
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 1829,
+        "tokens_out": 1053,
+        "latency_ms": 64271,
+        "cached": false
+      },
+      {
+        "stage": "write",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4445,
+        "tokens_out": 1038,
+        "latency_ms": 64924,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3462,
+        "tokens_out": 1417,
+        "latency_ms": 87246,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 5308,
+        "tokens_out": 979,
+        "latency_ms": 61553,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3551,
+        "tokens_out": 1058,
+        "latency_ms": 64644,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4986,
+        "tokens_out": 539,
+        "latency_ms": 34286,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3640,
+        "tokens_out": 839,
+        "latency_ms": 51340,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4780,
+        "tokens_out": 100,
+        "latency_ms": 7358,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3648,
+        "tokens_out": 863,
+        "latency_ms": 52711,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4711,
+        "tokens_out": 306,
+        "latency_ms": 19866,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3679,
+        "tokens_out": 1103,
+        "latency_ms": 67507,
+        "cached": false
+      }
+    ]
+  }
+}

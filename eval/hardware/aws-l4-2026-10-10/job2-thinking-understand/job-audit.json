@@ -1,0 +1,6086 @@
+{
+  "format": "leicht-facile/audit-bundle@1",
+  "tool": "leicht-facile 0.1.0",
+  "exported_at": "2026-10-10T09:47:39.953138+00:00",
+  "job": {
+    "id": "a516c6801eb6",
+    "status": "needs_review",
+    "stage": "review",
+    "title": "praemienverbilligung-brief.txt",
+    "created_at": "2026-10-10T09:24:38.202553Z",
+    "updated_at": "2026-10-10T09:46:41.044682Z",
+    "config": {
+      "lang": "de",
+      "level": "A2",
+      "condition": "P2",
+      "writer_model": null,
+      "understand_model": null,
+      "judge_model": null,
+      "use_judge": true,
+      "max_repair_rounds": 3,
+      "max_facts_rounds": 1,
+      "mode": "standard",
+      "addressee": null,
+      "notice": null
+    },
+    "usage": [
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 1829,
+        "tokens_out": 12000,
+        "latency_ms": 743877,
+        "cached": false
+      },
+      {
+        "stage": "understand",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 1829,
+        "tokens_out": 1053,
+        "latency_ms": 64271,
+        "cached": false
+      },
+      {
+        "stage": "write",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4445,
+        "tokens_out": 1038,
+        "latency_ms": 64924,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3462,
+        "tokens_out": 1417,
+        "latency_ms": 87246,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 5308,
+        "tokens_out": 979,
+        "latency_ms": 61553,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3551,
+        "tokens_out": 1058,
+        "latency_ms": 64644,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4986,
+        "tokens_out": 539,
+        "latency_ms": 34286,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3640,
+        "tokens_out": 839,
+        "latency_ms": 51340,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4780,
+        "tokens_out": 100,
+        "latency_ms": 7358,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3648,
+        "tokens_out": 863,
+        "latency_ms": 52711,
+        "cached": false
+      },
+      {
+        "stage": "repair",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 4711,
+        "tokens_out": 306,
+        "latency_ms": 19866,
+        "cached": false
+      },
+      {
+        "stage": "judge",
+        "model": "swiss-ai/Apertus-v1.5-8B",
+        "tokens_in": 3679,
+        "tokens_out": 1103,
+        "latency_ms": 67507,
+        "cached": false
+      }
+    ],
+    "error": null
+  },
+  "summary": {
+    "condition": "P2",
+    "mode": "standard",
+    "final_version": 4,
+    "rounds": 3,
+    "facts_rounds": 0,
+    "stop_reason": "stopped after 3 repair rounds",
+    "writer_model": "swiss-ai/Apertus-v1.5-8B",
+    "understand_model": null,
+    "judge_model": "swiss-ai/Apertus-v1.5-8B",
+    "prompt_versions": {
+      "understand": "e8617710a4e4",
+      "write": "29c8e7bbdd53",
+      "judge": "23defb8baab9",
+      "repair": "f8ce7856eb4a",
+      "baseline": "b6d5ec5f7df8",
+      "baseline_zh": "54bcbe5ea8e6"
+    },
+    "blocking_findings": [
+      9,
+      6,
+      5,
+      4,
+      8
+    ],
+    "notes": [],
+    "vocabulary": "0be9454fc9bd",
+    "vocabulary_rounds": 1
+  },
+  "source": {
+    "id": "doc-744d9c41f4",
+    "lang": "de",
+    "title": "praemienverbilligung-brief.txt",
+    "source": {
+      "type": "text",
+      "uri": null,
+      "fetched_at": null,
+      "license_note": null
+    },
+    "segments": [
+      {
+        "id": "s0001",
+        "kind": "heading",
+        "text": "Individuelle Prämienverbilligung 2027",
+        "heading_path": [],
+        "heading_level": 1,
+        "para": 0,
+        "page": null
+      },
+      {
+        "id": "s0002",
+        "kind": "paragraph",
+        "text": "Sehr geehrte Damen und Herren",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 1,
+        "page": null
+      },
+      {
+        "id": "s0003",
+        "kind": "paragraph",
+        "text": "Personen in bescheidenen wirtschaftlichen Verhältnissen haben gemäss dem kantonalen Einführungsgesetz zum Krankenversicherungsgesetz (EG KVG) Anspruch auf eine Verbilligung der Prämien für die obligatorische Krankenpflegeversicherung.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 2,
+        "page": null
+      },
+      {
+        "id": "s0004",
+        "kind": "paragraph",
+        "text": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 2,
+        "page": null
+      },
+      {
+        "id": "s0005",
+        "kind": "paragraph",
+        "text": "Anspruchsberechtigt sind Personen, die am 1. Januar 2027 ihren zivilrechtlichen Wohnsitz in der Gemeinde Musterwil haben und deren massgebendes Einkommen den Betrag von CHF 42'000.- (Alleinstehende) beziehungsweise CHF 61'000.- (Verheiratete) nicht übersteigt.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 3,
+        "page": null
+      },
+      {
+        "id": "s0006",
+        "kind": "paragraph",
+        "text": "Für jedes unterhaltsberechtigte Kind erhöht sich die Einkommensgrenze um CHF 9'000.-.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 3,
+        "page": null
+      },
+      {
+        "id": "s0007",
+        "kind": "paragraph",
+        "text": "Das Antragsformular ist vollständig ausgefüllt und unterzeichnet bis spätestens 31. März 2027 bei der Sozialversicherungsstelle einzureichen.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 4,
+        "page": null
+      },
+      {
+        "id": "s0008",
+        "kind": "paragraph",
+        "text": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 4,
+        "page": null
+      },
+      {
+        "id": "s0009",
+        "kind": "paragraph",
+        "text": "Dem Antrag sind eine Kopie der letzten Steuerveranlagung sowie eine Kopie der Krankenversicherungspolice beizulegen.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 4,
+        "page": null
+      },
+      {
+        "id": "s0010",
+        "kind": "paragraph",
+        "text": "Die Prämienverbilligung wird direkt dem Krankenversicherer ausbezahlt und mit den laufenden Prämienrechnungen verrechnet.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 5,
+        "page": null
+      },
+      {
+        "id": "s0011",
+        "kind": "paragraph",
+        "text": "Eine Barauszahlung an die versicherte Person ist ausgeschlossen.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 5,
+        "page": null
+      },
+      {
+        "id": "s0012",
+        "kind": "paragraph",
+        "text": "Änderungen der persönlichen oder wirtschaftlichen Verhältnisse, namentlich ein Wegzug aus der Gemeinde oder eine wesentliche Erhöhung des Einkommens, sind innert 30 Tagen schriftlich zu melden.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 5,
+        "page": null
+      },
+      {
+        "id": "s0013",
+        "kind": "paragraph",
+        "text": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 5,
+        "page": null
+      },
+      {
+        "id": "s0014",
+        "kind": "paragraph",
+        "text": "Gegen die Verfügung kann innert 30 Tagen seit Zustellung schriftlich Einsprache erhoben werden.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 6,
+        "page": null
+      },
+      {
+        "id": "s0015",
+        "kind": "paragraph",
+        "text": "Die Einsprache ist zu begründen.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 6,
+        "page": null
+      },
+      {
+        "id": "s0016",
+        "kind": "paragraph",
+        "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 7,
+        "page": null
+      },
+      {
+        "id": "s0017",
+        "kind": "paragraph",
+        "text": "Weitere Informationen finden Sie unter www.musterwil.example/ipv.",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 7,
+        "page": null
+      },
+      {
+        "id": "s0018",
+        "kind": "paragraph",
+        "text": "Freundliche Grüsse",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": null,
+        "para": 8,
+        "page": null
+      },
+      {
+        "id": "s0019",
+        "kind": "heading",
+        "text": "Sozialversicherungsstelle Musterwil",
+        "heading_path": [
+          "Individuelle Prämienverbilligung 2027"
+        ],
+        "heading_level": 2,
+        "para": 9,
+        "page": null
+      }
+    ]
+  },
+  "factsheet": {
+    "doc_id": "doc-744d9c41f4",
+    "doc_type": "Merkblatt",
+    "audience": "Personen in bescheidenen wirtschaftlichen Verhältnissen, die in der Gemeinde Musterwil wohnen",
+    "core": {
+      "what": {
+        "text": "Personen in bescheidenen wirtschaftlichen Verhältnissen haben Anspruch auf eine Prämienverbilligung für die obligatorische Krankenpflegeversicherung.",
+        "segment_ids": [
+          "s0003",
+          "s0005"
+        ]
+      },
+      "must_do": {
+        "text": "Antragsformular vollständig ausgefüllt und unterzeichnet bis 31. März 2027 einreichen, Änderungen der Verhältnisse innert 30 Tagen melden.",
+        "segment_ids": [
+          "s0007",
+          "s0012"
+        ]
+      },
+      "deadline": {
+        "text": "Antragsformular bis 31. März 2027 einreichen.",
+        "segment_ids": [
+          "s0007"
+        ]
+      },
+      "cost": {
+        "text": "Keine direkten Kosten, aber Einkommensgrenze für Anspruch.",
+        "segment_ids": [
+          "s0005"
+        ]
+      },
+      "contact": {
+        "text": "Sozialversicherungsstelle, Telefon 044 123 45 67 oder E-Mail ipv@musterwil.example",
+        "segment_ids": [
+          "s0016"
+        ]
+      }
+    },
+    "facts": [
+      {
+        "id": "f01",
+        "kind": "deadline",
+        "text": "Antragsformular muss bis 31. März 2027 eingereicht werden.",
+        "value_norm": "2027-03-31",
+        "segment_ids": [
+          "s0007"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f02",
+        "kind": "amount",
+        "text": "Einkommensgrenze: CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern.",
+        "value_norm": "42000; 61000; 51000; 70000",
+        "segment_ids": [
+          "s0005",
+          "s0006"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f03",
+        "kind": "obligation",
+        "text": "Antragsformular vollständig und unterzeichnet einreichen.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0007"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f04",
+        "kind": "right",
+        "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0003"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f05",
+        "kind": "condition",
+        "text": "Wohnsitz in der Gemeinde Musterwil am 1. Januar 2027.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0005"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f06",
+        "kind": "condition",
+        "text": "Keine wesentliche Einkommenserhöhung oder Wegzug melden innert 30 Tagen.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0012"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f07",
+        "kind": "procedure",
+        "text": "Antrag mit Kopie der Steuerveranlagung und Krankenversicherungspolice einreichen.",
+        "value_norm": null,
+        "segment_ids": [
+          "s0009"
+        ],
+        "must_keep": true,
+        "origin": "model"
+      },
+      {
+        "id": "f08",
+        "kind": "other",
+        "text": "Anspruchsberechtigt sind Personen, die am 1. Januar 2027 ihren zivilrechtlichen Wohnsitz in der Gemeinde Musterwil haben und deren massgebendes Einkommen den Betrag von CHF 42'000.- (Alleinstehende...",
+        "value_norm": "2027-01-01",
+        "segment_ids": [
+          "s0005"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f09",
+        "kind": "amount",
+        "text": "Anspruchsberechtigt sind Personen, die am 1. Januar 2027 ihren zivilrechtlichen Wohnsitz in der Gemeinde Musterwil haben und deren massgebendes Einkommen den Betrag von CHF 42'000.- (Alleinstehende...",
+        "value_norm": "61000",
+        "segment_ids": [
+          "s0005"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f10",
+        "kind": "amount",
+        "text": "Für jedes unterhaltsberechtigte Kind erhöht sich die Einkommensgrenze um CHF 9'000.-.",
+        "value_norm": "9000",
+        "segment_ids": [
+          "s0006"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f11",
+        "kind": "deadline",
+        "text": "Änderungen der persönlichen oder wirtschaftlichen Verhältnisse, namentlich ein Wegzug aus der Gemeinde oder eine wesentliche Erhöhung des Einkommens, sind innert 30 Tagen schriftlich zu melden.",
+        "value_norm": "30 Tage",
+        "segment_ids": [
+          "s0012"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f12",
+        "kind": "other",
+        "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+        "value_norm": "08:30",
+        "segment_ids": [
+          "s0016"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f13",
+        "kind": "other",
+        "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+        "value_norm": "11:30",
+        "segment_ids": [
+          "s0016"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f14",
+        "kind": "contact",
+        "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+        "value_norm": "0441234567",
+        "segment_ids": [
+          "s0016"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f15",
+        "kind": "contact",
+        "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+        "value_norm": "ipv@musterwil.example",
+        "segment_ids": [
+          "s0016"
+        ],
+        "must_keep": true,
+        "origin": "code"
+      },
+      {
+        "id": "f16",
+        "kind": "contact",
+        "text": "Weitere Informationen finden Sie unter www.musterwil.example/ipv.",
+        "value_norm": "www.musterwil.example/ipv",
+        "segment_ids": [
+          "s0017"
+        ],
+        "must_keep": false,
+        "origin": "code"
+      }
+    ],
+    "hard_terms": [
+      {
+        "term": "EG KVG",
+        "explanation": "Einführungsgesetz zum Krankenversicherungsgesetz, das die Prämienverbilligung regelt.",
+        "segment_ids": [
+          "s0003"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "Steuerveranlagung",
+        "explanation": "Die offizielle Steuerbescheinigung, die das Einkommen für die Berechnung der Prämienverbilligung zeigt.",
+        "segment_ids": [
+          "s0004"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "Sozialversicherungsstelle",
+        "explanation": "Die Behörde, die für die Prämienverbilligung zuständig ist und Auskünfte gibt.",
+        "segment_ids": [
+          "s0016",
+          "s0019"
+        ],
+        "origin": "model"
+      },
+      {
+        "term": "massgebendes Einkommen",
+        "explanation": "Dieses Einkommen zählt für einen Entscheid. Das Amt berechnet es nach eigenen Regeln.",
+        "segment_ids": [
+          "s0005"
+        ],
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Prämienverbilligung",
+        "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+        "segment_ids": [
+          "s0001",
+          "s0010"
+        ],
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Einsprache",
+        "explanation": "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal.",
+        "segment_ids": [
+          "s0014",
+          "s0015"
+        ],
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Zustellung",
+        "explanation": "Zustellung heisst: Das Amt schickt Ihnen einen Brief oder einen Entscheid. Oft beginnt an diesem Tag eine Frist.",
+        "segment_ids": [
+          "s0014"
+        ],
+        "origin": "vocabulary"
+      },
+      {
+        "term": "rechtskräftig",
+        "explanation": "Gegen den Entscheid kann sich niemand mehr wehren. Der Entscheid gilt jetzt endgültig.",
+        "segment_ids": [
+          "s0004"
+        ],
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Prämie",
+        "explanation": "Die Prämie ist das Geld für eine Versicherung. Sie bezahlen es regelmässig, zum Beispiel jeden Monat.",
+        "segment_ids": [
+          "s0003"
+        ],
+        "origin": "vocabulary"
+      }
+    ],
+    "omit_candidates": [
+      {
+        "segment_ids": [
+          "s0017"
+        ],
+        "reason": "Internetadresse, für die Leserin nicht nötig"
+      }
+    ]
+  },
+  "drafts": [
+    {
+      "doc_id": "doc-744d9c41f4",
+      "lang": "de",
+      "level": "A2",
+      "version": 1,
+      "parent_version": null,
+      "origin": "write",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "fact_ids": [
+            "f02",
+            "f09"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "sentence",
+          "text": "Für jedes Kind kommt CHF 9'000 mehr dazu.",
+          "fact_ids": [
+            "f10"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Sie reichen das Antrags·formular bis 31. März 2027 ein.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "sentence",
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie legen eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police bei.",
+          "fact_ids": [
+            "f07"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "heading",
+          "text": "Was brauchen Sie?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b010",
+          "kind": "list_item",
+          "text": "das Antrags·formular",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "list_item",
+          "text": "eine Kopie der Steuer·veranlagung",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "sentence",
+          "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0010"
+          ]
+        },
+        {
+          "id": "b013",
+          "kind": "sentence",
+          "text": "Sie bekommen kein Geld zurück.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0011"
+          ]
+        },
+        {
+          "id": "b014",
+          "kind": "sentence",
+          "text": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "fact_ids": [
+            "f12",
+            "f11",
+            "f06"
+          ],
+          "segment_ids": [
+            "s0012"
+          ]
+        },
+        {
+          "id": "b015",
+          "kind": "sentence",
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "fact_ids": [
+            "f14",
+            "f11"
+          ],
+          "segment_ids": [
+            "s0014"
+          ]
+        },
+        {
+          "id": "b016",
+          "kind": "sentence",
+          "text": "Die Einsprache muss begründet sein.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b017",
+          "kind": "sentence",
+          "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018",
+          "kind": "sentence",
+          "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b019",
+          "kind": "heading",
+          "text": "Weitere Fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b020",
+          "kind": "sentence",
+          "text": "Besuchen Sie www.musterwil.example/ipv",
+          "fact_ids": [
+            "f16"
+          ],
+          "segment_ids": [
+            "s0017"
+          ]
+        }
+      ],
+      "omissions": [
+        {
+          "what": "Anrede und Schlussformel",
+          "why": "Nicht nötig für die Leserin oder den Leser",
+          "segment_ids": [
+            "s0003",
+            "s0018"
+          ]
+        }
+      ],
+      "glossary": [
+        {
+          "term": "massgebendes Einkommen",
+          "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+          "origin": "model"
+        },
+        {
+          "term": "Einsprache",
+          "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+          "origin": "model"
+        },
+        {
+          "term": "Prämien·verbilligung",
+          "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Krankenkasse",
+          "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Verfügung",
+          "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "glossary",
+          "rule_id": "SEM-05",
+          "before": "",
+          "after": "Prämienverbilligung"
+        },
+        {
+          "block_id": "glossary",
+          "rule_id": "SEM-05",
+          "before": "",
+          "after": "Krankenkasse"
+        },
+        {
+          "block_id": "glossary",
+          "rule_id": "SEM-05",
+          "before": "",
+          "after": "Verfügung"
+        },
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-01",
+          "before": "Steuerveranlagung",
+          "after": "Steuer·veranlagung"
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-01",
+          "before": "Krankenversicherungspolice",
+          "after": "Kranken·versicherungs·police"
+        },
+        {
+          "block_id": "b010",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "LEX-01",
+          "before": "Steuerveranlagung",
+          "after": "Steuer·veranlagung"
+        },
+        {
+          "block_id": "b012",
+          "rule_id": "LEX-01",
+          "before": "Prämienverbilligung",
+          "after": "Prämien·verbilligung"
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b017",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "glossary",
+          "rule_id": "LEX-01",
+          "before": "Prämienverbilligung",
+          "after": "Prämien·verbilligung"
+        }
+      ]
+    },
+    {
+      "doc_id": "doc-744d9c41f4",
+      "lang": "de",
+      "level": "A2",
+      "version": 2,
+      "parent_version": 1,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "fact_ids": [
+            "f02",
+            "f09"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "sentence",
+          "text": "Für jedes Kind kommt CHF 9'000 mehr dazu.",
+          "fact_ids": [
+            "f10"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Sie reichen das Antrags·formular bis 31. März 2027 ein.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "sentence",
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie legen eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police bei.",
+          "fact_ids": [
+            "f07"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "heading",
+          "text": "Was brauchen Sie?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b009.1",
+          "kind": "sentence",
+          "text": "Sie brauchen das Antrags·formular und eine Kopie der Steuer·veranlagung.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "list_item",
+          "text": "das Antrags·formular",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "list_item",
+          "text": "eine Kopie der Steuer·veranlagung",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "sentence",
+          "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0010"
+          ]
+        },
+        {
+          "id": "b013",
+          "kind": "sentence",
+          "text": "Sie bekommen kein Geld zurück.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0011"
+          ]
+        },
+        {
+          "id": "b014",
+          "kind": "sentence",
+          "text": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "fact_ids": [
+            "f12",
+            "f11",
+            "f06"
+          ],
+          "segment_ids": [
+            "s0012"
+          ]
+        },
+        {
+          "id": "b014.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle prüft Ihre Einsprache.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b015",
+          "kind": "sentence",
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "fact_ids": [
+            "f14",
+            "f11"
+          ],
+          "segment_ids": [
+            "s0014"
+          ]
+        },
+        {
+          "id": "b016",
+          "kind": "sentence",
+          "text": "Die Einsprache muss begründet sein.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b016.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle hilft Ihnen bei Fragen.",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b017",
+          "kind": "sentence",
+          "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018",
+          "kind": "sentence",
+          "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018.1",
+          "kind": "sentence",
+          "text": "Die E-Mail ist eine Nachricht per Computer.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b019",
+          "kind": "heading",
+          "text": "Weitere Fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b020",
+          "kind": "sentence",
+          "text": "Besuchen Sie www.musterwil.example/ipv",
+          "fact_ids": [
+            "f16"
+          ],
+          "segment_ids": [
+            "s0017"
+          ]
+        }
+      ],
+      "omissions": [
+        {
+          "what": "Anrede und Schlussformel",
+          "why": "Nicht nötig für die Leserin oder den Leser",
+          "segment_ids": [
+            "s0003",
+            "s0018"
+          ]
+        }
+      ],
+      "glossary": [
+        {
+          "term": "massgebendes Einkommen",
+          "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+          "origin": "model"
+        },
+        {
+          "term": "Einsprache",
+          "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+          "origin": "model"
+        },
+        {
+          "term": "Prämien·verbilligung",
+          "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Krankenkasse",
+          "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Verfügung",
+          "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "b002",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b009.1",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b009.1",
+          "rule_id": "LEX-01",
+          "before": "Steuerveranlagung",
+          "after": "Steuer·veranlagung"
+        },
+        {
+          "block_id": "b010",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b012",
+          "rule_id": "LEX-01",
+          "before": "Prämienverbilligung",
+          "after": "Prämien·verbilligung"
+        },
+        {
+          "block_id": "b014.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b016.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b017",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        }
+      ]
+    },
+    {
+      "doc_id": "doc-744d9c41f4",
+      "lang": "de",
+      "level": "A2",
+      "version": 3,
+      "parent_version": 2,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "fact_ids": [
+            "f02",
+            "f09"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "sentence",
+          "text": "Für jedes Kind gibt es CHF 9'000 mehr.",
+          "fact_ids": [
+            "f10"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Sie reichen das Antrags·formular bis 31. März 2027 ein.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "sentence",
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie legen eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police bei.",
+          "fact_ids": [
+            "f07"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "heading",
+          "text": "Was brauchen Sie?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b009.1",
+          "kind": "sentence",
+          "text": "Sie brauchen das Antrags·formular.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009.1.1",
+          "kind": "sentence",
+          "text": "Sie brauchen eine Kopie der Steuer·veranlagung.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "list_item",
+          "text": "das Antrags·formular",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "list_item",
+          "text": "eine Kopie der Steuer·veranlagung",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "sentence",
+          "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0010"
+          ]
+        },
+        {
+          "id": "b013",
+          "kind": "sentence",
+          "text": "Sie bekommen kein Geld zurück.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0011"
+          ]
+        },
+        {
+          "id": "b014",
+          "kind": "sentence",
+          "text": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "fact_ids": [
+            "f12",
+            "f11",
+            "f06"
+          ],
+          "segment_ids": [
+            "s0012"
+          ]
+        },
+        {
+          "id": "b014.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle prüft Ihre Einsprache.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b015",
+          "kind": "sentence",
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "fact_ids": [
+            "f14",
+            "f11"
+          ],
+          "segment_ids": [
+            "s0014"
+          ]
+        },
+        {
+          "id": "b016",
+          "kind": "sentence",
+          "text": "Die Einsprache muss begründet sein.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b016.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle hilft Ihnen bei Fragen.",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b016.1.1",
+          "kind": "sentence",
+          "text": "Für Auskünfte steht Ihnen die Sozial·versicherungs·stelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b017",
+          "kind": "sentence",
+          "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018",
+          "kind": "sentence",
+          "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018.1",
+          "kind": "sentence",
+          "text": "Die E-Mail ist eine Nachricht per Computer.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b019",
+          "kind": "heading",
+          "text": "Weitere Fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b020",
+          "kind": "sentence",
+          "text": "Besuchen Sie www.musterwil.example/ipv",
+          "fact_ids": [
+            "f16"
+          ],
+          "segment_ids": [
+            "s0017"
+          ]
+        }
+      ],
+      "omissions": [
+        {
+          "what": "Anrede und Schlussformel",
+          "why": "Nicht nötig für die Leserin oder den Leser",
+          "segment_ids": [
+            "s0003",
+            "s0018"
+          ]
+        }
+      ],
+      "glossary": [
+        {
+          "term": "massgebendes Einkommen",
+          "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+          "origin": "model"
+        },
+        {
+          "term": "Einsprache",
+          "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+          "origin": "model"
+        },
+        {
+          "term": "Prämien·verbilligung",
+          "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Krankenkasse",
+          "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Verfügung",
+          "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "b009.1",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b009.1.1",
+          "rule_id": "LEX-01",
+          "before": "Steuerveranlagung",
+          "after": "Steuer·veranlagung"
+        },
+        {
+          "block_id": "b014.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b016.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        }
+      ]
+    },
+    {
+      "doc_id": "doc-744d9c41f4",
+      "lang": "de",
+      "level": "A2",
+      "version": 4,
+      "parent_version": 3,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "fact_ids": [
+            "f02",
+            "f09"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "sentence",
+          "text": "Für jedes Kind gibt es CHF 9'000 mehr.",
+          "fact_ids": [
+            "f10"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Sie reichen das Antrags·formular bis 31. März 2027 ein.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "sentence",
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie legen eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police bei.",
+          "fact_ids": [
+            "f07"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "heading",
+          "text": "Was brauchen Sie?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b009.1",
+          "kind": "sentence",
+          "text": "Sie brauchen das Antrags·formular.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009.1.1",
+          "kind": "sentence",
+          "text": "Sie brauchen eine Kopie der Steuer·veranlagung.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "list_item",
+          "text": "das Antrags·formular",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "list_item",
+          "text": "eine Kopie der Steuer·veranlagung",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "sentence",
+          "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0010"
+          ]
+        },
+        {
+          "id": "b013",
+          "kind": "sentence",
+          "text": "Sie bekommen kein Geld zurück.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0011"
+          ]
+        },
+        {
+          "id": "b014",
+          "kind": "sentence",
+          "text": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "fact_ids": [
+            "f12",
+            "f11",
+            "f06"
+          ],
+          "segment_ids": [
+            "s0012"
+          ]
+        },
+        {
+          "id": "b014.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle prüft Ihre Einsprache.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b015",
+          "kind": "sentence",
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "fact_ids": [
+            "f14",
+            "f11"
+          ],
+          "segment_ids": [
+            "s0014"
+          ]
+        },
+        {
+          "id": "b016",
+          "kind": "sentence",
+          "text": "Die Einsprache muss begründet sein.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b016.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle hilft Ihnen bei Fragen.",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b016.1.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b016.1.1.1",
+          "kind": "sentence",
+          "text": "Sie erreichen sie telefonisch unter 044 123 45 67 oder per E-Mail an ipv@musterwil.example.",
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b017",
+          "kind": "sentence",
+          "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018",
+          "kind": "sentence",
+          "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018.1",
+          "kind": "sentence",
+          "text": "Die E-Mail ist eine Nachricht per Computer.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b019",
+          "kind": "heading",
+          "text": "Weitere Fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b020",
+          "kind": "sentence",
+          "text": "Besuchen Sie www.musterwil.example/ipv",
+          "fact_ids": [
+            "f16"
+          ],
+          "segment_ids": [
+            "s0017"
+          ]
+        }
+      ],
+      "omissions": [
+        {
+          "what": "Anrede und Schlussformel",
+          "why": "Nicht nötig für die Leserin oder den Leser",
+          "segment_ids": [
+            "s0003",
+            "s0018"
+          ]
+        }
+      ],
+      "glossary": [
+        {
+          "term": "massgebendes Einkommen",
+          "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+          "origin": "model"
+        },
+        {
+          "term": "Einsprache",
+          "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+          "origin": "model"
+        },
+        {
+          "term": "Prämien·verbilligung",
+          "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Krankenkasse",
+          "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Verfügung",
+          "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        }
+      ]
+    },
+    {
+      "doc_id": "doc-744d9c41f4",
+      "lang": "de",
+      "level": "A2",
+      "version": 5,
+      "parent_version": 4,
+      "origin": "repair",
+      "blocks": [
+        {
+          "id": "b001",
+          "kind": "heading",
+          "text": "Was müssen Sie tun?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b002",
+          "kind": "sentence",
+          "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0002"
+          ]
+        },
+        {
+          "id": "b003",
+          "kind": "sentence",
+          "text": "Sie haben am 1. Januar 2027 Wohnort in Musterwil.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b003.1",
+          "kind": "sentence",
+          "text": "Ihr Wohnort ist in der Gemeinde Musterwil am 1. Januar 2027.",
+          "fact_ids": [
+            "f05",
+            "f08"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b004",
+          "kind": "sentence",
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (wenn Sie allein leben) oder CHF 61'000 (wenn Sie verheiratet sind).",
+          "fact_ids": [
+            "f02",
+            "f09"
+          ],
+          "segment_ids": [
+            "s0005"
+          ]
+        },
+        {
+          "id": "b005",
+          "kind": "sentence",
+          "text": "Für jedes Kind gibt es CHF 9'000 mehr.",
+          "fact_ids": [
+            "f10"
+          ],
+          "segment_ids": [
+            "s0006"
+          ]
+        },
+        {
+          "id": "b006",
+          "kind": "sentence",
+          "text": "Sie schicken das Antrags·formular bis 31. März 2027 ein.",
+          "fact_ids": [
+            "f01"
+          ],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b007",
+          "kind": "sentence",
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "fact_ids": [
+            "f03"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b008",
+          "kind": "sentence",
+          "text": "Sie mitschicken eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police.",
+          "fact_ids": [
+            "f07"
+          ],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009",
+          "kind": "heading",
+          "text": "Was brauchen Sie?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b009.1",
+          "kind": "sentence",
+          "text": "Sie brauchen das Antrags·formular.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b009.1.1",
+          "kind": "sentence",
+          "text": "Sie brauchen eine Kopie der Steuer·veranlagung.",
+          "fact_ids": [
+            "f02",
+            "f07"
+          ],
+          "segment_ids": [
+            "s0010",
+            "s0009"
+          ]
+        },
+        {
+          "id": "b010",
+          "kind": "list_item",
+          "text": "das Antrags·formular",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0007"
+          ]
+        },
+        {
+          "id": "b011",
+          "kind": "list_item",
+          "text": "eine Kopie der Steuer·veranlagung",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0009"
+          ]
+        },
+        {
+          "id": "b012",
+          "kind": "sentence",
+          "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0010"
+          ]
+        },
+        {
+          "id": "b013",
+          "kind": "sentence",
+          "text": "Sie bekommen kein Geld zurück.",
+          "fact_ids": [],
+          "segment_ids": [
+            "s0011"
+          ]
+        },
+        {
+          "id": "b014",
+          "kind": "sentence",
+          "text": "Sagen Sie der Sozial·versicherungs·stelle innerhalb von 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "fact_ids": [
+            "f12",
+            "f11",
+            "f06"
+          ],
+          "segment_ids": [
+            "s0012"
+          ]
+        },
+        {
+          "id": "b014.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle prüft Ihre Einsprache.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b015",
+          "kind": "sentence",
+          "text": "Gegen die Verfügung können Sie innerhalb von 30 Tagen Einsprache schreiben.",
+          "fact_ids": [
+            "f14",
+            "f11"
+          ],
+          "segment_ids": [
+            "s0014"
+          ]
+        },
+        {
+          "id": "b016",
+          "kind": "sentence",
+          "text": "Die Einsprache muss begründet sein.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0015"
+          ]
+        },
+        {
+          "id": "b016.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle hilft Ihnen bei Fragen.",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b016.1.1",
+          "kind": "sentence",
+          "text": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b016.1.1.1",
+          "kind": "sentence",
+          "text": "Sie erreichen sie telefonisch unter 044 123 45 67 oder per E-Mail an ipv@musterwil.example.",
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b017",
+          "kind": "sentence",
+          "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+          "fact_ids": [
+            "f14"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018",
+          "kind": "sentence",
+          "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b018.1",
+          "kind": "sentence",
+          "text": "Die E-Mail ist eine Nachricht per Computer.",
+          "fact_ids": [
+            "f15"
+          ],
+          "segment_ids": [
+            "s0016"
+          ]
+        },
+        {
+          "id": "b019",
+          "kind": "heading",
+          "text": "Weitere Fragen?",
+          "fact_ids": [],
+          "segment_ids": []
+        },
+        {
+          "id": "b020",
+          "kind": "sentence",
+          "text": "Besuchen Sie www.musterwil.example/ipv",
+          "fact_ids": [
+            "f16"
+          ],
+          "segment_ids": [
+            "s0017"
+          ]
+        }
+      ],
+      "omissions": [
+        {
+          "what": "Anrede und Schlussformel",
+          "why": "Nicht nötig für die Leserin oder den Leser",
+          "segment_ids": [
+            "s0003",
+            "s0018"
+          ]
+        }
+      ],
+      "glossary": [
+        {
+          "term": "massgebendes Einkommen",
+          "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+          "origin": "model"
+        },
+        {
+          "term": "Einsprache",
+          "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+          "origin": "model"
+        },
+        {
+          "term": "Prämien·verbilligung",
+          "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Krankenkasse",
+          "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+          "origin": "vocabulary"
+        },
+        {
+          "term": "Verfügung",
+          "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+          "origin": "vocabulary"
+        }
+      ],
+      "code_edits": [
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-01",
+          "before": "Antragsformular",
+          "after": "Antrags·formular"
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-01",
+          "before": "Steuerveranlagung",
+          "after": "Steuer·veranlagung"
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-01",
+          "before": "Krankenversicherungspolice",
+          "after": "Kranken·versicherungs·police"
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-01",
+          "before": "Sozialversicherungsstelle",
+          "after": "Sozial·versicherungs·stelle"
+        }
+      ]
+    }
+  ],
+  "rule_findings": [
+    {
+      "draft_version": 1,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Wohnsitz': simpler is Wohnort.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Wohnsitz",
+            "easy": "Wohnort"
+          },
+          "evidence": "Wohnsitz",
+          "suggestion": "Wohnort",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-04",
+          "severity": "warn",
+          "message": "Rare punctuation '('.",
+          "message_key": "LEX-04",
+          "message_params": {
+            "found": "("
+          },
+          "evidence": "(",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Alleinstehend': simpler is lebt allein.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Alleinstehend",
+            "easy": "lebt allein"
+          },
+          "evidence": "Alleinstehend",
+          "suggestion": "lebt allein",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'nicht': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "nicht"
+          },
+          "evidence": "nicht",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b005",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'CHF' comes after the verb 'kommt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "CHF",
+            "verb": "kommt"
+          },
+          "evidence": "Für jedes Kind kommt CHF 9'000 mehr dazu.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'reichen ... ein': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "reichen ... ein",
+            "easy": "schicken"
+          },
+          "evidence": "reichen ... ein",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b007",
+          "rule_id": "LEX-01",
+          "severity": "info",
+          "message": "'unterschrieben' is long (14 letters): use a shorter word if there is one.",
+          "message_key": "LEX-01.no_compound",
+          "message_params": {
+            "found": "unterschrieben",
+            "letters": 14
+          },
+          "evidence": "unterschrieben",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'legen ... bei': simpler is mitschicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "legen ... bei",
+            "easy": "mitschicken"
+          },
+          "evidence": "legen ... bei",
+          "suggestion": "mitschicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b013",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'kein': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "kein"
+          },
+          "evidence": "kein",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 15 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 15,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('wenn'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Sozial·versicherungs·stelle': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Sozial·versicherungs·stelle"
+          },
+          "evidence": "der Sozial·versicherungs·stelle",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'können'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "können"
+          },
+          "evidence": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schreiben'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schreiben"
+          },
+          "evidence": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-01",
+          "severity": "error",
+          "message": "Fact f12 is missing or changed: Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung. (expected 8.30 Uhr).",
+          "message_key": "FACT-01",
+          "message_params": {
+            "fact": "f12",
+            "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+            "expected": "8.30 Uhr"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": "8.30 Uhr",
+          "fact_id": "f12",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-01",
+          "severity": "error",
+          "message": "Fact f13 is missing or changed: Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung. (expected 11.30 Uhr).",
+          "message_key": "FACT-01",
+          "message_params": {
+            "fact": "f13",
+            "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+            "expected": "11.30 Uhr"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": "11.30 Uhr",
+          "fact_id": "f13",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-02",
+          "severity": "error",
+          "message": "No block conveys fact f04: Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "message_key": "FACT-02",
+          "message_params": {
+            "fact": "f04",
+            "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen."
+          },
+          "evidence": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "suggestion": null,
+          "fact_id": "f04",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0004 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0004"
+          },
+          "evidence": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0008 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0008"
+          },
+          "evidence": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0008"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0013 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0013"
+          },
+          "evidence": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0013"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 51 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "51",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 20,
+        "sentences": 17,
+        "words": 128,
+        "avg_words": 7.53,
+        "max_words": 15,
+        "pct_passive": 0.0,
+        "pct_genitive": 17.6,
+        "pct_subordinate": 5.9,
+        "readability": 50.5,
+        "readability_formula": "amstad",
+        "facts_total": 10,
+        "facts_found": 8,
+        "fact_coverage": 0.8
+      }
+    },
+    {
+      "draft_version": 2,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Wohnsitz': simpler is Wohnort.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Wohnsitz",
+            "easy": "Wohnort"
+          },
+          "evidence": "Wohnsitz",
+          "suggestion": "Wohnort",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-04",
+          "severity": "warn",
+          "message": "Rare punctuation '('.",
+          "message_key": "LEX-04",
+          "message_params": {
+            "found": "("
+          },
+          "evidence": "(",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Alleinstehend': simpler is lebt allein.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Alleinstehend",
+            "easy": "lebt allein"
+          },
+          "evidence": "Alleinstehend",
+          "suggestion": "lebt allein",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'nicht': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "nicht"
+          },
+          "evidence": "nicht",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b005",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'CHF' comes after the verb 'kommt'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "CHF",
+            "verb": "kommt"
+          },
+          "evidence": "Für jedes Kind kommt CHF 9'000 mehr dazu.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'reichen ... ein': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "reichen ... ein",
+            "easy": "schicken"
+          },
+          "evidence": "reichen ... ein",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b007",
+          "rule_id": "LEX-01",
+          "severity": "info",
+          "message": "'unterschrieben' is long (14 letters): use a shorter word if there is one.",
+          "message_key": "LEX-01.no_compound",
+          "message_params": {
+            "found": "unterschrieben",
+            "letters": 14
+          },
+          "evidence": "unterschrieben",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'legen ... bei': simpler is mitschicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "legen ... bei",
+            "easy": "mitschicken"
+          },
+          "evidence": "legen ... bei",
+          "suggestion": "mitschicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b009.1",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b013",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'kein': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "kein"
+          },
+          "evidence": "kein",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 15 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 15,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('wenn'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Sozial·versicherungs·stelle': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Sozial·versicherungs·stelle"
+          },
+          "evidence": "der Sozial·versicherungs·stelle",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'können'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "können"
+          },
+          "evidence": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schreiben'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schreiben"
+          },
+          "evidence": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-01",
+          "severity": "error",
+          "message": "Fact f12 is missing or changed: Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung. (expected 8.30 Uhr).",
+          "message_key": "FACT-01",
+          "message_params": {
+            "fact": "f12",
+            "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+            "expected": "8.30 Uhr"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": "8.30 Uhr",
+          "fact_id": "f12",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-01",
+          "severity": "error",
+          "message": "Fact f13 is missing or changed: Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung. (expected 11.30 Uhr).",
+          "message_key": "FACT-01",
+          "message_params": {
+            "fact": "f13",
+            "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+            "expected": "11.30 Uhr"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": "11.30 Uhr",
+          "fact_id": "f13",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-02",
+          "severity": "error",
+          "message": "No block conveys fact f04: Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "message_key": "FACT-02",
+          "message_params": {
+            "fact": "f04",
+            "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen."
+          },
+          "evidence": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "suggestion": null,
+          "fact_id": "f04",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0004 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0004"
+          },
+          "evidence": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0008 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0008"
+          },
+          "evidence": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0008"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0013 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0013"
+          },
+          "evidence": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0013"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 47 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "47",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 24,
+        "sentences": 21,
+        "words": 155,
+        "avg_words": 7.38,
+        "max_words": 15,
+        "pct_passive": 0.0,
+        "pct_genitive": 19.0,
+        "pct_subordinate": 4.8,
+        "readability": 47.3,
+        "readability_formula": "amstad",
+        "facts_total": 10,
+        "facts_found": 8,
+        "fact_coverage": 0.8
+      }
+    },
+    {
+      "draft_version": 3,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Wohnsitz': simpler is Wohnort.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Wohnsitz",
+            "easy": "Wohnort"
+          },
+          "evidence": "Wohnsitz",
+          "suggestion": "Wohnort",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-04",
+          "severity": "warn",
+          "message": "Rare punctuation '('.",
+          "message_key": "LEX-04",
+          "message_params": {
+            "found": "("
+          },
+          "evidence": "(",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Alleinstehend': simpler is lebt allein.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Alleinstehend",
+            "easy": "lebt allein"
+          },
+          "evidence": "Alleinstehend",
+          "suggestion": "lebt allein",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'nicht': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "nicht"
+          },
+          "evidence": "nicht",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'reichen ... ein': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "reichen ... ein",
+            "easy": "schicken"
+          },
+          "evidence": "reichen ... ein",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b007",
+          "rule_id": "LEX-01",
+          "severity": "info",
+          "message": "'unterschrieben' is long (14 letters): use a shorter word if there is one.",
+          "message_key": "LEX-01.no_compound",
+          "message_params": {
+            "found": "unterschrieben",
+            "letters": 14
+          },
+          "evidence": "unterschrieben",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'legen ... bei': simpler is mitschicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "legen ... bei",
+            "easy": "mitschicken"
+          },
+          "evidence": "legen ... bei",
+          "suggestion": "mitschicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b009.1.1",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b013",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'kein': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "kein"
+          },
+          "evidence": "kein",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 15 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 15,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('wenn'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Sozial·versicherungs·stelle': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Sozial·versicherungs·stelle"
+          },
+          "evidence": "der Sozial·versicherungs·stelle",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'können'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "können"
+          },
+          "evidence": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "LEN-01",
+          "severity": "error",
+          "message": "The sentence has 24 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 24,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozial·versicherungs·stelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sozial·versicherungs·stelle' comes after the verb 'steht'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sozial·versicherungs·stelle",
+            "verb": "steht"
+          },
+          "evidence": "Für Auskünfte steht Ihnen die Sozial·versicherungs·stelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schreiben'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schreiben"
+          },
+          "evidence": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-02",
+          "severity": "error",
+          "message": "No block conveys fact f04: Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "message_key": "FACT-02",
+          "message_params": {
+            "fact": "f04",
+            "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen."
+          },
+          "evidence": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "suggestion": null,
+          "fact_id": "f04",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0004 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0004"
+          },
+          "evidence": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0008 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0008"
+          },
+          "evidence": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0008"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0013 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0013"
+          },
+          "evidence": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0013"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 48 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "48",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "LAY-03",
+          "severity": "info",
+          "message": "3 headings for 26 blocks: add headings, ideally as the reader's questions.",
+          "message_key": "LAY-03.few",
+          "message_params": {
+            "n": 3,
+            "blocks": 26
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 26,
+        "sentences": 23,
+        "words": 180,
+        "avg_words": 7.83,
+        "max_words": 24,
+        "pct_passive": 0.0,
+        "pct_genitive": 17.4,
+        "pct_subordinate": 4.3,
+        "readability": 48.0,
+        "readability_formula": "amstad",
+        "facts_total": 10,
+        "facts_found": 10,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "draft_version": 4,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b003",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Wohnsitz': simpler is Wohnort.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Wohnsitz",
+            "easy": "Wohnort"
+          },
+          "evidence": "Wohnsitz",
+          "suggestion": "Wohnort",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-04",
+          "severity": "warn",
+          "message": "Rare punctuation '('.",
+          "message_key": "LEX-04",
+          "message_params": {
+            "found": "("
+          },
+          "evidence": "(",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'Alleinstehend': simpler is lebt allein.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "Alleinstehend",
+            "easy": "lebt allein"
+          },
+          "evidence": "Alleinstehend",
+          "suggestion": "lebt allein",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'nicht': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "nicht"
+          },
+          "evidence": "nicht",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b006",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'reichen ... ein': simpler is schicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "reichen ... ein",
+            "easy": "schicken"
+          },
+          "evidence": "reichen ... ein",
+          "suggestion": "schicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b007",
+          "rule_id": "LEX-01",
+          "severity": "info",
+          "message": "'unterschrieben' is long (14 letters): use a shorter word if there is one.",
+          "message_key": "LEX-01.no_compound",
+          "message_params": {
+            "found": "unterschrieben",
+            "letters": 14
+          },
+          "evidence": "unterschrieben",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'legen ... bei': simpler is mitschicken.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "legen ... bei",
+            "easy": "mitschicken"
+          },
+          "evidence": "legen ... bei",
+          "suggestion": "mitschicken",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b009.1.1",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b013",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'kein': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "kein"
+          },
+          "evidence": "kein",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 15 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 15,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('wenn'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Sozial·versicherungs·stelle': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Sozial·versicherungs·stelle"
+          },
+          "evidence": "der Sozial·versicherungs·stelle",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "LEX-07",
+          "severity": "warn",
+          "message": "Office word 'innert': simpler is innerhalb von.",
+          "message_key": "LEX-07",
+          "message_params": {
+            "found": "innert",
+            "easy": "innerhalb von"
+          },
+          "evidence": "innert",
+          "suggestion": "innerhalb von",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'können'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "können"
+          },
+          "evidence": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schreiben'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schreiben"
+          },
+          "evidence": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-02",
+          "severity": "error",
+          "message": "No block conveys fact f04: Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "message_key": "FACT-02",
+          "message_params": {
+            "fact": "f04",
+            "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen."
+          },
+          "evidence": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "suggestion": null,
+          "fact_id": "f04",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0004 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0004"
+          },
+          "evidence": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0008 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0008"
+          },
+          "evidence": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0008"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0013 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0013"
+          },
+          "evidence": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0013"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 49 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "49",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "LAY-03",
+          "severity": "info",
+          "message": "3 headings for 27 blocks: add headings, ideally as the reader's questions.",
+          "message_key": "LAY-03.few",
+          "message_params": {
+            "n": 3,
+            "blocks": 27
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 27,
+        "sentences": 24,
+        "words": 180,
+        "avg_words": 7.5,
+        "max_words": 15,
+        "pct_passive": 0.0,
+        "pct_genitive": 16.7,
+        "pct_subordinate": 4.2,
+        "readability": 48.7,
+        "readability_formula": "amstad",
+        "facts_total": 10,
+        "facts_found": 10,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "draft_version": 5,
+      "level": "A2",
+      "findings": [
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-01",
+          "severity": "error",
+          "message": "The sentence has 19 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 19,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (wenn Sie allein leben) oder CHF 61'000 (wenn Sie verheiratet sind).",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEN-02",
+          "severity": "error",
+          "message": "Subordinate clause ('wenn'): 4 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 4,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Ihr Einkommen ist nicht höher als CHF 42'000 (wenn Sie allein leben) oder CHF 61'000 (wenn Sie verheiratet sind).",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "LEX-04",
+          "severity": "warn",
+          "message": "Rare punctuation '('.",
+          "message_key": "LEX-04",
+          "message_params": {
+            "found": "("
+          },
+          "evidence": "(",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b004",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'nicht': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "nicht"
+          },
+          "evidence": "nicht",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b007",
+          "rule_id": "LEX-01",
+          "severity": "info",
+          "message": "'unterschrieben' is long (14 letters): use a shorter word if there is one.",
+          "message_key": "LEX-01.no_compound",
+          "message_params": {
+            "found": "unterschrieben",
+            "letters": 14
+          },
+          "evidence": "unterschrieben",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-08",
+          "severity": "error",
+          "message": "'mitschicken' is a separable verb written as one word: in a main clause the prefix goes to the end (schicken ... mit).",
+          "message_key": "GRAM-08",
+          "message_params": {
+            "found": "mitschicken",
+            "expected": "schicken ... mit"
+          },
+          "evidence": "mitschicken",
+          "suggestion": "schicken ... mit",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b008",
+          "rule_id": "LEX-03",
+          "severity": "info",
+          "message": "Rare word 'mitschicken': use a common word or explain it.",
+          "message_key": "LEX-03",
+          "message_params": {
+            "found": "mitschicken"
+          },
+          "evidence": "mitschicken",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b009.1.1",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b011",
+          "rule_id": "GRAM-02",
+          "severity": "warn",
+          "message": "Genitive 'der Steuer·veranlagung': use von + dative or rephrase.",
+          "message_key": "GRAM-02",
+          "message_params": {
+            "found": "der Steuer·veranlagung"
+          },
+          "evidence": "der Steuer·veranlagung",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b013",
+          "rule_id": "NEG-02",
+          "severity": "info",
+          "message": "Negation 'kein': can it be said positively?",
+          "message_key": "NEG-02",
+          "message_params": {
+            "found": "kein"
+          },
+          "evidence": "kein",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-01",
+          "severity": "error",
+          "message": "The sentence has 16 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 16,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innerhalb von 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b014",
+          "rule_id": "LEN-02",
+          "severity": "warn",
+          "message": "Subordinate clause ('wenn'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+          "message_key": "LEN-02.sub",
+          "message_params": {
+            "opener": "wenn",
+            "clauses": 2,
+            "limit": 1,
+            "level": "A2"
+          },
+          "evidence": "Sagen Sie der Sozial·versicherungs·stelle innerhalb von 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "suggestion": "Machen Sie eine Frage und eine Antwort mit Dann. (Verdienen Sie wenig? Dann bekommen Sie Geld.) Nie vielleicht: die Bedingung bleibt eine Bedingung.",
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b015",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'können'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "können"
+          },
+          "evidence": "Gegen die Verfügung können Sie innerhalb von 30 Tagen Einsprache schreiben.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "LEN-01",
+          "severity": "warn",
+          "message": "The sentence has 13 words; the limit for A2 is 12.",
+          "message_key": "LEN-01",
+          "message_params": {
+            "words": 13,
+            "limit": 12,
+            "level": "A2"
+          },
+          "evidence": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "ORD-01",
+          "severity": "info",
+          "message": "The subject 'Sie' comes after the verb 'schreiben'.",
+          "message_key": "ORD-01",
+          "message_params": {
+            "subject": "Sie",
+            "verb": "schreiben"
+          },
+          "evidence": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-02",
+          "severity": "error",
+          "message": "No block conveys fact f04: Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "message_key": "FACT-02",
+          "message_params": {
+            "fact": "f04",
+            "text": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen."
+          },
+          "evidence": "Anspruch auf Prämienverbilligung bei Erfüllung der Voraussetzungen.",
+          "suggestion": null,
+          "fact_id": "f04",
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0004 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0004"
+          },
+          "evidence": "Massgebend für die Berechnung ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0004"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0008 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0008"
+          },
+          "evidence": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0008"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "FACT-04",
+          "severity": "warn",
+          "message": "Source sentence s0013 is neither used nor listed as omitted.",
+          "message_key": "FACT-04.single",
+          "message_params": {
+            "sentence": "s0013"
+          },
+          "evidence": "Zu Unrecht bezogene Leistungen werden zurückgefordert.",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": [
+            "s0013"
+          ]
+        },
+        {
+          "block_id": null,
+          "rule_id": "READ-01",
+          "severity": "warn",
+          "message": "Amstad readability 51 is below the target 70 for A2.",
+          "message_key": "READ-01.below",
+          "message_params": {
+            "formula": "Amstad",
+            "score": "51",
+            "target": "70",
+            "level": "A2"
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        },
+        {
+          "block_id": null,
+          "rule_id": "LAY-03",
+          "severity": "info",
+          "message": "3 headings for 28 blocks: add headings, ideally as the reader's questions.",
+          "message_key": "LAY-03.few",
+          "message_params": {
+            "n": 3,
+            "blocks": 28
+          },
+          "evidence": "",
+          "suggestion": null,
+          "fact_id": null,
+          "segment_ids": []
+        }
+      ],
+      "metrics": {
+        "blocks": 28,
+        "sentences": 26,
+        "words": 198,
+        "avg_words": 7.62,
+        "max_words": 19,
+        "pct_passive": 0.0,
+        "pct_genitive": 11.5,
+        "pct_subordinate": 7.7,
+        "readability": 51.4,
+        "readability_formula": "amstad",
+        "facts_total": 10,
+        "facts_found": 10,
+        "fact_coverage": 1.0
+      }
+    }
+  ],
+  "judge_reports": [
+    {
+      "draft_version": 1,
+      "model": "swiss-ai/Apertus-v1.5-8B",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b007"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f04",
+          "status": "present",
+          "block_ids": [
+            "b005"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f05",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f06",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f07",
+          "status": "present",
+          "block_ids": [
+            "b008"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f08",
+          "status": "distorted",
+          "block_ids": [
+            "b005"
+          ],
+          "note": "Im Original steht CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern. Im Entwurf steht nur CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet)."
+        },
+        {
+          "fact_id": "f09",
+          "status": "distorted",
+          "block_ids": [
+            "b005"
+          ],
+          "note": "Im Original steht CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern. Im Entwurf steht nur CHF 61'000 (Verheiratet)."
+        },
+        {
+          "fact_id": "f10",
+          "status": "present",
+          "block_ids": [
+            "b012"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f11",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f12",
+          "status": "present",
+          "block_ids": [
+            "b015"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f13",
+          "status": "present",
+          "block_ids": [
+            "b016"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f14",
+          "status": "present",
+          "block_ids": [
+            "b017"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f15",
+          "status": "present",
+          "block_ids": [
+            "b018"
+          ],
+          "note": ""
+        }
+      ],
+      "unsupported": [
+        {
+          "block_id": "b001",
+          "note": "Der Block 'Was müssen Sie tun?' steht im Entwurf, aber im Original gibt es diesen Block nicht. Das Original beschreibt die Anspruchsvoraussetzungen, nicht die Schritte."
+        },
+        {
+          "block_id": "b009",
+          "note": "Der Block '# Was brauchen Sie?' steht im Entwurf, aber im Original gibt es diesen Block nicht. Das Original beschreibt die Anspruchsvoraussetzungen, nicht die benötigten Unterlagen."
+        },
+        {
+          "block_id": "b010",
+          "note": "Die Aufzählung '- das Antragsformular', '- eine Kopie der Steuerveranlagung' steht im Entwurf, aber im Original wird nicht explizit aufgelistet, was beigefügt werden muss. Im Original wird nur erwähnt, dass eine Kopie der Steuerveranlagung und der Krankenversicherungspolice beizulegen sind, aber die Aufzählung ist nicht identisch."
+        },
+        {
+          "block_id": "b019",
+          "note": "Der Block '# Weitere Fragen?' steht im Entwurf, aber im Original gibt es diesen Block nicht. Das Original enthält keine Aufforderung zu weiteren Fragen."
+        },
+        {
+          "block_id": "b020",
+          "note": "Die Internetadresse 'www.musterwil.example/ipv' steht im Entwurf, aber im Original gibt es diesen Block nicht. Das Original erwähnt keine Internetadresse."
+        }
+      ],
+      "semantic_findings": [
+        {
+          "block_id": "b002",
+          "rule_id": "SEM-04",
+          "note": "Was die Sozialversicherungsstelle ist, wird nicht erklärt. Das Amt wird erwähnt, aber nicht definiert."
+        },
+        {
+          "block_id": "b005",
+          "rule_id": "SEM-02",
+          "note": "Das Nomen 'Einkommen' ist abstrakt. Eine konkretere Formulierung wäre 'Ihr Einkommen' oder 'Ihr massgebendes Einkommen'."
+        },
+        {
+          "block_id": "b012",
+          "rule_id": "SEM-04",
+          "note": "Der Begriff 'Prämienverbilligung' wird verwendet, ohne dass das Amt oder der Ablauf erklärt wird, obwohl dies im Original als EG KVG definiert ist."
+        },
+        {
+          "block_id": "b016",
+          "rule_id": "SEM-04",
+          "note": "Der Begriff 'Verfügung' wird verwendet, ohne dass der Ablauf oder das Amt erklärt wird, obwohl dies im Original als Entscheid des Amts definiert ist."
+        },
+        {
+          "block_id": "b017",
+          "rule_id": "SEM-04",
+          "note": "Der Begriff 'Einsprache' wird verwendet, ohne dass der Ablauf oder das Amt erklärt wird, obwohl dies im Original als schriftliche Eingabe an das Amt definiert ist."
+        },
+        {
+          "block_id": "b018",
+          "rule_id": "SEM-04",
+          "note": "Der Begriff 'E-Mail' wird verwendet, ohne dass erklärt wird, dass es sich um eine elektronische Nachricht handelt, obwohl dies im Original als Kommunikationsmittel erwähnt ist."
+        },
+        {
+          "block_id": "b020",
+          "rule_id": "SEM-04",
+          "note": "Die Internetadresse 'www.musterwil.example/ipv' wird erwähnt, ohne dass erklärt wird, was 'ipv' bedeutet oder was die Adresse ist, obwohl dies im Original nicht definiert ist."
+        }
+      ]
+    },
+    {
+      "draft_version": 2,
+      "model": "swiss-ai/Apertus-v1.5-8B",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b007"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f04",
+          "status": "present",
+          "block_ids": [
+            "b005"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f05",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f06",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f07",
+          "status": "present",
+          "block_ids": [
+            "b008"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f08",
+          "status": "distorted",
+          "block_ids": [
+            "b005"
+          ],
+          "note": "Im Original steht CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern. Im Entwurf steht nur CHF 42'000 bzw. CHF 61'000."
+        },
+        {
+          "fact_id": "f09",
+          "status": "distorted",
+          "block_ids": [
+            "b009.1"
+          ],
+          "note": "Im Original steht CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern. Im Entwurf steht nur CHF 61'000."
+        },
+        {
+          "fact_id": "f10",
+          "status": "present",
+          "block_ids": [
+            "b012"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f11",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f12",
+          "status": "present",
+          "block_ids": [
+            "b015"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f13",
+          "status": "present",
+          "block_ids": [
+            "b016.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f14",
+          "status": "present",
+          "block_ids": [
+            "b017"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f15",
+          "status": "present",
+          "block_ids": [
+            "b018"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f16",
+          "status": "missing",
+          "block_ids": [],
+          "note": "Die Information, dass die Prämienverbilligung direkt an die Krankenkasse bezahlt wird, fehlt im Entwurf."
+        }
+      ],
+      "unsupported": [
+        {
+          "block_id": "b009.1",
+          "note": "Das Original sagt nicht, dass eine Kopie der Steuerveranlagung und der Krankenversicherungspolice beigefügt werden muss."
+        }
+      ],
+      "semantic_findings": [
+        {
+          "block_id": "b002",
+          "rule_id": "SEM-04",
+          "note": "Was die Sozialversicherungsstelle ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b005",
+          "rule_id": "SEM-04",
+          "note": "Was massgebendes Einkommen ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b009.1",
+          "rule_id": "SEM-04",
+          "note": "Was eine Steuerveranlagung ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b012",
+          "rule_id": "SEM-04",
+          "note": "Was eine Krankenversicherungspolice ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b014.1",
+          "rule_id": "SEM-04",
+          "note": "Was eine Einsprache ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b016.1",
+          "rule_id": "SEM-04",
+          "note": "Was eine E-Mail ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b018.1",
+          "rule_id": "SEM-04",
+          "note": "Was eine Nachricht per Computer ist, wird nicht erklärt."
+        }
+      ]
+    },
+    {
+      "draft_version": 3,
+      "model": "swiss-ai/Apertus-v1.5-8B",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b007"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f04",
+          "status": "present",
+          "block_ids": [
+            "b005"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f05",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f06",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f07",
+          "status": "present",
+          "block_ids": [
+            "b008"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f08",
+          "status": "distorted",
+          "block_ids": [
+            "b005"
+          ],
+          "note": "Im Original steht CHF 42'000 bzw. CHF 61'000, im Entwurf nur CHF 42'000 bzw. CHF 61'000 ohne Hinweis auf Kinder."
+        },
+        {
+          "fact_id": "f09",
+          "status": "distorted",
+          "block_ids": [
+            "b009.1.1"
+          ],
+          "note": "Im Original steht CHF 42'000 bzw. CHF 61'000, im Entwurf nur CHF 61'000."
+        },
+        {
+          "fact_id": "f10",
+          "status": "present",
+          "block_ids": [
+            "b012"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f11",
+          "status": "present",
+          "block_ids": [
+            "b014.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f12",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f13",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f14",
+          "status": "present",
+          "block_ids": [
+            "b015"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f15",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f16",
+          "status": "missing",
+          "block_ids": [],
+          "note": "Die Information, dass die Prämienverbilligung direkt an die Krankenkasse bezahlt wird, fehlt im Entwurf."
+        }
+      ],
+      "unsupported": [
+        {
+          "block_id": "b002",
+          "note": "Das Original sagt nicht, dass man sich bei der Sozialversicherungsstelle anmelden muss, sondern dass man einen Antrag einreicht."
+        }
+      ],
+      "semantic_findings": [
+        {
+          "block_id": "b005",
+          "rule_id": "SEM-02",
+          "note": "Das Nomen 'Einkommen' ist abstrakt, konkreter wäre 'Einkommensbetrag'."
+        },
+        {
+          "block_id": "b016.1.1",
+          "rule_id": "SEM-04",
+          "note": "Was die Öffnungszeiten der Sozialversicherungsstelle ist, wird nicht erklärt."
+        },
+        {
+          "block_id": "b018.1",
+          "rule_id": "SEM-04",
+          "note": "Was eine E-Mail ist, wird nicht erklärt."
+        }
+      ]
+    },
+    {
+      "draft_version": 4,
+      "model": "swiss-ai/Apertus-v1.5-8B",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b007"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f04",
+          "status": "present",
+          "block_ids": [
+            "b005"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f05",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f06",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f07",
+          "status": "present",
+          "block_ids": [
+            "b008"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f08",
+          "status": "distorted",
+          "block_ids": [
+            "b005"
+          ],
+          "note": "Im Original steht CHF 42'000 bzw. CHF 61'000, im Entwurf nur CHF 42'000 bzw. CHF 61'000 ohne Hinweis auf Kinder."
+        },
+        {
+          "fact_id": "f09",
+          "status": "distorted",
+          "block_ids": [
+            "b009.1.1"
+          ],
+          "note": "Im Original steht CHF 42'000 bzw. CHF 61'000, im Entwurf nur CHF 61'000."
+        },
+        {
+          "fact_id": "f10",
+          "status": "present",
+          "block_ids": [
+            "b012"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f11",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f12",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f13",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f14",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f15",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f16",
+          "status": "missing",
+          "block_ids": [],
+          "note": "Die Information, dass die Prämienverbilligung direkt an die Krankenkasse bezahlt wird, fehlt im Entwurf."
+        }
+      ],
+      "unsupported": [
+        {
+          "block_id": "b002",
+          "note": "Das Original sagt nicht, dass man sich bei der Sozialversicherungsstelle anmeldet, sondern dass man einen Antrag einreicht."
+        }
+      ],
+      "semantic_findings": [
+        {
+          "block_id": "b016.1.1.1",
+          "rule_id": "SEM-04",
+          "note": "Was die Öffnungszeiten sind, wird nicht erklärt."
+        }
+      ]
+    },
+    {
+      "draft_version": 5,
+      "model": "swiss-ai/Apertus-v1.5-8B",
+      "fact_checks": [
+        {
+          "fact_id": "f01",
+          "status": "present",
+          "block_ids": [
+            "b006"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f02",
+          "status": "present",
+          "block_ids": [
+            "b004"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f03",
+          "status": "present",
+          "block_ids": [
+            "b007"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f04",
+          "status": "present",
+          "block_ids": [
+            "b005"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f05",
+          "status": "present",
+          "block_ids": [
+            "b003"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f06",
+          "status": "present",
+          "block_ids": [
+            "b014"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f07",
+          "status": "present",
+          "block_ids": [
+            "b008"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f08",
+          "status": "distorted",
+          "block_ids": [
+            "b003.1"
+          ],
+          "note": "Im Original steht 1. Januar 2027, im Entwurf 1. Januar 2027 (keine Veränderung, aber im Original ist es korrekt, im Entwurf wird es nicht explizit genannt, jedoch ist es korrekt wiedergegeben)."
+        },
+        {
+          "fact_id": "f09",
+          "status": "distorted",
+          "block_ids": [
+            "b009.1.1"
+          ],
+          "note": "Im Original steht CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet) ohne Kinder, CHF 51'000 (Alleinstehend) bzw. CHF 70'000 (Verheiratet) mit Kindern. Im Entwurf steht nur CHF 42'000 bzw. CHF 61'000, ohne die Differenz für Kinder."
+        },
+        {
+          "fact_id": "f10",
+          "status": "present",
+          "block_ids": [
+            "b010"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f11",
+          "status": "present",
+          "block_ids": [
+            "b014.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f12",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f13",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f14",
+          "status": "present",
+          "block_ids": [
+            "b015"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f15",
+          "status": "present",
+          "block_ids": [
+            "b016.1.1.1"
+          ],
+          "note": ""
+        },
+        {
+          "fact_id": "f16",
+          "status": "missing",
+          "block_ids": [],
+          "note": "Die Information über die Barauszahlung ist nicht im Entwurf enthalten, obwohl sie im Original erwähnt wird (s0011)."
+        }
+      ],
+      "unsupported": [
+        {
+          "block_id": "b002",
+          "note": "Das Original sagt nicht, dass man sich bei der Sozialversicherungsstelle anmeldet, sondern dass man einen Antrag einreicht. Der Block suggeriert eine Anmeldung, die im Original nicht gefordert wird."
+        }
+      ],
+      "semantic_findings": [
+        {
+          "block_id": "b004",
+          "rule_id": "SEM-02",
+          "note": "Das Nomen 'Einkommen' ist abstrakt. Eine konkretere Form wäre 'Einkommensbetrag' oder 'Einkommen in Franken'."
+        },
+        {
+          "block_id": "b016.1.1.1",
+          "rule_id": "SEM-04",
+          "note": "Der Block setzt voraus, dass die Leserin oder der Leser weiß, was eine E-Mail ist, ohne dass dies erklärt wird."
+        }
+      ]
+    }
+  ],
+  "repair_records": [
+    {
+      "draft_version": 2,
+      "parent_version": 1,
+      "kind": "repair",
+      "requested_blocks": [
+        "b001",
+        "b009",
+        "b010",
+        "b019",
+        "b020",
+        "b002",
+        "b005",
+        "b012",
+        "b016",
+        "b017",
+        "b018"
+      ],
+      "requested_facts": [
+        "f12",
+        "f13"
+      ],
+      "repairs": [
+        {
+          "block_id": "b001",
+          "texts": [
+            "Was müssen Sie tun?"
+          ]
+        },
+        {
+          "block_id": "b002",
+          "texts": [
+            "Sie melden sich bei der Sozialversicherungsstelle an."
+          ]
+        },
+        {
+          "block_id": "b003",
+          "texts": [
+            "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil."
+          ]
+        },
+        {
+          "block_id": "b004",
+          "texts": [
+            "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet)."
+          ]
+        },
+        {
+          "block_id": "b005",
+          "texts": [
+            "Für jedes Kind kommt CHF 9'000 mehr dazu."
+          ]
+        },
+        {
+          "block_id": "b006",
+          "texts": [
+            "Sie reichen das Antragsformular bis 31. März 2027 ein."
+          ]
+        },
+        {
+          "block_id": "b007",
+          "texts": [
+            "Das Formular ist vollständig und unterschrieben."
+          ]
+        },
+        {
+          "block_id": "b008",
+          "texts": [
+            "Sie legen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice bei."
+          ]
+        },
+        {
+          "block_id": "b009",
+          "texts": [
+            "Was brauchen Sie?"
+          ]
+        },
+        {
+          "block_id": "b010",
+          "texts": [
+            "das Antragsformular"
+          ]
+        },
+        {
+          "block_id": "b011",
+          "texts": [
+            "eine Kopie der Steuerveranlagung"
+          ]
+        },
+        {
+          "block_id": "b012",
+          "texts": [
+            "Die Prämienverbilligung bezahlt der Kanton direkt an die Krankenkasse."
+          ]
+        },
+        {
+          "block_id": "b013",
+          "texts": [
+            "Sie bekommen kein Geld zurück."
+          ]
+        },
+        {
+          "block_id": "b014",
+          "texts": [
+            "Sagen Sie der Sozialversicherungsstelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen."
+          ]
+        },
+        {
+          "block_id": "b015",
+          "texts": [
+            "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben."
+          ]
+        },
+        {
+          "block_id": "b016",
+          "texts": [
+            "Die Einsprache muss begründet sein."
+          ]
+        },
+        {
+          "block_id": "b017",
+          "texts": [
+            "Rufen Sie die Sozialversicherungsstelle an: 044 123 45 67"
+          ]
+        },
+        {
+          "block_id": "b018",
+          "texts": [
+            "Oder schreiben Sie eine E-Mail an ipv@musterwil.example"
+          ]
+        },
+        {
+          "block_id": "b019",
+          "texts": [
+            "Weitere Fragen?"
+          ]
+        },
+        {
+          "block_id": "b020",
+          "texts": [
+            "Besuchen Sie www.musterwil.example/ipv"
+          ]
+        }
+      ],
+      "additions": [
+        {
+          "after": "b009",
+          "texts": [
+            "Sie brauchen das Antragsformular und eine Kopie der Steuerveranlagung."
+          ],
+          "fact_ids": [
+            "f02",
+            "f07"
+          ]
+        },
+        {
+          "after": "b014",
+          "texts": [
+            "Die Sozialversicherungsstelle prüft Ihre Einsprache."
+          ],
+          "fact_ids": [
+            "f15"
+          ]
+        },
+        {
+          "after": "b016",
+          "texts": [
+            "Die Sozialversicherungsstelle hilft Ihnen bei Fragen."
+          ],
+          "fact_ids": [
+            "f14"
+          ]
+        },
+        {
+          "after": "b018",
+          "texts": [
+            "Die E-Mail ist eine Nachricht per Computer."
+          ],
+          "fact_ids": [
+            "f15"
+          ]
+        }
+      ],
+      "dropped": [
+        {
+          "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+          "reason": "not_flagged",
+          "block_id": "b003",
+          "fact_ids": []
+        },
+        {
+          "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+          "reason": "not_flagged",
+          "block_id": "b004",
+          "fact_ids": []
+        },
+        {
+          "text": "Sie reichen das Antragsformular bis 31. März 2027 ein.",
+          "reason": "not_flagged",
+          "block_id": "b006",
+          "fact_ids": []
+        },
+        {
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "reason": "not_flagged",
+          "block_id": "b007",
+          "fact_ids": []
+        },
+        {
+          "text": "Sie legen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice bei.",
+          "reason": "not_flagged",
+          "block_id": "b008",
+          "fact_ids": []
+        },
+        {
+          "text": "eine Kopie der Steuerveranlagung",
+          "reason": "not_flagged",
+          "block_id": "b011",
+          "fact_ids": []
+        },
+        {
+          "text": "Sie bekommen kein Geld zurück.",
+          "reason": "not_flagged",
+          "block_id": "b013",
+          "fact_ids": []
+        },
+        {
+          "text": "Sagen Sie der Sozialversicherungsstelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+          "reason": "not_flagged",
+          "block_id": "b014",
+          "fact_ids": []
+        },
+        {
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "reason": "not_flagged",
+          "block_id": "b015",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "draft_version": 3,
+      "parent_version": 2,
+      "kind": "repair",
+      "requested_blocks": [
+        "b009.1",
+        "b002",
+        "b005",
+        "b012",
+        "b014.1",
+        "b016.1",
+        "b018.1"
+      ],
+      "requested_facts": [
+        "f12",
+        "f13"
+      ],
+      "repairs": [
+        {
+          "block_id": "b009.1",
+          "texts": [
+            "Sie brauchen das Antragsformular.",
+            "Sie brauchen eine Kopie der Steuerveranlagung."
+          ]
+        },
+        {
+          "block_id": "b005",
+          "texts": [
+            "Für jedes Kind gibt es CHF 9'000 mehr."
+          ]
+        },
+        {
+          "block_id": "b014.1",
+          "texts": [
+            "Die Sozialversicherungsstelle prüft Ihre Einsprache."
+          ]
+        },
+        {
+          "block_id": "b016.1",
+          "texts": [
+            "Die Sozialversicherungsstelle hilft Ihnen bei Fragen."
+          ]
+        },
+        {
+          "block_id": "b018.1",
+          "texts": [
+            "Die E-Mail ist eine Nachricht per Computer."
+          ]
+        }
+      ],
+      "additions": [
+        {
+          "after": "b009.1",
+          "texts": [
+            "Sie reichen das Antragsformular bis 31. März 2027 ein.",
+            "Das Formular ist vollständig und unterschrieben.",
+            "Sie legen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice bei."
+          ],
+          "fact_ids": [
+            "f01",
+            "f03",
+            "f07"
+          ]
+        },
+        {
+          "after": "b014.1",
+          "texts": [
+            "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+            "Die Einsprache muss begründet sein."
+          ],
+          "fact_ids": [
+            "f15",
+            "s0015"
+          ]
+        },
+        {
+          "after": "b016.1",
+          "texts": [
+            "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung."
+          ],
+          "fact_ids": [
+            "f12",
+            "f13",
+            "f14",
+            "f15",
+            "f16"
+          ]
+        }
+      ],
+      "dropped": [
+        {
+          "text": "Sie reichen das Antragsformular bis 31. März 2027 ein.",
+          "reason": "repeat",
+          "block_id": "b009.1",
+          "fact_ids": [
+            "f01",
+            "f03",
+            "f07"
+          ]
+        },
+        {
+          "text": "Das Formular ist vollständig und unterschrieben.",
+          "reason": "repeat",
+          "block_id": "b009.1",
+          "fact_ids": [
+            "f01",
+            "f03",
+            "f07"
+          ]
+        },
+        {
+          "text": "Sie legen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice bei.",
+          "reason": "repeat",
+          "block_id": "b009.1",
+          "fact_ids": [
+            "f01",
+            "f03",
+            "f07"
+          ]
+        },
+        {
+          "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+          "reason": "repeat",
+          "block_id": "b014.1",
+          "fact_ids": [
+            "f15",
+            "s0015"
+          ]
+        },
+        {
+          "text": "Die Einsprache muss begründet sein.",
+          "reason": "repeat",
+          "block_id": "b014.1",
+          "fact_ids": [
+            "f15",
+            "s0015"
+          ]
+        }
+      ]
+    },
+    {
+      "draft_version": 4,
+      "parent_version": 3,
+      "kind": "repair",
+      "requested_blocks": [
+        "b016.1.1",
+        "b002",
+        "b005",
+        "b018.1",
+        "b009.1.1"
+      ],
+      "requested_facts": [],
+      "repairs": [
+        {
+          "block_id": "b016.1.1",
+          "texts": [
+            "Die Sozialversicherungsstelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+            "Sie erreichen sie telefonisch unter 044 123 45 67 oder per E-Mail an ipv@musterwil.example."
+          ]
+        }
+      ],
+      "additions": [],
+      "dropped": []
+    },
+    {
+      "draft_version": 5,
+      "parent_version": 4,
+      "kind": "vocabulary",
+      "requested_blocks": [
+        "b003",
+        "b004",
+        "b006",
+        "b008",
+        "b014",
+        "b015"
+      ],
+      "requested_facts": [],
+      "repairs": [
+        {
+          "block_id": "b003",
+          "texts": [
+            "Sie haben am 1. Januar 2027 Wohnort in Musterwil.",
+            "Ihr Wohnort ist in der Gemeinde Musterwil am 1. Januar 2027."
+          ]
+        },
+        {
+          "block_id": "b004",
+          "texts": [
+            "Ihr Einkommen ist nicht höher als CHF 42'000 (wenn Sie allein leben) oder CHF 61'000 (wenn Sie verheiratet sind)."
+          ]
+        },
+        {
+          "block_id": "b006",
+          "texts": [
+            "Sie schicken das Antragsformular bis 31. März 2027 ein."
+          ]
+        },
+        {
+          "block_id": "b008",
+          "texts": [
+            "Sie mitschicken eine Kopie der Steuerveranlagung und der Krankenversicherungspolice."
+          ]
+        },
+        {
+          "block_id": "b014",
+          "texts": [
+            "Sagen Sie der Sozialversicherungsstelle innerhalb von 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen."
+          ]
+        },
+        {
+          "block_id": "b015",
+          "texts": [
+            "Gegen die Verfügung können Sie innerhalb von 30 Tagen Einsprache schreiben."
+          ]
+        }
+      ],
+      "additions": [],
+      "dropped": []
+    }
+  ],
+  "review": null,
+  "final": {
+    "draft_version": 4,
+    "reviewed": false,
+    "review_complete": false,
+    "undecided_blocks": 0,
+    "undecided_glossary": 0,
+    "notice": null,
+    "blocks": [
+      {
+        "id": "b001",
+        "kind": "heading",
+        "text": "Was müssen Sie tun?",
+        "fact_ids": [],
+        "segment_ids": []
+      },
+      {
+        "id": "b002",
+        "kind": "sentence",
+        "text": "Sie melden sich bei der Sozial·versicherungs·stelle an.",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0002"
+        ]
+      },
+      {
+        "id": "b003",
+        "kind": "sentence",
+        "text": "Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.",
+        "fact_ids": [
+          "f05",
+          "f08"
+        ],
+        "segment_ids": [
+          "s0005"
+        ]
+      },
+      {
+        "id": "b004",
+        "kind": "sentence",
+        "text": "Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).",
+        "fact_ids": [
+          "f02",
+          "f09"
+        ],
+        "segment_ids": [
+          "s0005"
+        ]
+      },
+      {
+        "id": "b005",
+        "kind": "sentence",
+        "text": "Für jedes Kind gibt es CHF 9'000 mehr.",
+        "fact_ids": [
+          "f10"
+        ],
+        "segment_ids": [
+          "s0006"
+        ]
+      },
+      {
+        "id": "b006",
+        "kind": "sentence",
+        "text": "Sie reichen das Antrags·formular bis 31. März 2027 ein.",
+        "fact_ids": [
+          "f01"
+        ],
+        "segment_ids": [
+          "s0007"
+        ]
+      },
+      {
+        "id": "b007",
+        "kind": "sentence",
+        "text": "Das Formular ist vollständig und unterschrieben.",
+        "fact_ids": [
+          "f03"
+        ],
+        "segment_ids": [
+          "s0009"
+        ]
+      },
+      {
+        "id": "b008",
+        "kind": "sentence",
+        "text": "Sie legen eine Kopie der Steuer·veranlagung und der Kranken·versicherungs·police bei.",
+        "fact_ids": [
+          "f07"
+        ],
+        "segment_ids": [
+          "s0009"
+        ]
+      },
+      {
+        "id": "b009",
+        "kind": "heading",
+        "text": "Was brauchen Sie?",
+        "fact_ids": [],
+        "segment_ids": []
+      },
+      {
+        "id": "b009.1",
+        "kind": "sentence",
+        "text": "Sie brauchen das Antrags·formular.",
+        "fact_ids": [
+          "f02",
+          "f07"
+        ],
+        "segment_ids": [
+          "s0010",
+          "s0009"
+        ]
+      },
+      {
+        "id": "b009.1.1",
+        "kind": "sentence",
+        "text": "Sie brauchen eine Kopie der Steuer·veranlagung.",
+        "fact_ids": [
+          "f02",
+          "f07"
+        ],
+        "segment_ids": [
+          "s0010",
+          "s0009"
+        ]
+      },
+      {
+        "id": "b010",
+        "kind": "list_item",
+        "text": "das Antrags·formular",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0007"
+        ]
+      },
+      {
+        "id": "b011",
+        "kind": "list_item",
+        "text": "eine Kopie der Steuer·veranlagung",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0009"
+        ]
+      },
+      {
+        "id": "b012",
+        "kind": "sentence",
+        "text": "Die Prämien·verbilligung bezahlt der Kanton direkt an die Krankenkasse.",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0010"
+        ]
+      },
+      {
+        "id": "b013",
+        "kind": "sentence",
+        "text": "Sie bekommen kein Geld zurück.",
+        "fact_ids": [],
+        "segment_ids": [
+          "s0011"
+        ]
+      },
+      {
+        "id": "b014",
+        "kind": "sentence",
+        "text": "Sagen Sie der Sozial·versicherungs·stelle innert 30 Tagen Bescheid, wenn Sie wegziehen oder mehr Geld verdienen.",
+        "fact_ids": [
+          "f12",
+          "f11",
+          "f06"
+        ],
+        "segment_ids": [
+          "s0012"
+        ]
+      },
+      {
+        "id": "b014.1",
+        "kind": "sentence",
+        "text": "Die Sozial·versicherungs·stelle prüft Ihre Einsprache.",
+        "fact_ids": [
+          "f15"
+        ],
+        "segment_ids": [
+          "s0015"
+        ]
+      },
+      {
+        "id": "b015",
+        "kind": "sentence",
+        "text": "Gegen die Verfügung können Sie innert 30 Tagen Einsprache schreiben.",
+        "fact_ids": [
+          "f14",
+          "f11"
+        ],
+        "segment_ids": [
+          "s0014"
+        ]
+      },
+      {
+        "id": "b016",
+        "kind": "sentence",
+        "text": "Die Einsprache muss begründet sein.",
+        "fact_ids": [
+          "f15"
+        ],
+        "segment_ids": [
+          "s0015"
+        ]
+      },
+      {
+        "id": "b016.1",
+        "kind": "sentence",
+        "text": "Die Sozial·versicherungs·stelle hilft Ihnen bei Fragen.",
+        "fact_ids": [
+          "f14"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b016.1.1",
+        "kind": "sentence",
+        "text": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr offen.",
+        "fact_ids": [
+          "f12",
+          "f13",
+          "f14",
+          "f15",
+          "f16"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b016.1.1.1",
+        "kind": "sentence",
+        "text": "Sie erreichen sie telefonisch unter 044 123 45 67 oder per E-Mail an ipv@musterwil.example.",
+        "fact_ids": [
+          "f12",
+          "f13",
+          "f14",
+          "f15",
+          "f16"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b017",
+        "kind": "sentence",
+        "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67",
+        "fact_ids": [
+          "f14"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b018",
+        "kind": "sentence",
+        "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example",
+        "fact_ids": [
+          "f15"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b018.1",
+        "kind": "sentence",
+        "text": "Die E-Mail ist eine Nachricht per Computer.",
+        "fact_ids": [
+          "f15"
+        ],
+        "segment_ids": [
+          "s0016"
+        ]
+      },
+      {
+        "id": "b019",
+        "kind": "heading",
+        "text": "Weitere Fragen?",
+        "fact_ids": [],
+        "segment_ids": []
+      },
+      {
+        "id": "b020",
+        "kind": "sentence",
+        "text": "Besuchen Sie www.musterwil.example/ipv",
+        "fact_ids": [
+          "f16"
+        ],
+        "segment_ids": [
+          "s0017"
+        ]
+      }
+    ],
+    "glossary": [
+      {
+        "term": "massgebendes Einkommen",
+        "explanation": "Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung benutzt.",
+        "origin": "model"
+      },
+      {
+        "term": "Einsprache",
+        "explanation": "Ein Brief an das Amt, um einen Entscheid nicht zu akzeptieren.",
+        "origin": "model"
+      },
+      {
+        "term": "Prämien·verbilligung",
+        "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Krankenkasse",
+        "explanation": "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben.",
+        "origin": "vocabulary"
+      },
+      {
+        "term": "Verfügung",
+        "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+        "origin": "vocabulary"
+      }
+    ],
+    "layout_findings": []
+  }
+}

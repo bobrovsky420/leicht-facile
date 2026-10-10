@@ -99,9 +99,9 @@ replaced in the data. It was built by EPFL, ETH Zurich and CSCS with due
 consideration to Swiss data protection and copyright law, trained on the Alps
 supercomputer in Lugano on more than 1,000 languages, with dedicated Swiss German and
 Romansh data, and released under Apache 2.0 with an acceptable use policy. Swisscom
-and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one GPU in the
-organisation's own building with the official vLLM image, so far run by the team only
-as a 4-bit build on a laptop GPU
+and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one 24 GB GPU in
+the organisation's own building with the official vLLM image, run by the team on an
+NVIDIA L4
 ([architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The Canton of
 Ticino already runs Apertus in-house to translate sensitive government documents. The
 hackathon demo runs on the CSCS inference API, which serves research, not

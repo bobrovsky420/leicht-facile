@@ -108,7 +108,7 @@ variable.
 
 | Architecture | How it is met |
 |--------------|---------------|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU (not yet run on a GPU host); the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU (run on a 24 GB L4, below); the app points at `http://vllm:8000/v1`. A llama.cpp profile serves a 4-bit 8B on an 8 GB laptop GPU. |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. |
 | c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint; the hackathon demo runs against the CSCS inference API in Lugano. |
 
@@ -128,11 +128,12 @@ policy (accepted once for the gated download), code Apache 2.0, spaCy models MIT
 (German) and LGPL-LR (French), fonts OFL. Any OpenAI-compatible server works (used:
 CSCS, Public AI, llama.cpp; vLLM on-premise): no single provider is needed.
 
-Hardware for (a) and (b), from the model card (no GPU host was reachable; the vLLM
-profile is checked by `docker compose config` only): the 8B in bf16 needs about 16 GB
-plus KV cache, one 24 GB GPU (FP8: 11.4 GB). On one GPU the 8B also judges (profile B
-in `.env.example`); our numbers use the 70B judge. A laptop RTX 4060 (8 GB, llama.cpp,
-4-bit) gave about 37 tokens per second.
+Hardware for (a) and (b), measured on one NVIDIA L4 (24 GB, AWS Zurich,
+`eval/hardware/`): the 8B in bf16 takes 17.2 GiB, and with the profile's FP8 KV cache
+one 32k request fits. It generates 16 tokens per second, close to the limit of the
+card's memory bandwidth. With the 8B also judging (profile B in `.env.example`; our
+numbers use the 70B judge) the example letter took 63 minutes, 22 with thinking only in
+Understand. A laptop RTX 4060 (8 GB, llama.cpp, 4-bit) gave about 37 tokens per second.
 
 ## 3. Use of Apertus
 
@@ -150,8 +151,8 @@ in `.env.example`); our numbers use the 70B judge. A laptop RTX 4060 (8 GB, llam
   (website opt-outs honoured), Swiss public origin and German, French and Italian
   ([docs/use-cases.md §2](docs/use-cases.md#why-only-apertus)).
 - **Why these sizes:** the 8B is enough to read and write: it kept more facts than the
-  70B running every stage, at about half the price per page (§5), and fits one 24 GB
-  GPU (by the model card; not yet run by us), where the 70B needs four. The 70B judges,
+  70B running every stage, at about half the price per page (§5), and runs on one
+  24 GB GPU (§2), where the 70B needs four. The 70B judges,
   because meaning needs a second, larger model than the one that wrote the draft. The
   70B reading for the 8B kept the fewest facts.
 
@@ -304,7 +305,7 @@ fire, one that must not).
 - **Decision mode v1** is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), DOCX export, an air-gapped image
-  bundle, login; the vLLM profile has not run on a GPU host.
+  bundle, login.
 
 ## 7. Reproducibility
 
@@ -318,7 +319,8 @@ fire, one that must not).
   Docker image on every push.
 - **Seeds:** temperatures above zero are not seeded; reruns reproduce exact outputs
   through the response cache, and each result stores the hash of its prompt template.
-- **Hardware and commit:** the CSCS endpoint for all reported numbers; commit
+- **Hardware and commit:** the CSCS endpoint for all reported numbers except §2's L4
+  figures (`eval/hardware/`); commit
   **[PENDING: hash of the reported run]**.
 
 ## 8. Next steps

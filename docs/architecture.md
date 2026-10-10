@@ -1046,14 +1046,30 @@ container; it is the first thing to run once a key is set.
 
 | Architecture | How Leicht·Facile meets it |
 |--------------|----------------------------|
-| a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` serving `swiss-ai/Apertus-v1.5-8B` on one GPU, with the Apertus reasoning parser and `--max-model-len 32768`; the app points at `http://vllm:8000/v1` with `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. **[verify]** on a GPU host: the compose file validates, but the service has not been started yet. |
+| a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` serving `swiss-ai/Apertus-v1.5-8B` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app points at `http://vllm:8000/v1` with `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: it starts and `make run` takes a letter end to end (below). |
 | b) Air-gapped | Same as (a) with images and weights pulled in advance; spaCy models and UI assets are inside the image; no telemetry, no CDN, no package installs at runtime. A `make bundle` target saves the images to a tarball. |
 | c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B). The hackathon demo itself runs against the CSCS inference API in Lugano, which serves research, not administrations. |
 
-Hardware for (a)/(b), to be measured and stated precisely in the report: the 8B
-model in bf16 needs roughly 16 GB for the weights plus KV cache, so a 24 GB GPU with
-a reduced `--max-model-len` is realistic; the FP8 build (`onprem-ai/Apertus-v1.5-8B-FP8`,
-keeps image input) is 11.42 GB against 18.44 GB for the full multimodal checkpoint.
+Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 (24 GB) in an AWS
+g6.xlarge in Zurich (`eval/hardware/aws-l4-2026-10-10/`): the official checkpoint
+(bf16 with the image encoder) takes 17.23 GiB on the GPU. With a bf16 KV cache vLLM
+refused to start: one 32k request needs 4.0 GiB of KV cache, and 2.13 GiB were left at
+90 % utilisation (17,440 tokens). A shorter context does not help, because the stages
+ask for up to 16,000 output tokens on top of the prompt and vLLM rejects a request
+that does not fit. So the profile stores the KV cache in FP8 (`--kv-cache-dtype=fp8`:
+38,752 tokens, 1.18 requests of 32k at once) and allows at most 16 parallel sequences
+(`--max-num-seqs=16`): with the default 256, the CUDA graphs (0.84 GiB, now 0.16) and
+the sampler's warm-up ran out of memory. By the same arithmetic a card with 32 GB or
+more needs neither flag (not tested). The start takes about 7 minutes with the weights
+on disk. One request generates 16.2 tokens per second, close to the limit of the L4's
+memory bandwidth (300 GB/s for about 16 GB of weights per token). With the 8B also
+judging (profile B), the example letter took 63 minutes with thinking in Understand
+and Judge, and 22 minutes with thinking only in Understand
+(`LLM_THINKING_STAGES=understand`); in both runs Understand's reasoning hit the
+12,000-token cap, which costs 744 s on this card. What the FP8 KV cache does to
+quality is not measured. The FP8 build of the weights (`onprem-ai/Apertus-v1.5-8B-FP8`,
+keeps image input, not tested) is 11.42 GB against 18.44 GB for the full multimodal
+checkpoint.
 
 A smaller on-premise option was tested on 5-6 October 2026: llama.cpp (`llama-server`,
 Vulkan build b9637) with the community 4-bit text-only conversion

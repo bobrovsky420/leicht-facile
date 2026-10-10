@@ -5,7 +5,8 @@
 # from the shell, with or without a .env file; the shell wins over .env.
 #
 # On-premise / air-gapped: `docker compose --profile local-llm up` adds a vLLM server
-# with Apertus 1.5 8B on one NVIDIA GPU. Point the app at it in .env:
+# with Apertus 1.5 8B on one NVIDIA GPU with 24 GB or more (run on an L4 on 10 October
+# 2026, eval/hardware/). Point the app at it in .env:
 #   LLM_BASE_URL=http://vllm:8000/v1
 #   LLM_API_KEY=local            (any value; vLLM is started without a key)
 #   LLM_NAME=swiss-ai/Apertus-v1.5-8B
@@ -50,6 +51,8 @@ services:
       - --reasoning-parser=apertus
       - --max-model-len=32768
       - --gpu-memory-utilization=0.9
+      - --kv-cache-dtype=fp8      # the 32k context fits a 24 GB GPU (L4: 38,752 tokens)
+      - --max-num-seqs=16         # smaller CUDA graphs and sampler warm-up, so it all fits
       - --host=0.0.0.0
       - --port=8000
     environment:

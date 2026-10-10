@@ -20,7 +20,7 @@ lists them all; none may be left in README.md and technical_report.md when we su
 | Technical report (PDF, at most 6 pages) | `RoestigrabenBridgers_Report.pdf` in the repository root, printed from `technical_report.md` | Draft of 9 October: 6 pages, the last 98 % full, placeholders included (method in §5). **[PENDING: export again after the final numbers; check the 6 pages]** |
 | Demo video (URL), at most 2 minutes | Version C, 118.1 s ([demo-video.md](demo-video.md)) | **[PENDING: final render with the final numbers and the opening sentence's real output; upload; URL]** |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
-| `make run` from the root on a clean checkout | Makefile, docker-compose.yml | Passed on Windows (fresh clone, no `.env`). **[PENDING: the clean-checkout test on Linux or macOS]** |
+| `make run` from the root on a clean checkout | Makefile, docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)) |
 
 ## 2. The submission form
 
@@ -117,16 +117,16 @@ answer each question:
 | | Is the model size justified, 8B where sufficient, 70B where needed? | Report §3 "Why these sizes"; §5 table (70B everywhere, hybrid) | Answered; numbers wait for the final run |
 | | Is every other model right-sized? | Report §3 "Other models and coding assistants": none at runtime; spaCy and wordfreq | Answered |
 | | Does it say where Apertus fell short? | Report §3 "Where Apertus fell short"; §5 judge reliability; [image-input.md](image-input.md) | Answered |
-| Technical rigour | Does it run reproducibly from the documented command? | `make run`; report §7 | **[PENDING: clean checkout on Linux or macOS; CI green on the submitted commit]** |
+| Technical rigour | Does it run reproducibly from the documented command? | `make run`; report §7 | Clean checkout passed on Windows and Linux. **[PENDING: CI green on the submitted commit]** |
 | | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | **[PENDING: final run]** |
-| | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured |
+| | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured, nor the vLLM profile's FP8 KV cache (its memory effect is, report §2) |
 | | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | **[OWNER: confirm the wording]** |
 | | (Maturity level declared) | Report header; README; message §3 | **[OWNER: confirm]** |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
 | | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | **[PENDING: review time by stopwatch; a published drafting time, or none found]** |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost, and ten times the volume" | Answered; more workers neither built nor measured |
-| Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Partly: the vLLM profile has not run on a GPU host |
+| Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one 24 GB NVIDIA L4 (`eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
 | | Are weights, licences and dependencies free of blocking terms? | Report §2 licences | Answered |
 | | Is it independent of any single commercial provider? | Report §2 (any OpenAI-compatible server) | Answered |
@@ -145,6 +145,7 @@ answer each question:
       `RoestigrabenBridgers_Report.pdf` in the root, committed.
 - [ ] Video rendered, uploaded, URL in README, report and form.
 - [ ] Repository public; `git log -p -- .env` empty.
-- [ ] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job.
+- [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job
+      (Linux, 10 October, commit 6936d05).
 - [ ] Form filled and submitted by one of us, by Thu 15 October (G6); deadline Fri 16
       October, 12:00 CEST, no extension.

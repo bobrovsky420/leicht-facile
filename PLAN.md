@@ -10,11 +10,59 @@ Source of truth for *what* we build: [docs/architecture.md](docs/architecture.md
 *what gets cut*. When the two disagree, fix the docs, not this plan - AGENTS.md requires
 the docs to stay in sync with the code.
 
+## Next steps before submission (as of Sat 10 October 2026)
+
+The short path to the deadline, in dependency order. Each step points to where it lives
+(§3, §4, docs/submission.md); tick it here and there when it is done.
+
+1. [ ] **Close the pipeline before the prompt freeze (Sun 11 Oct, 18:00; D-AD).**
+   Any last pipeline change goes in and is measured on dev with `--redo` first. Take the
+   review stopwatch for 3 P2 drafts (WP13 value numbers). After 18:00 nothing in the
+   pipeline moves except bug fixes.
+2. [ ] **Final CSCS evaluation (Sun 11 Oct, night; WP13).**
+   Snapshot `eval/results-cscs` to the next vN, then every row with `--redo`: P1 and P2
+   first, then P0 and both P0-ZH variants with the cache off, last the two 70B rows.
+   Then `eval report`, `eval numbers` and `eval diagnose`, without model calls.
+3. [ ] **Read the numbers and decide the headline (Mon 12 Oct, G3; D-M).**
+   Apply the case table A to D in WP13 to P2 against P0-ZH `complete`, no debate. Case A
+   also decides D-L: Zurich is named in the video and its evidence scene is rewritten.
+4. [ ] **Numbers in one pass, then the audit (Mon 12 Oct, G4; WP13, WP16).**
+   Report §5 and §1, README's status block and "Why not one chatbot prompt?", the
+   video's evidence scene. Diff every number against `eval numbers`, each with its
+   endpoint and split.
+5. [ ] **Rebuild the example jobs and finish the video (Mon 12 to Tue 13 Oct; WP8, WP11).**
+   Rebuild the example bundles on the frozen pipeline (the two example tests are red).
+   Run DE-4 and FR-4 inside a short letter for the Again scene, re-render version C,
+   upload, put the URL in README, report and form.
+6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**
+   WP16's positioning paragraph and messaging pass, the owner's answers to every
+   **[OWNER]** placeholder, the **[PENDING]** video link and final-run commit. Export to
+   PDF, 6 pages, `RoestigrabenBridgers_Report.pdf` in the root.
+7. [x] **Hardware statement for the on-prem profile (parallel; cut if blocked; WP10).**
+   Done 10 Oct: `local-llm` ran on an AWS g6.xlarge (one L4, 24 GB) in Zurich and took
+   the example letter end to end; eval/hardware/aws-l4-2026-10-10/, report §2.
+8. [x] **Clean-checkout test on Linux or a second machine (by Wed 14 Oct, G5; WP11).**
+   Done 10 Oct on the same Linux machine (commit 6936d05): clone, `.env`, `make run`
+   unchanged, one job end to end against the local vLLM. Repeat only if the Dockerfile,
+   the dependencies or the Makefile change before the submission.
+9. [ ] **Repo public, CI green (Thu 15 Oct, G6; WP11).**
+   Check that `git log -p -- .env` is empty, make the repository public, confirm CI is
+   green on the final commit. Optional afterwards: the awesome-apertus pull request
+   (WP16).
+10. [ ] **Submit (Thu 15 Oct; at the latest Fri 16 Oct before 12:00 CEST; WP11).**
+    Fill the form from docs/submission.md §2: repo URL, PDF, video URL, model "8B + 70B
+    v1.5", the message to the jury. Work through the checklist in docs/submission.md §7
+    before pressing Submit.
+
 ## 0. How to use this plan
 
 - Each topic has one section: scope in §2, every work package in §3, the schedule and
   the gates in §4, the cut list in §7, decisions in §8, the gap register in §10, the
   progress log in §11.
+- The list "Next steps before submission" at the top is the short path to the
+  deadline, in dependency order. It only points into the sections; tick a step there
+  and in its work package when it is done, and change it when a date or an order
+  moves.
 - Update in place: tick the box, or change the item, row or list where the topic lives.
   Never append a new section, an "Added on ..." block or a revised copy of a section.
   New work goes into its work package, a new date into §4, a new decision into §8; the
@@ -265,14 +313,21 @@ Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
       *(9 Oct, at the owner's request: P2 on the dev pairs on CSCS and the judge against
       the blind labels, docs/prompts.md "English instructions"; not taken, D-AE; the
       variant removed the same day, the results kept in docs/prompts.md)*.
-- [ ] Hardware statement for the on-prem profile: start the `local-llm` compose profile
+- [x] Hardware statement for the on-prem profile: start the `local-llm` compose profile
       once on a GPU host; otherwise cite the official vLLM guide numbers and say so
       *(no GPU host reachable on 6 Oct; the `local-llm-small` llama.cpp profile ran on
       the RTX 4060)*. *9 Oct: not possible on the laptop (RTX 4060, 8 GB; the full 8B
       needs about 16 GB of weights). Plan: AWS g6.xlarge (1x L4, 24 GB) in Zurich
       (eu-central-2), on demand, about USD 1.09 per hour, 1 to 2 hours. GPU quota
-      requested 9 Oct (4 vCPUs, pending). If not approved by Mon 12 Oct, cut: the report
-      cites the vLLM guide.*
+      requested 9 Oct (4 vCPUs, approved the same day). If not approved by Mon 12 Oct,
+      cut: the report cites the vLLM guide.* *10 Oct: done on that machine (plain
+      Ubuntu 24.04, NVIDIA driver 595). As written the profile did not start: on 24 GB
+      the 32k context needs an FP8 KV cache and `--max-num-seqs=16`, both defaults in
+      docker-compose.yml since (owner). 17.23 GiB of weights, 16.2 tokens per second for
+      one request; the example letter took 63 min with the 8B judging with thinking and
+      22 min with thinking only in Understand; the owner reviewed job 1 as a reference.
+      Evidence in eval/hardware/aws-l4-2026-10-10/; report §2, README, architecture.md
+      §10, use-cases.md §2 and docs/submission.md updated.*
 
 Done when: the report's §5 has every table filled with real numbers.
 
@@ -764,13 +819,11 @@ architecture §4 and docs/prompts.md.
         case A sentence of D-M) is a judgement; "the Canton of Zurich's published
         prompt, the only public Swiss one we found" is a fact. Use the fact, with the
         credit of WP16 rule 6; Zurich in the video only per D-L.
-      - *Where it runs.* "The 8B on one GPU" (README's Why only Apertus table,
-        use-cases.md §2, architecture §10) rests on the official vLLM image, not on a
-        run of ours: the laptop ran a 4-bit community build, and the `local-llm`
-        profile has not started on a GPU host (WP10; the AWS L4 hour pending). Until
-        it has: "on one GPU with the official vLLM image (not yet run by us)"; after
-        it, the measured numbers. "Air-gapped" always with "images and weights pulled
-        in advance"; `make bundle` is not built (report §6 says so).
+      - *Where it runs.* "The 8B on one 24 GB GPU" (README's Why only Apertus table,
+        use-cases.md §2, architecture §10) rests on our run of the official vLLM image
+        on an L4 (WP10, 10 Oct; the measured numbers in report §2). "Air-gapped" always
+        with "images and weights pulled in advance"; `make bundle` is not built (report
+        §6 says so).
       - *Cost per page.* "About one US cent per page" (README) and the USD columns are
         Public AI's list prices applied to the token counts (`PRICES_USD_PER_MTOK` in
         `eval/score.py`: 8B 0.10 and 0.20, 70B 0.82 and 2.92 USD per million input
@@ -1158,9 +1211,13 @@ since:
       (`video/src/scenes/Again.tsx`). Replace it with the tool's real output after the
       prompt freeze (Sun 11 Oct), running both sentences inside a short letter: alone,
       DE-4 came back wrapped in letter headings and without its consequence (8 Oct).
-- [ ] Clean-checkout test on Linux or macOS, or on a second machine, before G6:
+- [x] Clean-checkout test on Linux or macOS, or on a second machine, before G6:
       `git clone`, `.env`, `make run`, run one job. So far only on this Windows machine
-      (fresh clone, no `.env`, `make run`, 4 of 4 smoke jobs to review).
+      (fresh clone, no `.env`, `make run`, 4 of 4 smoke jobs to review). *10 Oct: on
+      Linux (Ubuntu 24.04, AWS) at 6936d05: a clone of a git bundle of `main` (the
+      repository is private), `.env` for the local vLLM, `make run` unchanged, one job
+      end to end through the API (WP10's hardware run). The endpoint was the local
+      vLLM, not CSCS.*
 - [ ] Repo to public (anonymous access gave 404 on 7 October); `.env` absent from
       history (check `git log -p -- .env`); then check that CI is green on the submitted
       commit.
@@ -1464,7 +1521,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-11 | `main` lags this log; stale counts | the evening work is not pushed (§11); README and report say 404 tests | Feasibility | WP16 | Must |
 | GAP-12 | No CI: the tests run only on our machines | no `.github/` | Rigour, feasibility | WP16 | Must |
 | GAP-13 | Generic pitch vocabulary; too much architecture for 2 minutes | README first screen, docs/demo-video.md | All | WP16 (messaging rules) | Should |
-| GAP-14 | Live-run risk | example jobs pending; CSCS cuts about 1 in 4 long thinking calls; `local-llm` never started on a GPU; no bundle | Feasibility | WP8, WP10, WP16 | Must (example jobs) |
+| GAP-14 | Live-run risk | example jobs pending; CSCS cuts about 1 in 4 long thinking calls; `local-llm` ran once on an L4 (10 Oct, WP10); no bundle | Feasibility | WP8, WP10, WP16 | Must (example jobs) |
 | GAP-15 | Claims not precise enough | the voting gap is federal (Zurich publishes cantonal voting information in Leichte Sprache since 28 September 2025); A2 or B1 still open (D-E) | All | WP15, WP16 | Must |
 | GAP-16 | Not listable as public-sector software | no `publiccode.yml` | Value, scalability | WP16 | Should |
 | GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17; *German since `3ef69d3` (6 Oct), French and Italian stay WP17* | Later |
@@ -1572,3 +1629,5 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-09 (more items closed): at the owner's request, every item that could be closed now: WP9 rewritten as a *Done* paragraph (French done, its P2 numbers in report §5; Italian on the WP17 roadmap); in WP16 the video item (superseded by the concept "Find the deadline"); in WP11 the differentiator (in README, report §1 and the video) and the demo video (built as version C; link and final numbers stay in their own items). Everything else waits on the final run of 11 Oct, outside answers or the owner.
 - 2026-10-09 (no outreach): at the owner's request, no outreach during the hackathon: WP16's outreach item, its two mail drafts and its part of the done criterion removed; the professional's drafting time (WP13) and the time-per-page claim (WP15) rest on a published figure only; the mails dropped from the schedule of 7, 8 and 12 Oct; cut-list item 9 removed, the items after it renumbered; D-Q and GAP-09 record the decision.
 - 2026-10-09 (submission drafts): at the owner's request, a first draft of every submission document, with visible placeholders: **[PENDING: ...]** for the final run, the video and the commit, **[OWNER: ...]** for the team's decisions. The submission form's fields and the jury's guiding questions for Track 2B read from hackapertus.ch (§9). Report: maturity level, the users (the people who write official texts, from trained writers to case workers, clerks and physicians, not the few trained writers alone; owner), why these model sizes, where Apertus fell short, other models and coding assistants, what the running system contacts, licences, ten times the volume, the way into use and the first user; the settings table set to the code (Write ran without thinking, on CSCS too; Repair 6,000 tokens; a Recover row) and the subtitle to "every fact value"; tightened to 6 pages, the last 98 % full with the placeholders (headless Edge, A4, 10 pt; the draft PDF in the root). README: status of 9 October, decision mode v1, Check my text, the recover step, what the container contacts, the maturity line, the video placeholder. New docs/submission.md: the deliverables, our entry for each form field, the message to the jury (about 3,100 characters), the video page, the PDF method, the jury's questions with where we answer them, the checklist before Submit. architecture.md: the stage table's Recover row. The tests that read README and report pass.
+- 2026-10-10 (next steps): at the owner's request, the ten open steps to the submission as a numbered list at the top of this plan, in dependency order (freeze, final run, D-M, numbers, example jobs and video, report and README, hardware statement, clean checkout, repo public, submit), each pointing to its work package, gate or docs/submission.md; §0 says how to keep it.
+- 2026-10-10 (AWS L4): at the owner's request, the `local-llm` profile ran for the first time on a GPU host, an AWS g6.xlarge in Zurich (one NVIDIA L4, 24 GB). As it stood, vLLM refused the 32k context on 24 GB (4.0 GiB of KV cache needed, 2.13 GiB left); with `--kv-cache-dtype=fp8` and `--max-num-seqs=16` it starts (38,752 tokens of KV cache), and both flags are now defaults in docker-compose.yml (owner). One request runs at 16.2 tokens per second, near the card's bandwidth limit. Through `make run` on a clean Linux clone (the clean-checkout test), the example letter took 63 min with the 8B judging with thinking and 22 min with thinking only in Understand; Understand's reasoning hit the 12,000-token cap in both. The owner reviewed job 1 as a reference. Evidence in eval/hardware/aws-l4-2026-10-10/ (audit bundles, vLLM log, GPU samples, README); report §2, §3, §6 and §7, README, architecture.md, use-cases.md and docs/submission.md updated.
