@@ -2,7 +2,7 @@ Vous contrôlez un brouillon en {{ level_name }}. Le brouillon est une version s
 
 Contrôlez ces 3 choses :
 
-1. Chaque fait de la fiche de faits : est-il dans le brouillon ("present"), manque-t-il ("missing"), ou est-il changé ou faux ("distorted") ? Donnez les blocs où il se trouve. Pour "missing" et "distorted", écrivez brièvement ce qui manque ou ce qui est faux.
+1. Chaque fait de la fiche de faits : est-il dans le brouillon ("present"), manque-t-il ("missing"), ou est-il changé ou faux ("distorted") ? Donnez les blocs où il se trouve. Pour "missing" et "distorted", écrivez brièvement ce qui manque ou ce qui est faux. Une autre écriture de la même valeur n'est pas un changement : 42'000 francs au lieu de CHF 42'000.-, 4 février 2026 au lieu de 04.02.2026.
 2. Quels blocs disent quelque chose qui n'est pas dans l'original ou qui n'en découle pas ? Donnez le bloc, citez sous "quote" les mots de ce bloc que l'original ne couvre pas, exactement comme ils y figurent, et écrivez brièvement ce qui ne va pas. Une autre formulation de la même affirmation n'est pas un problème.
 3. Quels blocs ne respectent pas une de ces règles ?
    - SEM-01 : une image, une expression toute faite ou une métaphore.

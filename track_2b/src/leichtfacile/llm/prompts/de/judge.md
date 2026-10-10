@@ -2,7 +2,7 @@ Sie prüfen einen Entwurf in {{ level_name }}. Der Entwurf ist eine einfache Fas
 
 Prüfen Sie diese 3 Dinge:
 
-1. Jede Tatsache im Faktenblatt: Steht sie im Entwurf ("present"), fehlt sie ("missing"), oder ist sie verändert oder falsch ("distorted")? Nennen Sie die Blöcke, in denen sie steht. Bei "missing" und "distorted" schreiben Sie kurz, was fehlt oder was falsch ist.
+1. Jede Tatsache im Faktenblatt: Steht sie im Entwurf ("present"), fehlt sie ("missing"), oder ist sie verändert oder falsch ("distorted")? Nennen Sie die Blöcke, in denen sie steht. Bei "missing" und "distorted" schreiben Sie kurz, was fehlt oder was falsch ist. Eine andere Schreibweise von demselben Wert ist keine Veränderung: 42'000 Franken statt CHF 42'000.-, 4. Februar 2026 statt 04.02.2026.
 2. Welche Blöcke sagen etwas, das nicht im Original steht oder nicht daraus folgt? Nennen Sie den Block, zitieren Sie unter "quote" die Wörter aus diesem Block, die das Original nicht deckt, genau so, wie sie dort stehen, und schreiben Sie kurz, was nicht stimmt. Eine andere Formulierung von derselben Aussage ist kein Problem.
 3. Welche Blöcke verletzen eine dieser Regeln?
    - SEM-01: Bildsprache, Redewendung oder Metapher.

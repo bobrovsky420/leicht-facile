@@ -842,13 +842,18 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
     it contains, else those of the facts it names, else, with the `source`, the sentence
     it says in other words (`wording_source`). A fact without a value whose text holds
     values is conveyed by a block that cites one of its sentences and contains all of
-    them (FACT-02: the writer named the narrower facts of those values)."""
+    them (FACT-02: the writer named the narrower facts of those values), or by the blocks
+    that cite its sentences and together hold all of them, each that holds one (10
+    October 2026). A fact without a value and without values in its text is conveyed by
+    every block that cites one of its sentences (10 October 2026: the writer renders the
+    sentence and leaves the tag out; the judge's fact check still reads the meaning)."""
     known = factsheet.fact_ids()
     sources_of = {f.id: f.segment_ids for f in factsheet.facts}
     source_ids = source.segment_ids() if source is not None else None
     targets = []
     parts = []  # (fact id, its segments) of the facts without a value that code added
     worded = []  # (fact id, its segments, the values in its text) of the model's others
+    plain = []  # (fact id, its segments) of the facts with no value anywhere
     for fact in factsheet.facts:
         value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
         if value is not None:
@@ -857,6 +862,8 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
             parts.append((fact.id, set(fact.segment_ids)))
         elif in_text := extract_values(fact.text, draft.lang):
             worded.append((fact.id, set(fact.segment_ids), in_text))
+        elif fact.segment_ids:
+            plain.append((fact.id, set(fact.segment_ids)))
     blocks = []
     for b in draft.blocks:
         ids = [f for f in b.fact_ids if f in known]
@@ -883,7 +890,7 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
             and (found := wording_source(b.text, source))
         ):
             segment_ids = [found]
-        for fact_id, segments in parts:
+        for fact_id, segments in (*parts, *plain):
             if fact_id not in ids and segments & set(segment_ids):
                 ids.append(fact_id)
         for fact_id, segments, in_text in worded:
@@ -897,6 +904,20 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
             blocks.append(b)
         else:
             blocks.append(b.model_copy(update={"fact_ids": ids, "segment_ids": segment_ids}))
+    # A worded fact whose values the writer spread over the blocks that cite its
+    # sentences (the two income limits in two sentences, 10 October 2026): conveyed when
+    # those blocks together hold every value, named on each of them that holds one.
+    for fact_id, segments, in_text in worded:
+        if any(fact_id in b.fact_ids for b in blocks):
+            continue
+        citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
+        held = {i: extract_values(blocks[i].text, draft.lang) for i in citing}
+        if citing and all(any(matches(t, v) for i in citing for v in held[i]) for t in in_text):
+            for i in citing:
+                if any(matches(t, v) for t in in_text for v in held[i]):
+                    blocks[i] = blocks[i].model_copy(
+                        update={"fact_ids": [*blocks[i].fact_ids, fact_id]}
+                    )
     return draft.model_copy(update={"blocks": blocks})
 
 

@@ -92,6 +92,18 @@ def test_changed_deadline_is_an_error() -> None:
     assert result.metrics.fact_coverage == round(2 / 3, 3)
 
 
+def test_a_question_block_needs_no_provenance() -> None:
+    """A question states nothing (10 October 2026): the writer's question to the reader
+    typed as a sentence block is not FACT-03's business; a statement without a source
+    sentence still is."""
+    question = Block(id="b003", kind="sentence", text="Was kostet das?")
+    orphan = Block(id="b005", kind="sentence", text="Das Amt prüft alles.")
+    result = check_draft(draft(GOOD[0], GOOD[1], question, GOOD[3], orphan), source=SOURCE,
+                         factsheet=FACTS)  # fmt: skip
+    flagged = [f.block_id for f in result.findings if f.rule_id == "FACT-03"]
+    assert flagged == ["b005"]
+
+
 def test_unreferenced_fact_and_missing_provenance() -> None:
     orphan = Block(id="b003", kind="sentence", text="Das kostet 20 Franken.")
     result = check_draft(draft(GOOD[0], GOOD[1], orphan, GOOD[3]), source=SOURCE, factsheet=FACTS)

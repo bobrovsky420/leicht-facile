@@ -263,7 +263,11 @@ else those of the facts it names, else the source sentence it says in other word
 one it shares the most distinctive words with, by a clear margin (`wording_source`;
 without it, FACT-03 flags the block and the judge, which sees only the cited
 sentences, is apt to call it invented). A fact without a value whose text holds values (a contact with its phone number and
-e-mail) is linked to a block that cites one of its sentences and contains all of them. A sentence that repeats an earlier one is dropped and its references go
+e-mail) is linked to a block that cites one of its sentences and contains all of them,
+or to the blocks of its sentences that together hold all of them, each that holds one;
+a fact without a value and without values in its text to every block that cites one of
+its sentences (both 10 October 2026: the writer put the two income limits into two
+sentences, and renders a sentence without its tag). FACT-03 skips a question block, since a question states nothing. A sentence that repeats an earlier one is dropped and its references go
 to the first, and a heading left without content goes too: small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
 "By when?").

@@ -1280,6 +1280,33 @@ the other 9 German pairs are unchanged on facts. The French rule errors rise on 
 pair the same way (6 to 9 errors in its final). Every final draft still has errors,
 FACT-02, FACT-03 and FACT-01 above all. Kept on for the final run.
 
+### Fact links, questions and the judge's spellings on the dev pairs (10 October 2026)
+
+Three changes in one run (PLAN.md D-AH), measured on the 12 dev pairs on CSCS into
+`track_2b/eval/results-cscs-fact-links` against the judge-quotes run of the same day:
+`stages.link_facts` names a fact without a value on every block that cites one of its
+sentences, and a fact with values in its text on the blocks of its sentences that
+together hold all of them (FACT-02); FACT-03 skips a question block; both judge
+templates say that another spelling of the same value is no distortion. Understand and
+Write replayed from the cache; the judge template changed, so every judge call and the
+repair answers after it are new samples.
+
+| Dev split | Run | Fact coverage | Hard facts kept | Rule errors per 100 blocks | Invented per 100 | Unsupported per 100 | Tokens per page |
+|---|---|---|---|---|---|---|---|
+| German (10) | judge quotes | 94 % | 88 % | 0.2 | 0.0 | 3.1 | 36,587 |
+| German (10) | fact links | 95 % | 86 % | 1.3 | 0.0 | 0.8 | 34,764 |
+| French (2) | judge quotes | 100 % | 97 % | 4.5 | 1.2 | 2.3 | 24,460 |
+| French (2) | fact links | 100 % | 97 % | 2.9 | 1.2 | 3.3 | 29,782 |
+
+In the final drafts: FACT-02 findings 19 to 10, FACT-03 18 to 18, the judge's
+unsupported verdicts 13 to 6, error findings of all kinds 64 to 55, and for the first
+time two of the 12 finals carry no error at all. Over all draft versions the judge's
+unsupported verdicts fell from 102 to 55, 2 dropped as copies of the example. The rule
+errors per 100 blocks bounce between runs of the same code (1.3, 0.2, 1.3 in the three
+runs of the day: 4 GRAM-01 findings in fresh repair samples this time); the hard facts
+kept move on one pair (`zh-blue-algae-de`, 7 of 8 to 5 of 8 in a fresh write-round
+sample, every other pair unchanged or up). Kept on for the final run.
+
 ## Change log
 
 | Version | Date | Change |
@@ -1310,3 +1337,4 @@ FACT-02, FACT-03 and FACT-01 above all. Kept on for the final run.
 | 11 | 2026-10-09 | No change to the German and French templates. English templates for German and French documents (understand, write, judge, repair and the two partials, with an English style guide and labels, behind a setting that named the stages) were built, measured on the dev pairs on CSCS and not taken ("English instructions" above): longer, less plain German in repair on equal input, Understand failing on 2 of 12 pages and dropping content, English in omission entries, and gains on facts within the noise of two German runs. Removed the same day with their tests and measurement scripts (commit `ff0544a` has them); the results are kept above. |
 | 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`MAX_POLISH_ROUNDS`, default 1, PLAN.md D-AF): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |
 | 12 | 2026-10-10 | Judge prompt (German and French): an unsupported verdict carries a `quote`, the words of the block the original does not cover, as they stand there, and another wording of the same statement is no problem (PLAN.md D-AG). Code keeps a verdict only when its quote stands in a block of the draft, on that block, and files the rest under `dropped` in the judge report: the 70B had cited the prompt example's own block ids. Measured on the dev pairs ("The judge's quotes on the dev pairs" above). |
+| 13 | 2026-10-10 | Judge prompt (German and French): another spelling of the same value is no distortion (42'000 Franken for CHF 42'000.-, 4. Februar 2026 for 04.02.2026); the judge had called amounts distorted for their punctuation (PLAN.md D-AH). Code, the same decision: a fact without a value and without values in its text is conveyed by every block that cites one of its sentences, a fact with values in its text by the blocks of its sentences that together hold all of them (`stages.link_facts`, FACT-02), and FACT-03 skips a question block. Measured on the dev pairs ("Fact links, questions and the judge's spellings on the dev pairs" above). |

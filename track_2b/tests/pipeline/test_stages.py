@@ -117,6 +117,42 @@ def test_link_facts_needs_every_value_and_a_cited_sentence_for_a_worded_fact() -
     assert linked[2].segment_ids == []  # no value, no source to take
 
 
+def test_link_facts_accepts_a_worded_fact_spread_over_the_blocks_of_its_sentence() -> None:
+    """The writer put the phone number and the e-mail address of the contact fact into
+    two blocks of the same source sentence (10 October 2026): together they hold every
+    value, so both name the fact; a block of that sentence without a value does not."""
+    draft = Draft(doc_id="doc", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Écrivez à rip@exempleville.example.",
+              segment_ids=["s0016"]),
+        Block(id="b002", kind="sentence", text="L'agence répond le matin.", segment_ids=["s0016"]),
+        Block(id="b003", kind="sentence", text="Appelez le 022 123 45 67.", segment_ids=["s0016"]),
+    ])  # fmt: skip
+    linked = link_facts(draft, CONTACT).blocks
+    assert "f05" in linked[0].fact_ids and "f05" in linked[2].fact_ids
+    assert "f05" not in linked[1].fact_ids
+
+
+def test_link_facts_names_a_plain_fact_on_the_blocks_that_cite_its_sentence() -> None:
+    """A fact without a value and without values in its text (10 October 2026): the
+    writer renders its sentence and leaves the tag out, so every block that cites one of
+    the fact's sentences names it; a block that cites another sentence does not."""
+    fs = FactSheet(doc_id="doc", facts=[
+        Fact(id="f05", kind="right", text="Anspruch auf Prämienverbilligung.",
+             segment_ids=["s0003"], must_keep=True),
+        Fact(id="f06", kind="other", text="Keine Angabe.", segment_ids=[], must_keep=True),
+    ])  # fmt: skip
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Was bekommen Sie?"),
+        Block(id="b002", kind="sentence", text="Sie bekommen Geld für die Prämie.",
+              segment_ids=["s0003"]),
+        Block(id="b003", kind="sentence", text="Das Amt hilft Ihnen.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    linked = link_facts(draft, fs).blocks
+    assert linked[0].fact_ids == [] and linked[0].segment_ids == []  # a heading stays
+    assert linked[1].fact_ids == ["f05"]  # cites the fact's sentence: it conveys the fact
+    assert linked[2].fact_ids == []  # another sentence, and f06 has no sentence to share
+
+
 # Sentences of the French example letter (s0010 to s0012, s0016).
 LETTER_FR = SourceDocument(id="doc", lang="fr", source=SourceInfo(type="text"), segments=[
     Segment(id="s0001", kind="heading", text="Réduction individuelle des primes 2027"),

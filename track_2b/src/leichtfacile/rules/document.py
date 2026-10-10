@@ -182,8 +182,8 @@ def fact_03(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         return
     known = doc.source.segment_ids()
     for block in doc.draft.blocks:
-        if block.kind == "heading":
-            continue
+        if block.kind == "heading" or block.text.rstrip().endswith("?"):
+            continue  # a question states nothing: the writer's question to the reader
         valid = [s for s in block.segment_ids if s in known]
         if not valid:
             unknown = [s for s in block.segment_ids if s not in known]
