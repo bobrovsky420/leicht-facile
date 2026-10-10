@@ -298,6 +298,8 @@ fire, one that must not).
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), DOCX export, an air-gapped image
   bundle, login.
+- **Unmeasured:** the rewrite recipes the checker hands the writer for a subordinate
+  clause, in German and French; the dev runs measured the rounds, not them.
 
 ## 7. Reproducibility
 
