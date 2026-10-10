@@ -834,6 +834,40 @@ def test_code_completion_adds_the_full_value_next_to_a_partial_model_fact() -> N
     assert added == ["Gerichtsstrasse 12, 8000 Musterwil", "2 Tablette"]
 
 
+def test_an_unsupported_verdict_needs_its_quote_in_the_draft() -> None:
+    """Since 10 October 2026 the judge quotes the words it objects to. A verdict stays on
+    its block when the quote is there (Mediopunkt aside), moves to the block that holds
+    the quote, or goes to the report's `dropped` list when no block does: the 70B copied
+    the prompt example's block id and note into real reports."""
+    from leichtfacile.pipeline.models import JudgeOut
+    from leichtfacile.pipeline.stages import to_judge_report
+    from leichtfacile.schemas import Block, Draft, FactSheet
+
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Was brauchen Sie?"),
+        Block(id="b002", kind="sentence",
+              text="Sie können die Sozial·versicherungs·stelle anrufen."),
+        Block(id="b003", kind="sentence", text="Das Amt prüft den Antrag nicht."),
+    ])  # fmt: skip
+    out = JudgeOut.model_validate({"fact_checks": [], "unsupported": [
+        {"block_id": "b002", "quote": "Sozialversicherungsstelle anrufen",
+         "note": "nicht im Original"},
+        {"block_id": "b001", "quote": "prüft den Antrag nicht.", "note": "steht nicht im Original"},
+        {"block_id": "b003", "quote": "im Internet bezahlen",
+         "note": "Das Original sagt nicht, dass man im Internet bezahlen kann."},
+        {"block_id": "b003", "note": "ohne Zitat"},
+        {"block_id": "b009", "quote": "egal", "note": "ein Block, den es nicht gibt"},
+    ]})  # fmt: skip
+    report = to_judge_report(out, draft, FactSheet(doc_id="d"), "m")
+    assert [(u.block_id, u.quote) for u in report.unsupported] == [
+        ("b002", "Sozialversicherungsstelle anrufen"),
+        ("b003", "prüft den Antrag nicht."),  # moved from the heading to its block
+        ("b003", None),  # without a quote the verdict stands as before
+    ]
+    assert [(u.block_id, u.quote) for u in report.dropped] == [("b003", "im Internet bezahlen")]
+    assert report.problem_block_ids() == {"b002", "b003"}
+
+
 def test_the_judge_filter_keeps_sem_09_and_sem_10_for_a_decision_only() -> None:
     from leichtfacile.pipeline.models import JudgeOut
     from leichtfacile.pipeline.stages import to_judge_report

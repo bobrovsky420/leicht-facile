@@ -301,6 +301,9 @@ class FactCheck(Artifact):
 
 class Unsupported(Artifact):
     block_id: str
+    # The words of the block the source does not cover, as the judge quoted them; code
+    # keeps a verdict only when its quote stands in a block of the draft (10 Oct 2026).
+    quote: str | None = None
     note: str = ""
 
 
@@ -316,6 +319,9 @@ class JudgeReport(Artifact):
     fact_checks: list[FactCheck] = Field(default_factory=list)
     unsupported: list[Unsupported] = Field(default_factory=list)
     semantic_findings: list[SemanticFinding] = Field(default_factory=list)
+    # Unsupported verdicts whose quote stands in no block of the draft: kept for the
+    # audit, counted nowhere (since 10 October 2026).
+    dropped: list[Unsupported] = Field(default_factory=list)
 
     def problem_block_ids(self) -> set[str]:
         ids = {u.block_id for u in self.unsupported}

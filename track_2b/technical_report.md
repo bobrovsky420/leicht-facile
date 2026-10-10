@@ -165,7 +165,8 @@ card's memory bandwidth. A laptop RTX 4060 8 GB (llama.cpp, 4-bit) gave about 37
 
 **[PENDING: check the table against the final run's settings.]** **Prompts and parsing** ([track_2b/docs/prompts.md](docs/prompts.md)), in the document's
 language, each with one filled JSON example instead of the schema. Sentences and blocks
-carry ids (`[s0004]`, `[b007]`): the model cites, code verifies. The writer plans first
+carry ids (`[s0004]`, `[b007]`): the model cites, code verifies; the judge's unsupported
+verdicts must quote words that stand in the draft. The writer plans first
 (the reader's questions as headings) with the level's style guide and two example pairs
 written by the team; repair gets only the flagged blocks, their findings and facts.
 Answers are parsed leniently and validated with pydantic (one retry with the error);

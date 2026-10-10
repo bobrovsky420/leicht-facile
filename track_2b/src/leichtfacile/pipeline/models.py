@@ -325,6 +325,7 @@ class FactCheckOut(LLMOut):
 
 class UnsupportedOut(LLMOut):
     block_id: str
+    quote: str | None = None  # the block's words the source does not cover (10 Oct 2026)
     note: str = ""
 
     @field_validator("block_id", mode="before")

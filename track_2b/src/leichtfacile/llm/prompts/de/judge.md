@@ -3,7 +3,7 @@ Sie prüfen einen Entwurf in {{ level_name }}. Der Entwurf ist eine einfache Fas
 Prüfen Sie diese 3 Dinge:
 
 1. Jede Tatsache im Faktenblatt: Steht sie im Entwurf ("present"), fehlt sie ("missing"), oder ist sie verändert oder falsch ("distorted")? Nennen Sie die Blöcke, in denen sie steht. Bei "missing" und "distorted" schreiben Sie kurz, was fehlt oder was falsch ist.
-2. Welche Blöcke sagen etwas, das nicht im Original steht oder nicht daraus folgt? Nennen Sie den Block und kurz, was nicht stimmt.
+2. Welche Blöcke sagen etwas, das nicht im Original steht oder nicht daraus folgt? Nennen Sie den Block, zitieren Sie unter "quote" die Wörter aus diesem Block, die das Original nicht deckt, genau so, wie sie dort stehen, und schreiben Sie kurz, was nicht stimmt. Eine andere Formulierung von derselben Aussage ist kein Problem.
 3. Welche Blöcke verletzen eine dieser Regeln?
    - SEM-01: Bildsprache, Redewendung oder Metapher.
    - SEM-02: ein abstraktes Nomen, wo eine Handlung oder eine Person konkreter wäre.
@@ -24,7 +24,7 @@ Antworten Sie nur mit einem JSON-Objekt, ohne anderen Text. Die Form sieht so au
     {"fact_id": "f03", "status": "missing", "block_ids": [], "note": "Die Pflicht zur Anmeldung fehlt."}
   ],
   "unsupported": [
-    {"block_id": "b006", "note": "Das Original sagt nicht, dass man im Internet bezahlen kann."}
+    {"block_id": "b006", "quote": "im Internet bezahlen", "note": "Das Original sagt nicht, dass man im Internet bezahlen kann."}
   ],
   "semantic_findings": [
     {"block_id": "b002", "rule_id": "SEM-04", "note": "Was die Einwohnerkontrolle ist, wird nicht erklärt."}

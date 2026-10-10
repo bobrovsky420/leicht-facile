@@ -751,6 +751,7 @@ def _carry_over(judge: JudgeReport, old: Draft, new: Draft) -> JudgeReport:
                 for c in judge.fact_checks
             ],
             "unsupported": [u for u in judge.unsupported if u.block_id in unchanged],
+            "dropped": [],  # the old version's unquoted verdicts say nothing about this one
             "semantic_findings": [s for s in judge.semantic_findings if s.block_id in unchanged],
         }
     )

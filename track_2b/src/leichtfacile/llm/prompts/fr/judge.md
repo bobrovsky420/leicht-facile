@@ -3,7 +3,7 @@ Vous contrôlez un brouillon en {{ level_name }}. Le brouillon est une version s
 Contrôlez ces 3 choses :
 
 1. Chaque fait de la fiche de faits : est-il dans le brouillon ("present"), manque-t-il ("missing"), ou est-il changé ou faux ("distorted") ? Donnez les blocs où il se trouve. Pour "missing" et "distorted", écrivez brièvement ce qui manque ou ce qui est faux.
-2. Quels blocs disent quelque chose qui n'est pas dans l'original ou qui n'en découle pas ? Donnez le bloc et, brièvement, ce qui ne va pas.
+2. Quels blocs disent quelque chose qui n'est pas dans l'original ou qui n'en découle pas ? Donnez le bloc, citez sous "quote" les mots de ce bloc que l'original ne couvre pas, exactement comme ils y figurent, et écrivez brièvement ce qui ne va pas. Une autre formulation de la même affirmation n'est pas un problème.
 3. Quels blocs ne respectent pas une de ces règles ?
    - SEM-01 : une image, une expression toute faite ou une métaphore.
    - SEM-02 : un nom abstrait, là où une action ou une personne serait plus concrète.
@@ -24,7 +24,7 @@ Répondez seulement avec un objet JSON, sans autre texte. La forme est la suivan
     {"fact_id": "f03", "status": "missing", "block_ids": [], "note": "L'obligation d'annoncer le chien manque."}
   ],
   "unsupported": [
-    {"block_id": "b006", "note": "L'original ne dit pas qu'on peut payer sur internet."}
+    {"block_id": "b006", "quote": "payer sur internet", "note": "L'original ne dit pas qu'on peut payer sur internet."}
   ],
   "semantic_findings": [
     {"block_id": "b002", "rule_id": "SEM-04", "note": "Le brouillon n'explique pas ce qu'est le contrôle des habitants."}

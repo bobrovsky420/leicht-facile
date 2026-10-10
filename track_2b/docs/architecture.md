@@ -361,6 +361,14 @@ via the segment ids). It answers only what code cannot:
 
 1. For each fact: `present` | `missing` | `distorted`, with the block ids and a note.
 2. Which draft blocks state something the source does not support (hallucinations).
+   Since 10 October 2026 each such verdict quotes the words the source does not cover,
+   and code keeps it only when the quote stands in a block of the draft, on that
+   block: the 70B had cited the block ids of the prompt's own example (`b006` in 46 of
+   179 verdicts of the example builds, 18 of 146 in a dev run). A verdict whose quote
+   is in no block goes to the report's `dropped` list, for the audit, counted nowhere.
+   On the 12 dev pairs the verdicts over all versions fell from 188 to 102, German
+   unsupported per 100 blocks from 5.3 to 3.1, facts unchanged but for one pair's
+   fresh sample (track_2b/docs/prompts.md, "The judge's quotes on the dev pairs").
 3. Semantic rule violations: metaphors and idioms, abstract nouns, pronouns whose
    reference is unclear, implied knowledge the reader may not have, and a changed
    obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
@@ -607,11 +615,12 @@ RuleFindings  (one per draft version)
 JudgeReport  (one per judged draft version)
   draft_version, model
   fact_checks[]: {fact_id, status (present|missing|distorted), block_ids[], note}
-  unsupported[]: {block_id, note}
+  unsupported[]: {block_id, quote?, note}
   semantic_findings[]: {block_id, rule_id (SEM-01..05, SEM-08), note}
+  dropped[]: {block_id, quote, note}      unsupported verdicts whose quote is in no block
 
 RepairRecord  (one per repair round, under the version it produced)
-  draft_version, parent_version, kind (repair|facts|vocabulary)
+  draft_version, parent_version, kind (repair|facts|vocabulary|recover|polish)
   requested_blocks[], requested_facts[]
   repairs[]: {block_id, texts[]}            the answer as given
   additions[]: {after?, texts[], fact_ids[]}

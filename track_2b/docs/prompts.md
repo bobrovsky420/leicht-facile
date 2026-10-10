@@ -1249,6 +1249,37 @@ flagged block can fix. Cost: about 17 percent more tokens per page. Seconds per 
 not comparable, since the recover-on run replayed most calls from the cache. Kept on by
 default for the final run.
 
+### The judge's quotes on the dev pairs (10 October 2026)
+
+Both judge templates ask for a `quote` with every unsupported verdict, the words of the
+block the original does not cover, and say that another wording of the same statement
+is no problem (PLAN.md D-AG). Code keeps a verdict only when its quote stands in a block
+of the draft, on that block, and files the rest under `dropped`. Reason: in the example
+builds the 70B had cited the prompt example's own block id `b006` in 46 of 179
+verdicts, with the example's note in some, and one French draft was clean but for a
+verdict on a tax assessment the letter names. Run on the 12 dev pairs on CSCS into
+`track_2b/eval/results-cscs-judge-quote` against the polish run of the same day; Understand
+and Write replayed from the cache, every judge call new, so the repair answers after
+the first judge call are new samples too.
+
+| Dev split | Run | Fact coverage | Hard facts kept | Rule errors per 100 blocks | Invented per 100 | Unsupported per 100 | Tokens per page |
+|---|---|---|---|---|---|---|---|
+| German (10) | polish | 96 % | 90 % | 1.3 | 0.6 | 5.3 | 32,680 |
+| German (10) | judge quotes | 94 % | 88 % | 0.2 | 0.0 | 3.1 | 36,587 |
+| French (2) | polish | 100 % | 97 % | 3.2 | 1.2 | 3.4 | 29,400 |
+| French (2) | judge quotes | 100 % | 97 % | 4.5 | 1.2 | 2.3 | 24,460 |
+
+Unsupported verdicts over all draft versions: 188 to 102, every kept one with a quote;
+4 dropped, all four the example's internet sentence on a block that says nothing of the
+kind. In the final drafts: unsupported 26 to 13, the judge's distorted verdicts 7 to 3,
+FACT-06 4 to 1. The judge's most cited block is still `b006`, 10 of 102 against 22 of
+188. The two fact numbers fall on one pair alone (`be-pregnancy-counselling-de`, 41
+must-keep facts, 32 missing after the write stage): its facts round had added 9 values
+in the polish run and added none in this one, a fresh 8B sample on a changed request;
+the other 9 German pairs are unchanged on facts. The French rule errors rise on one
+pair the same way (6 to 9 errors in its final). Every final draft still has errors,
+FACT-02, FACT-03 and FACT-01 above all. Kept on for the final run.
+
 ## Change log
 
 | Version | Date | Change |
@@ -1278,3 +1309,4 @@ default for the final run.
 | 11 | 2026-10-09 | New template `recover.md` (German and French), used only by the review page's "Suggest a sentence" for one missing fact, never by the pipeline: no other template changes, the evaluated runs render the same prompts. It names the missing value and its source sentence, and gets only the fact's paragraph and the blocks at its place ("Recovering a missing fact" above). Labels `recover_value` and `recover_foreign` for the two checks that send an answer back. |
 | 11 | 2026-10-09 | No change to the German and French templates. English templates for German and French documents (understand, write, judge, repair and the two partials, with an English style guide and labels, behind a setting that named the stages) were built, measured on the dev pairs on CSCS and not taken ("English instructions" above): longer, less plain German in repair on equal input, Understand failing on 2 of 12 pages and dropping content, English in omission entries, and gains on facts within the noise of two German runs. Removed the same day with their tests and measurement scripts (commit `ff0544a` has them); the results are kept above. |
 | 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`MAX_POLISH_ROUNDS`, default 1, PLAN.md D-AF): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |
+| 12 | 2026-10-10 | Judge prompt (German and French): an unsupported verdict carries a `quote`, the words of the block the original does not cover, as they stand there, and another wording of the same statement is no problem (PLAN.md D-AG). Code keeps a verdict only when its quote stands in a block of the draft, on that block, and files the rest under `dropped` in the judge report: the 70B had cited the prompt example's own block ids. Measured on the dev pairs ("The judge's quotes on the dev pairs" above). |

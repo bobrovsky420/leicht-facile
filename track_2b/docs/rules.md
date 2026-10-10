@@ -245,7 +245,7 @@ show them next to the code findings:
 | SEM-03 | Does a pronoun or demonstrative have an unclear reference? |
 | SEM-04 | Does it assume knowledge the reader may not have (a procedure, an institution, a legal term) without explaining it? |
 | SEM-05 | Is a difficult word used without an explanation, where the glossary has none? |
-| SEM-06 | Does the block state something the source does not support? (hallucination) |
+| SEM-06 | Does the block state something the source does not support? (hallucination) Since 10 October 2026 the judge quotes the words of the block the source does not cover; code keeps the verdict only when the quote stands in a block of the draft, on that block (the 70B had cited the block ids of the prompt's own example, `b006` in 46 of 179 verdicts of the example builds), and files the rest under `dropped` in the judge report. Another wording of the same statement is not a problem, the prompt says since the same day |
 | SEM-07 | For each fact: present, missing, or distorted? A `missing` on a fact whose value FACT-01 finds in the draft shows on the review page in amber as "judge doubts" (since 8 October 2026); the pipeline still counts it as blocking |
 | SEM-08 | Is every obligation still an obligation, every possibility a possibility and every condition a condition (`müssen`, `sollen`, `können`; never `vielleicht` for `wenn`, decision D-P)? In the German and French judge prompts since 7 October 2026 |
 | SEM-09 | Does the block add advice or an evaluation the source does not contain ("leider", "Sie sollten Beschwerde erheben")? Decision mode only, asked in the partial's judge section (8 October 2026) |

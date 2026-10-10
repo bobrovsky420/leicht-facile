@@ -931,6 +931,33 @@ def judge(
     return to_judge_report(out, draft, factsheet, name, mode=mode), results
 
 
+def _quote_key(text: str) -> str:
+    """A text as the quote check compares it: no Mediopunkt or soft hyphen, one space
+    between words, no quotation marks or punctuation at the ends, lower case."""
+    text = text.replace("·", "").replace("­", "")
+    text = re.sub(r"\s+", " ", text).strip()
+    return text.strip("\"'«»„“”‚‘’.,;:!? ").casefold()
+
+
+def quoted_block(quote: str | None, block_id: str, draft: Draft) -> str | None:
+    """The block an unsupported verdict belongs to: the cited block when it holds the
+    quote, else the first block that does, else None. Without a quote (or one too short
+    to mean anything) the cited block, as before 10 October 2026. The 70B judge cited
+    the block ids of the prompt's own example (`b006` in 46 of 179 verdicts of the
+    example builds), so a verdict has to point at words that stand in the draft."""
+    by_id = draft.by_id()
+    key = _quote_key(quote or "")
+    if len(key) < 3:
+        return block_id if block_id in by_id else None
+    cited = by_id.get(block_id)
+    if cited is not None and key in _quote_key(cited.text):
+        return block_id
+    for block in draft.blocks:
+        if key in _quote_key(block.text):
+            return block.id
+    return None
+
+
 def to_judge_report(
     out: JudgeOut, draft: Draft, factsheet: FactSheet, model: str, *, mode: str = "standard"
 ) -> JudgeReport:
@@ -950,15 +977,22 @@ def to_judge_report(
                     note=clean_text(c.note),
                 )
             )
+    unsupported: list[Unsupported] = []
+    dropped: list[Unsupported] = []
+    for u in out.unsupported:
+        target = quoted_block(u.quote, u.block_id, draft)
+        quote = clean_text(u.quote) if u.quote and u.quote.strip() else None
+        item = Unsupported(block_id=target or u.block_id, quote=quote, note=clean_text(u.note))
+        if target is not None:
+            unsupported.append(item)
+        elif u.block_id in blocks:  # a quote the draft does not contain: the audit keeps it
+            dropped.append(item)
     return JudgeReport(
         draft_version=draft.version,
         model=model,
         fact_checks=checks,
-        unsupported=[
-            Unsupported(block_id=u.block_id, note=clean_text(u.note))
-            for u in out.unsupported
-            if u.block_id in blocks
-        ],
+        unsupported=unsupported,
+        dropped=dropped,
         semantic_findings=[
             SemanticFinding(block_id=s.block_id, rule_id=s.rule_id, note=clean_text(s.note))
             for s in out.semantic_findings
