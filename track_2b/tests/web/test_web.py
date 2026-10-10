@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -12,6 +14,7 @@ from fastapi.testclient import TestClient
 from leichtfacile import ingest
 from leichtfacile.examples import EXAMPLE_PREFIX, load_examples
 from leichtfacile.export.bundle import build_bundle
+from leichtfacile.ingest.fetch import FetchedResource
 from leichtfacile.store import Store
 from tests.conftest import chat_response
 from tests.pipeline import fixtures as fx
@@ -235,6 +238,46 @@ def test_a_redirect_into_the_private_network_is_refused(app_env, monkeypatch) ->
     assert response.status_code == 400
     assert "private network (127.0.0.1)" in response.json()["detail"]
     assert client.get("/api/jobs").json() == []
+
+
+def test_a_slow_fetch_does_not_stop_other_requests(app_env, monkeypatch) -> None:
+    """The audit's probe: a URL whose server trickles its body held every other request,
+    `/healthz` included, because the ingest ran on the event loop. It runs in the
+    thread pool now."""
+    client, app, endpoint = app_env
+    started, release = threading.Event(), threading.Event()
+
+    def slow_fetch(url: str, **kwargs) -> FetchedResource:
+        started.set()
+        release.wait(10)
+        return FetchedResource(
+            content=LETTER.encode(), content_type="text/plain", final_url=url,
+            fetched_at=datetime.now(UTC),
+        )  # fmt: skip
+
+    monkeypatch.setattr(ingest, "fetch_url", slow_fetch)
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    results: dict[str, httpx.Response] = {}
+    submit = threading.Thread(
+        target=lambda: results.update(
+            job=client.post(
+                "/api/jobs", data={"url": "https://public.example/slow", "condition": "P1"}
+            )
+        )
+    )
+    health = threading.Thread(target=lambda: results.update(health=client.get("/healthz")))
+    submit.start()
+    assert started.wait(5), "the fetch began"
+    health.start()
+    health.join(5)
+    stuck = health.is_alive()
+    release.set()
+    submit.join(30)
+    health.join(30)
+    assert not stuck, "/healthz waited for the ingest of another request"
+    assert results["health"].status_code == 200
+    assert results["job"].status_code == 201, results["job"].text
+    assert app.state.runner.wait_idle(30)
 
 
 LETTRE = """# Taxe des chiens 2026

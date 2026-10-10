@@ -1149,6 +1149,9 @@ at runtime.
   is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
   `Origin` that is not this server (`web/security.py`). Requests without these
   headers, from scripts and API clients, pass; reads are never refused.
+- A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
+  event loop, so a server that trickles its page or a large PDF does not hold every
+  other request (`/healthz` included) while it is ingested.
 - No document text in logs above `DEBUG`; the LLM cache can be disabled.
 
 ## 11. Repository layout

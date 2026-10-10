@@ -6,6 +6,7 @@ import json
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
@@ -97,8 +98,8 @@ async def post_job(
         notice=notice,
     )
     state = _state(request)
-    try:
-        job = create_job(state.store, state.settings, sub)
+    try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
+        job = await run_in_threadpool(create_job, state.store, state.settings, sub)
     except SubmissionError as exc:
         raise HTTPException(400, str(exc)) from exc
     state.runner.submit(job.id)

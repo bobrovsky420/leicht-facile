@@ -11,6 +11,7 @@ from typing import Annotated
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -360,8 +361,8 @@ async def submit(
         notice=notice,
     )
     state = request.app.state
-    try:
-        job = create_job(state.store, state.settings, sub)
+    try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
+        job = await run_in_threadpool(create_job, state.store, state.settings, sub)
     except SubmissionError as exc:
         form = {
             "text": text or "",
