@@ -116,6 +116,11 @@ def _client(content: bytes, content_type: str) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
+def _resolve(host: str, port: int) -> list[str]:
+    """No DNS in the tests: every name is a public address."""
+    return ["93.184.216.34"]
+
+
 @pytest.mark.parametrize(
     ("content", "content_type", "source_type"),
     [
@@ -131,7 +136,9 @@ def _client(content: bytes, content_type: str) -> httpx.Client:
     ids=["html", "pdf", "pdf-by-magic-bytes", "text"],
 )
 def test_ingest_url(content, content_type, source_type):
-    doc = ingest_url("https://www.example.ch/start", client=_client(content, content_type))
+    doc = ingest_url(
+        "https://www.example.ch/start", client=_client(content, content_type), resolve=_resolve
+    )
     assert doc.source.type == source_type
     assert doc.source.uri == "https://www.example.ch/final"
     assert doc.source.fetched_at is not None
@@ -140,7 +147,11 @@ def test_ingest_url(content, content_type, source_type):
 
 def test_ingest_url_rejects_other_content():
     with pytest.raises(UnsupportedSourceError, match="image/png"):
-        ingest_url("https://www.example.ch/start", client=_client(b"\x89PNG", "image/png"))
+        ingest_url(
+            "https://www.example.ch/start",
+            client=_client(b"\x89PNG", "image/png"),
+            resolve=_resolve,
+        )
 
 
 def test_ingest_file(tmp_path):

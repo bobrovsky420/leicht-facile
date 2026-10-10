@@ -172,7 +172,8 @@ def load_source(path_or_url: str, lang: str | None, section: str | None = None):
     from leichtfacile import ingest
 
     if path_or_url.lower().startswith(("http://", "https://")):
-        doc = ingest.ingest_url(path_or_url, lang=lang)
+        # The operator's own URL: the private-network check is for the web form.
+        doc = ingest.ingest_url(path_or_url, lang=lang, allow_private=True)
     else:
         doc = ingest.ingest_file(Path(path_or_url), lang=lang)
     if section:

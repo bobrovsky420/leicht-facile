@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import ipaddress
 import os
-import socket
 from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 from leichtfacile.config import Settings
-from leichtfacile.ingest.errors import IngestError
+from leichtfacile.ingest.errors import IngestError, PrivateAddressError, UnknownHostError
 from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
@@ -70,32 +68,6 @@ class Submission:
     notice: str | None = None
 
 
-def check_public_url(url: str, *, allow_private: bool = False) -> None:
-    """Refuse URLs that point into the private network (server-side request forgery):
-    the server fetches what a user submits, so a URL must not reach internal services.
-    Set ALLOW_PRIVATE_URLS=1 for an intranet deployment that needs internal pages."""
-    if allow_private:
-        return
-    host = urlsplit(url).hostname
-    if not host:
-        raise SubmissionError("no_host")
-    try:
-        infos = socket.getaddrinfo(host, None)
-    except OSError as exc:
-        raise SubmissionError("unknown_host", host=host) from exc
-    for info in infos:
-        address = ipaddress.ip_address(info[4][0].split("%")[0])
-        if (
-            address.is_private
-            or address.is_loopback
-            or address.is_link_local
-            or address.is_reserved
-            or address.is_multicast
-            or address.is_unspecified
-        ):
-            raise SubmissionError("private_url", host=host)
-
-
 def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> SourceDocument:
     from leichtfacile import ingest
 
@@ -118,8 +90,11 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
             url = sub.url.strip()
             if not url.lower().startswith(("http://", "https://")):
                 raise SubmissionError("url_scheme")
-            check_public_url(url, allow_private=allow_private_urls)
-            return ingest.ingest_url(url, lang=lang)
+            if not urlsplit(url).hostname:
+                raise SubmissionError("no_host")
+            # The fetch refuses every hop into the private network, redirects included,
+            # and connects to the address it checked (ingest/fetch.py).
+            return ingest.ingest_url(url, lang=lang, allow_private=allow_private_urls)
         data = sub.file_data or b""
         if len(data) > MAX_FILE_BYTES:
             raise SubmissionError("file_too_large", mb=MAX_FILE_BYTES // 1_000_000)
@@ -132,6 +107,10 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
         ):
             return ingest.ingest_html(text, url=None, lang=lang)
         return ingest.ingest_text(text, lang=lang, title=sub.title or sub.file_name)
+    except PrivateAddressError as exc:
+        raise SubmissionError("private_url", host=exc.host) from exc
+    except UnknownHostError as exc:
+        raise SubmissionError("unknown_host", host=exc.host) from exc
     except IngestError as exc:
         raise SubmissionError("ingest", detail=str(exc)) from exc
 
@@ -142,6 +121,7 @@ def create_job(store: Store, settings: Settings, sub: Submission) -> Job:
     condition = canonical_condition(sub.condition)
     if condition not in ("P0", "P1", "P2"):
         raise SubmissionError("unknown_condition", condition=sub.condition)
+    # ALLOW_PRIVATE_URLS=1: an intranet deployment that needs internal pages.
     allow = os.environ.get("ALLOW_PRIVATE_URLS", "").lower() in ("1", "true", "yes")
     source = ingest_submission(sub, allow_private_urls=allow)
     if not source.segments:

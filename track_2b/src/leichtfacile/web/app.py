@@ -21,6 +21,7 @@ from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
 from leichtfacile.store import Store
 from leichtfacile.web import api, pages
+from leichtfacile.web.security import CrossSiteGuard
 
 log = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent / "static"
@@ -59,6 +60,7 @@ def create_app(
     app.state.orchestrator = orchestrator
     app.state.runner = runner
 
+    app.add_middleware(CrossSiteGuard)  # unsafe requests from another site: 403
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(api.router)
     app.include_router(pages.router)

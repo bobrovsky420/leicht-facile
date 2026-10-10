@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import logging
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from leichtfacile import ingest
 from leichtfacile.examples import EXAMPLE_PREFIX, load_examples
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.store import Store
@@ -209,6 +211,30 @@ def test_urls_into_the_private_network_are_refused(app_env, url) -> None:
     client, _, _ = app_env
     response = client.post("/api/jobs", data={"url": url})
     assert response.status_code == 400 and "private network" in response.json()["detail"]
+
+
+def test_a_redirect_into_the_private_network_is_refused(app_env, monkeypatch) -> None:
+    """A public page that answers 302 to the app, the model server or the cloud metadata
+    address: every hop is checked before it is fetched (ingest/fetch.py)."""
+    client, _, _ = app_env
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(302, headers={"location": "http://127.0.0.1:8000/api/jobs"})
+
+    def resolve(host: str, port: int) -> list[str]:
+        return [host] if host[0].isdigit() else ["93.184.216.34"]  # a public name
+
+    http = httpx.Client(transport=httpx.MockTransport(handler))
+    real = ingest.fetch_url
+
+    def fetch(url: str, **kwargs):  # the fetcher on the mock transport and the stub resolver
+        return real(url, **{**kwargs, "client": http, "resolve": resolve})
+
+    monkeypatch.setattr(ingest, "fetch_url", fetch)
+    response = client.post("/api/jobs", data={"url": "https://public.example/start"})
+    assert response.status_code == 400
+    assert "private network (127.0.0.1)" in response.json()["detail"]
+    assert client.get("/api/jobs").json() == []
 
 
 LETTRE = """# Taxe des chiens 2026

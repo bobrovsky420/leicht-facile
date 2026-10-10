@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC
-
-import httpx
 import pytest
 
 from leichtfacile.ingest import html
-from leichtfacile.ingest.errors import FetchError
-from leichtfacile.ingest.html import USER_AGENT, decode_html, extract_html, fetch_url
+from leichtfacile.ingest.html import decode_html, extract_html
 from leichtfacile.ingest.segment import Unit
 
 PAGE = """<!doctype html>
@@ -249,58 +245,7 @@ def test_fallback_for_tiny_pages():
     assert title is None  # no og:title, <title> or <h1>
 
 
-# -- fetching and decoding ------------------------------------------------------------
-
-
-def _client(handler):
-    return httpx.Client(transport=httpx.MockTransport(handler))
-
-
-def test_fetch_follows_redirects_and_sends_user_agent():
-    seen = []
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        seen.append(request)
-        if request.url.path == "/old":
-            return httpx.Response(301, headers={"location": "https://www.example.ch/new"})
-        return httpx.Response(
-            200, content=b"<html></html>", headers={"content-type": "text/html; charset=utf-8"}
-        )
-
-    resource = fetch_url("https://www.example.ch/old", client=_client(handler))
-    assert resource.final_url == "https://www.example.ch/new"
-    assert resource.media_type == "text/html"
-    assert resource.charset == "utf-8"
-    assert resource.content == b"<html></html>"
-    assert resource.fetched_at.tzinfo == UTC
-    assert all(r.headers["user-agent"] == USER_AGENT for r in seen)
-    assert USER_AGENT.startswith("leicht-facile/")
-
-
-@pytest.mark.parametrize(
-    ("handler", "message"),
-    [
-        (lambda r: httpx.Response(404), "HTTP 404"),
-        (lambda r: httpx.Response(200, content=b"x" * 101), "larger than 100 bytes"),
-        (
-            lambda r: httpx.Response(200, content=b"x", headers={"content-length": "5000"}),
-            "larger than 100 bytes",
-        ),
-    ],
-)
-def test_fetch_errors(handler, message):
-    with pytest.raises(FetchError, match=message):
-        fetch_url("https://www.example.ch/", max_bytes=100, client=_client(handler))
-
-
-def test_fetch_timeout_and_scheme():
-    def handler(request: httpx.Request) -> httpx.Response:
-        raise httpx.ReadTimeout("slow", request=request)
-
-    with pytest.raises(FetchError, match="timed out"):
-        fetch_url("https://www.example.ch/", client=_client(handler))
-    with pytest.raises(FetchError, match="only http and https"):
-        fetch_url("file:///etc/passwd")
+# -- decoding ----------------------------------------------------------------------
 
 
 def test_decode_html():

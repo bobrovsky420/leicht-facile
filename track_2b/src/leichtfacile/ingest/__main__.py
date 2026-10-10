@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.source.startswith(("http://", "https://")):
-            doc = ingest_url(args.source, lang=args.lang)
+            doc = ingest_url(args.source, lang=args.lang, allow_private=True)
         else:
             doc = ingest_file(args.source, lang=args.lang)
         if args.section:

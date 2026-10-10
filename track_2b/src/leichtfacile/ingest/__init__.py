@@ -34,16 +34,13 @@ from leichtfacile.ingest.errors import (
     FetchError,
     IngestError,
     NoTextLayerError,
+    PrivateAddressError,
     SectionNotFoundError,
+    UnknownHostError,
     UnsupportedSourceError,
 )
-from leichtfacile.ingest.html import (
-    FetchedResource,
-    decode_bytes,
-    decode_html,
-    extract_html,
-    fetch_url,
-)
+from leichtfacile.ingest.fetch import FetchedResource, Resolver, fetch_url
+from leichtfacile.ingest.html import decode_bytes, decode_html, extract_html
 from leichtfacile.ingest.normalize import MEDIOPUNKT, normalize_text
 from leichtfacile.ingest.pdf import extract_pdf
 from leichtfacile.ingest.segment import Unit, build_segments, split_sentences
@@ -61,8 +58,10 @@ __all__ = [
     "FetchedResource",
     "IngestError",
     "NoTextLayerError",
+    "PrivateAddressError",
     "SectionNotFoundError",
     "Unit",
+    "UnknownHostError",
     "UnsupportedSourceError",
     "build_segments",
     "detect_language",
@@ -150,9 +149,14 @@ def ingest_url(
     doc_id: str | None = None,
     license_note: str | None = None,
     client: httpx.Client | None = None,
+    allow_private: bool = False,
+    resolve: Resolver | None = None,
 ) -> SourceDocument:
-    """Download a URL and ingest it as HTML, PDF or plain text by its content type."""
-    resource = fetch_url(url, client=client)
+    """Download a URL and ingest it as HTML, PDF or plain text by its content type.
+
+    The fetch refuses URLs and redirects into the private network unless
+    `allow_private` (ingest/fetch.py); `resolve` replaces the system resolver in tests."""
+    resource = fetch_url(url, client=client, allow_private=allow_private, resolve=resolve)
     kind = _content_kind(resource)
     source_type = "html" if kind == "html" else "pdf" if kind == "pdf" else "text"
     source = SourceInfo(

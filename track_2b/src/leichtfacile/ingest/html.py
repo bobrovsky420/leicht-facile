@@ -1,4 +1,6 @@
-"""Web pages: download with httpx, extract the main content with trafilatura, map to units.
+"""Web pages: extract the main content with trafilatura, map to units.
+
+The download itself is `ingest/fetch.py`.
 
 Extraction uses trafilatura's XML output in its default (balanced) mode with tables,
 without comments, links, images, formatting and metadata (the metadata step parses
@@ -56,96 +58,19 @@ import difflib
 import logging
 import re
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
-from datetime import UTC, datetime
 from typing import Any
 
-import httpx
 import trafilatura
 from trafilatura.utils import load_html
 
-from leichtfacile import __version__
-from leichtfacile.ingest.errors import ExtractionError, FetchError
+from leichtfacile.ingest.errors import ExtractionError
 from leichtfacile.ingest.normalize import join_lines, normalize_text
 from leichtfacile.ingest.segment import Unit
 from leichtfacile.schemas import SegmentKind
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = f"leicht-facile/{__version__} (+https://github.com/bobrovsky420/leicht-facile)"
-DEFAULT_TIMEOUT_S = 30.0
-DEFAULT_MAX_BYTES = 15_000_000
-
-_CHARSET = re.compile(r"charset\s*=\s*[\"']?([\w.:-]+)", re.IGNORECASE)
 _META_CHARSET = re.compile(rb"<meta[^>]+charset\s*=\s*[\"']?([\w.:-]+)", re.IGNORECASE)
-
-
-@dataclass(frozen=True)
-class FetchedResource:
-    content: bytes
-    content_type: str  # the Content-Type header as sent, possibly with parameters
-    final_url: str  # after redirects
-    fetched_at: datetime
-
-    @property
-    def media_type(self) -> str:
-        return self.content_type.split(";", 1)[0].strip().lower()
-
-    @property
-    def charset(self) -> str | None:
-        match = _CHARSET.search(self.content_type)
-        return match.group(1) if match else None
-
-
-def fetch_url(
-    url: str,
-    *,
-    timeout_s: float = DEFAULT_TIMEOUT_S,
-    max_bytes: int = DEFAULT_MAX_BYTES,
-    client: httpx.Client | None = None,
-) -> FetchedResource:
-    """Download a URL (following redirects) with a size limit."""
-    try:
-        scheme = httpx.URL(url).scheme
-    except (httpx.InvalidURL, TypeError) as exc:
-        raise FetchError(f"invalid URL {url!r}") from exc
-    if scheme not in ("http", "https"):
-        raise FetchError(f"only http and https URLs can be fetched, not {url!r}")
-    http = client or httpx.Client()
-    try:
-        with http.stream(
-            "GET",
-            url,
-            headers={"User-Agent": USER_AGENT},
-            follow_redirects=True,
-            timeout=timeout_s,
-        ) as response:
-            response.raise_for_status()
-            declared = response.headers.get("content-length", "")
-            if declared.isdigit() and int(declared) > max_bytes:
-                raise FetchError(f"{url} is larger than {max_bytes} bytes")
-            chunks: list[bytes] = []
-            size = 0
-            for chunk in response.iter_bytes():
-                size += len(chunk)
-                if size > max_bytes:
-                    raise FetchError(f"{url} is larger than {max_bytes} bytes")
-                chunks.append(chunk)
-            return FetchedResource(
-                content=b"".join(chunks),
-                content_type=response.headers.get("content-type", ""),
-                final_url=str(response.url),
-                fetched_at=datetime.now(UTC),
-            )
-    except httpx.HTTPStatusError as exc:
-        raise FetchError(f"GET {url} failed: HTTP {exc.response.status_code}") from exc
-    except httpx.TimeoutException as exc:
-        raise FetchError(f"GET {url} timed out after {timeout_s:g} s") from exc
-    except httpx.HTTPError as exc:
-        raise FetchError(f"GET {url} failed: {type(exc).__name__}: {exc}") from exc
-    finally:
-        if client is None:
-            http.close()
 
 
 def decode_html(content: bytes, charset: str | None = None) -> str:

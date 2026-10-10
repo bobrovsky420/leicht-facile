@@ -1139,8 +1139,16 @@ at runtime.
   reverse proxy. Noted as a limitation.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API.
 - The server fetches the URLs users submit, so a URL that resolves to a private,
-  loopback or link-local address is refused (server-side request forgery);
-  `ALLOW_PRIVATE_URLS=1` lifts this for an intranet that needs internal pages.
+  loopback or link-local address is refused (server-side request forgery). The check
+  runs on every hop of a redirect chain (at most 5 hops) and the connection goes to
+  the address that was checked, the name in the Host header and as the TLS server
+  name, so a DNS answer that changes between the check and the connect cannot redirect
+  the fetch (`ingest/fetch.py`). `ALLOW_PRIVATE_URLS=1` lifts the address check for an
+  intranet that needs internal pages.
+- A state-changing request from a page on another site (cross-site request forgery)
+  is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
+  `Origin` that is not this server (`web/security.py`). Requests without these
+  headers, from scripts and API clients, pass; reads are never refused.
 - No document text in logs above `DEBUG`; the LLM cache can be disabled.
 
 ## 11. Repository layout
@@ -1181,14 +1189,16 @@ track_2b/                   the template's folder, as the organisers require it
                             recover.md, examples/; decision.md (the decision mode's partial,
                             included by the four standard templates when mode is "decision");
                             de/baseline_zh.md (Zurich's prompt, verbatim)
-    ingest/                 html.py, pdf.py, text.py, segment.py, normalize.py, detect.py, errors.py
+    ingest/                 fetch.py (the safe URL download), html.py, pdf.py, text.py, segment.py,
+                            normalize.py, detect.py, errors.py
     pipeline/               models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
     rules/                  base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
                             lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
                             vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
-    web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py, templates/,
+    web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py,
+                            security.py (the cross-site guard), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
     export/                 markdown.py, html.py, bundle.py
     eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
