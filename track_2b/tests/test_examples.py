@@ -78,10 +78,10 @@ def test_open_problems_count_rule_errors_and_judge_problems() -> None:
     assert open_problems(_rules("error", "warn"), judge) == 3
 
 
-# The shipped bundles whose final draft still shows errors: the 8B's output on these
-# letters, and no rebuild has been clean yet (PLAN.md WP8). Strict: a clean rebuild
-# fails here until its name leaves the set.
-KNOWN_PROBLEMS = {"praemienverbilligung-brief", "reduction-primes-lettre"}
+# Shipped bundles whose final draft still shows errors, marked as expected failures,
+# strict: a clean rebuild fails here until its name leaves the set. Empty since the
+# rebuild of 10 October 2026 (PLAN.md WP8); the bundles of 7 October had been in it.
+KNOWN_PROBLEMS: set[str] = set()
 
 
 def _example_job(path: Path) -> object:

@@ -1307,6 +1307,20 @@ runs of the day: 4 GRAM-01 findings in fresh repair samples this time); the hard
 kept move on one pair (`zh-blue-algae-de`, 7 of 8 to 5 of 8 in a fresh write-round
 sample, every other pair unchanged or up). Kept on for the final run.
 
+### Sentence placement on the dev pairs (10 October 2026)
+
+A sentence a repair round adds after a list item, and a sentence the recover round
+places after one, go after the list's last item instead of between its items (PLAN.md
+D-AI; `stages.apply_repairs`, `stages.add_sentences`). Run on the 12 dev pairs on CSCS
+into `track_2b/eval/results-cscs-placement` against the fact-links run of the same day.
+Seven pairs replayed every call from the cache and are identical; in five the
+placement changed a later request, so their repair and recover answers are fresh
+samples. German means: rule errors 1.3 to 1.6 per 100 blocks, warnings 32 to 33, fact
+coverage 95 to 96 percent, hard facts kept 86 to 87, unsupported 0.8 to 1.0, tokens
+per page plus 3 percent; French unchanged. In the final drafts the error findings of
+all kinds went from 55 to 53, FACT-01 from 19 to 16, the rest equal. A layout change
+with no effect beyond the day's sampling noise, kept on for the final run.
+
 ## Change log
 
 | Version | Date | Change |
@@ -1338,3 +1352,5 @@ sample, every other pair unchanged or up). Kept on for the final run.
 | 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`MAX_POLISH_ROUNDS`, default 1, PLAN.md D-AF): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |
 | 12 | 2026-10-10 | Judge prompt (German and French): an unsupported verdict carries a `quote`, the words of the block the original does not cover, as they stand there, and another wording of the same statement is no problem (PLAN.md D-AG). Code keeps a verdict only when its quote stands in a block of the draft, on that block, and files the rest under `dropped` in the judge report: the 70B had cited the prompt example's own block ids. Measured on the dev pairs ("The judge's quotes on the dev pairs" above). |
 | 13 | 2026-10-10 | Judge prompt (German and French): another spelling of the same value is no distortion (42'000 Franken for CHF 42'000.-, 4. Februar 2026 for 04.02.2026); the judge had called amounts distorted for their punctuation (PLAN.md D-AH). Code, the same decision: a fact without a value and without values in its text is conveyed by every block that cites one of its sentences, a fact with values in its text by the blocks of its sentences that together hold all of them (`stages.link_facts`, FACT-02), and FACT-03 skips a question block. Measured on the dev pairs ("Fact links, questions and the judge's spellings on the dev pairs" above). |
+| 13 | 2026-10-10 | No template change. Code: a sentence a repair round adds after a list item, and a sentence the recover round places after one, go after the list's last item instead of between its items (`stages.apply_repairs`, `stages.add_sentences`; PLAN.md D-AI). Found in the example letters' lists of enclosures, which the facts and recover rounds had split. Measured on the dev pairs ("Sentence placement on the dev pairs" above). |
+| 13 | 2026-10-10 | No template change. Code: an Understand answer with `null` for a whole core question is accepted as "no answer" (`RefOut`), as the prompt's `"text": null` is; the 8B wrote it that way in 4 of 18 French example builds and the job failed after the retry. |

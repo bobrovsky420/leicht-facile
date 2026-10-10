@@ -46,13 +46,17 @@ whose final draft still shows errors (rule findings of severity error, facts the
 finds missing or distorted, unsupported statements): someone opening the application
 for the first time reads a red error count as a fault of the application. The bundle
 already in `jobs/` then stays; `--allow-problems` writes the job anyway, and
-`track_2b/tests/test_examples.py` fails on a shipped job with errors. The two bundles of 7 October
-still carry such errors (4 in German, 12 in French; the rebuild of 9 October with the
-recover round left 2 and 3, so neither was written; six fresh attempts per letter on
-10 October, with the response cache off, left 3 to 7 in German and 1 to 9 in French,
-most often a judge verdict the draft does not deserve): the test marks them as expected
-failures, strictly, so a clean rebuild fails the test until its name leaves
-`KNOWN_PROBLEMS` there.
+`track_2b/tests/test_examples.py` fails on a shipped job with errors (its `KNOWN_PROBLEMS`
+set marks shipped bundles with errors as expected failures; it is empty). The shipped
+bundles are of 10 October 2026, built on that day's pipeline (the polish round, the
+judge's quotes and spelling line, the fact links, sentences placed after a list;
+PLAN.md D-AF to D-AI) in five rounds of six fresh attempts per letter with the response
+cache off. The bundles of 7 October had carried 4 and 12 errors and no rebuild before
+10 October had been clean; of the 60 attempts of 10 October, 5 came out without an
+error, and the shipped ones are the German draft whose list of enclosures stands in
+one piece and the French draft that reads best. Both show 0 errors, every fact
+present and 17 and 14 warnings on first start: the warnings are the reviewer's work
+list, not faults.
 
 ## Printed letters (image input)
 

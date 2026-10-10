@@ -395,7 +395,8 @@ drafts worse (track_2b/docs/prompts.md, "Judge doubts on values").
 Only flagged blocks are sent back, each with its findings (rule and judge, with the
 checker's suggestion where there is one) and the facts it must keep. The model returns
 one to three sentences per flagged block and new sentences for missing facts, each
-placed after a named block. A round first asks only for what blocks the draft (rule
+placed after a named block, or after the list when that block is a list item (10
+October 2026). A round first asks only for what blocks the draft (rule
 errors, missing fact values, the judge's problems), with at most 5 missing facts at a
 time, the most important kinds first; the warnings get one round once nothing blocking
 is left. Code drops a repaired or added sentence that repeats one already in the draft,
@@ -441,7 +442,8 @@ best version after the facts rounds, the most important kinds first and at most 
 many, are asked for one by one through `stages.recover_fact`, the call behind the
 review page's "Suggest a sentence" (§4.7): the fact's paragraph, the blocks at its
 place, the value and its sentence named. Each call sees the sentences accepted before
-it. The accepted sentences go after their blocks as new blocks carrying the fact
+it. The accepted sentences go after their blocks, or after the list a block belongs
+to, as new blocks carrying the fact
 (`stages.add_sentences`), in one new version with the next free number and the best
 version as its parent; code's edits, the rule check and the judge follow as after a
 round, and its repair record has the kind `recover`. A fact without a suggestion, or

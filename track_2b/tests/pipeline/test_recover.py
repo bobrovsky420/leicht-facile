@@ -136,3 +136,23 @@ def test_sentences_of_two_facts_after_one_block_keep_their_order() -> None:
     ]
     assert d.blocks[3].fact_ids == [fs.facts[1].id]
     assert add_sentences(d, "b999", ["Nirgends."], fs.facts[0]) == d
+
+
+def test_sentences_after_a_list_item_go_after_the_list() -> None:
+    """10 October 2026: in the example letters the sentences recovered after an item of
+    the list of enclosures split the list. They go after its last item now, and a
+    second fact's sentences after the first fact's."""
+    from leichtfacile.pipeline.stages import add_sentences
+
+    fs = factsheet()
+    d = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Was brauchen Sie?"),
+        Block(id="b002", kind="list_item", text="das Formular"),
+        Block(id="b003", kind="list_item", text="eine Kopie"),
+        Block(id="b004", kind="list_item", text="den Ausweis"),
+        Block(id="b005", kind="sentence", text="Das Amt prüft alles.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    d = add_sentences(d, "b002", ["Erster Satz."], fs.facts[0])
+    d = add_sentences(d, "b003", ["Zweiter Satz."], fs.facts[1])
+    assert [b.id for b in d.blocks] == ["b001", "b002", "b003", "b004", "b002.1", "b003.1", "b005"]
+    assert d.blocks[4].kind == "sentence" and d.blocks[5].text == "Zweiter Satz."

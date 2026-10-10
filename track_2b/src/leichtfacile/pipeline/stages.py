@@ -1193,7 +1193,35 @@ def apply_repairs(
     # A repair must not repeat a sentence that is already in the draft elsewhere.
     kept = {key(b.text) for b in draft.blocks if b.id not in repairs}
     blocks: list[Block] = []
+
+    def append_additions(anchor_id: str, adds: list) -> None:
+        for add in adds:
+            for text in add.texts:
+                if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
+                    dropped.append(
+                        DroppedText(
+                            text=text, reason="repeat", block_id=anchor_id, fact_ids=add.fact_ids
+                        )
+                    )
+                    continue
+                blocks.append(
+                    Block(
+                        id=new_id(anchor_id),
+                        kind=add.kind,
+                        text=text,
+                        fact_ids=[f for f in add.fact_ids if f in known_facts],
+                        segment_ids=add.segment_ids,
+                    )
+                )
+
+    # Sentences added after a list item go after the list, not between its items
+    # (10 October 2026: the example letters' lists of enclosures were split by them).
+    pending: list[tuple[str, list]] = []
     for b in draft.blocks:
+        if pending and b.kind != "list_item":
+            for anchor_id, adds in pending:
+                append_additions(anchor_id, adds)
+            pending.clear()
         texts = repairs.get(b.id)
         if texts:
             fresh = [t for t in texts if key(t) not in kept] or texts[:1]
@@ -1208,24 +1236,13 @@ def apply_repairs(
         else:
             used.add(b.id)
             blocks.append(b)
-        for add in additions.get(b.id, []):
-            for text in add.texts:
-                if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
-                    dropped.append(
-                        DroppedText(
-                            text=text, reason="repeat", block_id=b.id, fact_ids=add.fact_ids
-                        )
-                    )
-                    continue
-                blocks.append(
-                    Block(
-                        id=new_id(b.id),
-                        kind=add.kind,
-                        text=text,
-                        fact_ids=[f for f in add.fact_ids if f in known_facts],
-                        segment_ids=add.segment_ids,
-                    )
-                )
+        adds = additions.get(b.id, [])
+        if adds and b.kind == "list_item":
+            pending.append((b.id, adds))
+        elif adds:
+            append_additions(b.id, adds)
+    for anchor_id, adds in pending:  # a list at the end of the draft
+        append_additions(anchor_id, adds)
     for add in additions.get(None, []):
         for text in add.texts:
             if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
@@ -1445,10 +1462,25 @@ def recover_fact(
     return recovery, results
 
 
+def list_end(blocks: list[Block], at: int) -> int:
+    """From `at`, the index after the list the blocks there belong to: its items and the
+    sentences placed after an item under its id (`b005.1`)."""
+    by_id = {b.id: b for b in blocks}
+    while at < len(blocks):
+        b = blocks[at]
+        base = by_id.get(b.id.split(".")[0])
+        if b.kind == "list_item" or ("." in b.id and base is not None and base.kind == "list_item"):
+            at += 1
+        else:
+            break
+    return at
+
+
 def add_sentences(draft: Draft, block_id: str, texts: list[str], fact: Fact) -> Draft:
     """The draft with the sentences of a recovered fact as new blocks after `block_id`
     (`b009.1`, `b009.2`, ...), each carrying the fact. They go after the blocks that
-    follow it under its id, so a second fact for the same block comes after the first."""
+    follow it under its id, so a second fact for the same block comes after the first,
+    and after the whole list when the block is a list item (10 October 2026)."""
     ids = {b.id for b in draft.blocks}
 
     def new_id() -> str:
@@ -1462,9 +1494,12 @@ def add_sentences(draft: Draft, block_id: str, texts: list[str], fact: Fact) -> 
     at = next((i for i, b in enumerate(blocks) if b.id == block_id), None)
     if at is None:
         return draft
+    anchor = blocks[at]
     at += 1
     while at < len(blocks) and blocks[at].id.startswith(f"{block_id}."):
         at += 1
+    if anchor.kind == "list_item":
+        at = list_end(blocks, at)
     blocks[at:at] = [
         Block(id=new_id(), kind="sentence", text=t, fact_ids=[fact.id],
               segment_ids=list(fact.segment_ids))

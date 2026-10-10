@@ -64,6 +64,17 @@ def test_understand_without_the_facts_list_is_an_empty_fact_sheet() -> None:
         UnderstandOut.model_validate({"doc_type": "Merkblatt", "audience": "alle"})
 
 
+def test_a_null_core_answer_is_an_unanswered_question() -> None:
+    """The prompt says to set the text to null when the document does not answer a core
+    question; the 8B nulls the whole object (10 October 2026, 4 of 18 French example
+    builds). Both mean the same: no answer, no sentence."""
+    core = dict(fx.UNDERSTAND["core"], cost=None, deadline={"text": None, "segment_ids": []})
+    out = UnderstandOut.model_validate(dict(fx.UNDERSTAND, core=core))
+    assert out.core.cost.text is None and out.core.cost.segment_ids == []
+    assert out.core.deadline.text is None
+    assert out.core.what.text == fx.UNDERSTAND["core"]["what"]["text"]
+
+
 def test_write_output_rejects_empty_drafts_and_strips_markdown() -> None:
     with pytest.raises(ValueError):
         WriteOut.model_validate({"blocks": []})
@@ -235,6 +246,27 @@ def test_apply_repairs_splits_and_adds_blocks() -> None:
     ]  # fmt: skip
     assert new.blocks[1].fact_ids == ["f01"] and new.blocks[2].fact_ids == ["f03"]
     assert new.version == 2 and new.parent_version == 1 and new.origin == "repair"
+
+
+def test_additions_after_a_list_item_land_after_the_list() -> None:
+    """A repair's addition placed after a list item goes after the list's last item,
+    not between the items (10 October 2026)."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins.", segment_ids=["s0003"]),
+        Block(id="b002", kind="list_item", text="das Formular"),
+        Block(id="b003", kind="list_item", text="eine Kopie"),
+        Block(id="b004", kind="sentence", text="Alt vier.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [{"after": "b002", "texts": ["Neu nach der Liste."], "fact_ids": ["f03"]}],
+    })  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({}, [fs.facts[2]]), fs)
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Alt eins."), ("b002", "das Formular"), ("b003", "eine Kopie"),
+        ("b002.1", "Neu nach der Liste."), ("b004", "Alt vier."),
+    ]  # fmt: skip
 
 
 def test_text_to_blocks() -> None:

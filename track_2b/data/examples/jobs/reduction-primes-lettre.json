@@ -1,14 +1,14 @@
 {
  "format": "leicht-facile/audit-bundle@1",
  "tool": "leicht-facile 0.1.0",
- "exported_at": "2026-10-07T18:26:48.263411+00:00",
+ "exported_at": "2026-10-10T13:47:01.024553+00:00",
  "job": {
   "id": "example-reduction-primes-lettre",
   "status": "needs_review",
   "stage": "review",
   "title": "Réduction individuelle des primes 2027",
-  "created_at": "2026-10-07T18:25:32.844974Z",
-  "updated_at": "2026-10-07T18:26:48.261195Z",
+  "created_at": "2026-10-10T13:45:17.217224Z",
+  "updated_at": "2026-10-10T13:47:01.020519Z",
   "config": {
    "lang": "fr",
    "level": "A2",
@@ -28,57 +28,81 @@
     "stage": "understand",
     "model": "swiss-ai/Apertus-v1.5-8B-thinking",
     "tokens_in": 1795,
-    "tokens_out": 5441,
-    "latency_ms": 33426,
+    "tokens_out": 2660,
+    "latency_ms": 16816,
     "cached": false
    },
    {
     "stage": "write",
     "model": "swiss-ai/Apertus-v1.5-8B",
-    "tokens_in": 4641,
-    "tokens_out": 1506,
-    "latency_ms": 9345,
+    "tokens_in": 4447,
+    "tokens_out": 1337,
+    "latency_ms": 8515,
     "cached": false
    },
    {
     "stage": "judge",
     "model": "swiss-ai/Apertus-v1.5-70B-thinking",
-    "tokens_in": 3738,
-    "tokens_out": 728,
-    "latency_ms": 10845,
+    "tokens_in": 3594,
+    "tokens_out": 911,
+    "latency_ms": 13539,
     "cached": false
    },
    {
     "stage": "repair",
     "model": "swiss-ai/Apertus-v1.5-8B",
-    "tokens_in": 4448,
-    "tokens_out": 841,
-    "latency_ms": 5193,
-    "cached": false
-   },
-   {
-    "stage": "judge",
-    "model": "swiss-ai/Apertus-v1.5-70B-thinking",
-    "tokens_in": 3868,
-    "tokens_out": 827,
-    "latency_ms": 12246,
+    "tokens_in": 4618,
+    "tokens_out": 6000,
+    "latency_ms": 36807,
     "cached": false
    },
    {
     "stage": "repair",
     "model": "swiss-ai/Apertus-v1.5-8B",
-    "tokens_in": 3959,
-    "tokens_out": 68,
-    "latency_ms": 555,
+    "tokens_in": 3904,
+    "tokens_out": 388,
+    "latency_ms": 2451,
     "cached": false
    },
    {
     "stage": "judge",
     "model": "swiss-ai/Apertus-v1.5-70B-thinking",
-    "tokens_in": 3868,
-    "tokens_out": 827,
-    "latency_ms": 0,
-    "cached": true
+    "tokens_in": 3647,
+    "tokens_out": 706,
+    "latency_ms": 10229,
+    "cached": false
+   },
+   {
+    "stage": "recover",
+    "model": "swiss-ai/Apertus-v1.5-8B",
+    "tokens_in": 1478,
+    "tokens_out": 81,
+    "latency_ms": 557,
+    "cached": false
+   },
+   {
+    "stage": "judge",
+    "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+    "tokens_in": 3677,
+    "tokens_out": 711,
+    "latency_ms": 10315,
+    "cached": false
+   },
+   {
+    "stage": "repair",
+    "model": "swiss-ai/Apertus-v1.5-8B",
+    "tokens_in": 3545,
+    "tokens_out": 44,
+    "latency_ms": 388,
+    "cached": false
+   },
+   {
+    "stage": "repair",
+    "model": "swiss-ai/Apertus-v1.5-8B",
+    "tokens_in": 4407,
+    "tokens_out": 508,
+    "latency_ms": 3220,
+    "cached": false
    }
   ],
   "error": null
@@ -86,29 +110,34 @@
  "summary": {
   "condition": "P2",
   "mode": "standard",
-  "final_version": 3,
-  "rounds": 1,
-  "facts_rounds": 0,
-  "stop_reason": "a repair round brought no progress",
+  "final_version": 5,
+  "rounds": 0,
+  "facts_rounds": 1,
+  "stop_reason": "stopped after 1 facts rounds",
   "writer_model": "swiss-ai/Apertus-v1.5-8B",
   "understand_model": null,
   "judge_model": "swiss-ai/Apertus-v1.5-70B",
   "prompt_versions": {
-   "understand": "fc2a846ba227",
-   "write": "cd0f68e1f0eb",
-   "judge": "ffb9ed95fc73",
+   "understand": "32e5a9fb4cac",
+   "write": "18488f75f57a",
+   "judge": "3a99dac67d40",
    "repair": "ac09c37220fd",
    "baseline": "b707b57ec8e0",
    "baseline_zh": "none"
   },
   "blocking_findings": [
-   4,
-   7,
-   7
+   6,
+   3,
+   1,
+   0,
+   0
   ],
-  "notes": [],
-  "vocabulary": "72451f0e523e",
-  "vocabulary_rounds": 1
+  "notes": [
+   "repair round 1 failed: LLMOutputError: model output for RepairOut was cut off at max_tokens"
+  ],
+  "vocabulary": "b064eba7cad2",
+  "vocabulary_rounds": 1,
+  "polish_rounds": 1
  },
  "source": {
   "id": "example-reduction-primes-lettre",
@@ -333,17 +362,17 @@
  "factsheet": {
   "doc_id": "example-reduction-primes-lettre",
   "doc_type": "Lettre",
-  "audience": "Les résidents de la commune d'Exempleville remplissant les conditions de revenu modeste",
+  "audience": "Les résidents de la commune d'Exempleville",
   "core": {
    "what": {
-    "text": "Il s'agit de la réduction individuelle des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus résidant dans la commune d'Exempleville.",
+    "text": "Il s'agit d'une lettre de l'agence d'assurances sociales concernant la réduction individuelle des primes d'assurance-maladie pour l'année 2027.",
     "segment_ids": [
      "s0001",
-     "s0003"
+     "s0002"
     ]
    },
    "must_do": {
-    "text": "Déposer le formulaire de demande dûment rempli et signé auprès de l'agence d'assurances sociales avant le 31 mars 2027, joindre une copie de la dernière décision de taxation et de la police d'assurance-maladie, et annoncer toute modification de situation dans les 30 jours.",
+    "text": "Déposer le formulaire de demande dûment rempli et signé, joindre la dernière décision de taxation et la police d'assurance-maladie, et annoncer toute modification de la situation.",
     "segment_ids": [
      "s0007",
      "s0009",
@@ -361,10 +390,9 @@
     "segment_ids": []
    },
    "contact": {
-    "text": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
+    "text": "Pour toute question, contacter l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
     "segment_ids": [
-     "s0016",
-     "s0017"
+     "s0016"
     ]
    }
   },
@@ -383,7 +411,7 @@
    {
     "id": "f02",
     "kind": "obligation",
-    "text": "Déposer le formulaire de demande dûment rempli et signé, joindre une copie de la dernière décision de taxation et de la police d'assurance-maladie, et annoncer toute modification de situation dans les 30 jours.",
+    "text": "Déposer le formulaire de demande dûment rempli et signé, joindre la dernière décision de taxation et la police d'assurance-maladie, et annoncer toute modification de la situation.",
     "value_norm": null,
     "segment_ids": [
      "s0007",
@@ -396,10 +424,9 @@
    {
     "id": "f03",
     "kind": "right",
-    "text": "Droit à la réduction des primes de l'assurance-maladie pour les personnes à faibles revenus résidant dans la commune d'Exempleville.",
+    "text": "Les personnes dont le revenu déterminant n'excède pas CHF 42'000.- (seul) ou CHF 61'000.- (marié) et qui ont leur domicile civil dans la commune au 1er janvier 2027 ont droit à la réduction des primes.",
     "value_norm": null,
     "segment_ids": [
-     "s0003",
      "s0005"
     ],
     "must_keep": true,
@@ -408,7 +435,7 @@
    {
     "id": "f04",
     "kind": "condition",
-    "text": "Conditions: domicile civil dans la commune d'Exempleville au 1er janvier 2027, revenu déterminant n'excédant pas CHF 42'000 (personnes seules) ou CHF 61'000 (personnes mariées), avec une majoration de CHF 9'000 par enfant à charge.",
+    "text": "Le revenu déterminant ne doit pas dépasser CHF 42'000.- (seul) ou CHF 61'000.- (marié) et doit être augmenté de CHF 9'000.- par enfant à charge.",
     "value_norm": null,
     "segment_ids": [
      "s0005",
@@ -420,11 +447,10 @@
    {
     "id": "f05",
     "kind": "contact",
-    "text": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
+    "text": "Pour tout renseignement, contacter l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
     "value_norm": null,
     "segment_ids": [
-     "s0016",
-     "s0017"
+     "s0016"
     ],
     "must_keep": true,
     "origin": "model"
@@ -481,7 +507,7 @@
     "segment_ids": [
      "s0012"
     ],
-    "must_keep": false,
+    "must_keep": true,
     "origin": "code"
    },
    {
@@ -542,40 +568,8 @@
   ],
   "hard_terms": [
    {
-    "term": "réduction individuelle des primes",
-    "explanation": "Réduction personnalisée des primes de l'assurance-maladie obligatoire.",
-    "segment_ids": [
-     "s0001"
-    ],
-    "origin": "model"
-   },
-   {
-    "term": "assurance obligatoire des soins",
-    "explanation": "Assurance maladie obligatoire en Suisse.",
-    "segment_ids": [
-     "s0003"
-    ],
-    "origin": "model"
-   },
-   {
-    "term": "revenu déterminant",
-    "explanation": "Ce revenu compte pour une décision. L'office le calcule avec ses propres règles.",
-    "segment_ids": [
-     "s0004"
-    ],
-    "origin": "vocabulary"
-   },
-   {
-    "term": "domicile civil",
-    "explanation": "Résidence légale officielle.",
-    "segment_ids": [
-     "s0005"
-    ],
-    "origin": "model"
-   },
-   {
     "term": "agence d'assurances sociales",
-    "explanation": "Service cantonal chargé de l'assurance-maladie.",
+    "explanation": "Bureau chargé de gérer les assurances sociales dans la commune.",
     "segment_ids": [
      "s0016"
     ],
@@ -587,6 +581,15 @@
     "segment_ids": [
      "s0003",
      "s0010"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "revenu déterminant",
+    "explanation": "Ce revenu compte pour une décision. L'office le calcule avec ses propres règles.",
+    "segment_ids": [
+     "s0004",
+     "s0005"
     ],
     "origin": "vocabulary"
    },
@@ -622,14 +625,6 @@
      "s0014"
     ],
     "origin": "vocabulary"
-   },
-   {
-    "term": "prestation",
-    "explanation": "Une prestation est ce que vous recevez d'une assurance ou d'un office. Ça peut être de l'argent ou de l'aide.",
-    "segment_ids": [
-     "s0013"
-    ],
-    "origin": "vocabulary"
    }
   ],
   "omit_candidates": [
@@ -637,61 +632,19 @@
     "segment_ids": [
      "s0009"
     ],
-    "reason": "Informations sur les documents joints"
-   },
-   {
-    "segment_ids": [
-     "s0010"
-    ],
-    "reason": "Mode de versement"
-   },
-   {
-    "segment_ids": [
-     "s0011"
-    ],
-    "reason": "Exclusion du versement en espèces"
-   },
-   {
-    "segment_ids": [
-     "s0012"
-    ],
-    "reason": "Obligation d'annoncer les changements"
-   },
-   {
-    "segment_ids": [
-     "s0013"
-    ],
-    "reason": "Restitution des prestations indûment perçues"
-   },
-   {
-    "segment_ids": [
-     "s0014"
-    ],
-    "reason": "Droit de réclamation et motivation"
-   },
-   {
-    "segment_ids": [
-     "s0015"
-    ],
-    "reason": "Informations complémentaires"
+    "reason": "Article de loi, pas nécessaire pour la lectrice/lecteur."
    },
    {
     "segment_ids": [
      "s0017"
     ],
-    "reason": "Site web"
+    "reason": "Référence à un site web, pas nécessaire."
    },
    {
     "segment_ids": [
      "s0018"
     ],
-    "reason": "Formules de politesse"
-   },
-   {
-    "segment_ids": [
-     "s0019"
-    ],
-    "reason": "Identification de l'agence"
+    "reason": "Salutations, pas nécessaire."
    }
   ]
  },
@@ -707,82 +660,12 @@
     {
      "id": "b001",
      "kind": "heading",
-     "text": "De quoi s'agit-il ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b002",
-     "kind": "sentence",
-     "text": "Il s'agit de la réduction des primes de l'assurance-maladie pour les personnes à faibles revenus.",
-     "fact_ids": [
-      "f03"
-     ],
-     "segment_ids": [
-      "s0003"
-     ]
-    },
-    {
-     "id": "b003",
-     "kind": "sentence",
-     "text": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025.",
-     "fact_ids": [
-      "f04"
-     ],
-     "segment_ids": [
-      "s0004"
-     ]
-    },
-    {
-     "id": "b004",
-     "kind": "heading",
-     "text": "Qui a droit à la réduction ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b005",
-     "kind": "sentence",
-     "text": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "fact_ids": [
-      "f06"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b006",
-     "kind": "sentence",
-     "text": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "fact_ids": [
-      "f08",
-      "f07"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b007",
-     "kind": "sentence",
-     "text": "Ajoutez CHF 9'000 pour chaque enfant à charge.",
-     "fact_ids": [
-      "f09"
-     ],
-     "segment_ids": [
-      "s0006"
-     ]
-    },
-    {
-     "id": "b008",
-     "kind": "heading",
      "text": "Que devez-vous faire ?",
      "fact_ids": [],
      "segment_ids": []
     },
     {
-     "id": "b009",
+     "id": "b002",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
      "fact_ids": [
@@ -793,20 +676,21 @@
      ]
     },
     {
-     "id": "b010",
+     "id": "b003",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
      "fact_ids": [
-      "f01"
+      "f01",
+      "f02"
      ],
      "segment_ids": [
       "s0007"
      ]
     },
     {
-     "id": "b011",
+     "id": "b004",
      "kind": "sentence",
-     "text": "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie.",
+     "text": "Vous devez joindre une copie de la dernière décision de taxation.",
      "fact_ids": [
       "f02"
      ],
@@ -815,47 +699,171 @@
      ]
     },
     {
-     "id": "b012",
-     "kind": "heading",
-     "text": "Quand devez-vous payer ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b013",
+     "id": "b005",
      "kind": "sentence",
-     "text": "Vous payez la réduction directement à votre assureur-maladie.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b014",
-     "kind": "sentence",
-     "text": "Vous ne pouvez pas recevoir cet argent en espèces.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b015",
-     "kind": "heading",
-     "text": "Que se passe-t-il si vous changez ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b016",
-     "kind": "sentence",
-     "text": "Vous devez annoncer tout changement par écrit dans les 30 jours.",
+     "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
      "fact_ids": [
-      "f12",
-      "f10"
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Vous devez annoncer toute modification de votre situation.",
+     "fact_ids": [
+      "f10",
+      "f02"
      ],
      "segment_ids": [
       "s0012"
      ]
     },
     {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "À qui pouvez-vous poser des questions ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner au 022 123 45 67.",
+     "fact_ids": [
+      "f13",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+     "fact_ids": [
+      "f14",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "heading",
+     "text": "Qui a droit à la réduction des primes ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
      "id": "b017",
+     "kind": "sentence",
+     "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
      "kind": "sentence",
      "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
      "fact_ids": [
@@ -866,150 +874,71 @@
      ]
     },
     {
-     "id": "b018",
-     "kind": "heading",
-     "text": "Comment poser des questions ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b019",
-     "kind": "sentence",
-     "text": "Téléphonez à l'agence d'assurances sociales.",
-     "fact_ids": [
-      "f15"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
-     "id": "b020",
-     "kind": "sentence",
-     "text": "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30.",
-     "fact_ids": [
-      "f11",
-      "f12"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
      "id": "b021",
      "kind": "sentence",
-     "text": "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example.",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
      "fact_ids": [
-      "f14"
+      "f14",
+      "f10"
      ],
      "segment_ids": [
-      "s0016"
+      "s0014"
      ]
     },
     {
      "id": "b022",
      "kind": "sentence",
-     "text": "Vous trouvez plus d'informations sur www.exempleville.example/rip.",
+     "text": "La contestation doit être motivée.",
      "fact_ids": [
       "f15"
      ],
      "segment_ids": [
-      "s0017"
-     ]
-    },
-    {
-     "id": "b023",
-     "kind": "sentence",
-     "text": "Veuillez agréer nos salutations distinguées.",
-     "fact_ids": [],
-     "segment_ids": [
-      "s0018"
+      "s0015"
      ]
     }
    ],
    "omissions": [
     {
-     "what": "Formules de politesse",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Salutations et remerciements",
+     "why": "Pas nécessaires pour la lectrice ou le lecteur.",
      "segment_ids": [
+      "s0002",
       "s0018"
      ]
     },
     {
-     "what": "Mode de versement",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0010"
-     ]
-    },
-    {
-     "what": "Exclusion du versement en espèces",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0011"
-     ]
-    },
-    {
-     "what": "Droit de réclamation et motivation",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0014",
-      "s0015"
-     ]
-    },
-    {
-     "what": "Informations complémentaires",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0015",
-      "s0017"
-     ]
-    },
-    {
-     "what": "Site web",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Référence au site web",
+     "why": "Pas nécessaire pour la lectrice ou le lecteur.",
      "segment_ids": [
       "s0017"
-     ]
-    },
-    {
-     "what": "Identification de l'agence",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0019"
      ]
     }
    ],
    "glossary": [
     {
      "term": "revenu déterminant",
-     "explanation": "C'est votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
+     "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
      "origin": "model"
     },
     {
-     "term": "assurance-maladie obligatoire",
-     "explanation": "C'est une assurance que tout le monde en Suisse doit avoir. Elle aide à payer les soins médicaux.",
+     "term": "assureur-maladie",
+     "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+     "origin": "model"
+    },
+    {
+     "term": "notification",
+     "explanation": "C'est le jour où vous recevez la décision officielle.",
+     "origin": "model"
+    },
+    {
+     "term": "réclamation",
+     "explanation": "C'est une lettre pour demander de changer une décision.",
      "origin": "model"
     },
     {
      "term": "domicile civil",
-     "explanation": "C'est votre résidence légale officielle.",
+     "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
      "origin": "model"
-    },
-    {
-     "term": "agence d'assurances sociales",
-     "explanation": "C'est le service cantonal qui gère l'assurance-maladie.",
-     "origin": "model"
-    },
-    {
-     "term": "réduction des primes",
-     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
-     "origin": "model"
-    },
-    {
-     "term": "revenu imposable",
-     "explanation": "Votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
-     "origin": "vocabulary"
     },
     {
      "term": "décision",
@@ -1025,15 +954,14 @@
      "term": "avoir droit à",
      "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
      "origin": "vocabulary"
+    },
+    {
+     "term": "réduction des primes",
+     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+     "origin": "vocabulary"
     }
    ],
    "code_edits": [
-    {
-     "block_id": "glossary",
-     "rule_id": "SEM-05",
-     "before": "",
-     "after": "revenu imposable"
-    },
     {
      "block_id": "glossary",
      "rule_id": "SEM-05",
@@ -1051,6 +979,12 @@
      "rule_id": "SEM-05",
      "before": "",
      "after": "avoir droit à"
+    },
+    {
+     "block_id": "glossary",
+     "rule_id": "SEM-05",
+     "before": "",
+     "after": "réduction des primes"
     }
    ]
   },
@@ -1065,91 +999,12 @@
     {
      "id": "b001",
      "kind": "heading",
-     "text": "De quoi s'agit-il ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b002",
-     "kind": "sentence",
-     "text": "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville.",
-     "fact_ids": [
-      "f03"
-     ],
-     "segment_ids": [
-      "s0003"
-     ]
-    },
-    {
-     "id": "b002.1",
-     "kind": "sentence",
-     "text": "Le revenu déterminant est calculé selon les règles de l'office cantonal.",
-     "fact_ids": [
-      "f04"
-     ],
-     "segment_ids": []
-    },
-    {
-     "id": "b003",
-     "kind": "sentence",
-     "text": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force.",
-     "fact_ids": [
-      "f04"
-     ],
-     "segment_ids": [
-      "s0004"
-     ]
-    },
-    {
-     "id": "b004",
-     "kind": "heading",
-     "text": "Qui a droit à la réduction ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b005",
-     "kind": "sentence",
-     "text": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "fact_ids": [
-      "f06"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b006",
-     "kind": "sentence",
-     "text": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "fact_ids": [
-      "f08",
-      "f07"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b007",
-     "kind": "sentence",
-     "text": "Ajoutez CHF 9'000 pour chaque enfant à charge.",
-     "fact_ids": [
-      "f09"
-     ],
-     "segment_ids": [
-      "s0006"
-     ]
-    },
-    {
-     "id": "b008",
-     "kind": "heading",
      "text": "Que devez-vous faire ?",
      "fact_ids": [],
      "segment_ids": []
     },
     {
-     "id": "b009",
+     "id": "b002",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
      "fact_ids": [
@@ -1160,20 +1015,21 @@
      ]
     },
     {
-     "id": "b010",
+     "id": "b003",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
      "fact_ids": [
-      "f01"
+      "f01",
+      "f02"
      ],
      "segment_ids": [
       "s0007"
      ]
     },
     {
-     "id": "b011",
+     "id": "b004",
      "kind": "sentence",
-     "text": "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie.",
+     "text": "Vous devez joindre une copie de la dernière décision de taxation.",
      "fact_ids": [
       "f02"
      ],
@@ -1182,59 +1038,182 @@
      ]
     },
     {
-     "id": "b012",
-     "kind": "heading",
-     "text": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
      "fact_ids": [
-      "f01"
+      "f02"
      ],
-     "segment_ids": []
+     "segment_ids": [
+      "s0009"
+     ]
     },
     {
-     "id": "b012.1",
+     "id": "b006",
      "kind": "sentence",
-     "text": "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
+     "text": "Vous devez annoncer toute modification de votre situation.",
      "fact_ids": [
-      "f13",
-      "f14"
-     ],
-     "segment_ids": []
-    },
-    {
-     "id": "b013",
-     "kind": "sentence",
-     "text": "Vous payez la réduction directement à votre assureur-maladie.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b014",
-     "kind": "sentence",
-     "text": "Vous ne pouvez pas recevoir cet argent en espèces.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b015",
-     "kind": "heading",
-     "text": "Que se passe-t-il si vous changez ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b016",
-     "kind": "sentence",
-     "text": "Vous devez annoncer tout changement par écrit dans les 30 jours.",
-     "fact_ids": [
-      "f12",
-      "f10"
+      "f10",
+      "f02"
      ],
      "segment_ids": [
       "s0012"
      ]
     },
     {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "À qui pouvez-vous poser des questions ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner au 022 123 45 67.",
+     "fact_ids": [
+      "f13",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+     "fact_ids": [
+      "f14",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "heading",
+     "text": "Qui a droit à la réduction des primes ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b015.1",
+     "kind": "sentence",
+     "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
      "id": "b017",
+     "kind": "sentence",
+     "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
      "kind": "sentence",
      "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
      "fact_ids": [
@@ -1245,150 +1224,71 @@
      ]
     },
     {
-     "id": "b018",
-     "kind": "heading",
-     "text": "Comment poser des questions ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b019",
-     "kind": "sentence",
-     "text": "Téléphonez à l'agence d'assurances sociales.",
-     "fact_ids": [
-      "f15"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
-     "id": "b020",
-     "kind": "sentence",
-     "text": "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30.",
-     "fact_ids": [
-      "f11",
-      "f12"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
      "id": "b021",
      "kind": "sentence",
-     "text": "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example.",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
      "fact_ids": [
-      "f14"
+      "f14",
+      "f10"
      ],
      "segment_ids": [
-      "s0016"
+      "s0014"
      ]
     },
     {
      "id": "b022",
      "kind": "sentence",
-     "text": "Vous trouvez plus d'informations sur www.exempleville.example/rip.",
+     "text": "La contestation doit être motivée.",
      "fact_ids": [
       "f15"
      ],
      "segment_ids": [
-      "s0017"
-     ]
-    },
-    {
-     "id": "b023",
-     "kind": "sentence",
-     "text": "Veuillez agréer nos salutations distinguées.",
-     "fact_ids": [],
-     "segment_ids": [
-      "s0018"
+      "s0015"
      ]
     }
    ],
    "omissions": [
     {
-     "what": "Formules de politesse",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Salutations et remerciements",
+     "why": "Pas nécessaires pour la lectrice ou le lecteur.",
      "segment_ids": [
+      "s0002",
       "s0018"
      ]
     },
     {
-     "what": "Mode de versement",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0010"
-     ]
-    },
-    {
-     "what": "Exclusion du versement en espèces",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0011"
-     ]
-    },
-    {
-     "what": "Droit de réclamation et motivation",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0014",
-      "s0015"
-     ]
-    },
-    {
-     "what": "Informations complémentaires",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0015",
-      "s0017"
-     ]
-    },
-    {
-     "what": "Site web",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Référence au site web",
+     "why": "Pas nécessaire pour la lectrice ou le lecteur.",
      "segment_ids": [
       "s0017"
-     ]
-    },
-    {
-     "what": "Identification de l'agence",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0019"
      ]
     }
    ],
    "glossary": [
     {
      "term": "revenu déterminant",
-     "explanation": "C'est votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
+     "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
      "origin": "model"
     },
     {
-     "term": "assurance-maladie obligatoire",
-     "explanation": "C'est une assurance que tout le monde en Suisse doit avoir. Elle aide à payer les soins médicaux.",
+     "term": "assureur-maladie",
+     "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+     "origin": "model"
+    },
+    {
+     "term": "notification",
+     "explanation": "C'est le jour où vous recevez la décision officielle.",
+     "origin": "model"
+    },
+    {
+     "term": "réclamation",
+     "explanation": "C'est une lettre pour demander de changer une décision.",
      "origin": "model"
     },
     {
      "term": "domicile civil",
-     "explanation": "C'est votre résidence légale officielle.",
+     "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
      "origin": "model"
-    },
-    {
-     "term": "agence d'assurances sociales",
-     "explanation": "C'est le service cantonal qui gère l'assurance-maladie.",
-     "origin": "model"
-    },
-    {
-     "term": "réduction des primes",
-     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
-     "origin": "model"
-    },
-    {
-     "term": "revenu imposable",
-     "explanation": "Votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
-     "origin": "vocabulary"
     },
     {
      "term": "décision",
@@ -1406,8 +1306,13 @@
      "origin": "vocabulary"
     },
     {
-     "term": "entrée en force",
-     "explanation": "Personne ne peut plus se défendre contre la décision. La décision vaut maintenant pour de bon.",
+     "term": "réduction des primes",
+     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
      "origin": "vocabulary"
     }
    ],
@@ -1416,7 +1321,7 @@
      "block_id": "glossary",
      "rule_id": "SEM-05",
      "before": "",
-     "after": "entrée en force"
+     "after": "avoir droit à"
     }
    ]
   },
@@ -1431,91 +1336,12 @@
     {
      "id": "b001",
      "kind": "heading",
-     "text": "De quoi s'agit-il ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b002",
-     "kind": "sentence",
-     "text": "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville.",
-     "fact_ids": [
-      "f03"
-     ],
-     "segment_ids": [
-      "s0003"
-     ]
-    },
-    {
-     "id": "b002.1",
-     "kind": "sentence",
-     "text": "Le revenu déterminant est calculé selon les règles de l'office cantonal.",
-     "fact_ids": [
-      "f04"
-     ],
-     "segment_ids": []
-    },
-    {
-     "id": "b003",
-     "kind": "sentence",
-     "text": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force.",
-     "fact_ids": [
-      "f04"
-     ],
-     "segment_ids": [
-      "s0004"
-     ]
-    },
-    {
-     "id": "b004",
-     "kind": "heading",
-     "text": "Qui a droit à la réduction ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b005",
-     "kind": "sentence",
-     "text": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "fact_ids": [
-      "f06"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b006",
-     "kind": "sentence",
-     "text": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "fact_ids": [
-      "f08",
-      "f07"
-     ],
-     "segment_ids": [
-      "s0005"
-     ]
-    },
-    {
-     "id": "b007",
-     "kind": "sentence",
-     "text": "Ajoutez CHF 9'000 pour chaque enfant à charge.",
-     "fact_ids": [
-      "f09"
-     ],
-     "segment_ids": [
-      "s0006"
-     ]
-    },
-    {
-     "id": "b008",
-     "kind": "heading",
      "text": "Que devez-vous faire ?",
      "fact_ids": [],
      "segment_ids": []
     },
     {
-     "id": "b009",
+     "id": "b002",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
      "fact_ids": [
@@ -1526,20 +1352,21 @@
      ]
     },
     {
-     "id": "b010",
+     "id": "b003",
      "kind": "sentence",
      "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
      "fact_ids": [
-      "f01"
+      "f01",
+      "f02"
      ],
      "segment_ids": [
       "s0007"
      ]
     },
     {
-     "id": "b011",
+     "id": "b004",
      "kind": "sentence",
-     "text": "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie.",
+     "text": "Vous devez joindre une copie de la dernière décision de taxation.",
      "fact_ids": [
       "f02"
      ],
@@ -1548,59 +1375,193 @@
      ]
     },
     {
-     "id": "b012",
-     "kind": "heading",
-     "text": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
      "fact_ids": [
-      "f01"
+      "f02"
      ],
-     "segment_ids": []
+     "segment_ids": [
+      "s0009"
+     ]
     },
     {
-     "id": "b012.1",
+     "id": "b006",
      "kind": "sentence",
-     "text": "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
+     "text": "Vous devez annoncer toute modification de votre situation.",
      "fact_ids": [
-      "f13",
-      "f14"
-     ],
-     "segment_ids": []
-    },
-    {
-     "id": "b013",
-     "kind": "sentence",
-     "text": "Vous payez la réduction directement à votre assureur-maladie.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b014",
-     "kind": "sentence",
-     "text": "Vous ne pouvez pas recevoir cet argent en espèces.",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b015",
-     "kind": "heading",
-     "text": "Que se passe-t-il si vous changez ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b016",
-     "kind": "sentence",
-     "text": "Vous devez annoncer tout changement par écrit dans les 30 jours.",
-     "fact_ids": [
-      "f12",
-      "f10"
+      "f10",
+      "f02"
      ],
      "segment_ids": [
       "s0012"
      ]
     },
     {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "À qui pouvez-vous poser des questions ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner au 022 123 45 67.",
+     "fact_ids": [
+      "f13",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+     "fact_ids": [
+      "f14",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "heading",
+     "text": "Qui a droit à la réduction des primes ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b015.1",
+     "kind": "sentence",
+     "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016.1",
+     "kind": "sentence",
+     "text": "Le domicile civil doit être dans la commune d'Exempleville au 1er janvier 2027.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
      "id": "b017",
+     "kind": "sentence",
+     "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
      "kind": "sentence",
      "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
      "fact_ids": [
@@ -1611,150 +1572,71 @@
      ]
     },
     {
-     "id": "b018",
-     "kind": "heading",
-     "text": "Comment poser des questions ?",
-     "fact_ids": [],
-     "segment_ids": []
-    },
-    {
-     "id": "b019",
-     "kind": "sentence",
-     "text": "Téléphonez à l'agence d'assurances sociales.",
-     "fact_ids": [
-      "f15"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
-     "id": "b020",
-     "kind": "sentence",
-     "text": "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30.",
-     "fact_ids": [
-      "f11",
-      "f12"
-     ],
-     "segment_ids": [
-      "s0016"
-     ]
-    },
-    {
      "id": "b021",
      "kind": "sentence",
-     "text": "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example.",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
      "fact_ids": [
-      "f14"
+      "f14",
+      "f10"
      ],
      "segment_ids": [
-      "s0016"
+      "s0014"
      ]
     },
     {
      "id": "b022",
      "kind": "sentence",
-     "text": "Vous trouvez plus d'informations sur www.exempleville.example/rip.",
+     "text": "La contestation doit être motivée.",
      "fact_ids": [
       "f15"
      ],
      "segment_ids": [
-      "s0017"
-     ]
-    },
-    {
-     "id": "b023",
-     "kind": "sentence",
-     "text": "Veuillez agréer nos salutations distinguées.",
-     "fact_ids": [],
-     "segment_ids": [
-      "s0018"
+      "s0015"
      ]
     }
    ],
    "omissions": [
     {
-     "what": "Formules de politesse",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Salutations et remerciements",
+     "why": "Pas nécessaires pour la lectrice ou le lecteur.",
      "segment_ids": [
+      "s0002",
       "s0018"
      ]
     },
     {
-     "what": "Mode de versement",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0010"
-     ]
-    },
-    {
-     "what": "Exclusion du versement en espèces",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0011"
-     ]
-    },
-    {
-     "what": "Droit de réclamation et motivation",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0014",
-      "s0015"
-     ]
-    },
-    {
-     "what": "Informations complémentaires",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0015",
-      "s0017"
-     ]
-    },
-    {
-     "what": "Site web",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
+     "what": "Référence au site web",
+     "why": "Pas nécessaire pour la lectrice ou le lecteur.",
      "segment_ids": [
       "s0017"
-     ]
-    },
-    {
-     "what": "Identification de l'agence",
-     "why": "Pas nécessaire pour la lectrice ou le lecteur",
-     "segment_ids": [
-      "s0019"
      ]
     }
    ],
    "glossary": [
     {
      "term": "revenu déterminant",
-     "explanation": "C'est votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
+     "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
      "origin": "model"
     },
     {
-     "term": "assurance-maladie obligatoire",
-     "explanation": "C'est une assurance que tout le monde en Suisse doit avoir. Elle aide à payer les soins médicaux.",
+     "term": "assureur-maladie",
+     "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+     "origin": "model"
+    },
+    {
+     "term": "notification",
+     "explanation": "C'est le jour où vous recevez la décision officielle.",
+     "origin": "model"
+    },
+    {
+     "term": "réclamation",
+     "explanation": "C'est une lettre pour demander de changer une décision.",
      "origin": "model"
     },
     {
      "term": "domicile civil",
-     "explanation": "C'est votre résidence légale officielle.",
+     "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
      "origin": "model"
-    },
-    {
-     "term": "agence d'assurances sociales",
-     "explanation": "C'est le service cantonal qui gère l'assurance-maladie.",
-     "origin": "model"
-    },
-    {
-     "term": "réduction des primes",
-     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
-     "origin": "model"
-    },
-    {
-     "term": "revenu imposable",
-     "explanation": "Votre revenu après toutes les déductions. L'office des impôts calcule les impôts sur ce revenu.",
-     "origin": "vocabulary"
     },
     {
      "term": "décision",
@@ -1772,8 +1654,695 @@
      "origin": "vocabulary"
     },
     {
-     "term": "entrée en force",
-     "explanation": "Personne ne peut plus se défendre contre la décision. La décision vaut maintenant pour de bon.",
+     "term": "réduction des primes",
+     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  {
+   "doc_id": "example-reduction-primes-lettre",
+   "lang": "fr",
+   "level": "A2",
+   "version": 4,
+   "parent_version": 3,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Que devez-vous faire ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
+     "fact_ids": [
+      "f01",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la dernière décision de taxation.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Vous devez annoncer toute modification de votre situation.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "À qui pouvez-vous poser des questions ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner au 022 123 45 67.",
+     "fact_ids": [
+      "f13",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+     "fact_ids": [
+      "f14",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "heading",
+     "text": "Qui a droit à la réduction des primes ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b015.1",
+     "kind": "sentence",
+     "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016.1",
+     "kind": "sentence",
+     "text": "Le domicile civil doit être dans la commune d'Exempleville au 1er janvier 2027.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "fact_ids": [
+      "f13"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
+     "fact_ids": [
+      "f14",
+      "f10"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Vous devez expliquer pourquoi vous contestez la décision.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Salutations et remerciements",
+     "why": "Pas nécessaires pour la lectrice ou le lecteur.",
+     "segment_ids": [
+      "s0002",
+      "s0018"
+     ]
+    },
+    {
+     "what": "Référence au site web",
+     "why": "Pas nécessaire pour la lectrice ou le lecteur.",
+     "segment_ids": [
+      "s0017"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "revenu déterminant",
+     "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
+     "origin": "model"
+    },
+    {
+     "term": "assureur-maladie",
+     "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+     "origin": "model"
+    },
+    {
+     "term": "notification",
+     "explanation": "C'est le jour où vous recevez la décision officielle.",
+     "origin": "model"
+    },
+    {
+     "term": "réclamation",
+     "explanation": "C'est une lettre pour demander de changer une décision.",
+     "origin": "model"
+    },
+    {
+     "term": "domicile civil",
+     "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
+     "origin": "model"
+    },
+    {
+     "term": "décision",
+     "explanation": "Une décision est la réponse d'un office ou d'un tribunal. Elle vaut pour vous. Elle arrive par lettre.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "taxation",
+     "explanation": "L'office des impôts calcule vos impôts. Le résultat s'appelle la taxation. Vous la recevez par lettre.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "réduction des primes",
+     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  {
+   "doc_id": "example-reduction-primes-lettre",
+   "lang": "fr",
+   "level": "A2",
+   "version": 5,
+   "parent_version": 4,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Que devez-vous faire ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
+     "fact_ids": [
+      "f01",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la dernière décision de taxation.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Vous devez annoncer toute modification de votre situation.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+     "fact_ids": [
+      "f10",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "À qui pouvez-vous poser des questions ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Vous pouvez téléphoner au 022 123 45 67.",
+     "fact_ids": [
+      "f13",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+     "fact_ids": [
+      "f14",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "heading",
+     "text": "Qui a droit à la réduction des primes ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b015.1",
+     "kind": "sentence",
+     "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "fact_ids": [
+      "f03",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b016.1",
+     "kind": "sentence",
+     "text": "Le domicile civil doit être dans la commune d'Exempleville au 1er janvier 2027.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "fact_ids": [
+      "f13"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
+     "fact_ids": [
+      "f14",
+      "f10"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Vous devez expliquer pourquoi vous contestez la décision.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Salutations et remerciements",
+     "why": "Pas nécessaires pour la lectrice ou le lecteur.",
+     "segment_ids": [
+      "s0002",
+      "s0018"
+     ]
+    },
+    {
+     "what": "Référence au site web",
+     "why": "Pas nécessaire pour la lectrice ou le lecteur.",
+     "segment_ids": [
+      "s0017"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "revenu déterminant",
+     "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
+     "origin": "model"
+    },
+    {
+     "term": "assureur-maladie",
+     "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+     "origin": "model"
+    },
+    {
+     "term": "notification",
+     "explanation": "C'est le jour où vous recevez la décision officielle.",
+     "origin": "model"
+    },
+    {
+     "term": "réclamation",
+     "explanation": "C'est une lettre pour demander de changer une décision.",
+     "origin": "model"
+    },
+    {
+     "term": "domicile civil",
+     "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
+     "origin": "model"
+    },
+    {
+     "term": "décision",
+     "explanation": "Une décision est la réponse d'un office ou d'un tribunal. Elle vaut pour vous. Elle arrive par lettre.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "taxation",
+     "explanation": "L'office des impôts calcule vos impôts. Le résultat s'appelle la taxation. Vous la recevez par lettre.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "réduction des primes",
+     "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+     "origin": "vocabulary"
+    },
+    {
+     "term": "avoir droit à",
+     "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
      "origin": "vocabulary"
     }
    ],
@@ -1786,98 +2355,7 @@
    "level": "A2",
    "findings": [
     {
-     "block_id": "b001",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'-il' has no clear reference: repeat the noun.",
-     "message_key": "GRAM-06-FR",
-     "message_params": {
-      "found": "-il"
-     },
-     "evidence": "-il",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
      "block_id": "b002",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 16 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 16,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Il s'agit de la réduction des primes de l'assurance-maladie pour les personnes à faibles revenus.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b003",
-     "rule_id": "GRAM-07-FR",
-     "severity": "info",
-     "message": "Reported statement ('selon'): say who says what.",
-     "message_key": "GRAM-07-FR",
-     "message_params": {
-      "found": "selon"
-     },
-     "evidence": "selon",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b005",
-     "rule_id": "LEN-02-FR",
-     "severity": "warn",
-     "message": "Subordinate clause ('qui'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
-     "message_key": "LEN-02-FR.sub",
-     "message_params": {
-      "opener": "qui",
-      "clauses": 2,
-      "limit": 1,
-      "level": "A2"
-     },
-     "evidence": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "suggestion": "Faites 2 phrases et répétez le nom. (C'est le formulaire. Vous remplissez le formulaire.)",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 18 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 18,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "NEG-02-FR",
-     "severity": "info",
-     "message": "Negation 'ne ... pas': can it be said positively?",
-     "message_key": "NEG-02-FR",
-     "message_params": {
-      "found": "ne ... pas"
-     },
-     "evidence": "ne ... pas",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b009",
      "rule_id": "LEX-07-FR",
      "severity": "warn",
      "message": "Office word 'dûment': simpler is bien.",
@@ -1892,31 +2370,188 @@
      "segment_ids": []
     },
     {
-     "block_id": "b013",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous payez la réduction directement à votre assureur-maladie.",
+     "block_id": "b014",
+     "rule_id": "LAY-03",
+     "severity": "info",
+     "message": "Heading with 9 words; at most 8.",
+     "message_key": "LAY-03",
+     "message_params": {
+      "words": 9,
+      "limit": 8
+     },
+     "evidence": "Qui a droit à la réduction des primes ?",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b014",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous ne pouvez pas recevoir cet argent en espèces.",
+     "block_id": "b015",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b014",
+     "block_id": "b015",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('droit'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "droit",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": "Faites 2 phrases courtes : une information par phrase.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 42'000.-': write 42 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 42'000.-",
+      "expected": "42 000 francs"
+     },
+     "evidence": "CHF 42'000.-",
+     "suggestion": "42 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 61'000.-': write 61 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 61'000.-",
+      "expected": "61 000 francs"
+     },
+     "evidence": "CHF 61'000.-",
+     "suggestion": "61 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est versée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est versée"
+     },
+     "evidence": "est versée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'versée': simpler is payer.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "versée",
+      "easy": "payer"
+     },
+     "evidence": "versée",
+     "suggestion": "payer",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b019",
      "rule_id": "NEG-02-FR",
      "severity": "info",
      "message": "Negation 'ne ... pas': can it be said positively?",
@@ -1930,7 +2565,7 @@
      "segment_ids": []
     },
     {
-     "block_id": "b017",
+     "block_id": "b020",
      "rule_id": "LEN-02-FR",
      "severity": "warn",
      "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
@@ -1947,45 +2582,29 @@
      "segment_ids": []
     },
     {
-     "block_id": "b017",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'le' could mean several nouns (argent, changement): repeat the noun.",
-     "message_key": "GRAM-06-FR.ambiguous",
+     "block_id": "b022",
+     "rule_id": "GRAM-01-FR",
+     "severity": "error",
+     "message": "Passive voice: 'être motivée'. Say who does what.",
+     "message_key": "GRAM-01-FR",
      "message_params": {
-      "found": "le",
-      "options": "argent, changement"
+      "found": "être motivée"
      },
-     "evidence": "le",
+     "evidence": "être motivée",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b023",
-     "rule_id": "LEX-07-FR",
-     "severity": "warn",
-     "message": "Office word 'Veuillez agréer': simpler is meilleures salutations.",
-     "message_key": "LEX-07-FR",
-     "message_params": {
-      "found": "Veuillez agréer",
-      "easy": "meilleures salutations"
-     },
-     "evidence": "Veuillez agréer",
-     "suggestion": "meilleures salutations",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b023",
+     "block_id": "b022",
      "rule_id": "GRAM-05-FR",
      "severity": "info",
-     "message": "Abstract noun 'salutations': a verb or a concrete word may be clearer.",
+     "message": "Abstract noun 'contestation': a verb or a concrete word may be clearer.",
      "message_key": "GRAM-05-FR.abstract",
      "message_params": {
-      "found": "salutations"
+      "found": "contestation"
      },
-     "evidence": "salutations",
+     "evidence": "contestation",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
@@ -1994,47 +2613,50 @@
      "block_id": null,
      "rule_id": "FACT-01",
      "severity": "error",
-     "message": "Fact f13 is missing or changed: Pour tout renseignement, l'agence d'assurances sociales se tient à votre disposition du lundi au vendredi, de 8h30 à 11h30, au 022 123 45 67 ou par e-mail à rip@exempleville.example. (expected 022 123 45 67).",
+     "message": "Fact f06 is missing or changed: Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C... (expected 1er janvier 2027).",
      "message_key": "FACT-01",
      "message_params": {
-      "fact": "f13",
-      "text": "Pour tout renseignement, l'agence d'assurances sociales se tient à votre disposition du lundi au vendredi, de 8h30 à 11h30, au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
-      "expected": "022 123 45 67"
+      "fact": "f06",
+      "text": "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C...",
+      "expected": "1er janvier 2027"
      },
-     "evidence": "Pour tout renseignement, l'agence d'assurances sociales se tient à votre disposition du lundi au vendredi, de 8h30 à 11h30, au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
-     "suggestion": "022 123 45 67",
-     "fact_id": "f13",
+     "evidence": "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C...",
+     "suggestion": "1er janvier 2027",
+     "fact_id": "f06",
      "segment_ids": []
     },
     {
      "block_id": null,
-     "rule_id": "FACT-02",
+     "rule_id": "FACT-01",
      "severity": "error",
-     "message": "No block conveys fact f05: L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "message_key": "FACT-02",
+     "message": "Fact f09 is missing or changed: La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge. (expected 9 000 francs).",
+     "message_key": "FACT-01",
      "message_params": {
-      "fact": "f05",
-      "text": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example."
+      "fact": "f09",
+      "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+      "expected": "9 000 francs"
      },
-     "evidence": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "suggestion": null,
-     "fact_id": "f05",
+     "evidence": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+     "suggestion": "9 000 francs",
+     "fact_id": "f09",
      "segment_ids": []
     },
     {
      "block_id": null,
      "rule_id": "FACT-04",
      "severity": "warn",
-     "message": "Source sentence s0002 is neither used nor listed as omitted.",
-     "message_key": "FACT-04.single",
+     "message": "Source sentences s0003 to s0004 are neither used nor listed as omitted.",
+     "message_key": "FACT-04",
      "message_params": {
-      "sentence": "s0002"
+      "first": "s0003",
+      "last": "s0004"
      },
-     "evidence": "Madame, Monsieur,",
+     "evidence": "Les personnes vivant dans des conditions économiques modestes ont droit, en vertu de la loi cantonale d'application de la loi fédérale sur l'assurance-maladie, ",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": [
-      "s0002"
+      "s0003",
+      "s0004"
      ]
     },
     {
@@ -2057,11 +2679,381 @@
      "block_id": null,
      "rule_id": "READ-01",
      "severity": "info",
-     "message": "Kandel-Moles readability 70.",
+     "message": "Kandel-Moles readability 67.",
      "message_key": "READ-01",
      "message_params": {
       "formula": "Kandel-Moles",
-      "score": "70"
+      "score": "67"
+     },
+     "evidence": "",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    }
+   ],
+   "metrics": {
+    "blocks": 22,
+    "sentences": 19,
+    "words": 192,
+    "avg_words": 10.11,
+    "max_words": 16,
+    "pct_passive": 10.5,
+    "pct_genitive": 0.0,
+    "pct_subordinate": 10.5,
+    "readability": 67.0,
+    "readability_formula": "kandel-moles",
+    "facts_total": 10,
+    "facts_found": 8,
+    "fact_coverage": 0.8
+   }
+  },
+  {
+   "draft_version": 2,
+   "level": "A2",
+   "findings": [
+    {
+     "block_id": "b002",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'dûment': simpler is bien.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "dûment",
+      "easy": "bien"
+     },
+     "evidence": "dûment",
+     "suggestion": "bien",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b014",
+     "rule_id": "LAY-03",
+     "severity": "info",
+     "message": "Heading with 9 words; at most 8.",
+     "message_key": "LAY-03",
+     "message_params": {
+      "words": 9,
+      "limit": 8
+     },
+     "evidence": "Qui a droit à la réduction des primes ?",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('droit'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "droit",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": "Faites 2 phrases courtes : une information par phrase.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 42'000.-': write 42 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 42'000.-",
+      "expected": "42 000 francs"
+     },
+     "evidence": "CHF 42'000.-",
+     "suggestion": "42 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est augmentée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est augmentée"
+     },
+     "evidence": "est augmentée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 9'000.-': write 9 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 9'000.-",
+      "expected": "9 000 francs"
+     },
+     "evidence": "CHF 9'000.-",
+     "suggestion": "9 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 61'000.-': write 61 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 61'000.-",
+      "expected": "61 000 francs"
+     },
+     "evidence": "CHF 61'000.-",
+     "suggestion": "61 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est versée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est versée"
+     },
+     "evidence": "est versée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'versée': simpler is payer.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "versée",
+      "easy": "payer"
+     },
+     "evidence": "versée",
+     "suggestion": "payer",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b019",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'ne ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "ne ... pas"
+     },
+     "evidence": "ne ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b020",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "si",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "suggestion": "Faites une question et une réponse avec Alors. (Vous gagnez peu ? Alors vous recevez de l'argent.) Jamais peut-être : la condition reste une condition.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b022",
+     "rule_id": "GRAM-01-FR",
+     "severity": "error",
+     "message": "Passive voice: 'être motivée'. Say who does what.",
+     "message_key": "GRAM-01-FR",
+     "message_params": {
+      "found": "être motivée"
+     },
+     "evidence": "être motivée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b022",
+     "rule_id": "GRAM-05-FR",
+     "severity": "info",
+     "message": "Abstract noun 'contestation': a verb or a concrete word may be clearer.",
+     "message_key": "GRAM-05-FR.abstract",
+     "message_params": {
+      "found": "contestation"
+     },
+     "evidence": "contestation",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-01",
+     "severity": "error",
+     "message": "Fact f06 is missing or changed: Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C... (expected 1er janvier 2027).",
+     "message_key": "FACT-01",
+     "message_params": {
+      "fact": "f06",
+      "text": "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C...",
+      "expected": "1er janvier 2027"
+     },
+     "evidence": "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027 et dont le revenu déterminant n'excède pas CHF 42'000.- (personnes seules) ou C...",
+     "suggestion": "1er janvier 2027",
+     "fact_id": "f06",
+     "segment_ids": []
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentences s0003 to s0004 are neither used nor listed as omitted.",
+     "message_key": "FACT-04",
+     "message_params": {
+      "first": "s0003",
+      "last": "s0004"
+     },
+     "evidence": "Les personnes vivant dans des conditions économiques modestes ont droit, en vertu de la loi cantonale d'application de la loi fédérale sur l'assurance-maladie, ",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0003",
+      "s0004"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentence s0008 is neither used nor listed as omitted.",
+     "message_key": "FACT-04.single",
+     "message_params": {
+      "sentence": "s0008"
+     },
+     "evidence": "Les demandes déposées tardivement ne seront pas prises en considération.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "READ-01",
+     "severity": "info",
+     "message": "Kandel-Moles readability 68.",
+     "message_key": "READ-01",
+     "message_params": {
+      "formula": "Kandel-Moles",
+      "score": "68"
      },
      "evidence": "",
      "suggestion": null,
@@ -2072,388 +3064,17 @@
    "metrics": {
     "blocks": 23,
     "sentences": 20,
-    "words": 185,
-    "avg_words": 9.25,
-    "max_words": 18,
-    "pct_passive": 0.0,
+    "words": 206,
+    "avg_words": 10.3,
+    "max_words": 16,
+    "pct_passive": 15.0,
     "pct_genitive": 0.0,
     "pct_subordinate": 10.0,
-    "readability": 69.5,
+    "readability": 68.3,
     "readability_formula": "kandel-moles",
-    "facts_total": 9,
-    "facts_found": 8,
-    "fact_coverage": 0.889
-   }
-  },
-  {
-   "draft_version": 2,
-   "level": "A2",
-   "findings": [
-    {
-     "block_id": "b001",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'-il' has no clear reference: repeat the noun.",
-     "message_key": "GRAM-06-FR",
-     "message_params": {
-      "found": "-il"
-     },
-     "evidence": "-il",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002",
-     "rule_id": "LEN-01-FR",
-     "severity": "error",
-     "message": "The sentence has 21 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 21,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Le revenu déterminant est calculé selon les règles de l'office cantonal.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "GRAM-01-FR",
-     "severity": "warn",
-     "message": "Passive voice or a state: 'est calculé'. If someone does something, say who.",
-     "message_key": "GRAM-01-FR.state",
-     "message_params": {
-      "found": "est calculé"
-     },
-     "evidence": "est calculé",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "GRAM-07-FR",
-     "severity": "info",
-     "message": "Reported statement ('selon'): say who says what.",
-     "message_key": "GRAM-07-FR",
-     "message_params": {
-      "found": "selon"
-     },
-     "evidence": "selon",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b003",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 16 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 16,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b003",
-     "rule_id": "GRAM-07-FR",
-     "severity": "info",
-     "message": "Reported statement ('selon'): say who says what.",
-     "message_key": "GRAM-07-FR",
-     "message_params": {
-      "found": "selon"
-     },
-     "evidence": "selon",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b005",
-     "rule_id": "LEN-02-FR",
-     "severity": "warn",
-     "message": "Subordinate clause ('qui'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
-     "message_key": "LEN-02-FR.sub",
-     "message_params": {
-      "opener": "qui",
-      "clauses": 2,
-      "limit": 1,
-      "level": "A2"
-     },
-     "evidence": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "suggestion": "Faites 2 phrases et répétez le nom. (C'est le formulaire. Vous remplissez le formulaire.)",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 18 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 18,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "NEG-02-FR",
-     "severity": "info",
-     "message": "Negation 'ne ... pas': can it be said positively?",
-     "message_key": "NEG-02-FR",
-     "message_params": {
-      "found": "ne ... pas"
-     },
-     "evidence": "ne ... pas",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b009",
-     "rule_id": "LEX-07-FR",
-     "severity": "warn",
-     "message": "Office word 'dûment': simpler is bien.",
-     "message_key": "LEX-07-FR",
-     "message_params": {
-      "found": "dûment",
-      "easy": "bien"
-     },
-     "evidence": "dûment",
-     "suggestion": "bien",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b012",
-     "rule_id": "LAY-03",
-     "severity": "info",
-     "message": "Heading with 16 words; at most 8.",
-     "message_key": "LAY-03",
-     "message_params": {
-      "words": 16,
-      "limit": 8
-     },
-     "evidence": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b012.1",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b013",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous payez la réduction directement à votre assureur-maladie.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b014",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous ne pouvez pas recevoir cet argent en espèces.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b014",
-     "rule_id": "NEG-02-FR",
-     "severity": "info",
-     "message": "Negation 'ne ... pas': can it be said positively?",
-     "message_key": "NEG-02-FR",
-     "message_params": {
-      "found": "ne ... pas"
-     },
-     "evidence": "ne ... pas",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b017",
-     "rule_id": "LEN-02-FR",
-     "severity": "warn",
-     "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
-     "message_key": "LEN-02-FR.sub",
-     "message_params": {
-      "opener": "si",
-      "clauses": 2,
-      "limit": 1,
-      "level": "A2"
-     },
-     "evidence": "Si vous avez reçu trop d'argent, vous devez le rendre.",
-     "suggestion": "Faites une question et une réponse avec Alors. (Vous gagnez peu ? Alors vous recevez de l'argent.) Jamais peut-être : la condition reste une condition.",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b017",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'le' could mean several nouns (argent, changement): repeat the noun.",
-     "message_key": "GRAM-06-FR.ambiguous",
-     "message_params": {
-      "found": "le",
-      "options": "argent, changement"
-     },
-     "evidence": "le",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b023",
-     "rule_id": "LEX-07-FR",
-     "severity": "warn",
-     "message": "Office word 'Veuillez agréer': simpler is meilleures salutations.",
-     "message_key": "LEX-07-FR",
-     "message_params": {
-      "found": "Veuillez agréer",
-      "easy": "meilleures salutations"
-     },
-     "evidence": "Veuillez agréer",
-     "suggestion": "meilleures salutations",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b023",
-     "rule_id": "GRAM-05-FR",
-     "severity": "info",
-     "message": "Abstract noun 'salutations': a verb or a concrete word may be clearer.",
-     "message_key": "GRAM-05-FR.abstract",
-     "message_params": {
-      "found": "salutations"
-     },
-     "evidence": "salutations",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": null,
-     "rule_id": "FACT-02",
-     "severity": "error",
-     "message": "No block conveys fact f05: L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "message_key": "FACT-02",
-     "message_params": {
-      "fact": "f05",
-      "text": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example."
-     },
-     "evidence": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "suggestion": null,
-     "fact_id": "f05",
-     "segment_ids": []
-    },
-    {
-     "block_id": null,
-     "rule_id": "FACT-04",
-     "severity": "warn",
-     "message": "Source sentence s0002 is neither used nor listed as omitted.",
-     "message_key": "FACT-04.single",
-     "message_params": {
-      "sentence": "s0002"
-     },
-     "evidence": "Madame, Monsieur,",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": [
-      "s0002"
-     ]
-    },
-    {
-     "block_id": null,
-     "rule_id": "FACT-04",
-     "severity": "warn",
-     "message": "Source sentence s0008 is neither used nor listed as omitted.",
-     "message_key": "FACT-04.single",
-     "message_params": {
-      "sentence": "s0008"
-     },
-     "evidence": "Les demandes déposées tardivement ne seront pas prises en considération.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": [
-      "s0008"
-     ]
-    },
-    {
-     "block_id": null,
-     "rule_id": "READ-01",
-     "severity": "info",
-     "message": "Kandel-Moles readability 66.",
-     "message_key": "READ-01",
-     "message_params": {
-      "formula": "Kandel-Moles",
-      "score": "66"
-     },
-     "evidence": "",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    }
-   ],
-   "metrics": {
-    "blocks": 25,
-    "sentences": 22,
-    "words": 218,
-    "avg_words": 9.91,
-    "max_words": 21,
-    "pct_passive": 4.5,
-    "pct_genitive": 0.0,
-    "pct_subordinate": 9.1,
-    "readability": 66.0,
-    "readability_formula": "kandel-moles",
-    "facts_total": 9,
+    "facts_total": 10,
     "facts_found": 9,
-    "fact_coverage": 1.0
+    "fact_coverage": 0.9
    }
   },
   {
@@ -2461,154 +3082,7 @@
    "level": "A2",
    "findings": [
     {
-     "block_id": "b001",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'-il' has no clear reference: repeat the noun.",
-     "message_key": "GRAM-06-FR",
-     "message_params": {
-      "found": "-il"
-     },
-     "evidence": "-il",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
      "block_id": "b002",
-     "rule_id": "LEN-01-FR",
-     "severity": "error",
-     "message": "The sentence has 21 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 21,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Le revenu déterminant est calculé selon les règles de l'office cantonal.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "GRAM-01-FR",
-     "severity": "warn",
-     "message": "Passive voice or a state: 'est calculé'. If someone does something, say who.",
-     "message_key": "GRAM-01-FR.state",
-     "message_params": {
-      "found": "est calculé"
-     },
-     "evidence": "est calculé",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b002.1",
-     "rule_id": "GRAM-07-FR",
-     "severity": "info",
-     "message": "Reported statement ('selon'): say who says what.",
-     "message_key": "GRAM-07-FR",
-     "message_params": {
-      "found": "selon"
-     },
-     "evidence": "selon",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b003",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 16 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 16,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b003",
-     "rule_id": "GRAM-07-FR",
-     "severity": "info",
-     "message": "Reported statement ('selon'): say who says what.",
-     "message_key": "GRAM-07-FR",
-     "message_params": {
-      "found": "selon"
-     },
-     "evidence": "selon",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b005",
-     "rule_id": "LEN-02-FR",
-     "severity": "warn",
-     "message": "Subordinate clause ('qui'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
-     "message_key": "LEN-02-FR.sub",
-     "message_params": {
-      "opener": "qui",
-      "clauses": 2,
-      "limit": 1,
-      "level": "A2"
-     },
-     "evidence": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-     "suggestion": "Faites 2 phrases et répétez le nom. (C'est le formulaire. Vous remplissez le formulaire.)",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "LEN-01-FR",
-     "severity": "warn",
-     "message": "The sentence has 18 words; the limit for A2 is 15.",
-     "message_key": "LEN-01-FR",
-     "message_params": {
-      "words": 18,
-      "limit": 15,
-      "level": "A2"
-     },
-     "evidence": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b006",
-     "rule_id": "NEG-02-FR",
-     "severity": "info",
-     "message": "Negation 'ne ... pas': can it be said positively?",
-     "message_key": "NEG-02-FR",
-     "message_params": {
-      "found": "ne ... pas"
-     },
-     "evidence": "ne ... pas",
-     "suggestion": null,
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b009",
      "rule_id": "LEX-07-FR",
      "severity": "warn",
      "message": "Office word 'dûment': simpler is bien.",
@@ -2623,58 +3097,232 @@
      "segment_ids": []
     },
     {
-     "block_id": "b012",
+     "block_id": "b014",
      "rule_id": "LAY-03",
      "severity": "info",
-     "message": "Heading with 16 words; at most 8.",
+     "message": "Heading with 9 words; at most 8.",
      "message_key": "LAY-03",
      "message_params": {
-      "words": 16,
+      "words": 9,
       "limit": 8
      },
-     "evidence": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
+     "evidence": "Qui a droit à la réduction des primes ?",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b012.1",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
+     "block_id": "b015",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b013",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous payez la réduction directement à votre assureur-maladie.",
+     "block_id": "b015",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('droit'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "droit",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": "Faites 2 phrases courtes : une information par phrase.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 42'000.-': write 42 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 42'000.-",
+      "expected": "42 000 francs"
+     },
+     "evidence": "CHF 42'000.-",
+     "suggestion": "42 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b014",
-     "rule_id": "FACT-03",
-     "severity": "error",
-     "message": "The block names no source sentence.",
-     "message_key": "FACT-03",
-     "message_params": {},
-     "evidence": "Vous ne pouvez pas recevoir cet argent en espèces.",
+     "block_id": "b015.1",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est augmentée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est augmentée"
+     },
+     "evidence": "est augmentée",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b014",
+     "block_id": "b015.1",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 9'000.-': write 9 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 9'000.-",
+      "expected": "9 000 francs"
+     },
+     "evidence": "CHF 9'000.-",
+     "suggestion": "9 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 61'000.-': write 61 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 61'000.-",
+      "expected": "61 000 francs"
+     },
+     "evidence": "CHF 61'000.-",
+     "suggestion": "61 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016.1",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'domicile': simpler is lieu où vous habitez.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "domicile",
+      "easy": "lieu où vous habitez"
+     },
+     "evidence": "domicile",
+     "suggestion": "lieu où vous habitez",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est versée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est versée"
+     },
+     "evidence": "est versée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'versée': simpler is payer.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "versée",
+      "easy": "payer"
+     },
+     "evidence": "versée",
+     "suggestion": "payer",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b019",
      "rule_id": "NEG-02-FR",
      "severity": "info",
      "message": "Negation 'ne ... pas': can it be said positively?",
@@ -2688,7 +3336,7 @@
      "segment_ids": []
     },
     {
-     "block_id": "b017",
+     "block_id": "b020",
      "rule_id": "LEN-02-FR",
      "severity": "warn",
      "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
@@ -2705,78 +3353,49 @@
      "segment_ids": []
     },
     {
-     "block_id": "b017",
-     "rule_id": "GRAM-06-FR",
-     "severity": "info",
-     "message": "'le' could mean several nouns (argent, changement): repeat the noun.",
-     "message_key": "GRAM-06-FR.ambiguous",
+     "block_id": "b022",
+     "rule_id": "GRAM-01-FR",
+     "severity": "error",
+     "message": "Passive voice: 'être motivée'. Say who does what.",
+     "message_key": "GRAM-01-FR",
      "message_params": {
-      "found": "le",
-      "options": "argent, changement"
+      "found": "être motivée"
      },
-     "evidence": "le",
+     "evidence": "être motivée",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": []
     },
     {
-     "block_id": "b023",
-     "rule_id": "LEX-07-FR",
-     "severity": "warn",
-     "message": "Office word 'Veuillez agréer': simpler is meilleures salutations.",
-     "message_key": "LEX-07-FR",
-     "message_params": {
-      "found": "Veuillez agréer",
-      "easy": "meilleures salutations"
-     },
-     "evidence": "Veuillez agréer",
-     "suggestion": "meilleures salutations",
-     "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": "b023",
+     "block_id": "b022",
      "rule_id": "GRAM-05-FR",
      "severity": "info",
-     "message": "Abstract noun 'salutations': a verb or a concrete word may be clearer.",
+     "message": "Abstract noun 'contestation': a verb or a concrete word may be clearer.",
      "message_key": "GRAM-05-FR.abstract",
      "message_params": {
-      "found": "salutations"
+      "found": "contestation"
      },
-     "evidence": "salutations",
+     "evidence": "contestation",
      "suggestion": null,
      "fact_id": null,
-     "segment_ids": []
-    },
-    {
-     "block_id": null,
-     "rule_id": "FACT-02",
-     "severity": "error",
-     "message": "No block conveys fact f05: L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "message_key": "FACT-02",
-     "message_params": {
-      "fact": "f05",
-      "text": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example."
-     },
-     "evidence": "L'agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.",
-     "suggestion": null,
-     "fact_id": "f05",
      "segment_ids": []
     },
     {
      "block_id": null,
      "rule_id": "FACT-04",
      "severity": "warn",
-     "message": "Source sentence s0002 is neither used nor listed as omitted.",
-     "message_key": "FACT-04.single",
+     "message": "Source sentences s0003 to s0004 are neither used nor listed as omitted.",
+     "message_key": "FACT-04",
      "message_params": {
-      "sentence": "s0002"
+      "first": "s0003",
+      "last": "s0004"
      },
-     "evidence": "Madame, Monsieur,",
+     "evidence": "Les personnes vivant dans des conditions économiques modestes ont droit, en vertu de la loi cantonale d'application de la loi fédérale sur l'assurance-maladie, ",
      "suggestion": null,
      "fact_id": null,
      "segment_ids": [
-      "s0002"
+      "s0003",
+      "s0004"
      ]
     },
     {
@@ -2799,11 +3418,11 @@
      "block_id": null,
      "rule_id": "READ-01",
      "severity": "info",
-     "message": "Kandel-Moles readability 66.",
+     "message": "Kandel-Moles readability 69.",
      "message_key": "READ-01",
      "message_params": {
       "formula": "Kandel-Moles",
-      "score": "66"
+      "score": "69"
      },
      "evidence": "",
      "suggestion": null,
@@ -2812,18 +3431,700 @@
     }
    ],
    "metrics": {
-    "blocks": 25,
-    "sentences": 22,
-    "words": 218,
-    "avg_words": 9.91,
-    "max_words": 21,
-    "pct_passive": 4.5,
+    "blocks": 24,
+    "sentences": 21,
+    "words": 219,
+    "avg_words": 10.43,
+    "max_words": 16,
+    "pct_passive": 14.3,
     "pct_genitive": 0.0,
-    "pct_subordinate": 9.1,
-    "readability": 66.0,
+    "pct_subordinate": 9.5,
+    "readability": 68.6,
     "readability_formula": "kandel-moles",
-    "facts_total": 9,
-    "facts_found": 9,
+    "facts_total": 10,
+    "facts_found": 10,
+    "fact_coverage": 1.0
+   }
+  },
+  {
+   "draft_version": 4,
+   "level": "A2",
+   "findings": [
+    {
+     "block_id": "b002",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'dûment': simpler is bien.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "dûment",
+      "easy": "bien"
+     },
+     "evidence": "dûment",
+     "suggestion": "bien",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b014",
+     "rule_id": "LAY-03",
+     "severity": "info",
+     "message": "Heading with 9 words; at most 8.",
+     "message_key": "LAY-03",
+     "message_params": {
+      "words": 9,
+      "limit": 8
+     },
+     "evidence": "Qui a droit à la réduction des primes ?",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('droit'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "droit",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": "Faites 2 phrases courtes : une information par phrase.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 42'000.-': write 42 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 42'000.-",
+      "expected": "42 000 francs"
+     },
+     "evidence": "CHF 42'000.-",
+     "suggestion": "42 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est augmentée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est augmentée"
+     },
+     "evidence": "est augmentée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 9'000.-': write 9 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 9'000.-",
+      "expected": "9 000 francs"
+     },
+     "evidence": "CHF 9'000.-",
+     "suggestion": "9 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 61'000.-': write 61 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 61'000.-",
+      "expected": "61 000 francs"
+     },
+     "evidence": "CHF 61'000.-",
+     "suggestion": "61 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016.1",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'domicile': simpler is lieu où vous habitez.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "domicile",
+      "easy": "lieu où vous habitez"
+     },
+     "evidence": "domicile",
+     "suggestion": "lieu où vous habitez",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est versée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est versée"
+     },
+     "evidence": "est versée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'versée': simpler is payer.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "versée",
+      "easy": "payer"
+     },
+     "evidence": "versée",
+     "suggestion": "payer",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b019",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'ne ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "ne ... pas"
+     },
+     "evidence": "ne ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b020",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "si",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "suggestion": "Faites une question et une réponse avec Alors. (Vous gagnez peu ? Alors vous recevez de l'argent.) Jamais peut-être : la condition reste une condition.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentences s0003 to s0004 are neither used nor listed as omitted.",
+     "message_key": "FACT-04",
+     "message_params": {
+      "first": "s0003",
+      "last": "s0004"
+     },
+     "evidence": "Les personnes vivant dans des conditions économiques modestes ont droit, en vertu de la loi cantonale d'application de la loi fédérale sur l'assurance-maladie, ",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0003",
+      "s0004"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentence s0008 is neither used nor listed as omitted.",
+     "message_key": "FACT-04.single",
+     "message_params": {
+      "sentence": "s0008"
+     },
+     "evidence": "Les demandes déposées tardivement ne seront pas prises en considération.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "READ-01",
+     "severity": "info",
+     "message": "Kandel-Moles readability 68.",
+     "message_key": "READ-01",
+     "message_params": {
+      "formula": "Kandel-Moles",
+      "score": "68"
+     },
+     "evidence": "",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    }
+   ],
+   "metrics": {
+    "blocks": 24,
+    "sentences": 21,
+    "words": 222,
+    "avg_words": 10.57,
+    "max_words": 16,
+    "pct_passive": 9.5,
+    "pct_genitive": 0.0,
+    "pct_subordinate": 9.5,
+    "readability": 68.2,
+    "readability_formula": "kandel-moles",
+    "facts_total": 10,
+    "facts_found": 10,
+    "fact_coverage": 1.0
+   }
+  },
+  {
+   "draft_version": 5,
+   "level": "A2",
+   "findings": [
+    {
+     "block_id": "b002",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'dûment': simpler is bien.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "dûment",
+      "easy": "bien"
+     },
+     "evidence": "dûment",
+     "suggestion": "bien",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b014",
+     "rule_id": "LAY-03",
+     "severity": "info",
+     "message": "Heading with 9 words; at most 8.",
+     "message_key": "LAY-03",
+     "message_params": {
+      "words": 9,
+      "limit": 8
+     },
+     "evidence": "Qui a droit à la réduction des primes ?",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('droit'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "droit",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+     "suggestion": "Faites 2 phrases courtes : une information par phrase.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 42'000.-': write 42 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 42'000.-",
+      "expected": "42 000 francs"
+     },
+     "evidence": "CHF 42'000.-",
+     "suggestion": "42 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est augmentée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est augmentée"
+     },
+     "evidence": "est augmentée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b015.1",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 9'000.-': write 9 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 9'000.-",
+      "expected": "9 000 francs"
+     },
+     "evidence": "CHF 9'000.-",
+     "suggestion": "9 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEN-01-FR",
+     "severity": "warn",
+     "message": "The sentence has 16 words; the limit for A2 is 15.",
+     "message_key": "LEN-01-FR",
+     "message_params": {
+      "words": 16,
+      "limit": 15,
+      "level": "A2"
+     },
+     "evidence": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'excède': simpler is dépasser.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "excède",
+      "easy": "dépasser"
+     },
+     "evidence": "excède",
+     "suggestion": "dépasser",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NUM-07-FR",
+     "severity": "info",
+     "message": "Amount 'CHF 61'000.-': write 61 000 francs.",
+     "message_key": "NUM-07-FR",
+     "message_params": {
+      "found": "CHF 61'000.-",
+      "expected": "61 000 francs"
+     },
+     "evidence": "CHF 61'000.-",
+     "suggestion": "61 000 francs",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'n' ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "n' ... pas"
+     },
+     "evidence": "n' ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b016.1",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'domicile': simpler is lieu où vous habitez.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "domicile",
+      "easy": "lieu où vous habitez"
+     },
+     "evidence": "domicile",
+     "suggestion": "lieu où vous habitez",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "GRAM-01-FR",
+     "severity": "warn",
+     "message": "Passive voice or a state: 'est versée'. If someone does something, say who.",
+     "message_key": "GRAM-01-FR.state",
+     "message_params": {
+      "found": "est versée"
+     },
+     "evidence": "est versée",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b018",
+     "rule_id": "LEX-07-FR",
+     "severity": "warn",
+     "message": "Office word 'versée': simpler is payer.",
+     "message_key": "LEX-07-FR",
+     "message_params": {
+      "found": "versée",
+      "easy": "payer"
+     },
+     "evidence": "versée",
+     "suggestion": "payer",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b019",
+     "rule_id": "NEG-02-FR",
+     "severity": "info",
+     "message": "Negation 'ne ... pas': can it be said positively?",
+     "message_key": "NEG-02-FR",
+     "message_params": {
+      "found": "ne ... pas"
+     },
+     "evidence": "ne ... pas",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": "b020",
+     "rule_id": "LEN-02-FR",
+     "severity": "warn",
+     "message": "Subordinate clause ('si'): 2 clauses in one sentence. At most 1 for A2: one statement per sentence.",
+     "message_key": "LEN-02-FR.sub",
+     "message_params": {
+      "opener": "si",
+      "clauses": 2,
+      "limit": 1,
+      "level": "A2"
+     },
+     "evidence": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "suggestion": "Faites une question et une réponse avec Alors. (Vous gagnez peu ? Alors vous recevez de l'argent.) Jamais peut-être : la condition reste une condition.",
+     "fact_id": null,
+     "segment_ids": []
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentences s0003 to s0004 are neither used nor listed as omitted.",
+     "message_key": "FACT-04",
+     "message_params": {
+      "first": "s0003",
+      "last": "s0004"
+     },
+     "evidence": "Les personnes vivant dans des conditions économiques modestes ont droit, en vertu de la loi cantonale d'application de la loi fédérale sur l'assurance-maladie, ",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0003",
+      "s0004"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "FACT-04",
+     "severity": "warn",
+     "message": "Source sentence s0008 is neither used nor listed as omitted.",
+     "message_key": "FACT-04.single",
+     "message_params": {
+      "sentence": "s0008"
+     },
+     "evidence": "Les demandes déposées tardivement ne seront pas prises en considération.",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "block_id": null,
+     "rule_id": "READ-01",
+     "severity": "info",
+     "message": "Kandel-Moles readability 68.",
+     "message_key": "READ-01",
+     "message_params": {
+      "formula": "Kandel-Moles",
+      "score": "68"
+     },
+     "evidence": "",
+     "suggestion": null,
+     "fact_id": null,
+     "segment_ids": []
+    }
+   ],
+   "metrics": {
+    "blocks": 24,
+    "sentences": 21,
+    "words": 222,
+    "avg_words": 10.57,
+    "max_words": 16,
+    "pct_passive": 9.5,
+    "pct_genitive": 0.0,
+    "pct_subordinate": 9.5,
+    "readability": 68.2,
+    "readability_formula": "kandel-moles",
+    "facts_total": 10,
+    "facts_found": 10,
     "fact_coverage": 1.0
    }
   }
@@ -2837,23 +4138,26 @@
      "fact_id": "f01",
      "status": "present",
      "block_ids": [
-      "b010"
+      "b003"
      ],
      "note": ""
     },
     {
      "fact_id": "f02",
-     "status": "distorted",
+     "status": "present",
      "block_ids": [
-      "b003"
+      "b002",
+      "b004",
+      "b005"
      ],
-     "note": "L'original précise que c'est le revenu imposable selon la décision de taxation 2025 entrée en force, le brouillon ne mentionne pas \"entrée en force\"."
+     "note": ""
     },
     {
      "fact_id": "f03",
      "status": "present",
      "block_ids": [
-      "b006"
+      "b006",
+      "b007"
      ],
      "note": ""
     },
@@ -2861,9 +4165,7 @@
      "fact_id": "f04",
      "status": "present",
      "block_ids": [
-      "b005",
-      "b006",
-      "b007"
+      "b017"
      ],
      "note": ""
     },
@@ -2871,10 +4173,11 @@
      "fact_id": "f05",
      "status": "present",
      "block_ids": [
-      "b019",
-      "b020",
-      "b021",
-      "b022"
+      "b009",
+      "b010",
+      "b011",
+      "b012",
+      "b013"
      ],
      "note": ""
     },
@@ -2882,7 +4185,8 @@
      "fact_id": "f06",
      "status": "present",
      "block_ids": [
-      "b005"
+      "b015",
+      "b016"
      ],
      "note": ""
     },
@@ -2890,7 +4194,7 @@
      "fact_id": "f07",
      "status": "present",
      "block_ids": [
-      "b006"
+      "b015"
      ],
      "note": ""
     },
@@ -2898,39 +4202,33 @@
      "fact_id": "f08",
      "status": "present",
      "block_ids": [
-      "b006"
+      "b016"
      ],
      "note": ""
     },
     {
      "fact_id": "f09",
      "status": "present",
-     "block_ids": [
-      "b007"
-     ],
-     "note": ""
+     "block_ids": [],
+     "note": "Ce fait n'est pas explicitement mentionné dans les blocs du brouillon, mais découle implicitement de la mention des montants par catégorie familiale dans b015 et b016."
     },
     {
      "fact_id": "f10",
      "status": "present",
-     "block_ids": [
-      "b016"
-     ],
-     "note": ""
+     "block_ids": [],
+     "note": "Ce fait n'est pas explicitement mentionné dans les blocs du brouillon, mais découle implicitement de la mention de l'annonce de modification dans b006 et b007."
     },
     {
      "fact_id": "f11",
      "status": "present",
-     "block_ids": [
-      "b020"
-     ],
-     "note": ""
+     "block_ids": [],
+     "note": "Ce fait n'est pas explicitement mentionné dans les blocs du brouillon, mais découle implicitement de la mention de restitution dans b020."
     },
     {
      "fact_id": "f12",
      "status": "present",
      "block_ids": [
-      "b020"
+      "b021"
      ],
      "note": ""
     },
@@ -2938,44 +4236,48 @@
      "fact_id": "f13",
      "status": "present",
      "block_ids": [
-      "b021"
+      "b022"
      ],
      "note": ""
     },
     {
      "fact_id": "f14",
-     "status": "present",
-     "block_ids": [
-      "b021"
-     ],
-     "note": ""
+     "status": "missing",
+     "block_ids": [],
+     "note": "L'obligation de contester dans les 30 jours suivant la notification n'est pas mentionnée dans le brouillon."
     },
     {
      "fact_id": "f15",
-     "status": "present",
-     "block_ids": [
-      "b022"
-     ],
-     "note": ""
+     "status": "missing",
+     "block_ids": [],
+     "note": "La référence au site web www.exempleville.example/rip n'est pas mentionnée dans le brouillon."
     }
    ],
    "unsupported": [
     {
-     "block_id": "b012",
-     "note": "L'original ne parle pas de paiement à l'assureur-maladie, il parle de dépôt de demande et de réduction des primes versée par le canton."
-    },
-    {
-     "block_id": "b014",
-     "note": "L'original ne mentionne pas l'exclusion du versement en espèces, cette information est tirée de s0011 qui est \"Peut être laissé de côté\"."
+     "block_id": "b013",
+     "quote": "Vous pouvez consulter le site www.exempleville.example/rip.",
+     "note": "L'original ne mentionne pas ce site web."
     }
    ],
    "semantic_findings": [
     {
      "block_id": "b002",
-     "rule_id": "SEM-04",
-     "note": "Le brouillon ne définit pas ce qu'est le \"revenu déterminant\" selon les règles spécifiques de l'office, se contentant d'une définition générale."
+     "rule_id": "SEM-02",
+     "note": "Utilise le nom abstrait \"formulaire de demande\" au lieu d'une action plus concrète comme \"remplir et signer le formulaire de demande\"."
+    },
+    {
+     "block_id": "b007",
+     "rule_id": "SEM-02",
+     "note": "Utilise le nom abstrait \"modification de votre situation\" au lieu d'une action ou d'un exemple concret comme \"départ de la commune ou augmentation de revenu\"."
+    },
+    {
+     "block_id": "b017",
+     "rule_id": "SEM-02",
+     "note": "Utilise le nom abstrait \"personnes avec enfants\" au lieu d'une formulation plus concrète ou explicite sur l'ajout de CHF 9'000.- par enfant."
     }
-   ]
+   ],
+   "dropped": []
   },
   {
    "draft_version": 2,
@@ -2985,7 +4287,7 @@
      "fact_id": "f01",
      "status": "present",
      "block_ids": [
-      "b012"
+      "b003"
      ],
      "note": ""
     },
@@ -2993,7 +4295,9 @@
      "fact_id": "f02",
      "status": "present",
      "block_ids": [
-      "b003"
+      "b002",
+      "b004",
+      "b005"
      ],
      "note": ""
     },
@@ -3001,58 +4305,48 @@
      "fact_id": "f03",
      "status": "present",
      "block_ids": [
-      "b006"
+      "b006",
+      "b007"
      ],
      "note": ""
     },
     {
      "fact_id": "f04",
-     "status": "distorted",
+     "status": "present",
      "block_ids": [
-      "b006"
+      "b015.1"
      ],
-     "note": "L'original précise les montants exacts (CHF 42'000.- et CHF 61'000.-) et la condition pour les personnes mariées. Le brouillon ne mentionne pas les montants exacts ni la précision pour les personnes mariées."
+     "note": ""
     },
     {
      "fact_id": "f05",
      "status": "present",
      "block_ids": [
-      "b019",
-      "b020",
-      "b021"
+      "b010",
+      "b011",
+      "b012",
+      "b013"
      ],
      "note": ""
     },
     {
      "fact_id": "f06",
-     "status": "distorted",
-     "block_ids": [
-      "b007"
-     ],
-     "note": "L'original indique une augmentation de CHF 9'000.- par enfant à charge. Le brouillon dit simplement \"Ajoutez CHF 9'000 pour chaque enfant à charge\" sans préciser qu'il s'agit d'une augmentation de la limite de revenu."
-    },
-    {
-     "fact_id": "f07",
-     "status": "missing",
-     "block_ids": [],
-     "note": "Le brouillon ne mentionne pas les montants exacts de CHF 42'000.- et CHF 61'000.-."
-    },
-    {
-     "fact_id": "f08",
-     "status": "missing",
-     "block_ids": [],
-     "note": "Le brouillon ne mentionne pas le montant exact de CHF 61'000.-."
-    },
-    {
-     "fact_id": "f09",
      "status": "present",
      "block_ids": [
-      "b007"
+      "b015"
      ],
      "note": ""
     },
     {
-     "fact_id": "f10",
+     "fact_id": "f07",
+     "status": "present",
+     "block_ids": [
+      "b015"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f08",
      "status": "present",
      "block_ids": [
       "b016"
@@ -3060,10 +4354,28 @@
      "note": ""
     },
     {
+     "fact_id": "f09",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f10",
+     "status": "present",
+     "block_ids": [
+      "b006",
+      "b007"
+     ],
+     "note": ""
+    },
+    {
      "fact_id": "f11",
      "status": "present",
      "block_ids": [
-      "b020"
+      "b010",
+      "b011"
      ],
      "note": ""
     },
@@ -3071,7 +4383,8 @@
      "fact_id": "f12",
      "status": "present",
      "block_ids": [
-      "b020"
+      "b010",
+      "b011"
      ],
      "note": ""
     },
@@ -3079,7 +4392,7 @@
      "fact_id": "f13",
      "status": "present",
      "block_ids": [
-      "b021"
+      "b011"
      ],
      "note": ""
     },
@@ -3095,28 +4408,20 @@
      "fact_id": "f15",
      "status": "present",
      "block_ids": [
-      "b022"
+      "b020"
      ],
      "note": ""
     }
    ],
    "unsupported": [
     {
-     "block_id": "b013",
-     "note": "L'original ne mentionne pas le mode de versement de la réduction (directement à l'assureur)."
-    },
-    {
-     "block_id": "b014",
-     "note": "L'original ne mentionne pas l'exclusion du versement en espèces."
+     "block_id": "b006",
+     "quote": "Vous devez annoncer toute modification de votre situation.",
+     "note": "L'original précise que c'est notamment un départ de la commune ou une augmentation importante du revenu qui doit être annoncé dans un délai de 30 jours. Le brouillon ne mentionne pas le délai de 30 jours ni les exemples spécifiques."
     }
    ],
-   "semantic_findings": [
-    {
-     "block_id": "b002.1",
-     "rule_id": "SEM-04",
-     "note": "Le brouillon n'explique pas ce qu'est le \"revenu déterminant\" selon les règles de l'office cantonal, se contentant d'une définition générique qui ne reflète pas la précision requise pour un document officiel."
-    }
-   ]
+   "semantic_findings": [],
+   "dropped": []
   },
   {
    "draft_version": 3,
@@ -3126,7 +4431,7 @@
      "fact_id": "f01",
      "status": "present",
      "block_ids": [
-      "b012"
+      "b003"
      ],
      "note": ""
     },
@@ -3134,7 +4439,11 @@
      "fact_id": "f02",
      "status": "present",
      "block_ids": [
-      "b003"
+      "b002",
+      "b004",
+      "b005",
+      "b006",
+      "b007"
      ],
      "note": ""
     },
@@ -3142,58 +4451,46 @@
      "fact_id": "f03",
      "status": "present",
      "block_ids": [
-      "b006"
+      "b007"
      ],
      "note": ""
     },
     {
      "fact_id": "f04",
-     "status": "distorted",
+     "status": "present",
      "block_ids": [
-      "b006"
+      "b015.1"
      ],
-     "note": "L'original précise les montants exacts (CHF 42'000.- et CHF 61'000.-) et la condition pour les personnes mariées. Le brouillon ne mentionne pas les montants exacts ni la précision pour les personnes mariées."
+     "note": ""
     },
     {
      "fact_id": "f05",
      "status": "present",
      "block_ids": [
-      "b019",
-      "b020",
-      "b021"
+      "b011",
+      "b012",
+      "b013"
      ],
      "note": ""
     },
     {
      "fact_id": "f06",
-     "status": "distorted",
-     "block_ids": [
-      "b007"
-     ],
-     "note": "L'original indique une augmentation de CHF 9'000.- par enfant à charge. Le brouillon dit simplement \"Ajoutez CHF 9'000 pour chaque enfant à charge\" sans préciser qu'il s'agit d'une augmentation de la limite de revenu."
-    },
-    {
-     "fact_id": "f07",
-     "status": "missing",
-     "block_ids": [],
-     "note": "Le brouillon ne mentionne pas les montants exacts de CHF 42'000.- et CHF 61'000.-."
-    },
-    {
-     "fact_id": "f08",
-     "status": "missing",
-     "block_ids": [],
-     "note": "Le brouillon ne mentionne pas le montant exact de CHF 61'000.-."
-    },
-    {
-     "fact_id": "f09",
      "status": "present",
      "block_ids": [
-      "b007"
+      "b016.1"
      ],
      "note": ""
     },
     {
-     "fact_id": "f10",
+     "fact_id": "f07",
+     "status": "present",
+     "block_ids": [
+      "b015"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f08",
      "status": "present",
      "block_ids": [
       "b016"
@@ -3201,10 +4498,26 @@
      "note": ""
     },
     {
+     "fact_id": "f09",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f10",
+     "status": "present",
+     "block_ids": [
+      "b006"
+     ],
+     "note": ""
+    },
+    {
      "fact_id": "f11",
      "status": "present",
      "block_ids": [
-      "b020"
+      "b010"
      ],
      "note": ""
     },
@@ -3212,7 +4525,7 @@
      "fact_id": "f12",
      "status": "present",
      "block_ids": [
-      "b020"
+      "b010"
      ],
      "note": ""
     },
@@ -3220,7 +4533,7 @@
      "fact_id": "f13",
      "status": "present",
      "block_ids": [
-      "b021"
+      "b011"
      ],
      "note": ""
     },
@@ -3241,238 +4554,422 @@
      "note": ""
     }
    ],
-   "unsupported": [
-    {
-     "block_id": "b013",
-     "note": "L'original ne mentionne pas le mode de versement de la réduction (directement à l'assureur)."
-    },
-    {
-     "block_id": "b014",
-     "note": "L'original ne mentionne pas l'exclusion du versement en espèces."
-    }
-   ],
+   "unsupported": [],
    "semantic_findings": [
     {
-     "block_id": "b002.1",
+     "block_id": "b002",
      "rule_id": "SEM-04",
-     "note": "Le brouillon n'explique pas ce qu'est le \"revenu déterminant\" selon les règles de l'office cantonal, se contentant d'une définition générique qui ne reflète pas la précision requise pour un document officiel."
+     "note": "Le brouillon ne définit pas ce qu'est le 'formulaire de demande dûment rempli et signé', ce qui peut être une démarche inconnue pour la lectrice/lecteur."
+    }
+   ],
+   "dropped": [
+    {
+     "block_id": "b006",
+     "quote": "payer sur internet",
+     "note": "L'original ne mentionne pas de possibilité de paiement sur internet."
     }
    ]
+  },
+  {
+   "draft_version": 4,
+   "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+   "fact_checks": [
+    {
+     "fact_id": "f01",
+     "status": "present",
+     "block_ids": [
+      "b003"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f02",
+     "status": "present",
+     "block_ids": [
+      "b002",
+      "b004",
+      "b005",
+      "b006",
+      "b007"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f03",
+     "status": "present",
+     "block_ids": [
+      "b007"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f04",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f05",
+     "status": "present",
+     "block_ids": [
+      "b011",
+      "b012",
+      "b013"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f06",
+     "status": "present",
+     "block_ids": [
+      "b016.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f07",
+     "status": "present",
+     "block_ids": [
+      "b015"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f08",
+     "status": "present",
+     "block_ids": [
+      "b016"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f09",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f10",
+     "status": "present",
+     "block_ids": [
+      "b006"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f11",
+     "status": "present",
+     "block_ids": [
+      "b010"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f12",
+     "status": "present",
+     "block_ids": [
+      "b010"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f13",
+     "status": "present",
+     "block_ids": [
+      "b011"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f14",
+     "status": "present",
+     "block_ids": [
+      "b021"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f15",
+     "status": "present",
+     "block_ids": [
+      "b022"
+     ],
+     "note": ""
+    }
+   ],
+   "unsupported": [],
+   "semantic_findings": [
+    {
+     "block_id": "b002",
+     "rule_id": "SEM-04",
+     "note": "Le brouillon ne définit pas ce qu'est le 'formulaire de demande dûment rempli et signé', ce qui peut être une démarche inconnue pour la lectrice/lecteur."
+    }
+   ],
+   "dropped": []
+  },
+  {
+   "draft_version": 5,
+   "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+   "fact_checks": [
+    {
+     "fact_id": "f01",
+     "status": "present",
+     "block_ids": [
+      "b003"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f02",
+     "status": "present",
+     "block_ids": [
+      "b002",
+      "b004",
+      "b005",
+      "b006",
+      "b007"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f03",
+     "status": "present",
+     "block_ids": [
+      "b007"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f04",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f05",
+     "status": "present",
+     "block_ids": [
+      "b011",
+      "b012",
+      "b013"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f06",
+     "status": "present",
+     "block_ids": [
+      "b016.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f07",
+     "status": "present",
+     "block_ids": [
+      "b015"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f08",
+     "status": "present",
+     "block_ids": [
+      "b016"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f09",
+     "status": "present",
+     "block_ids": [
+      "b015.1"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f10",
+     "status": "present",
+     "block_ids": [
+      "b006"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f11",
+     "status": "present",
+     "block_ids": [
+      "b010"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f12",
+     "status": "present",
+     "block_ids": [
+      "b010"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f13",
+     "status": "present",
+     "block_ids": [
+      "b011"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f14",
+     "status": "present",
+     "block_ids": [
+      "b021"
+     ],
+     "note": ""
+    },
+    {
+     "fact_id": "f15",
+     "status": "present",
+     "block_ids": [
+      "b022"
+     ],
+     "note": ""
+    }
+   ],
+   "unsupported": [],
+   "semantic_findings": [
+    {
+     "block_id": "b002",
+     "rule_id": "SEM-04",
+     "note": "Le brouillon ne définit pas ce qu'est le 'formulaire de demande dûment rempli et signé', ce qui peut être une démarche inconnue pour la lectrice/lecteur."
+    }
+   ],
+   "dropped": []
   }
  ],
  "repair_records": [
   {
    "draft_version": 2,
    "parent_version": 1,
-   "kind": "repair",
-   "requested_blocks": [
-    "b012",
-    "b014",
-    "b002",
-    "b003"
-   ],
+   "kind": "facts",
+   "requested_blocks": [],
    "requested_facts": [
-    "f13"
+    "f09",
+    "f14",
+    "f06"
    ],
    "repairs": [
     {
-     "block_id": "b002",
+     "block_id": "b015",
      "texts": [
-      "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville."
-     ]
-    },
-    {
-     "block_id": "b003",
-     "texts": [
-      "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force."
-     ]
-    },
-    {
-     "block_id": "b005",
-     "texts": [
-      "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027."
-     ]
-    },
-    {
-     "block_id": "b006",
-     "texts": [
-      "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple."
-     ]
-    },
-    {
-     "block_id": "b007",
-     "texts": [
-      "Ajoutez CHF 9'000 pour chaque enfant à charge."
-     ]
-    },
-    {
-     "block_id": "b009",
-     "texts": [
-      "Vous devez déposer le formulaire de demande dûment rempli et signé."
-     ]
-    },
-    {
-     "block_id": "b010",
-     "texts": [
-      "Vous devez déposer le formulaire avant le 31 mars 2027."
-     ]
-    },
-    {
-     "block_id": "b011",
-     "texts": [
-      "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie."
-     ]
-    },
-    {
-     "block_id": "b012",
-     "texts": [
-      "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027."
-     ]
-    },
-    {
-     "block_id": "b013",
-     "texts": [
-      "Vous payez la réduction directement à votre assureur-maladie."
-     ]
-    },
-    {
-     "block_id": "b014",
-     "texts": [
-      "Vous ne pouvez pas recevoir cet argent en espèces."
+      "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction."
      ]
     },
     {
      "block_id": "b016",
      "texts": [
-      "Vous devez annoncer tout changement par écrit dans les 30 jours."
+      "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction."
      ]
     },
     {
      "block_id": "b017",
+     "texts": [
+      "Les personnes avec enfants ont une limite de revenu plus élevée."
+     ]
+    },
+    {
+     "block_id": "b018",
+     "texts": [
+      "La réduction des primes est versée directement à l'assureur-maladie."
+     ]
+    },
+    {
+     "block_id": "b019",
+     "texts": [
+      "Vous ne pouvez pas recevoir l'argent en espèces."
+     ]
+    },
+    {
+     "block_id": "b020",
      "texts": [
       "Si vous avez reçu trop d'argent, vous devez le rendre."
      ]
     },
     {
-     "block_id": "b019",
-     "texts": [
-      "Téléphonez à l'agence d'assurances sociales."
-     ]
-    },
-    {
-     "block_id": "b020",
-     "texts": [
-      "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30."
-     ]
-    },
-    {
      "block_id": "b021",
      "texts": [
-      "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example."
+      "Vous pouvez contester la décision dans les 30 jours après la notification."
      ]
     },
     {
      "block_id": "b022",
      "texts": [
-      "Vous trouvez plus d'informations sur www.exempleville.example/rip."
+      "La contestation doit être motivée."
      ]
     }
    ],
    "additions": [
     {
-     "after": "b002",
+     "after": "b015",
      "texts": [
-      "Le revenu déterminant est calculé selon les règles de l'office cantonal."
+      "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge."
      ],
      "fact_ids": [
-      "f04"
-     ]
-    },
-    {
-     "after": "b012",
-     "texts": [
-      "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example."
-     ],
-     "fact_ids": [
-      "f13"
+      "f09"
      ]
     }
    ],
    "dropped": [
     {
-     "text": "Ont droit à la réduction les personnes qui ont leur domicile civil dans la commune d'Exempleville au 1er janvier 2027.",
+     "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
      "reason": "not_flagged",
-     "block_id": "b005",
+     "block_id": "b015",
      "fact_ids": []
     },
     {
-     "text": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-     "reason": "not_flagged",
-     "block_id": "b006",
-     "fact_ids": []
-    },
-    {
-     "text": "Ajoutez CHF 9'000 pour chaque enfant à charge.",
-     "reason": "not_flagged",
-     "block_id": "b007",
-     "fact_ids": []
-    },
-    {
-     "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
-     "reason": "not_flagged",
-     "block_id": "b009",
-     "fact_ids": []
-    },
-    {
-     "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
-     "reason": "not_flagged",
-     "block_id": "b010",
-     "fact_ids": []
-    },
-    {
-     "text": "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie.",
-     "reason": "not_flagged",
-     "block_id": "b011",
-     "fact_ids": []
-    },
-    {
-     "text": "Vous payez la réduction directement à votre assureur-maladie.",
-     "reason": "not_flagged",
-     "block_id": "b013",
-     "fact_ids": []
-    },
-    {
-     "text": "Vous devez annoncer tout changement par écrit dans les 30 jours.",
+     "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
      "reason": "not_flagged",
      "block_id": "b016",
      "fact_ids": []
     },
     {
-     "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
+     "text": "Les personnes avec enfants ont une limite de revenu plus élevée.",
      "reason": "not_flagged",
      "block_id": "b017",
      "fact_ids": []
     },
     {
-     "text": "Téléphonez à l'agence d'assurances sociales.",
+     "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+     "reason": "not_flagged",
+     "block_id": "b018",
+     "fact_ids": []
+    },
+    {
+     "text": "Vous ne pouvez pas recevoir l'argent en espèces.",
      "reason": "not_flagged",
      "block_id": "b019",
      "fact_ids": []
     },
     {
-     "text": "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30.",
+     "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
      "reason": "not_flagged",
      "block_id": "b020",
      "fact_ids": []
     },
     {
-     "text": "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example.",
+     "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
      "reason": "not_flagged",
      "block_id": "b021",
      "fact_ids": []
     },
     {
-     "text": "Vous trouvez plus d'informations sur www.exempleville.example/rip.",
+     "text": "La contestation doit être motivée.",
      "reason": "not_flagged",
      "block_id": "b022",
      "fact_ids": []
@@ -3482,10 +4979,63 @@
   {
    "draft_version": 3,
    "parent_version": 2,
+   "kind": "recover",
+   "requested_blocks": [],
+   "requested_facts": [
+    "f06"
+   ],
+   "repairs": [],
+   "additions": [
+    {
+     "after": "b016",
+     "texts": [
+      "Le domicile civil doit être dans la commune d'Exempleville au 1er janvier 2027."
+     ],
+     "fact_ids": [
+      "f06"
+     ]
+    }
+   ],
+   "dropped": [
+    {
+     "text": "Le revenu déterminant ne doit pas dépasser CHF 42'000.- pour les personnes seules ou CHF 61'000.- pour les personnes mariées.",
+     "reason": "repeat",
+     "block_id": "b016",
+     "fact_ids": [
+      "f06"
+     ]
+    }
+   ]
+  },
+  {
+   "draft_version": 4,
+   "parent_version": 3,
+   "kind": "polish",
+   "requested_blocks": [
+    "b022"
+   ],
+   "requested_facts": [],
+   "repairs": [
+    {
+     "block_id": "b022",
+     "texts": [
+      "Vous devez expliquer pourquoi vous contestez la décision."
+     ]
+    }
+   ],
+   "additions": [],
+   "dropped": []
+  },
+  {
+   "draft_version": 5,
+   "parent_version": 4,
    "kind": "vocabulary",
    "requested_blocks": [
-    "b009",
-    "b023"
+    "b002",
+    "b015",
+    "b016",
+    "b016.1",
+    "b018"
    ],
    "requested_facts": [],
    "repairs": [],
@@ -3495,99 +5045,22 @@
  ],
  "review": null,
  "final": {
-  "draft_version": 3,
+  "draft_version": 5,
   "reviewed": false,
   "review_complete": false,
   "undecided_blocks": 0,
+  "undecided_glossary": 0,
+  "notice": null,
   "blocks": [
    {
     "id": "b001",
-    "kind": "heading",
-    "text": "De quoi s'agit-il ?",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b002",
-    "kind": "sentence",
-    "text": "Il s'agit de la réduction des primes de l'assurance-maladie obligatoire pour les personnes à faibles revenus dans la commune d'Exempleville.",
-    "fact_ids": [
-     "f03"
-    ],
-    "segment_ids": [
-     "s0003"
-    ]
-   },
-   {
-    "id": "b002.1",
-    "kind": "sentence",
-    "text": "Le revenu déterminant est calculé selon les règles de l'office cantonal.",
-    "fact_ids": [
-     "f04"
-    ],
-    "segment_ids": []
-   },
-   {
-    "id": "b003",
-    "kind": "sentence",
-    "text": "Le revenu déterminant est votre revenu imposable selon la décision de taxation 2025 entrée en force.",
-    "fact_ids": [
-     "f04"
-    ],
-    "segment_ids": [
-     "s0004"
-    ]
-   },
-   {
-    "id": "b004",
-    "kind": "heading",
-    "text": "Qui a droit à la réduction ?",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b005",
-    "kind": "sentence",
-    "text": "Ont droit à la réduction les personnes qui habitent à Exempleville au 1er janvier 2027.",
-    "fact_ids": [
-     "f06"
-    ],
-    "segment_ids": [
-     "s0005"
-    ]
-   },
-   {
-    "id": "b006",
-    "kind": "sentence",
-    "text": "Le revenu ne doit pas dépasser CHF 42'000 pour une personne seule ou CHF 61'000 pour un couple.",
-    "fact_ids": [
-     "f08",
-     "f07"
-    ],
-    "segment_ids": [
-     "s0005"
-    ]
-   },
-   {
-    "id": "b007",
-    "kind": "sentence",
-    "text": "Ajoutez CHF 9'000 pour chaque enfant à charge.",
-    "fact_ids": [
-     "f09"
-    ],
-    "segment_ids": [
-     "s0006"
-    ]
-   },
-   {
-    "id": "b008",
     "kind": "heading",
     "text": "Que devez-vous faire ?",
     "fact_ids": [],
     "segment_ids": []
    },
    {
-    "id": "b009",
+    "id": "b002",
     "kind": "sentence",
     "text": "Vous devez déposer le formulaire de demande dûment rempli et signé.",
     "fact_ids": [
@@ -3598,20 +5071,21 @@
     ]
    },
    {
-    "id": "b010",
+    "id": "b003",
     "kind": "sentence",
     "text": "Vous devez déposer le formulaire avant le 31 mars 2027.",
     "fact_ids": [
-     "f01"
+     "f01",
+     "f02"
     ],
     "segment_ids": [
      "s0007"
     ]
    },
    {
-    "id": "b011",
+    "id": "b004",
     "kind": "sentence",
-    "text": "Vous devez joindre une copie de votre décision de taxation et de votre police d'assurance-maladie.",
+    "text": "Vous devez joindre une copie de la dernière décision de taxation.",
     "fact_ids": [
      "f02"
     ],
@@ -3620,59 +5094,193 @@
     ]
    },
    {
-    "id": "b012",
-    "kind": "heading",
-    "text": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
+    "id": "b005",
+    "kind": "sentence",
+    "text": "Vous devez joindre une copie de la police d'assurance-maladie.",
     "fact_ids": [
-     "f01"
+     "f02"
     ],
-    "segment_ids": []
+    "segment_ids": [
+     "s0009"
+    ]
    },
    {
-    "id": "b012.1",
+    "id": "b006",
     "kind": "sentence",
-    "text": "Pour plus d'informations, contactez l'agence d'assurances sociales au 022 123 45 67 ou par e-mail à rip@exempleville.example.",
+    "text": "Vous devez annoncer toute modification de votre situation.",
     "fact_ids": [
-     "f13",
-     "f14"
-    ],
-    "segment_ids": []
-   },
-   {
-    "id": "b013",
-    "kind": "sentence",
-    "text": "Vous payez la réduction directement à votre assureur-maladie.",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b014",
-    "kind": "sentence",
-    "text": "Vous ne pouvez pas recevoir cet argent en espèces.",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b015",
-    "kind": "heading",
-    "text": "Que se passe-t-il si vous changez ?",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b016",
-    "kind": "sentence",
-    "text": "Vous devez annoncer tout changement par écrit dans les 30 jours.",
-    "fact_ids": [
-     "f12",
-     "f10"
+     "f10",
+     "f02"
     ],
     "segment_ids": [
      "s0012"
     ]
    },
    {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Vous devez annoncer votre départ de la commune ou une augmentation de revenu.",
+    "fact_ids": [
+     "f10",
+     "f02"
+    ],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "heading",
+    "text": "À qui pouvez-vous poser des questions ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b009",
+    "kind": "sentence",
+    "text": "Vous pouvez téléphoner à l'agence d'assurances sociales.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b010",
+    "kind": "sentence",
+    "text": "Vous pouvez téléphoner du lundi au vendredi, de 8 h 30 à 11 h 30.",
+    "fact_ids": [
+     "f11",
+     "f12"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b011",
+    "kind": "sentence",
+    "text": "Vous pouvez téléphoner au 022 123 45 67.",
+    "fact_ids": [
+     "f13",
+     "f05"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "sentence",
+    "text": "Vous pouvez envoyer un e-mail à rip@exempleville.example.",
+    "fact_ids": [
+     "f14",
+     "f05"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "sentence",
+    "text": "Vous pouvez consulter le site www.exempleville.example/rip.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "heading",
+    "text": "Qui a droit à la réduction des primes ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Les personnes seules dont le revenu déterminant n'excède pas CHF 42'000.- ont droit à la réduction.",
+    "fact_ids": [
+     "f03",
+     "f07"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b015.1",
+    "kind": "sentence",
+    "text": "La limite de revenu est augmentée de CHF 9'000.- pour chaque enfant à charge.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Les personnes mariées dont le revenu déterminant n'excède pas CHF 61'000.- ont droit à la réduction.",
+    "fact_ids": [
+     "f03",
+     "f08"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b016.1",
+    "kind": "sentence",
+    "text": "Le domicile civil doit être dans la commune d'Exempleville au 1er janvier 2027.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
     "id": "b017",
+    "kind": "sentence",
+    "text": "Les personnes avec enfants ont une limite de revenu plus haute.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "La réduction des primes est versée directement à l'assureur-maladie.",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Une personne ne peut pas recevoir l'argent en espèces.",
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b020",
     "kind": "sentence",
     "text": "Si vous avez reçu trop d'argent, vous devez le rendre.",
     "fact_ids": [
@@ -3683,84 +5291,81 @@
     ]
    },
    {
-    "id": "b018",
-    "kind": "heading",
-    "text": "Comment poser des questions ?",
-    "fact_ids": [],
-    "segment_ids": []
-   },
-   {
-    "id": "b019",
-    "kind": "sentence",
-    "text": "Téléphonez à l'agence d'assurances sociales.",
-    "fact_ids": [
-     "f15"
-    ],
-    "segment_ids": [
-     "s0016"
-    ]
-   },
-   {
-    "id": "b020",
-    "kind": "sentence",
-    "text": "Vous pouvez appeler du lundi au vendredi, de 8 h 30 à 11 h 30.",
-    "fact_ids": [
-     "f11",
-     "f12"
-    ],
-    "segment_ids": [
-     "s0016"
-    ]
-   },
-   {
     "id": "b021",
     "kind": "sentence",
-    "text": "Vous pouvez aussi envoyer un e-mail à rip@exempleville.example.",
+    "text": "Vous pouvez contester la décision dans les 30 jours après la notification.",
     "fact_ids": [
-     "f14"
+     "f14",
+     "f10"
     ],
     "segment_ids": [
-     "s0016"
+     "s0014"
     ]
    },
    {
     "id": "b022",
     "kind": "sentence",
-    "text": "Vous trouvez plus d'informations sur www.exempleville.example/rip.",
+    "text": "Vous devez expliquer pourquoi vous contestez la décision.",
     "fact_ids": [
      "f15"
     ],
     "segment_ids": [
-     "s0017"
-    ]
-   },
-   {
-    "id": "b023",
-    "kind": "sentence",
-    "text": "Veuillez agréer nos salutations distinguées.",
-    "fact_ids": [],
-    "segment_ids": [
-     "s0018"
+     "s0015"
     ]
    }
   ],
-  "layout_findings": [
+  "glossary": [
    {
-    "block_id": null,
-    "rule_id": "LAY-02",
-    "severity": "warn",
-    "message": "Line 21 has 90 characters; at most 85.",
-    "message_key": "LAY-02",
-    "message_params": {
-     "line": 21,
-     "chars": 90,
-     "limit": 85
-    },
-    "evidence": "Quand devez-vous déposer la demande ? Vous devez déposer la demande avant le 31 mars 2027.",
-    "suggestion": null,
-    "fact_id": null,
-    "segment_ids": []
+    "term": "revenu déterminant",
+    "explanation": "C'est le revenu qu'on utilise pour décider si vous avez droit à une aide.",
+    "origin": "model"
+   },
+   {
+    "term": "assureur-maladie",
+    "explanation": "C'est la compagnie qui reçoit votre argent pour payer vos soins de santé.",
+    "origin": "model"
+   },
+   {
+    "term": "notification",
+    "explanation": "C'est le jour où vous recevez la décision officielle.",
+    "origin": "model"
+   },
+   {
+    "term": "réclamation",
+    "explanation": "C'est une lettre pour demander de changer une décision.",
+    "origin": "model"
+   },
+   {
+    "term": "domicile civil",
+    "explanation": "C'est l'adresse officielle où vous vivez selon la loi.",
+    "origin": "model"
+   },
+   {
+    "term": "décision",
+    "explanation": "Une décision est la réponse d'un office ou d'un tribunal. Elle vaut pour vous. Elle arrive par lettre.",
+    "origin": "vocabulary"
+   },
+   {
+    "term": "taxation",
+    "explanation": "L'office des impôts calcule vos impôts. Le résultat s'appelle la taxation. Vous la recevez par lettre.",
+    "origin": "vocabulary"
+   },
+   {
+    "term": "avoir droit à",
+    "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+    "origin": "vocabulary"
+   },
+   {
+    "term": "réduction des primes",
+    "explanation": "Le canton paie une partie de votre prime de caisse-maladie. C'est une aide pour les personnes avec peu d'argent.",
+    "origin": "vocabulary"
+   },
+   {
+    "term": "avoir droit à",
+    "explanation": "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir.",
+    "origin": "vocabulary"
    }
-  ]
+  ],
+  "layout_findings": []
  }
 }

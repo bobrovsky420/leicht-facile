@@ -98,7 +98,11 @@ class RefOut(LLMOut):
     def _bare_sentence(cls, data: Any) -> Any:
         # The 8B sometimes answers a core question with the sentence alone ("Keine
         # Fristen angegeben.") instead of {text, segment_ids}: five validation errors
-        # per answer on CSCS (6 October 2026).
+        # per answer on CSCS (6 October 2026). And it answers a question the document
+        # does not with `null` for the whole object, where the prompt says to set the
+        # text to null: 4 of 18 French example builds failed on it (10 October 2026).
+        if data is None:
+            return {}
         return {"text": data} if isinstance(data, str) else data
 
     @field_validator("text", mode="before")
