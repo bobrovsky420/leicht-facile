@@ -14,12 +14,13 @@ from __future__ import annotations
 
 import logging
 import random
+import threading
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 import openai
@@ -46,10 +47,49 @@ _BACKOFF_MAX_S = 30.0
 USER_AGENT = f"leicht-facile/{__version__}"
 # Where the calls of the current thread are billed, set by `LLMClient.recording`.
 _RECORDING: ContextVar[Callable[[Usage], None] | None] = ContextVar("llm_recording", default=None)
+# The time budget and the stop signal of the job the current thread runs, set by
+# `LLMClient.limited`; checked before every attempt and on every streamed chunk.
+_LIMIT: ContextVar[RunLimit | None] = ContextVar("llm_limit", default=None)
 
 
 class LLMError(RuntimeError):
     """The endpoint failed after all retries, or rejected the request."""
+
+
+class LLMInterrupted(RuntimeError):
+    """The call was abandoned because the job was stopped (`cancelled`) or its time
+    budget ran out (`budget`). Not an `LLMError`: a stage never treats it as a failure
+    of the endpoint and carries on."""
+
+    def __init__(self, reason: Literal["cancelled", "budget"]) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+@dataclass(frozen=True)
+class RunLimit:
+    """What ends a job early: a deadline on the monotonic clock and a stop event."""
+
+    deadline: float | None = None
+    stop: threading.Event | None = None
+    clock: Callable[[], float] = time.monotonic
+
+    def check(self) -> None:
+        if self.stop is not None and self.stop.is_set():
+            raise LLMInterrupted("cancelled")
+        if self.deadline is not None and self.clock() >= self.deadline:
+            raise LLMInterrupted("budget")
+
+    def remaining(self) -> float | None:
+        return None if self.deadline is None else max(0.0, self.deadline - self.clock())
+
+
+def check_limit() -> None:
+    """Raise `LLMInterrupted` when the current thread's job was stopped or is over its
+    time budget; nothing happens outside `LLMClient.limited`."""
+    limit = _LIMIT.get()
+    if limit is not None:
+        limit.check()
 
 
 @dataclass(frozen=True)
@@ -60,6 +100,7 @@ class Usage:
     tokens_out: int
     latency_ms: int
     cached: bool = False
+    cache_key: str | None = None  # the response cache's key, when the cache is on
 
 
 @dataclass(frozen=True)
@@ -155,11 +196,14 @@ class LLMClient:
         if extra_body:
             params["extra_body"] = extra_body
 
+        check_limit()
         key = cache_key(name, messages, params) if self._cache else None
         if self._cache and key:
             hit = self._cache.get(key)
             if hit is not None:
-                usage = Usage(stage, name, hit["tokens_in"], hit["tokens_out"], 0, cached=True)
+                usage = Usage(
+                    stage, name, hit["tokens_in"], hit["tokens_out"], 0, cached=True, cache_key=key
+                )
                 self._record(usage)
                 return LLMResult(
                     hit["text"], hit["reasoning"], hit["finish_reason"], usage, cache_key=key
@@ -172,7 +216,7 @@ class LLMClient:
         answer, inline_reasoning = split_reasoning(reply.content)
         reasoning = "\n\n".join(r for r in (reply.reasoning, inline_reasoning) if r) or None
 
-        usage = Usage(stage, name, reply.tokens_in, reply.tokens_out, latency_ms)
+        usage = Usage(stage, name, reply.tokens_in, reply.tokens_out, latency_ms, cache_key=key)
         self._record(usage)
         if reply.finish_reason == "length":
             log.warning(
@@ -204,6 +248,15 @@ class LLMClient:
         if self._cache and result.cache_key:
             self._cache.delete(result.cache_key)
 
+    def forget_keys(self, keys: list[str]) -> int:
+        """Drop these responses from the cache: a deleted job takes its prompts, which
+        carry the document, with it (`Store.cache_keys`). The number dropped."""
+        if not self._cache:
+            return 0
+        for key in keys:
+            self._cache.delete(key)
+        return len(keys)
+
     def list_models(self, timeout_s: float = 10.0) -> list[str]:
         page = self._client.with_options(timeout=timeout_s).models.list()
         return sorted(m.id for m in page)
@@ -231,6 +284,7 @@ class LLMClient:
     ) -> _Reply:
         attempts = self.settings.llm_max_retries + 1
         for attempt in range(1, attempts + 1):
+            check_limit()
             try:
                 return self._request(name, messages, params)
             except _RETRYABLE as exc:
@@ -254,6 +308,10 @@ class LLMClient:
                 f"(stage={stage}, model={name}): {_describe(exc)}"
             ) from exc
         delay = _retry_delay(exc, attempt)
+        limit = _LIMIT.get()
+        remaining = limit.remaining() if limit else None
+        if remaining is not None:
+            delay = min(delay, remaining)  # the next check raises once the budget is out
         log.warning(
             "LLM call failed (stage=%s, model=%s, attempt %d/%d): %s; retrying in %.1fs",
             stage,
@@ -302,6 +360,7 @@ class LLMClient:
         )
         with stream:
             for chunk in stream:
+                check_limit()  # a stopped job abandons the stream at the next chunk
                 usage = getattr(chunk, "usage", None)
                 if usage is not None:
                     tokens_in = getattr(usage, "prompt_tokens", 0) or 0
@@ -339,6 +398,18 @@ class LLMClient:
             yield
         finally:
             _RECORDING.reset(token)
+
+    @contextmanager
+    def limited(self, limit: RunLimit) -> Iterator[None]:
+        """End the calls made in this thread inside the block early when the job is
+        stopped or over its time budget: `LLMInterrupted` before the next attempt, at
+        the next streamed chunk, and after a backoff. The orchestrator runs every job
+        inside one."""
+        token = _LIMIT.set(limit)
+        try:
+            yield
+        finally:
+            _LIMIT.reset(token)
 
     def _record(self, usage: Usage) -> None:
         log.info("llm_call %s", asdict(usage))

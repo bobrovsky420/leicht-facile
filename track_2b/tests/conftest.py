@@ -67,14 +67,16 @@ def error_response(status: int, headers: dict[str, str] | None = None) -> httpx.
 
 
 class FakeEndpoint:
-    """Records requests and answers chat calls from a queue."""
+    """Records requests and answers chat calls from a queue: a response, an exception
+    to raise, or a function of the request that returns the response (a test can let
+    it wait on an event to hold the call)."""
 
     def __init__(self, models: list[str] | None = None) -> None:
         self.models = models if models is not None else [MODEL, MODEL + "-thinking"]
-        self.queue: list[httpx.Response | Exception] = []
+        self.queue: list[httpx.Response | Exception | Callable[..., httpx.Response]] = []
         self.requests: list[httpx.Request] = []
 
-    def push(self, *responses: httpx.Response | Exception) -> None:
+    def push(self, *responses: httpx.Response | Exception | Callable[..., httpx.Response]) -> None:
         self.queue.extend(responses)
 
     def chat_bodies(self) -> list[dict[str, Any]]:
@@ -90,6 +92,8 @@ class FakeEndpoint:
         item = self.queue.pop(0)
         if isinstance(item, Exception):
             raise item
+        if callable(item):
+            return item(request)
         return item
 
     def http_client(self) -> httpx.Client:

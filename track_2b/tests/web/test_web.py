@@ -74,7 +74,9 @@ def test_submit_review_and_export(app_env) -> None:
         "completed": True,
     }
     saved = client.post(f"/api/jobs/{job_id}/review", json=review)
-    assert saved.status_code == 200 and saved.json() == {"saved": 3, "completed": True}
+    assert saved.status_code == 200, saved.text
+    assert saved.json() == {"saved": 3, "completed": True, "saved_at": saved.json()["saved_at"]}
+    assert saved.json()["saved_at"]  # the stamp a later save names (optimistic concurrency)
     assert client.get(f"/api/jobs/{job_id}").json()["status"] == "done"
 
     md = client.get(f"/api/jobs/{job_id}/export?format=md")

@@ -88,6 +88,24 @@ class Settings(BaseSettings):
     # only to measure what the vocabulary brings, or if a kind of document suffers.
     use_vocabulary: bool = True
 
+    # Jobs (track_2b/docs/architecture.md §7). Worker threads that run the queued jobs:
+    # one is enough for a reviewer's workload; more share one endpoint that serves
+    # parallel requests (vLLM does, `--max-num-seqs`).
+    job_workers: int = Field(default=1, ge=1, le=16)
+    # Jobs that may wait for a worker; a submission beyond that is refused with 429.
+    job_queue_limit: int = Field(default=50, ge=1)
+    # Seconds a job may run before it is stopped with its finished stages kept (one
+    # model call alone may take LLM_TIMEOUT_S times the attempts); 0: no budget.
+    job_time_budget_s: float = Field(default=7200.0, ge=0)
+    # Submissions read at once: the fetch, the PDF parse and the segmentation run in the
+    # request's thread, and beyond this many at a time a submission is refused with 429
+    # and asked to try again, so slow documents never fill the thread pool.
+    ingest_slots: int = Field(default=4, ge=1, le=32)
+    # Days after which a job nobody changed is deleted with its artifacts, calls and
+    # cache rows (lifecycle.py), checked every hour; the example jobs stay. 0 keeps
+    # everything.
+    data_retention_days: int = Field(default=0, ge=0)
+
     # Runtime
     data_dir: Path = Path("track_2b/data")
     log_level: str = "INFO"

@@ -327,7 +327,10 @@ them into local time and "Today" or "Yesterday".
 
 - Page header: breadcrumb, title, status badge (Queued, Running or Failed). On the
   right "Running for 2 min 01 s · 8,188 tokens" with "The page updates by itself"
-  under it (`role=status`), and "Delete draft" (danger, asks first). Summary strip:
+  under it (`role=status`), and "Stop" (danger; since 11 October 2026 it replaces
+  "Delete draft" while the job is queued or running: the job ends at its next stage
+  or streamed chunk and keeps what it has; a stopped or failed job shows "Delete
+  draft", which asks first). Summary strip:
   language, level, pipeline; the writer and judge model names (`JobConfig`, else the
   settings).
 - Left, the card "Pipeline" (380 px) with "Stage 4 of 6" in its header. One row per
@@ -353,9 +356,11 @@ them into local time and "Today" or "Yesterday".
     findings; under it "Findings about the whole document, such as missing facts,
     are not marked on a block."
 - Failed: an alert on top of the results column (red icon, "The job failed:
-  {error}", the existing hint, "Run again from the start"); the failed stage shows
-  the error in its detail line, mono 12.
-- Polling as today: `app.js` swaps the `_progress.html` fragment every 2 s and
+  {error}", or "The job was stopped." for a job the reviewer stopped, the existing
+  hint, "Run again from the start"); the failed stage shows the error in its detail
+  line, mono 12.
+- Polling as today: `app.js` swaps the `_progress.html` fragment every 2 s (every
+  5 s after two minutes) and
   reloads when the status leaves queued and running. The fragment's root carries
   the header's line, formatted by the server, in `data-run`; `app.js` copies it into
   the page header after each swap.

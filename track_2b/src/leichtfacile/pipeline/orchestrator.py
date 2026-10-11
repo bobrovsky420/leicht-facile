@@ -4,15 +4,24 @@ Conditions (§9): P0 and the P0-ZH pair are single-prompt baselines (one sentenc
 Canton of Zurich's prompt); P1 is understand, write and the rule check; P2 adds the judge
 and the repair loop. Every stage stores its result before the
 next starts, so a failed job resumes from the last good stage.
+
+One orchestrator serves every worker thread. What belongs to one run (the notes, the
+last round's failure, the stage to stop after, the time budget and the stop signal)
+lives in a `RunState` made by `run()` and passed along, never on the orchestrator.
 """
 
 from __future__ import annotations
 
 import logging
+import threading
+import time
 from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
 
 from leichtfacile.config import Settings
-from leichtfacile.llm.client import LLMClient, LLMError
+from leichtfacile.lifecycle import job_counts
+from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
 from leichtfacile.pipeline import render, stages
 from leichtfacile.pipeline.labels import label
@@ -76,16 +85,40 @@ ARTIFACTS_FROM = {
     "write": ["draft", "rules", "judge", "repair", "summary", "review"],
     "judge": ["judge", "repair", "summary", "review"],
 }
+# The error a job carries when it was stopped (web/templates/_progress.html shows it as
+# such) or ran over its time budget (`JOB_TIME_BUDGET_S`).
+CANCELLED = "cancelled"
+OVER_BUDGET = "stopped after the time budget of {seconds} s"
 
 
 class PipelineError(RuntimeError):
     pass
 
 
+class JobBusy(PipelineError):
+    """A worker is running the job: stop it before a rerun or a deletion (audit V14)."""
+
+
 class _Stopped(Exception):  # noqa: N818  (control flow, not an error)
     def __init__(self, stage: str) -> None:
         super().__init__(stage)
         self.stage = stage
+
+
+@dataclass
+class RunState:
+    """What belongs to one `run()`: made per call, passed to every step (audit B2)."""
+
+    job_id: str
+    stop_after: str | None = None  # understand, write, check or judge: for tests and the CLI
+    notes: list[str] = field(default_factory=list)  # stages that failed and were skipped
+    round_failure: str | None = None  # "endpoint" or "output" after a failed round
+    limit: RunLimit = field(default_factory=RunLimit)
+
+    @property
+    def stop(self) -> threading.Event:
+        assert self.limit.stop is not None
+        return self.limit.stop
 
 
 def repairable(finding: Finding) -> bool:
@@ -200,10 +233,20 @@ def build_request(
 
 
 class Orchestrator:
-    def __init__(self, store: Store, llm: LLMClient, settings: Settings) -> None:
+    def __init__(
+        self,
+        store: Store,
+        llm: LLMClient,
+        settings: Settings,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self.store = store
         self.llm = llm
         self.settings = settings
+        self._clock = clock
+        self._runs: dict[str, RunState] = {}  # the jobs running now, by id
+        self._runs_lock = threading.Lock()
 
     # -- public -----------------------------------------------------------------------
 
@@ -211,16 +254,51 @@ class Orchestrator:
         """Run or resume a job. stop_after: understand, write, check or judge."""
         if stop_after is not None and stop_after not in STAGE_ORDER:
             raise PipelineError(f"unknown stage {stop_after!r}; use one of {STAGE_ORDER}")
-        self._stop_after = stop_after
         job = self.store.get_job(job_id)
         if job is None:
             raise PipelineError(f"unknown job {job_id}")
-        # Each model call is billed to the job when it is made, so a stage that fails
-        # after some calls has them in the usage too.
-        with self.llm.recording(lambda usage: self.store.add_usage(job_id, usage)):
-            self._run(job_id, job)
+        budget = self.settings.job_time_budget_s
+        run = RunState(
+            job_id,
+            stop_after,
+            limit=RunLimit(
+                deadline=self._clock() + budget if budget else None,
+                stop=threading.Event(),
+                clock=self._clock,
+            ),
+        )
+        with self._runs_lock:
+            self._runs[job_id] = run
+        try:
+            # Each model call is billed to the job when it is made, so a stage that fails
+            # after some calls has them in the usage too. The limit ends a stopped job's
+            # calls early (llm/client.py).
+            with (
+                self.llm.recording(lambda usage: self.store.add_usage(job_id, usage)),
+                self.llm.limited(run.limit),
+            ):
+                self._run(run, job)
+        finally:
+            with self._runs_lock:
+                self._runs.pop(job_id, None)
 
-    def _run(self, job_id: str, job: Job) -> None:
+    def cancel(self, job_id: str) -> bool:
+        """Ask the worker running the job to stop: at the next stage, the next model
+        attempt or the next streamed chunk the job fails with `CANCELLED` and keeps the
+        artifacts it has. False when no worker runs it."""
+        with self._runs_lock:
+            run = self._runs.get(job_id)
+        if run is None:
+            return False
+        run.stop.set()
+        return True
+
+    def running(self) -> list[str]:
+        with self._runs_lock:
+            return list(self._runs)
+
+    def _run(self, run: RunState, job: Job) -> None:
+        job_id = run.job_id
         try:
             self._set(job_id, status="running", error=None)
             source = self.store.get_artifact(job_id, "source", SourceDocument)
@@ -229,56 +307,82 @@ class Orchestrator:
             if job.config.lang and job.config.lang != source.lang:
                 source = source.model_copy(update={"lang": job.config.lang})
             if job.config.condition in BASELINE_CONDITIONS:
-                self._run_baseline(job, source)
+                self._run_baseline(run, job, source)
             else:
-                self._run_pipeline(job, source)
-            self._set(job_id, status="needs_review", stage="review")
+                self._run_pipeline(run, job, source)
+            self._done(job, status="needs_review", stage="review")
         except _Stopped as stop:
-            self._set(job_id, status="needs_review", stage=f"stopped after {stop.stage}")
+            self._done(job, status="needs_review", stage=f"stopped after {stop.stage}")
+        except LLMInterrupted as exc:
+            error = (
+                CANCELLED
+                if exc.reason == "cancelled"
+                else OVER_BUDGET.format(seconds=int(self.settings.job_time_budget_s))
+            )
+            log.info("job %s %s", job_id, error)
+            self._set(job_id, status="failed", error=error)
+        except (LLMError, LLMOutputError) as exc:
+            # Known failures carry a message without the document's or the model's
+            # words (llm/json_out.redacted_error); no traceback, whose chained cause
+            # would print the validation error with its input values (audit V10).
+            log.error("job %s failed: %s", job_id, _short(exc))
+            self._set(job_id, status="failed", error=f"{type(exc).__name__}: {exc}"[:2000])
         except Exception as exc:  # the job fails; the service keeps running
             log.exception("job %s failed", job_id)
             self._set(job_id, status="failed", error=f"{type(exc).__name__}: {exc}"[:2000])
 
+    def _done(self, job: Job, **fields: object) -> None:
+        """The job ends with the counts the drafts list shows (audit B3). The counts
+        are a convenience: a failure in them never costs a finished job, the list
+        computes them on its first visit instead."""
+        try:
+            fields["counts"] = job_counts(self.store, job)
+        except Exception:
+            log.exception("job %s: the counts for the drafts list could not be computed", job.id)
+        self._set(job.id, **fields)
+
     def rerun(self, job_id: str, from_stage: str) -> None:
+        """Delete the artifacts from `from_stage` on and queue the job again, in one
+        guarded step: `JobBusy` while a worker runs it (audit V14)."""
         names = ARTIFACTS_FROM.get(from_stage)
         if names is None:
             raise PipelineError(f"cannot rerun from {from_stage!r}; use {sorted(ARTIFACTS_FROM)}")
-        if from_stage == "judge":
-            for name in ("draft", "rules"):
-                for version in self.store.versions(job_id, name):
-                    if version > 1:
-                        self.store.delete_artifacts_version(job_id, name, version)
-        self.store.delete_artifacts(job_id, names)
-        self._set(job_id, status="queued", stage=None, error=None)
+        trim = ("draft", "rules") if from_stage == "judge" else ()
+        if not self.store.requeue(job_id, delete=names, trim=trim):
+            if self.store.get_job(job_id) is None:
+                raise PipelineError(f"unknown job {job_id}")
+            raise JobBusy(f"job {job_id} is running; stop it first")
 
     # -- conditions -------------------------------------------------------------------
 
-    def _run_baseline(self, job: Job, source: SourceDocument) -> None:
-        self._notes: list[str] = []
+    def _run_baseline(self, run: RunState, job: Job, source: SourceDocument) -> None:
         draft = self.store.get_artifact(job.id, "draft", Draft, version=1)
         if draft is None:
-            self._set(job.id, stage="baseline")
+            self._stage(run, "baseline")
             if job.config.condition == "P0":
                 draft, _ = stages.baseline(
                     self.llm, source, level=job.config.level, model=job.config.writer_model
                 )
             else:  # the Canton of Zurich's prompt, complete or condensed
-                draft, _, self._notes = stages.baseline_zh(
+                draft, _, notes = stages.baseline_zh(
                     self.llm,
                     source,
                     level=job.config.level,
                     variant=stages.zh_variant(job.config.condition),
                     model=job.config.writer_model,
                 )
+                run.notes.extend(notes)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
-        rules = self._check(job, draft, source, None)
-        self._summary(job, source, draft, rules=[rules], judge=None, rounds=0, reason="baseline")
+        rules = self._check(run, job, draft, source, None)
+        self._summary(
+            run, job, source, draft, rules=[rules], judge=None, rounds=0, reason="baseline"
+        )
 
-    def _run_pipeline(self, job: Job, source: SourceDocument) -> None:
+    def _run_pipeline(self, run: RunState, job: Job, source: SourceDocument) -> None:
         cfg = job.config
         factsheet = self.store.get_artifact(job.id, "factsheet", FactSheet)
         if factsheet is None:
-            self._set(job.id, stage="understand")
+            self._stage(run, "understand")
             factsheet, _ = stages.understand(
                 self.llm,
                 source,
@@ -293,11 +397,11 @@ class Orchestrator:
             if self.settings.use_vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)
-        self._maybe_stop("understand")
+        self._maybe_stop(run, "understand")
 
         draft = self.store.get_artifact(job.id, "draft", Draft, version=1)
         if draft is None:
-            self._set(job.id, stage="write")
+            self._stage(run, "write")
             draft, _ = stages.write(
                 self.llm,
                 source,
@@ -314,16 +418,15 @@ class Orchestrator:
             draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
             draft, _ = apply_ss(draft)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
-        self._maybe_stop("write")
-        rules = self._check(job, draft, source, factsheet)
-        self._maybe_stop("check")
+        self._maybe_stop(run, "write")
+        rules = self._check(run, job, draft, source, factsheet)
+        self._maybe_stop(run, "check")
         if cfg.condition == "P1":
-            self._summary(job, source, draft, rules=[rules], judge=None, rounds=0, reason="P1")
+            self._summary(run, job, source, draft, rules=[rules], judge=None, rounds=0, reason="P1")
             return
 
-        self._notes: list[str] = []
-        judge = self._judge(job, source, factsheet, draft) if cfg.use_judge else None
-        self._maybe_stop("judge")
+        judge = self._judge(run, job, source, factsheet, draft) if cfg.use_judge else None
+        self._maybe_stop(run, "judge")
         history = [(draft, rules, judge)]
         reason = "no problems left"
         rounds = 0
@@ -347,7 +450,7 @@ class Orchestrator:
                 rounds -= 1
                 break
             polished = polished or blocking == 0
-            step = self._round(job, source, factsheet, draft, rules, judge, request, rounds)
+            step = self._round(run, job, source, factsheet, draft, rules, judge, request, rounds)
             if step is None:
                 # The drafts so far stay valid; the reviewer gets the best of them.
                 reason = "a repair round failed"
@@ -373,7 +476,7 @@ class Orchestrator:
         # failed: then the drafts so far stand. After an answer the code could not use
         # (no valid JSON twice) the facts round still runs: a smaller prompt, a new try.
         limit = cfg.max_facts_rounds if cfg.max_repair_rounds else 0
-        if reason == "a repair round failed" and self._round_failure == "endpoint":
+        if reason == "a repair round failed" and run.round_failure == "endpoint":
             limit = 0
         for facts_rounds in range(1, limit + 1):  # noqa: B007
             missing = missing_count(rules)
@@ -389,8 +492,9 @@ class Orchestrator:
                 limit=self.settings.max_missing_per_facts_round,
             )
             step = self._round(
-                job, source, factsheet, draft, rules, judge, request, facts_rounds, kind="facts"
-            )
+                run, job, source, factsheet, draft, rules, judge, request, facts_rounds,
+                kind="facts",
+            )  # fmt: skip
             if step is None:
                 reason = "a facts round failed"
                 facts_rounds -= 1
@@ -411,14 +515,11 @@ class Orchestrator:
         # paragraph and its value named (stages.recover_fact, the review page's "Suggest
         # a sentence"); the sentences code accepts go after their blocks as one new
         # version, checked and judged. The choice below keeps it only if it is better.
-        if (
-            self.settings.max_recover_facts
-            and cfg.max_repair_rounds
-            and getattr(self, "_round_failure", None) != "endpoint"
-        ):
+        endpoint_down = run.round_failure == "endpoint"
+        if self.settings.max_recover_facts and cfg.max_repair_rounds and not endpoint_down:
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
             latest = max(h[0].version for h in history)
-            step = self._recover(job, source, factsheet, *base, version=latest + 1)
+            step = self._recover(run, job, source, factsheet, *base, version=latest + 1)
             if step is not None:
                 history.append(step)
         # The polish round (MAX_POLISH_ROUNDS, 1 by default since 10 October 2026, PLAN.md
@@ -430,11 +531,7 @@ class Orchestrator:
         # choice below keeps a polished version only if it loses no fact and adds no
         # blocking finding.
         polish_rounds = 0
-        if (
-            self.settings.max_polish_rounds
-            and cfg.max_repair_rounds
-            and getattr(self, "_round_failure", None) != "endpoint"
-        ):
+        if self.settings.max_polish_rounds and cfg.max_repair_rounds and not endpoint_down:
             for number in range(1, self.settings.max_polish_rounds + 1):
                 base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
                 blocks = base[0].by_id()
@@ -450,7 +547,7 @@ class Orchestrator:
                     break
                 latest = max(h[0].version for h in history)
                 step = self._round(
-                    job, source, factsheet, *base, request, number, kind="polish",
+                    run, job, source, factsheet, *base, request, number, kind="polish",
                     version=latest + 1,
                 )  # fmt: skip
                 if step is None:
@@ -462,23 +559,21 @@ class Orchestrator:
         # repair rounds stay on the facts. Its version is a new one after the latest;
         # the choice below keeps it only if it loses no fact and adds no blocking problem.
         vocabulary_rounds = 0
-        if (
-            self.settings.use_vocabulary
-            and cfg.max_repair_rounds
-            and getattr(self, "_round_failure", None) != "endpoint"
-        ):
+        if self.settings.use_vocabulary and cfg.max_repair_rounds and not endpoint_down:
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
             request = build_request(*base, factsheet, only=OFFICE_RULES)
             if request:
                 latest = max(h[0].version for h in history)
                 step = self._round(
-                    job, source, factsheet, *base, request, 1, kind="vocabulary", version=latest + 1
-                )
+                    run, job, source, factsheet, *base, request, 1, kind="vocabulary",
+                    version=latest + 1,
+                )  # fmt: skip
                 if step is not None:
                     history.append(step)
                     vocabulary_rounds = 1
         best = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
         self._summary(
+            run,
             job,
             source,
             best[0],
@@ -494,6 +589,7 @@ class Orchestrator:
 
     def _round(
         self,
+        run: RunState,
         job: Job,
         source: SourceDocument,
         factsheet: FactSheet,
@@ -510,8 +606,8 @@ class Orchestrator:
         call failed (the job goes on with the versions it has). `version`: the new
         version's number when it is not the next after `draft`."""
         cfg = job.config
-        self._set(job.id, stage=f"{kind} {number}")
-        self._round_failure: str | None = None
+        self._stage(run, f"{kind} {number}")
+        run.round_failure = None
         try:
             new_draft, _, record = stages.repair(
                 self.llm,
@@ -526,13 +622,14 @@ class Orchestrator:
                 version=version,
             )
         except (LLMError, LLMOutputError) as exc:
-            self._notes.append(f"{kind} round {number} failed: {_short(exc)}")
-            self._round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
+            run.notes.append(f"{kind} round {number} failed: {_short(exc)}")
+            run.round_failure = "endpoint" if isinstance(exc, LLMError) else "output"
             return None
-        return self._finish(job, source, factsheet, draft, rules, judge, new_draft, record)
+        return self._finish(run, job, source, factsheet, draft, rules, judge, new_draft, record)
 
     def _recover(
         self,
+        run: RunState,
         job: Job,
         source: SourceDocument,
         factsheet: FactSheet,
@@ -553,7 +650,7 @@ class Orchestrator:
         )[: self.settings.max_recover_facts]
         if not wanted:
             return None
-        self._set(job.id, stage="recover")
+        self._stage(run, "recover")
         record = RepairRecord(
             draft_version=version,
             parent_version=draft.version,
@@ -566,19 +663,21 @@ class Orchestrator:
                 rec, _ = stages.recover_fact(
                     self.llm, source, factsheet, current, fact.id, model=job.config.writer_model
                 )
+            except LLMInterrupted:
+                raise  # a stopped job ends here, whatever came back so far
             except LLMError as exc:  # the endpoint is down: keep what came back so far
-                self._notes.append(f"recover {fact.id} failed: {_short(exc)}")
+                run.notes.append(f"recover {fact.id} failed: {_short(exc)}")
                 break
             except Exception as exc:  # the round is on by default: it never costs the job
                 log.exception("recover %s failed", fact.id)  # the versions it has
-                self._notes.append(f"recover {fact.id} failed: {_short(exc)}")
+                run.notes.append(f"recover {fact.id} failed: {_short(exc)}")
                 break
             record.dropped += [
                 DroppedText(text=t, reason="repeat", block_id=rec.block_id, fact_ids=[fact.id])
                 for t in rec.dropped
             ]
             if rec.rejected or rec.resolved is False or not rec.block_id:
-                self._notes.append(f"recover {fact.id}: {rec.rejected or 'value not found'}")
+                run.notes.append(f"recover {fact.id}: {rec.rejected or 'value not found'}")
                 continue
             record.additions.append(
                 AnsweredAddition(after=rec.block_id, texts=list(rec.texts), fact_ids=[fact.id])
@@ -594,10 +693,11 @@ class Orchestrator:
                 "code_edits": [],
             }
         )
-        return self._finish(job, source, factsheet, draft, rules, judge, new_draft, record)
+        return self._finish(run, job, source, factsheet, draft, rules, judge, new_draft, record)
 
     def _finish(
         self,
+        run: RunState,
         job: Job,
         source: SourceDocument,
         factsheet: FactSheet,
@@ -617,9 +717,9 @@ class Orchestrator:
         new_draft, _ = apply_ss(new_draft)
         self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
         self.store.put_artifact(job.id, "repair", record, new_draft.version)
-        new_rules = self._check(job, new_draft, source, factsheet)
+        new_rules = self._check(run, job, new_draft, source, factsheet)
         if self._judge_again(judge, rules):
-            new_judge = self._judge(job, source, factsheet, new_draft)
+            new_judge = self._judge(run, job, source, factsheet, new_draft)
         else:
             new_judge = _carry_over(judge, draft, new_draft) if judge else None
             if new_judge:
@@ -629,20 +729,30 @@ class Orchestrator:
     # -- stages -----------------------------------------------------------------------
 
     def _check(
-        self, job: Job, draft: Draft, source: SourceDocument, factsheet: FactSheet | None
+        self,
+        run: RunState,
+        job: Job,
+        draft: Draft,
+        source: SourceDocument,
+        factsheet: FactSheet | None,
     ) -> RuleFindings:
-        self._set(job.id, stage="check")
+        self._stage(run, "check")
         rules = check_draft(draft, source=source, factsheet=factsheet, mode=job.config.mode)
         self.store.put_artifact(job.id, "rules", rules, draft.version)
         return rules
 
     def _judge(
-        self, job: Job, source: SourceDocument, factsheet: FactSheet, draft: Draft
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        draft: Draft,
     ) -> JudgeReport | None:
         existing = self.store.get_artifact(job.id, "judge", JudgeReport, version=draft.version)
         if existing:
             return existing
-        self._set(job.id, stage="judge")
+        self._stage(run, "judge")
         model = job.config.judge_model or self.llm.judge_model()
         try:
             report, _ = stages.judge(
@@ -656,9 +766,7 @@ class Orchestrator:
             )
         except (LLMError, LLMOutputError) as exc:
             # Without the judge the draft still has its rule and fact checks.
-            getattr(self, "_notes", []).append(
-                f"judge on draft {draft.version} failed: {_short(exc)}"
-            )
+            run.notes.append(f"judge on draft {draft.version} failed: {_short(exc)}")
             return None
         self.store.put_artifact(job.id, "judge", report, draft.version)
         return report
@@ -673,6 +781,7 @@ class Orchestrator:
 
     def _summary(
         self,
+        run: RunState,
         job: Job,
         source: SourceDocument,
         final: Draft,
@@ -711,7 +820,7 @@ class Orchestrator:
             else None,
             prompt_versions=prompt_versions(source.lang),
             blocking_findings=blocking,
-            notes=list(getattr(self, "_notes", [])),
+            notes=list(run.notes),
             vocabulary=vocabulary_version(source.lang)
             if self.settings.use_vocabulary and job.config.condition not in BASELINE_CONDITIONS
             else None,
@@ -725,9 +834,15 @@ class Orchestrator:
         job's writer (None: LLM_NAME). The hybrid lets the 70B read and the 8B write."""
         return cfg.understand_model or self.settings.llm_understand_name or cfg.writer_model
 
-    def _maybe_stop(self, stage: str) -> None:
-        if getattr(self, "_stop_after", None) == stage:
+    def _maybe_stop(self, run: RunState, stage: str) -> None:
+        if run.stop_after == stage:
             raise _Stopped(stage)
+
+    def _stage(self, run: RunState, stage: str) -> None:
+        """Enter a stage: a stopped job or one over its budget ends here, before the
+        stage's model call, and a running one shows the stage on its page."""
+        run.limit.check()
+        self._set(run.job_id, stage=stage)
 
     def _set(self, job_id: str, **fields: object) -> None:
         self.store.update_job(job_id, **fields)

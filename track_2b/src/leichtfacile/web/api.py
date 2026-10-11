@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
@@ -14,10 +15,12 @@ from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.html import to_html
 from leichtfacile.export.markdown import to_markdown
+from leichtfacile.lifecycle import job_counts, remove_job
 from leichtfacile.llm.client import LLMError
 from leichtfacile.pipeline import stages
-from leichtfacile.pipeline.orchestrator import ARTIFACTS_FROM, PipelineError
+from leichtfacile.pipeline.orchestrator import ARTIFACTS_FROM, JobBusy, PipelineError
 from leichtfacile.pipeline.prompts import PromptNotAvailable
+from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.schemas import (
     Decision,
     Draft,
@@ -25,9 +28,10 @@ from leichtfacile.schemas import (
     PipelineSummary,
     ReviewState,
     SourceDocument,
+    utcnow,
 )
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language
-from leichtfacile.web.jobs import Submission, SubmissionError, create_job
+from leichtfacile.web.jobs import ServerBusy, Submission, SubmissionError, create_job
 from leichtfacile.web.views import finding_text
 
 router = APIRouter(prefix="/api")
@@ -55,6 +59,13 @@ class ReviewIn(BaseModel):
     draft_version: int = Field(ge=1)
     decisions: list[DecisionIn] = Field(default_factory=list, max_length=MAX_DECISIONS)
     completed: bool = False
+    # The `saved_at` of the review the client loaded (null: it saw none). When the
+    # field is sent and the stored review was saved at another time, the save is
+    # refused with 409 so that two reviewers never overwrite each other unseen.
+    saved_at: datetime | None = None
+
+
+BUSY = "the job is running; stop it first"
 
 
 def _state(request: Request):
@@ -107,7 +118,14 @@ async def post_job(
     )
     state = _state(request)
     try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
-        job = await run_in_threadpool(create_job, state.store, state.settings, sub)
+        state.runner.ensure_room()
+        job = await run_in_threadpool(
+            create_job, state.store, state.settings, sub, state.ingest_slots
+        )
+    except QueueFull as exc:
+        raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
+    except ServerBusy as exc:
+        raise HTTPException(429, str(exc), headers={"Retry-After": "5"}) from exc
     except SubmissionError as exc:
         raise HTTPException(400, str(exc)) from exc
     state.runner.submit(job.id)
@@ -173,15 +191,32 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
     for d in body.decisions:
         if d.decision == "edited" and not (d.text and d.text.strip()):
             raise HTTPException(400, f"block {d.block_id}: an edit needs a text")
+    if "saved_at" in body.model_fields_set:
+        stored = store.get_artifact(job_id, "review", ReviewState)
+        current = stored.last_saved if stored else None
+        if current != body.saved_at:
+            raise HTTPException(
+                409,
+                "the review was saved by someone else since this page was loaded"
+                + (f" (at {current.isoformat(timespec='seconds')})" if current else "")
+                + "; reload the page to see their decisions",
+            )
     review = ReviewState(
         draft_version=body.draft_version,
         decisions=[Decision(**d.model_dump()) for d in body.decisions],
         completed=body.completed,
+        saved_at=utcnow(),
     )
     store.put_artifact(job_id, "review", review)
+    fields: dict[str, object] = {"counts": job_counts(store, job)}
     if job.status in ("needs_review", "done"):
-        store.update_job(job_id, status="done" if body.completed else "needs_review")
-    return {"saved": len(review.decisions), "completed": review.completed}
+        fields["status"] = "done" if body.completed else "needs_review"
+    store.update_job(job_id, **fields)
+    return {
+        "saved": len(review.decisions),
+        "completed": review.completed,
+        "saved_at": review.saved_at.isoformat() if review.saved_at else None,
+    }
 
 
 @router.api_route("/jobs/{job_id}/export", methods=["GET", "POST"])
@@ -274,16 +309,33 @@ def rerun(
     state = _state(request)
     try:
         state.orchestrator.rerun(job_id, from_)
+    except JobBusy as exc:
+        raise HTTPException(409, BUSY) from exc
     except PipelineError as exc:
         raise HTTPException(400, str(exc)) from exc
     state.runner.submit(job_id)
     return {"id": job_id, "status": "queued", "from": from_, "stages": sorted(ARTIFACTS_FROM)}
 
 
+@router.post("/jobs/{job_id}/cancel")
+def cancel(request: Request, job_id: str) -> dict:
+    """Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at
+    its next stage, model attempt or streamed chunk (`stopping`). Either way it is then
+    `failed` with the error `cancelled` and keeps the stages that finished; `rerun`
+    takes it up again."""
+    _job_or_404(request, job_id)
+    outcome = _state(request).runner.cancel(job_id)
+    if outcome is None:
+        raise HTTPException(409, f"job {job_id} is neither queued nor running")
+    return {"id": job_id, "status": outcome}
+
+
 @router.delete("/jobs/{job_id}")
 def delete(request: Request, job_id: str) -> dict:
     _job_or_404(request, job_id)
-    _state(request).store.delete_job(job_id)
+    state = _state(request)
+    if not remove_job(state.store, state.llm, job_id):
+        raise HTTPException(409, BUSY)
     return {"deleted": job_id}
 
 

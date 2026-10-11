@@ -6,6 +6,7 @@ The layout and its parts are specified in track_2b/docs/ui-design.md."""
 
 from __future__ import annotations
 
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlencode
@@ -16,17 +17,25 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from leichtfacile import __version__
-from leichtfacile.examples import example_sources
+from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
 from leichtfacile.ingest.detect import detect_language
+from leichtfacile.lifecycle import remove_job
 from leichtfacile.pipeline.labels import label
-from leichtfacile.pipeline.orchestrator import PipelineError
+from leichtfacile.pipeline.orchestrator import JobBusy, PipelineError
 from leichtfacile.pipeline.prompts import available_languages
+from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES
 from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
-from leichtfacile.web.api import ReviewIn
+from leichtfacile.web.api import BUSY, ReviewIn
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
-from leichtfacile.web.jobs import MAX_TEXT_CHARS, Submission, SubmissionError, create_job
+from leichtfacile.web.jobs import (
+    MAX_TEXT_CHARS,
+    ServerBusy,
+    Submission,
+    SubmissionError,
+    create_job,
+)
 from leichtfacile.web.views import (
     STEP_WHO,
     STEPS_BY_CONDITION,
@@ -108,6 +117,7 @@ def _job_or_404(request: Request, job_id: str):
     return job
 
 
+@cache
 def rule_count() -> int:
     """Rules code checks, counted once across the language variants (the judge's rules
     are declared without a check function and are not counted)."""
@@ -120,13 +130,22 @@ def rule_count() -> int:
     )
 
 
+@lru_cache(maxsize=4)
+def _example_languages(folder: Path) -> dict[str, str]:
+    """The detected language of each example letter, once per examples folder: the
+    detection runs over the whole text and the files do not change while we run."""
+    return {e["id"]: detect_language(e["text"])[0] or "" for e in example_sources(folder)}
+
+
 def examples_for_page(t: Translator) -> list[dict[str, str]]:
     """The example letters with their language, for the New draft page and the empty list."""
+    folder = examples_dir()
+    langs = _example_languages(folder)
     out = []
-    for example in example_sources():
-        lang, _ = detect_language(example["text"])
+    for example in example_sources(folder):
+        lang = langs.get(example["id"], "")
         name = t.get(f"lang.{lang}", lang) if lang else ""
-        out.append({**example, "lang": lang or "", "lang_name": name})
+        out.append({**example, "lang": lang, "lang_name": name})
     return out
 
 
@@ -138,19 +157,27 @@ def _list_url(status: str, q: str, lang: str) -> str:
 @router.get("/", response_class=HTMLResponse)
 def index(request: Request, status: str = "all", q: str = "", lang: str = "") -> HTMLResponse:
     """The drafts list: filters as GET parameters, so they work without JavaScript."""
-    state = request.app.state
+    store = request.app.state.store
     t = translator(request)
     status = status if status in STATUS_FILTERS else "all"
-    jobs = state.store.list_jobs(200)
     query = q.strip().casefold()
-    matching = [
-        job
-        for job in jobs
-        if (not query or query in display_title(job)[0].casefold())
-        and (not lang or job.config.lang == lang)
-    ]
-    counts = {key: sum(1 for j in matching if key in ("all", j.status)) for key in STATUS_FILTERS}
-    shown = [j for j in matching if status in ("all", j.status)]
+    total = store.count_jobs()
+    if query:
+        # The title search stays in Python: SQLite's LIKE folds ASCII letters only.
+        matching = [
+            job
+            for job in store.list_jobs(200, lang=lang or None)
+            if query in display_title(job)[0].casefold()
+        ]
+        counts = {k: sum(1 for j in matching if k in ("all", j.status)) for k in STATUS_FILTERS}
+        shown = [j for j in matching if status in ("all", j.status)][:LIST_LIMIT]
+    else:  # the filters and their counts in SQL (audit B3)
+        by_status = store.status_counts(lang or None)
+        counts = {k: by_status.get(k, 0) for k in STATUS_FILTERS}
+        counts["all"] = sum(by_status.values())
+        shown = store.list_jobs(
+            LIST_LIMIT, status=None if status == "all" else status, lang=lang or None
+        )
     filters = [
         {
             "key": key,
@@ -165,16 +192,16 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         request,
         "index.html",
         t=t,
-        rows=drafts_view(state.store, shown[:LIST_LIMIT], t),
-        matching=len(shown),
-        total=len(jobs),
+        rows=drafts_view(store, shown, t),
+        matching=counts[status],
+        total=total,
         status=status,
         q=q,
         lang=lang,
         filtered=bool(query or lang or status != "all"),
         filters=filters,
-        langs=sorted({j.config.lang for j in jobs if j.config.lang}),
-        examples=examples_for_page(t) if not jobs else [],
+        langs=store.langs(),
+        examples=examples_for_page(t) if not total else [],
         rule_count=rule_count(),
         section="drafts",
         section_root=True,
@@ -362,8 +389,16 @@ async def submit(
     )
     state = request.app.state
     try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
-        job = await run_in_threadpool(create_job, state.store, state.settings, sub)
-    except SubmissionError as exc:
+        state.runner.ensure_room()
+        job = await run_in_threadpool(
+            create_job, state.store, state.settings, sub, state.ingest_slots
+        )
+    except (SubmissionError, QueueFull) as exc:
+        t = translator(request)
+        if isinstance(exc, QueueFull):
+            message = t("error.queue_full", n=state.settings.job_queue_limit)
+        else:
+            message = exc.text(t)
         form = {
             "text": text or "",
             "url": url or "",
@@ -378,7 +413,8 @@ async def submit(
             "addressee": addressee or "",
             "notice": notice or "",
         }
-        return _new(request, 400, exc.text(translator(request)), form)
+        busy = isinstance(exc, QueueFull | ServerBusy)  # 429: try again, nothing is wrong
+        return _new(request, 429 if busy else 400, message, form)
     state.runner.submit(job.id)
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)
 
@@ -469,13 +505,25 @@ def rerun_page(request: Request, job_id: str, stage: Annotated[str, Form()] = "u
     _job_or_404(request, job_id)
     try:
         state.orchestrator.rerun(job_id, stage)
+    except JobBusy as exc:
+        raise HTTPException(409, BUSY) from exc
     except PipelineError as exc:
         raise HTTPException(400, str(exc)) from exc
     state.runner.submit(job_id)
     return RedirectResponse(f"/jobs/{job_id}", status_code=303)
 
 
+@router.post("/jobs/{job_id}/cancel")
+def cancel_page(request: Request, job_id: str):
+    """The Stop button of the job page: the page then shows the stopped job."""
+    _job_or_404(request, job_id)
+    request.app.state.runner.cancel(job_id)  # None when it ended meanwhile: nothing to do
+    return RedirectResponse(f"/jobs/{job_id}", status_code=303)
+
+
 @router.post("/jobs/{job_id}/delete")
 def delete_page(request: Request, job_id: str):
-    request.app.state.store.delete_job(job_id)
+    state = request.app.state
+    if not remove_job(state.store, state.llm, job_id) and state.store.get_job(job_id):
+        raise HTTPException(409, BUSY)
     return RedirectResponse("/", status_code=303)

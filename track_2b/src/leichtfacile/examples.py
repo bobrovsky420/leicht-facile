@@ -91,7 +91,10 @@ def import_bundle(store: Store, bundle: dict[str, Any], *, job_id: str | None = 
         store.add_usage(
             job_id, Usage(u.stage, u.model, u.tokens_in, u.tokens_out, u.latency_ms, u.cached)
         )
-    store.update_job(job_id, status="needs_review", stage="review")
+    from leichtfacile.lifecycle import job_counts  # lifecycle imports this module
+
+    counts = job_counts(store, store.get_job(job_id))  # type: ignore[arg-type]
+    store.update_job(job_id, status="needs_review", stage="review", counts=counts)
     return job_id
 
 

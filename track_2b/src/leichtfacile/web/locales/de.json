@@ -62,6 +62,7 @@
   "drafts.actions_for": "Weitere Aktionen für {title}",
   "drafts.open": "Öffnen",
   "drafts.delete": "Löschen",
+  "drafts.stopped": "gestoppt",
   "drafts.empty.title": "Noch keine Entwürfe",
   "drafts.empty.text": "Fügen Sie einen amtlichen Text ein, geben Sie eine Webadresse an oder laden Sie ein PDF hoch. Oder beginnen Sie mit einem Beispielbrief:",
   "drafts.no_match": "Kein Entwurf passt. Leeren Sie die Suche oder wählen Sie einen anderen Status.",
@@ -130,6 +131,7 @@
   "jobs.status": "Status",
   "jobs.created": "Erstellt",
   "job.delete": "Diesen Entwurf löschen",
+  "job.stop": "Stoppen",
 
   "lang.de": "Deutsch",
   "lang.fr": "Französisch",
@@ -216,6 +218,7 @@
 
   "progress.steps": "Schritte des Ablaufs",
   "progress.failed": "Der Auftrag ist fehlgeschlagen: {error}",
+  "progress.stopped": "Der Auftrag wurde gestoppt.",
   "progress.failed_hint": "Die abgeschlossenen Schritte bleiben erhalten. Starten Sie den Auftrag dort neu, wo er stehen blieb, oder von vorne.",
   "progress.rerun": "Von vorne neu starten",
   "progress.factsheet": "Faktenblatt",
@@ -408,6 +411,9 @@
   "error.no_text": "Im Dokument wurde kein Text gefunden.",
   "error.unsupported_lang": "Das Dokument ist auf {lang}. Diese Version schreibt {langs}.",
   "error.unknown_mode": "Unbekannter Modus '{mode}'; verwenden Sie standard oder decision.",
+  "error.queue_full.one": "Die Warteschlange ist voll: {n} Entwurf wartet. Versuchen Sie es in ein paar Minuten noch einmal.",
+  "error.queue_full.other": "Die Warteschlange ist voll: {n} Entwürfe warten. Versuchen Sie es in ein paar Minuten noch einmal.",
+  "error.busy": "Der Server liest gerade andere Dokumente. Versuchen Sie es gleich noch einmal.",
 
   "js.endpoint.listed": "Endpunkt {url}: erreichbar, Modell aufgeführt.",
   "js.endpoint.unlisted": "Endpunkt {url}: erreichbar, aber das Modell fehlt in seiner Liste.",
@@ -421,6 +427,7 @@
   "js.saved_complete.one": "{n} Entscheid gespeichert, Prüfung abgeschlossen.",
   "js.saved_complete.other": "{n} Entscheide gespeichert, Prüfung abgeschlossen.",
   "js.not_saved": "Nicht gespeichert: {detail}",
+  "js.conflict": "Nicht gespeichert: jemand anderes hat diese Prüfung inzwischen gespeichert. Laden Sie die Seite neu, um die Entscheidungen zu sehen.",
   "js.no_answer": "Nicht gespeichert: Der Server hat nicht geantwortet.",
   "js.reader_unsaved": "Enthält Entscheide, die noch nicht gespeichert sind. Der Export verwendet die zuletzt gespeicherte Prüfung.",
   "js.reader_failed": "Die Leseansicht konnte nicht geladen werden.",

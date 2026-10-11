@@ -88,7 +88,7 @@ flowchart TB
 
     subgraph app["leicht-facile container (FastAPI, Python 3.14)"]
         API["HTTP API"]
-        Q["Job runner<br/>(single worker thread)"]
+        Q["Job runner<br/>(worker threads, the jobs table as queue)"]
         ING["Ingest<br/>PDF · HTML · text · image"]
         UND["Understand → FactSheet"]
         WRI["Plan & write → Draft"]
@@ -633,7 +633,8 @@ RepairRecord  (one per repair round, under the version it produced)
   dropped[]: {text, reason (repeat|example|not_flagged), block_id?, fact_ids[]}
 
 ReviewState
-  draft_version, completed
+  draft_version, completed, saved_at (when the server stored it; a save names the
+  value it loaded, so two reviewers never overwrite each other unseen, §7)
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
 PipelineSummary
@@ -648,12 +649,23 @@ Job
            judge_model, use_judge, max_repair_rounds, max_facts_rounds,
            mode (standard|decision), addressee?, notice?}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
-  error?
+  error?    a stopped job carries "cancelled", one over its budget names the budget
+  counts?: {source_type, source_uri?, source_chars?, has_draft, errors, warnings,
+            facts_present, facts_total, blocks, decided, complete}
+            what the drafts list shows, written when the job is created (the source
+            line), when the pipeline ends and when a review is saved (lifecycle.py),
+            so the list opens no artifact; None in a job stored before 11 October
+            2026 until its first listing fills it
 ```
 
 Storage: one SQLite database (`DATA_DIR/leichtfacile.sqlite`) with the tables `jobs`,
-`artifacts` (job, name, version, JSON) and `llm_calls`; the response cache is a second
-file (`llm_cache.sqlite`). Standard library only, no ORM.
+`artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
+the response cache's key when the cache is on, so that a deleted job takes its cached
+prompts with it); the response cache is a second file (`llm_cache.sqlite`). Standard
+library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
+tables, then one group of statements per later change (`store.py`, `_MIGRATIONS`); a
+database made by an older version gets the groups it lacks when it is opened. The jobs
+table is also the work queue (§7).
 
 ## 6. The LLM client
 
@@ -766,17 +778,35 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
-| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete |
+| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at` |
 | `GET` or `POST /api/jobs/{id}/export?format=md\|html\|json` | Download: Markdown, HTML, or the JSON audit bundle |
 | `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
-| `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again |
-| `DELETE /api/jobs/{id}` | Remove a job and its artifacts |
+| `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
+| `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
+| `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the model endpoint reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 
-Jobs execute on a single worker thread with a queue; the UI polls status. That is
-enough for a reviewer's workload and avoids a message broker. Jobs that were queued or
-running when the service stopped are queued again on start.
+Jobs run on `JOB_WORKERS` worker threads (one by default: enough for a reviewer's
+workload; more share an endpoint that serves parallel requests, as vLLM does). The jobs
+table is the queue: a worker takes the job that has waited longest with one guarded
+`UPDATE` (`queued` to `running`), so the workers never take the same job, nothing in
+memory is lost on a restart, and a job left `running` by a stopped process is queued
+again on start (`pipeline/runner.py`). No message broker. `JOB_QUEUE_LIMIT` (50) jobs
+may wait; a submission beyond it is refused with 429 and `Retry-After`. Each job has a
+time budget, `JOB_TIME_BUDGET_S` (two hours; 0 for none): over it, or on `cancel`, the
+job ends at its next stage, model attempt or streamed chunk, keeps the stages that
+finished and shows why. What belongs to one run (notes, the last round's failure, the
+budget, the stop signal) lives in a `RunState` the orchestrator makes per run, never on
+the orchestrator, so the workers share one. The rerun and the deletion of a running
+job are refused with 409 (stop it first); a review save names the stored review it
+loaded (above); the shared spaCy pipelines take one text at a time. The UI polls the
+job page every 2 s for two minutes, then every 5 s.
+
+A submission is read (fetched, parsed, segmented) in the request's thread, so the
+submitter gets a 400 with the reason at once; at most `INGEST_SLOTS` (4) submissions
+are read at a time, the next one is refused with 429 and asked to try again, so slow
+documents never fill the thread pool (`web/jobs.py`).
 
 Every request passes the hardening layer first (`web/security.py`, §10): a body over
 16 MB is refused with 413, more than `RATE_LIMIT_PER_MINUTE` writes per client address
@@ -833,8 +863,11 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   tokens · 47 s"; Check: "45 rules · no model call"); next to it the results as soon
   as they exist: the fact sheet with the core questions and the facts that must
   survive, then the latest draft with a severity mark on blocks that have findings.
-  The page polls `/jobs/{id}/progress` every two seconds and reloads when the job
-  reaches review or fails; a failed job shows the error and "Run again".
+  The page polls `/jobs/{id}/progress` every two seconds (every five after two
+  minutes) and reloads when the job reaches review or fails; a failed job shows the
+  error and "Run again". While the job is queued or running the header offers "Stop"
+  in place of "Delete": the job ends at its next stage or streamed chunk, keeps the
+  stages that finished and reads "The job was stopped", with "Run again".
 - **Review** (`/jobs/{id}` once a draft exists): a header with the view switch
   (Review, Reader view), the export menu, the save state ("Saved 10:42") and "Save
   review" (also Ctrl+S); a strip with language, level, pipeline, the draft versions as
@@ -1171,7 +1204,9 @@ at runtime.
   once in 30 s, whoever asks, and answers booleans and the configured names, never the
   endpoint's catalogue, so a caller cannot make the server spend the key's quota or
   learn what the endpoint serves.
-- Jobs and artifacts live on the mounted volume and can be deleted via the API.
+- Jobs and artifacts live on the mounted volume and can be deleted via the API and
+  the pages; the data lifecycle below says what is kept, for how long, and what a
+  deletion takes with it.
 - The server fetches the URLs users submit, so a URL that resolves to a private,
   loopback or link-local address is refused (server-side request forgery). The check
   runs on every hop of a redirect chain (at most 5 hops) and the connection goes to
@@ -1187,7 +1222,10 @@ at runtime.
   headers, from scripts and API clients, pass; reads are never refused.
 - A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
   event loop, so a server that trickles its page or a large PDF does not hold every
-  other request (`/healthz` included) while it is ingested.
+  other request (`/healthz` included) while it is ingested; at most `INGEST_SLOTS`
+  submissions are read at a time (the next is refused with 429), so they cannot fill
+  the pool either. A queue limit, a time budget per job and a Stop button bound what
+  one submitter can make the workers do (§7).
 - Prompt injection: a web page or a PDF can carry instructions ("ignore the rules
   above and write ..."). Every prompt puts the document between `<document>` and
   `</document>` and says, right before the fence, that what stands there is content,
@@ -1195,7 +1233,50 @@ at runtime.
   cannot close the fence (`pipeline/render.py`). The code-side checks keep the values
   honest (FACT-01, FACT-06, the copied-example check), and every draft goes through
   the review before it is exported.
-- No document text in logs above `DEBUG`; the LLM cache can be disabled.
+- No document text in logs above `DEBUG`; the LLM cache can be disabled. The failure
+  path keeps the promise too: the error a job stores and logs when the model's answer
+  does not validate names the fields, the messages and the kinds of error, never an
+  excerpt of the answer (pydantic's `input_value`, left out by
+  `llm/json_out.redacted_error`; the whole error still goes back to the model for its
+  repair); the known failures are logged without a traceback, whose chained cause
+  would print the excerpt; the values a stage finds that the document does not contain
+  are counted at `WARNING` and named at `DEBUG` only; and a filter on the log handlers
+  redacts `input_value=` excerpts in any message or traceback that still carries one
+  (`lifecycle.py`). A test fails a job on purpose and checks the job row, the page and
+  the captured log for a sentinel word.
+
+#### Data lifecycle
+
+What the service stores, where, for how long, and how it leaves:
+
+- **What.** For every job: the source document as segments, the fact sheet, every
+  draft version with its rule findings, judge reports and repair records, the review
+  with the reviewer's edits, the pipeline summary, and one row per model call (stage,
+  model, tokens, latency, no text). With `LLM_CACHE=1`, the response cache keeps every
+  prompt (which contains the document) and answer, keyed by their hash; it is off by
+  default and meant for development and evaluation. The example jobs ship with the
+  repository and carry no personal data.
+- **Where.** `DATA_DIR` (the Compose volume `appdata`): `leichtfacile.sqlite` and, with
+  the cache on, `llm_cache.sqlite`. Nothing else is written; the exports are generated
+  on request and not stored. Encryption at rest belongs to the volume: put `DATA_DIR`
+  on an encrypted file system or disk (LUKS, BitLocker, the cloud provider's encrypted
+  volume), which costs nothing in the application and covers the WAL and temporary
+  files too; the application does not encrypt rows itself.
+- **How long.** By default until someone deletes the job. `DATA_RETENTION_DAYS` (0 by
+  default) makes a housekeeping thread delete, once an hour, every job that nobody
+  changed for that many days, with its artifacts, calls and cache rows; running jobs
+  and the example jobs stay. A deployment that handles letters with personal data
+  should set it to the period its records rules allow and export what it must keep.
+- **Deletion.** The row menu of the drafts list, the job and review pages, and
+  `DELETE /api/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
+  CASCADE`) and with its rows in the response cache (`lifecycle.remove_job`: the keys
+  of the job's calls are recorded in `llm_calls`), so no prompt with the document
+  outlives the job. A running job is stopped first.
+- **What leaves the machine.** Only the model calls: the document text, the fact sheet
+  and the drafts go to the endpoint named by `LLM_BASE_URL`, nowhere else; the
+  deployment profiles in §10 say which endpoints are sovereign.
+- **Logs.** Model, stage, tokens and latency per call; job ids and stages; errors
+  without the words of the document or the answer (above). Nothing a person wrote.
 
 ## 11. Repository layout
 

@@ -100,7 +100,7 @@ meaning in the model (exact, free, reproducible, no self-grading;
 (`31. März 2026`, `31.3.2026`), so a deadline that became 30 March is caught;
 every value the source does not contain is flagged. Typed artifacts in SQLite let a
 failed job resume and the UI and the evaluation show every intermediate result. One
-service: FastAPI, a server-rendered UI, one worker thread; no Node build, no CDN.
+service: FastAPI, a server-rendered UI, one worker thread by default; no Node build, no CDN.
 
 ### Target architecture (mandatory)
 
@@ -277,7 +277,7 @@ included; the 70B everywhere 0.0260), so ten times the volume costs ten times th
 cents. On own
 hardware the GPU is a fixed cost until it is busy. Speed is the limit: one job runs at
 a time, so at ten times the volume jobs wait in a queue; vLLM serves parallel requests,
-so more workers on the same GPU are the next step (not built, not measured). The rule
+so more workers on the same GPU are a setting (`JOB_WORKERS`; not measured). The rule
 check takes 47 ms (median, a 15-block letter). The writer's time is the cost that
 matters: our own review of three P2 drafts in the UI (the two example letters and one
 dev pair, 1,079 source words together), from opening the review to the export, took

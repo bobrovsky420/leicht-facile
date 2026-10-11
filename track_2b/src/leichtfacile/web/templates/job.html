@@ -14,10 +14,14 @@
     <div class="pagehead-actions">
       {% if p.live %}
       <span class="run-line" role="status"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=number(p.tokens, ui_lang)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
-      {% endif %}
+      <form method="post" action="/jobs/{{ job.id }}/cancel">
+        <button type="submit" class="btn btn-danger">{{ t('job.stop') }}</button>
+      </form>
+      {% else %}
       <form method="post" action="/jobs/{{ job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
         <button type="submit" class="btn btn-danger">{{ t('job.delete') }}</button>
       </form>
+      {% endif %}
     </div>
   </div>
   <div class="strip">

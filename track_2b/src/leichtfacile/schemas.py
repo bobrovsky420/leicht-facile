@@ -395,9 +395,18 @@ class ReviewState(Artifact):
     draft_version: int
     decisions: list[Decision] = Field(default_factory=list)
     completed: bool = False
+    # When the server stored this review. A save names the value it loaded, so two
+    # reviewers cannot overwrite each other without noticing (web/api.py). None in
+    # reviews stored before 11 October 2026.
+    saved_at: datetime | None = None
 
     def by_block(self) -> dict[str, Decision]:
         return {d.block_id: d for d in self.decisions}
+
+    @property
+    def last_saved(self) -> datetime | None:
+        """`saved_at`, else the latest decision's time (older reviews)."""
+        return self.saved_at or max((d.at for d in self.decisions), default=None)
 
 
 # -- pipeline summary -----------------------------------------------------------------
@@ -464,6 +473,25 @@ class UsageRecord(Artifact):
     cached: bool = False
 
 
+class JobCounts(Artifact):
+    """What the drafts list shows per job, written to the job row so that the list
+    never opens an artifact (`lifecycle.job_counts`): where the document came from
+    (set when the job is created), the final version's findings and facts (set when
+    the pipeline ends) and the review's progress (set when a review is saved)."""
+
+    source_type: SourceType | None = None
+    source_uri: str | None = None  # the URL or the uploaded file's name
+    source_chars: int | None = None  # pasted or uploaded text: its length
+    has_draft: bool = False  # the counts below are meaningful
+    errors: int = 0
+    warnings: int = 0
+    facts_present: int = 0
+    facts_total: int = 0  # the facts that must survive
+    blocks: int = 0  # what the reviewer decides: blocks and glossary entries
+    decided: int = 0
+    complete: bool = False
+
+
 class Job(Artifact):
     id: str
     status: JobStatus = "queued"
@@ -474,3 +502,4 @@ class Job(Artifact):
     config: JobConfig = Field(default_factory=JobConfig)
     usage: list[UsageRecord] = Field(default_factory=list)
     error: str | None = None
+    counts: JobCounts | None = None  # None: a job stored before the column existed

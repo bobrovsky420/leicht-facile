@@ -68,11 +68,31 @@ class JSONExtractionError(ValueError):
 
 
 class LLMOutputError(RuntimeError):
-    """The model's answer did not validate, even after the repair round."""
+    """The model's answer did not validate, even after the repair round. The message
+    names the kinds of error and where they are, never a piece of the answer."""
 
     def __init__(self, message: str, results: list[LLMResult]) -> None:
         super().__init__(message)
         self.results = results
+
+
+_NEAR = re.compile(r", near: .*$", re.DOTALL)
+_MAX_SUMMARY_ERRORS = 8
+
+
+def redacted_error(exc: JSONExtractionError | ValidationError) -> str:
+    """The error without the model's words: pydantic's field paths, messages and
+    types (`input_value` left out), the extraction error without its excerpt."""
+    if isinstance(exc, ValidationError):
+        errors = exc.errors(include_input=False, include_url=False, include_context=False)
+        lines = [
+            f"{'.'.join(str(part) for part in e['loc']) or '<root>'}: {e['msg']} [{e['type']}]"
+            for e in errors[:_MAX_SUMMARY_ERRORS]
+        ]
+        if len(errors) > _MAX_SUMMARY_ERRORS:
+            lines.append(f"... {len(errors) - _MAX_SUMMARY_ERRORS} more")
+        return f"{len(errors)} validation errors: " + "; ".join(lines)
+    return _NEAR.sub("", str(exc))
 
 
 def _expand_range(m: re.Match[str]) -> str:
@@ -321,14 +341,18 @@ def complete_json[T: BaseModel](
             out = schema.model_validate(extract_json(result.text, schema.model_fields))
         except (JSONExtractionError, ValidationError) as exc:
             cause = exc
+            # The model gets the whole error, excerpts of its answer included; the
+            # exception, which ends in the job row and the logs, gets the positions
+            # and the kinds of error only (track_2b/docs/architecture.md §10).
             error: str | None = str(exc)[:_MAX_ERROR_CHARS]
+            summary = redacted_error(exc)
             client.forget(result)
         else:
-            error = check(out) if check else None
+            error = summary = check(out) if check else None
             if error is not None:
                 client.forget(result)
             if error is None and soft_check is not None and attempt < max_repairs:
-                error = soft_check(out)
+                error = summary = soft_check(out)
                 if error is not None:
                     fallback = out
             if error is None:
@@ -337,7 +361,7 @@ def complete_json[T: BaseModel](
             if fallback is not None:
                 return fallback, results
             raise LLMOutputError(
-                f"model output did not validate as {schema.__name__}: {error}", results
+                f"model output did not validate as {schema.__name__}: {summary}", results
             ) from cause
         conversation = [
             *conversation,

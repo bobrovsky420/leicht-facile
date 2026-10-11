@@ -95,7 +95,7 @@
         <button type="button" class="seg-item filter" data-filter="undecided" aria-pressed="false">{{ t('review.filter.undecided') }}<span class="n" id="undecided-n">{{ total - v.decided }}</span></button>
       </div>
     </div>
-    <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" lang="{{ doc_lang }}">
+    <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" data-saved-at="{{ v.saved_at.isoformat() if v.saved_at else '' }}" lang="{{ doc_lang }}">
     {% if job.config.notice %}
       <p class="notice-banner"><span class="label" lang="{{ ui_lang }}">{{ t('review.notice') }}</span>{{ job.config.notice }}</p>
     {% endif %}

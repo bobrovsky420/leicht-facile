@@ -62,6 +62,7 @@
   "drafts.actions_for": "More actions for {title}",
   "drafts.open": "Open",
   "drafts.delete": "Delete",
+  "drafts.stopped": "stopped",
   "drafts.empty.title": "No drafts yet",
   "drafts.empty.text": "Paste an official text, give a web address or upload a PDF. Or start with an example letter:",
   "drafts.no_match": "No drafts match. Clear the search or pick another status.",
@@ -130,6 +131,7 @@
   "jobs.status": "Status",
   "jobs.created": "Created",
   "job.delete": "Delete this draft",
+  "job.stop": "Stop",
 
   "lang.de": "German",
   "lang.fr": "French",
@@ -216,6 +218,7 @@
 
   "progress.steps": "Pipeline stages",
   "progress.failed": "The job failed: {error}",
+  "progress.stopped": "The job was stopped.",
   "progress.failed_hint": "The stages that finished are kept. Run the job again from where it stopped, or from the start.",
   "progress.rerun": "Run again from the start",
   "progress.factsheet": "Fact sheet",
@@ -408,6 +411,9 @@
   "error.no_text": "No text was found in the document.",
   "error.unsupported_lang": "The document is in {lang}. This version writes {langs}.",
   "error.unknown_mode": "Unknown mode '{mode}'; use standard or decision.",
+  "error.queue_full.one": "The queue is full: {n} draft is waiting. Try again in a few minutes.",
+  "error.queue_full.other": "The queue is full: {n} drafts are waiting. Try again in a few minutes.",
+  "error.busy": "The server is reading other documents right now. Try again in a moment.",
 
   "js.endpoint.listed": "Endpoint {url}: reachable, model listed.",
   "js.endpoint.unlisted": "Endpoint {url}: reachable, model not in the endpoint's list.",
@@ -421,6 +427,7 @@
   "js.saved_complete.one": "Saved {n} decision, review complete.",
   "js.saved_complete.other": "Saved {n} decisions, review complete.",
   "js.not_saved": "Not saved: {detail}",
+  "js.conflict": "Not saved: someone else saved this review in the meantime. Reload the page to see their decisions.",
   "js.no_answer": "Not saved: the server did not answer.",
   "js.reader_unsaved": "Includes decisions that are not saved yet. The export uses the last saved review.",
   "js.reader_failed": "The reader view could not be loaded.",

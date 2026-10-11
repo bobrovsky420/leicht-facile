@@ -303,7 +303,17 @@
         busy = false;
       }
     };
-    setInterval(tick, 2000);
+    // Every 2 s for the first two minutes, then every 5 s: a long job (a repair loop
+    // on a slow endpoint) must not keep the server busy with its own page.
+    let ticks = 0;
+    const schedule = () => {
+      ticks += 1;
+      setTimeout(async () => {
+        await tick();
+        schedule();
+      }, ticks <= 60 ? 2000 : 5000);
+    };
+    schedule();
   }
 
   // -- review ---------------------------------------------------------------------------
@@ -553,7 +563,14 @@
       if (picked.value === "edited") entry.text = areaOf(block).value;
       decisions.push(entry);
     });
-    return { draft_version: Number(form.dataset.version), decisions, completed: completed.checked };
+    // saved_at: the stored review this page was loaded with (null: none). The server
+    // refuses the save with 409 when someone else saved in the meantime.
+    return {
+      draft_version: Number(form.dataset.version),
+      decisions,
+      completed: completed.checked,
+      saved_at: form.dataset.savedAt || null,
+    };
   };
 
   form.addEventListener("submit", async (event) => {
@@ -570,6 +587,7 @@
       const data = await res.json();
       if (res.ok) {
         dirty = false;
+        if (data.saved_at) form.dataset.savedAt = data.saved_at;
         out.className = "save-state saved";
         out.textContent = t("saved_at", { time: clock(new Date()) });
         out.title = t(data.completed ? "saved_complete" : "saved", { n: data.saved });
@@ -582,7 +600,7 @@
         updateExportNote();
       } else {
         out.className = "save-state bad";
-        out.textContent = t("not_saved", { detail: data.detail });
+        out.textContent = res.status === 409 ? t("conflict") : t("not_saved", { detail: data.detail });
       }
     } catch (e) {
       out.className = "save-state bad";

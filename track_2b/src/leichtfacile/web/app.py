@@ -6,6 +6,7 @@ Run with `uvicorn leichtfacile.web.app:create_app --factory`.
 from __future__ import annotations
 
 import logging
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from leichtfacile import __version__
 from leichtfacile.config import Settings, get_settings
 from leichtfacile.examples import load_examples
+from leichtfacile.lifecycle import redact_logs
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
@@ -35,19 +37,25 @@ def create_app(
 ) -> FastAPI:
     settings = settings or get_settings()
     logging.getLogger("leichtfacile").setLevel(settings.log_level.upper())
+    redact_logs()  # no excerpt of a document or an answer in an error's log line (§10)
     llm = llm or LLMClient.from_settings(settings)
     store = store or Store(settings.data_dir / DATABASE_NAME)
     orchestrator = Orchestrator(store, llm, settings)
-    runner = JobRunner(orchestrator)
+    runner = JobRunner(
+        orchestrator,
+        workers=settings.job_workers,
+        queue_limit=settings.job_queue_limit,
+        retention_days=settings.data_retention_days,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if load_examples_on_start:
             load_examples(store)
-        runner.start()
-        resumed = runner.resume_pending()
+        resumed = runner.recover_on_start()
         if resumed:
-            log.info("resumed %d unfinished jobs", resumed)
+            log.info("queued %d jobs again that were running when the service stopped", resumed)
+        runner.start()
         yield
         runner.stop()
 
@@ -57,6 +65,8 @@ def create_app(
     app.state.store = store
     app.state.orchestrator = orchestrator
     app.state.runner = runner
+    # How many submissions are read at a time (web/jobs.py).
+    app.state.ingest_slots = threading.BoundedSemaphore(settings.ingest_slots)
     app.state.endpoint_check = health.EndpointCheck(llm)
 
     # Headers, rate limit, login, cross-site guard, body limit: web/security.py.

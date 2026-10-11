@@ -7,6 +7,7 @@ write and every repair round.
 from __future__ import annotations
 
 import re
+import threading
 from collections.abc import Iterable
 
 from leichtfacile.rules import de as de_rules
@@ -49,12 +50,17 @@ class RuleChecker:
         self.lang = lang
         self.nlp = pipeline(lang)
         self.parsed = has_parser(self.nlp)  # German: full parse; others: sentences only
+        # One spaCy pipeline per language, used by the worker threads and the web
+        # requests (the Check page) at once: one text through it at a time, as
+        # ingest/segment.py does with its sentencizer.
+        self._lock = threading.Lock()
 
     # -- analysis -----------------------------------------------------------------
 
     def analyse(self, blocks: Iterable[Block]) -> list[BlockInfo]:
         blocks = list(blocks)
-        docs = self.nlp.pipe([b.text for b in blocks])
+        with self._lock:
+            docs = list(self.nlp.pipe([b.text for b in blocks]))
         return [
             BlockInfo(b.id, b.kind, b.text, list(doc.sents))
             for b, doc in zip(blocks, docs, strict=True)
@@ -218,12 +224,14 @@ def _order(findings: list[Finding], block_order: list[str]) -> list[Finding]:
 
 
 _CHECKERS: dict[str, RuleChecker] = {}
+_CHECKERS_LOCK = threading.Lock()
 
 
 def get_checker(lang: str) -> RuleChecker:
-    if lang not in _CHECKERS:
-        _CHECKERS[lang] = RuleChecker(lang)
-    return _CHECKERS[lang]
+    with _CHECKERS_LOCK:  # two threads must not load the same model twice
+        if lang not in _CHECKERS:
+            _CHECKERS[lang] = RuleChecker(lang)
+        return _CHECKERS[lang]
 
 
 def check_draft(

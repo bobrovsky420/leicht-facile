@@ -34,7 +34,11 @@
     <div class="alert" role="alert">
       {{ icons.sev('error') }}
       <div>
+        {% if job.error == 'cancelled' %}
+        <p><strong>{{ t('progress.stopped') }}</strong></p>
+        {% else %}
         <p><strong>{{ t('progress.failed', error=job.error) }}</strong></p>
+        {% endif %}
         <p>{{ t('progress.failed_hint') }}</p>
         <form method="post" action="/jobs/{{ job.id }}/rerun">
           <input type="hidden" name="stage" value="understand">

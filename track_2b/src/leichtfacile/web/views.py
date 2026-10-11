@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 from leichtfacile.examples import EXAMPLE_PREFIX
 from leichtfacile.export import glossary_ids
+from leichtfacile.lifecycle import job_counts
 from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
@@ -30,6 +31,7 @@ from leichtfacile.schemas import (
     Finding,
     GlossaryEntry,
     Job,
+    JobCounts,
     JudgeReport,
     PipelineSummary,
     ReviewState,
@@ -423,7 +425,7 @@ def review_view(
         tokens_out=sum(u.tokens_out for u in usage),
         seconds=sum(u.latency_ms for u in usage) / 1000,
         finding_groups=group_findings(doc_issues, t),
-        saved_at=max((d.at for d in review.decisions), default=None) if review else None,
+        saved_at=review.last_saved if review else None,
         glossary_rows=list(glossary_rows.values()),
     )
 
@@ -739,39 +741,43 @@ def format_number(n: int, lang: str) -> str:
     return text.replace(",", "'") if lang == "de" else text
 
 
-def source_line(source: SourceDocument | None, t: Translator = ENGLISH) -> str:
+def source_line(counts: JobCounts | None, t: Translator = ENGLISH) -> str:
     """Where a document came from, for the second line of a drafts list row."""
-    if source is None:
+    if counts is None or counts.source_type is None:
         return ""
-    info = source.source
-    if info.type == "html":
-        host = urlsplit(info.uri or "").hostname or info.uri or ""
+    if counts.source_type == "html":
+        host = urlsplit(counts.source_uri or "").hostname or counts.source_uri or ""
         return t("drafts.source.html", host=host.removeprefix("www."))
-    if info.type == "pdf":
-        return t("drafts.source.pdf", name=info.uri or "PDF")
-    if info.type == "image":
+    if counts.source_type == "pdf":
+        return t("drafts.source.pdf", name=counts.source_uri or "PDF")
+    if counts.source_type == "image":
         return t("drafts.source.image")
-    return t("drafts.source.text", chars=format_number(len(source.text()), t.lang))
+    return t("drafts.source.text", chars=format_number(counts.source_chars or 0, t.lang))
 
 
 def drafts_view(
     store: Store, jobs: list[Job], t: Translator = ENGLISH, now: datetime | None = None
 ) -> list[DraftRow]:
-    """One row per job for the drafts list. Jobs with a draft get the review page's
-    counts (computed here, per request: D-Y); the others a status note."""
+    """One row per job for the drafts list, from the counts on the job row (audit B3):
+    no artifact is opened. A job stored before the counts existed gets them computed
+    once here and written back."""
     now = now or datetime.now(UTC)
     rows: list[DraftRow] = []
     for job in jobs:
-        source = store.get_artifact(job.id, "source", SourceDocument)
+        counts = job.counts
+        if counts is None:
+            counts = job_counts(store, job)
+            store.update_job(job.id, counts=counts)
+            job = job.model_copy(update={"counts": counts})
         title, is_example = display_title(job)
-        doc_lang = job.config.lang or (source.lang if source else None)
+        doc_lang = job.config.lang
         row = DraftRow(
             job=job,
             title=title,
             is_example=is_example,
             language=t.get(f"lang.{doc_lang}", doc_lang) if doc_lang else "",
             doc_lang=doc_lang,
-            source_line=source_line(source, t),
+            source_line=source_line(counts, t),
         )
         if job.status == "running":
             stage_key = (job.stage or "").split(" ")[0]
@@ -781,16 +787,16 @@ def drafts_view(
         elif job.status == "queued":
             row.status_note = t("detail.waiting")
         elif job.status == "failed" and job.error:
-            row.status_note = job.error if len(job.error) <= 60 else job.error[:59] + "…"
-        if job.status in ("needs_review", "done"):
-            view = review_view(store, job, None, t)
-            if view is not None:
-                row.has_checks = True
-                row.errors, row.warnings = view.counts["error"], view.counts["warn"]
-                row.facts_present = view.fact_counts["present"]
-                row.facts_total = view.fact_counts["total"]
-                row.decided, row.blocks = view.decided, view.items
-                row.complete = bool(view.review and view.review.completed)
+            if job.error == "cancelled":
+                row.status_note = t("drafts.stopped")
+            else:
+                row.status_note = job.error if len(job.error) <= 60 else job.error[:59] + "…"
+        if job.status in ("needs_review", "done") and counts.has_draft:
+            row.has_checks = True
+            row.errors, row.warnings = counts.errors, counts.warnings
+            row.facts_present, row.facts_total = counts.facts_present, counts.facts_total
+            row.decided, row.blocks = counts.decided, counts.blocks
+            row.complete = counts.complete
         rows.append(row)
     return rows
 

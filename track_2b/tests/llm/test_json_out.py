@@ -273,3 +273,31 @@ def test_drop_stray_strings_leaves_well_formed_json_alone():
     assert drop_stray_strings('["a", "b", {"c": "d"}]') == '["a", "b", {"c": "d"}]'
     # A key that lost its colon is not a value: it is left for the error report.
     assert drop_stray_strings('{"a": 1, "b" [2]}') == '{"a": 1, "b" [2]}'
+
+
+def test_the_output_error_names_the_errors_but_never_the_answer(endpoint, make_client):
+    """Audit V10: pydantic writes the offending value into its message; the exception
+    (the job row, the logs) gets the field, the message and the type only."""
+    secret = "Zebrastreifen4711"
+    endpoint.push(
+        chat_response(f'{{"facts": "{secret}"}}'),
+        chat_response(f'{{"facts": [{{"kind": "x", "value": "{secret}", "bad": 1}}, 5]}}'),
+    )
+    with pytest.raises(LLMOutputError) as info:
+        complete_json(make_client(), [{"role": "user", "content": "x"}], FactSheet)
+    message = str(info.value)
+    assert secret not in message
+    assert (
+        "validation error" in message and "facts.1: Input should be a valid dictionary" in message
+    )
+    # The model itself got the whole error, excerpt included, for its repair.
+    repair = endpoint.chat_bodies()[1]["messages"][-1]["content"]
+    assert secret in repair
+    # An extraction error loses its excerpt of the answer the same way.
+    endpoint.push(
+        chat_response(f'{{"facts": [{{"kind": "a" "{secret}"}}]}}'),
+        chat_response("nichts"),
+    )
+    with pytest.raises(LLMOutputError) as info:
+        complete_json(make_client(), [{"role": "user", "content": "x"}], FactSheet)
+    assert secret not in str(info.value) and "no JSON object" in str(info.value)
