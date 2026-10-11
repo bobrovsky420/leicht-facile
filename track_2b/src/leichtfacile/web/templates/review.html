@@ -28,6 +28,7 @@
         <div class="menu-panel">
           <a href="/api/jobs/{{ job.id }}/export?format=md&amp;version={{ v.draft.version }}">Markdown<span class="ext">.md</span></a>
           <a href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}">HTML<span class="ext">.html</span></a>
+          <a href="/api/jobs/{{ job.id }}/export?format=docx&amp;version={{ v.draft.version }}">Word<span class="ext">.docx</span></a>
           <a href="/api/jobs/{{ job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
         </div>
       </details>
@@ -334,7 +335,7 @@
       <fieldset>
         <legend>{{ t('reader.format') }}</legend>
         <div class="optlist">
-          {% for fmt, label, ext in (('md', 'Markdown', '.md'), ('html', 'HTML', '.html'), ('json', t('review.export.json'), '.json')) %}
+          {% for fmt, label, ext in (('md', 'Markdown', '.md'), ('html', 'HTML', '.html'), ('docx', 'Word', '.docx'), ('json', t('review.export.json'), '.json')) %}
           <label class="opt"><input type="radio" name="export-format" value="{{ fmt }}" data-ext="{{ ext }}"{% if fmt == 'html' %} checked{% endif %}><span class="opt-text"><span class="opt-title">{{ label }} <span class="ext">{{ ext }}</span></span><span class="opt-desc">{{ t('reader.' ~ fmt ~ '.desc') }}</span></span></label>
           {% endfor %}
         </div>

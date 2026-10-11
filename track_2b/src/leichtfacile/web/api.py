@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
+from leichtfacile.export.docx import DOCX_TYPE, to_docx
 from leichtfacile.export.html import to_html
 from leichtfacile.export.markdown import to_markdown
 from leichtfacile.lifecycle import job_counts, remove_job
@@ -223,7 +224,7 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
 def export(
     request: Request,
     job_id: str,
-    format: Annotated[Literal["md", "html", "json"], Query()] = "md",
+    format: Annotated[Literal["md", "html", "docx", "json"], Query()] = "md",
     version: int | None = None,
 ) -> Response:
     job = _job_or_404(request, job_id)
@@ -231,8 +232,8 @@ def export(
     if format == "json":
         body = json.dumps(build_bundle(store, job), ensure_ascii=False, indent=2)
         return _download(body, "application/json", f"{job_id}-audit.json")
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
     if version is None:
-        summary = store.get_artifact(job_id, "summary", PipelineSummary)
         version = summary.final_version if summary else None
     draft = store.get_artifact(job_id, "draft", Draft, version=version)
     if draft is None:
@@ -242,6 +243,9 @@ def export(
     if format == "md":
         body = to_markdown(draft, review, title=job.title, notice=notice)
         return _download(body, "text/markdown", f"{job_id}.md")
+    if format == "docx":
+        docx = to_docx(draft, review, title=job.title, notice=notice, summary=summary)
+        return _download(docx, DOCX_TYPE, f"{job_id}.docx")
     body = to_html(draft, review, title=job.title, notice=notice)
     return _download(body, "text/html", f"{job_id}.html")
 
@@ -339,15 +343,14 @@ def delete(request: Request, job_id: str) -> dict:
     return {"deleted": job_id}
 
 
-def _download(body: str, media_type: str, filename: str) -> Response:
+def _download(body: str | bytes, media_type: str, filename: str) -> Response:
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    if isinstance(body, bytes):  # a binary file (DOCX): no charset
+        return Response(body, media_type=media_type, headers=headers)
     cls = {"text/html": HTMLResponse, "application/json": Response}.get(
         media_type, PlainTextResponse
     )
-    return cls(
-        body,
-        media_type=f"{media_type}; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
+    return cls(body, media_type=f"{media_type}; charset=utf-8", headers=headers)
 
 
 def _links(job_id: str) -> dict:
@@ -356,5 +359,6 @@ def _links(job_id: str) -> dict:
         "page": f"/jobs/{job_id}",
         "export_md": f"/api/jobs/{job_id}/export?format=md",
         "export_html": f"/api/jobs/{job_id}/export?format=html",
+        "export_docx": f"/api/jobs/{job_id}/export?format=docx",
         "export_json": f"/api/jobs/{job_id}/export?format=json",
     }

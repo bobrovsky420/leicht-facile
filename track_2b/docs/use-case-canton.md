@@ -96,11 +96,11 @@ The writer approves, edits or rejects each block.
 
 ### Step 8: export
 
-Markdown or HTML formatted for Leichte Sprache (one sentence per line, short lines),
-plus a JSON bundle containing the source, the fact sheet, the final draft with
-provenance, all findings, and the writer's decisions. That bundle is the audit
-trail. If a resident later disputes the easy-language version, the office can show
-which source sentence each statement rests on and who approved it.
+Markdown, HTML or Word formatted for Leichte Sprache (one sentence per line, short
+lines), plus a JSON bundle containing the source, the fact sheet, the final draft with
+provenance, all findings, and the writer's decisions. That bundle is the audit trail.
+If a resident later disputes the easy-language version, the office can show which
+source sentence each statement rests on and who approved it.
 
 ### Step 9: the target-group test stays with the canton
 

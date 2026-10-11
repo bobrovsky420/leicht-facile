@@ -112,7 +112,7 @@ def test_keys_built_from_data_exist() -> None:
         + ["who.apertus", "who.code_title", "who.human_title"]
         + [f"new.level.{level}.desc" for level in ("A2", "B1")]
         + [f"new.condition.{c}.{part}" for c in ("P2", "P1", "P0") for part in ("title", "desc")]
-        + [f"reader.{fmt}.desc" for fmt in ("md", "html", "json")]
+        + [f"reader.{fmt}.desc" for fmt in ("md", "html", "docx", "json")]
         + [f"rule.{rule_id.removesuffix('-DE').removesuffix('-FR')}" for rule_id in RULES]
     )
     assert not [k for k in built if k not in english]

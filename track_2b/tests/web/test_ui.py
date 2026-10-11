@@ -436,6 +436,15 @@ def test_the_reader_view_offers_print(env) -> None:
     assert 'sandbox="allow-same-origin allow-modals"' in page  # print() needs modals
 
 
+def test_every_export_menu_offers_word(env) -> None:
+    client, app, _, _, endpoint = env
+    job_id = run_c1(client, app, endpoint)
+    page = client.get(f"/jobs/{job_id}").text
+    assert f"/api/jobs/{job_id}/export?format=docx&amp;version=1" in page  # the Export menu
+    assert 'value="docx" data-ext=".docx"' in page and "A Word document" in page  # reader
+    assert f"/api/jobs/{job_id}/export?format=docx" in client.get("/").text  # the row menu
+
+
 def test_reader_preview_is_served_inline(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)

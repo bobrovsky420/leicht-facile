@@ -397,6 +397,7 @@
   "reader.print_hint": "Prints the reader view on A4, unsaved decisions included. For a PDF, choose \"Save as PDF\" as the printer.",
   "reader.md.desc": "Plain text with headings, one sentence per line. For a content management system.",
   "reader.html.desc": "A web page in the reader layout, ready to print or to publish.",
+  "reader.docx.desc": "A Word document in the reader layout, to edit and lay out further in Word.",
   "reader.json.desc": "Source, fact sheet, every draft version, the findings and your decisions.",
   "reader.before": "Before publication",
   "reader.decided_hint": "Undecided blocks stay in, as drafted.",

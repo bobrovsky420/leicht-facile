@@ -1,4 +1,4 @@
-"""Export of the reviewed draft: Markdown, HTML and the JSON audit bundle.
+"""Export of the reviewed draft: Markdown, HTML, Word (DOCX) and the JSON audit bundle.
 
 Layout follows the easy-language rules checked by LAY-01 and LAY-02: one sentence per
 line, lines of at most 85 characters, broken at clause boundaries.
@@ -9,12 +9,25 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from leichtfacile.rules.layout import wrap_sentence
+from leichtfacile.rules.values import extract_values
 from leichtfacile.schemas import Block, Draft, GlossaryEntry, ReviewState
 
 LABELS = {
-    "de": {"glossary": "Wörterbuch", "draft_note": "Entwurf: noch nicht geprüft."},
-    "fr": {"glossary": "Lexique", "draft_note": "Brouillon : pas encore relu."},
-    "it": {"glossary": "Glossario", "draft_note": "Bozza: non ancora rivista."},
+    "de": {
+        "glossary": "Wörterbuch",
+        "draft_note": "Entwurf: noch nicht geprüft.",
+        "version": "Entwurf v{version}",
+    },
+    "fr": {
+        "glossary": "Lexique",
+        "draft_note": "Brouillon : pas encore relu.",
+        "version": "Brouillon v{version}",
+    },
+    "it": {
+        "glossary": "Glossario",
+        "draft_note": "Bozza: non ancora rivista.",
+        "version": "Bozza v{version}",
+    },
 }
 
 
@@ -97,3 +110,15 @@ def layout_lines(blocks: list[Block], width: int = 85, *, notice: str | None = N
     if notice:
         lines += ["", notice]
     return lines
+
+
+def keep_values_together(text: str, lang: str) -> str:
+    """No line break inside a value: the spaces of a date, an amount, a phone number or
+    an address become no-break spaces ("044 123 45 67", "31. März 2027"), so neither
+    `wrap_sentence` nor the browser or Word splits it."""
+    chars = list(text)
+    for value in extract_values(text, lang):
+        for i in range(max(value.start, 0), value.end):
+            if chars[i] == " ":
+                chars[i] = "\xa0"
+    return "".join(chars)

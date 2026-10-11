@@ -40,7 +40,7 @@ description:
       - Deterministic checks for easy-language rules, fact values and Swiss spelling
       - A second model judges meaning; a repair loop fixes what the checks find
       - Every draft sentence linked to its source sentences; omissions listed
-      - Review workbench with keyboard shortcuts; Markdown, HTML and audit-bundle export
+      - Review workbench with keyboard shortcuts; Markdown, HTML, Word and audit-bundle export
       - German and French; decision mode for letters that go out with a decision
   de:
     shortDescription: >-
@@ -68,7 +68,7 @@ description:
       - Deterministische Prüfung der Regeln für Leichte Sprache, der Faktenwerte und der Schweizer Rechtschreibung
       - Ein zweites Modell beurteilt den Sinn; eine Reparaturschlaufe behebt die Befunde
       - Jeder Satz des Entwurfs mit seinen Quellensätzen verknüpft; Weglassungen aufgeführt
-      - Freigabe-Arbeitsplatz mit Tastaturkürzeln; Export als Markdown, HTML und Prüfpaket
+      - Freigabe-Arbeitsplatz mit Tastaturkürzeln; Export als Markdown, HTML, Word und Prüfpaket
       - Deutsch und Französisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
   fr:
     shortDescription: >-
@@ -96,7 +96,7 @@ description:
       - Vérification déterministe des règles FALC, des valeurs des faits et de l'orthographe suisse
       - Un second modèle juge le sens ; une boucle de réparation corrige les constats
       - Chaque phrase du brouillon liée à ses phrases source ; les omissions listées
-      - Poste de relecture avec raccourcis clavier ; export Markdown, HTML et dossier d'audit
+      - Poste de relecture avec raccourcis clavier ; export Markdown, HTML, Word et dossier d'audit
       - Allemand et français ; mode décision pour les lettres qui accompagnent une décision
 
 legal:

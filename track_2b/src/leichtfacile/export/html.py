@@ -13,9 +13,8 @@ from __future__ import annotations
 
 from html import escape
 
-from leichtfacile.export import LABELS, final_blocks
+from leichtfacile.export import LABELS, final_blocks, keep_values_together
 from leichtfacile.rules.layout import wrap_sentence
-from leichtfacile.rules.values import extract_values
 from leichtfacile.schemas import Draft, ReviewState
 
 HTML_LINE_CHARS = 60  # within LAY's 85; fits the 36em column at any common font
@@ -38,20 +37,8 @@ dt { font-weight: bold; margin-top: .8rem; } dd { margin-left: 0; }
 """
 
 
-def _keep_values_together(text: str, lang: str) -> str:
-    """No line break inside a value: the spaces of a date, an amount, a phone number or
-    an address become no-break spaces ("044 123 45 67", "31. März 2027"), so neither
-    `wrap_sentence` nor the browser splits it."""
-    chars = list(text)
-    for value in extract_values(text, lang):
-        for i in range(max(value.start, 0), value.end):
-            if chars[i] == " ":
-                chars[i] = " "
-    return "".join(chars)
-
-
 def _lines(text: str, width: int, lang: str) -> str:
-    kept = _keep_values_together(text, lang)
+    kept = keep_values_together(text, lang)
     return "<br>\n".join(escape(line) for line in wrap_sentence(kept, width))
 
 

@@ -17,7 +17,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 | Deliverable | Where | State |
 |-------------|-------|-------|
 | Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
-| Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; the same file at the root, next to the root copy of the report | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute; the **[OWNER]** placeholder of report §8 is in it. **[PENDING: print again after the last change to the report]** |
+| Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. **[PENDING: print again after any later change to the report, such as the final video link]** |
 | Demo video (URL), at most 2 minutes | Version C, 117.6 s ([demo-video.md](demo-video.md)); temporary upload of mock C26 (11 October): https://youtu.be/V_R4AABLriI | Linked in both READMEs and both report copies; the report PDF gets it with its next export. **[PENDING: final render with the final numbers and the opening sentence's real output; upload it under this link or replace the link everywhere]** |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
 | `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
@@ -104,9 +104,12 @@ with markdown-it-py, so every change of the report reaches it with the next prin
 - **Layout** (`track_2b/scripts/report/`: page template, stylesheet, drawings): A4 in
   two columns in the web UI's fonts and colours (track_2b/docs/ui-design.md §3), IBM
   Plex Sans 9.1 pt, the summary a size larger as the abstract; running header, footer
-  and page numbers; wide tables and the diagrams across both columns, a heading kept
-  with the diagram or table that follows it. Ragged right with soft hyphens from
-  pyphen, since Chromium hyphenates nothing by itself here.
+  and page numbers. Each chapter title spans the page, ruled above and below, and the
+  chapter starts at the top of a new pair of columns (owner, 11 October). Wide tables
+  and the diagrams span both columns; a paragraph that introduces a wide table becomes
+  its caption; a title stays with the diagram, caption or table that follows it.
+  Ragged right and no hyphenation (owner, 11 October): no word is broken at a line
+  end, not even at a hyphen of its own.
 - **First page:** a title block made from the list under the report's title, and four
   key figures read from the results table in §5, P2 (ours) against P0-ZH complete:
   fact coverage, hard facts kept, silent losses and rule errors, the headline's figures
@@ -121,21 +124,24 @@ with markdown-it-py, so every change of the report reaches it with the next prin
   machine (the draft of 9 October had nine `file:///C:/Users/...` links).
 - **Printing:** headless Edge or Chrome (`--print-to-pdf`; `CHROME_PATH` names another
   Chromium), a tagged PDF with bookmarks from the headings. The renderer adds the
-  document information (title, authors, subject), writes the same file to `track_2b/`
-  and to the root, and prints the pages and how full the last one is, with and without
-  the references.
+  document information (title, authors, subject), writes
+  `track_2b/RoestigrabenBridgers_Report.pdf` and prints the pages and how full the last
+  one is, with and without the references.
+- **Foot table:** the target-architecture table (a, b, c) spans the page at the foot of
+  the page its subsection starts on (owner, 11 October). The renderer prints the report
+  with the table moved down its subsection block by block and keeps the last place
+  where it still starts on that page.
 - **Limit:** at most 6 pages without the references (the organisers in the hackathon
   chat, 11 October, 13:43: "It's w/o references"; they add it to the guide). The
   renderer finds where the references start by the bookmark of their heading, counts
   the pages before them (the licence note counts) and fails above 6.
   `track_2b/tests/test_report_pdf.py` checks the same on the committed PDF, and that it
-  came from the renderer; `track_2b/tests/test_copies.py` that the two copies are the
-  same file and that no link is a local path.
+  came from the renderer; `track_2b/tests/test_copies.py` that no link is a local path.
 
-Printed 11 October from the final numbers: 6 pages, the last 15 % full. Without the
-references also 6, but the sixth holds only the licence note (5 % of it), so the text
-may grow by almost a page. The full-width blocks, not the text size, set the page
-breaks: at 9 pt the report still takes 6 pages.
+Printed 11 October from the final numbers: 6 pages, the last 92 % full. Without the
+references also 6, the sixth 75 % full, so the text may grow by about a quarter of a
+page; the references then move to a seventh page, which the limit does not count. The
+full-width blocks, not the text size, set the page breaks.
 
 ## 6. The jury's questions
 
@@ -163,9 +169,9 @@ answer each question:
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
 | | Are weights, licences and dependencies free of blocking terms? | Report §2 licences | Answered |
 | | Is it independent of any single commercial provider? | Report §2 (any OpenAI-compatible server) | Answered |
-| Implementation feasibility | Does use require a realistic change of work? | [use-case-canton.md](use-case-canton.md) §5; report §8 "Into use" (DOCX missing) | Partly |
+| Implementation feasibility | Does use require a realistic change of work? | [use-case-canton.md](use-case-canton.md) §5; report §8 "Into use"; report §2: the reviewed draft also exports to Word, where the writers work (since 11 October) | Answered |
 | | How far from real use: what must still be built, obtained or approved? | Report §8 "Into use" | Answered |
-| | Is there a named first user or group? | Report §8 | **[OWNER: none named yet]** |
+| | Is there a named first user or group? | Nowhere: the report names none | Not answered; the placeholder dropped from report §8 (owner, 11 October) |
 | | Do others have the same need? | Report §8; [use-cases.md](use-cases.md) | Answered |
 
 ## 7. Before we press Submit
@@ -178,8 +184,7 @@ answer each question:
       replays each recording without an endpoint); after any prompt change, record
       them again with `python -m leichtfacile examples record` (track_2b/data/examples/README.md).
 - [ ] Report printed with `make pdf` (§5) after its last change, at most 6 pages before
-      the references, saved as `track_2b/RoestigrabenBridgers_Report.pdf` and the same
-      file at the root, committed.
+      the references, saved as `track_2b/RoestigrabenBridgers_Report.pdf`, committed.
 - [ ] Video rendered, uploaded, URL in README, report and form.
 - [ ] Repository public; `git log -p -- .env` empty.
 - [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job

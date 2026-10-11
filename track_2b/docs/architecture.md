@@ -57,7 +57,7 @@ municipality, or an organisation such as Pro Infirmis' Büro für Leichte Sprach
 3. Review: source and draft side by side, every draft sentence linked to the source
    sentences it came from, a fact checklist with pass/fail per fact, the list of
    rule findings, and the model's change notes ("left out: appeal procedure, because …").
-4. Approve or edit each block, then export (Markdown, HTML, JSON with provenance).
+4. Approve or edit each block, then export (Markdown, HTML, Word, JSON with provenance).
 5. Optionally, send the approved text to a target-group test. That step is outside
    the tool but the export is formatted for it (one sentence per line, ≤ 85 characters).
 
@@ -516,11 +516,11 @@ fact id, counts as blocking and as missing like FACT-01, and a repair round asks
 the part before any value. The judge is asked SEM-09 (no advice, no evaluation) and
 SEM-10 (every period with its start) through the partial; its answers to them pass
 the filter for a decision job only. The notice (`JobConfig.notice`) is written by the
-Markdown and HTML exporters and by the bundle's layout lines as the first and the last
-paragraph, word for word and exempt from the layout rules; the review page shows it as
-a banner above the blocks, not as a block, so it has no decision and no provenance;
-FACT-07 on the export's lines catches an export without it and a review edit that
-removed or changed it.
+Markdown, HTML and Word exporters and by the bundle's layout lines as the first and the
+last paragraph, word for word and exempt from the layout rules; the review page shows
+it as a banner above the blocks, not as a block, so it has no decision and no
+provenance; FACT-07 on the export's lines catches an export without it and a review
+edit that removed or changed it.
 
 ### 4.7 Review (human) and export (code)
 
@@ -560,7 +560,20 @@ Export formats:
 - Markdown and HTML with one sentence per line, lines ≤ 85 characters, headings and
   lists preserved;
 - JSON bundle: source, fact sheet, final draft, findings, decisions - the audit trail;
-- DOCX (`python-docx`) if time allows, since writers work in Word.
+- Word (DOCX, `export/docx.py`, since 11 October 2026), for writers who work in Word:
+  the HTML export's text in its print layout (A4, 20 mm margins, Arial 14 points,
+  left-aligned, no hyphenation, no block split across pages, a heading kept with the
+  block after it). A block is one paragraph, its lines broken as in the HTML export (at
+  most 60 characters, `DOCX_LINE_CHARS`, never inside a value) and joined by line
+  breaks; Word opened the example jobs and a file with every line of their drafts and
+  broke none of them again. Title, headings and list items carry Word's own styles
+  (Heading 1 and 2, List Bullet), the glossary its terms in bold, a decision job the
+  notice first and last; the language tag (de-CH, fr-CH, it-CH) gives the spell checker
+  Swiss spelling. The footer names the tool, the draft version, the day of the export,
+  the writer model and the hash of the prompt template that wrote the text
+  (`summary.prompt_versions`). Arial, not the reader font: a DOCX names a single font,
+  and Word replaces a missing one with its own choice (D-V). Built with the standard
+  library (a few XML parts in a ZIP file), no new dependency.
 
 ### 4.8 Learning from edits (stretch)
 
@@ -803,7 +816,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
 | `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at` |
-| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|json` | Download: Markdown, HTML, or the JSON audit bundle |
+| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle |
 | `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
 | `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
@@ -946,12 +959,12 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 - **Reader view**: replaces the panes with the HTML export of the decisions on screen,
   unsaved ones included (`POST /jobs/{id}/preview` renders it and stores nothing; `GET
   /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
-  next to an export panel: the format (Markdown, HTML, audit bundle), the download of
-  the saved review, "Print or save as PDF" (prints the reader view on A4 with the
-  export's print styles, unsaved decisions included; the frame's sandbox allows
-  `print()` but no scripts), and a "Before publication" list (blocks decided, blocking
-  problems in this version, review complete). The keys are off while it is shown. The
-  HTML export breaks lines at sense units at most 60 characters long
+  next to an export panel: the format (Markdown, HTML, Word, audit bundle), the
+  download of the saved review, "Print or save as PDF" (prints the reader view on A4
+  with the export's print styles, unsaved decisions included; the frame's sandbox
+  allows `print()` but no scripts), and a "Before publication" list (blocks decided,
+  blocking problems in this version, review complete). The keys are off while it is
+  shown. The HTML export breaks lines at sense units at most 60 characters long
   (`HTML_LINE_CHARS`, within LAY-02's 85) in a column of 36em, which holds such a line,
   so the browser does not break it again, and never inside a value (no-break spaces in
   a date, an amount or a phone number); printed, it sets 14 points on A4.
@@ -1352,8 +1365,6 @@ Dockerfile                  the image keeps the repository's layout under /app
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+; .python-version pins 3.14
 .env.example                endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                   project overview, quick start; Track 2B challenge text (template)
-technical_report.md         the report; RoestigrabenBridgers_Report.pdf, its PDF
-                            (both copies of the files in track_2b/, see there)
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 PLAN.md, AGENTS.md          the plan; the rules for AI agents
 video/                      the demo video as code (Remotion)
@@ -1361,9 +1372,8 @@ track_2b/                   the template's folder, as the organisers require it
   Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval ·
                             pdf; the recipes run from the root, also when called here
   README.md                 the root README's text; its links written from track_2b/
-  technical_report.md       the report, the same text at the root
-  RoestigrabenBridgers_Report.pdf  the report printed by `make pdf` (links absolute), the same
-                            file at the root
+  technical_report.md       the technical report (only here, not at the root)
+  RoestigrabenBridgers_Report.pdf  the report printed by `make pdf` (links absolute)
   docs/
     quickstart.md           every way to start the app (make, Compose, Docker, local models, uv, CLI)
     architecture.md         this document
@@ -1396,7 +1406,7 @@ track_2b/                   the template's folder, as the organisers require it
                             security.py (the hardening layer), health.py (the probes),
                             observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
-    export/                 markdown.py, html.py, bundle.py
+    export/                 markdown.py, html.py, docx.py, bundle.py
     eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing), image_spike.py,
                             day1.py, cli.py
@@ -1412,7 +1422,8 @@ track_2b/                   the template's folder, as the organisers require it
     hardware/               measured runs on rented hardware (AWS L4, 10 October 2026)
     results*/, labels/      evaluation outputs, labelling sheets (git-ignored)
   tests/                    rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
-                            eval, web; test_copies.py (README, report and PDF in both places),
+                            eval, web; test_copies.py (README in both places, the report and
+                            its PDF only here),
                             test_report_pdf.py (the PDF's renderer, its drawings, the 6 pages
                             before the references)
 ```

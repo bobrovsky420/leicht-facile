@@ -59,17 +59,19 @@ The short path to the deadline, in dependency order. Each step points to where i
    rewrite by the team", pending the owner); version C re-rendered with the evidence
    scene of case A (C27, Zurich named; then C28 with "a strong single prompt", owner),
    about 119 s, `C:\Users\bobro\Videos\leicht-facile-demo-C30.mp4` ("a strong one-shot prompt").
-   11 Oct: the evidence scene with the repeated final run (case A2: 15.0 against 4.2
-   rule errors, 15 % lost, 83 against 100 % of the must-keep facts on screen; spoken
-   "under a third of the rule errors"), 119.6 s,
-   `C:\Users\bobro\Videos\leicht-facile-demo-C35.mp4`.
+   11 Oct: the evidence scene with the repeated final run, compared on the hard facts
+   lost without a trace (owner): 15 % for a strong single prompt, 0 % for
+   Leicht·Facile, which lists every one; spoken "loses fifteen percent of the hard facts
+   without a trace"; 118.6 s; C37 (owner) with the count-up from 0 % again and a larger
+   facts panel on the green card, `C:\Users\bobro\Videos\leicht-facile-demo-C37.mp4`.
    Open: the owner's check of the render, the upload, the URL in README, report and
    form.*
 6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**
    WP16's positioning paragraph and messaging pass, the owner's answers to every
-   **[OWNER]** placeholder, the **[PENDING]** video link and final-run commit. Export to
-   PDF, 6 pages, `track_2b/RoestigrabenBridgers_Report.pdf` and the same file at the root
-   (track_2b/docs/submission.md §5); the report's root copy changed with it.
+   **[OWNER]** placeholder, the **[PENDING]** video link and final-run commit. Print the
+   PDF with `make pdf`, at most 6 pages before the references,
+   `track_2b/RoestigrabenBridgers_Report.pdf` (track_2b/docs/submission.md §5); report and
+   PDF are in `track_2b/` only since 11 Oct.
 7. [x] **Hardware statement for the on-prem profile (parallel; cut if blocked; WP10).**
    Done 10 Oct: `local-llm` ran on an AWS g6.xlarge (one L4 24 GB) in Zurich and took
    the example letter end to end; track_2b/eval/hardware/aws-l4-2026-10-10/, report §2.
@@ -128,8 +130,8 @@ From the template and the hackathon rules (verified 2026-10-05):
 - Repository conventions (AGENTS.md): never commit or push; plain hyphens only, no
   en/em dashes anywhere; the project lives in the template's `track_2b/` folder, a
   Makefile at the root (organisers, 10 Oct) includes `track_2b/Makefile` with the
-  targets; README.md, the report and
-  its PDF exist twice, the same in both places.
+  targets; README.md exists twice, the same in both places; the report and its PDF
+  only in `track_2b/` (owner, 11 Oct).
 
 Local environment facts:
 
@@ -190,7 +192,8 @@ and SEM-10 (decision mode v1, WP15). A drug list and a postcode list stay WP17.
     WP17 roadmap.*
 11. Image input (photographed letters) through the API, as an end-user mode without
     expert review (WP12).
-12. DOCX export; `make bundle` for the air-gapped tarball.
+12. DOCX export *(done 11 Oct at the owner's request, WP17's row)*; `make bundle` for
+    the air-gapped tarball.
 13. Cross-language fact-sheet consistency check.
 14. LoRA from approved drafts (needs compute we do not have; most likely report-only).
 
@@ -1061,8 +1064,8 @@ since:
       words), limit 6; now 3,171 words, 6 pages, the last 37 % full, so about half a
       page is left for the names, the video link, κ and the final rerun.
 - [ ] `track_2b/technical_report.md` filled (sections 1-8); export to PDF (pandoc or print to
-      PDF), check the 6-page limit, save as `track_2b/RoestigrabenBridgers_Report.pdf` and
-      the same file at the root. §2 holds a Mermaid diagram: the export must render it (print the GitHub
+      PDF), check the 6-page limit, save as `track_2b/RoestigrabenBridgers_Report.pdf`
+      (only there since 11 Oct). §2 holds a Mermaid diagram: the export must render it (print the GitHub
       page, or HTML with mermaid.js; plain pandoc prints the code instead).
       *First draft 9 Oct: every guiding question of the jury answered in the template's
       sections (maturity level, user group, why these sizes, where Apertus fell short,
@@ -1079,9 +1082,12 @@ since:
       columns in the web UI's fonts and colours, the Mermaid diagrams drawn as SVG, four
       key figures from the §5 table on the first page, links to GitHub, both copies
       written at once. Printed from the final numbers of 11 Oct: 6 pages. The limit
-      leaves the references out (organisers, 11 Oct), and page 6 holds only the licence
-      note above them, so the text may grow by almost a page. Open: print again after
-      the last change to the report (the **[OWNER]** first user in §8).*
+      leaves the references out (organisers, 11 Oct). The first-user placeholder
+      dropped from report §8 at the owner's request, both copies: no placeholder left.
+      Then, at the owner's request, no hyphenation and chapter titles across the page,
+      ruled above and below, each chapter starting at the top of the columns: 6 pages,
+      6 before the references with the sixth 75 % full. Open: print again after any
+      later change to the report (the final video link).*
 - [ ] Stale report: the **[PENDING]** video link (header) and commit (§7), known after
       the final rerun. *11 Oct: the header has the temporary video link; the PDF still
       shows the placeholder until its next export.* The status line, the three
@@ -1154,7 +1160,7 @@ since:
       commit.
 - [ ] The owner's answers to the **[OWNER]** placeholders (track_2b/docs/submission.md): the
       declared maturity level (*confirmed 11 Oct*), the coding-assistant sentence, the first user (none
-      named, D-Q), who submits and with which Devpost e-mail, "Swiss student team", the
+      named, D-Q; *its placeholder dropped from report §8, owner, 11 Oct*), who submits and with which Devpost e-mail, "Swiss student team", the
       video platform, and whether track_2b/docs/submission.md stays in the public repository.
 - [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL, model
       "8B + 70B v1.5" and the message to the jury; every field with our entry and the
@@ -1173,7 +1179,7 @@ guess.
 | Check my own text | Done 8 Oct, pulled forward (the code of WP13-16 was complete): `/check`, a third entry in the app bar, the deterministic checker on a pasted text as the CLI `check` runs it, German and French, blocks with their findings, document findings by rule, the counts; no job, no model call, nothing stored (ui-design §5.8, architecture §7) | Useful without AI, offline, in milliseconds | done |
 | Complete or essentials | A switch that decides how many `omit_candidates` may go; the omission log shows what went | A real need; Zurich builds it from contradictory prompt text | 1 day |
 | Several drafts | N drafts, chosen block by block by the checker (no blocking finding, every fact present) | Variety helps (Zurich's One-Klick) without making the reader compare | 1-2 days plus evaluation |
-| DOCX | Easy-language layout (about 14 pt, left-aligned, one sentence per line) and a footer with date, model and prompt hash | Writers work in Word | 1 day |
+| DOCX | Done 11 Oct, pulled forward (owner): `export/docx.py`, the HTML export's print layout as a Word file (A4, 20 mm margins, Arial 14 pt, left-aligned, no hyphenation, one sentence per line, lines broken at sense units and never inside a value), Word's own styles, de-CH or fr-CH for the spell checker, and a footer with the tool, the draft version, the date, the writer model and its prompt hash; `format=docx` in the API, Word in every export menu, `draft.docx` from `simplify`; the standard library only, no new dependency (architecture §4.7) | Writers work in Word | done |
 | Verify a draft | Source plus any draft (Zurich's app, a person): fact sheet, FACT-01, FACT-06, rules, judge | Makes us a complement to existing tools | 2 days |
 | UI in German and French | Labels and help texts in the writers' languages | The users are cantonal writers | 1-2 days |
 | Italian | *Out of scope for the hackathon (owner, 8 Oct).* The 9 rules of `track_2b/docs/rules.md` (Italian section), prompts and few-shot examples, calibration on Ticino pairs, the UI and the web form. Decide first how the grammar rules get their parse: `it_core_news_md` (and every spaCy Italian model) is CC BY-NC-SA 3.0, non-commercial, from its training data UD Italian ISDT, unlike the German (MIT) and French (LGPL-LR) models; options are an optional extra outside the Docker image, the model in the image with a notice, or word lists and verb endings without a model. The polite imperative with Lei (`Compili il modulo`) is a subjunctive form, so the subjunctive rule may only fire after `che` or a conjunction | National coverage; Apertus's languages | 1 week |
@@ -1308,7 +1314,7 @@ Apply in this order when a gate is missed:
 1. LoRA (report only).
 2. WP17 items (report §8 only), "check my own text" included.
 3. Cross-language consistency check.
-4. DOCX export and `make bundle`.
+4. `make bundle` *(the DOCX export is done, 11 Oct)*.
 5. WP12b, the end-user letter mode.
 6. `publiccode.yml`.
 7. Italian.
@@ -1462,7 +1468,7 @@ Must = done by G3 or G4. Should = by G4 if every Must is green. Later = report �
 | GAP-15 | Claims not precise enough | the voting gap is federal (Zurich publishes cantonal voting information in Leichte Sprache since 28 September 2025); A2 or B1 still open (D-E) | All | WP15, WP16 | Must |
 | GAP-16 | Not listable as public-sector software | no `publiccode.yml` | Value, scalability | WP16 | Should |
 | GAP-17 | UI only in English | templates use `lang="en"` | Value | WP17; *German since `3ef69d3` (6 Oct), French and Italian stay WP17* | Later |
-| GAP-18 | Zurich's good ideas not captured | termbase, house styles, check my own text, completeness switch, several drafts, DOCX | Value, scalability | WP17, report §8 | Later |
+| GAP-18 | Zurich's good ideas not captured | termbase, house styles, check my own text, completeness switch, several drafts, DOCX | Value, scalability | WP17, report §8; *DOCX done 11 Oct* | Later |
 | GAP-19 | Long compounds reach the reviewer unsplit: the glossary exempts them from LEX-01, and the 8B ignores the split suggestion | job `287fea3aadd2` (6 Oct, web UI, CSCS): `Krankenversicherungspolice` and `Sozialversicherungsstelle` in the final draft, `Alleinstehende` flagged through two rounds | Rigour, value (the first thing a juror sees in a draft) | WP14 | Should; in by the freeze or WP17 |
 | GAP-20 | The strongest sovereignty case was not described: decisions of child and adult protection authorities (KESB) and courts, explained to the person concerned in a letter that goes out with the decision | Idea from the Velum comparison (6 Oct, night; cloud session); KESB Region Solothurn has done it by hand since 2016; appeal periods of 30 and 10 days (Art. 450b ZGB) | Sovereign deployability, value | Docs written 6 Oct (night; cloud session) as a patch, not committed: `track_2b/docs/use-case-decisions.md` plus references in README, architecture, report §8, sources §3, demo-video §4 (on `main` as `acab7a9` since). Demo: WP15 (D-T). Decision mode: WP15 "Decision mode v1", planned 7 Oct for Sat 10 to Mon 12 Oct; the rest WP17 | Must (docs, demo), Should (mode v1 by G4) |
 | GAP-21 | The further use cases were not described: patient letters, lease terminations, penal orders, payment orders, social and school decisions, information for study participants, migration, private-sector letters | Raised 6 Oct (night): one engine, many documents; penal orders are 92 percent of Swiss convictions with a 10-day objection period; 49 percent of adults have low health literacy | Value, scalability | `track_2b/docs/use-cases.md` and the planned fact checks in `track_2b/docs/rules.md`, written 6 Oct (night; cloud session, 2). Modes and checks: WP17 | Should (docs), Later (modes) |
@@ -1601,3 +1607,13 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-11 (demo mode for the jury, D-AK): at the owner's request a judge starts a letter with one click and sees it reach review in seconds. New `llm/replay.py` (a read-only `Replay` of recorded answers, looked up before the cache inside `LLMClient.replaying`, which the orchestrator turns on for a job's first run only; a `Recorder` that keeps the answers `complete_json` throws away, so the replay takes the recorded path), `examples record` (the letter as its Run button sends it, `--parallel` attempts at a time, the clean run with the fewest warnings), `POST /examples/{id}/run`, the card "Try a prepared letter" on the drafts list (recorded letters only), the replay note on the job page and the "Recorded answers" tag on the review page, strings in EN, DE and FR. Recorded on CSCS: German 3 of 3 clean, French 1 of 6, KESB 0 of 18 (off the card, owner). Tests: 14 for the replay and the recorder, 2 through the orchestrator (a rerun goes live), 7 web tests (the card, the route, both letters end to end without the endpoint, the New draft form with CRLF), the shipped recordings replayed offline in `test_examples.py`. Checked in the running app on a dead endpoint: review in 3.4 s, no request sent; screenshots of the card, the progress note and the review tag. Docs: architecture §6, §7, §10 and §11, ui-design §5.2, §5.4, §5.5, §6 to §8, the examples README, both READMEs, quickstart, submission.md §3 and §7 (the jury message is now about 3,700 characters).
 - 2026-10-11 (final run on the submitted templates): D-AJ decided by the owner, every eval row again on commit 663b609 (the document fence of V8), snapshot `track_2b/eval/results-cscs-v7` first, 11:36 to 14:53. P2 on the 8B first (fresh Understand and Write, so its 63.3 s per page cover every stage), P1 last from P2's cached answers; the baselines with `LLM_CACHE=0`. A `pyproject.toml` edit of a parallel session made one `uv run` re-sync the venv and fail (Access denied on a dist-info folder), so P1 ran again at the end with `--no-sync`. Two pairs failed: one P2 Understand answer with broken JSON (passed on the retry) and the 70B everywhere on `zh-sebe-disability-de`, its Write stream cut in all 35 attempts (8, 8 and 16 retries), so that row has 19 German pairs. German eval pairs, CSCS: P2 100 percent fact coverage, 97 hard facts kept, 4.2 rule errors, 0.1 invented values; P0-ZH complete 83, 85, 15.0, 0.0 with 15 percent silent losses; P0 92, 93, 19.5; the 70B everywhere 99, 92, 0.6 at USD 0.026; the hybrid 100, 95, 1.9; French P2 100, 87, 4.9. The baselines moved by up to 8 points on unchanged templates (sampling noise); P2's errors rose mostly on one 7-page pair that the run of 10 Oct had shortened to 43 words. `eval diagnose`: 205 must-keep facts, none missing. `eval numbers` gained case A2 (fewer errors, at least the same coverage, not fewer invented values; test in `tests/eval/test_numbers.py`), the owner approved its headline; WP13 closed and condensed. Numbers pass: report §1, §3, §5, §6 and §7 (both copies), README's table and cents (both), submission.md, architecture §9, prompts.md (a section for this run), the evidence scene (`Evidence.tsx`, `Compare.tsx`, narration C "under a third of the rule errors", demo-video.md, video/README.md).
 - 2026-10-11 (report PDF renderer): at the owner's request the report PDF is no longer a plain print of the Markdown. `make pdf` runs `track_2b/scripts/report_pdf.py`, which lays out `track_2b/technical_report.md` with `track_2b/scripts/report/` (page template, stylesheet, the two Mermaid diagrams drawn as SVG): A4 in two columns in the web UI's fonts and colours, a title block, four key figures read from the §5 table (P2 against P0-ZH complete: fact coverage, hard facts kept, silent losses, rule errors, the headline's figures), links rewritten to GitHub, a tagged PDF with bookmarks and document information, the same file in both places. Found on the way: Edge hyphenates nothing by itself (pyphen's soft hyphens go into the text), shrinks every page when a table is wider than the page, and balances no columns that hold positioned list markers (both avoided). The organisers said in the hackathon chat (13:43) that the 6-page limit leaves out the references: the renderer counts the pages before them by the bookmark of their heading and fails above 6. Printed from the final numbers: 6 pages, the sixth only the licence note and the references. New `track_2b/tests/test_report_pdf.py` (12 tests); markdown-it-py a dev dependency; docs: submission.md §1, §5 and §7, architecture.md §11, both READMEs (`make pdf`), THIRD_PARTY_NOTICES.md (the fonts the PDF embeds).
+- 2026-10-11 (first user dropped): at the owner's request the sentence "First user: **[OWNER: none is named yet; ...]**" is gone from report §8 ("Into use"), both copies, and the PDF is printed again (`make pdf`: 6 pages, before the references still 6 with only the licence note on page 6). No **[OWNER]** or **[PENDING]** is left in the report. submission.md §6 says that the report names no first user (the jury's feasibility question stays unanswered), §1 that the PDF has no placeholder left; the open items here updated.
+- 2026-10-11 (report PDF: chapters, no hyphenation): at the owner's request the PDF hyphenates no word: the renderer no longer inserts pyphen's soft hyphens, and a word with a hyphen of its own (on-premise, Basel-Stadt, `swiss-ai/Apertus-v1.5-8B`) stays on one line. Each chapter title spans the page, ruled above and below, so every chapter starts at the top of a new pair of columns; a paragraph that introduces a wide table spans with it as its caption (§5 Task and results), a title stays with what follows it, and a list item is never split between columns. Printed again: 6 pages, 6 before the references with the sixth 75 % full (it was 5 %). submission.md §5 updated.
+- 2026-10-11 (report PDF masthead): at the owner's request page 1 shows the team as its name and one member per line (the renderer splits the report's team line), and the report's header label "Demo" reads "Demo video" (both copies). Printed again, 6 pages, 6 before the references.
+- 2026-10-11 (headline as a list): at the owner's request the report's "Headline result" (§1, both copies), one sentence with every number, is now a lead sentence and one line per measure, the pipeline first and the prompt second: must-keep facts, countable values kept (and the official versions' 67 percent), values lost without a trace, rule errors, invented values; same numbers and claims (D-M). The PDF's info block on page 1 is at text size (9.1 pt, was 7.8). Printed again: 6 pages, 6 before the references.
+- 2026-10-11 (report subheader): at the owner's request report §2's subheader reads "Target architecture", without the template's instruction "(mandatory)" (both copies; the READMEs keep the template text). PDF printed again.
+- 2026-10-11 (report only in track_2b/): at the owner's request the root copies of technical_report.md and RoestigrabenBridgers_Report.pdf are gone; the report and its PDF live in `track_2b/` only, README.md stays in both places. `make pdf` writes the one PDF; test_copies.py checks the README copies, that the report is not at the root and the PDF's links; AGENTS.md, architecture.md §11, submission.md §1, §5 and §7 and the Makefile updated. Also at the owner's request: the target-architecture table (a, b, c) spans the page at the foot of page 2 (the renderer tries it further down its subsection, block by block, and keeps the last place on the subsection's page); the references' bullets are the 3.4 pt squares of the other lists (the 2.8 pt ones fell unevenly on a viewer's pixels); both drawings keep 1 unit of margin, so no border is cut; "max_tokens" reads "Max tokens"; the subtitle reads "... with every fact checked by code" on one line (owner's wording, without "value" and the full stop); in §4 the 35, 30 and 5 documents are bold and eval and dev plain words; in §5 the P0-ZH condition reads "verbatim; German only", without the two modes' details. For the DOCX session (leicht-facile-a7): Word in the export row of §2's stage table, DOCX gone from §6 "Not yet supported" and §8 "Into use"; the test count 1,422 (`pytest --collect-only`). Printed: 6 pages, before the references 6, the sixth 44 % full.
+- 2026-10-11 (DOCX export; session leicht-facile-a7): at the owner's request the Word export (stretch item 12, WP17's DOCX row) is in. `track_2b/src/leichtfacile/export/docx.py` writes the reviewed draft as a DOCX in the HTML export's print layout: A4, 20 mm margins, Arial 14 pt, left-aligned, no hyphenation, a block never split across pages, a heading kept with what follows; each block one paragraph with the HTML export's line breaks (at most 60 characters, never inside a value), Word's styles Heading 1 and 2 and List Bullet, the glossary terms in bold, in decision mode the notice first and last; de-CH, fr-CH or it-CH for the spell checker; a footer with the tool, the draft version, the date, the writer model and the hash of the prompt template that wrote the text. The standard library only (zipfile): no dependency, lock or image change. `format=docx` in the API (`links.export_docx`), Word in the drafts list's row menu, the review page's Export menu and the reader view's panel (`reader.docx.desc` in EN, DE, FR), `draft.docx` from `simplify`; the no-break spaces that keep a value on one line moved from `export/html.py` to `export/__init__.py`, for both exporters. Checked in Word 16 through COM: the two example jobs, a decision variant, a file with every line of all their draft versions (310 paragraphs) and the file the server sends open without a complaint, carry de-CH or fr-CH, and Word broke no line a second time; the reader panel checked on a screenshot. New `track_2b/tests/test_docx.py` (9 tests, the first test of `simplify` among them), DOCX checks in test_web, test_ui and test_i18n; 1,422 tests, ruff clean. Docs: architecture.md (workflow, notice, export formats, API, reader view, layout), ui-design.md, use-case-canton.md step 8, publiccode.yml, submission.md's feasibility row (now Answered); the report's export row, §6 and §8 by the report session (leicht-facile-52), PDF printed again.
+- 2026-10-11 (results caption): at the owner's request the paragraph over report §5's results table is simpler: run and endpoint, means over the pairs, "/100", which rows reused cached answers (P1's time not measured, the last row's too low) and why the 70B row has 19 pairs; the commit (in §7), the 35 attempts and the cache mechanics are gone. PDF printed again: 6 pages, before the references 6, the sixth 34 % full.
+- 2026-10-11 (tested on): at the owner's request report §2's architecture table has a third column, "Tested on", from the records: (a) vLLM on one L4 (the AWS run of 10 Oct, track_2b/eval/hardware/) and llama.cpp on the laptop's RTX 4060; (b) not run without a network, only the UI's no-other-host test and CI's start against an unreachable endpoint; (c) the CSCS API for every evaluation run and the two example letters. The test facts left the "How it is met" column. PDF printed again, the table still at the foot of page 2.
+- 2026-10-11 (4-bit prompt tests): at the owner's request report §3 no longer says that prompt tests without a key ran on the community 4-bit build in llama.cpp: those results were never used. The 4-bit result in "Where Apertus fell short" (Write with thinking, 24 minutes) stays, as it backs Write without thinking. PDF printed again: 6 pages, before the references 6, the sixth 29 % full.

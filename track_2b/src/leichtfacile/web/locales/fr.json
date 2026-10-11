@@ -374,6 +374,7 @@
   "reader.print_hint": "Imprime la vue de lecture en A4, y compris les décisions non enregistrées. Pour un PDF, choisissez « Enregistrer au format PDF » comme imprimante.",
   "reader.md.desc": "Texte brut avec titres, une phrase par ligne. Pour un système de gestion de contenu.",
   "reader.html.desc": "Une page web dans la mise en page de lecture, prête à imprimer ou à publier.",
+  "reader.docx.desc": "Un document Word dans la mise en page de lecture, à retravailler et à mettre en page dans Word.",
   "reader.json.desc": "La source, la fiche de faits, chaque version du brouillon, les constats et vos décisions.",
   "reader.before": "Avant la publication",
   "reader.decided_hint": "Les blocs sans décision restent, tels qu'ils ont été écrits.",

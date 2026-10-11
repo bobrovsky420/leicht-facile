@@ -397,6 +397,7 @@
   "reader.print_hint": "Druckt die Leseansicht auf A4, auch nicht gespeicherte Entscheide. Für ein PDF wählen Sie als Drucker \"Als PDF speichern\".",
   "reader.md.desc": "Reiner Text mit Überschriften, ein Satz pro Zeile. Für ein Redaktionssystem.",
   "reader.html.desc": "Eine Webseite im Leselayout, bereit zum Drucken oder Veröffentlichen.",
+  "reader.docx.desc": "Ein Word-Dokument im Leselayout, zum Weiterbearbeiten und Gestalten in Word.",
   "reader.json.desc": "Quelle, Faktenblatt, jede Entwurfsversion, die Befunde und Ihre Entscheide.",
   "reader.before": "Vor der Veröffentlichung",
   "reader.decided_hint": "Offene Blöcke bleiben so drin, wie sie geschrieben sind.",

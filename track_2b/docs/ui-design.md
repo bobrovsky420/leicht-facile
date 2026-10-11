@@ -271,7 +271,7 @@ The table is a real `<table>`; column widths at 1440 px:
 | Checks (200) | Error icon and count, warning icon and count, "Facts 9/14"; "Not yet" before the first draft | the review page's numbers (`ReviewView.counts`, `fact_counts`) |
 | Review (150) | A 56 px meter and "4 of 21", with ", complete" once the review is complete; "Not yet" | decisions on the final version, its blocks, `ReviewState.completed` |
 | Created (150) | "Today", "Yesterday" or "05.10.2026", the time below; the full UTC time in `title` | `Job.created_at`; `app.js` makes the day relative, as today |
-| Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML or audit bundle, Delete (asks first) | existing routes |
+| Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML, Word (since 11 October 2026) or audit bundle, Delete (asks first) | existing routes |
 
 Rows highlight on hover; the title is the link, the rest of the row has no click
 handler.
@@ -397,7 +397,8 @@ status badge ("Needs review" or "Done"). On the right:
 
 - the view switch "Review | Reader view" (segmented; links as today, `app.js`
   switches in place);
-- the "Export" menu (Markdown, HTML, audit bundle; links as today);
+- the "Export" menu (Markdown, HTML, Word since 11 October 2026, audit bundle; links
+  as today);
 - the save state (`role=status`): "Saved 10:42" from the newest `Decision.at` of the
   stored review, "No decisions saved yet", "Unsaved changes" with an amber dot,
   "Saving...", "Not saved: {detail}";
@@ -562,8 +563,10 @@ version's blocking count, for the reader view's list), `facts_by_id` and
   - "Export", "Draft v1 with the saved review."
   - "Format" as a radio list: Markdown `.md` ("Plain text with headings, one sentence
     per line. For a content management system."), HTML `.html` ("A web page in the
-    reader layout, ready to print or to publish."), audit bundle `.json` ("Source,
-    fact sheet, every draft version, the findings and your decisions.").
+    reader layout, ready to print or to publish."), Word `.docx` (since 11 October
+    2026: "A Word document in the reader layout, to edit and lay out further in
+    Word."), audit bundle `.json` ("Source, fact sheet, every draft version, the
+    findings and your decisions.").
   - "Download .html" (primary, full width): the existing export URL with the chosen
     format and version.
   - "Exports use the last saved review. Decisions you have not saved are left out."
@@ -792,6 +795,7 @@ reader.export_hint        Draft v{version} with the saved review.
 reader.format             Format
 reader.md.desc            Plain text with headings, one sentence per line. For a content management system.
 reader.html.desc          A web page in the reader layout, ready to print or to publish.
+reader.docx.desc          A Word document in the reader layout, to edit and lay out further in Word.
 reader.json.desc          Source, fact sheet, every draft version, the findings and your decisions.
 reader.before             Before publication
 reader.decided_hint       Undecided blocks stay in, as drafted.

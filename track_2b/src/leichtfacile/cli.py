@@ -273,6 +273,7 @@ def _check(args: argparse.Namespace) -> int:
 def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.config import get_settings
     from leichtfacile.export.bundle import build_bundle
+    from leichtfacile.export.docx import to_docx
     from leichtfacile.export.html import to_html
     from leichtfacile.export.markdown import to_markdown
     from leichtfacile.ingest.errors import IngestError
@@ -323,6 +324,8 @@ def _simplify(args: argparse.Namespace) -> int:
         (out / "draft.md").write_text(markdown, encoding="utf-8")
         html = to_html(draft, title=job.title, notice=notice)
         (out / "draft.html").write_text(html, encoding="utf-8")
+        docx = to_docx(draft, title=job.title, notice=notice, summary=summary)
+        (out / "draft.docx").write_bytes(docx)
     tokens = sum(u.tokens_in + u.tokens_out for u in job.usage)
     print(
         f"job {job.id}: {job.status} ({job.stage}); {len(job.usage)} model calls, {tokens} tokens"

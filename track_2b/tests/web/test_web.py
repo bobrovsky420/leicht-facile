@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import io
 import json
 import logging
 import threading
+import zipfile
 from datetime import UTC, datetime
 
 import httpx
@@ -14,6 +16,7 @@ from fastapi.testclient import TestClient
 from leichtfacile import ingest
 from leichtfacile.examples import EXAMPLE_PREFIX, load_examples
 from leichtfacile.export.bundle import build_bundle
+from leichtfacile.export.docx import DOCX_TYPE
 from leichtfacile.ingest.fetch import FetchedResource
 from leichtfacile.store import Store
 from tests.conftest import chat_response
@@ -30,6 +33,12 @@ Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67.
 
 Rechtsgrundlage ist Art. 5 des Einführungsgesetzes.
 """
+
+
+def docx_document(data: bytes) -> str:
+    """The Word export's main part, with plain spaces for the no-break ones in values."""
+    with zipfile.ZipFile(io.BytesIO(data)) as package:
+        return package.read("word/document.xml").decode("utf-8").replace("\xa0", " ")
 
 
 def run_job(client: TestClient, app, **form) -> str:
@@ -88,6 +97,13 @@ def test_submit_review_and_export(app_env) -> None:
 
     html = client.get(f"/api/jobs/{job_id}/export?format=html")
     assert '<html lang="de">' in html.text and "<h2>Was müssen Sie tun?</h2>" in html.text
+
+    docx = client.get(job["links"]["export_docx"])
+    assert docx.status_code == 200 and docx.headers["content-type"] == DOCX_TYPE
+    assert docx.headers["content-disposition"] == f'attachment; filename="{job_id}.docx"'
+    document = docx_document(docx.content)
+    assert "Schicken Sie das Gesuch bis 31. März 2026." in document
+    assert "Sie haben wenig Geld." not in document and "noch nicht geprüft" not in document
 
     bundle = json.loads(client.post(f"/api/jobs/{job_id}/export?format=json").text)
     assert bundle["format"] == "leicht-facile/audit-bundle@1"
@@ -378,6 +394,8 @@ def test_a_decision_job_shows_the_notice_and_exports_it_first_and_last(app_env) 
     assert paragraphs[-1] == notice and notice in paragraphs[:3]
     html = client.get(f"/api/jobs/{job_id}/export?format=html").text
     assert html.count(f'<p class="notice">{notice}</p>') == 2
+    docx = client.get(f"/api/jobs/{job_id}/export?format=docx")
+    assert docx_document(docx.content).count(notice) == 2
     reader = client.get(f"/jobs/{job_id}/preview")
     assert reader.status_code == 200 and reader.text.count(notice) == 2
 
