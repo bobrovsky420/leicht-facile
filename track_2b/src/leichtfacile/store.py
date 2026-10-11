@@ -11,11 +11,19 @@ with the workers goes through `transition`, which names the statuses it may star
 The schema is versioned with `PRAGMA user_version`: the base tables, then one group of
 statements per later change (`_MIGRATIONS`); a database made by an older version gets
 the groups it lacks on open.
+
+The connections are a small pool (`POOL_SIZE`): an operation takes one and gives it
+back, so the web handlers read while a worker writes (WAL: readers never wait for a
+writer) and two writers wait for each other within `BUSY_TIMEOUT_S` instead of
+failing (audit B4). A write transaction begins with `BEGIN IMMEDIATE`, which takes the
+write lock up front, so a writer waits its turn before its first statement rather
+than failing midway.
 """
 
 from __future__ import annotations
 
 import json
+import queue
 import sqlite3
 import threading
 import uuid
@@ -76,42 +84,104 @@ _MIGRATIONS: tuple[tuple[str, ...], ...] = (
     ),
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
+# Connections kept open at most: the workers and a few web handlers at a time.
+POOL_SIZE = 8
+BUSY_TIMEOUT_S = 5.0  # how long a writer waits for another writer's transaction
 # The statuses a job can be in while no worker holds it. Only these may be deleted,
 # rerun or queued again; a running job is stopped first (`JobRunner.cancel`).
 IDLE_STATUSES: tuple[str, ...] = ("queued", "needs_review", "done", "failed")
 
 
 class Store:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, pool_size: int = POOL_SIZE) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.path = path
-        self._lock = threading.RLock()
-        self._conn = sqlite3.connect(path, check_same_thread=False)
-        self._conn.row_factory = sqlite3.Row
+        self._idle: queue.LifoQueue[sqlite3.Connection] = queue.LifoQueue()
+        self._size = max(1, pool_size)
+        self._open = 0  # connections made, idle or in use
+        self._open_lock = threading.Lock()
+        self._closed = False
         with self._tx() as conn:
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA foreign_keys=ON")
             conn.executescript(_SCHEMA)
             _migrate(conn)
 
+    def _connect(self) -> sqlite3.Connection:
+        # Explicit transactions (`_tx`); a connection moves between threads (the pool);
+        # WAL so that readers never wait for the writer; the busy timeout for writers.
+        conn = sqlite3.connect(
+            self.path, check_same_thread=False, autocommit=True, timeout=BUSY_TIMEOUT_S
+        )
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
+
+    def _take(self) -> sqlite3.Connection:
+        """An idle connection, a new one while the pool is under its size, else the
+        next one given back."""
+        try:
+            return self._idle.get_nowait()
+        except queue.Empty:
+            pass
+        with self._open_lock:
+            if self._closed:
+                raise sqlite3.ProgrammingError("Cannot operate on a closed database.")
+            grow = self._open < self._size
+            if grow:
+                self._open += 1
+        if not grow:
+            try:
+                return self._idle.get(timeout=30.0)
+            except queue.Empty:
+                raise sqlite3.OperationalError("no database connection became free") from None
+        try:
+            return self._connect()
+        except Exception:
+            with self._open_lock:
+                self._open -= 1
+            raise
+
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        """A connection for one operation, back in the pool afterwards."""
+        conn = self._take()
+        try:
+            yield conn
+        finally:
+            self._idle.put(conn)
+
     @contextmanager
     def _tx(self) -> Iterator[sqlite3.Connection]:
-        with self._lock:
+        """One write transaction, committed at the end, rolled back on an exception."""
+        with self._connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
             try:
-                yield self._conn
-                self._conn.commit()
-            except Exception:
-                self._conn.rollback()
+                yield conn
+            except BaseException:
+                conn.execute("ROLLBACK")
                 raise
+            conn.execute("COMMIT")
 
     def close(self) -> None:
-        with self._lock:
-            self._conn.close()
+        """Close every connection, each once the operation using it has given it back."""
+        with self._open_lock:
+            if self._closed:
+                return
+            self._closed = True
+            count = self._open
+        for _ in range(count):
+            self._idle.get().close()
+
+    @property
+    def connections(self) -> int:
+        """Connections open now, idle or in use (at most the pool's size)."""
+        with self._open_lock:
+            return self._open
 
     @property
     def schema_version(self) -> int:
-        with self._lock:
-            return int(self._conn.execute("PRAGMA user_version").fetchone()[0])
+        with self._connection() as conn:
+            return int(conn.execute("PRAGMA user_version").fetchone()[0])
 
     # -- jobs -----------------------------------------------------------------------
 
@@ -141,11 +211,11 @@ class Store:
         return job
 
     def get_job(self, job_id: str) -> Job | None:
-        with self._lock:
-            row = self._conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        with self._connection() as conn:
+            row = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
             if row is None:
                 return None
-            calls = self._conn.execute(
+            calls = conn.execute(
                 "SELECT stage, model, tokens_in, tokens_out, latency_ms, cached "
                 "FROM llm_calls WHERE job_id = ? ORDER BY id",
                 (job_id,),
@@ -157,8 +227,8 @@ class Store:
     ) -> list[Job]:
         """The newest jobs first, filtered in SQL by status and document language."""
         where, params = _filters(status, lang)
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 f"SELECT * FROM jobs{where} ORDER BY created_at DESC LIMIT ?", (*params, limit)
             ).fetchall()
         return [_job(r, []) for r in rows]
@@ -166,23 +236,23 @@ class Store:
     def count_jobs(self, status: str | None = None) -> int:
         """How many jobs there are, or how many have this status."""
         where, params = _filters(status, None)
-        with self._lock:
-            row = self._conn.execute(f"SELECT COUNT(*) FROM jobs{where}", params).fetchone()
+        with self._connection() as conn:
+            row = conn.execute(f"SELECT COUNT(*) FROM jobs{where}", params).fetchone()
         return int(row[0])
 
     def status_counts(self, lang: str | None = None) -> dict[str, int]:
         """How many jobs have each status, for the filter tabs of the drafts list."""
         where, params = _filters(None, lang)
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 f"SELECT status, COUNT(*) AS n FROM jobs{where} GROUP BY status", params
             ).fetchall()
         return {r["status"]: int(r["n"]) for r in rows}
 
     def langs(self) -> list[str]:
         """The document languages of the stored jobs, sorted."""
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 "SELECT DISTINCT json_extract(config, '$.lang') AS lang FROM jobs "
                 "WHERE lang IS NOT NULL ORDER BY lang"
             ).fetchall()
@@ -260,8 +330,8 @@ class Store:
 
     def jobs_older_than(self, cutoff: datetime) -> list[Job]:
         """Jobs last changed before `cutoff` that no worker holds, for the purge."""
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 "SELECT * FROM jobs WHERE updated_at < ? AND status != 'running' "
                 "ORDER BY updated_at",
                 (cutoff.isoformat(),),
@@ -281,41 +351,41 @@ class Store:
     def get_artifact(
         self, job_id: str, name: str, cls: type[T], version: int | None = None
     ) -> T | None:
-        with self._lock:
+        with self._connection() as conn:
             if version is None:
-                row = self._conn.execute(
+                row = conn.execute(
                     "SELECT data FROM artifacts WHERE job_id = ? AND name = ? "
                     "ORDER BY version DESC LIMIT 1",
                     (job_id, name),
                 ).fetchone()
             else:
-                row = self._conn.execute(
+                row = conn.execute(
                     "SELECT data FROM artifacts WHERE job_id = ? AND name = ? AND version = ?",
                     (job_id, name, version),
                 ).fetchone()
         return cls.model_validate_json(row["data"]) if row else None
 
     def get_artifact_json(self, job_id: str, name: str, version: int | None = None) -> dict | None:
-        with self._lock:
+        with self._connection() as conn:
             sql = "SELECT data FROM artifacts WHERE job_id = ? AND name = ?"
             params: tuple = (job_id, name)
             if version is not None:
                 sql += " AND version = ?"
                 params = (*params, version)
-            row = self._conn.execute(sql + " ORDER BY version DESC LIMIT 1", params).fetchone()
+            row = conn.execute(sql + " ORDER BY version DESC LIMIT 1", params).fetchone()
         return json.loads(row["data"]) if row else None
 
     def versions(self, job_id: str, name: str) -> list[int]:
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 "SELECT version FROM artifacts WHERE job_id = ? AND name = ? ORDER BY version",
                 (job_id, name),
             ).fetchall()
         return [r["version"] for r in rows]
 
     def artifact_names(self, job_id: str) -> dict[str, list[int]]:
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 "SELECT name, version FROM artifacts WHERE job_id = ? ORDER BY name, version",
                 (job_id,),
             ).fetchall()
@@ -358,11 +428,22 @@ class Store:
                 ),
             )
 
+    def usage_totals(self) -> list[dict]:
+        """Calls, tokens and latency per stage, model and cache hit, summed over every
+        stored job, for `/metrics` (web/observability.py)."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT stage, model, cached, COUNT(*) AS calls, SUM(tokens_in) AS tokens_in, "
+                "SUM(tokens_out) AS tokens_out, SUM(latency_ms) AS latency_ms FROM llm_calls "
+                "GROUP BY stage, model, cached ORDER BY stage, model, cached"
+            ).fetchall()
+        return [dict(r) for r in rows]
+
     def cache_keys(self, job_id: str) -> list[str]:
         """The response-cache keys of the job's model calls, so that a deleted job
         takes its cached prompts and answers with it (llm/cache.py)."""
-        with self._lock:
-            rows = self._conn.execute(
+        with self._connection() as conn:
+            rows = conn.execute(
                 "SELECT DISTINCT cache_key FROM llm_calls WHERE job_id = ? "
                 "AND cache_key IS NOT NULL",
                 (job_id,),

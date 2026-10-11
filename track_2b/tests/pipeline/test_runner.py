@@ -5,6 +5,7 @@ retention purge (T4)."""
 from __future__ import annotations
 
 import json
+import sqlite3
 import threading
 from datetime import UTC, datetime, timedelta
 
@@ -251,8 +252,8 @@ def test_the_purge_deletes_old_jobs_with_their_cache_rows_and_keeps_the_examples
     assert len(keys) == 2 and all(cache.get(k) for k in keys)
 
     long_ago = (datetime.now(UTC) - timedelta(days=31)).isoformat()
-    store._conn.execute("UPDATE jobs SET updated_at = ?", (long_ago,))
-    store._conn.commit()
+    with sqlite3.connect(store.path) as db:  # back-dated behind the store's back
+        db.execute("UPDATE jobs SET updated_at = ?", (long_ago,))
     assert purge_expired(store, llm, 0) == []  # 0: keep everything
     assert purge_expired(store, llm, 30) == [old]
     assert store.get_job(old) is None and store.get_job(example) is not None

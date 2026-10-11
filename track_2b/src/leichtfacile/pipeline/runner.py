@@ -7,13 +7,17 @@ for a nudge from `submit` or one second, whichever comes first, so a job queued 
 another process is picked up too. Jobs left `running` by a process that stopped are
 queued again on start. A queue limit refuses submissions when `JOB_QUEUE_LIMIT` jobs
 wait; `cancel` stops a queued or a running job. A housekeeping thread deletes the jobs
-older than `DATA_RETENTION_DAYS` once an hour (lifecycle.py).
+older than `DATA_RETENTION_DAYS` once an hour (lifecycle.py). `on_finished` hears every
+job's final status and how long the worker ran it (web/observability.py counts them
+for `/metrics`).
 """
 
 from __future__ import annotations
 
 import logging
 import threading
+import time
+from collections.abc import Callable
 
 from leichtfacile.lifecycle import purge_expired
 from leichtfacile.pipeline.orchestrator import CANCELLED, Orchestrator
@@ -37,6 +41,7 @@ class JobRunner:
         queue_limit: int = 50,
         retention_days: int = 0,
         purge_interval_s: float = PURGE_INTERVAL_S,
+        on_finished: Callable[[str, float], None] | None = None,
     ) -> None:
         self.orchestrator = orchestrator
         self.store = orchestrator.store
@@ -44,6 +49,7 @@ class JobRunner:
         self.queue_limit = queue_limit
         self.retention_days = retention_days
         self.purge_interval_s = purge_interval_s
+        self.on_finished = on_finished
         self._threads: list[threading.Thread] = []
         self._work = threading.Condition()  # a nudge: something was queued or finished
         self._stopping = threading.Event()
@@ -102,6 +108,12 @@ class JobRunner:
             if thread.is_alive():
                 thread.join(timeout_s)
 
+    @property
+    def busy(self) -> int:
+        """Workers between taking a job and finishing it."""
+        with self._work:
+            return self._busy
+
     def wait_idle(self, timeout_s: float = 30.0) -> bool:
         """For tests: wait until no job is waiting and no worker is busy."""
         with self._work:
@@ -131,14 +143,25 @@ class JobRunner:
                     if not self._stopping.is_set():
                         self._work.wait(POLL_S)
                 continue
+            started = time.monotonic()
             try:
                 self.orchestrator.run(job_id)
             except Exception:  # run() records failures itself; this is a last resort
                 log.exception("job runner: unexpected error in job %s", job_id)
             finally:
+                self._finished(job_id, time.monotonic() - started)
                 with self._work:
                     self._busy -= 1
                     self._work.notify_all()
+
+    def _finished(self, job_id: str, seconds: float) -> None:
+        if self.on_finished is None:
+            return
+        try:
+            job = self.store.get_job(job_id)
+            self.on_finished(job.status if job else "deleted", seconds)
+        except Exception:  # a metric never costs a job
+            log.exception("job runner: the finish of job %s was not counted", job_id)
 
     def _housekeeping(self) -> None:
         while True:

@@ -13,11 +13,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ThinkingMode = Literal["model-suffix", "chat-template", "off"]
 AuthMode = Literal["none", "token", "proxy"]
+LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+LogFormat = Literal["text", "json"]
 Network = ipaddress.IPv4Network | ipaddress.IPv6Network
 
 # The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
@@ -25,9 +27,21 @@ Network = ipaddress.IPv4Network | ipaddress.IPv6Network
 _APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
 
 
-class Settings(BaseSettings):
+class Paths(BaseSettings):
+    """The settings that need no model endpoint. The dataset tools and the example
+    loader read them as `Paths()` without a key; the application reads them as part of
+    `Settings`. Every environment variable goes through one of the two, so `.env` is
+    honoured everywhere (audit B1)."""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+    data_dir: Path = Path("track_2b/data")
+    # The example letters offered on the start page (sources/) and the pre-computed
+    # example jobs loaded on the first start (jobs/).
+    examples_dir: Path = Path("track_2b/data/examples")
+
+
+class Settings(Paths):
     # Model endpoint (OpenAI-compatible). See .env.example for the supported profiles.
     llm_base_url: str
     llm_api_key: SecretStr
@@ -106,13 +120,21 @@ class Settings(BaseSettings):
     # everything.
     data_retention_days: int = Field(default=0, ge=0)
 
-    # Runtime
-    data_dir: Path = Path("track_2b/data")
-    log_level: str = "INFO"
+    # Runtime. Document text is only ever logged at DEBUG (track_2b/docs/architecture.md
+    # §10); the level is checked at start, so a typo never crashes the first log call.
+    log_level: LogLevel = "INFO"
+    # One line per record as text (`LEVEL logger: message key=value`) or as JSON
+    # (`{"time", "level", "logger", "message", "request_id", "job_id", ...}`) for a log
+    # collector (web/observability.py).
+    log_format: LogFormat = "text"
     # Interface language for visitors who have not picked one: a code with a catalog in
     # web/locales/ (en, de), or "auto" for the browser's preference. The switcher in the
     # header overrides it per browser.
     ui_lang: str = "auto"
+
+    # Lets users submit URLs of the private network (an intranet deployment that needs
+    # internal pages); the redirect hops are still walked and checked (ingest/fetch.py).
+    allow_private_urls: bool = False
 
     # Deployment (track_2b/docs/architecture.md §10, web/security.py). The interface the
     # port is published on: docker-compose.yml reads the same variable, so one line in
@@ -130,6 +152,17 @@ class Settings(BaseSettings):
     # Writes and other costly requests (POST, PUT, PATCH, DELETE) one client address may
     # make per minute; 0 turns the limit off.
     rate_limit_per_minute: int = Field(default=120, ge=0)
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def _level_name(cls, value: object) -> object:
+        """`LOG_LEVEL=info` means INFO."""
+        return value.strip().upper() if isinstance(value, str) else value
+
+    @field_validator("log_format", mode="before")
+    @classmethod
+    def _format_name(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
 
     @model_validator(mode="after")
     def _deployment_is_consistent(self) -> Settings:

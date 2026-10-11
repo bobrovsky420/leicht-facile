@@ -137,9 +137,10 @@ def _example_languages(folder: Path) -> dict[str, str]:
     return {e["id"]: detect_language(e["text"])[0] or "" for e in example_sources(folder)}
 
 
-def examples_for_page(t: Translator) -> list[dict[str, str]]:
-    """The example letters with their language, for the New draft page and the empty list."""
-    folder = examples_dir()
+def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[str, str]]:
+    """The example letters with their language, for the New draft page and the empty
+    list; `folder` is `Settings.examples_dir`, else EXAMPLES_DIR is read."""
+    folder = folder or examples_dir()
     langs = _example_languages(folder)
     out = []
     for example in example_sources(folder):
@@ -201,7 +202,7 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         filtered=bool(query or lang or status != "all"),
         filters=filters,
         langs=store.langs(),
-        examples=examples_for_page(t) if not total else [],
+        examples=examples_for_page(t, request.app.state.settings.examples_dir) if not total else [],
         rule_count=rule_count(),
         section="drafts",
         section_root=True,
@@ -235,7 +236,7 @@ def _new(
         t=t,
         error=error,
         form=form,
-        examples=examples_for_page(t),
+        examples=examples_for_page(t, request.app.state.settings.examples_dir),
         doc_langs=[lang for lang in LANGS if lang in written],
         coming_langs=[lang for lang in LANGS if lang not in written],
         pipelines=_pipelines(t),
@@ -252,7 +253,8 @@ def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
     """The form for a new draft; `?example=<id>` fills in one of the example letters."""
     form: dict = {}
     if example:
-        found = next((e for e in example_sources() if e["id"] == example), None)
+        folder = request.app.state.settings.examples_dir
+        found = next((e for e in example_sources(folder) if e["id"] == example), None)
         if found is not None:
             form["text"] = found["text"]
             # The decision mode's settings from the file next to the example, if any.

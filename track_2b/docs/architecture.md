@@ -665,7 +665,10 @@ prompts with it); the response cache is a second file (`llm_cache.sqlite`). Stan
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
 tables, then one group of statements per later change (`store.py`, `_MIGRATIONS`); a
 database made by an older version gets the groups it lacks when it is opened. The jobs
-table is also the work queue (§7).
+table is also the work queue (§7). The connections are a small pool (8): an operation
+takes one and gives it back, the database runs in WAL mode, so the web handlers read
+while a worker writes, and a write transaction begins with `BEGIN IMMEDIATE`, so two
+writers wait for each other (5 s) instead of failing midway.
 
 ## 6. The LLM client
 
@@ -786,6 +789,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the model endpoint reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
+| `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
 
 Jobs run on `JOB_WORKERS` worker threads (one by default: enough for a reviewer's
 workload; more share an endpoint that serves parallel requests, as vLLM does). The jobs
@@ -1203,7 +1207,18 @@ at runtime.
 - `/healthz` answers from the process alone; `/readyz` asks the model endpoint at most
   once in 30 s, whoever asks, and answers booleans and the configured names, never the
   endpoint's catalogue, so a caller cannot make the server spend the key's quota or
-  learn what the endpoint serves.
+  learn what the endpoint serves. `/metrics` (§7) says how much the service is used
+  and which models it calls, so it stays behind the login when one is configured; the
+  probes alone are open.
+- Every response carries an `X-Request-ID`: the client's when it is a plain token (a
+  reverse proxy sets one, so its log and ours meet), else a new one. Every log line
+  written while the request is handled carries the id, and every line a worker writes
+  while it runs a job carries the job id (`logs.py`, context variables). One access
+  line per request names method, path, status, duration and client address, never the
+  query string, which can carry what a reviewer typed into the drafts search; uvicorn's
+  own access log, which has the query string, is off. `LOG_FORMAT=json` writes every
+  line as one JSON object (time, level, logger, message, request_id, job_id, the
+  access line's fields, the traceback) for a log collector; `text` is the default.
 - Jobs and artifacts live on the mounted volume and can be deleted via the API and
   the pages; the data lifecycle below says what is kept, for how long, and what a
   deletion takes with it.
@@ -1275,8 +1290,10 @@ What the service stores, where, for how long, and how it leaves:
 - **What leaves the machine.** Only the model calls: the document text, the fact sheet
   and the drafts go to the endpoint named by `LLM_BASE_URL`, nowhere else; the
   deployment profiles in §10 say which endpoints are sovereign.
-- **Logs.** Model, stage, tokens and latency per call; job ids and stages; errors
-  without the words of the document or the answer (above). Nothing a person wrote.
+- **Logs.** Model, stage, tokens and latency per call; job ids and stages; one line
+  per request with method, path, status, duration, client address and request id, no
+  query string; errors without the words of the document or the answer (above).
+  Nothing a person wrote.
 
 ## 11. Repository layout
 
@@ -1313,6 +1330,8 @@ track_2b/                   the template's folder, as the organisers require it
     schemas.py              artifacts (§5)
     store.py                SQLite access
     examples.py             example jobs: import on start, build
+    lifecycle.py            the counts on the job row, deletion with the cache rows, the purge, the log redaction
+    logs.py                 the log output: a text or a JSON line per record, the request and job ids on it
     llm/                    client.py, json_out.py, reasoning.py, cache.py
     llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
@@ -1327,7 +1346,8 @@ track_2b/                   the template's folder, as the organisers require it
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
     web/                    app.py, api.py, pages.py, jobs.py, views.py, i18n.py,
-                            security.py (the hardening layer), health.py, templates/,
+                            security.py (the hardening layer), health.py (the probes),
+                            observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
     export/                 markdown.py, html.py, bundle.py
     eval/                   dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,

@@ -95,10 +95,10 @@ def main(argv: list[str] | None = None) -> int:
     add_eval_parser(sub)
 
     args = parser.parse_args(argv)
+    if args.command == "serve":
+        return _serve(args.host, args.port)  # the app configures its logs (logs.py)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
-    if args.command == "serve":
-        return _serve(args.host, args.port)
     if args.command == "check-llm":
         return _check_llm(args.model, args.thinking)
     if args.command == "ingest":
@@ -128,7 +128,11 @@ def _serve(host: str, port: int) -> int:
     # The app refuses to start published beyond this machine without a login
     # (web/security.py); `--host` says where it is published, as BIND_HOST does in Compose.
     os.environ.setdefault("BIND_HOST", host)
-    uvicorn.run("leichtfacile.web.app:create_app", factory=True, host=host, port=port)
+    # The app writes its own access line, with the request id and without the query
+    # string (web/observability.py); uvicorn's would double it.
+    uvicorn.run(
+        "leichtfacile.web.app:create_app", factory=True, host=host, port=port, access_log=False
+    )
     return 0
 
 

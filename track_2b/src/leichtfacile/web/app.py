@@ -1,4 +1,4 @@
-"""FastAPI application: pages, JSON API, health checks, and the job runner.
+"""FastAPI application: pages, JSON API, probes and metrics, and the job runner.
 
 Run with `uvicorn leichtfacile.web.app:create_app --factory`.
 """
@@ -16,12 +16,12 @@ from fastapi.staticfiles import StaticFiles
 from leichtfacile import __version__
 from leichtfacile.config import Settings, get_settings
 from leichtfacile.examples import load_examples
-from leichtfacile.lifecycle import redact_logs
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.logs import configure_logging
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
 from leichtfacile.store import Store
-from leichtfacile.web import api, health, pages, security
+from leichtfacile.web import api, health, observability, pages, security
 
 log = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent / "static"
@@ -36,22 +36,25 @@ def create_app(
     load_examples_on_start: bool = True,
 ) -> FastAPI:
     settings = settings or get_settings()
-    logging.getLogger("leichtfacile").setLevel(settings.log_level.upper())
-    redact_logs()  # no excerpt of a document or an answer in an error's log line (§10)
+    # One line per record, text or JSON, with the request and job ids (logs.py); no
+    # excerpt of a document or an answer in an error's line (§10).
+    configure_logging(settings.log_level, settings.log_format)
     llm = llm or LLMClient.from_settings(settings)
     store = store or Store(settings.data_dir / DATABASE_NAME)
     orchestrator = Orchestrator(store, llm, settings)
+    metrics = observability.Metrics()  # what this process counts for /metrics
     runner = JobRunner(
         orchestrator,
         workers=settings.job_workers,
         queue_limit=settings.job_queue_limit,
         retention_days=settings.data_retention_days,
+        on_finished=metrics.observe_job,
     )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if load_examples_on_start:
-            load_examples(store)
+            load_examples(store, settings.examples_dir)
         resumed = runner.recover_on_start()
         if resumed:
             log.info("queued %d jobs again that were running when the service stopped", resumed)
@@ -68,11 +71,15 @@ def create_app(
     # How many submissions are read at a time (web/jobs.py).
     app.state.ingest_slots = threading.BoundedSemaphore(settings.ingest_slots)
     app.state.endpoint_check = health.EndpointCheck(llm)
+    app.state.metrics = metrics
 
-    # Headers, rate limit, login, cross-site guard, body limit: web/security.py.
+    # Headers, rate limit, login, cross-site guard, body limit: web/security.py; outside
+    # them the request id and the access line: web/observability.py.
     security.install(app, settings)
+    observability.install(app, metrics)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(api.router)
     app.include_router(pages.router)
     app.include_router(health.router)
+    app.include_router(observability.router)
     return app

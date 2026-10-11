@@ -161,10 +161,11 @@ uv run python -m leichtfacile serve         # http://127.0.0.1:8000
   `DATA_DIR=...` moves it.
 - `serve --port 8001` picks another port. `serve --host 0.0.0.0` publishes the app on
   every interface and needs a login (below), as `BIND_HOST` does in Compose.
-- With live reload while editing code:
+- With live reload while editing code (`--no-access-log`: the app writes its own
+  access line, with the request id and without the query string):
 
   ```bash
-  uv run uvicorn leichtfacile.web.app:create_app --factory --reload
+  uv run uvicorn leichtfacile.web.app:create_app --factory --reload --no-access-log
   ```
 
 - The same commands without uv, in a virtual environment with the project installed:

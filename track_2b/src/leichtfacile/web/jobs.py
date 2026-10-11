@@ -9,7 +9,6 @@ the other requests, the probes included, keep their threads (audit V4).
 
 from __future__ import annotations
 
-import os
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -160,10 +159,8 @@ def create_job(
         raise SubmissionError("unknown_condition", condition=sub.condition)
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
-    # ALLOW_PRIVATE_URLS=1: an intranet deployment that needs internal pages.
-    allow = os.environ.get("ALLOW_PRIVATE_URLS", "").lower() in ("1", "true", "yes")
-    with ingest_slot(slots):
-        source = ingest_submission(sub, allow_private_urls=allow)
+    with ingest_slot(slots):  # ALLOW_PRIVATE_URLS: an intranet that needs internal pages
+        source = ingest_submission(sub, allow_private_urls=settings.allow_private_urls)
     if not source.segments:
         raise SubmissionError("no_text")
     if source.lang not in available_languages():

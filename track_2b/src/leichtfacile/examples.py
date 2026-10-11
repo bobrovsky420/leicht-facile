@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
+from leichtfacile.config import Paths
 from leichtfacile.schemas import (
     Draft,
     FactSheet,
@@ -32,7 +32,9 @@ EXAMPLE_PREFIX = "Example: "
 
 
 def examples_dir() -> Path:
-    return Path(os.environ.get("EXAMPLES_DIR", "track_2b/data/examples"))
+    """EXAMPLES_DIR from the environment or .env, without the model settings (no key
+    is needed to read the examples). The web app passes `Settings.examples_dir`."""
+    return Paths().examples_dir
 
 
 def example_sources(folder: Path | None = None) -> list[dict[str, str]]:

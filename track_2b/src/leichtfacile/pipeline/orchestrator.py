@@ -19,6 +19,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from leichtfacile import logs
 from leichtfacile.config import Settings
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
@@ -269,6 +270,7 @@ class Orchestrator:
         )
         with self._runs_lock:
             self._runs[job_id] = run
+        logged = logs.job_id.set(job_id)  # every log line of the run names the job
         try:
             # Each model call is billed to the job when it is made, so a stage that fails
             # after some calls has them in the usage too. The limit ends a stopped job's
@@ -279,6 +281,7 @@ class Orchestrator:
             ):
                 self._run(run, job)
         finally:
+            logs.job_id.reset(logged)
             with self._runs_lock:
                 self._runs.pop(job_id, None)
 

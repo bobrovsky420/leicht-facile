@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -18,6 +17,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
+from leichtfacile.config import Paths
 from leichtfacile.schemas import SourceDocument
 
 log = logging.getLogger(__name__)
@@ -27,8 +27,9 @@ Side = Literal["standard", "easy"]
 
 
 def data_dir() -> Path:
-    """DATA_DIR without loading the model settings (no key needed for the dataset)."""
-    return Path(os.environ.get("DATA_DIR", "track_2b/data"))
+    """DATA_DIR from the environment or .env, without the model settings (no key is
+    needed for the dataset)."""
+    return Paths().data_dir
 
 
 def cache_dir() -> Path:

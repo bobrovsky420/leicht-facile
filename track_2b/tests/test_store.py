@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
+import time
 from datetime import UTC, datetime, timedelta
+
+import pytest
 
 from leichtfacile.llm.client import Usage
 from leichtfacile.schemas import Block, Draft, JobConfig, JobCounts
@@ -123,8 +127,68 @@ def test_list_filters_counts_and_languages_in_sql(tmp_path) -> None:
     assert store.status_counts(lang="fr") == {"failed": 1}
     assert store.langs() == ["de", "fr"]
     old = datetime.now(UTC) - timedelta(days=40)
-    store._conn.execute("UPDATE jobs SET updated_at = ? WHERE id = ?", (old.isoformat(), de.id))
-    store._conn.commit()
+    with sqlite3.connect(store.path) as db:  # back-dated behind the store's back
+        db.execute("UPDATE jobs SET updated_at = ? WHERE id = ?", (old.isoformat(), de.id))
     cutoff = datetime.now(UTC) - timedelta(days=30)
     assert [j.id for j in store.jobs_older_than(cutoff)] == [de.id]
     store.close()
+
+
+def test_readers_never_wait_for_a_writer_and_writers_wait_for_each_other(tmp_path) -> None:
+    """Audit B4: a pool of connections in WAL mode. A worker's open write transaction
+    holds no reader up; a second writer waits until it is committed."""
+    store = Store(tmp_path / "pool.sqlite")
+    store.create_job(JobConfig(), title="before")
+    entered, release, done = threading.Event(), threading.Event(), threading.Event()
+
+    def long_write() -> None:
+        with store._tx() as conn:  # the transaction a worker's write holds open
+            conn.execute("UPDATE jobs SET title = 'during'")
+            entered.set()
+            release.wait(10)
+
+    def second_write() -> None:
+        store.create_job(JobConfig(), title="after")
+        done.set()
+
+    writer = threading.Thread(target=long_write)
+    writer.start()
+    assert entered.wait(5)
+    started = time.monotonic()
+    assert [j.title for j in store.list_jobs()] == ["before"], "a reader sees the committed state"
+    assert time.monotonic() - started < 1.0, "and sees it at once"
+    other = threading.Thread(target=second_write)
+    other.start()
+    assert not done.wait(0.3), "the second writer waits for the first"
+    release.set()
+    writer.join(5)
+    assert done.wait(5)
+    other.join(5)
+    assert sorted(j.title for j in store.list_jobs()) == ["after", "during"]
+    store.close()
+
+
+def test_the_pool_serves_parallel_threads_within_its_size(tmp_path) -> None:
+    store = Store(tmp_path / "pool2.sqlite", pool_size=3)
+    errors: list[Exception] = []
+
+    def work(n: int) -> None:
+        try:
+            for i in range(25):
+                job = store.create_job(JobConfig(), title=f"{n}-{i}")
+                assert store.get_job(job.id) is not None
+                store.list_jobs(5)
+        except Exception as exc:  # reported by the test, not lost in the thread
+            errors.append(exc)
+
+    threads = [threading.Thread(target=work, args=(n,)) for n in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(30)
+    assert errors == []
+    assert store.count_jobs() == 200
+    assert 1 <= store.connections <= 3
+    store.close()
+    with pytest.raises(sqlite3.ProgrammingError):
+        store.count_jobs()
