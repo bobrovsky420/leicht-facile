@@ -85,7 +85,7 @@ export const Kitchen: React.FC<{
           </div>
           <div style={{ fontFamily: F.sans, fontSize: 34, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>22% of adults aged 16-65 struggle with reading</div>
           {/* on screen only: who the survey counts (track_2b/docs/hard-texts.md §2) */}
-          <div style={{ fontFamily: F.sans, fontSize: 24, color: "rgba(255,255,255,0.65)", marginTop: 10, letterSpacing: 0.5 }}>All residents, whatever their first language, tested in German, French or Italian</div>
+          <div style={{ fontFamily: F.sans, fontSize: 24, color: "rgba(255,255,255,0.65)", marginTop: 10, letterSpacing: 0.5 }}>All residents, tested in German, French or Italian</div>
           <div style={{ fontFamily: F.sans, fontSize: 24, color: "rgba(255,255,255,0.65)", marginTop: 4, letterSpacing: 0.5 }}>Source: Swiss Federal Statistical Office, PIAAC 2022/23</div>
         </AbsoluteFill>
       )}
