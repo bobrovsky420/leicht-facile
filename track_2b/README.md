@@ -118,7 +118,9 @@ login the app refuses to start beyond localhost.
 The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_URL`.
 `.env.example` lists the profiles: CSCS, a local vLLM (`docker compose --profile
 local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.
-Without `make`: `docker compose up --build`.
+Without `make`: `docker compose up --build`. Every way to start the app (Compose, plain
+Docker, local vLLM or llama.cpp, without Docker, command line only):
+[track_2b/docs/quickstart.md](docs/quickstart.md).
 
 Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
 endpoint serves it; otherwise `LLM_NAME` judges).
@@ -193,6 +195,7 @@ Italian (after the hackathon).
 ## Documentation
 
 - [track_2b/technical_report.md](technical_report.md): the technical report (PDF: `track_2b/RoestigrabenBridgers_Report.pdf`)
+- [track_2b/docs/quickstart.md](docs/quickstart.md): every way to start the app, from `make run` to a development server
 - [track_2b/docs/architecture.md](docs/architecture.md): design and architecture
 - [track_2b/docs/ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [track_2b/docs/rules.md](docs/rules.md): the rule catalogue the checker implements
