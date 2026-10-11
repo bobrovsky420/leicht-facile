@@ -57,8 +57,9 @@ and 7. Remotion lists a composition only for the versions whose timeline step 4 
 - The kitchen table, the letter and the envelopes are drawn in code; generated
   footage may replace the table later (track_2b/docs/demo-video.md).
 - The music is made in code.
-- The evidence scene carries the final run of 11 October 2026 (report §5): 15.0 against
-  4.2 rule errors per 100 blocks, 15 % of the hard facts lost without a trace.
+- The evidence scene carries the final run of 11 October 2026 (report §5): 15 % of the
+  hard facts lost without a trace by a strong single prompt, none by Leicht·Facile, which
+  lists every one it misses.
 - The easy-language text of the opening sentence before the end card (`src/scenes/Again.tsx`)
   is the team's illustrative rewrite, labelled on screen. The frozen pipeline's real P2
   output for the two sentences inside a short letter each (`letters/`, run 10 October

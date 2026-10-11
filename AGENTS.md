@@ -30,11 +30,13 @@ working here and can only be relaxed by an explicit instruction from the owner.
   called inside `track_2b/`, so their paths are written from the root.
 - Write paths from the repository root (`track_2b/docs/rules.md`) in prose, comments
   and code. Markdown link targets are relative to the file that contains them.
-- `README.md`, `technical_report.md` and `RoestigrabenBridgers_Report.pdf` exist twice,
-  in the root and in `track_2b/`. The Markdown copies have the same text; only relative
+- `README.md` exists twice, in the root and in `track_2b/`: the same text; only relative
   link targets differ, each written from its own file's folder. Change both copies in
-  the same edit. The PDF is printed once (links absolute, track_2b/docs/submission.md
-  §5) and copied to both places. `track_2b/tests/test_copies.py` checks all three.
+  the same edit. The technical report and its PDF exist only in `track_2b/` (owner, 11
+  October 2026): `track_2b/technical_report.md` and `track_2b/RoestigrabenBridgers_Report.pdf`,
+  printed from it with `make pdf` (links absolute, track_2b/docs/submission.md §5); print
+  it again after every change to the report. `track_2b/tests/test_copies.py` checks the
+  README copies and the PDF's links.
 - On every version bump, change in the same edit: the version in `pyproject.toml`,
   `track_2b/src/leichtfacile/__init__.py` (`__version__`) and `publiccode.yml`
   (`softwareVersion`), and the release wheel's URL (`releases/download/v<version>/

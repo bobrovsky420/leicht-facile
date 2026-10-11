@@ -79,7 +79,7 @@
       "chunks": [
         {
           "id": "st-a",
-          "text": "Here is how, on one sentence from a real letter.",
+          "text": "Here is how, on one sentence from a sample letter.",
           "pause": 0.6
         },
         {
@@ -136,12 +136,12 @@
       "chunks": [
         {
           "id": "ev-a",
-          "text": "Same model. A strong single prompt against our pipeline: under a third of the rule errors.",
+          "text": "Same model. A strong single prompt loses fifteen percent of the hard facts without a trace.",
           "pause": 0.3
         },
         {
           "id": "ev-b",
-          "text": "And Leicht·Facile lists every hard fact it misses."
+          "text": "Leicht·Facile lists every one it misses."
         }
       ]
     },

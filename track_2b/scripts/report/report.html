@@ -25,7 +25,7 @@
   <p class="subtitle">{{ report.subtitle }}</p>
   <dl class="meta">
     {% for label, value in report.meta.items() if label not in ("Event", "Track") %}
-    <div class="meta-{{ label | lower }}"><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
+    <div class="meta-{{ label | lower | replace(' ', '-') }}"><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
     {% endfor %}
   </dl>
 </header>

@@ -1,5 +1,5 @@
-<svg class="fig" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 504 132" role="img" aria-label="Deployment: the reviewer's browser reaches the leicht-facile container through the organisation's reverse proxy and login. In the container FastAPI runs the pipeline; its rule checker is code, its LLM client calls the Apertus endpoint at LLM_BASE_URL, on-premise, air-gapped or in a Swiss cloud. Jobs live in the volume appdata.">
-  <!-- The first Mermaid diagram of technical_report.md §2, drawn for the PDF (track_2b/scripts/report_pdf.py). Units are pt at full width. -->
+<svg class="fig" xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 506 134" role="img" aria-label="Deployment: the reviewer's browser reaches the leicht-facile container through the organisation's reverse proxy and login. In the container FastAPI runs the pipeline; its rule checker is code, its LLM client calls the Apertus endpoint at LLM_BASE_URL, on-premise, air-gapped or in a Swiss cloud. Jobs live in the volume appdata.">
+  <!-- The first Mermaid diagram of track_2b/technical_report.md §2, drawn for the PDF (track_2b/scripts/report_pdf.py). Units are pt at full width; the view box keeps 1 unit around the drawing, so that no border is cut. -->
   <defs>
     <marker id="arrow-a" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
       <path class="head" d="M0,0.4 L6,3 L0,5.6 Z"/>

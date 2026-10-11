@@ -45,7 +45,7 @@ def plain(text: str) -> str:
         ),
         ("../LICENSE", f"{REPO}/blob/main/LICENSE"),
         ("eval/hardware/", f"{REPO}/tree/main/track_2b/eval/hardware/"),
-        ("https://youtu.be/V_R4AABLriI", "https://youtu.be/V_R4AABLriI"),
+        ("https://youtu.be/3UVbaXQ8I6o", "https://youtu.be/3UVbaXQ8I6o"),
     ],
 )
 def test_a_relative_link_points_to_the_repository_on_github(href: str, url: str) -> None:
@@ -65,6 +65,61 @@ def test_every_section_of_the_report_is_on_the_page(report) -> None:
         for h in re.findall(r"<h2>(?:<span class=\"num\">\d+\.</span> )?(.*?)</h2>", report.body)
     ]
     assert shown == headings
+
+
+def test_the_team_shows_its_name_and_one_member_per_line(report) -> None:
+    lines = [plain(line) for line in str(report.meta["Team"]).split("<br>")]
+    assert lines == [
+        "Röstigraben Bridgers",
+        "Alexander Bobrovsky (bobrovsky@seznam.cz)",
+        "Ivan Kuzmych (i.kuzmych@hotmail.com)",
+    ]
+
+
+def test_the_foot_table_moves_down_its_subsection_only() -> None:
+    """The renderer tries the target-architecture table further down, never past the end
+    of its subsection (report §2, "Target architecture")."""
+    text = REPORT.read_text(encoding="utf-8")
+    reach, heading, header = report_pdf.parse(text).foot
+    assert (heading, header) == ("Target architecture", "Architecture How it is met Tested on")
+    for shift in (*range(reach + 1), reach + 3):
+        body = str(report_pdf.parse(text, shift=shift).body)
+        table, contacts = body.index("How it is met"), body.index("What it receives")
+        assert body.index("Target architecture") < table < body.index("Use of Apertus")
+        assert (table < contacts) == (shift == 0)
+        # never between a sentence ending in a colon and the table it introduces
+        assert not body.index("What the running system contacts:") < table < contacts
+
+
+def test_the_summary_starts_its_second_column_with_the_deployment(report) -> None:
+    assert '<p class="new-column">One container plus an' in str(report.body)
+
+
+def test_the_data_chapter_runs_across_the_page(report) -> None:
+    body = str(report.body)
+    assert body.count('<section class="numbered single">') == 1
+    assert body.index('<section class="numbered single">') < body.index("Dev pairs serve")
+
+
+def test_the_results_table_leaves_its_introduction_in_the_columns(report) -> None:
+    body = str(report.body)
+    assert '<div class="spread">\n<p>Results on the' not in body
+    assert "<p>Results on the" in body
+
+
+def test_the_hardware_tables_model_column_does_not_wrap(report) -> None:
+    assert str(report.body).count('<td class="nobr">8B in ') == 2
+
+
+def test_a_title_found_alone_starts_a_new_page() -> None:
+    text = REPORT.read_text(encoding="utf-8")
+    body = str(report_pdf.parse(text, breaks=frozenset({"8. Next steps", "4. Data"})).body)
+    assert '<h2 class="new-page"><span class="num">8.</span> Next steps</h2>' in body
+    assert '<div class="spread new-page">\n<h2><span class="num">4.</span> Data' in body
+
+
+def test_no_chapter_title_stands_alone_at_the_foot_of_a_page() -> None:
+    assert report_pdf.stranded_titles(PDF.read_bytes()) == set()
 
 
 def test_the_figures_carry_the_labels_of_the_mermaid_diagrams() -> None:

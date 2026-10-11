@@ -17,8 +17,8 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 | Deliverable | Where | State |
 |-------------|-------|-------|
 | Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
-| Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. **[PENDING: print again after any later change to the report, such as the final video link]** |
-| Demo video (URL), at most 2 minutes | Version C, 117.6 s ([demo-video.md](demo-video.md)); temporary upload of mock C26 (11 October): https://youtu.be/V_R4AABLriI | Linked in both READMEs and both report copies; the report PDF gets it with its next export. **[PENDING: final render with the final numbers and the opening sentence's real output; upload it under this link or replace the link everywhere]** |
+| Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. Printed again on 11 October with the video link of C38. **[PENDING: print again after any later change to the report]** |
+| Demo video (URL), at most 2 minutes | Version C, 118.7 s ([demo-video.md](demo-video.md)), render C38 (11 October, the final numbers), uploaded 11 October: https://youtu.be/3UVbaXQ8I6o (before: a temporary upload of mock C26) | Linked in both READMEs, the report and its PDF (printed again 11 October). A later render needs a new upload and the link replaced everywhere: YouTube cannot swap the video behind an existing link. |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
 | `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
 
@@ -43,7 +43,7 @@ site on 9 October; * = required):
 | Technical report (PDF, max. 6 pages) * | `track_2b/RoestigrabenBridgers_Report.pdf` |
 | Dataset (URL) | empty |
 | Git repo (URL) * | https://github.com/bobrovsky420/leicht-facile |
-| Demo video (URL), required for Track 2B | https://youtu.be/V_R4AABLriI (temporary, mock C26; **[PENDING: the final upload's URL, if it changes]**) |
+| Demo video (URL), required for Track 2B | https://youtu.be/3UVbaXQ8I6o (render C38) |
 | Your message (optional, at most 5,000 characters) | §3 |
 | Terms and Conditions * | Accept. Section 6, "What you build is open source": code Apache 2.0, report CC-BY-4.0 |
 
@@ -79,7 +79,12 @@ Where to start: README.md, track_2b/technical_report.md (as PDF: track_2b/Roesti
 
 - **Platform and visibility:** **[OWNER: for example YouTube, unlisted; it must play
   without a login]**
-- **Length:** at most 2:00; version C is 118.1 s ([demo-video.md](demo-video.md)).
+- **Length:** at most 2:00; version C is 118.7 s ([demo-video.md](demo-video.md)).
+- **Chapters:** the timestamps in the description, from the scene starts of C38
+  (`src/timeline-c.json` in the build folder), each rounded down to the second. YouTube
+  needs 0:00 first, at least 3 chapters and 10 s each, so the hook (7 s) joins the
+  stakes, and the callback and the end card (8.5 s) join "Why only Apertus". Compute
+  them again after a new voice.
 - **Title:** Leicht·Facile: easy-language drafts of Swiss official letters with Apertus
 - **Description:**
 
@@ -90,7 +95,14 @@ Hack Apertus 2026, Track 2B. Team Röstigraben Bridgers (Alexander Bobrovsky, Iv
 
 Code, report and how to run it: https://github.com/bobrovsky420/leicht-facile
 
-Voice and imagery AI-generated; the voice is Kokoro (open weights, run locally). [OWNER: confirm the credits for the final cut]
+0:00 Can you read this?
+0:18 Easy language, drafted with Apertus
+0:30 One sentence, step by step
+0:54 The whole letter, checked and approved
+1:06 Evidence: no hard fact lost without a trace
+1:17 Why only Apertus
+
+Voice AI-generated: Kokoro (open weights, run locally). Pictures drawn in code or captured from the app.
 ```
 
 ## 5. The report PDF
@@ -107,7 +119,12 @@ with markdown-it-py, so every change of the report reaches it with the next prin
   and page numbers. Each chapter title spans the page, ruled above and below, and the
   chapter starts at the top of a new pair of columns (owner, 11 October). Wide tables
   and the diagrams span both columns; a paragraph that introduces a wide table becomes
-  its caption; a title stays with the diagram, caption or table that follows it.
+  its caption; a title stays with the diagram, caption or table that follows it. After
+  printing, the renderer looks for a chapter title with no text under it on its page
+  (Chromium does not keep a full-width title with the columns below it) and prints
+  again with that chapter on a new page (owner, 11 October).
+  The summary starts its right column with the deployment paragraph ("One container
+  plus an ...", `NEW_COLUMN` in the renderer; owner, 11 October).
   Ragged right and no hyphenation (owner, 11 October): no word is broken at a line
   end, not even at a hyphen of its own.
 - **First page:** a title block made from the list under the report's title, and four
@@ -130,7 +147,9 @@ with markdown-it-py, so every change of the report reaches it with the next prin
 - **Foot table:** the target-architecture table (a, b, c) spans the page at the foot of
   the page its subsection starts on (owner, 11 October). The renderer prints the report
   with the table moved down its subsection block by block and keeps the last place
-  where it still starts on that page.
+  where it still starts on that page; a sentence ending in a colon stays with the block
+  it introduces. Space above the table and its column widths are set so that it fits
+  the foot of page 2 with today's text.
 - **Limit:** at most 6 pages without the references (the organisers in the hackathon
   chat, 11 October, 13:43: "It's w/o references"; they add it to the guide). The
   renderer finds where the references start by the bookmark of their heading, counts
@@ -163,8 +182,8 @@ answer each question:
 | | (Maturity level declared) | Report header; README; message §3 | Confirmed by the owner, 11 October |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
-| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). No published drafting time per page to compare with. |
-| | What happens to cost and speed at ten times the volume? | Report §5 "Cost, and ten times the volume" | Answered; more workers neither built nor measured |
+| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost and scale" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). No published drafting time per page to compare with. |
+| | What happens to cost and speed at ten times the volume? | Report §5 "Cost and scale" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
 | | Are weights, licences and dependencies free of blocking terms? | Report §2 licences | Answered |
