@@ -14,6 +14,7 @@ root: the recipes, `.env` and the default data folder are all resolved from ther
 | [6. Without Docker](#6-without-docker-uv-on-the-host) | `uv run python -m leichtfacile serve` | any | uv, Python 3.12+ |
 | [7. llama.cpp on the host](#7-llamacpp-on-the-host-no-key) | `llama-server ...` + 1, 2 or 6 | on the host, 4-bit 8B | GPU with 8 GB, llama.cpp |
 | [8. Command line only](#8-command-line-only-no-web-ui) | `python -m leichtfacile simplify ...` | any | as 1 or 6 |
+| [9. Release wheel](#9-from-the-release-wheel-no-checkout) | `uv tool install <wheel URL>` | any | uv or pip, Python 3.12+ |
 
 Every way serves the web UI at <http://localhost:8000> (`/healthz` says the process is
 up, `/readyz` whether the model endpoint answers). The interface is in English, German
@@ -213,6 +214,36 @@ uv run python -m leichtfacile check-llm                            # one call to
 `check`, `simplify`, `eval`, `examples`); `simplify` accepts a file path or an http(s)
 URL and writes every artifact to the output folder. On Windows in Git Bash, prefix a
 command that names a container path with `MSYS_NO_PATHCONV=1`.
+
+## 9. From the release wheel (no checkout)
+
+Every version tag publishes a wheel on the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases)
+(`.github/workflows/release.yml`). It installs with uv or pip without the repository:
+the spaCy models are direct references in its metadata. Needs Python 3.12 or newer.
+
+```bash
+# as a tool on the PATH (uv picks or installs the Python)
+uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.1.0/leichtfacile-0.1.0-py3-none-any.whl
+
+# or into an environment of your own, for example in a custom image
+pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.1.0/leichtfacile-0.1.0-py3-none-any.whl
+```
+
+```bash
+export LLM_BASE_URL=https://api.inference.cscs.ch/v1 LLM_API_KEY=... LLM_NAME=swiss-ai/Apertus-v1.5-8B
+DATA_DIR=./leichtfacile-data leichtfacile serve      # http://127.0.0.1:8000
+```
+
+- The settings come from `.env` in the current folder and from the shell, as in way 6.
+- Set `DATA_DIR`: its default, `track_2b/data`, is a path in a checkout and would be
+  created below the current folder.
+- The wheel holds the app, the prompts, the rules and the UI, not the example jobs: the
+  start page has no example letters unless `EXAMPLES_DIR` points at a copy of
+  `track_2b/data/examples/`.
+- In a Dockerfile, `pip install <wheel URL>` in a `python:3.14-slim` stage replaces the
+  `uv sync` steps of the repository's Dockerfile; start the app with
+  `uvicorn leichtfacile.web.app:create_app --factory --host 0.0.0.0 --port 8000`.
 
 ## Reaching the app from other machines
 

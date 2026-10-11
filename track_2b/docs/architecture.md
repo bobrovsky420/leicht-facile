@@ -1282,6 +1282,7 @@ What the service stores, where, for how long, and how it leaves:
 
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, Docker image built and started against an unreachable endpoint
+.github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release
 Makefile                    includes track_2b/Makefile; the judges run `make run` here
 docker-compose.yml          app (+ profile local-llm: vllm; profile local-llm-small: llamacpp)
 Dockerfile                  the image keeps the repository's layout under /app
@@ -1300,6 +1301,7 @@ track_2b/                   the template's folder, as the organisers require it
   technical_report.md       the report, the same text at the root
   RoestigrabenBridgers_Report.pdf  the report printed (links absolute), the same file at the root
   docs/
+    quickstart.md           every way to start the app (make, Compose, Docker, local models, uv, CLI)
     architecture.md         this document
     ui-design.md            the web UI's specification (WP18)
     rules.md                rule catalogue → implemented by track_2b/src/leichtfacile/rules

@@ -17,8 +17,10 @@ dependencies = [
     "openai>=3.0",
     "httpx>=0.28",
     "spacy>=3.8.16,<3.9",
-    "de-core-news-md",
-    "fr-core-news-md",
+    # The spaCy models are not on PyPI. As direct references (not [tool.uv.sources]) the
+    # URLs end up in the wheel's metadata, so the release wheel installs with uv or pip.
+    "de-core-news-md @ https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl",
+    "fr-core-news-md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl",
     "trafilatura>=2.3",
     "pdfplumber>=0.11.10",
     "pyphen>=0.18",
@@ -38,13 +40,12 @@ dev = [
     "ruff>=0.13",
 ]
 
-[tool.uv.sources]
-de-core-news-md = { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" }
-fr-core-news-md = { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" }
-
 [build-system]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["track_2b/src/leichtfacile"]

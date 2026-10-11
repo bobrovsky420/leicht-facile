@@ -1,6 +1,8 @@
 # Leicht·Facile
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
+[![Release](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/bobrovsky420/leicht-facile)](https://github.com/bobrovsky420/leicht-facile/releases/latest)
 
 Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
 Sprache and Einfache Sprache, French FALC; Italian follows) with Apertus, and proves with code that
@@ -121,6 +123,17 @@ local-llm up`), a local llama.cpp server for small GPUs, and two development gat
 Without `make`: `docker compose up --build`. Every way to start the app (Compose, plain
 Docker, local vLLM or llama.cpp, without Docker, command line only):
 [track_2b/docs/quickstart.md](track_2b/docs/quickstart.md).
+
+Without Docker and without a checkout: every release has a wheel that uv or pip
+installs together with the spaCy models (Python 3.12 or newer):
+
+```bash
+uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.1.0/leichtfacile-0.1.0-py3-none-any.whl
+DATA_DIR=./leichtfacile-data leichtfacile serve
+```
+
+The wheel holds the app without the example jobs; the settings come from `.env` in the
+current folder and from the shell ([way 9](track_2b/docs/quickstart.md#9-from-the-release-wheel-no-checkout)).
 
 Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
 endpoint serves it; otherwise `LLM_NAME` judges).

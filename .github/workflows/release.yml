@@ -1,0 +1,57 @@
+# Release: a wheel on a GitHub release for every version tag (v0.1.0, ...).
+#
+# The wheel installs with uv or pip without a checkout: the spaCy models are direct
+# references in its metadata (pyproject.toml). The tag must match the version in
+# pyproject.toml; track_2b/tests/test_release.py keeps that version, the package's
+# __version__, publiccode.yml and the install commands (both READMEs, quickstart) in step.
+# Every action is pinned to a commit; the comment after the hash names the release.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  wheel:
+    name: Build and publish the wheel
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - name: The tag matches the project version
+        run: |
+          version="$(uv version --short)"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "tag $GITHUB_REF_NAME, but pyproject.toml says $version"
+            exit 1
+          fi
+      - name: Versions and README install commands agree
+        run: |
+          uv sync --frozen
+          uv run pytest -q track_2b/tests/test_release.py
+      - name: Build the wheel
+        run: uv build --wheel --out-dir dist
+      # A clean environment outside the checkout: the rule checker loads the spaCy
+      # models, so a missing package or model fails here, not on a user's machine.
+      - name: Install it in a clean environment and run the checker
+        working-directory: ${{ runner.temp }}
+        run: |
+          uv venv smoke
+          uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/*.whl
+          smoke/bin/leichtfacile --version
+          printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > text.txt
+          smoke/bin/leichtfacile check text.txt --lang de
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.whl \
+            --title "Leicht·Facile ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag

@@ -35,6 +35,13 @@ working here and can only be relaxed by an explicit instruction from the owner.
   link targets differ, each written from its own file's folder. Change both copies in
   the same edit. The PDF is printed once (links absolute, track_2b/docs/submission.md
   §5) and copied to both places. `track_2b/tests/test_copies.py` checks all three.
+- On every version bump, change in the same edit: the version in `pyproject.toml`,
+  `track_2b/src/leichtfacile/__init__.py` (`__version__`) and `publiccode.yml`
+  (`softwareVersion`), and the release wheel's URL (`releases/download/v<version>/
+  leichtfacile-<version>-py3-none-any.whl`) in both README copies and in
+  `track_2b/docs/quickstart.md` §9. `track_2b/tests/test_release.py` checks all of them.
+  The owner then pushes the tag `v<version>`; `.github/workflows/release.yml` builds the
+  wheel and publishes it as a GitHub release.
 - Design lives in `track_2b/docs/architecture.md`, the rule specification in
   `track_2b/docs/rules.md`. Keep both in sync with the code.
 - The plan (order, dates, gates, cuts) lives in `PLAN.md`. Update it when something is
