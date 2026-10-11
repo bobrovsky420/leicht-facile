@@ -266,7 +266,8 @@ figure.diagram svg { display: block; width: 100%; height: auto; overflow: visibl
 
 /* -- end matter: licence and references -- */
 section.end { font-size: 7.4pt; line-height: 1.42; }
-/* The licence note is one short line: across the page, not wrapped in the left column. */
-section.end > p { column-span: all; }
+/* The licence note is one short line: across the page, not wrapped in the left column,
+   in the chapters' size (the references keep the smaller one). */
+section.end > p { column-span: all; font-size: 9.1pt; line-height: 1.47; }
 section.end li { margin-bottom: 1.6pt; padding-left: 8pt; }
 section.end li::before { width: 8pt; margin-left: -8pt; }

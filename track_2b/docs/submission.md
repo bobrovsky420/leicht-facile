@@ -130,7 +130,8 @@ with markdown-it-py, so every change of the report reaches it with the next prin
 - **First page:** a title block made from the list under the report's title, and four
   key figures read from the results table in §5, P2 (ours) against P0-ZH complete:
   fact coverage, hard facts kept, silent losses and rule errors, the headline's figures
-  (D-M). A changed cell changes them with the next print.
+  (D-M), each with the prompt's figure in bold under it (owner, 11 October). A changed
+  cell changes them with the next print.
 - **Diagrams:** the two Mermaid diagrams of report §2 are drawn as SVG for the PDF, in
   the colours of Apertus, code and the human. `track_2b/tests/test_report_pdf.py`
   checks that the drawings carry every label of the diagrams; a changed diagram must

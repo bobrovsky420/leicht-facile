@@ -9,8 +9,9 @@ Easy-language drafts of Swiss official texts with Apertus, with every fact check
 - **Repository:** https://github.com/bobrovsky420/leicht-facile
 - **Demo video:** <https://youtu.be/3UVbaXQ8I6o>
 - **Maturity:** Deployable prototype for German and French drafts of public texts and
-  letters; proof of concept for court and KESB decisions, which name people and are a
-  main reason for a sovereign model; image input explored, not built.
+  letters. Proof of concept for decisions of child and adult protection authorities
+  (KESB) and courts; these decisions contain strictly confidential data (such as a
+  person's health, family and finances) and are a main reason for a sovereign model.
 
 ## 1. Summary
 
@@ -41,15 +42,14 @@ A single prompt ("rewrite this in Leichte Sprache"), with no fact contract, prov
 or independent check, is our baseline P0; the full pipeline is P2.
 
 **Headline result.** Our pipeline against a strong single prompt (defined in §5), on the
-same model and 20 held-out German pairs (CSCS endpoint, final run of 11 October 2026).
-Pipeline first, prompt second:
+same model and 20 held-out German pairs. Pipeline first, prompt second:
 
 - **Must-keep facts found:** 100 against 83 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
   percent. The official easy-language versions keep 67 percent; they drop values on
   purpose.
-- **Values lost without a trace:** none against 15 percent, and 33 percent in the
-  prompt's condensed default. The pipeline lists every value it loses for the reviewer.
+- **Values lost without a trace:** none against 15 percent. The pipeline lists every
+  value it loses for the reviewer.
 - **Rule errors per 100 blocks:** 4.2 against 15.0.
 - **Invented values per 100 blocks:** 0.1 against 0.0, rare on both sides.
 
@@ -101,11 +101,17 @@ flowchart LR
 ### Key decisions
 
 Meaning in the model, countable rules in code (exact, free, reproducible, no
-self-grading). Every must-keep value must appear in an accepted form
-(`31. März 2026`, `31.3.2026`), so a deadline that became `30 March` is caught;
-every value the source does not contain is flagged. Typed artifacts in SQLite let a
-failed job resume and the UI and the evaluation show every intermediate result. One
-service: FastAPI, a server-rendered UI, one worker thread by default; no Node build, no CDN.
+self-grading).
+
+Every must-keep value must appear in an accepted form (`31. März 2026`, `31.3.2026`),
+so a deadline that became `30 March` is caught; every value the source does not
+contain is flagged.
+
+Typed artifacts in SQLite let a failed job resume and the UI and the evaluation show
+every intermediate result.
+
+One service: FastAPI, a server-rendered UI, one worker thread by default; no Node
+build, no CDN.
 
 ### Target architecture
 
@@ -129,9 +135,9 @@ What the running system contacts:
 Nothing else: no telemetry, CDN, outside fonts or scripts, update check or login
 provider; on-premise or air-gapped, no data leaves the organisation at runtime. Build
 time: PyPI (`uv.lock`), spaCy wheels from GitHub, images from Docker Hub and GHCR.
-The container runs as non-root, logs no document text above `DEBUG` and listens on
-localhost; published further, it insists on a shared token or the reverse proxy's user
-header (the organisation's login).
+The container runs without root rights and by default can be reached only from the
+machine it runs on. On the network it requires a login: a shared token, or the
+organisation's own login through its reverse proxy.
 
 ### Licences and providers
 
@@ -192,8 +198,9 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   0.08, §5), so every fact number comes from code.
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
   without, 28 seconds and easy language. Write runs without thinking.
-- 8B drafts read worse than the official versions (Amstad 51 against 62); the 70B
-  writes cleaner (56) at twice the price per page.
+- The 8B's drafts are harder to read than the official easy-language versions: their
+  readability score is 51 against 62 (Amstad; higher is easier). With the 70B in every
+  step, the drafts score 56, at twice the price per page.
 - On a whole scanned page both models change digits (in an IBAN or a phone number, for example); names
   and e-mail addresses are unsafe in every setting. Image input is not built
   ([track_2b/docs/image-input.md](docs/image-input.md)).
@@ -336,18 +343,27 @@ sentences for every rule (two or more that fire, one that must not).
 
 ## 8. Next steps
 
-- **Into use.** Before a canton's first real letter: its login proxy in front (the app
-  reads the proxy's user header), to build; a GPU host and the weights under the
-  acceptable use policy, to obtain; its IT security review and a data protection
-  assessment, to approve. The target-group test stays with the office.
+- **Into use.** For a canton's public texts and standard letters, a cloud endpoint is
+  enough, even Public AI; the canton needs no GPU server. Two steps remain before the
+  first text goes out. The canton's IT puts its login proxy in front of the app; the app
+  already reads the logged-in user from a header the proxy adds. Then the setup must pass
+  the canton's IT security review. Letters that name people need more: the model on the
+  canton's own GPU server and a data protection assessment. Testing the texts with
+  readers from the target group stays with the canton; the tool does not replace it.
 - **The same need elsewhere.** Every canton and federal office that publishes easy
-  language, and texts under secrecy, where only Apertus fits
-  ([track_2b/docs/use-cases.md](docs/use-cases.md)): decisions of KESB and courts (decision mode
-  v1 exists; next an anonymisation step), patient letters, penal and payment orders,
-  social, school and tax decisions. Most turn on a period, a reference number, an
+  language, and texts under secrecy, where only Apertus fits: decisions of KESB and
+  courts (decision mode v1 exists; next an anonymisation step), patient letters, penal
+  and payment orders, social, school and tax decisions. Most turn on a period, a reference number, an
   address or a dose, which code already checks like a date.
-- Italian rules and prompts; image input in strips with a person checking every name
-  and address; an air-gapped bundle; a LoRA on the 8B from approved drafts and edits.
+- **Italian.** Rules and prompts for lingua facile; today Italian texts get only the
+  language-independent checks and no drafts.
+- **Scanned letters.** Image input, with the 8B reading each page in strips (on a whole
+  page the models misread digits) and a person checking every name and address against
+  the original.
+- **Air-gapped installation.** A one-step package for a network without internet
+  access; today the images and the weights are moved by hand.
+- **Fine-tuning.** A LoRA on the 8B, trained on the drafts that writers approved and
+  the edits they made.
 
 ## License
 
