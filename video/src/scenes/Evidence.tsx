@@ -1,8 +1,8 @@
-// Concept A, 1:09 One number, by the headline rules (case A of decision D-M in PLAN.md): same model,
+// Concept A, 1:09 One number, by the headline rules (case A2 of decision D-M in PLAN.md): same model,
 // a strong single prompt against our pipeline; Leicht·Facile lists every hard fact it misses. The
 // prompt's source is credited on the end card, not here (owner, 10 October: naming it next to a
 // project we build on would sound arrogant).
-// Numbers from report §5 (CSCS, 20 German eval pairs, final run of 10 October 2026).
+// Numbers from report §5 (CSCS, 20 German eval pairs, final run of 11 October 2026).
 import React from "react";
 import { Img, staticFile } from "remotion";
 import manifest from "../../public/capture/manifest.json";
@@ -12,9 +12,9 @@ import { useTL } from "../tl";
 import { SceneFade, useSceneTime } from "../ui";
 import { Wordmark } from "./Logo";
 
-const ERRORS_ZH = 19.5; // P0-ZH complete: rule errors per 100 blocks
-const ERRORS_LF = 2.0; // P2, 8B writer: rule errors per 100 blocks
-const LOST_ZH = 7; // P0-ZH complete: hard facts lost without a trace, percent
+const ERRORS_ZH = 15.0; // P0-ZH complete: rule errors per 100 blocks
+const ERRORS_LF = 4.2; // P2, 8B writer: rule errors per 100 blocks
+const LOST_ZH = 15; // P0-ZH complete: hard facts lost without a trace, percent
 // the facts panel of the review at version 2, as captured: the facts still missing there come
 // first (the final version carries every fact, so it has none to show)
 const CROP = { x: 1040, y: 208, w: 400, h: 256 }; // CSS px of the capture: the panel down to the missing fact's source sentence
@@ -68,7 +68,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
         </div>
       </div>
       <div style={{ position: "absolute", left: 0, right: 0, top: 904, textAlign: "center", fontFamily: F.sans, fontSize: 21, color: C.muted, opacity: ramp(t, a.s + 1, 0.5) }}>
-        Apertus 1.5 8B on CSCS · single prompt asked to keep every fact · 20 German test pairs · final run, 10 Oct 2026 · hard facts: dates, amounts, contacts, other countable values
+        Apertus 1.5 8B on CSCS · single prompt asked to keep every fact · 20 German test pairs · final run, 11 Oct 2026 · hard facts: dates, amounts, contacts, other countable values
       </div>
     </SceneFade>
   );

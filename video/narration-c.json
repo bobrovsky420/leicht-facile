@@ -136,7 +136,7 @@
       "chunks": [
         {
           "id": "ev-a",
-          "text": "Same model. A strong single prompt against our pipeline: a tenth of the rule errors.",
+          "text": "Same model. A strong single prompt against our pipeline: under a third of the rule errors.",
           "pause": 0.3
         },
         {

@@ -1326,6 +1326,9 @@ with no effect beyond the day's sampling noise, kept on for the final run.
 
 ### The final run on the eval split (CSCS, 10 October 2026)
 
+*Superseded by the run of 11 October (next section): the prompt templates gained the
+document fence after this run (change log 14), so it was repeated on them.*
+
 Every row again with `--redo` on the frozen pipeline (commit 760a210, the code of
 3131a02) into `track_2b/eval/results-cscs`, after a snapshot to `results-cscs-v6`: P1
 and P2 on the 23 held-out pairs (20 German, 3 French) with the cache on, P0 and both
@@ -1380,6 +1383,58 @@ D-AB measure, the silent-loss key). German means over the 20 eval pairs
   Understand answers came from the cache, and P2's first draft from P1's call minutes
   before, so their seconds undercount; the 33.6 s of P2 on the 8B are the judge,
   repair, facts, recover and polish calls.
+
+### The final run on the submitted templates (CSCS, 11 October 2026)
+
+Decision D-AJ (owner): every row again on the templates with the document fence (change
+log 14), commit 663b609, after a snapshot of the run above to `results-cscs-v7`. Order
+changed so that the headline row's seconds are complete: P2 on the 8B first (every
+prompt changed, so its Understand and Write calls were fresh), then P1 from P2's cached
+answers, P0 and both P0-ZH variants with the cache off, the 70B everywhere, the hybrid
+(its Understand from the 70B row's cache), then a retry pass. One P2 pair failed on
+broken JSON in Understand and passed on the retry; the 70B everywhere failed on
+`zh-sebe-disability-de`, where the server cut the long Write stream in all 35 attempts
+(9, 9 and 17 with `LLM_MAX_RETRIES=16`), so that row has 19 German pairs. German means
+over the 20 eval pairs:
+
+| Setup | Fact coverage | Hard facts kept | Silent losses | Errors / 100 | Warnings / 100 | Readability | Unsupported / 100 | Invented values / 100 | Tokens / page | USD / page | s / page |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
+| P0 | 92 % | 93 % | 7 % | 19.5 | 95.2 | 52 | - | 0.2 | 982 | 0.0001 | 2.6 |
+| P0-ZH complete | 83 % | 85 % | 15 % | 15.0 | 92.4 | 47 | - | 0.0 | 2,393 | 0.0003 | 2.4 |
+| P0-ZH condensed | 69 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.2 | 2,198 | 0.0002 | 1.4 |
+| P1 | 74 % | 73 % | 0 % | 8.3 | 50.3 | 51 | - | 1.1 | 9,555 | 0.0014 | - |
+| P2, 8B | 100 % | 97 % | 0 % | 4.2 | 43.9 | 51 | 1.6 | 0.1 | 28,066 | 0.0131 | 63.3 |
+| P2, 70B everywhere (19 pairs) | 99 % | 92 % | 0 % | 0.6 | 26.6 | 56 | 1.1 | 0.0 | 22,988 | 0.0262 | 57.5 |
+| P2, hybrid: 70B reads, 8B writes | 100 % | 95 % | 0 % | 1.9 | 41.4 | 53 | 1.0 | 0.1 | 27,885 | 0.0163 | 32.4 |
+
+- **Case A2 of decision D-M** (`eval numbers`, added 11 October with the owner's
+  headline): P2 against P0-ZH complete has fewer rule errors (4.2 against 15.0 per 100
+  blocks) and higher fact coverage (100 against 83 percent), but not fewer invented
+  values (0.1 against 0.0: one value each in two drafts, among them "drei Monaten" in
+  `zh-political-rights-de`). Headline: the pipeline finds 100 percent of the must-keep
+  facts against 83, loses none without a trace against 15 percent, and has 4.2 against
+  15.0 rule errors; invented values are rare on both sides.
+- **Against the run of 10 October.** The baseline templates did not change, yet P0-ZH
+  complete went from 91 to 83 percent fact coverage and from 19.5 to 15.0 errors, P0
+  from 88 to 92: one answer per pair at temperature 0.3 varies that much. P2's errors
+  rose from 2.0 to 4.2 mostly on one pair: `zh-political-rights-de` (7.4 pages) came
+  out on 10 October as an 8-block, 43-word draft with 0 errors and now as a 140-block
+  draft with 47 errors (33.6 per 100 blocks, two fifths of the mean). P1 rose from 53
+  to 74 percent fact coverage on fresh Understand and Write answers.
+- **The tiers.** The 70B everywhere writes the cleanest text (0.6 errors, readability
+  56) at twice the 8B's price, but keeps fewer hard facts (92 against 97 percent); the
+  hybrid finds 100 percent, keeps 95 and halves the 8B's errors (1.9) for a quarter more
+  than the 8B's price. The 8B writer stays the default.
+- **Fact-retention diagnosis** (`eval diagnose --role eval --writer
+  swiss-ai/Apertus-v1.5-8B`, 23 jobs): 205 checkable must-keep facts, none missing in
+  the final versions.
+- **French** (3 pairs, 8B): fact coverage 100 percent, hard facts kept 87, 4.9 errors
+  per 100 blocks, readability 74 (official 85); the 70B everywhere 100, 91 and 4.6; the
+  hybrid 100, 93 and 6.6.
+- **Seconds per page** are complete for P2 on the 8B (63.3 s, every stage fresh), the
+  70B everywhere and the baselines; P1 took every answer from the cache (not measured)
+  and the hybrid its Understand answers (undercounts).
 
 ## Change log
 

@@ -60,4 +60,6 @@ https://github.com/googlefonts/atkinson-hyperlegible-next.
 
 All three are licensed under the SIL Open Font License, Version 1.1; the full text
 with each family's copyright notice lies next to the font files. The files are
-distributed unmodified, bundled with the software, as the licence permits.
+distributed unmodified, bundled with the software, as the licence permits. The report
+PDF (`RoestigrabenBridgers_Report.pdf`, printed by `track_2b/scripts/report_pdf.py`)
+embeds subsets of the same files, which the licence also permits.

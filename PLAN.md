@@ -20,19 +20,21 @@ The short path to the deadline, in dependency order. Each step points to where i
    review stopwatch for 3 P2 drafts (WP13 value numbers; *done 10 Oct*). After the
    freeze nothing in the pipeline moves except bug fixes. *Done 10 Oct, evening: the
    owner declared the freeze a day early, on the pipeline of commit 3131a02 (the
-   dev-final run); since that commit only docs, the Makefiles and the video changed. 10 Oct, night: the audit's V8 fix put the document fence and one sentence into all ten standard templates (track_2b/docs/prompts.md change log 14), the first template change after the freeze; D-AJ decides whether the final run is repeated.*
+   dev-final run); since that commit only docs, the Makefiles and the video changed. 10 Oct, night: the audit's V8 fix put the document fence and one sentence into all ten standard templates (track_2b/docs/prompts.md change log 14), the first template change after the freeze; D-AJ decides whether the final run is repeated. 11 Oct: decided, repeated on these templates (step 2).*
 2. [x] **Final CSCS evaluation (Sun 11 Oct, night; WP13).**
    Snapshot `track_2b/eval/results-cscs` to the next vN, then every row with `--redo`: P1 and P2
    first, then P0 and both P0-ZH variants with the cache off, last the two 70B rows.
    Then `eval report`, `eval numbers` and `eval diagnose`, without model calls. *Done
    10 Oct, night, a day early, on commit 760a210 (the pipeline of 3131a02): snapshot
    `track_2b/eval/results-cscs-v6`, seven rows in 2 h 3 min, all 155 eval rows to review;
-   `eval numbers` prints case A (§11).*
+   `eval numbers` prints case A (§11). 11 Oct: again on the submitted templates (D-AJ,
+   commit 663b609), snapshot `results-cscs-v7`; every row to review but one 70B pair;
+   `eval numbers` prints case A2 (§11).*
 3. [x] **Read the numbers and decide the headline (Mon 12 Oct, G3; D-M).**
    Apply the case table A to D in WP13 to P2 against P0-ZH `complete`, no debate. Case A
    also decides D-L: Zurich is named in the video and its evidence scene is rewritten.
    *Done 10 Oct, night: the owner confirmed case A on the final run; D-M and D-L
-   decided (§8).*
+   decided (§8). 11 Oct: case A2 on the repeated run, its headline approved by the owner.*
 4. [x] **Numbers in one pass, then the audit (Mon 12 Oct, G4; WP13, WP16).**
    Report §5 and §1, README's status block and "Why not one chatbot prompt?", the
    video's evidence scene. Diff every number against `eval numbers`, each with its
@@ -41,7 +43,9 @@ The short path to the deadline, in dependency order. Each step points to where i
    evidence scene (demo-video.md §1, §2 and §4, narration C, `Evidence.tsx`,
    `Compare.tsx`; the re-render is step 5), submission.md's results sentence,
    prompts.md and architecture §9; every number diffed against `eval numbers` and
-   track_2b/eval/report.md. The audit runs again at G6.*
+   track_2b/eval/report.md. The audit runs again at G6. 11 Oct, again for the repeated
+   run: report §1, §3, §5, §6 and §7, README's table and cents (both copies),
+   submission.md, architecture §9, prompts.md, the evidence scene (re-render: step 5).*
 5. [ ] **Rebuild the example jobs and finish the video (Mon 12 to Tue 13 Oct; WP8, WP11).**
    Rebuild the example bundles on the frozen pipeline *(done 10 Oct on the day's
    pipeline, both clean; frozen unchanged on 10 Oct, so no rebuild is due)*.
@@ -112,8 +116,9 @@ From the template and the hackathon rules (verified 2026-10-05):
   most important deliverable after the report.
 - `track_2b/data/` stays under 100 MB. Texts and caches are git-ignored; only the manifest,
   examples, and clearly redistributable texts are committed.
-- Repo must be public before submission. Report PDF max 6 pages, named
-  `TeamName_Report.pdf`, in `track_2b/`. Demo video max 2 minutes.
+- Repo must be public before submission. Report PDF max 6 pages without the references
+  (organisers in the hackathon chat, 11 Oct), named `TeamName_Report.pdf`, in
+  `track_2b/`. Demo video max 2 minutes.
 - Only Apertus models at runtime. Other open models may help with evaluation only, and
   their role must be described in the report. (Plan: none; the judge is Apertus 70B.)
 - Repository conventions (AGENTS.md): never commit or push; plain hyphens only, no
@@ -438,246 +443,67 @@ gone from the store after "Delete now"; the evaluation rows are in the report.
 
 ### WP13 - Fair baselines and the headline (GAP-01, -02, -03, -10)
 
-Goal: by G3 (Mon 12 Oct), one table that answers "what does the pipeline add over the
-best single prompt, on the same model?", with numbers a juror can trust.
+*Done 6 to 11 Oct.* One table answers "what does the pipeline add over a strong single
+prompt on the same model?" (report §5), and the headline follows D-M (case A2, below).
 
-- [x] **P0-ZH condition** (3-4 h). Zurich's Leichte Sprache prompt as a single-prompt
-      baseline *(implemented 6 Oct, evening: conditions `P0-ZH-complete` and
-      `P0-ZH-condensed`, template verified verbatim, smoke run on CSCS; run the same
-      evening with P0 on the 20 German eval pairs and the 10 dev pairs, 90 jobs, every
-      answer tagged, about 2 minutes per 30 jobs; the numbers in track_2b/docs/prompts.md
-      "Zurich's prompt as the second baseline", report §5 and track_2b/eval/report.md)*:
-      - `llm/prompts/de/baseline_zh.md`: their system message and user template of
-        v1.6.0 with `RULES_LS`, verbatim. The MIT notice and the source commit go in a
-        Jinja comment, so they never reach the model. Add `THIRD_PARTY_NOTICES.md`.
-      - Two variants (D-K): `complete` (`REWRITE_COMPLETE`, our task: keep every fact)
-        and `condensed` (`REWRITE_CONDENSED`, their default for Leichte Sprache).
-      - Same settings as P0: 8B, thinking off, temperature 0.3, 6000 tokens. Take the
-        text between the `<leichtesprache>` tags; use the whole answer when the tags
-        are missing, and count how often *(never, in the 90 jobs)*.
-      - Post-processing as in their app, with one exception. `ß` becomes `ss`, as
-        there. Their `strip_markdown` is not applied: it deletes every underscore, so
-        URLs and e-mail addresses break. Applying it would measure their regex, not
-        their prompt. The report mentions it as an observation.
-      - Code: the `Condition` literal (`C0ZH` as the code value if a hyphen is awkward
-        in file names), an orchestrator branch next to `_run_baseline`, `eval run
-        --condition`, rows in `eval/report.py`, a test with a recorded answer.
-      - German only: their app has no French prompt.
-- [x] **Like-for-like dev runs** (run time only): P0 and P0-ZH also on the 10 German
-      dev pairs on CSCS, so the dev comparison with P2 uses the same pairs *(done 6 Oct,
-      evening; rows in `track_2b/eval/results-cscs`, numbers in track_2b/docs/prompts.md)*.
-- [x] **Fact-retention diagnosis** (2-3 h, no model calls). On the stored P2 dev drafts
-      (`track_2b/eval/results-cscs`), classify every must-keep fact missing from the final
-      version *(run 7 Oct on the owner's machine, numbers in track_2b/docs/prompts.md: 50 of
-      102 must-keep values missing, 40 of them never asked for, 30 of those because no
-      round reached the final version, 10 behind the cap; after the rerun 16 of 122;
-      the later dev runs under the changed code are in the next item and in D-Z)*:
-      - a) never requested in a repair round: more than 5 missing facts, or the loop
-        stopped on "no progress";
-      - b) requested, but the value came back in a surface form FACT-01 does not
-        accept;
-      - c) requested and added, then dropped by code (repeat filter, copy guard,
-        FACT-06 guard);
-      - d) requested, but the model did not write it;
-      - e) marked droppable by Understand or by code completion although the reader
-        needs it;
-      - k) requested and written into a version that was not kept as final *(added
-        7 Oct, cloud session 3: 5 facts in the third run; empty since the final
-        version is chosen facts first, 8 Oct)*;
-      - l) present in an earlier version, lost in a later rewrite.
+- **P0-ZH:** the Canton of Zurich's Leichte Sprache prompt (v1.6.0, MIT) is a second
+  baseline, `P0-ZH-complete` and `P0-ZH-condensed` (D-K). The template
+  `llm/prompts/de/baseline_zh.md` is verbatim, with the licence in a Jinja comment and
+  `THIRD_PARTY_NOTICES.md`. It runs with P0's settings and ß becomes ss; their
+  `strip_markdown` is left out because it breaks URLs. German only. It also ran on the
+  10 German dev pairs, so dev comparisons use the same pairs.
+- **Fact retention:** `eval diagnose` puts every must-keep value missing from a final
+  version into a bucket (never asked for, wrong surface form, dropped by code, not
+  written, droppable, kept in a version not chosen, lost later), read from the stored
+  `RepairRecord` per round (method in track_2b/docs/prompts.md). The fixes, each
+  measured on the dev pairs (7 to 10 Oct; track_2b/docs/prompts.md, D-Z, D-AB, D-AC,
+  D-AF, D-AG):
+  - a facts round after the repair loop, with the exact value in the request;
+  - the final version chosen facts first;
+  - the gaps of the code completion closed;
+  - fact coverage counted on values the source contains (D-AB);
+  - the recover round (D-AC), the polish round (D-AF) and the judge's quotes (D-AG).
 
-      Result: a table in track_2b/docs/prompts.md ("Fact-retention diagnosis").
-      *7 Oct, night (cloud session): the tool is `python -m leichtfacile eval diagnose
-      --results track_2b/eval/results-cscs --role dev` (`eval/diagnose.py`, tests on a
-      hand-built store). It puts every missing must-keep value into a bucket from the
-      stored artifacts; for the runs before 7 Oct it decides bucket a exactly (requests
-      recomputed with `build_request`) and reports b, c and d together as "answer not
-      recorded"; since then the `RepairRecord` per round tells them apart. The method
-      is in track_2b/docs/prompts.md.*
-- [x] **Fix the largest bucket** (2-6 h), then `eval run --redo` on the dev pairs
-      *(done 7 to 9 Oct in the P2 dev reruns on CSCS, every earlier answer replayed
-      from the cache so that two runs differ only by the change measured; the numbers
-      in track_2b/docs/prompts.md, D-Z, D-AB and D-AC)*. What went in, in this order:
-      - a facts-only round that "no progress" on other findings does not stop: up to
-        `MAX_FACTS_ROUNDS` (default 1) rounds after the loop, missing facts only, no
-        block flagged, measured by the FACT-01 count; the exact value in the request
-        (`(Wert: 2026-03-31; schreiben Sie: 31. März 2026)`); the cap of missing facts
-        per round as a setting, `MAX_MISSING_PER_FACTS_ROUND`, 5 to 10 after the
-        measured rerun; an unusable repair answer no longer cancels the round (D-Z);
-      - every dropped addition logged with its reason: the `RepairRecord` per round
-        (request, answer, dropped texts with reason) in the audit bundle, read by
-        `eval diagnose`;
-      - the final version chosen facts first, fewest missing must-keep values, then
-        fewest blocking findings (8 Oct; bucket k empty since; `eval rescore --select
-        facts|blocking` reads either rule on stored jobs without a model call);
-      - the code completion's gaps behind the 5 percent silent losses closed (a
-        percentage stored as `10%`, an address over two sentences as one fact with its
-        street, the coverage check in the reader's direction): no silent loss in P2
-        since the fifth run, checked 8 Oct;
-      - fact coverage counts only facts whose value the source contains (D-AB, 7 Oct):
-        the measure alone lifts the stored P2 eval row from 81.7 to 83.1 percent;
-      - a block without a source sentence gets one from the facts it names, a hard term
-        the source lacks leaves the fact sheet, the Understand example's office is a
-        copy-guard topic word (8 Oct): dev fact coverage 76 to 81 percent, within the
-        8B's noise;
-      - the recover round (D-AC, 9 Oct): after the facts rounds, every value FACT-01
-        still misses is asked for one by one with its source paragraph and the value
-        named, and the accepted sentences go after their blocks as one more checked and
-        judged version (`MAX_RECOVER_FACTS=10`, on by default, in the final run). Dev,
-        German: fact coverage 78 to 96 percent, hard facts kept 72 to 90, invented
-        values 0.8 to 0.6 per 100 blocks, about 12 percent more tokens and 5 s more
-        per page; the weak sentences echo the prompt or break a reflexive;
-      - the polish round (D-AF, 10 Oct): after the recover round, the best version's
-        repairable rule errors, or its warnings once no error is left, go to one more
-        round through the repair prompt, no fact and no judge's problem; the facts and
-        recover rounds add the source's sentences nearly verbatim and no round saw them
-        again (the example rebuild of 10 Oct). Dev, German: rule errors 1.9 to 1.3 per
-        100 blocks, warnings 38 to 34, unsupported 5.8 to 5.3, facts unchanged, no value
-        lost, about 17 percent more tokens (track_2b/docs/prompts.md);
-      - the judge's quotes (D-AG, 10 Oct): an unsupported verdict names the words it
-        objects to, code keeps it only on a block that holds them and files the rest
-        under `dropped`; the prompt says another wording is no problem. Dev, German:
-        unsupported 5.3 to 3.1 per 100 blocks, rule errors 1.3 to 0.2, invented 0.6 to
-        0.0, facts moved on one pair only (track_2b/docs/prompts.md);
-      - wider FACT-01 surface forms: not needed, bucket b held 2 of the 16 missing
-        values after the rerun.
+  Tried and taken out again: asking again for a judge's "missing" that code finds,
+  asking by the value's clause, and English instructions (D-AE).
+- **Headline metrics** in `eval/score.py` and `eval/report.py`: silent losses (hard
+  values neither in the text nor in the checklist or omission log; zero by design for
+  P1 and P2), invented values and rule errors per 100 blocks, fact coverage and hard
+  facts kept. `eval numbers` prints the means and the D-M case with its
+  headline sentence.
+- **Value numbers:** seconds, tokens and USD per 250-word page from the usage log
+  (report §5). Our own review time is about 3.5 minutes per page by stopwatch (three
+  P2 drafts, team, not experts). The rule check takes 47 ms. A professional's drafting
+  time was dropped for the hackathon (owner, 11 Oct).
+- **Final run:** first on 10 Oct (commit 760a210, case A). It was repeated on 11 Oct on
+  the templates with the document fence (D-AJ, commit 663b609), with the run of 10 Oct
+  kept in `results-cscs-v7`. P2 on the 8B ran first, so its seconds cover every stage.
+  Every row reached review except the 70B everywhere on `zh-sebe-disability-de`, where
+  the server cut the long Write stream in all 35 attempts. Numbers, German eval pairs,
+  CSCS: P2 100 percent fact coverage, 97 hard facts kept, 4.2 rule errors and 0.1
+  invented values per 100 blocks. P0-ZH complete 83, 85, 15.0 and 0.0, with 15 percent
+  silent losses. On unchanged baseline templates P0-ZH complete moved from 91 to 83
+  percent fact coverage between the two runs, which is sampling noise; report §5 says
+  so. The rest is in track_2b/docs/prompts.md "The final run on the submitted templates"
+  and track_2b/eval/report.md.
 
-      Tried on the dev pairs and taken out again (track_2b/docs/prompts.md): a judge's
-      "missing" on a fact that code finds asked for again, and a missing fact asked for
-      by the clause of its value (8 Oct: fact coverage 79 to 74 percent, hard facts
-      kept 71 to 64); English instructions in every stage (9 Oct, D-AE). Dev numbers
-      by run, German P2: facts rounds 75 percent fact coverage against 68 without them
-      (7 Oct); the fifth run 75 and 77 percent hard facts kept, cap 10 79 and 81; the
-      recover round 96 and 90 (9 Oct; one run per setting, 5 of 12 pairs changed). Two
-      runs of the same code differ a lot per pair, so the eval split decides what the
-      report says.
-- [x] **Headline metrics** (1-2 h) in `eval/score.py` and `eval/report.py` *(7 Oct,
-      night: `silent_losses` and `silent_loss_share` per row, the "Silent losses"
-      column with its "by design" note in the report tables; the invented values and
-      rule errors per 100 blocks existed; `eval numbers` prints the means with the D-M
-      case since 8 Oct, below; track_2b/eval/report.md and the §5 column fill with the final
-      run, the baseline rows follow from 100 minus hard facts kept)*:
-      - *silent losses*: hard values of the source that are neither in the final text
-        nor in the review checklist or omission log. For P0 and P0-ZH every missing
-        value is silent. For P1 and P2 it is zero by design once identifiers are hard
-        facts (WP14); say "by design" in the report;
-      - invented values per 100 blocks (exists: the FACT-06 count, for every row);
-      - rule errors per 100 blocks, fact coverage, hard facts kept (exist).
-- [ ] **Value numbers** (1-2 h):
-      - seconds, tokens and USD per 250-word page and setup from the usage log
-        *(exist, in `track_2b/eval/report.md` and report §5; the seconds undercount: a call
-        replayed from the cache counts 0 s, which is P0's 0.0 in track_2b/eval/report.md since
-        its rescoring of 6 Oct, so the final run's baseline rows need fresh calls,
-        below. Also measured: the recover round costs about 12 percent more tokens and
-        5 s more per German page (dev, 9 Oct); the rule check alone takes 47 ms median
-        on a 15-block letter (8 Oct); the 70B everywhere costs 1.8 times the 8B per
-        page (report §5))*;
-      - our own review time for 3 P2 drafts in the UI, by stopwatch, labelled "team,
-        not experts" *(done 10 Oct: the two example jobs and one dev pair of the
-        dev-final run, `zg-disability-services-act-de`, served from a scratch copy of
-        its store; 1,079 source words together, from opening the review to the export,
-        15 minutes by stopwatch, about 3.5 minutes per 250-word page; a dev pair
-        instead of an eval pair, since held-out drafts of the frozen pipeline exist
-        only after the final run; report §5)*;
-      - the drafting time per page of a professional, from a published price per
-        page *(dropped for the hackathon, owner, 11 Oct: the report gives the team's
-        review time only, without a comparison)*.
-      Open: the final run replayed P1's and P2's Understand calls (and P2 8B's Write
-      calls) from the cache, so their seconds per page count those stages as 0 s; the
-      baselines ran fresh. Rebuilt on 11 Oct from the earlier fresh calls, German eval
-      pairs, median per page: P2 8B 33 s (reported mean 33.6), the 70B everywhere 40 s,
-      the hybrid 36 s. Whether the report changes is the owner's call.
-- [x] **Final evaluation on CSCS** after the prompt freeze (declared 10 Oct, evening,
-      a day before the Sun 11 Oct, 18:00 of D-AD), into `track_2b/eval/results-cscs` *(done
-      10 Oct, 18:39 to 20:43, on commit 760a210, the pipeline of 3131a02; every eval row
-      to review, case A by `eval numbers`; the numbers and the durations in §11)*:
-      - first copy the folder to the next `track_2b/eval/results-cscs-vN` (v1 holds the run of
-        6 Oct, the fallback *(done 6 Oct, evening)*; v2 to v5 the dev reruns). Never
-        overwrite a result that might be needed;
-      - every row again, with `--redo`, not only where the pipeline changed: the
-        scoring changed for all of them since 6 Oct (the value kinds of 7 Oct, the
-        hotline numbers, the D-AB measure, the silent-loss key the stored P1 and P2
-        rows lack). `make eval` has no `--redo`: run its five `eval run` lines with
-        `--redo --results track_2b/eval/results-cscs`, P1 and P2 first (the 20 German and 3
-        French eval pairs), then P0 and the two P0-ZH variants (German), since a
-        baseline's fact coverage is scored against a P1 or P2 fact sheet of the same
-        pair (`_reference_factsheet`) and that fact sheet should come from the final
-        code; last the two 70B rows of `make eval-70b` with `--redo` on the same 20
-        pairs as on 6 Oct (37 s and USD 0.02 per page), at least 5 if time is short
-        (WP10);
-      - the baseline rows with `LLM_CACHE=0`, so that seconds per page are measured and
-        not 0 s from the cache (63 short calls, about 2 minutes per 30 jobs); or, if
-        the answers of 6 Oct should stay, from the cache with the seconds of the v1
-        rows, stated. P1 and P2 with the cache on, as always: a changed prompt or a new
-        round misses it by itself;
-      - wall-clock about 1 h for the 8B rows (P2 runs the facts, vocabulary and recover
-        rounds now) and 30 min for the 70B rows, overnight is ample; the client's 8
-        retries cover the dropped thinking streams;
-      - then, without a model call: `eval report --results track_2b/eval/results-cscs --out
-        track_2b/eval/report.md` (both tables, with the silent-loss column for the first time),
-        `eval numbers --results track_2b/eval/results-cscs` (the D-M case, below), `eval
-        diagnose --results track_2b/eval/results-cscs --role eval` (the buckets on the eval
-        split: the sentence for the next step in case B), and the commit of the run
-        into report §7;
-      - if more than a quarter of the pairs fail: case D, the v1 and dev numbers,
-        labelled; P0 and P0-ZH may run on Public AI, labelled as such (§4).
+#### Reading the numbers (D-M)
 
-      The example jobs' rebuild and the video's real sentences follow the same freeze
-      (WP11).
-- [x] **Report §5 table**: SOURCE, REF, P0, P0-ZH complete, P0-ZH condensed, P1, P2,
-      with the silent-loss column. The §1 headline follows D-M (below) *(rows in place
-      6 Oct, evening; the silent-loss column added 7 Oct night with the identity for
-      the rows without a checklist, 0 by design for P1 and P2; the final run filled the
-      rest on 10 Oct, night, with §1, §3 and §6 and every place listed below; next step
-      4)*. Every place the numbers live, to change in one pass from `eval numbers`
-      and `track_2b/eval/report.md` once the final run is read: report §5 (the table, its "6
-      October" date, the three reading paragraphs; the κ paragraph stays) and §1 (the
-      "Headline result" paragraph: 80 percent, 4.3, 22.0 and 0.1 today); README's
-      "Status (6 October 2026)" block (825 tests, 23 pairs under P0, P1 and P2, no
-      P0-ZH) and the paragraph under "Why not one chatbot prompt?"; the video's
-      evidence scene (narration C: "lost almost a quarter of the hard facts", the
-      condensed variant's 23 percent; demo-video.md §4 lists it). Every number with its
-      endpoint and split (WP16, rule 4).
-
-Done when: `track_2b/eval/report.md` (CSCS) has every row on the 20 German eval pairs; the
-headline sentence follows D-M (below); README, report §1 and the video script carry the
-same three numbers, and `eval numbers --results track_2b/eval/results-cscs` prints them.
-
-#### Reading the numbers at G3 (D-M)
-
-Compare P2 with P0-ZH `complete` on the 20 German eval pairs on CSCS, and decide by
-these rules, no debate:
+P2 against P0-ZH `complete` on the 20 German eval pairs on CSCS, decided by these rules
+(`eval numbers` applies them):
 
 | Case | When | Headline |
 |------|------|----------|
-| A | P2 has fewer invented values and fewer rule errors per 100 blocks, and its fact coverage is at most 5 points below P0-ZH | "Same model, the Canton of Zurich's published prompt against our pipeline: X fewer invented values and Y fewer rule errors per 100 blocks, and every hard fact it misses is listed for the reviewer." |
-| B | P2 is better on invented values or rule errors, but more than 5 points below on fact coverage | Lead with "no silent loss": P0-ZH loses Z % of the hard facts without telling anyone, P2 lists every one. State the coverage gap openly, with the fix from the WP13 diagnosis as next step. No code-written fact sentences in the evaluated text (D-R). |
-| C | P0-ZH is as good or better on rules and facts | Reposition as the verification layer: "We ran the Canton of Zurich's published prompt through our checks: N invented values and M lost facts that nobody saw." The write stage becomes a replaceable part, and "verify a draft" moves to the top of report §8. |
-| D | The final run fails on more than a quarter of the pairs | Report the v1 and dev numbers, labelled, with the failure rate; no headline comparison with P0-ZH. |
+| A | P2 has fewer invented values and fewer rule errors per 100 blocks, and its fact coverage is at most 5 points below P0-ZH | "Same model, a strong single prompt against our pipeline: X fewer invented values and Y fewer rule errors per 100 blocks, and every hard fact it misses is listed for the reviewer." |
+| A2 | P2 has fewer rule errors and at least the same fact coverage, but not fewer invented values (added 11 Oct, owner) | "Same model, a strong single prompt against our pipeline: the pipeline finds X percent of the must-keep facts against Y, loses none without a trace against Z percent, and has E against F rule errors per 100 blocks. Invented values are rare on both sides (a against b)." |
+| B | P2 is better on invented values or rule errors, but more than 5 points below on fact coverage | Lead with "no silent loss", state the coverage gap openly (D-R). |
+| C | P0-ZH is as good or better on rules and facts | Reposition as the verification layer. |
+| D | The final run fails on more than a quarter of the pairs | The v1 and dev numbers, labelled; no headline comparison. |
 
-In every case: the same numbers in README, report §5 and the video, and never a number
-without its endpoint and split. Z in case B names its variant: `complete` loses 5
-percent of the hard facts on the stored rows, `condensed` (their default) 23 percent;
-a sentence that says "in its default mode", as the video's evidence scene does on its
-card (spoken without it since 9 Oct, owner), means the condensed variant. `python -m leichtfacile eval numbers --results track_2b/eval/results-cscs`
-applies the table (tool since 8 Oct, WP16): the means per setup, the three comparisons
-with P0-ZH `complete`, the case and the headline sentence filled in.
-
-Applied on 6 October (evening) to the numbers then on hand (CSCS, 20 German eval pairs,
-8B): **case B**. P2 against P0-ZH `complete`: rule errors 4.3 against 15.4 per 100
-blocks, invented values 0.1 against 0.0, fact coverage 84 against 91 percent (7 points),
-hard facts kept 80 against 95 percent; the condensed variant (their default) keeps 77
-percent of the hard facts. `eval numbers` reproduces this case on the stored rows
-(8 Oct). Since then the recover round (D-AC) lifted P2's fact coverage on the German
-dev pairs from 78 to 96 percent and hard facts kept from 72 to 90: if the eval split
-moves alike, P2 lands within 5 points of P0-ZH `complete` and case A applies, which
-names Zurich in the video (D-L) and rewrites its evidence scene, so the video's numbers
-wait for the final run (WP11). The headline sentence itself waits for the owner (D-M at
-G3) and for the final rerun after the freeze (Sun 11 Oct). *10 Oct, night: on the final
-run (CSCS, 20 German eval pairs, 8B) `eval numbers` prints case A: invented values 0.0
-against 0.2 and rule errors 2.0 against 19.5 per 100 blocks, fact coverage 98 against 91
-percent; hard facts kept 87 against 93 percent, which case A does not weigh, and 0
-against 7 percent silent losses. The owner confirmed case A the same night (next step 3); the sentence stands in report §1, README and submission.md, and the evidence scene carries the numbers without naming the prompt's source (D-L, owner).*
+Applied: case B on 6 Oct, case A on the run of 10 Oct, and **case A2** on the run of
+11 Oct, the owner's headline. It stands in report §1, README, submission.md and the
+video's evidence scene, which names no source for the prompt; the end card credits
+Zurich (D-L).
 
 ### WP14 - Fact contract and repair hardening (GAP-04, -05, -19, -22)
 
@@ -1244,6 +1070,14 @@ since:
       *Reprinted 10 Oct from the current text with a base URL, so its links point to
       GitHub (the 9 Oct draft had nine links to local files), and copied to the root
       next to the report's root copy: 6 pages, the last 94 % full.*
+      *11 Oct, at the owner's request: an own renderer, `make pdf`
+      (track_2b/scripts/report_pdf.py; method in track_2b/docs/submission.md §5): two
+      columns in the web UI's fonts and colours, the Mermaid diagrams drawn as SVG, four
+      key figures from the §5 table on the first page, links to GitHub, both copies
+      written at once. Printed from the final numbers of 11 Oct: 6 pages. The limit
+      leaves the references out (organisers, 11 Oct), and page 6 holds only the licence
+      note above them, so the text may grow by almost a page. Open: print again after
+      the last change to the report (the **[OWNER]** first user in §8).*
 - [ ] Stale report: the **[PENDING]** video link (header) and commit (§7), known after
       the final rerun. *11 Oct: the header has the temporary video link; the PDF still
       shows the placeholder until its next export.* The status line, the three
@@ -1527,7 +1361,7 @@ Never cut:
 | D-H | Team name | Decided 5 Oct: **Röstigraben Bridgers**; file name `track_2b/RoestigrabenBridgers_Report.pdf`. Report §1 frames the name as bridging the gap between authorities and readers, not as translation. | done |
 | D-K | P0-ZH variants | Run both on the 20 German eval pairs: `complete` (same task as ours, keep every fact; used for the headline) and `condensed` (their default for Leichte Sprache). One 8B call per pair, cheap. | 7 Oct |
 | D-L | Name Zurich in the video | Report: yes, with credit, link and licence. *11 Oct (owner): the text calls the baseline "a strong single prompt", as the video does (README, report headline and results, the message to the jury); the report's method table (§5) and references still name and credit the Canton of Zurich, the condition id stays P0-ZH.* Video: only in case A of D-M (WP13); otherwise "a strong single prompt". *10 Oct (owner): the end card's footer credits the institution in every case, "Inspired by simply-simplify-language, Team Data, Office for Statistics and Data, Canton of Zurich." (the office added the same day, its name as in their licence; no person named; naming Patrick Arnecke only with his consent). It lets viewers connect the evidence scene's "strong single prompt" with Zurich, so its final wording is decided here with D-M, in case C with the verification-layer framing.* *10 Oct, night: case A on the final run; the evidence scene carried the final numbers with Zurich named (render C27), then the owner asked for an abstract wording, "a strong single prompt", then "a strong one-shot prompt" (C29, footnote shortened in C30), and since 11 October again "a strong single prompt", as in the README (C31), since naming the source next to a project we build on sounds arrogant: the scene does not name it, the end card's credit stays (demo-video.md §2).* | decided 10 Oct |
-| D-M | Headline metric and sentence | The case table in WP13, applied to the final CSCS numbers, no debate. *10 Oct, night: case A on the final run, confirmed by the owner; the sentence of `eval numbers` ("0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks, and every hard fact it misses is listed for the reviewer") stands in report §1, README and submission.md.* | decided 10 Oct (planned for G3, 12 Oct) |
+| D-M | Headline metric and sentence | The case table in WP13, applied to the final CSCS numbers, no debate. *10 Oct, night: case A on the final run, confirmed by the owner; the sentence of `eval numbers` ("0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks, and every hard fact it misses is listed for the reviewer") stands in report §1, README and submission.md.* *11 Oct: the run repeated on the submitted templates (D-AJ) gives P2 fewer rule errors and higher fact coverage but not fewer invented values (0.1 against 0.0), a mix the four cases did not cover; the owner approved case A2 and its sentence ("the pipeline finds 100 percent of the must-keep facts against 83, loses none without a trace against 15 percent, and has 4.2 against 15.0 rule errors per 100 blocks. Invented values are rare on both sides"), now in WP13's table and `eval numbers`.* | decided 11 Oct |
 | D-N | WP12 split | Spike on 8 Oct. WP12a (image ingest for the reviewed workflow) only if 3 of 3 phone photos keep every hard value in the transcription; WP12b (end-user mode) after G4 only if everything is green. *Decided 7 Oct after four spike runs (8B and 70B, 1,600 px and full resolution): hard values are lost at every setting, and at full resolution the models turn the IBANs, the AVS number and a period into other plausible numbers, the worst case for a fact contract. WP12a cut, WP12b after the deadline; the report names image input as future work with these numbers (track_2b/docs/prompts.md). 9 Oct: the digit loss came mostly from the server's clamp on image size (1400 x 1400 pixels); with `--strips` at the scan's resolution the 8B keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. Decision unchanged; the owner may reopen WP12a with these numbers.* | done |
 | D-O | Identifier matching | IBAN and AHV number compared without spaces; every other identifier exactly, after whitespace normalisation; no checksum test (letters carry specimen numbers); FACT-01 and FACT-06 severity `error` at A2 and B1. *Decided 7 Oct as recommended, implemented; a digits-only identifier also matches its bare number, so `Dossier 12345` survives as `Ihre Nummer: 12345`.* | done |
 | D-P | Clause recipe for `wenn` / `si` | Question form ("Haben Sie ...? Dann ..."), never `vielleicht`; one line in the judge prompt: a condition must stay a condition. *Done 7 Oct (night): the recipes in `rules/recipes.py`, the judge line as SEM-08 in both judge prompts.* | done |
@@ -1550,7 +1384,7 @@ Never cut:
 | D-AG | The judge's unsupported verdicts (10 Oct): leave them, or make each quote the words it objects to and let code check the quote | Quote and check (owner, 10 Oct, from the example rebuild: the 70B cited the judge prompt's own example block ids, `b006` in 46 of 179 verdicts of the example builds and 18 of 146 in the dev run of 9 Oct, and called a French draft unsupported for a tax assessment the letter names; one French attempt was clean but for such a verdict). Both judge templates ask for a `quote` and say that another wording of the same statement is no problem; `to_judge_report` keeps a verdict on the block that holds the quote, moves it there when another block does, and files the rest under `dropped` in the report, counted nowhere. *Measured 10 Oct on the 12 dev pairs (track_2b/docs/prompts.md, "The judge's quotes on the dev pairs"): unsupported verdicts over all versions 188 to 102, 4 dropped as copies of the example; German unsupported 5.3 to 3.1 per 100 blocks, rule errors 1.3 to 0.2, invented 0.6 to 0.0; fact coverage 96 to 94 and hard facts 90 to 88 on one pair alone, where a facts round added none of 9 values in a fresh sample. Kept on for the final run.* | done |
 | D-AH | Bookkeeping errors and the judge's spellings (10 Oct): leave FACT-02, FACT-03 and the judge's fact check as they are, or link a fact without a value by its source sentence, skip a question block in FACT-03 and tell the judge that another spelling of a value is no distortion | All three (owner, 10 Oct, from the second rebuild round on the new pipeline: 0 of 11 attempts clean, 23 of about 42 errors FACT-02 and FACT-03, 14 judge verdicts; in the dev finals 11 of 18 FACT-02 findings on facts without a value have their source sentence cited by a block; the judge called CHF 42'000 a distortion of CHF 42'000.-). `stages.link_facts` names such a fact on every block that cites one of its sentences, and a fact with values in its text on the blocks of its sentences that together hold all of them (7 of the 12 FACT-02 findings left in the second rebuild round were the income limits spread over two sentences); FACT-03 skips a question; both judge templates carry the spelling line. *Measured 10 Oct on the 12 dev pairs (track_2b/docs/prompts.md, "Fact links, questions and the judge's spellings on the dev pairs"): FACT-02 findings in the finals 19 to 10, unsupported verdicts over all versions 102 to 55, German unsupported 3.1 to 0.8 per 100 blocks, two finals without any error for the first time; fact coverage 94 to 95, hard facts 88 to 86 on one pair's fresh sample, rule errors 0.2 to 1.3 within the day's run-to-run range. Kept on for the final run.* | done |
 | D-AI | Sentence placement (10 Oct): a sentence added after a list item lands between the items, or after the list | After the list (owner, 10 Oct, from the clean German candidates of the third rebuild round, whose list of enclosures the facts and recover rounds had split). `stages.apply_repairs` holds an addition after a list item until the list ends, `stages.add_sentences` places a recovered sentence after the list and after earlier recovered sentences of the same list; tests, docs. *Measured 10 Oct on the 12 dev pairs (track_2b/docs/prompts.md, "Sentence placement on the dev pairs"): 7 pairs identical from the cache, 5 with fresh later samples; German rule errors 1.3 to 1.6 per 100 blocks, fact coverage 95 to 96, hard facts 86 to 87, unsupported 0.8 to 1.0, all within the day's noise. Kept on for the final run.* | done |
-| D-AJ | The document fence (10 Oct, audit V8): the prompt-injection fix put `<document>` tags and one sentence into all ten standard templates, the first template change after the freeze (D-AD); the final run (next step 2, `results-cscs-v6`) measured the templates without it, and the report names that commit | Either repeat the final run on the changed templates (about 2 h on CSCS, then `eval report`, `eval numbers` and the numbers pass of step 4 again), or keep the numbers and state in report §5 and §7 that the submitted templates differ from the evaluated ones by the fence sentence (template hashes change; the cache misses once). Recommendation: run P2 on the dev pairs first to see whether anything moves, then decide. | 12 Oct |
+| D-AJ | The document fence (10 Oct, audit V8): the prompt-injection fix put `<document>` tags and one sentence into all ten standard templates, the first template change after the freeze (D-AD); the final run (next step 2, `results-cscs-v6`) measured the templates without it, and the report names that commit | Either repeat the final run on the changed templates (about 2 h on CSCS, then `eval report`, `eval numbers` and the numbers pass of step 4 again), or keep the numbers and state in report §5 and §7 that the submitted templates differ from the evaluated ones by the fence sentence (template hashes change; the cache misses once). Recommendation: run P2 on the dev pairs first to see whether anything moves, then decide. *Decided 11 Oct (owner): repeated. Every row again on commit 663b609 (snapshot `results-cscs-v7`); P2 first so its seconds cover every stage; the 70B everywhere on 19 German pairs (one Write stream cut in all 35 attempts); case A2 of D-M; the numbers pass done the same day (next step 4).* | decided 11 Oct |
 | D-AK | Demo mode for the jury (11 Oct): a judge should run a letter without pasting one and without waiting minutes for CSCS. Ship recorded model answers, though the repository ships no filled cache, and for which letters? | Recorded runs of the example letters, one JSON file each, replayed only on a job's first run and only for byte-identical prompts, said so on the job and review pages; the CLI, `make smoke` and the evaluation never read them (owner, 11 Oct: the three example letters). Only clean runs are shipped, as for the example jobs; the KESB decision had none in 18 attempts (5 to 19 errors, every fact kept in the best runs), so it stays off the card and in the New draft form (owner, 11 Oct). WP11, architecture §6 | done |
 
 ## 9. Judging criteria → evidence we must produce
@@ -1761,3 +1595,5 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-11 (plan review): WP10 fully done, so its items are now a short summary of what was built and measured (the 70B rows of the final run, κ and the spot check, the prompt-language trial, the L4 hardware run). Stale lines fixed in WP0 (Linux and GPU runs done), WP9 (French numbers of the final run) and §4 (Tue 13 Oct: WP10 and D-L done). Open after the review: WP13 the published drafting time; WP15 the KESB decision as an example job (on the never-cut list); WP16 numbers audit at G6, positioning paragraph, messaging; WP11 as in the next steps; WP12 stays deferred (WP12a cut, WP12b after the deadline).
 - 2026-10-11 (two report placeholders): at the owner's request the professional's drafting time is dropped for the hackathon (WP13 value numbers): its **[PENDING]** is gone from both report copies (§5) and submission.md §6, which now says that there is no published figure to compare with. The test count in report §5 is now 1,375 (`pytest --collect-only` today), its **[PENDING]** gone; both copies identical but for links. Found on the way: the final run's P1 and P2 seconds per page leave out the cached Understand (and P2 8B's Write) calls (WP13, value numbers).
 - 2026-10-11 (demo mode for the jury, D-AK): at the owner's request a judge starts a letter with one click and sees it reach review in seconds. New `llm/replay.py` (a read-only `Replay` of recorded answers, looked up before the cache inside `LLMClient.replaying`, which the orchestrator turns on for a job's first run only; a `Recorder` that keeps the answers `complete_json` throws away, so the replay takes the recorded path), `examples record` (the letter as its Run button sends it, `--parallel` attempts at a time, the clean run with the fewest warnings), `POST /examples/{id}/run`, the card "Try a prepared letter" on the drafts list (recorded letters only), the replay note on the job page and the "Recorded answers" tag on the review page, strings in EN, DE and FR. Recorded on CSCS: German 3 of 3 clean, French 1 of 6, KESB 0 of 18 (off the card, owner). Tests: 14 for the replay and the recorder, 2 through the orchestrator (a rerun goes live), 7 web tests (the card, the route, both letters end to end without the endpoint, the New draft form with CRLF), the shipped recordings replayed offline in `test_examples.py`. Checked in the running app on a dead endpoint: review in 3.4 s, no request sent; screenshots of the card, the progress note and the review tag. Docs: architecture §6, §7, §10 and §11, ui-design §5.2, §5.4, §5.5, §6 to §8, the examples README, both READMEs, quickstart, submission.md §3 and §7 (the jury message is now about 3,700 characters).
+- 2026-10-11 (final run on the submitted templates): D-AJ decided by the owner, every eval row again on commit 663b609 (the document fence of V8), snapshot `track_2b/eval/results-cscs-v7` first, 11:36 to 14:53. P2 on the 8B first (fresh Understand and Write, so its 63.3 s per page cover every stage), P1 last from P2's cached answers; the baselines with `LLM_CACHE=0`. A `pyproject.toml` edit of a parallel session made one `uv run` re-sync the venv and fail (Access denied on a dist-info folder), so P1 ran again at the end with `--no-sync`. Two pairs failed: one P2 Understand answer with broken JSON (passed on the retry) and the 70B everywhere on `zh-sebe-disability-de`, its Write stream cut in all 35 attempts (8, 8 and 16 retries), so that row has 19 German pairs. German eval pairs, CSCS: P2 100 percent fact coverage, 97 hard facts kept, 4.2 rule errors, 0.1 invented values; P0-ZH complete 83, 85, 15.0, 0.0 with 15 percent silent losses; P0 92, 93, 19.5; the 70B everywhere 99, 92, 0.6 at USD 0.026; the hybrid 100, 95, 1.9; French P2 100, 87, 4.9. The baselines moved by up to 8 points on unchanged templates (sampling noise); P2's errors rose mostly on one 7-page pair that the run of 10 Oct had shortened to 43 words. `eval diagnose`: 205 must-keep facts, none missing. `eval numbers` gained case A2 (fewer errors, at least the same coverage, not fewer invented values; test in `tests/eval/test_numbers.py`), the owner approved its headline; WP13 closed and condensed. Numbers pass: report §1, §3, §5, §6 and §7 (both copies), README's table and cents (both), submission.md, architecture §9, prompts.md (a section for this run), the evidence scene (`Evidence.tsx`, `Compare.tsx`, narration C "under a third of the rule errors", demo-video.md, video/README.md).
+- 2026-10-11 (report PDF renderer): at the owner's request the report PDF is no longer a plain print of the Markdown. `make pdf` runs `track_2b/scripts/report_pdf.py`, which lays out `track_2b/technical_report.md` with `track_2b/scripts/report/` (page template, stylesheet, the two Mermaid diagrams drawn as SVG): A4 in two columns in the web UI's fonts and colours, a title block, four key figures read from the §5 table (P2 against P0-ZH complete: fact coverage, hard facts kept, silent losses, rule errors, the headline's figures), links rewritten to GitHub, a tagged PDF with bookmarks and document information, the same file in both places. Found on the way: Edge hyphenates nothing by itself (pyphen's soft hyphens go into the text), shrinks every page when a table is wider than the page, and balances no columns that hold positioned list markers (both avoided). The organisers said in the hackathon chat (13:43) that the 6-page limit leaves out the references: the renderer counts the pages before them by the bookmark of their heading and fails above 6. Printed from the final numbers: 6 pages, the sixth only the licence note and the references. New `track_2b/tests/test_report_pdf.py` (12 tests); markdown-it-py a dev dependency; docs: submission.md §1, §5 and §7, architecture.md §11, both READMEs (`make pdf`), THIRD_PARTY_NOTICES.md (the fonts the PDF embeds).

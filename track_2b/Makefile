@@ -9,7 +9,7 @@ run $(MAKECMDGOALS):
 	@$(MAKE) --no-print-directory -C .. -f track_2b/Makefile $@
 else
 
-.PHONY: run stop check-env check-docker check-llm test lint format smoke calibrate day1 eval eval-70b bundle
+.PHONY: run stop check-env check-docker check-llm test lint format smoke calibrate day1 eval eval-70b pdf bundle
 
 REQUIRED_VARS := LLM_BASE_URL LLM_API_KEY LLM_NAME
 # Results of one endpoint stay together: `make eval RESULTS=track_2b/eval/results-cscs`.
@@ -115,6 +115,11 @@ eval-70b: check-env
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
 	LLM_CACHE=1 uv run python -m leichtfacile eval run --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results $(RESULTS)
 	uv run python -m leichtfacile eval report --results $(RESULTS) --out track_2b/eval/report.md
+
+# The technical report as a designed PDF, the same file in track_2b/ and at the root
+# (track_2b/docs/submission.md §5). Needs Edge or Chrome; CHROME_PATH names another Chromium.
+pdf:
+	uv run python track_2b/scripts/report_pdf.py
 
 bundle:
 	@echo "make bundle: the air-gapped image bundle is not implemented yet."; exit 1

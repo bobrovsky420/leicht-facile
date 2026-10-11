@@ -10,9 +10,9 @@ import { Wordmark } from "./Logo";
 
 const DE4 = "Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können.";
 const A2 = ["Sie haben Kosten?", "Melden Sie die Kosten rechtzeitig.", "Sonst bekommen Sie kein Geld zurück."];
-// report §5 (CSCS, 20 German eval pairs, final run of 10 October 2026): P0-ZH complete against P2
-const BASE = 19.5;
-const OURS = 2.0;
+// report §5 (CSCS, 20 German eval pairs, final run of 11 October 2026): P0-ZH complete against P2
+const BASE = 15.0;
+const OURS = 4.2;
 
 const Bar: React.FC<{ label: React.ReactNode; value: number; p: number; color: string }> = ({ label, value, p, color }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 30, height: 96 }}>

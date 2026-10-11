@@ -50,7 +50,7 @@ def test_case_b_when_p2_wins_on_errors_but_trails_on_coverage(tmp_path: Path) ->
     assert "loses 23 % of the hard facts" in sentence(h)
 
 
-def test_case_a_c_and_d(tmp_path: Path) -> None:
+def test_case_a_a2_c_and_d(tmp_path: Path) -> None:
     a = tmp_path / "a"
     _write(a, "P2.jsonl", _rows("P2", "8B", [{**P2, "fact_coverage": 0.89}] * 3))
     _write(
@@ -64,6 +64,16 @@ def test_case_a_c_and_d(tmp_path: Path) -> None:
     _write(c, "ZH.jsonl", _rows("P0-ZH-complete", "8B", [ZH] * 3))
     hc = headline(c)
     assert hc.case == "C" and "nobody saw" in sentence(hc)
+
+    a2 = tmp_path / "a2"
+    _write(a2, "P2.jsonl", _rows("P2", "8B", [{**P2, "fact_coverage": 1.0}] * 3))
+    _write(a2, "ZH.jsonl", _rows("P0-ZH-complete", "8B", [ZH] * 3))
+    h2 = headline(a2)
+    assert h2.case == "A2"
+    assert "finds 100 percent of the must-keep facts against 91" in sentence(h2)
+    assert "loses none without a trace against 23 percent" in sentence(h2)
+    assert "4.3 against 15.4 rule errors" in sentence(h2)
+    assert "rare on both sides (0.1 against 0.0)" in sentence(h2)
 
     d = tmp_path / "d"
     rows = _rows("P2", "8B", [P2] * 2) + _rows("P2", "8B", [{}] * 2, status="failed")

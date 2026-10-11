@@ -39,15 +39,14 @@ fact contract, provenance or independent check, is our baseline P0; the full pip
 is P2.
 
 **Headline result.** Same model, a strong single prompt (defined in §5) against our
-pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 10 October
-2026): 0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks (0.0
-against 0.2, and 2.0 against 19.5), and every hard fact it misses is listed for the
-reviewer. The pipeline finds 98 percent of the must-keep facts against 91 for the
-prompt in its complete mode; it keeps 87 percent of the source's countable values
-(dates, amounts, phone numbers, addresses) against 93 for that prompt and 67 for the
-official easy-language versions, which drop values on purpose, and lists every one it
-loses, where the prompt loses 7 percent (complete) or 25 percent (condensed, its
-default) without a trace.
+pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 11 October
+2026): the pipeline finds 100 percent of the must-keep facts against 83, loses none
+without a trace against 15 percent, and has 4.2 against 15.0 rule errors per 100
+blocks; invented values are rare on both sides (0.1 against 0.0). It keeps 97 percent
+of the source's countable values (dates, amounts, phone numbers, addresses) against 85
+for that prompt in its complete mode and 67 for the official easy-language versions,
+which drop values on purpose, and lists every one it loses; the prompt in its condensed
+default loses 33 percent without a trace.
 
 ## 2. Architecture
 
@@ -152,12 +151,13 @@ card's memory bandwidth. A laptop RTX 4060 8 GB (llama.cpp, 4-bit) gave about 37
   (website opt-outs honoured), Swiss public origin and German, French and Italian
   ([track_2b/docs/use-cases.md §2](docs/use-cases.md#why-only-apertus)).
 - **Why these sizes:** the 8B is enough to read and write: it finds as many must-keep
-  facts as the 70B running every stage (98 against 97 percent) at two thirds of the
-  price per page (§5), and runs on one 24 GB GPU (§2), where the 70B needs four. The
-  70B judges, because meaning needs a second, larger model than the one that wrote the
-  draft. The 70B writes cleaner (1.0 against 2.0 rule errors per 100 blocks) and keeps
-  more countable values (91 against 87 percent); the 70B reading for the 8B keeps the
-  most (94 percent) at the 8B's price, for an organisation that runs the 70B anyway.
+  facts as the 70B running every stage (100 against 99 percent) at half the price per
+  page (§5), and runs on one 24 GB GPU (§2), where the 70B needs four. The 70B judges,
+  because meaning needs a second, larger model than the one that wrote the draft. The
+  70B writes cleaner (0.6 against 4.2 rule errors per 100 blocks) but keeps fewer
+  countable values (92 against 97 percent); the 70B reading for the 8B halves the rule
+  errors (1.9) at a quarter more than the 8B's price, for an organisation that runs the
+  70B anyway.
 
 | Stage | Model | Thinking | Temperature | max_tokens |
 |-------|-------|----------|-------------|------------|
@@ -188,8 +188,8 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   0.08, §5), so every fact number comes from code.
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
   without, 28 seconds and easy language. Write runs without thinking.
-- 8B drafts read worse than the official versions (Amstad 54 against 62); the 70B
-  writes cleaner (59) at 1.5 times the price per page.
+- 8B drafts read worse than the official versions (Amstad 51 against 62); the 70B
+  writes cleaner (56) at twice the price per page.
 - On a whole scanned page both models change digits (an IBAN into another IBAN); names
   and e-mail addresses are unsafe in every setting. Image input is not built
   ([track_2b/docs/image-input.md](docs/image-input.md)).
@@ -238,42 +238,44 @@ judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against
 official version (a port of `SARI.py`, checked bit for bit); cost at Public AI's token
 prices and speed per 250-word page.
 
-Results on the 20 held-out German pairs, CSCS endpoint, final run of 10 October 2026
-(commit 760a210), means over pairs; "/100" is per 100 blocks. The baselines ran with
-the cache off; in P1 and P2 the Understand answers, and in P2 the first draft that P1
-had just written, came from the cache and count 0 s, so their seconds undercount
+Results on the 20 held-out German pairs, CSCS endpoint, final run of 11 October 2026
+(commit 663b609), means over pairs; "/100" is per 100 blocks. The baselines ran with
+the cache off; P1 took P2's Understand answers and first drafts from the cache, so its
+seconds are not measured, and the last row its Understand answers from the row above.
+The 70B everywhere ran on 19 pairs: the server cut its long Write call on one page in all 35 attempts
 ([track_2b/eval/report.md](eval/report.md) has the full tables, also for French).
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Values not in source /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
 |-------|---------------|-----------------|---------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
 | SOURCE | - | 100 % | 0 % | 0.0 | - | 31.3 | 36 | - | - | - |
 | REF (official) | - | 67 % | 33 % | 2.8 | - | 2.7 | 62 | - | - | - |
-| P0 | 88 % | 88 % | 12 % | 0.2 | - | 22.2 | 50 | 42.6 | 0.0001 | 2.5 |
-| P0-ZH complete | 91 % | 93 % | 7 % | 0.2 | - | 19.5 | 46 | 42.7 | 0.0003 | 2.4 |
-| P0-ZH condensed | 74 % | 75 % | 25 % | 0.0 | - | 9.6 | 47 | 42.2 | 0.0002 | 1.6 |
-| P1 | 53 % | 51 % | 0 % | 0.1 | - | 7.0 | 50 | 38.7 | 0.0012 | 6.5 |
-| **P2 (ours)** | 98 % | 87 % | 0 % | 0.0 | 1.8 | 2.0 | 54 | 41.2 | 0.0171 | 33.6 |
-| P2, 70B everywhere | 97 % | 91 % | 0 % | 0.0 | 0.5 | 1.0 | 59 | 41.7 | 0.0260 | 44.5 |
-| P2, 70B reads, 8B writes | 99 % | 94 % | 0 % | 0.0 | 1.7 | 1.8 | 54 | 42.2 | 0.0166 | 32.5 |
+| P0 | 92 % | 93 % | 7 % | 0.2 | - | 19.5 | 52 | 43.0 | 0.0001 | 2.6 |
+| P0-ZH complete | 83 % | 85 % | 15 % | 0.0 | - | 15.0 | 47 | 43.0 | 0.0003 | 2.4 |
+| P0-ZH condensed | 69 % | 67 % | 33 % | 0.2 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
+| P1 | 74 % | 73 % | 0 % | 1.1 | - | 8.3 | 51 | 40.6 | 0.0014 | - |
+| **P2 (ours)** | 100 % | 97 % | 0 % | 0.1 | 1.6 | 4.2 | 51 | 41.7 | 0.0131 | 63.3 |
+| P2, 70B everywhere | 99 % | 92 % | 0 % | 0.0 | 1.1 | 0.6 | 56 | 43.8 | 0.0262 | 57.5 |
+| P2, 70B reads, 8B writes | 100 % | 95 % | 0 % | 0.1 | 1.0 | 1.9 | 53 | 42.0 | 0.0163 | 32.4 |
 
 **Reading the table.** The one-sentence prompt and the strong prompt's complete mode keep most
-values because they rewrite little (7.9 and 7.5 words per sentence; SARI rewards
+values because they rewrite little (7.6 and 7.0 words per sentence; SARI rewards
 closeness to the source) and lose the rest without a trace; the condensed mode,
-its default, simplifies more and drops a quarter of the values. The pipeline
-nears the official sentence length (7.0 words against 6.1), keeps more hard facts
-than the official versions, which condense on purpose, and reads worse (54 against
-62). Judge, repair and the recover round (P1 to P2) raise fact coverage from 53 to 98
-percent and cut rule errors from 7.0 to 2.0 per 100 blocks; the must-keep facts the 8B
-still misses stand in the checklist (8 of 184 on the 23 pairs, 6 of them on one page
-with 23 must-keep values, behind the cap of facts asked for per round). On the 17
-pairs with 3 or more hard facts P2 keeps 85 percent, the official versions 61. French
-(3 pairs): 94 percent fact coverage, 70 percent of the hard facts, 2.1 errors,
-readability 71 (official 85). The 70B's seconds include one call the server closed
-eight times before it answered.
+its default, simplifies more and drops a third of the values. The pipeline
+nears the official sentence length (7.1 words against 6.1), keeps more hard facts
+than the official versions, which condense on purpose, and reads worse (51 against
+62). Judge, repair and the recover round (P1 to P2) raise fact coverage from 74 to 100
+percent and cut rule errors from 8.3 to 4.2 per 100 blocks; no must-keep fact is
+missing from the final versions (205 on the 23 pairs). Two fifths of P2's rule errors
+come from one 7-page source, written out in full. On the 17 pairs with 3 or more hard
+facts P2 keeps 97 percent, the official versions 61. A single prompt varies from run to
+run: on unchanged templates, P0-ZH complete found 91 percent of the facts on 10 October
+and 83 on 11 October (one answer per pair at temperature 0.3). French (3 pairs): 100
+percent fact coverage, 87 percent of the hard facts, 4.9 errors, readability 74
+(official 85).
 
 **Cost, and ten times the volume.** At Public AI's list prices the pipeline costs about
-two US cents per 250-word page (P2: 0.0171 USD, the recover and polish rounds
-included; the 70B everywhere 0.0260), so ten times the volume costs ten times the
+one and a half US cents per 250-word page (P2: 0.0131 USD, the recover and polish rounds
+included; the 70B everywhere 0.0262), so ten times the volume costs ten times the
 cents. On own
 hardware the GPU is a fixed cost until it is busy. Speed is the limit: one job runs at
 a time, so at ten times the volume jobs wait in a queue; vLLM serves parallel requests,
@@ -298,7 +300,7 @@ sentences for every rule (two or more that fire, one that must not).
 ## 6. Limitations
 
 - **A2 with an 8B model.** Drafts near the official sentence length, not the
-  readability (54 against 62), find 98 percent of the must-keep facts and keep 87
+  readability (51 against 62), find 100 percent of the must-keep facts and keep 97
   percent of the countable values (20 German eval pairs, CSCS), listing the rest.
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
@@ -327,9 +329,8 @@ sentences for every rule (two or more that fire, one that must not).
 - **Seeds:** temperatures above zero are not seeded; reruns reproduce exact outputs
   through the response cache, and each result stores the hash of its prompt template.
 - **Hardware and commit:** the CSCS endpoint for all reported numbers except §2's L4
-  figures (`track_2b/eval/hardware/`); commit
-  760a210 (the final run of 10 October 2026; its pipeline code is that of 3131a02,
-  unchanged since).
+  figures (`track_2b/eval/hardware/`); commit 663b609 (the final run of 11 October
+  2026, on the prompt templates with the document fence against prompt injection).
 
 ## 8. Next steps
 

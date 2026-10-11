@@ -43,7 +43,7 @@ class Headline:
     pairs: int
     setups: list[SetupNumbers]
     failed_share: float  # pairs whose P2 run failed, as a share of the pairs
-    case: str  # A, B, C, D; "A?" for the mix the rules do not cover; "-" without rows
+    case: str  # A, A2, B, C, D; "A?" for a mix the rules do not cover; "-" without rows
     reasons: list[str]
 
     def get(self, setup: str) -> SetupNumbers | None:
@@ -124,6 +124,10 @@ def decide_case(
         return "B", reasons
     if not invented_better and not errors_better:
         return "C", reasons
+    if errors_better and gap <= 0:
+        # case A2 (owner, 11 Oct): fewer rule errors and at least the same fact coverage,
+        # but not fewer invented values; the headline names facts and rules
+        return "A2", reasons
     reasons.append(
         "better on one of the two counts only, coverage within 5 points: the rules of "
         "D-M do not cover this mix; read as A and name the count"
@@ -164,9 +168,23 @@ def sentence(h: Headline) -> str:
             "No headline comparison with P0-ZH: report the v1 and dev numbers, labelled, "
             f"with the failure rate ({100 * h.failed_share:.0f} %)."
         )
+    if h.case == "A2":
+        lost = (
+            "loses none without a trace"
+            if not p2.silent_losses
+            else f"loses {_pct(p2.silent_losses)} percent without a trace"
+        )
+        return (
+            "Same model, a strong single prompt against our pipeline: the pipeline finds "
+            f"{_pct(p2.fact_coverage)} percent of the must-keep facts against "
+            f"{_pct(zh.fact_coverage)}, {lost} against {_pct(zh.silent_losses)} percent, "
+            f"and has {_num(p2.errors)} against {_num(zh.errors)} rule errors per 100 "
+            f"blocks. Invented values are rare on both sides ({_num(p2.invented)} against "
+            f"{_num(zh.invented)})."
+        )
     if h.case.startswith("A"):
         return (
-            "Same model, the Canton of Zurich's published prompt against our pipeline: "
+            "Same model, a strong single prompt against our pipeline: "
             # differences of the rounded means, so the sentence agrees with the table
             f"{_num(round(zh.invented or 0, 1) - round(p2.invented or 0, 1))} fewer invented "
             f"values and {_num(round(zh.errors or 0, 1) - round(p2.errors or 0, 1))} fewer rule "

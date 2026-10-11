@@ -1,0 +1,41 @@
+<svg class="fig" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 504 68" role="img" aria-label="Pipeline: Ingest (code), Understand and Write (Apertus 1.5 8B), then the rule check (code) and the judge (Apertus 1.5 70B), then repair and recover (Apertus 1.5 8B), review by a human, export (code).">
+  <!-- The second Mermaid diagram of technical_report.md §2, drawn for the PDF (track_2b/scripts/report_pdf.py). Units are pt at full width. -->
+  <defs>
+    <marker id="arrow-p" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path class="head" d="M0,0.4 L6,3 L0,5.6 Z"/>
+    </marker>
+  </defs>
+
+  <path class="edge" d="M48,34 H61" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M127,34 H140" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M204,30 H210.5 V15 H217" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M204,38 H210.5 V53 H217" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M287,15 H293.5 V30 H300" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M287,53 H293.5 V38 H300" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M376,34 H389" marker-end="url(#arrow-p)"/>
+  <path class="edge" d="M445,34 H458" marker-end="url(#arrow-p)"/>
+
+  <rect class="node code" x="0" y="17" width="48" height="34" rx="4"/>
+  <text x="24" y="36.5" text-anchor="middle"><tspan class="t">Ingest</tspan></text>
+
+  <rect class="node ai" x="61" y="17" width="66" height="34" rx="4"/>
+  <text x="94" y="31.5" text-anchor="middle"><tspan class="t">Understand</tspan><tspan class="s" x="94" dy="9">Apertus 1.5 8B</tspan></text>
+
+  <rect class="node ai" x="140" y="17" width="64" height="34" rx="4"/>
+  <text x="172" y="31.5" text-anchor="middle"><tspan class="t">Write</tspan><tspan class="s" x="172" dy="9">Apertus 1.5 8B</tspan></text>
+
+  <rect class="node code" x="217" y="0" width="70" height="30" rx="4"/>
+  <text x="252" y="17.5" text-anchor="middle"><tspan class="t">Rule check</tspan></text>
+
+  <rect class="node ai" x="217" y="38" width="70" height="30" rx="4"/>
+  <text x="252" y="50" text-anchor="middle"><tspan class="t">Judge</tspan><tspan class="s" x="252" dy="9">Apertus 1.5 70B</tspan></text>
+
+  <rect class="node ai" x="300" y="17" width="76" height="34" rx="4"/>
+  <text x="338" y="31.5" text-anchor="middle"><tspan class="t">Repair, recover</tspan><tspan class="s" x="338" dy="9">Apertus 1.5 8B</tspan></text>
+
+  <rect class="node human" x="389" y="17" width="56" height="34" rx="4"/>
+  <text x="417" y="31.5" text-anchor="middle"><tspan class="t">Review</tspan><tspan class="s" x="417" dy="9">human</tspan></text>
+
+  <rect class="node code" x="458" y="17" width="46" height="34" rx="4"/>
+  <text x="481" y="36.5" text-anchor="middle"><tspan class="t">Export</tspan></text>
+</svg>

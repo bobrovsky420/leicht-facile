@@ -1,0 +1,48 @@
+<svg class="fig" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 504 132" role="img" aria-label="Deployment: the reviewer's browser reaches the leicht-facile container through the organisation's reverse proxy and login. In the container FastAPI runs the pipeline; its rule checker is code, its LLM client calls the Apertus endpoint at LLM_BASE_URL, on-premise, air-gapped or in a Swiss cloud. Jobs live in the volume appdata.">
+  <!-- The first Mermaid diagram of technical_report.md §2, drawn for the PDF (track_2b/scripts/report_pdf.py). Units are pt at full width. -->
+  <defs>
+    <marker id="arrow-a" viewBox="0 0 6 6" refX="5.6" refY="3" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path class="head" d="M0,0.4 L6,3 L0,5.6 Z"/>
+    </marker>
+  </defs>
+
+  <rect class="group" x="100" y="4" width="274" height="104" rx="5"/>
+  <text class="g" x="108" y="15">leicht-facile container (Docker, non-root)</text>
+
+  <path class="edge" d="M84,56 H112" marker-end="url(#arrow-a)"/>
+  <path class="edge" d="M188,56 H204" marker-end="url(#arrow-a)"/>
+  <path class="edge" d="M266,50 H275 V38 H284" marker-end="url(#arrow-a)"/>
+  <path class="edge" d="M266,62 H275 V76 H284" marker-end="url(#arrow-a)"/>
+  <path class="edge" d="M150,78 V112.5 H84" marker-start="url(#arrow-a)" marker-end="url(#arrow-a)"/>
+  <path class="edge" d="M366,76 H421" marker-end="url(#arrow-a)"/>
+  <text class="e" x="397.5" y="72" text-anchor="middle">LLM_BASE_URL</text>
+
+  <rect class="node" x="0" y="34" width="84" height="44" rx="4"/>
+  <text x="42" y="48.5" text-anchor="middle"><tspan class="t">Reviewer’s browser</tspan><tspan class="s" x="42" dy="9">via the organisation’s</tspan><tspan class="s" x="42" dy="8.4">reverse proxy and login</tspan></text>
+
+  <rect class="node" x="112" y="34" width="76" height="44" rx="4"/>
+  <text x="150" y="48.5" text-anchor="middle"><tspan class="t">FastAPI</tspan><tspan class="s" x="150" dy="9">API, review UI,</tspan><tspan class="s" x="150" dy="8.4">job runner thread</tspan></text>
+
+  <rect class="node" x="204" y="34" width="62" height="44" rx="4"/>
+  <text x="235" y="53" text-anchor="middle"><tspan class="t">Pipeline</tspan><tspan class="s" x="235" dy="9">stages below</tspan></text>
+
+  <rect class="node code" x="284" y="22" width="82" height="32" rx="4"/>
+  <text x="325" y="35" text-anchor="middle"><tspan class="t">Rule checker</tspan><tspan class="s" x="325" dy="9">spaCy, regex</tspan></text>
+
+  <rect class="node ai" x="284" y="60" width="82" height="32" rx="4"/>
+  <text x="325" y="73" text-anchor="middle"><tspan class="t">LLM client</tspan><tspan class="s" x="325" dy="9">OpenAI-compatible</tspan></text>
+
+  <path class="node" d="M0,100 A42,3.5 0 0 1 84,100 V125 A42,3.5 0 0 1 0,125 Z"/>
+  <path class="rim" d="M0,100 A42,3.5 0 0 0 84,100"/>
+  <text x="42" y="113.5" text-anchor="middle"><tspan class="t">Volume appdata</tspan><tspan class="s" x="42" dy="9">SQLite + JSON</tspan></text>
+
+  <rect class="node ai strong" x="421" y="54" width="82" height="44" rx="4"/>
+  <text x="462" y="68.5" text-anchor="middle"><tspan class="t">Apertus endpoint</tspan><tspan class="s" x="462" dy="9">on-premise, air-gapped</tspan><tspan class="s" x="462" dy="8.4">or Swiss cloud</tspan></text>
+
+  <rect class="node ai" x="400" y="108" width="8" height="6" rx="1.5"/>
+  <text class="s" x="412" y="113.4">Apertus: language</text>
+  <rect class="node code" x="400" y="117" width="8" height="6" rx="1.5"/>
+  <text class="s" x="412" y="122.4">Code: what can be counted</text>
+  <rect class="node human" x="400" y="126" width="8" height="6" rx="1.5"/>
+  <text class="s" x="412" y="131.4">Human: review and decision</text>
+</svg>
