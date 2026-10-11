@@ -67,13 +67,13 @@ def test_every_section_of_the_report_is_on_the_page(report) -> None:
     assert shown == headings
 
 
-def test_the_team_shows_its_name_and_one_member_per_line(report) -> None:
+def test_the_team_shows_one_member_per_line_and_its_name_by_the_wordmark(report) -> None:
     lines = [plain(line) for line in str(report.meta["Team"]).split("<br>")]
     assert lines == [
-        "Röstigraben Bridgers",
         "Alexander Bobrovsky (bobrovsky@seznam.cz)",
         "Ivan Kuzmych (i.kuzmych@hotmail.com)",
     ]
+    assert "by Team Röstigraben Bridgers" in report_pdf.page_html(report)
 
 
 def test_the_foot_table_moves_down_its_subsection_only() -> None:

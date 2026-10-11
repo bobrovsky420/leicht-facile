@@ -186,8 +186,8 @@ answer each question:
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost and scale" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
-| | Are weights, licences and dependencies free of blocking terms? | Report §2 licences | Answered |
-| | Is it independent of any single commercial provider? | Report §2 (any OpenAI-compatible server) | Answered |
+| | Are weights, licences and dependencies free of blocking terms? | Report §2 "Licences and providers" | Answered |
+| | Is it independent of any single commercial provider? | Report §2 "Licences and providers" (any OpenAI-compatible server) | Answered |
 | Implementation feasibility | Does use require a realistic change of work? | [use-case-canton.md](use-case-canton.md) §5; report §8 "Into use"; report §2: the reviewed draft also exports to Word, where the writers work (since 11 October) | Answered |
 | | How far from real use: what must still be built, obtained or approved? | Report §8 "Into use" | Answered |
 | | Is there a named first user or group? | Nowhere: the report names none | Not answered; the placeholder dropped from report §8 (owner, 11 October) |

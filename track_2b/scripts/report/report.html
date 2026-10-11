@@ -21,7 +21,10 @@
     <span>{{ report.meta[label] }}</span>
     {% endfor %}
   </p>
-  <h1 class="wordmark">{{ report.wordmark }}</h1>
+  <div class="title-line">
+    <h1 class="wordmark">{{ report.wordmark }}</h1>
+    {% if report.team %}<p class="by">by Team {{ report.team }}</p>{% endif %}
+  </div>
   <p class="subtitle">{{ report.subtitle }}</p>
   <dl class="meta">
     {% for label, value in report.meta.items() if label not in ("Event", "Track") %}

@@ -26,7 +26,7 @@ check every deadline, amount and phone number against the original.
 **Approach.** Leicht·Facile is a drafting assistant for the people who write official
 texts: trained writers, and the case workers, clerks and physicians who write decisions
 and letters themselves. One rule: *Apertus does everything that needs language
-understanding; plain code does everything that can be counted.* Apertus 1.5 turns the
+understanding; plain code does everything that can be counted.* Apertus turns the
 document into a fact sheet, writes a draft with provenance for every sentence, judges
 meaning with a second, larger model, repairs only the flagged sentences and asks again
 for each value still missing. Code checks the published easy-language rules
@@ -92,16 +92,17 @@ flowchart LR
 | Ingest | Code: trafilatura, pdfplumber, spaCy | `SourceDocument`: segments with stable ids (`s0001`) |
 | Understand | Apertus 8B, thinking | `FactSheet`: the reader's core questions, typed facts with normalised values and source ids; code adds every date, amount, contact, address, period or identifier the model missed |
 | Write | Apertus 8B | `Draft`: blocks with the facts and source segments they carry, omissions with reasons, glossary |
-| Rule check | Code: spaCy parse, regex, word frequencies | Findings with rule id, severity, evidence, suggestion |
+| Rule check | Code: spaCy, regex, wordfreq | Findings with rule id, severity, evidence, suggestion |
 | Judge | Apertus 70B, thinking | Each fact present, missing or distorted; unsupported blocks; meaning findings. The judge never rewrites |
 | Repair | Apertus 8B | New text for flagged blocks only; up to 3 rounds; every version kept |
 | Recover | Apertus 8B | One sentence for each must-keep value still missing (at most 10), checked and judged like a round |
 | Review, export | Human, then code | Per-block decisions; Markdown, HTML, Word and a JSON audit bundle |
 
-Key decisions ([track_2b/docs/architecture.md](docs/architecture.md)): countable rules in code,
-meaning in the model (exact, free, reproducible, no self-grading;
-[track_2b/docs/rules.md](docs/rules.md)). Every must-keep value must appear in an accepted form
-(`31. März 2026`, `31.3.2026`), so a deadline that became 30 March is caught;
+### Key decisions
+
+Meaning in the model, countable rules in code (exact, free, reproducible, no
+self-grading). Every must-keep value must appear in an accepted form
+(`31. März 2026`, `31.3.2026`), so a deadline that became `30 March` is caught;
 every value the source does not contain is flagged. Typed artifacts in SQLite let a
 failed job resume and the UI and the evaluation show every intermediate result. One
 service: FastAPI, a server-rendered UI, one worker thread by default; no Node build, no CDN.
@@ -130,13 +131,14 @@ provider; on-premise or air-gapped, no data leaves the organisation at runtime. 
 time: PyPI (`uv.lock`), spaCy wheels from GitHub, images from Docker Hub and GHCR.
 The container runs as non-root, logs no document text above `DEBUG` and listens on
 localhost; published further, it insists on a shared token or the reverse proxy's user
-header (the organisation's login). Licences: Apertus 1.5 Apache 2.0 with an acceptable use
-policy (accepted once for the gated download), code Apache 2.0, spaCy models MIT
-(German) and LGPL-LR (French), fonts OFL. Any OpenAI-compatible server works (used:
-CSCS, Public AI, llama.cpp; vLLM on-premise): no single provider is needed.
+header (the organisation's login).
 
-Hardware for (a) and (b), as measured; the L4 run is in
-[track_2b/eval/hardware/](eval/hardware/):
+### Licences and providers
+
+Apertus 1.5 Apache 2.0 with an acceptable use policy (accepted once for the gated
+download), code Apache 2.0, spaCy models MIT (German) and LGPL-LR (French), fonts OFL.
+Any OpenAI-compatible server works (used: CSCS, Public AI, llama.cpp; vLLM
+on-premise): no single provider is needed.
 
 | Hardware | Model and server | Memory | Speed |
 |----------|------------------|--------|-------|
@@ -317,7 +319,8 @@ sentences for every rule (two or more that fire, one that must not).
 ## 7. Reproducibility
 
 - **Run:** `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` in the shell or in `.env`, then
-  `make run` (http://localhost:8000); `make smoke` runs a bundled letter end to end.
+  `make run`, which opens http://localhost:8000 in the browser once the app is up;
+  `make smoke` runs a bundled letter end to end.
 - **Numbers:** `make eval` fetches the pairs, runs P0, P0-ZH, P1 and P2 with the
   response cache (an interrupted run resumes) and writes the tables; `make calibrate`
   runs the checker on the official pages without a model.

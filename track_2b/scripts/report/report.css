@@ -96,6 +96,9 @@ li::before {
   color: var(--ink);
 }
 .wordmark .dot { color: var(--accent); }
+/* The team's name beside the wordmark, smaller, in the same ink, on the same baseline. */
+.title-line { display: flex; align-items: baseline; gap: 10pt; }
+.by { margin: 0; font: 400 15pt/1.2 var(--sans); color: var(--ink); }
 .subtitle {
   margin: 5pt 0 9pt;
   font: 400 12pt/1.35 var(--sans);
@@ -120,7 +123,6 @@ li::before {
   color: var(--muted);
 }
 .meta dd { margin: 0; }
-.meta .team-name { font-weight: 600; }
 .meta-maturity { grid-column: 1 / -1; }
 
 /* Each figure spans four rows of a subgrid, so values, labels and baselines line up. */
@@ -180,12 +182,15 @@ h2 {
 h2 .num { color: var(--accent); }
 /* A chapter whose title the renderer found alone at the foot of a page. */
 .new-page { break-before: page; }
-/* A paragraph that starts the right column (NEW_COLUMN in the renderer). */
+/* A paragraph or subheading that starts the right column (NEW_COLUMN in the renderer). */
 .new-column { break-before: column; }
+h3.new-column { margin-top: 0; }
 /* A chapter in one column across the page (SINGLE_COLUMN in the renderer). */
 section.single > * { column-span: all; }
 main > section:first-child h2 { margin-top: 0; }
 h3 { margin: 9pt 0 3pt; font: 600 9pt/1.3 var(--sans); break-after: avoid; }
+/* Right under a full-width block a subheading starts the columns, as at a column top. */
+table.span + h3, .spread + h3 { margin-top: 0; }
 p:has(+ table), p:has(+ ul) { break-after: avoid; }
 
 table {
@@ -199,6 +204,8 @@ table {
   break-inside: avoid;
 }
 table.span { column-span: all; margin: 4pt 0 9pt; }
+/* Space above a full-width table that follows the columns' text directly. */
+p + table.span { margin-top: 12pt; }
 table.text { break-inside: auto; }
 /* The target-architecture table at the foot of its page: space above it, and its two text
    columns about equally wide, so that its rows take fewer lines. */
@@ -224,6 +231,8 @@ table.keys td:first-child { white-space: nowrap; }
 tr.ours td { background: var(--accent-weak); font-weight: 600; }
 tr.ours td:first-child { box-shadow: -3.5pt 0 0 var(--accent-weak); }
 tr.ours td:last-child { box-shadow: 3.5pt 0 0 var(--accent-weak); }
+/* The "Done by" column takes the width of its longest entry, one line each. */
+td.who { white-space: nowrap; }
 td.who::before {
   content: "";
   display: inline-block;
@@ -259,6 +268,5 @@ figure.diagram svg { display: block; width: 100%; height: auto; overflow: visibl
 section.end { font-size: 7.4pt; line-height: 1.42; }
 /* The licence note is one short line: across the page, not wrapped in the left column. */
 section.end > p { column-span: all; }
-section.end h2 { margin: 10pt 0 6pt; padding: 3pt 0; border-width: 0.5pt 0; font-size: 8.6pt; }
 section.end li { margin-bottom: 1.6pt; padding-left: 8pt; }
 section.end li::before { width: 8pt; margin-left: -8pt; }

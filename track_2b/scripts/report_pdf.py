@@ -57,9 +57,10 @@ UNWRAPPED = ("Model and server",)
 SINGLE_COLUMN = ("Data",)
 # Wide tables, by the first cell of their header, whose introducing paragraph stays in the
 # columns instead of spanning the page as their caption (owner, 11 October 2026).
-NO_CAPTION = ("Setup",)
-# Paragraphs, by their first words, that start a new column (owner, 11 October 2026).
-NEW_COLUMN = ("One container plus an",)
+NO_CAPTION = ("Setup", "Hardware")
+# Paragraphs and subheadings, by their first words, that start a new column (owner,
+# 11 October 2026).
+NEW_COLUMN = ("One container plus an", "Licences and providers")
 MAX_PAGES = 6  # before the references, which do not count (organisers, 11 October 2026)
 MARGIN_TOP, MARGIN_BOTTOM = 17, 15  # mm, as in report.css
 KEYWORDS = "Apertus, easy language, Leichte Sprache, FALC, Swiss official texts, Hack Apertus"
@@ -146,9 +147,11 @@ def render_code(self, tokens: list[Token], idx: int, options, env: dict) -> str:
 
 
 def breakable(text: str) -> str:
-    """Code as HTML that breaks at its spaces and, when long, after a slash, underscore or
-    dot, never at a hyphen."""
-    chunks = re.split(r"(?<=[/_.])(?=[^/_.])", text) if len(text) >= 16 else [text]
+    """Code as HTML. A short one (a value, a name) stays on one line; a long one breaks at
+    its spaces and after a slash, underscore or dot, never at a hyphen."""
+    if len(text) < 16:
+        return f'<span class="nobr">{html.escape(text, quote=False)}</span>'
+    chunks = re.split(r"(?<=[/_.])(?=[^/_.])", text)
     return "<wbr>".join(unbroken(chunk) for chunk in chunks)
 
 
@@ -332,7 +335,9 @@ def parse(
     foot = place_foot_table(tokens, shift)
     captions(tokens)
     for i, token in enumerate(tokens):
-        if token.type == "paragraph_open" and tokens[i + 1].content.startswith(NEW_COLUMN):
+        if token.type in ("paragraph_open", "heading_open") and tokens[i + 1].content.startswith(
+            NEW_COLUMN
+        ):
             add_class(token, "new-column")
     front = tokens[:first]
     title = next(t for i, t in enumerate(front) if front[i - 1].type == "heading_open")
@@ -362,13 +367,12 @@ def parse(
 
 
 def team_lines(value: Markup) -> Markup:
-    """The team line, "Name - A (a@x), B (b@y)", as the team's name and one member per
-    line."""
-    name, sep, members = str(value).replace("\n", " ").partition(" - ")
+    """The team line, "Name - A (a@x), B (b@y)", as one member per line: the team's name
+    stands beside the wordmark."""
+    _, sep, members = str(value).replace("\n", " ").partition(" - ")
     if not sep:
         return value
-    lines = [f'<span class="team-name">{name}</span>', *re.split(r"(?<=\)),\s+", members)]
-    return Markup("<br>".join(lines))
+    return Markup("<br>".join(re.split(r"(?<=\)),\s+", members)))
 
 
 def block_ends(tokens: list[Token], start: int) -> list[int]:
@@ -666,8 +670,8 @@ def main(argv: list[str] | None = None) -> int:
     folder = args.source.resolve().parent.relative_to(ROOT).as_posix()
     text = args.source.read_text(encoding="utf-8")
     for words in NEW_COLUMN:
-        if not re.search(rf"^{re.escape(words)}", text, re.MULTILINE):
-            print(f"report_pdf: no paragraph starts with {words!r} (NEW_COLUMN)", file=sys.stderr)
+        if not re.search(rf"^(?:#+ )?{re.escape(words)}", text, re.MULTILINE):
+            print(f"report_pdf: nothing starts with {words!r} (NEW_COLUMN)", file=sys.stderr)
     browser = find_browser(args.browser)
     reach = (parse(text, folder).foot or (0, "", ""))[0]
     breaks: set[str] = set()
