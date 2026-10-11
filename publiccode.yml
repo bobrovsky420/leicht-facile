@@ -3,7 +3,7 @@ publiccodeYmlVersion: "0.4"
 name: "Leicht·Facile"
 url: "https://github.com/bobrovsky420/leicht-facile"
 landingURL: "https://github.com/bobrovsky420/leicht-facile"
-softwareVersion: "0.1.0"
+softwareVersion: "0.5.0"
 platforms:
   - web
   - linux

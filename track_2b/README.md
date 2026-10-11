@@ -128,7 +128,7 @@ Without Docker and without a checkout: every release has a wheel that uv or pip
 installs together with the spaCy models (Python 3.12 or newer):
 
 ```bash
-uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.1.0/leichtfacile-0.1.0-py3-none-any.whl
+uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.5.0/leichtfacile-0.5.0-py3-none-any.whl
 DATA_DIR=./leichtfacile-data leichtfacile serve
 ```
 

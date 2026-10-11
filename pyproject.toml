@@ -1,6 +1,6 @@
 [project]
 name = "leichtfacile"
-version = "0.1.0"
+version = "0.5.0"
 description = "Drafts easy-language versions of Swiss official texts with Apertus."
 readme = "README.md"
 license = "Apache-2.0"
