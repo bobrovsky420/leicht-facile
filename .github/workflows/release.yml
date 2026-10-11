@@ -3,7 +3,7 @@
 # The wheel installs with uv or pip without a checkout: the spaCy models are direct
 # references in its metadata (pyproject.toml). The tag must match the version in
 # pyproject.toml; track_2b/tests/test_release.py keeps that version, the package's
-# __version__, publiccode.yml and the install commands (both READMEs, quickstart) in step.
+# __version__, publiccode.yml and the install commands (quickstart §9) in step.
 # Every action is pinned to a commit; the comment after the hash names the release.
 
 name: Release
@@ -33,7 +33,7 @@ jobs:
             echo "tag $GITHUB_REF_NAME, but pyproject.toml says $version"
             exit 1
           fi
-      - name: Versions and README install commands agree
+      - name: Versions and install commands agree
         run: |
           uv sync --frozen
           uv run pytest -q track_2b/tests/test_release.py

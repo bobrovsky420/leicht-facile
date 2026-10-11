@@ -21,8 +21,8 @@ that may never leave the authority (decision mode v1;
 [track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
 [track_2b/docs/use-cases.md](track_2b/docs/use-cases.md). Most of them are under official, medical or
-tax secrecy and may not go to a chatbot on a foreign cloud: for them, Apertus is the
-only model that fits ([why](#why-only-apertus)).
+tax secrecy and may not go to a chatbot on a foreign cloud: for them, **Apertus is the
+only model that fits** ([why](#why-only-apertus)).
 
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
 Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
@@ -97,43 +97,10 @@ cp .env.example .env      # set LLM_BASE_URL, LLM_API_KEY, LLM_NAME (CSCS by def
 make run                  # builds and starts the container, opens http://localhost:8000
 ```
 
-The three variables can also come from the shell, without a `.env` file:
-
-```bash
-export LLM_BASE_URL=https://api.inference.cscs.ch/v1 LLM_API_KEY=... LLM_NAME=swiss-ai/Apertus-v1.5-8B
-make run
-```
-
-For these three, a value in the shell wins over `.env`; every other setting comes from
-`.env` or its default.
-
-`make run` opens the web UI in the default browser once the service answers; on a
-machine without a desktop it prints the address instead (`make run OPEN_BROWSER=0`
-turns the browser off).
-
-The app is published on this machine only (`127.0.0.1:8000`). To reach it from other
-machines, set `BIND_HOST=0.0.0.0` in `.env` together with a login: `AUTH_TOKEN=<secret>`
-(the browser asks for it, scripts send it as a bearer token) or the user header of your
-reverse proxy (`AUTH_PROXY_HEADER`, `AUTH_PROXY_FROM`; see `.env.example`). Without a
-login the app refuses to start beyond localhost.
-
-The container needs one outbound connection: the Apertus endpoint in `LLM_BASE_URL`.
-`.env.example` lists the profiles: CSCS, a local vLLM (`docker compose --profile
-local-llm up`), a local llama.cpp server for small GPUs, and two development gateways.
-Without `make`: `docker compose up --build`. Every way to start the app (Compose, plain
-Docker, local vLLM or llama.cpp, without Docker, command line only):
-[track_2b/docs/quickstart.md](track_2b/docs/quickstart.md).
-
-Without Docker and without a checkout: every release has a wheel that uv or pip
-installs together with the spaCy models (Python 3.12 or newer):
-
-```bash
-uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.5.0/leichtfacile-0.5.0-py3-none-any.whl
-DATA_DIR=./leichtfacile-data leichtfacile serve
-```
-
-The wheel holds the app without the example jobs; the settings come from `.env` in the
-current folder and from the shell ([way 9](track_2b/docs/quickstart.md#9-from-the-release-wheel-no-checkout)).
+The three variables can also come from the shell instead of `.env`. Every other way to
+start the app (Compose or plain Docker, a local vLLM or llama.cpp server, without Docker,
+the release wheel, the command line alone), reaching it from other machines and what to
+do when it does not start: [track_2b/docs/quickstart.md](track_2b/docs/quickstart.md).
 
 Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
 endpoint serves it; otherwise `LLM_NAME` judges).
@@ -168,42 +135,6 @@ controls. At runtime the container contacts only the Apertus endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider (report
 §2). Which texts need this, and why it leaves Apertus as the only model:
 [Why only Apertus](#why-only-apertus).
-
-## Status (10 October 2026)
-
-Done:
-
-- German and French pipeline end to end: ingest (text, HTML, PDF with text layer),
-  Understand, Write, rule check, judge, repair, recover, polish, review UI in English,
-  German
-  and French, export (Markdown, HTML, JSON audit bundle), web API and CLI.
-- Rule checker: 45 deterministic rules for German and 41 for French, with golden
-  tests; 8 meaning rules for the judge (10 in decision mode). Italian texts get the
-  language-independent rules (facts, layout, readability).
-- Decision mode v1 for letters that accompany decisions of KESB and courts: the
-  operative part and the appeal instructions protected, one named addressee, a notice
-  at the start and the end that only the decision itself is authoritative
-  ([track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md)).
-- Check my text: the rule checker on any pasted text, no model, nothing stored.
-- Evaluation harness: 35 reference pairs (30 German, 5 French), conditions P0, P0-ZH
-  (the Canton of Zurich's published prompt), P1 and P2, SARI, readability, fact
-  coverage, silent losses, cost and latency.
-- Final evaluation on the CSCS endpoint (10 October, after the prompt freeze): 23
-  held-out pairs (20 German, 3 French) under P0, P0-ZH in both variants, P1 and P2, and
-  P2 with the 70B writer and with the 70B reading for the 8B; on the German pairs P2
-  finds 98 percent of the must-keep facts with 0.0 invented values and 2.0 rule errors
-  per 100 blocks, against 91 percent, 0.2 and 19.5 for Zurich's prompt
-  (`track_2b/eval/report.md`, report §5).
-- 1,244 tests **[PENDING: the count on the submitted commit]**, no network needed; CI
-  runs them, the linter and a start of the Docker image on every push. The whole
-  pipeline ran on a laptop GPU with a local 4-bit Apertus 1.5 8B (llama.cpp), on one
-  NVIDIA L4 with the official 8B in vLLM (`make run` on a clean Linux clone,
-  [track_2b/eval/hardware/](track_2b/eval/hardware/aws-l4-2026-10-10/)), and `make run` and `make smoke`
-  against CSCS.
-
-Pending: image input for scanned letters (not built; what the scans showed:
-[track_2b/docs/image-input.md](track_2b/docs/image-input.md)); the air-gapped bundle (`make bundle`);
-Italian (after the hackathon).
 
 ## Documentation
 

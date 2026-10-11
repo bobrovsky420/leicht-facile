@@ -38,8 +38,8 @@ working here and can only be relaxed by an explicit instruction from the owner.
 - On every version bump, change in the same edit: the version in `pyproject.toml`,
   `track_2b/src/leichtfacile/__init__.py` (`__version__`) and `publiccode.yml`
   (`softwareVersion`), and the release wheel's URL (`releases/download/v<version>/
-  leichtfacile-<version>-py3-none-any.whl`) in both README copies and in
-  `track_2b/docs/quickstart.md` §9. `track_2b/tests/test_release.py` checks all of them.
+  leichtfacile-<version>-py3-none-any.whl`) in `track_2b/docs/quickstart.md` §9 (the
+  READMEs link there). `track_2b/tests/test_release.py` checks all of them.
   The owner then pushes the tag `v<version>`; `.github/workflows/release.yml` builds the
   wheel and publishes it as a GitHub release.
 - Design lives in `track_2b/docs/architecture.md`, the rule specification in
