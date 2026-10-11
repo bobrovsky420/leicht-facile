@@ -282,7 +282,6 @@ check takes 47 ms (median, a 15-block letter). The writer's time is the cost tha
 matters: our own review of three P2 drafts in the UI (the two example letters and one
 dev pair, 1,079 source words together), from opening the review to the export, took
 15 minutes by stopwatch, about 3.5 minutes per 250-word page (the team, not experts).
-**[PENDING: a published drafting time per page, or the statement that we found none.]**
 
 **Judge reliability.** 30 facts and 30 blocks from the P2 dev drafts of 6 October
 (70B judge), drawn evenly over the verdicts and labelled blind to them (`eval sample`,
@@ -293,9 +292,8 @@ code, and the review page shows a verdict that code contradicts as a doubt.
 
 **Checker calibration and tests.** On official pages each error is a real deviation or
 a false positive to fix; calibration cut errors per 100 blocks from 12.6 to 2.0 (30
-German pages) and from 5.3 to 2.2 (5 French). 1,244 offline tests **[PENDING: the count
-on the submitted commit]** include golden sentences for every rule (two or more that
-fire, one that must not).
+German pages) and from 5.3 to 2.2 (5 French). 1,375 offline tests include golden
+sentences for every rule (two or more that fire, one that must not).
 
 ## 6. Limitations
 

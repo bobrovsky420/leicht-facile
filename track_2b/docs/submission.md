@@ -52,7 +52,7 @@ the winners are announced on 23 October at 12:00.
 
 ## 3. Message to the jury
 
-For the form's "Your message" field, as plain text (about 3,100 characters with the
+For the form's "Your message" field, as plain text (about 3,700 characters with the
 placeholders; at most 5,000):
 
 ```text
@@ -62,7 +62,7 @@ How it works. Apertus does what needs language understanding: the 8B reads the d
 
 Maturity we declare: a deployable prototype for German and French drafts of public texts and letters; a proof of concept for court and KESB decisions (decision mode v1); image input explored, not built.
 
-Try it. Set LLM_BASE_URL, LLM_API_KEY and LLM_NAME (the CSCS values work as they are), then run make run. The drafts list opens with two pre-computed example letters (German and French), so the review page can be seen without a model call. "Check my text" runs the rule checker on any pasted text, without a model.
+Try it. Set LLM_BASE_URL, LLM_API_KEY and LLM_NAME (the CSCS values work as they are), then run make run. The drafts list opens with two pre-computed example letters (German and French), so the review page can be seen without a model call. "Try a prepared letter" sends the German or the French letter through the whole pipeline with one click: Apertus's answers to these two were recorded on CSCS, so the run takes seconds instead of minutes, and the page says so; any other text goes to Apertus live. "Check my text" runs the rule checker on any pasted text, without a model.
 
 What the running system contacts: only the Apertus endpoint in LLM_BASE_URL (the document text, inside prompts) and, when a user enters a URL, that page's server. No telemetry, no CDN, no login provider; on-premise or air-gapped, no data leaves the organisation. Why Apertus is the only model that fits letters under official, medical or tax secrecy: README, "Why only Apertus".
 
@@ -133,7 +133,7 @@ answer each question:
 | | (Maturity level declared) | Report header; README; message §3 | Confirmed by the owner, 11 October |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
-| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). **[PENDING: a published drafting time, or none found]** |
+| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). No published drafting time per page to compare with. |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost, and ten times the volume" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
@@ -150,6 +150,9 @@ answer each question:
       §5 and §6, README and the video (`eval numbers`, `track_2b/eval/report.md`).
 - [ ] No **[PENDING]** or **[OWNER]** left in README.md and track_2b/technical_report.md.
 - [ ] Tests and ruff green; CI green on the submitted commit.
+- [ ] The prepared letters still replay on the submitted commit (`test_examples.py`
+      replays each recording without an endpoint); after any prompt change, record
+      them again with `python -m leichtfacile examples record` (track_2b/data/examples/README.md).
 - [ ] Report exported to PDF (§5), at most 6 pages, saved as
       `track_2b/RoestigrabenBridgers_Report.pdf` and the same file at the root, committed.
 - [ ] Video rendered, uploaded, URL in README, report and form.

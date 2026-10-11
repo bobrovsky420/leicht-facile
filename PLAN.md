@@ -70,7 +70,8 @@ The short path to the deadline, in dependency order. Each step points to where i
    unchanged, one job end to end against the local vLLM. Repeat only if the Dockerfile,
    the dependencies or the Makefile change before the submission. *Due again: the move
    into `track_2b/` (10 Oct) changed the Dockerfile and the Makefile, and the audit's hardening layer (10 Oct, night) bound docker-compose.yml to `127.0.0.1:8000` (`BIND_HOST`); from a fresh clone,
-   `make run` from the root and from `track_2b/`.*
+   `make run` from the root and from `track_2b/`, and Run on a prepared letter, which
+   should reach review in seconds with the CSCS values (WP11, demo mode).*
 9. [ ] **Repo public, CI green (Thu 15 Oct, G6; WP11).**
    Check that `git log -p -- .env` is empty, make the repository public, confirm CI is
    green on the final commit. Optional afterwards: the awesome-apertus pull request
@@ -203,9 +204,8 @@ endpoint's models, never shows the key, liveness independent of the endpoint), t
 Dockerfile (python:3.14-slim, non-root user, health check), `docker-compose.yml` with a
 named data volume and the `local-llm` vLLM profile, the Makefile targets, `.env.example`
 with three profiles, `.gitignore` and `.dockerignore`. `make run` on the Windows host
-served `/healthz` against CSCS on 6 Oct. Still open elsewhere: the run on Linux or macOS
-(WP11, clean-checkout test) and the `local-llm` profile on a GPU host (WP10, hardware
-statement).
+served `/healthz` against CSCS on 6 Oct. On 10 Oct `make run` also ran on Linux (WP11,
+clean-checkout test) and the `local-llm` profile on an L4 GPU (WP10).
 
 ### WP1 - LLM client and day-1 verification
 
@@ -320,46 +320,37 @@ table in rules.md, 27 rules at the time, calibrated on the 5 official pages to 2
 per 100 blocks, limits 15/18 words), golden tests, 5 French pairs in the manifest,
 Kandel-Moles verified (French syllables 93 percent exact), the French example letter in
 track_2b/data/examples, web form and API in French; `fr_core_news_md` in the image (1.97 to 2.19
-GB). P2 ran on the 3 French eval pairs on CSCS, and report §5 has their numbers; the
-final run refreshes them (WP13). Italian is out of scope for the hackathon (owner, 8
-Oct) and on the WP17 roadmap, with `it_core_news_md` (CC BY-NC-SA 3.0, WP17 row
-"Italian").
+GB). P2 ran on the 3 French eval pairs on CSCS. The final run (10 Oct) gave 94 percent
+fact coverage, 70 percent hard facts kept and 2.1 errors per 100 blocks (report §5).
+Italian is out of scope for the hackathon (owner, 8 Oct) and on the WP17 roadmap, with
+`it_core_news_md` (CC BY-NC-SA 3.0, WP17 row "Italian").
 
 ### WP10 - Comparisons and reliability
 
-- [x] P2 with the 70B writer on 5-10 pairs; 8B vs 70B table (quality, tokens, CHF,
-      latency) *(6 Oct: 5 pairs, technical report §5)*.
-- [x] Judge reliability: 30 (fact, draft) items labelled by hand; Cohen's κ *(tooling
-      done 6 Oct: `eval sample --results track_2b/eval/results-cscs` writes
-      `track_2b/eval/labels/judge_facts.jsonl` without the verdicts plus a key file,
-      `eval kappa <sheet>` scores the filled sheet; the labelling itself is open)*.
-      *8 Oct: labelled blind by an AI assistant (Claude), κ 0.08 for facts (0.22 present
-      or not), technical report §5; the owner may relabel by hand and rerun `eval kappa`.*
-- [x] Hallucination spot check: 30 blocks flagged/unflagged by the judge, labelled
-      by hand *(same tooling: `track_2b/eval/labels/judge_blocks.jsonl`, 15 flagged and 15
-      passed; labelling open)* *8 Oct: same labeller, agreement 80 %, κ 0.60.*
-- [x] Prompt language: English instructions for German and French documents against
-      the frozen templates, in understand, write, judge and repair, repair first
-      *(9 Oct, at the owner's request: P2 on the dev pairs on CSCS and the judge against
-      the blind labels, track_2b/docs/prompts.md "English instructions"; not taken, D-AE; the
-      variant removed the same day, the results kept in track_2b/docs/prompts.md)*.
-- [x] Hardware statement for the on-prem profile: start the `local-llm` compose profile
-      once on a GPU host; otherwise cite the official vLLM guide numbers and say so
-      *(no GPU host reachable on 6 Oct; the `local-llm-small` llama.cpp profile ran on
-      the RTX 4060)*. *9 Oct: not possible on the laptop (RTX 4060 8 GB; the full 8B
-      needs about 16 GB of weights). Plan: AWS g6.xlarge (1x L4 24 GB) in Zurich
-      (eu-central-2), on demand, about USD 1.09 per hour, 1 to 2 hours. GPU quota
-      requested 9 Oct (4 vCPUs, approved the same day). If not approved by Mon 12 Oct,
-      cut: the report cites the vLLM guide.* *10 Oct: done on that machine (plain
-      Ubuntu 24.04, NVIDIA driver 595). As written the profile did not start: on 24 GB
-      the 32k context needs an FP8 KV cache and `--max-num-seqs=16`, both defaults in
-      docker-compose.yml since (owner). 17.23 GiB of weights, 16.2 tokens per second for
-      one request; the example letter took 63 min with the 8B judging with thinking and
-      22 min with thinking only in Understand; the owner reviewed job 1 as a reference.
-      Evidence in track_2b/eval/hardware/aws-l4-2026-10-10/; report §2, README, architecture.md
-      §10, use-cases.md §2 and track_2b/docs/submission.md updated.*
+*Done 6 to 10 Oct.* Every WP10 row in report §5 is filled from the final run.
 
-Done when: the report's §5 has every table filled with real numbers.
+- 8B against 70B: `make eval-70b` runs P2 with the 70B in every stage and the hybrid
+  (70B Understand, 8B writes). First run on 5 eval pairs (6 Oct). The final run
+  (10 Oct) covered all 23 eval pairs (CSCS, 20 German): the 70B everywhere had 97
+  percent fact coverage, 91 hard facts kept, 1.0 rule errors per 100 blocks, USD 0.026
+  and 45 s per page. The 8B had 98, 87, 2.0, USD 0.017 and 34 s. The hybrid had 99, 94
+  and 1.8 at the 8B's price. Report §3 "Why these sizes" and §5 have the numbers.
+- Judge reliability and the hallucination spot check: `eval sample` writes blind
+  sheets of 30 facts and 30 blocks (15 flagged, 15 passed) from the P2 dev drafts of
+  6 Oct (70B judge), and `eval kappa` scores them. An AI assistant (Claude) labelled
+  them blind on 8 Oct. Facts: κ 0.08 (0.22 for present or not). Blocks: 80 percent
+  agreement, κ 0.60. So the judge's fact verdicts are a hint for the reviewer, and
+  report §5 says so. Optional: the owner relabels by hand and reruns `eval kappa`.
+- Prompt language: English instructions for German and French documents were tried
+  on the dev pairs (9 Oct) and not taken (D-AE). The variant was removed; the results
+  stay in track_2b/docs/prompts.md, "English instructions".
+- Hardware statement: the `local-llm` profile ran on an AWS g6.xlarge (one L4 24 GB,
+  Zurich, Ubuntu 24.04) on 10 Oct. On 24 GB the 32k context needs an FP8 KV cache and
+  `--max-num-seqs=16`; both are defaults in docker-compose.yml since. Measured: 17.23
+  GiB of weights and 16.2 tokens per second for one request. The example letter took
+  63 min with the 8B judging with thinking, and 22 min with thinking in Understand
+  only. Evidence is in track_2b/eval/hardware/aws-l4-2026-10-10/ and report §2. The
+  `local-llm-small` llama.cpp profile ran on the laptop's RTX 4060 (8 GB).
 
 ### WP12 - Letter photo for end users (no expert review)
 
@@ -589,7 +580,13 @@ best single prompt, on the same model?", with numbers a juror can trust.
         instead of an eval pair, since held-out drafts of the frozen pipeline exist
         only after the final run; report §5)*;
       - the drafting time per page of a professional, from a published price per
-        page. Without one, the report says so; no invented figure *(open)*.
+        page *(dropped for the hackathon, owner, 11 Oct: the report gives the team's
+        review time only, without a comparison)*.
+      Open: the final run replayed P1's and P2's Understand calls (and P2 8B's Write
+      calls) from the cache, so their seconds per page count those stages as 0 s; the
+      baselines ran fresh. Rebuilt on 11 Oct from the earlier fresh calls, German eval
+      pairs, median per page: P2 8B 33 s (reported mean 33.6), the 70B everywhere 40 s,
+      the hybrid 36 s. Whether the report changes is the owner's call.
 - [x] **Final evaluation on CSCS** after the prompt freeze (declared 10 Oct, evening,
       a day before the Sun 11 Oct, 18:00 of D-AD), into `track_2b/eval/results-cscs` *(done
       10 Oct, 18:39 to 20:43, on commit 760a210, the pipeline of 3131a02; every eval row
@@ -1297,6 +1294,23 @@ since:
       repository is private), `.env` for the local vLLM, `make run` unchanged, one job
       end to end through the API (WP10's hardware run). The endpoint was the local
       vLLM, not CSCS.*
+- [x] Demo mode for the jury (11 Oct, owner; D-AK): on first start a judge sends a
+      letter through the pipeline with one click, without pasting one and without
+      waiting minutes for CSCS. The drafts list's card "Try a prepared letter" holds the
+      example letters that have a recorded run, each with Run (`POST
+      /examples/{id}/run`, the letter as the New draft form would send it) and Edit
+      first; a job's first run takes Apertus's answers from the recording while its
+      prompts are byte for byte the recorded ones (`llm/replay.py`, architecture §6),
+      and the job and review pages say so; a changed text or setting and every rerun go
+      to the endpoint. `examples record` keeps every answer of a run, also the ones the
+      pipeline threw away, and writes the clean run with the fewest warnings to
+      `track_2b/data/examples/replay/`. *Recorded 11 Oct on CSCS: German letter 3 of 3
+      attempts clean (7 calls, 70 s; 0 errors, 11 warnings, 12 of 12 facts), French 1
+      of 6 (11 calls, 52 s; 0 errors, 7 warnings, 12 of 12 facts); the KESB decision
+      none in 18 (5 to 19 errors), so it stays off the card. In the app a replayed
+      letter reaches review in 3.4 s without a request to the endpoint;
+      `test_examples.py` replays both without one and fails after a prompt change
+      (record again then, submission.md §7).*
 - [ ] Repo to public (anonymous access gave 404 on 7 October); `.env` absent from
       history (check `git log -p -- .env`); then check that CI is green on the submitted
       commit.
@@ -1393,7 +1407,7 @@ first; the final CSCS run starts that night.
 | Sat 10 Oct | Pre-freeze changes and their dev measurement; value numbers (review stopwatch); decision mode (WP15): protected segments, FACT-08, orchestrator wiring, tests; UI: the drafts list, the New draft page | Every pipeline change for the final run in |
 | Sun 11 Oct | Last dev rerun with `--redo` *(done 10 Oct, 17:00, on commit 3131a02 into `track_2b/eval/results-cscs-dev-final`: 166 of 175 calls from the cache, numbers as in the placement run but for two pairs' fresh recover samples; again only if the pipeline changes)*; **prompt freeze 18:00** *(declared 10 Oct, evening, a day early)*; final CSCS evaluation overnight *(done 10 Oct, 18:39 to 20:43, every eval row to review, case A by `eval numbers`)*; example jobs with the decision letter (WP8); WP12a if the spike passed; positioning paragraph, "Why Apertus", precise claims; decision mode: German partial, SEM-09 and SEM-10, addressee, notice and FACT-07, form, API, CLI, the KESB example as a decision job, one P2 run on CSCS; UI: the job page, the texts, tests and screenshots; the decision mode's form fields and notice banner go into the new templates (WP18) | Final run started; example jobs in the image |
 | Mon 12 Oct | Read the numbers per D-M (WP13); `publiccode.yml`; numbers audit *(D-M read and the numbers pass done 10 Oct, night)*; docs in sync; video storyboard; decision mode: French partial if time, docs | **G3**, **G4** |
-| Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check); report tables final; report §8 from WP17; D-L | All report tables filled |
+| Tue 13 Oct | WP10 rest (8B vs 70B, κ labelling, hallucination spot check) *(done by 10 Oct)*; report tables final; report §8 from WP17; D-L *(decided 10 Oct)* | All report tables filled |
 | Wed 14 Oct | Report draft, video recording, clean-checkout test on Linux and on Windows | **G5** |
 | Thu 15 Oct | PDF, numbers audit again, repo public, awesome-apertus pull request prepared | **G6** |
 | Fri 16 Oct | Submit before 12:00 CEST | Submitted |
@@ -1537,6 +1551,7 @@ Never cut:
 | D-AH | Bookkeeping errors and the judge's spellings (10 Oct): leave FACT-02, FACT-03 and the judge's fact check as they are, or link a fact without a value by its source sentence, skip a question block in FACT-03 and tell the judge that another spelling of a value is no distortion | All three (owner, 10 Oct, from the second rebuild round on the new pipeline: 0 of 11 attempts clean, 23 of about 42 errors FACT-02 and FACT-03, 14 judge verdicts; in the dev finals 11 of 18 FACT-02 findings on facts without a value have their source sentence cited by a block; the judge called CHF 42'000 a distortion of CHF 42'000.-). `stages.link_facts` names such a fact on every block that cites one of its sentences, and a fact with values in its text on the blocks of its sentences that together hold all of them (7 of the 12 FACT-02 findings left in the second rebuild round were the income limits spread over two sentences); FACT-03 skips a question; both judge templates carry the spelling line. *Measured 10 Oct on the 12 dev pairs (track_2b/docs/prompts.md, "Fact links, questions and the judge's spellings on the dev pairs"): FACT-02 findings in the finals 19 to 10, unsupported verdicts over all versions 102 to 55, German unsupported 3.1 to 0.8 per 100 blocks, two finals without any error for the first time; fact coverage 94 to 95, hard facts 88 to 86 on one pair's fresh sample, rule errors 0.2 to 1.3 within the day's run-to-run range. Kept on for the final run.* | done |
 | D-AI | Sentence placement (10 Oct): a sentence added after a list item lands between the items, or after the list | After the list (owner, 10 Oct, from the clean German candidates of the third rebuild round, whose list of enclosures the facts and recover rounds had split). `stages.apply_repairs` holds an addition after a list item until the list ends, `stages.add_sentences` places a recovered sentence after the list and after earlier recovered sentences of the same list; tests, docs. *Measured 10 Oct on the 12 dev pairs (track_2b/docs/prompts.md, "Sentence placement on the dev pairs"): 7 pairs identical from the cache, 5 with fresh later samples; German rule errors 1.3 to 1.6 per 100 blocks, fact coverage 95 to 96, hard facts 86 to 87, unsupported 0.8 to 1.0, all within the day's noise. Kept on for the final run.* | done |
 | D-AJ | The document fence (10 Oct, audit V8): the prompt-injection fix put `<document>` tags and one sentence into all ten standard templates, the first template change after the freeze (D-AD); the final run (next step 2, `results-cscs-v6`) measured the templates without it, and the report names that commit | Either repeat the final run on the changed templates (about 2 h on CSCS, then `eval report`, `eval numbers` and the numbers pass of step 4 again), or keep the numbers and state in report §5 and §7 that the submitted templates differ from the evaluated ones by the fence sentence (template hashes change; the cache misses once). Recommendation: run P2 on the dev pairs first to see whether anything moves, then decide. | 12 Oct |
+| D-AK | Demo mode for the jury (11 Oct): a judge should run a letter without pasting one and without waiting minutes for CSCS. Ship recorded model answers, though the repository ships no filled cache, and for which letters? | Recorded runs of the example letters, one JSON file each, replayed only on a job's first run and only for byte-identical prompts, said so on the job and review pages; the CLI, `make smoke` and the evaluation never read them (owner, 11 Oct: the three example letters). Only clean runs are shipped, as for the example jobs; the KESB decision had none in 18 attempts (5 to 19 errors, every fact kept in the best runs), so it stays off the card and in the New draft form (owner, 11 Oct). WP11, architecture §6 | done |
 
 ## 9. Judging criteria → evidence we must produce
 
@@ -1743,3 +1758,6 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-11 (single prompt in the video): at the owner's request the video says "a strong single prompt", as the README does, instead of "a strong one-shot prompt": the evidence scene's heading, card and footnote (`Evidence.tsx`), the spoken sentence in narration C, demo-video.md §1 and §2. Voice rebuilt (version C 119.4 s, under the 2-minute limit); the speech check reads the changed sentence word for word. Rendered as C31.
 - 2026-10-11 (who is counted, bolder red): at the owner's request the "1.25 million" scene says, on screen only, who the survey counts: "All residents, tested in German, French or Italian" (the age is already in the line above; hard-texts.md §2), worded neutrally instead of "not only native speakers", which would invite the reading that it is mostly migrants; "whatever their first language" dropped the same day (owner). The step scene's dotted red underline is thicker (6 px, was 4). demo-video.md §3 updated; stills checked; rendered as C32 (119.4 s), and with the shorter note as C33.
 - 2026-10-11 (audit B9, Python 3.12 support): `pyproject.toml` declares 3.12 and later, but CI tested 3.14 only. The CI test job is now a matrix over 3.12, 3.13 and 3.14 (`setup-uv` `python-version`, which wins over `.python-version`). The URL filter no longer depends on the interpreter's tables: `is_public_address` (`ingest/fetch.py`) refuses the four ranges that CPython 3.12.0 to 3.12.3 counted as global (`192.0.0.0/24`, `64:ff9b:1::/48`, `2002::/16` (6to4, which can carry 127.0.0.1), `3fff::/20`); IPv4-mapped and NAT64 were already unwrapped. Four new cases in `tests/ingest/test_fetch.py`; the full suite green locally on 3.12.14, 3.13.15 and 3.14, ruff clean. Docs: architecture §10, the CI item in WP16. If branch protection names the old check "Tests (pytest)", it needs the three new job names. No pipeline change.
+- 2026-10-11 (plan review): WP10 fully done, so its items are now a short summary of what was built and measured (the 70B rows of the final run, κ and the spot check, the prompt-language trial, the L4 hardware run). Stale lines fixed in WP0 (Linux and GPU runs done), WP9 (French numbers of the final run) and §4 (Tue 13 Oct: WP10 and D-L done). Open after the review: WP13 the published drafting time; WP15 the KESB decision as an example job (on the never-cut list); WP16 numbers audit at G6, positioning paragraph, messaging; WP11 as in the next steps; WP12 stays deferred (WP12a cut, WP12b after the deadline).
+- 2026-10-11 (two report placeholders): at the owner's request the professional's drafting time is dropped for the hackathon (WP13 value numbers): its **[PENDING]** is gone from both report copies (§5) and submission.md §6, which now says that there is no published figure to compare with. The test count in report §5 is now 1,375 (`pytest --collect-only` today), its **[PENDING]** gone; both copies identical but for links. Found on the way: the final run's P1 and P2 seconds per page leave out the cached Understand (and P2 8B's Write) calls (WP13, value numbers).
+- 2026-10-11 (demo mode for the jury, D-AK): at the owner's request a judge starts a letter with one click and sees it reach review in seconds. New `llm/replay.py` (a read-only `Replay` of recorded answers, looked up before the cache inside `LLMClient.replaying`, which the orchestrator turns on for a job's first run only; a `Recorder` that keeps the answers `complete_json` throws away, so the replay takes the recorded path), `examples record` (the letter as its Run button sends it, `--parallel` attempts at a time, the clean run with the fewest warnings), `POST /examples/{id}/run`, the card "Try a prepared letter" on the drafts list (recorded letters only), the replay note on the job page and the "Recorded answers" tag on the review page, strings in EN, DE and FR. Recorded on CSCS: German 3 of 3 clean, French 1 of 6, KESB 0 of 18 (off the card, owner). Tests: 14 for the replay and the recorder, 2 through the orchestrator (a rerun goes live), 7 web tests (the card, the route, both letters end to end without the endpoint, the New draft form with CRLF), the shipped recordings replayed offline in `test_examples.py`. Checked in the running app on a dead endpoint: review in 3.4 s, no request sent; screenshots of the card, the progress note and the review tag. Docs: architecture §6, §7, §10 and §11, ui-design §5.2, §5.4, §5.5, §6 to §8, the examples README, both READMEs, quickstart, submission.md §3 and §7 (the jury message is now about 3,700 characters).
