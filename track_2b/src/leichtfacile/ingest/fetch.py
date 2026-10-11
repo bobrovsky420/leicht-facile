@@ -51,6 +51,14 @@ Resolver = Callable[[str, int], list[str]]
 
 _CHARSET = re.compile(r"charset\s*=\s*[\"']?([\w.:-]+)", re.IGNORECASE)
 _NAT64 = ipaddress.ip_network("64:ff9b::/96")  # RFC 6052: an IPv4 address in the low 32 bits
+# Not global, but missing from the tables of CPython 3.12.0 to 3.12.3 (fixed in 3.12.4
+# with CVE-2024-4032), so `is_global` alone would let them through there.
+_NOT_GLOBAL = (
+    ipaddress.ip_network("192.0.0.0/24"),  # IETF protocol assignments
+    ipaddress.ip_network("64:ff9b:1::/48"),  # local-use IPv4/IPv6 translation
+    ipaddress.ip_network("2002::/16"),  # 6to4: an IPv4 address in bits 16 to 48
+    ipaddress.ip_network("3fff::/20"),  # documentation
+)
 
 
 @dataclass(frozen=True)
@@ -98,6 +106,8 @@ def is_public_address(text: str) -> bool:
             inner = ipaddress.IPv4Address(int(address) & 0xFFFFFFFF)
         if inner is not None:
             return is_public_address(str(inner))
+    if any(address in network for network in _NOT_GLOBAL):
+        return False
     return address.is_global and not address.is_multicast
 
 

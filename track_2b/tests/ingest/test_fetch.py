@@ -278,6 +278,11 @@ def test_fetch_timeout_scheme_and_host():
         ("::ffff:8.8.8.8", True),
         ("64:ff9b::7f00:1", False),  # NAT64 of 127.0.0.1
         ("64:ff9b::808:808", True),  # NAT64 of 8.8.8.8
+        # Missing from the tables of CPython 3.12.0 to 3.12.3; blocked on every version.
+        ("192.0.0.8", False),  # IETF protocol assignments
+        ("64:ff9b:1::7f00:1", False),  # local-use translation
+        ("2002:7f00:1::", False),  # 6to4 of 127.0.0.1
+        ("3fff::1", False),  # documentation
     ],
 )
 def test_is_public_address(address, public):

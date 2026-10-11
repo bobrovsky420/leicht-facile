@@ -1229,7 +1229,10 @@ at runtime.
   name, so a DNS answer that changes between the check and the connect cannot redirect
   the fetch (`ingest/fetch.py`). Three budgets end a slow or hostile server's hold on
   a thread: 30 s per connect and read, 120 s for the whole fetch, 15 MB of body.
-  `ALLOW_PRIVATE_URLS=1` lifts the address check for an intranet that needs internal
+  The check unwraps an IPv4 address carried in IPv6 (IPv4-mapped, NAT64) and names the
+  ranges that CPython 3.12.0 to 3.12.3 still counted as global (6to4 among them), so it
+  refuses the same addresses on every supported Python; CI runs the tests on 3.12,
+  3.13 and 3.14. `ALLOW_PRIVATE_URLS=1` lifts the address check for an intranet that needs internal
   pages.
 - A state-changing request from a page on another site (cross-site request forgery)
   is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an

@@ -34,13 +34,20 @@ jobs:
       - run: uv run ruff format --check .
 
   test:
-    name: Tests (pytest)
+    name: Tests (pytest, Python ${{ matrix.python }})
     runs-on: ubuntu-latest
+    # pyproject.toml declares 3.12 and later; every supported minor version is tested.
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
+          # Sets UV_PYTHON, which wins over .python-version.
+          python-version: ${{ matrix.python }}
       # The spaCy models come from the wheel URLs pinned in uv.lock; nothing else
       # is downloaded after this step.
       - run: uv sync --frozen
