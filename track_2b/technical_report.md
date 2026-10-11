@@ -8,7 +8,7 @@ by code.
 - **Team:** Röstigraben Bridgers - Alexander Bobrovsky (bobrovsky@seznam.cz), Ivan
   Kuzmych (i.kuzmych@hotmail.com)
 - **Repository:** https://github.com/bobrovsky420/leicht-facile
-- **Demo:** **[PENDING: video URL]**
+- **Demo:** <https://youtu.be/V_R4AABLriI>
 - **Maturity:** deployable prototype for German and French drafts of public texts and
   letters; proof of concept for court and KESB decisions; image input explored, not
   built. **[OWNER: confirm]**

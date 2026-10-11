@@ -18,7 +18,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 |-------------|-------|-------|
 | Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
 | Technical report (PDF, at most 6 pages) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md`; the same file at the root, next to the root copy of the report | Draft reprinted 10 October from the current text, links absolute: 6 pages, the last 94 % full, placeholders included (method in §5). **[PENDING: export again after the final numbers; check the 6 pages]** |
-| Demo video (URL), at most 2 minutes | Version C, 118.1 s ([demo-video.md](demo-video.md)) | **[PENDING: final render with the final numbers and the opening sentence's real output; upload; URL]** |
+| Demo video (URL), at most 2 minutes | Version C, 117.6 s ([demo-video.md](demo-video.md)); temporary upload of mock C26 (11 October): https://youtu.be/V_R4AABLriI | Linked in both READMEs and both report copies; the report PDF gets it with its next export. **[PENDING: final render with the final numbers and the opening sentence's real output; upload it under this link or replace the link everywhere]** |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
 | `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
 
@@ -43,7 +43,7 @@ site on 9 October; * = required):
 | Technical report (PDF, max. 6 pages) * | `track_2b/RoestigrabenBridgers_Report.pdf` |
 | Dataset (URL) | empty |
 | Git repo (URL) * | https://github.com/bobrovsky420/leicht-facile |
-| Demo video (URL), required for Track 2B | **[PENDING: video URL]** |
+| Demo video (URL), required for Track 2B | https://youtu.be/V_R4AABLriI (temporary, mock C26; **[PENDING: the final upload's URL, if it changes]**) |
 | Your message (optional, at most 5,000 characters) | §3 |
 | Terms and Conditions * | Accept. Section 6, "What you build is open source": code Apache 2.0, report CC-BY-4.0 |
 
