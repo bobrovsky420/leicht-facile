@@ -39,10 +39,10 @@ of concept for decisions. Built with AI coding assistants (report §3).
    Code adds every date, amount and contact the model missed.
 2. **Write** (Apertus): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 45 deterministic rules from the published Swiss guidelines
-   (sentence length, passive, genitive, numbers, Swiss spelling, Mediopunkt, ...) and
-   an exact check of every fact value in both directions (no value lost, no value
-   invented), in milliseconds, without a model.
+3. **Check** (code): 45 deterministic rules for German and 41 for French from the
+   published Swiss guidelines (sentence length, passive, genitive, numbers, Swiss
+   spelling, Mediopunkt, ...) and an exact check of every fact value in both
+   directions (no value lost, no value invented), in milliseconds, without a model.
 4. **Judge** (a second, larger Apertus model): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
 5. **Repair** (Apertus): only the flagged sentences, until no blocking finding is left
@@ -67,12 +67,13 @@ organisation controls.
 **How we measure the difference.** The evaluation compares the full pipeline (P2) with
 single prompts on the same model (P as in pipeline, not a language level;
 [track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md) §4). P0 is the plain chatbot prompt. The
-fairer baseline is the Canton of Zurich's published Leichte Sprache prompt
+fairer baseline is a strong single prompt: a published Leichte Sprache prompt from a
+Swiss public administration
 ([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
 MIT), here in its "complete" mode. Final run: 20 held-out German text pairs on the CSCS
 endpoint, 10 October 2026 (report §5).
 
-| | Zurich's prompt | Leicht·Facile |
+| | A strong single prompt | Leicht·Facile |
 |---|---|---|
 | Must-keep facts found | 91 % | 98 % |
 | Hard facts lost without a trace | 7 % (25 % in its default, condensed mode) | none: it lists every one it misses |
