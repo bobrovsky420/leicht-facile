@@ -310,6 +310,21 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .intro li { display: flex; align-items: center; gap: 6px; }
 .stepno { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--lf-track); color: var(--lf-ink); font-size: 11px;
           line-height: 18px; font-weight: 600; text-align: center; }
+/* The prepared letters, each started with one click (llm/replay.py) */
+.prepared { margin-bottom: 16px; }
+.prepared-hidden .prepared { display: none; }
+.prepared-head { display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 12px 16px; border-bottom: 1px solid var(--lf-border); }
+.prepared-head .grow { flex: 1; min-width: 0; }
+.prepared-head h2 { font-size: 15px; line-height: 22px; }
+.prepared-note { max-width: 860px; margin: 2px 0 0; color: var(--lf-text-2); font-size: 13px; line-height: 19px; }
+.prepared-list { margin: 0; padding: 0; list-style: none; }
+.prepared-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; }
+.prepared-item + .prepared-item { border-top: 1px solid var(--lf-divider); }
+.prepared-text { display: flex; flex: 1 1 320px; flex-direction: column; gap: 2px; min-width: 0; }
+.prepared-title { color: var(--lf-ink); font-weight: 600; overflow-wrap: anywhere; }
+.prepared-meta { color: var(--lf-muted); font-size: 12px; line-height: 17px; }
+.prepared-actions { display: flex; align-items: center; gap: 8px; }
+.prepared-actions form { margin: 0; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--lf-border); }
 .search { position: relative; flex: 0 1 300px; min-width: 200px; }
 .search .ico { position: absolute; left: 10px; top: 8px; color: var(--lf-muted); pointer-events: none; }
@@ -399,6 +414,9 @@ details.models input { font: 400 12px/18px var(--lf-mono); }
 .jobgrid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px; }
 .jobgrid > .pipeline { flex: 0 1 380px; min-width: 300px; }
 .jobgrid > .results { display: flex; flex: 1 1 680px; flex-direction: column; gap: 12px; min-width: 0; }
+.replay-note { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 8px 12px; border: 1px solid var(--lf-accent-line);
+               border-radius: 8px; background: var(--lf-accent-tint); color: var(--lf-text-2); font-size: 13px; line-height: 19px; }
+.replay-note .ico { flex: none; margin-top: 3px; color: var(--lf-accent); }
 .results-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .results-head .hint { font-size: 13px; color: var(--lf-text-2); }
 .results-cards { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; }

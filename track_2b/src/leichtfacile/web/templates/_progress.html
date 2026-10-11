@@ -21,7 +21,8 @@
           <span class="step-top"><span class="step-title">{{ s.title }}</span>{{ icons.who(s.who) }}<span class="step-state">{{ t('progress.state.' ~ s.state) }}</span></span>
           <span class="step-desc">{{ s.description }}</span>
           {% if s.detail %}<span class="step-detail">{{ s.detail }}</span>{% endif %}
-          {% if s.usage %}<span class="step-usage">{{ t('progress.usage', n=s.usage.calls, tokens=number(s.usage.tokens_in + s.usage.tokens_out, ui_lang), time=duration(s.usage.seconds)) }}</span>
+          {% if s.usage and replayed and s.usage.cached == s.usage.calls %}<span class="step-usage">{{ t('progress.usage_replayed', n=s.usage.calls, tokens=number(s.usage.tokens_in + s.usage.tokens_out, ui_lang)) }}</span>
+          {% elif s.usage %}<span class="step-usage">{{ t('progress.usage', n=s.usage.calls, tokens=number(s.usage.tokens_in + s.usage.tokens_out, ui_lang), time=duration(s.usage.seconds)) }}</span>
           {% elif s.key == 'check' and s.state == 'done' %}<span class="step-usage">{{ t('progress.no_model', rules=rule_count) }}</span>{% endif %}
         </span>
       </li>
@@ -30,6 +31,9 @@
   </section>
 
   <div class="results">
+    {% if replayed %}
+    <p class="replay-note">{{ icons.icon('play', 12) }}<span>{{ t('replay.note', date=replayed.recorded_at.strftime('%d.%m.%Y'), time=duration(replayed.seconds)) }}</span></p>
+    {% endif %}
     {% if job.status == "failed" %}
     <div class="alert" role="alert">
       {{ icons.sev('error') }}

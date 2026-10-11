@@ -100,6 +100,19 @@ class Submission:
     notice: str | None = None
 
 
+def example_submission(example: dict[str, str]) -> Submission:
+    """What the Run button of a prepared letter submits (`examples.example_sources`):
+    its text with the job settings of the file next to it, everything else as the New
+    draft form sends it by default. `examples record` submits the same, so that a run
+    from the button sends the recorded prompts (llm/replay.py)."""
+    return Submission(
+        text=example["text"],
+        mode=example.get("mode") or "standard",
+        addressee=example.get("addressee"),
+        notice=example.get("notice"),
+    )
+
+
 def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> SourceDocument:
     from leichtfacile import ingest
 

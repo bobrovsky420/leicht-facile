@@ -1,0 +1,116 @@
+{
+ "letter": "reduction-primes-lettre",
+ "recorded_at": "2026-10-11T12:19:22+00:00",
+ "version": "0.5.0",
+ "endpoint": "https://api.inference.cscs.ch",
+ "settings": {
+  "writer": "swiss-ai/Apertus-v1.5-8B",
+  "understand": "swiss-ai/Apertus-v1.5-8B",
+  "judge": "swiss-ai/Apertus-v1.5-70B",
+  "thinking_mode": "model-suffix",
+  "thinking_suffix": "-thinking",
+  "thinking_stages": [
+   "judge",
+   "understand"
+  ],
+  "extra_body": {},
+  "max_repair_rounds": 3,
+  "max_facts_rounds": 1,
+  "max_missing_per_facts_round": 10,
+  "max_recover_facts": 10,
+  "max_polish_rounds": 1,
+  "use_vocabulary": true
+ },
+ "seconds": 52.1,
+ "calls": 11,
+ "result": {
+  "job": "b501dd84d050",
+  "final_version": 6,
+  "errors": 0,
+  "warnings": 7,
+  "facts_present": 12,
+  "facts_total": 12
+ },
+ "answers": [
+  {
+   "key": "53aff2c173123d70e87f9b0d5e61173692a9aaac0cbf007c9a6c2d3c6ff5c321",
+   "stage": "understand",
+   "model": "swiss-ai/Apertus-v1.5-8B-thinking",
+   "latency_ms": 25647,
+   "tokens_in": 1851,
+   "tokens_out": 4048,
+   "finish_reason": "stop",
+   "text": "{\n  \"doc_type\": \"Notice officielle de l'agence d'assurances sociales du canton\",\n  \"audience\": \"Les résidents de la commune d'Exempleville\",\n  \"core\": {\n    \"what\": {\"text\": \"La réduction individuelle des primes de l'assurance-maladie pour les personnes à faibles revenus.\", \"segment_ids\": [\"s0001\"]},\n    \"must_do\": {\"text\": \"Déposer le formulaire de demande dûment rempli et signé, accompagné des justificatifs requis (décision de taxation 2025 et police d'assurance-maladie).\", \"segment_ids\": [\"s0007\", \"s0009\"]},\n    \"deadline\": {\"text\": \"Le formulaire doit être déposé au plus tard le 31 mars 2027.\", \"segment_ids\": [\"s0007\"]},\n    \"cost\": null,\n    \"contact\": {\"text\": \"Agence d'assurances sociales d'Exempleville, téléphone 022 123 45 67 ou e-mail rip@exempleville.example.\", \"segment_ids\": [\"s0016\"]}\n  },\n  \"facts\": [\n    {\"id\": \"f01\", \"kind\": \"deadline\", \"text\": \"La taxe des primes doit être payée au plus tard le 31 mars 2027.\", \"value_norm\": \"2027-03-31\", \"segment_ids\": [\"s0007\"], \"must_keep\": true},\n    {\"id\": \"f02\", \"kind\": \"amount\", \"text\": \"Le revenu déterminant maximal est CHF 42'000 pour une personne seule et CHF 61'000 pour un couple marié.\", \"value_norm\": \"42000, 61000\", \"segment_ids\": [\"s0005\", \"s0006\"], \"must_keep\": true},\n    {\"id\": \"f03\", \"kind\": \"obligation\", \"text\": \"Déposer le formulaire de demande dûment rempli et signé, accompagné des justificatifs requis.\", \"value_norm\": null, \"segment_ids\": [\"s0007\", \"s0009\"], \"must_keep\": true}\n  ],\n  \"hard_terms\": [\n    {\"term\": \"agence d'assurances sociales\", \"explanation\": \"Le bureau de l'administration cantonale chargé de l'assurance-maladie.\", \"segment_ids\": [\"s0016\"]},\n    {\"term\": \"revenu déterminant\", \"explanation\": \"Le revenu pris en compte pour déterminer l'éligibilité à la réduction.\", \"segment_ids\": [\"s0004\"]},\n    {\"term\": \"domicile civil\", \"explanation\": \"Le lieu de résidence officiel selon les registres de la commune.\", \"segment_ids\": [\"s0005\"]}\n  ],\n  \"omit_candidates\": [\n    {\"segment_ids\": [\"s0009\"], \"reason\": \"article de loi, pas nécessaire pour la lectrice\"}\n  ]\n}"
+  },
+  {
+   "key": "92480025467f8dd60a8c86d15ddfb0dc7dfa87400dfe6c7252710195a7a51b51",
+   "stage": "write",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 6758,
+   "tokens_in": 4234,
+   "tokens_out": 1117,
+   "finish_reason": "stop",
+   "text": "{\n  \"blocks\": [\n    {\"kind\": \"heading\", \"text\": \"Que devez-vous faire ?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Vous demandez la réduction des primes 2027.\", \"fact_ids\": [\"f01\"], \"segment_ids\": [\"s0002\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous vivez dans la commune d'Exempleville au 1er janvier 2027.\", \"fact_ids\": [\"f04\"], \"segment_ids\": [\"s0005\"]},\n    {\"kind\": \"sentence\", \"text\": \"Votre revenu déterminant ne dépasse pas CHF 42'000.- (personnes seules) ou CHF 61'000.- (personnes mariées).\", \"fact_ids\": [\"f02\", \"f05\"], \"segment_ids\": [\"s0005\", \"s0006\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous avez un enfant à charge ?\", \"fact_ids\": [], \"segment_ids\": [\"s0006\"]},\n    {\"kind\": \"sentence\", \"text\": \"Alors ajoutez CHF 9'000.- à votre revenu.\", \"fact_ids\": [\"f06\"], \"segment_ids\": [\"s0006\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous remplissez le formulaire de demande dûment et le signez.\", \"fact_ids\": [\"f03\"], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous déposez le formulaire avant le 31 mars 2027.\", \"fact_ids\": [\"f01\"], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous joignez une copie de votre dernière décision de taxation.\", \"fact_ids\": [\"f09\"], \"segment_ids\": [\"s0009\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous joignez une copie de votre police d'assurance-maladie.\", \"fact_ids\": [\"f09\"], \"segment_ids\": [\"s0009\"]},\n    {\"kind\": \"sentence\", \"text\": \"La réduction des primes est versée directement à votre assureur-maladie.\", \"fact_ids\": [\"f10\"], \"segment_ids\": [\"s0010\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous ne recevez pas d'argent en espèces.\", \"fact_ids\": [\"f11\"], \"segment_ids\": [\"s0011\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous annoncez toute modification de votre situation dans les 30 jours.\", \"fact_ids\": [\"f07\"], \"segment_ids\": [\"s0012\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous pouvez réclamer la décision si vous n'êtes pas d'accord.\", \"fact_ids\": [\"f14\"], \"segment_ids\": [\"s0014\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous écrivez votre réclamation dans les 30 jours après la notification.\", \"fact_ids\": [\"f14\"], \"segment_ids\": [\"s0015\"]},\n    {\"kind\": \"heading\", \"text\": \"À qui poser des questions ?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Vous téléphonez à l'agence d'assurances sociales.\", \"fact_ids\": [\"f10\"], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous appelez du lundi au vendredi de 8 h 30 à 11 h 30.\", \"fact_ids\": [\"f08\"], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous envoyez un e-mail à rip@exempleville.example.\", \"fact_ids\": [\"f11\"], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Vous visitez le site www.exempleville.example/rip.\", \"fact_ids\": [\"f12\"], \"segment_ids\": [\"s0017\"]}\n  ],\n  \"omissions\": [\n    {\"what\": \"Lettre de fin\", \"why\": \"Pas nécessaire pour la lectrice\", \"segment_ids\": [\"s0018\"]}\n  ],\n  \"glossary\": [\n    {\"term\": \"reduction des primes\", \"explanation\": \"Le canton paie une partie de votre prime de caisse-maladie pour les personnes avec peu d'argent.\"},\n    {\"term\": \"agence d'assurances sociales\", \"explanation\": \"Le bureau de l'administration cantonale chargé de l'assurance-maladie.\"},\n    {\"term\": \"domicile civil\", \"explanation\": \"Le lieu de résidence officiel selon les registres de la commune.\"}\n  ]\n}"
+  },
+  {
+   "key": "d207297b6e9dba0ef086b5af0393f214ae69b9f1abe2a0933d2f4fdd13859913",
+   "stage": "judge",
+   "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+   "latency_ms": 8163,
+   "tokens_in": 3330,
+   "tokens_out": 519,
+   "finish_reason": "stop",
+   "text": "{\n  \"fact_checks\": [\n    {\"fact_id\": \"f01\", \"status\": \"present\", \"block_ids\": [\"b008\"], \"note\": \"\"},\n    {\"fact_id\": \"f02\", \"status\": \"present\", \"block_ids\": [\"b004\"], \"note\": \"\"},\n    {\"fact_id\": \"f03\", \"status\": \"present\", \"block_ids\": [\"b007\", \"b009\", \"b010\"], \"note\": \"\"},\n    {\"fact_id\": \"f04\", \"status\": \"present\", \"block_ids\": [\"b003\"], \"note\": \"\"},\n    {\"fact_id\": \"f05\", \"status\": \"present\", \"block_ids\": [\"b004\"], \"note\": \"\"},\n    {\"fact_id\": \"f06\", \"status\": \"present\", \"block_ids\": [\"b006\"], \"note\": \"\"},\n    {\"fact_id\": \"f07\", \"status\": \"present\", \"block_ids\": [\"b013\"], \"note\": \"\"},\n    {\"fact_id\": \"f08\", \"status\": \"present\", \"block_ids\": [\"b017\", \"b018\"], \"note\": \"\"},\n    {\"fact_id\": \"f09\", \"status\": \"present\", \"block_ids\": [\"b019\"], \"note\": \"\"},\n    {\"fact_id\": \"f10\", \"status\": \"present\", \"block_ids\": [\"b020\"], \"note\": \"\"},\n    {\"fact_id\": \"f11\", \"status\": \"present\", \"block_ids\": [\"b020\"], \"note\": \"\"},\n    {\"fact_id\": \"f12\", \"status\": \"present\", \"block_ids\": [\"b020\"], \"note\": \"\"}\n  ],\n  \"unsupported\": [\n    {\"block_id\": \"b005\", \"quote\": \"Vous avez un enfant à charge ?\\nAlors ajoutez CHF 9'000.- à votre revenu.\", \"note\": \"L'original indique que la limite est augmentée de CHF 9'000.- pour chaque enfant à charge, mais ne demande pas de calculer ou d'ajouter cette somme dans la demande. C'est une information supplémentaire non couverte par l'original.\"}\n  ],\n  \"semantic_findings\": []\n}"
+  },
+  {
+   "key": "0496977b1439eb08d492eb3b0fb8c57abb4dc27f48112445393bab1a9899734b",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 2475,
+   "tokens_in": 3423,
+   "tokens_out": 399,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [],\n  \"additions\": [\n    {\"after\": \"b001\", \"texts\": [\"Vous demandez la réduction des primes 2027.\", \"Vous vivez dans la commune d'Exempleville au 1er janvier 2027.\"]},\n    {\"after\": \"b004\", \"texts\": [\"Votre revenu déterminant ne dépasse pas CHF 42'000.- (personnes seules) ou CHF 61'000.- (personnes mariées).\"], \"fact_ids\": [\"f02\"]},\n    {\"after\": \"b007\", \"texts\": [\"Vous remplissez le formulaire de demande dûment et le signez.\", \"Vous déposez le formulaire avant le 31 mars 2027.\"]},\n    {\"after\": \"b009\", \"texts\": [\"Vous joignez une copie de votre dernière décision de taxation.\", \"Vous joignez une copie de votre police d'assurance-maladie.\"]},\n    {\"after\": \"b013\", \"texts\": [\"Vous annoncez toute modification de votre situation dans les 30 jours.\"], \"fact_ids\": [\"f07\"]},\n    {\"after\": \"b015\", \"texts\": [\"Vous écrivez votre réclamation dans les 30 jours après la notification.\"], \"fact_ids\": [\"f07\"]},\n    {\"after\": \"b016\", \"texts\": [\"Vous téléphonez à l'agence d'assurances sociales.\", \"Vous appelez du lundi au vendredi de 8 h 30 à 11 h 30.\", \"Vous envoyez un e-mail à rip@exempleville.example.\", \"Vous visitez le site www.exempleville.example/rip.\"]}\n  ]\n}"
+  },
+  {
+   "key": "f8ff4b7521dd7eb722a04420e09b6a6a6a13ec56f56e0224570f28dee5788a52",
+   "stage": "recover",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 373,
+   "tokens_in": 1486,
+   "tokens_out": 50,
+   "finish_reason": "stop",
+   "text": "{\"after\": \"b016\", \"texts\": [\"Vous téléphonez au 022 123 45 67\", \"Vous envoyez un e-mail à rip@exempleville.example\"]}"
+  },
+  {
+   "key": "d6d4cc6f0233a7a1997a1c6f268b3429fd5fcdac53bb02f5ff17303c369016af",
+   "stage": "judge",
+   "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+   "latency_ms": 6228,
+   "tokens_in": 3356,
+   "tokens_out": 412,
+   "finish_reason": "stop",
+   "text": "{\n  \"fact_checks\": [\n    {\"fact_id\": \"f01\", \"status\": \"present\", \"block_ids\": [\"b008\"], \"note\": \"\"},\n    {\"fact_id\": \"f02\", \"status\": \"present\", \"block_ids\": [\"b004\"], \"note\": \"\"},\n    {\"fact_id\": \"f03\", \"status\": \"present\", \"block_ids\": [\"b007\", \"b009\", \"b010\"], \"note\": \"\"},\n    {\"fact_id\": \"f04\", \"status\": \"present\", \"block_ids\": [\"b003\"], \"note\": \"\"},\n    {\"fact_id\": \"f05\", \"status\": \"present\", \"block_ids\": [\"b004\"], \"note\": \"\"},\n    {\"fact_id\": \"f06\", \"status\": \"present\", \"block_ids\": [\"b006\"], \"note\": \"\"},\n    {\"fact_id\": \"f07\", \"status\": \"present\", \"block_ids\": [\"b008\"], \"note\": \"\"},\n    {\"fact_id\": \"f08\", \"status\": \"present\", \"block_ids\": [\"b018\"], \"note\": \"\"},\n    {\"fact_id\": \"f09\", \"status\": \"present\", \"block_ids\": [\"b017.1\"], \"note\": \"\"},\n    {\"fact_id\": \"f10\", \"status\": \"present\", \"block_ids\": [\"b019\"], \"note\": \"\"},\n    {\"fact_id\": \"f11\", \"status\": \"present\", \"block_ids\": [\"b020\"], \"note\": \"\"},\n    {\"fact_id\": \"f12\", \"status\": \"present\", \"block_ids\": [\"b020\"], \"note\": \"\"}\n  ],\n  \"unsupported\": [],\n  \"semantic_findings\": []\n}"
+  },
+  {
+   "key": "f7a921ed76033b2373a1555b0d0fa66e9da3a5b07a19729148fef571f66515f3",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 1298,
+   "tokens_in": 3622,
+   "tokens_out": 197,
+   "finish_reason": "stop",
+   "text": "{\n  \"b004\": [\n    {\"texts\": [\"Le revenu déterminant maximal est CHF 42'000 pour une personne seule et CHF 61'000 pour un couple marié.\"]\n  ],\n  \"b011\": [\n    {\"texts\": [\"L'agence d'assurances sociales verse la réduction directement à votre assureur-maladie.\"}\n  ],\n  \"b017\": [\n    {\"texts\": [\"Vous téléphonez au 022 123 45 67.\"},\n    {\"texts\": [\"Vous appelez du lundi au vendredi de 8 h 30 à 11 h 30.\"},\n    {\"texts\": [\"Vous envoyez un e-mail à rip@exempleville.example.\"},\n    {\"texts\": [\"Vous visitez le site www.exempleville.example/rip.\"}\n  ]\n}"
+  },
+  {
+   "key": "353b3ee277fd14149aeeb4ec280317f794fdd5f308aa10ad978c9ec825db68f8",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 1152,
+   "tokens_in": 3466,
+   "tokens_out": 163,
+   "finish_reason": "stop",
+   "text": "{\n  \"b007\": [\n    {\"texts\": [\"Vous remplissez le formulaire de demande et le signez.\"}\n  ],\n  \"b008\": [\n    {\"texts\": [\"Vous déposez le formulaire avant le 31 mars 2027.\"}\n  ],\n  \"b009\": [\n    {\"texts\": [\"Vous joignez une copie de votre dernière décision de taxation.\"}\n  ],\n  \"b010\": [\n    {\"texts\": [\"Vous joignez une copie de votre police d'assurance-maladie.\"}\n  ],\n  \"b011\": [\n    {\"texts\": [\"La réduction des primes est payée directement à votre assureur-maladie.\"}\n  ]\n}"
+  }
+ ]
+}

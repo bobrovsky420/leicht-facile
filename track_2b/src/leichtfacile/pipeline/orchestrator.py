@@ -274,10 +274,12 @@ class Orchestrator:
         try:
             # Each model call is billed to the job when it is made, so a stage that fails
             # after some calls has them in the usage too. The limit ends a stopped job's
-            # calls early (llm/client.py).
+            # calls early (llm/client.py). The recorded runs of the prepared letters
+            # answer a job's first run only (no call billed yet): a rerun asks the model.
             with (
                 self.llm.recording(lambda usage: self.store.add_usage(job_id, usage)),
                 self.llm.limited(run.limit),
+                self.llm.replaying(not job.usage),
             ):
                 self._run(run, job)
         finally:

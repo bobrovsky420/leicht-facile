@@ -2,6 +2,9 @@
 on first start so the UI is not empty, and built from track_2b/data/examples/sources/ with
 `python -m leichtfacile examples build` (needs a model endpoint).
 
+The same sources are the prepared letters a visitor runs with one click; their recorded
+runs in track_2b/data/examples/replay/ are made with `examples record` (llm/replay.py).
+
 Only team-written or article-5 texts are used as sources (track_2b/docs/sources.md §4).
 """
 
@@ -9,9 +12,13 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urlsplit
 
+from leichtfacile import __version__
 from leichtfacile.config import Paths
 from leichtfacile.schemas import (
     Draft,
@@ -26,6 +33,10 @@ from leichtfacile.schemas import (
     UsageRecord,
 )
 from leichtfacile.store import Store
+
+if TYPE_CHECKING:
+    from leichtfacile.config import Settings
+    from leichtfacile.llm.replay import Recording
 
 log = logging.getLogger(__name__)
 EXAMPLE_PREFIX = "Example: "
@@ -201,3 +212,115 @@ def build_examples(
         target.write_text(json.dumps(bundle, ensure_ascii=False, indent=1), encoding="utf-8")
         written.append(target)
     return written
+
+
+def record_examples(
+    folder: Path | None = None,
+    only: list[str] | None = None,
+    attempts: int = 6,
+    parallel: int = 3,
+    allow_problems: bool = False,
+) -> list[Path]:
+    """Record a clean run of every prepared letter (or the ones named in `only`) for
+    the replay (llm/replay.py; needs the endpoint). A letter runs as its Run button
+    sends it, with a `Recorder` as the response cache, `parallel` attempts at a time
+    until a batch has a run whose final draft shows no error, at most `attempts` in
+    all; the clean run with the fewest warnings is written to replay/<letter>.json. A
+    letter without a clean run keeps its file, unless `allow_problems` writes the run
+    with the fewest errors. Every attempt stays in `examples-record.sqlite`."""
+    from concurrent.futures import ThreadPoolExecutor
+    from functools import partial
+
+    from leichtfacile.config import get_settings
+    from leichtfacile.llm.replay import FOLDER, write_recording
+
+    folder = folder or examples_dir()
+    settings = get_settings()
+    store = Store(settings.data_dir / "examples-record.sqlite")
+    written = []
+    with ThreadPoolExecutor(parallel) as pool:
+        for example in example_sources(folder):
+            if only and example["id"] not in only:
+                continue
+            attempt = partial(_record_once, store, settings, example)
+            runs: list[_Attempt] = []
+            while len(runs) < attempts and not any(r.clean for r in runs):
+                batch = range(len(runs) + 1, min(len(runs) + parallel, attempts) + 1)
+                runs += pool.map(attempt, batch)
+            usable = [r for r in runs if r.clean or (allow_problems and r.recording)]
+            if not usable:
+                log.error("letter %s not recorded: no clean run in %d", example["id"], len(runs))
+                continue
+            best = min(usable, key=lambda r: (r.errors, r.warnings))
+            target = folder / FOLDER / f"{example['id']}.json"
+            write_recording(target, best.recording, best.answers)  # type: ignore[arg-type]
+            written.append(target)
+    return written
+
+
+@dataclass
+class _Attempt:
+    """One run of a letter in `record_examples`: once it reached review, its recording
+    with the answers and the counts the drafts list shows."""
+
+    recording: Recording | None = None
+    answers: list[dict[str, Any]] = field(default_factory=list)
+    errors: int = 0
+    warnings: int = 0
+
+    @property
+    def clean(self) -> bool:
+        return self.recording is not None and self.errors == 0
+
+
+def _record_once(store: Store, settings: Settings, example: dict[str, str], n: int) -> _Attempt:
+    """Run the letter as its Run button sends it (`example_submission`, `create_job`),
+    with a `Recorder` as the response cache."""
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.llm.replay import Recorder, Recording, replay_settings
+    from leichtfacile.pipeline.orchestrator import Orchestrator
+    from leichtfacile.web.jobs import create_job, example_submission
+
+    name = example["id"]
+    recorder = Recorder()
+    llm = LLMClient(settings, cache=recorder, usage_sink=recorder.observe)
+    try:
+        job = create_job(store, settings, example_submission(example))
+        Orchestrator(store, llm, settings).run(job.id)
+    except Exception:  # one attempt failing must not end the others
+        log.exception("letter %s, attempt %d failed", name, n)
+        return _Attempt()
+    job = store.get_job(job.id)
+    if job is None or job.status != "needs_review" or job.counts is None:
+        log.warning("letter %s, attempt %d: no review: %s", name, n, job.error if job else None)
+        return _Attempt()
+    summary = store.get_artifact(job.id, "summary", PipelineSummary)
+    final = summary.final_version if summary else None
+    problems = open_problems(
+        store.get_artifact(job.id, "rules", RuleFindings, version=final),
+        store.get_artifact(job.id, "judge", JudgeReport, version=final),
+    )
+    counts = job.counts
+    errors = max(problems, counts.errors)  # the build's measure and what the list shows
+    seconds = sum(u.latency_ms for u in job.usage) / 1000
+    log.info("letter %s, attempt %d: job %s, %d errors, %d warnings, %d calls, %.0f s",
+             name, n, job.id, errors, counts.warnings, len(job.usage), seconds)  # fmt: skip
+    url = urlsplit(settings.llm_base_url)
+    recording = Recording(
+        letter=name,
+        recorded_at=datetime.now(UTC),
+        version=__version__,
+        endpoint=f"{url.scheme}://{url.hostname}",
+        settings=replay_settings(settings, judge=summary.judge_model if summary else None),
+        seconds=seconds,
+        calls=len(job.usage),
+        result={
+            "job": job.id,
+            "final_version": final,
+            "errors": errors,
+            "warnings": counts.warnings,
+            "facts_present": counts.facts_present,
+            "facts_total": counts.facts_total,
+        },
+    )
+    return _Attempt(recording, recorder.answers, errors, counts.warnings)

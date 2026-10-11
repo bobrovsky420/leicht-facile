@@ -758,6 +758,27 @@ writers wait for each other (5 s) instead of failing midway.
   repository ships with an empty cache: the live run must work from the endpoint.
   An answer that cannot be used (no valid JSON, a copy of the example) is dropped
   from the cache again, so a rerun of a failed pair asks the model.
+- **Recorded runs of the prepared letters** (`llm/replay.py`, since 11 October 2026).
+  A first visitor should see a letter go through the pipeline without pasting one and
+  without waiting minutes for CSCS. `python -m leichtfacile examples record` sends each
+  example letter through the pipeline on the endpoint exactly as its Run button does
+  (`example_submission`, `create_job`), with a `Recorder` as the response cache: unlike
+  the cache it keeps the answers the pipeline threw away and asked again for, so a
+  replay takes the recorded path. Of up to `--attempts` runs (`--parallel` at a time)
+  the clean one with the fewest warnings (no error, by the example jobs' measure) is
+  written to `track_2b/data/examples/replay/<letter>.json`: the answers in call order
+  with stage, model, tokens and latency, keyed by the cache's hash, without prompts and
+  without reasoning, plus the settings the prompts depend on (models, thinking switch,
+  rounds), the date, the endpoint and the result. The web app loads them read-only
+  (`Replay`); inside `LLMClient.replaying`, which the orchestrator turns on for a job's
+  first run only (no call billed yet), a recorded answer comes before the cache. Only a
+  byte-identical prompt matches, so an edited letter, other models or settings, a rerun
+  and every other text go to the endpoint; the CLI, `make smoke` and the evaluation
+  never load the recordings. A replayed call is billed as cached with 0 ms, and the
+  pages say the answers were recorded, when and how long the recorded run took (§7).
+  `track_2b/tests/test_examples.py` replays every recording without an endpoint and
+  fails when a prompt changed since: the letter would then run live, and is recorded
+  again.
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`, which
   is needed to see the reasoning markers) also print `<|assistant_end|>`; every
   `<|...|>` token is removed from answers.
@@ -842,7 +863,14 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   status filter with counts and language filter are GET parameters, so they work
   without JavaScript; at most 50 rows, newest first, with the counts computed per
   request from `review_view` (D-Y). An intro strip explains the four steps and can be
-  hidden. Without jobs, the empty state offers the team-written example texts.
+  hidden. Under it, **Try a prepared letter** (since 11 October 2026) lists the
+  example letters that have a recorded run (§6): **Run** sends one with one click as
+  the New draft form would (`POST /examples/{id}/run`) and opens its job, **Edit
+  first** opens the filled form (`/new?example=<id>`). Under the recorded settings the
+  run replays in seconds; under others the card says the letters run live. The card
+  can be hidden as well, and stands above the empty state when there are no jobs;
+  without recordings there is no card, and the empty state offers the example texts
+  as buttons to the filled form.
 - **New draft** (`/new`, D-W): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
   (`/new?example=<id>` fills the text without JavaScript, and the decision mode's
@@ -871,7 +899,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   minutes) and reloads when the job reaches review or fails; a failed job shows the
   error and "Run again". While the job is queued or running the header offers "Stop"
   in place of "Delete": the job ends at its next stage or streamed chunk, keeps the
-  stages that finished and reads "The job was stopped", with "Run again".
+  stages that finished and reads "The job was stopped", with "Run again". When the
+  answers come from a recorded run (§6), a stage's line reads "· recorded" in place of
+  the time, and a note above the results gives the recording's date and how long the
+  recorded run took.
 - **Review** (`/jobs/{id}` once a draft exists): a header with the view switch
   (Review, Reader view), the export menu, the save state ("Saved 10:42") and "Save
   review" (also Ctrl+S); a strip with language, level, pipeline, the draft versions as
@@ -909,7 +940,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      findings grouped by rule with the rule's title; a FACT-04 line marks its source
      sentences, a FACT-01 line selects its fact. **Questions**, the five core questions.
      **More**, omissions with reasons, glossary, measures, and the run (models, usage,
-     notes, rerun and delete).
+     notes, rerun and delete). A job whose answers all came from a recorded run carries
+     a "Recorded answers" tag in the strip, and the run names the recording (§6); after
+     a rerun the model has answered too, and both go.
 - **Reader view**: replaces the panes with the HTML export of the decisions on screen,
   unsaved ones included (`POST /jobs/{id}/preview` renders it and stores nothing; `GET
   /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
@@ -963,6 +996,7 @@ language it was produced in.
 | `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
 | `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`) |
 | `python -m leichtfacile examples build` | Build the example jobs shown on first start |
+| `python -m leichtfacile examples record [--only] [--attempts] [--parallel]` | Record a clean run of each example letter for its Run button (§6, recorded runs) |
 
 ## 8. Languages and levels
 
@@ -1120,6 +1154,12 @@ follows once decision mode v1 is in (PLAN.md WP15). The example jobs are audit b
 leichtfacile examples build` (`--only <name>` for one) once an endpoint is available,
 and imported into the store on start. A source's job settings, such as the decision
 mode and the addressee, come from a JSON file next to it (track_2b/data/examples/README.md).
+The documents with a recorded run in `track_2b/data/examples/replay/` (§6; the
+premium-reduction letter in German and in French) are the prepared letters on the
+drafts list, started with one click; the recordings ship in the image. With the
+default models the first run of such a letter ends in seconds, and it needs
+no endpoint at all when `LLM_JUDGE_NAME` is set (as in `.env.example`; otherwise the
+judge's model is looked up in the endpoint's list).
 
 `make check-llm` lists the endpoint's models and makes one short call from inside the
 container; it is the first thing to run once a key is set.
@@ -1272,7 +1312,8 @@ What the service stores, where, for how long, and how it leaves:
   with the reviewer's edits, the pipeline summary, and one row per model call (stage,
   model, tokens, latency, no text). With `LLM_CACHE=1`, the response cache keeps every
   prompt (which contains the document) and answer, keyed by their hash; it is off by
-  default and meant for development and evaluation. The example jobs ship with the
+  default and meant for development and evaluation. The example jobs and the recorded
+  runs of the example letters (§6, read-only, answers without prompts) ship with the
   repository and carry no personal data.
 - **Where.** `DATA_DIR` (the Compose volume `appdata`): `leichtfacile.sqlite` and, with
   the cache on, `llm_cache.sqlite`. Nothing else is written; the exports are generated
@@ -1315,11 +1356,12 @@ THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline
 PLAN.md, AGENTS.md          the plan; the rules for AI agents
 video/                      the demo video as code (Remotion)
 track_2b/                   the template's folder, as the organisers require it
-  Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval;
-                            the recipes run from the root, also when called here
+  Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval ·
+                            pdf; the recipes run from the root, also when called here
   README.md                 the root README's text; its links written from track_2b/
   technical_report.md       the report, the same text at the root
-  RoestigrabenBridgers_Report.pdf  the report printed (links absolute), the same file at the root
+  RoestigrabenBridgers_Report.pdf  the report printed by `make pdf` (links absolute), the same
+                            file at the root
   docs/
     quickstart.md           every way to start the app (make, Compose, Docker, local models, uv, CLI)
     architecture.md         this document
@@ -1332,10 +1374,10 @@ track_2b/                   the template's folder, as the organisers require it
     config.py               env → settings (pydantic-settings)
     schemas.py              artifacts (§5)
     store.py                SQLite access
-    examples.py             example jobs: import on start, build
+    examples.py             example jobs: import on start, build; recording the example letters' runs
     lifecycle.py            the counts on the job row, deletion with the cache rows, the purge, the log redaction
     logs.py                 the log output: a text or a JSON line per record, the request and job ids on it
-    llm/                    client.py, json_out.py, reasoning.py, cache.py
+    llm/                    client.py, json_out.py, reasoning.py, cache.py, replay.py
     llm/prompts/<lang>/     understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
                             included by the four standard templates when mode is "decision");
@@ -1357,17 +1399,19 @@ track_2b/                   the template's folder, as the organisers require it
                             labels.py, diagnose.py (why facts go missing), image_spike.py,
                             day1.py, cli.py
   scripts/                  fetch_pairs.py, day1_checks.py, print_letters.py, image_spike.py,
-                            open_browser.sh
+                            open_browser.sh, report_pdf.py (the report as a designed PDF);
+                            report/ (its page template, stylesheet and the drawn diagrams)
   data/
     pairs/manifest.jsonl    URLs + licence notes (committed)
-    examples/               team-written sample documents, printable letters; example job bundles
+    examples/               team-written sample documents, printable letters; example job bundles; recorded runs
     cache/, *.sqlite        fetched texts, LLM cache, the app's database (git-ignored)
   eval/
     report.md               the evaluation tables (`eval report`)
     hardware/               measured runs on rented hardware (AWS L4, 10 October 2026)
     results*/, labels/      evaluation outputs, labelling sheets (git-ignored)
   tests/                    rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
-                            eval, web; test_copies.py (README, report and PDF in both places)
+                            eval, web; test_copies.py (README, report and PDF in both places),
+                            test_report_pdf.py (the PDF's renderer, its drawings, the 6 pages)
 ```
 
 `track_2b/data/` stays well under the 100 MB limit because texts and caches are not committed.

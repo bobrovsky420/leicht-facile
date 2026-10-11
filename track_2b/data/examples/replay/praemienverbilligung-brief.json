@@ -1,0 +1,106 @@
+{
+ "letter": "praemienverbilligung-brief",
+ "recorded_at": "2026-10-11T12:16:50+00:00",
+ "version": "0.5.0",
+ "endpoint": "https://api.inference.cscs.ch",
+ "settings": {
+  "writer": "swiss-ai/Apertus-v1.5-8B",
+  "understand": "swiss-ai/Apertus-v1.5-8B",
+  "judge": "swiss-ai/Apertus-v1.5-70B",
+  "thinking_mode": "model-suffix",
+  "thinking_suffix": "-thinking",
+  "thinking_stages": [
+   "judge",
+   "understand"
+  ],
+  "extra_body": {},
+  "max_repair_rounds": 3,
+  "max_facts_rounds": 1,
+  "max_missing_per_facts_round": 10,
+  "max_recover_facts": 10,
+  "max_polish_rounds": 1,
+  "use_vocabulary": true
+ },
+ "seconds": 70.3,
+ "calls": 7,
+ "result": {
+  "job": "945c8af56676",
+  "final_version": 4,
+  "errors": 0,
+  "warnings": 11,
+  "facts_present": 12,
+  "facts_total": 12
+ },
+ "answers": [
+  {
+   "key": "d9c5f0e2c46588f1723f10590bebb33dd706ae4b9fe56c3a20761a962e7b6930",
+   "stage": "understand",
+   "model": "swiss-ai/Apertus-v1.5-8B-thinking",
+   "latency_ms": 32234,
+   "tokens_in": 1883,
+   "tokens_out": 4310,
+   "finish_reason": "stop",
+   "text": "{\n  \"doc_type\": \"Merkblatt\",\n  \"audience\": \"Personen in der Gemeinde Musterwil\",\n  \"core\": {\n    \"what\": {\"text\": \"Prämienverbilligung für die obligatorische Krankenpflegeversicherung\", \"segment_ids\": [\"s0001\", \"s0003\"]},\n    \"must_do\": {\"text\": \"Antragsformular vollständig ausgefüllt und unterzeichnet bis 31. März 2027 einreichen\", \"segment_ids\": [\"s0007\"]},\n    \"deadline\": {\"text\": \"31. März 2027\", \"segment_ids\": [\"s0007\"]},\n    \"cost\": {\"text\": \"Es werden keine Kosten für den Antrag erhoben.\", \"segment_ids\": [], \"must_keep\": false},\n    \"contact\": {\"text\": \"Sozialversicherungsstelle, Telefon 044 123 45 67, E-Mail ipv@musterwil.example\", \"segment_ids\": [\"s0016\"]}\n  },\n  \"facts\": [\n    {\"id\": \"f01\", \"kind\": \"deadline\", \"text\": \"Die Hundesteuer muss bis 30. April 2026 bezahlt sein.\", \"value_norm\": \"2026-04-30\", \"segment_ids\": [\"s0003\"], \"must_keep\": true},\n    {\"id\": \"f02\", \"kind\": \"amount\", \"text\": \"Die Hundesteuer kostet 120 Franken pro Hund.\", \"value_norm\": \"120\", \"segment_ids\": [\"s0002\"], \"must_keep\": true},\n    {\"id\": \"f03\", \"kind\": \"obligation\", \"text\": \"Jeder Hund muss bei der Einwohnerkontrolle angemeldet sein.\", \"value_norm\": null, \"segment_ids\": [\"s0005\"], \"must_keep\": true}\n  ],\n  \"hard_terms\": [\n    {\"term\": \"Einwohnerkontrolle\", \"explanation\": \"Das Amt der Gemeinde für die Anmeldung von Personen und Hunden.\", \"segment_ids\": [\"s0005\"]},\n    {\"term\": \"Steuerveranlagung\", \"explanation\": \"Die Steuerbescheinigung des Vorjahres, die für die Berechnung wichtig ist.\", \"segment_ids\": [\"s0004\"]},\n    {\"term\": \"Sozialversicherungsstelle\", \"explanation\": \"Das Amt, das für die Prämienverbilligung zuständig ist.\", \"segment_ids\": [\"s0016\"]}\n  ],\n  \"omit_candidates\": [\n    {\"segment_ids\": [\"s0009\"], \"reason\": \"Gesetzesartikel/Anforderung für Dokumente\"},\n    {\"segment_ids\": [\"s0012\"], \"reason\": \"Meldung von Änderungen\"},\n    {\"segment_ids\": [\"s0013\"], \"reason\": \"Rückforderung von Leistungen\"},\n    {\"segment_ids\": [\"s0014\"], \"reason\": \"Einsprachefrist\"},\n    {\"segment_ids\": [\"s0015\"], \"reason\": \"Begründung der Einsprache\"},\n    {\"segment_ids\": [\"s0017\"], \"reason\": \"Website\"},\n    {\"segment_ids\": [\"s0018\"], \"reason\": \"Grußformel\"}\n  ]\n}"
+  },
+  {
+   "key": "88d43cdd43cd6c34363f6de562d5cd0fda8fc60b660d7066ae235fe8c3986125",
+   "stage": "understand",
+   "model": "swiss-ai/Apertus-v1.5-8B-thinking",
+   "latency_ms": 16402,
+   "tokens_in": 2705,
+   "tokens_out": 2251,
+   "finish_reason": "stop",
+   "text": "{\n  \"doc_type\": \"Merkblatt\",\n  \"audience\": \"Personen in der Gemeinde Musterwil\",\n  \"core\": {\n    \"what\": {\"text\": \"Prämienverbilligung für die obligatorische Krankenpflegeversicherung\", \"segment_ids\": [\"s0001\", \"s0003\"]},\n    \"must_do\": {\"text\": \"Das Antragsformular vollständig ausgefüllt und unterzeichnet bis spätestens 31. März 2027 bei der Sozialversicherungsstelle einreichen\", \"segment_ids\": [\"s0007\"]},\n    \"deadline\": {\"text\": \"31. März 2027\", \"segment_ids\": [\"s0007\"]},\n    \"cost\": {\"text\": \"Keine Kosten für den Antrag\", \"segment_ids\": [], \"must_keep\": false},\n    \"contact\": {\"text\": \"Sozialversicherungsstelle, Telefon 044 123 45 67 oder E-Mail ipv@musterwil.example\", \"segment_ids\": [\"s0016\"]}\n  },\n  \"facts\": [\n    {\"id\": \"f01\", \"kind\": \"deadline\", \"text\": \"Der Antrag muss bis 31. März 2027 eingereicht werden.\", \"value_norm\": \"2027-03-31\", \"segment_ids\": [\"s0007\"], \"must_keep\": true},\n    {\"id\": \"f02\", \"kind\": \"amount\", \"text\": \"Es werden keine Kosten für die Prämienverbilligung erhoben.\", \"value_norm\": null, \"segment_ids\": [], \"must_keep\": false},\n    {\"id\": \"f03\", \"kind\": \"obligation\", \"text\": \"Das Antragsformular muss vollständig ausgefüllt und unterzeichnet sein.\", \"value_norm\": null, \"segment_ids\": [\"s0007\"], \"must_keep\": true},\n    {\"id\": \"f04\", \"kind\": \"condition\", \"text\": \"Anspruchsberechtigt sind Personen mit Wohnsitz in Musterwil am 1. Januar 2027 und massgebendem Einkommen unter CHF 42'000 (Alleinstehend) bzw. CHF 61'000 (Verheiratet).\", \"value_norm\": null, \"segment_ids\": [\"s0005\", \"s0006\"], \"must_keep\": true},\n    {\"id\": \"f05\", \"kind\": \"contact\", \"text\": \"Für Auskünfte kontaktieren Sie die Sozialversicherungsstelle unter Telefon 044 123 45 67 oder E-Mail ipv@musterwil.example\", \"value_norm\": null, \"segment_ids\": [\"s0016\"], \"must_keep\": true}\n  ],\n  \"hard_terms\": [\n    {\"term\": \"EG KVG\", \"explanation\": \"Kantonales Einführungsgesetz zum Krankenversicherungsgesetz, das die Grundlage für die Prämienverbilligung bildet.\", \"segment_ids\": [\"s0003\"]},\n    {\"term\": \"Steuerveranlagung\", \"explanation\": \"Die Steuerbescheinigung des Vorjahres, die für die Berechnung des massgebenden Einkommens herangezogen wird.\", \"segment_ids\": [\"s0004\"]},\n    {\"term\": \"Sozialversicherungsstelle\", \"explanation\": \"Das Amt der Gemeinde, das für die Bearbeitung der Prämienverbilligungsanträge zuständig ist.\", \"segment_ids\": [\"s0016\"]}\n  ],\n  \"omit_candidates\": [\n    {\"segment_ids\": [\"s0009\"], \"reason\": \"Gesetzesartikel/Referenz für Unterlagen\"},\n    {\"segment_ids\": [\"s0012\"], \"reason\": \"Meldung von Änderungen der Verhältnisse\"},\n    {\"segment_ids\": [\"s0013\"], \"reason\": \"Rückforderung von zu Unrecht bezogenen Leistungen\"},\n    {\"segment_ids\": [\"s0014\"], \"reason\": \"Einsprachefrist\"},\n    {\"segment_ids\": [\"s0015\"], \"reason\": \"Begründung der Einsprache\"},\n    {\"segment_ids\": [\"s0017\"], \"reason\": \"Website mit weiteren Informationen\"},\n    {\"segment_ids\": [\"s0018\"], \"reason\": \"Abschlussformel\"}\n  ]\n}"
+  },
+  {
+   "key": "4f76577a5d000f148bf29e40c4587f62611e56f3aa320db93c1d7ea4e5dc826f",
+   "stage": "write",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 9136,
+   "tokens_in": 4510,
+   "tokens_out": 1271,
+   "finish_reason": "stop",
+   "text": "{\n  \"blocks\": [\n    {\"kind\": \"heading\", \"text\": \"Was müssen Sie tun?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Sie melden sich bei der Sozialversicherungsstelle an.\", \"fact_ids\": [], \"segment_ids\": [\"s0003\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie haben am 1. Januar 2027 Wohnsitz in Musterwil.\", \"fact_ids\": [], \"segment_ids\": [\"s0005\"]},\n    {\"kind\": \"sentence\", \"text\": \"Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).\", \"fact_ids\": [], \"segment_ids\": [\"s0005\"]},\n    {\"kind\": \"sentence\", \"text\": \"Für jedes Kind kommt CHF 9'000 mehr dazu.\", \"fact_ids\": [], \"segment_ids\": [\"s0006\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie füllen das Antragsformular aus und unterschreiben es.\", \"fact_ids\": [], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie reichen das Formular bis 31. März 2027 ein.\", \"fact_ids\": [\"f01\"], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie bringen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice mit.\", \"fact_ids\": [], \"segment_ids\": [\"s0009\"]},\n    {\"kind\": \"sentence\", \"text\": \"Die Prämienverbilligung geht direkt an Ihre Krankenkasse.\", \"fact_ids\": [], \"segment_ids\": [\"s0010\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie können kein Geld in bar bekommen.\", \"fact_ids\": [], \"segment_ids\": [\"s0011\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sagen Sie der Sozialversicherungsstelle Bescheid, wenn sich etwas ändert.\", \"fact_ids\": [], \"segment_ids\": [\"s0012\"]},\n    {\"kind\": \"sentence\", \"text\": \"Sie können schriftlich Einsprache machen, wenn Sie nicht einverstanden sind.\", \"fact_ids\": [\"s0014\"], \"segment_ids\": [\"s0014\"]},\n    {\"kind\": \"sentence\", \"text\": \"Die Einsprache muss begründet sein.\", \"fact_ids\": [\"s0015\"], \"segment_ids\": [\"s0015\"]},\n    {\"kind\": \"heading\", \"text\": \"Wann können Sie anrufen?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Sie rufen von Montag bis Freitag an.\", \"fact_ids\": [], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Die Zeit ist von 8.30 bis 11.30 Uhr.\", \"fact_ids\": [], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Die Telefonnummer ist 044 123 45 67.\", \"fact_ids\": [], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Die E-Mail-Adresse ist ipv@musterwil.example.\", \"fact_ids\": [], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"sentence\", \"text\": \"Mehr Informationen finden Sie auf www.musterwil.example/ipv.\", \"fact_ids\": [], \"segment_ids\": [\"s0017\"]},\n    {\"kind\": \"heading\", \"text\": \"Was brauchen Sie?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"list_item\", \"text\": \"das ausgefüllte Antragsformular\", \"fact_ids\": [], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"list_item\", \"text\": \"eine Kopie der Steuerveranlagung\", \"fact_ids\": [], \"segment_ids\": [\"s0009\"]},\n    {\"kind\": \"list_item\", \"text\": \"eine Kopie der Krankenversicherungspolice\", \"fact_ids\": [], \"segment_ids\": [\"s0009\"]}\n  ],\n  \"omissions\": [\n    {\"what\": \"Gesetzesartikel s0009\", \"why\": \"Für die Leserin nicht nötig\", \"segment_ids\": [\"s0009\"]},\n    {\"what\": \"s0012, s0013, s0014, s0015, s0017, s0018\", \"why\": \"Für die Leserin nicht nötig\", \"segment_ids\": [\"s0012\", \"s0013\", \"s0014\", \"s0015\", \"s0017\", \"s0018\"]}\n  ],\n  \"glossary\": [\n    {\"term\": \"Sozialversicherungsstelle\", \"explanation\": \"Das Amt der Gemeinde, das für die Prämienverbilligung zuständig ist.\"},\n    {\"term\": \"massgebendes Einkommen\", \"explanation\": \"Das Einkommen, das das Amt für die Berechnung der Prämienverbilligung heranzieht.\"},\n    {\"term\": \"Prämienverbilligung\", \"explanation\": \"Der Kanton zahlt einen Teil der Krankenkassenprämie für Menschen mit wenig Geld.\"}\n  ]\n}"
+  },
+  {
+   "key": "c4fa627261df1037f9016dc87fc41af0b5920afb53ea9c3a442e01fe928bf7b5",
+   "stage": "judge",
+   "model": "swiss-ai/Apertus-v1.5-70B-thinking",
+   "latency_ms": 7460,
+   "tokens_in": 3681,
+   "tokens_out": 457,
+   "finish_reason": "stop",
+   "text": "{\n  \"fact_checks\": [\n    {\"fact_id\": \"f01\", \"status\": \"present\", \"block_ids\": [\"b006\", \"b007\"], \"note\": \"\"},\n    {\"fact_id\": \"f02\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f03\", \"status\": \"present\", \"block_ids\": [\"b006\"], \"note\": \"\"},\n    {\"fact_id\": \"f04\", \"status\": \"present\", \"block_ids\": [\"b004\"], \"note\": \"\"},\n    {\"fact_id\": \"f05\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f06\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f07\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f08\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f09\", \"status\": \"present\", \"block_ids\": [\"b005\"], \"note\": \"\"},\n    {\"fact_id\": \"f10\", \"status\": \"present\", \"block_ids\": [\"b011\"], \"note\": \"\"},\n    {\"fact_id\": \"f11\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f12\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f13\", \"status\": \"present\", \"block_ids\": [\"b017\"], \"note\": \"\"},\n    {\"fact_id\": \"f14\", \"status\": \"present\", \"block_ids\": [], \"note\": \"\"},\n    {\"fact_id\": \"f15\", \"status\": \"present\", \"block_ids\": [\"b019\"], \"note\": \"\"}\n  ],\n  \"unsupported\": [],\n  \"semantic_findings\": []\n}"
+  },
+  {
+   "key": "de5c80d1231550187d70740b023afbf3bf08f21f2cba80c75854da2056094a6b",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 2243,
+   "tokens_in": 4601,
+   "tokens_out": 313,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b003\",\n      \"texts\": [\"Sie haben am 1. Januar 2027 Wohnort in Musterwil.\", \"Sie müssen das Antragsformular ausfüllen und unterschreiben.\"]\n    },\n    {\n      \"id\": \"b004\",\n      \"texts\": [\"Ihr Einkommen ist nicht höher als CHF 42'000 (lässt allein) oder CHF 61'000 (verheiratet).\"]\n    },\n    {\n      \"id\": \"b007\",\n      \"texts\": [\"Sie schicken das Formular bis 31. März 2027 ein.\"]\n    },\n    {\n      \"id\": \"b008\",\n      \"texts\": [\"Sie bringen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice mit.\"]\n    },\n    {\n      \"id\": \"b011\",\n      \"texts\": [\"Sagen Sie der Sozialversicherungsstelle Bescheid, wenn sich etwas ändert.\"]\n    },\n    {\n      \"id\": \"b012\",\n      \"texts\": [\"Sie können schriftlich Einsprache machen, wenn Sie nicht einverstanden sind.\"]\n    },\n    {\n      \"id\": \"b022\",\n      \"texts\": [\"eine Kopie der Steuerveranlagung\"]\n    }\n  ]\n}"
+  },
+  {
+   "key": "460481572001e96068e9e5ceb019725be3d5fcf8f6624c1dc13cc2e6914da3e7",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 1569,
+   "tokens_in": 4218,
+   "tokens_out": 217,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b004\",\n      \"texts\": [\"Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).\"]\n    },\n    {\n      \"id\": \"b008\",\n      \"texts\": [\"Sie bringen eine Kopie der Steuerveranlagung und der Krankenversicherungspolice mit.\"]\n    },\n    {\n      \"id\": \"b011\",\n      \"texts\": [\"Wenn sich etwas ändert, sagen Sie der Sozialversicherungsstelle Bescheid.\"]\n    },\n    {\n      \"id\": \"b012\",\n      \"texts\": [\"Wenn Sie nicht einverstanden sind, können Sie schriftlich Einsprache machen.\"]\n    },\n    {\n      \"id\": \"b022\",\n      \"texts\": [\"eine Kopie der Steuerveranlagung\"]\n    }\n  ]\n}"
+  },
+  {
+   "key": "9f97a17306713c3d938cb40be0787956068a408c482a1d94d8d3b8cd15b15af0",
+   "stage": "repair",
+   "model": "swiss-ai/Apertus-v1.5-8B",
+   "latency_ms": 1285,
+   "tokens_in": 4135,
+   "tokens_out": 186,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b003\",\n      \"texts\": [\"Sie haben am 1. Januar 2027 Wohnort in Musterwil.\", \"Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).\"]\n    },\n    {\n      \"id\": \"b004\",\n      \"texts\": [\"Ihr Einkommen ist nicht höher als CHF 42'000 (Alleinstehend) oder CHF 61'000 (Verheiratet).\"]\n    },\n    {\n      \"id\": \"b007\",\n      \"texts\": [\"Sie schicken das Formular bis 31. März 2027.\"]\n    }\n  ]\n}"
+  }
+ ]
+}

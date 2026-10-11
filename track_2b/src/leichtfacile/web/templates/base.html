@@ -10,6 +10,7 @@
 <script nonce="{{ request.state.csp_nonce }}">
 document.documentElement.classList.add("js");
 try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElement.classList.add("intro-hidden"); } catch (e) {}
+try { if (localStorage.getItem("lf-prepared-hidden") === "1") document.documentElement.classList.add("prepared-hidden"); } catch (e) {}
 </script>
 </head>
 <body class="{% block body_class %}{% endblock %}">

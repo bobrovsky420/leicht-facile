@@ -4,7 +4,8 @@ All of them speak the OpenAI chat-completions protocol, so the deployment target
 matter of configuration (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`). This module adds
 what the pipeline needs on top of the SDK: thinking-mode handling, reasoning removal,
 streaming (so that a proxy in front of the endpoint cannot time out a long answer),
-retries with backoff, a usage record per call and an optional response cache.
+retries with backoff, a usage record per call, an optional response cache and the
+recorded runs of the prepared letters (llm/replay.py).
 
 Privacy: document text is never logged above DEBUG. Log lines carry model, stage,
 token counts and latency only.
@@ -29,6 +30,7 @@ from leichtfacile import __version__
 from leichtfacile.config import Settings
 from leichtfacile.llm.cache import ResponseCache, cache_key
 from leichtfacile.llm.reasoning import split_reasoning
+from leichtfacile.llm.replay import Recorder, Replay
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +52,9 @@ _RECORDING: ContextVar[Callable[[Usage], None] | None] = ContextVar("llm_recordi
 # The time budget and the stop signal of the job the current thread runs, set by
 # `LLMClient.limited`; checked before every attempt and on every streamed chunk.
 _LIMIT: ContextVar[RunLimit | None] = ContextVar("llm_limit", default=None)
+# Whether the current thread's calls may be answered from the recorded runs, set by
+# `LLMClient.replaying`.
+_REPLAYING: ContextVar[bool] = ContextVar("llm_replaying", default=False)
 
 
 class LLMError(RuntimeError):
@@ -133,12 +138,14 @@ class LLMClient:
         settings: Settings,
         *,
         http_client: httpx.Client | None = None,
-        cache: ResponseCache | None = None,
+        cache: ResponseCache | Recorder | None = None,
+        replay: Replay | None = None,
         usage_sink: Callable[[Usage], None] | None = None,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self.settings = settings
         self._cache = cache
+        self.replay = replay  # the recorded runs, answered from inside `replaying`
         self._usage_sink = usage_sink
         self._sleep = sleep
         self._warned_no_usage = False
@@ -197,17 +204,20 @@ class LLMClient:
             params["extra_body"] = extra_body
 
         check_limit()
-        key = cache_key(name, messages, params) if self._cache else None
-        if self._cache and key:
+        replay = self.replay if _REPLAYING.get() else None
+        key = cache_key(name, messages, params) if self._cache or replay else None
+        # A recorded answer first: the replay has to take the recorded run's path.
+        hit = replay.get(key) if replay is not None and key else None
+        if hit is None and self._cache and key:
             hit = self._cache.get(key)
-            if hit is not None:
-                usage = Usage(
-                    stage, name, hit["tokens_in"], hit["tokens_out"], 0, cached=True, cache_key=key
-                )
-                self._record(usage)
-                return LLMResult(
-                    hit["text"], hit["reasoning"], hit["finish_reason"], usage, cache_key=key
-                )
+        if hit is not None:
+            usage = Usage(
+                stage, name, hit["tokens_in"], hit["tokens_out"], 0, cached=True, cache_key=key
+            )
+            self._record(usage)
+            return LLMResult(
+                hit["text"], hit["reasoning"], hit["finish_reason"], usage, cache_key=key
+            )
 
         started = time.perf_counter()
         reply = self._create_with_retries(name, messages, params, stage)
@@ -410,6 +420,18 @@ class LLMClient:
             yield
         finally:
             _LIMIT.reset(token)
+
+    @contextmanager
+    def replaying(self, enabled: bool = True) -> Iterator[None]:
+        """Answer the calls made in this thread inside the block from the recorded runs
+        of the prepared letters (`self.replay`, llm/replay.py) when a prompt is byte for
+        byte a recorded one; every other prompt goes to the endpoint. The orchestrator
+        turns it on for a job's first run, so a rerun asks the model again."""
+        token = _REPLAYING.set(enabled)
+        try:
+            yield
+        finally:
+            _REPLAYING.reset(token)
 
     def _record(self, usage: Usage) -> None:
         log.info("llm_call %s", asdict(usage))

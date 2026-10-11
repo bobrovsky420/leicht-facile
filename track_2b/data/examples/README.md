@@ -8,9 +8,9 @@ of Swiss style guides.
 
 | File | Content | Use |
 |------|---------|-----|
-| `sources/praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), day-1 check 3, example job |
-| `sources/reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, French example job |
-| `sources/entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Example job in decision mode once decision mode v1 is in (PLAN.md WP15), the video's product scene (track_2b/docs/use-case-decisions.md) |
+| `sources/praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), day-1 check 3, example job, prepared letter (recorded run) |
+| `sources/reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, French example job, prepared letter (recorded run) |
+| `sources/entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Example job in decision mode once decision mode v1 is in (PLAN.md WP15), the video's product scene (track_2b/docs/use-case-decisions.md); an example text in the New draft form, no recorded run (below) |
 
 A JSON file next to a source holds that example's job settings, any `JobConfig` field:
 `sources/entscheid-beistandschaft-musterwil.json` runs the KESB decision in decision mode
@@ -57,6 +57,50 @@ error, and the shipped ones are the German draft whose list of enclosures stands
 one piece and the French draft that reads best. Both show 0 errors, every fact
 present and 17 and 14 warnings on first start: the warnings are the reviewer's work
 list, not faults.
+
+## Recorded runs (prepared letters)
+
+`replay/` holds one recorded run per prepared letter, so that a first visitor can send
+a letter through the pipeline without pasting one and without waiting minutes for the
+endpoint (since 11 October 2026; `llm/replay.py`, track_2b/docs/architecture.md §6).
+The drafts list's card "Try a prepared letter" offers every letter recorded here with
+a Run button, which sends it as the New draft form would. The job's first run then
+takes Apertus's answers from the recording, in about 3 seconds instead of a minute
+or more, and the job and review pages say so, with the date and the recorded run's
+duration. Only a byte-identical prompt replays: change the text, a setting or a
+model, or run a step again, and Apertus answers live. The same letter's example job
+(above) is a different run, so its draft differs.
+
+A recording holds the answers in call order (stage, model, tokens, latency and the
+answer's text), keyed by the hash of the prompt as in the response cache, without the
+prompts and without the reasoning; and the settings the prompts depend on (models,
+thinking switch, rounds), the date, the endpoint and the result. It is made with the
+endpoint and the settings of `.env`:
+
+```
+uv run python -m leichtfacile examples record                    # every source
+uv run python -m leichtfacile examples record --only reduction-primes-lettre --attempts 18
+```
+
+The command sends each source through the pipeline as its Run button does, with a
+recorder as the response cache that keeps every answer, also those the pipeline threw
+away and asked again for, so the replay takes the same path. It runs `--parallel` (3)
+attempts at a time until a batch has a clean one (no error by the example jobs'
+measure, above), at most `--attempts` (6), and writes the clean run with the fewest
+warnings; a letter without a clean run keeps its file (`--allow-problems` writes the
+run with the fewest errors). Every attempt stays in
+`track_2b/data/examples-record.sqlite`. `track_2b/tests/test_examples.py` replays each
+recording without an endpoint and fails when a prompt has changed since: the letter
+would then run live, so record it again.
+
+Recorded on 11 October 2026 on CSCS (the 8B reads, writes and repairs, the 70B
+judges; the default settings):
+
+| Letter | Attempts | Recorded run | Final draft |
+|--------|----------|--------------|-------------|
+| `praemienverbilligung-brief` | 3, all clean | 7 calls, 70 s of model time | v4: 0 errors, 11 warnings, 12 of 12 facts |
+| `reduction-primes-lettre` | 6, one clean | 11 calls, 52 s | v6: 0 errors, 7 warnings, 12 of 12 facts |
+| `entscheid-beistandschaft-musterwil` | 18, none clean | not recorded | 5 to 19 errors per run (overlong sentences, provenance, items of the operative part not carried over, FACT-08); every fact kept in the best runs. It stays an example text in the New draft form, off the card (owner's decision, 11 October 2026) |
 
 ## Printed letters (image input)
 

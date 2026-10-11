@@ -1,4 +1,5 @@
-"""Example sources and their job settings (track_2b/data/examples/README.md)."""
+"""Example sources, their job settings, the shipped example jobs and the recorded runs
+of the prepared letters (track_2b/data/examples/README.md)."""
 
 from __future__ import annotations
 
@@ -8,9 +9,24 @@ from pathlib import Path
 import pytest
 
 from leichtfacile.examples import example_config, example_sources, open_problems
+from leichtfacile.llm.client import LLMClient
+from leichtfacile.llm.replay import Replay, read_recording
+from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.schemas import JobConfig, JudgeReport, PipelineSummary, RuleFindings
+from leichtfacile.store import Store
+from leichtfacile.web.jobs import create_job, example_submission
+from tests.conftest import FakeEndpoint, make_settings
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "data" / "examples"
+# The rounds of a recorded run, named as in Settings and in the recording.
+PIPELINE_SETTINGS = (
+    "max_repair_rounds",
+    "max_facts_rounds",
+    "max_missing_per_facts_round",
+    "max_recover_facts",
+    "max_polish_rounds",
+    "use_vocabulary",
+)
 
 
 def test_a_source_without_a_settings_file_has_none(tmp_path: Path) -> None:
@@ -104,3 +120,47 @@ def test_the_example_jobs_show_no_errors(path: Path) -> None:
     judge_final = next((j for j in judges if j.draft_version == final), None)
     assert rules_final is not None
     assert open_problems(rules_final, judge_final) == 0
+
+
+@pytest.mark.parametrize("path", sorted((EXAMPLES / "replay").glob("*.json")), ids=lambda p: p.stem)
+def test_a_prepared_letter_replays_its_recorded_run_without_the_endpoint(path, tmp_path) -> None:
+    """The Run button sends the recorded prompts: every answer comes from the recording,
+    and the job ends as the recorded one did. When a prompt or a step changes, the
+    letter runs live instead; record it again (`examples record --only <letter>`)."""
+    recording, answers = read_recording(path)
+    recorded = recording.settings
+    settings = make_settings(
+        data_dir=tmp_path,
+        llm_name=recorded["writer"],
+        llm_understand_name=recorded["understand"],
+        llm_judge_name=recorded["judge"],  # no model list without the endpoint
+        llm_thinking_mode=recorded["thinking_mode"],
+        llm_thinking_suffix=recorded["thinking_suffix"],
+        llm_thinking_stages=",".join(recorded["thinking_stages"]),
+        llm_extra_body=recorded["extra_body"],
+        llm_max_retries=0,
+        **{name: recorded[name] for name in PIPELINE_SETTINGS},
+    )
+    assert recording.applies(settings)
+    endpoint = FakeEndpoint()  # nothing queued: a prompt the recording lacks fails
+    llm = LLMClient(
+        settings, http_client=endpoint.http_client(), replay=Replay([(recording, answers)])
+    )
+    store = Store(tmp_path / "jobs.sqlite")
+    example = next(e for e in example_sources(EXAMPLES) if e["id"] == recording.letter)
+    job = create_job(store, settings, example_submission(example))
+    Orchestrator(store, llm, settings).run(job.id)
+
+    job = store.get_job(job.id)
+    rerecord = f"record it again: examples record --only {recording.letter}"
+    assert not endpoint.chat_bodies(), f"a prompt changed since the recording; {rerecord}"
+    assert job.status == "needs_review", job.error
+    assert len(job.usage) == recording.calls and all(u.cached for u in job.usage)
+    result = recording.result
+    assert job.counts.errors == result["errors"] == 0
+    assert job.counts.warnings == result["warnings"]
+    assert (job.counts.facts_present, job.counts.facts_total) == (
+        result["facts_present"],
+        result["facts_total"],
+    )
+    store.close()

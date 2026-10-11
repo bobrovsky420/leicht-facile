@@ -17,6 +17,8 @@ from leichtfacile import __version__
 from leichtfacile.config import Settings, get_settings
 from leichtfacile.examples import load_examples
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.llm.replay import FOLDER as REPLAY_FOLDER
+from leichtfacile.llm.replay import Replay
 from leichtfacile.logs import configure_logging
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
@@ -39,7 +41,12 @@ def create_app(
     # One line per record, text or JSON, with the request and job ids (logs.py); no
     # excerpt of a document or an answer in an error's line (§10).
     configure_logging(settings.log_level, settings.log_format)
-    llm = llm or LLMClient.from_settings(settings)
+    # The recorded runs of the prepared letters answer a job's first run while its
+    # prompts are the recorded ones (llm/replay.py); the CLI and the evaluation never
+    # read them.
+    llm = llm or LLMClient.from_settings(
+        settings, replay=Replay.load(settings.examples_dir / REPLAY_FOLDER)
+    )
     store = store or Store(settings.data_dir / DATABASE_NAME)
     orchestrator = Orchestrator(store, llm, settings)
     metrics = observability.Metrics()  # what this process counts for /metrics

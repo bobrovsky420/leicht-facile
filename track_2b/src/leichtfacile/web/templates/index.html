@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
 {% block content %}
+{% set recorded = prepared | selectattr('recording') | map(attribute='recording.recorded_at') | list %}
 <div class="page">
   <div class="pagetitle">
     <div class="grow">
@@ -20,6 +21,36 @@
       <li><span class="stepno" aria-hidden="true">4</span>{{ t('drafts.how.review') }}</li>
     </ol>
     <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="intro-close" aria-label="{{ t('drafts.how.hide') }}">{{ icons.icon('x', 14) }}</button>
+  </section>
+  {% endif %}
+
+  {# The example letters, each started with one click as the New draft form would send
+     it; a recorded run replays it in seconds (llm/replay.py). #}
+  {% if prepared %}
+  <section class="card prepared" id="prepared" aria-labelledby="prepared-h">
+    <div class="prepared-head">
+      <div class="grow">
+        <h2 id="prepared-h">{{ t('prepared.title') }}</h2>
+        <p class="prepared-note">{{ t('prepared.text') }} {% if recorded %}{{ t('prepared.recorded', date=(recorded | max).strftime('%d.%m.%Y')) }}{% else %}{{ t('prepared.live') }}{% endif %}</p>
+      </div>
+      <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="prepared-close" aria-label="{{ t('prepared.hide') }}">{{ icons.icon('x', 14) }}</button>
+    </div>
+    <ul class="prepared-list">
+      {% for e in prepared %}
+      <li class="prepared-item">
+        <span class="prepared-text">
+          <span class="prepared-title"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</span>
+          <span class="prepared-meta">{% if e.lang_name %}{{ e.lang_name }} · {% endif %}{{ t('prepared.kind.' ~ (e.mode or 'standard')) }} · {% if e.recording %}{{ t('prepared.row.recorded', time=duration(e.recording.seconds)) }}{% else %}{{ t('prepared.row.live') }}{% endif %}</span>
+        </span>
+        <span class="prepared-actions">
+          <a class="btn btn-sm" href="/new?example={{ e.id }}">{{ t('prepared.edit') }}</a>
+          <form method="post" action="/examples/{{ e.id }}/run">
+            <button type="submit" class="btn btn-primary btn-sm" aria-label="{{ t('prepared.run_label', title=e.title) }}">{{ icons.icon('play', 12) }}{{ t('prepared.run') }}</button>
+          </form>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
   </section>
   {% endif %}
 

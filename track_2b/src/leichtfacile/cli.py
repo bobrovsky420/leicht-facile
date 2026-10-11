@@ -6,7 +6,8 @@
 - `check`      run the rule checker on an existing easy-language text
 - `simplify`   run the pipeline on a file or URL and write all artifacts to a folder
 - `eval`       evaluation: fetch pairs, calibrate the checker, run conditions, report
-- `examples`   build the example jobs shown on first start
+- `examples`   build the example jobs shown on first start, or record the prepared
+               letters' runs that their Run buttons replay
 """
 
 from __future__ import annotations
@@ -78,16 +79,29 @@ def main(argv: list[str] | None = None) -> int:
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )
 
-    examples = sub.add_parser("examples", help="build the example jobs (needs the endpoint)")
-    examples.add_argument("action", choices=["build"])
-    examples.add_argument("--level", choices=["A2", "B1"], default="A2")
+    examples = sub.add_parser(
+        "examples",
+        help="build the example jobs, or record the prepared letters' runs (needs the endpoint)",
+    )
     examples.add_argument(
-        "--only", nargs="+", metavar="NAME", help="build these sources only (file name, no suffix)"
+        "action",
+        choices=["build", "record"],
+        help="build: the pre-computed example jobs; record: the runs the Run buttons replay",
+    )
+    examples.add_argument("--level", choices=["A2", "B1"], default="A2", help="build only")
+    examples.add_argument(
+        "--only", nargs="+", metavar="NAME", help="these sources only (file name, no suffix)"
     )
     examples.add_argument(
         "--allow-problems",
         action="store_true",
-        help="also write a job whose final draft still has errors",
+        help="also write a job or recording whose final draft still has errors",
+    )
+    examples.add_argument(
+        "--attempts", type=int, default=6, help="record: runs per letter at most (default 6)"
+    )
+    examples.add_argument(
+        "--parallel", type=int, default=3, help="record: runs at a time (default 3)"
     )
 
     from leichtfacile.eval.cli import add_eval_parser
@@ -110,11 +124,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "eval":
         return args.handler(args)
     if args.command == "examples":
-        from leichtfacile.examples import build_examples
+        from leichtfacile.examples import build_examples, record_examples
 
-        written = build_examples(
-            level=args.level, only=args.only, allow_problems=args.allow_problems
-        )
+        if args.action == "record":
+            written = record_examples(
+                only=args.only,
+                attempts=args.attempts,
+                parallel=args.parallel,
+                allow_problems=args.allow_problems,
+            )
+        else:
+            written = build_examples(
+                level=args.level, only=args.only, allow_problems=args.allow_problems
+            )
         for path in written:
             print(f"written: {path}")
         return 0 if written else 1

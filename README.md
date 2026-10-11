@@ -120,11 +120,14 @@ endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
 the 8B write. `track_2b/eval/report.md` compares the three.
 
-In the browser (English, German or French), paste a text, upload a PDF or enter a URL
-(or click one of the two example letters), choose language and level (A2 Leichte
-Sprache or B1 Einfache Sprache; the level names the rule set, not a measured reader
-level), and follow the stages to the review page. **Check my text** runs the rule
-checker on any text you paste, without a model and without storing it.
+In the browser (English, German or French), paste a text, upload a PDF or enter a URL,
+choose language and level (A2 Leichte Sprache or B1 Einfache Sprache; the level names
+the rule set, not a measured reader level), and follow the stages to the review page.
+Without a text of your own, click **Run** on a prepared letter on the start page (German
+or French): Apertus's answers to it were recorded on CSCS, so with the default models
+the run reaches the review page in seconds instead of minutes; a changed text, other
+models and every rerun go to Apertus live. **Check my text** runs the rule checker on
+any text you paste, without a model and without storing it.
 
 Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
 `make smoke` (one document through the pipeline), `make calibrate` (rule checker on

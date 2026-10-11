@@ -235,10 +235,23 @@ Layout, at most 1440 px wide with 24 px gutters:
    a second model judges and flagged blocks are repaired; you review every block and
    export. A close button hides it, and `localStorage` remembers that per browser.
    Without JavaScript the strip stays and the button is not shown.
-3. One white card: a toolbar (search field, status filter as a segmented control
+3. The card "Try a prepared letter" (since 11 October 2026): one sentence on what a
+   click does, then, when a recorded run applies to the running settings, "Apertus's
+   answers to these letters were recorded on CSCS on {date}, so a run takes seconds
+   instead of minutes. Change the text or run a step again, and Apertus answers
+   live." (else "Apertus answers live: a run takes a few minutes."). One row per
+   example letter with a recorded run (architecture §6; the others stay in the New
+   draft form): its title (in the letter's `lang`) and, 12 px muted, the language,
+   "Letter" or "Decision letter" and "replays the recorded run (1 min 10 s on CSCS)"
+   or "runs live"; on the right "Edit first" (`/new?example=<id>`) and the primary
+   small button "Run" with a play icon, a form that posts to `/examples/{id}/run`
+   (works without JavaScript; its accessible name is "Run: {title}"). The rows wrap
+   under each other at phone width. A close button hides the card like the intro
+   strip (`lf-prepared-hidden`).
+4. One white card: a toolbar (search field, status filter as a segmented control
    with counts, language select), the table, a footer line ("10 drafts",
    "Newest first").
-4. Under the card: the version and the disclaimer (`site.footer`).
+5. Under the card: the version and the disclaimer (`site.footer`).
 
 Filters are GET parameters, so they work without JavaScript and survive a reload:
 `/?status=needs_review&q=prämien&lang=de`. Status: all (default), `needs_review`,
@@ -265,10 +278,10 @@ handler.
 
 Empty states:
 
-- No jobs at all: "No drafts yet", the tagline, one sentence on what to paste, the
-  two example letters as buttons that open `/new?example=<id>` with the text filled
-  in, and "New draft". This is what judges see until example jobs ship (PLAN.md,
-  submission check, risks).
+- No jobs at all: "No drafts yet", the tagline, one sentence on what to paste, and
+  "New draft", under the card of prepared letters (item 3). Without recorded letters
+  there is no card, and the empty state offers the example texts as buttons that open
+  `/new?example=<id>` with the text filled in.
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
   status." with a "Clear filters" link to `/`.
 
@@ -359,6 +372,13 @@ them into local time and "Today" or "Yesterday".
   {error}", or "The job was stopped." for a job the reviewer stopped, the existing
   hint, "Run again from the start"); the failed stage shows the error in its detail
   line, mono 12.
+- Replayed (since 11 October 2026): while all of the job's answers come from a
+  recorded run (architecture §6; not after a rerun, when the model answered too), a
+  note in `--lf-accent-tint` with an accent border and a play
+  icon tops the results column: "Apertus's answers were replayed from the run recorded
+  on CSCS on {date}, which took {time}. Run a step again, or paste the text yourself,
+  and Apertus answers live." A stage whose calls all came from the recording shows
+  "2 calls · 7,915 tokens · recorded" in place of the time.
 - Polling as today: `app.js` swaps the `_progress.html` fragment every 2 s (every
   5 s after two minutes) and
   reloads when the status leaves queued and running. The fragment's root carries
@@ -385,6 +405,8 @@ status badge ("Needs review" or "Done"). On the right:
   and submits the form; Ctrl+S does the same).
 
 **Row 2, the summary strip:** "German · A2: Leichte Sprache, FALC · P2: full";
+for a replayed job the tag "Recorded answers" with a play icon, the replay note in its
+`title` and again under More, Run (since 11 October 2026);
 "Version" with one pill per draft version ("v1 · final · 10 blocking", "v2 · 11
 blocking"; the current one in `--lf-accent-weak`; links `?version=`); the repair
 rounds and the stop reason; the code-split line when there are splits; on the right
@@ -601,8 +623,8 @@ New or changed:
 
 1. The endpoint indicator on every page, its answer cached for 5 minutes in
    `sessionStorage`; the New draft page reads the same answer.
-2. Drafts: hiding the intro strip (`localStorage`), submitting the language select
-   on change.
+2. Drafts: hiding the intro strip and the prepared letters (`localStorage`, one key
+   each), submitting the language select on change.
 3. New draft: the character count, the language note after an example, the file
    name and size after a choice, dropping a file on the drop zone.
 4. Job running: copying the fragment's `data-run` line into the page header after
@@ -627,7 +649,10 @@ New or changed:
 
 - `pages.py`: `GET /` with the parameters `status`, `q` and `lang` (§5.2); `GET /new`
   with `example` (§5.3); `POST /jobs` renders `new.html` on an error; `_render` adds
-  `review_count`.
+  `review_count`. Since 11 October 2026 `POST /examples/{id}/run` (§5.2, item 3)
+  makes the job from `web/jobs.example_submission`, as the New draft form would, and
+  answers like `POST /jobs`; `prepared_letters` and `replayed_from` give the templates
+  the recordings that apply.
 - `views.py`: `DraftRow` and `drafts_view` (§5.2); `Step.usage` (§5.4); the new
   `Issue` fields, `facts_sorted`, `finding_groups`, the counts and `saved_at` (§5.5).
 - `store.py`: `count_jobs(status)`, one SQL count.
@@ -682,7 +707,7 @@ drafts.actions_for        More actions for {title}
 drafts.open               Open
 drafts.delete             Delete
 drafts.empty.title        No drafts yet
-drafts.empty.text         Paste an official text, give a web address or upload a PDF. Or start with an example letter:
+drafts.empty.text         Paste an official text, give a web address or upload a PDF.
 drafts.no_match           No drafts match. Clear the search or pick another status.
 drafts.clear              Clear filters
 drafts.shown              {shown} of {total} drafts
@@ -794,6 +819,23 @@ js.reader_complete        Review marked complete
 js.reader_not_complete    Review not marked complete
 
 rule.<ID>                 the rule's title from RuleSpec.title, merged like finding.<key>
+
+prepared.title            Try a prepared letter                      (11 October 2026)
+prepared.text             One click sends a letter the team wrote through the whole pipeline, as if you had pasted it.
+prepared.recorded         Apertus's answers to these letters were recorded on CSCS on {date}, so a run takes seconds instead of minutes. Change the text or run a step again, and Apertus answers live.
+prepared.live             Apertus answers live: a run takes a few minutes.
+prepared.kind.standard    Letter
+prepared.kind.decision    Decision letter
+prepared.row.recorded     replays the recorded run ({time} on CSCS)
+prepared.row.live         runs live
+prepared.run              Run
+prepared.run_label        Run: {title}
+prepared.edit             Edit first
+prepared.hide             Hide the prepared letters
+progress.usage_replayed.* {n} calls · {tokens} tokens · recorded
+replay.tag                Recorded answers
+replay.note               Apertus's answers were replayed from the run recorded on CSCS on {date}, which took {time}. Run a step again, or paste the text yourself, and Apertus answers live.
+replay.answers            Answers
 ```
 
 Existing keys used again: `site.tagline` (empty state), `site.footer`, `site.drafts`,

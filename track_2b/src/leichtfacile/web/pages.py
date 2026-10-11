@@ -21,12 +21,13 @@ from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
 from leichtfacile.ingest.detect import detect_language
 from leichtfacile.lifecycle import remove_job
+from leichtfacile.llm.replay import Recording
 from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.orchestrator import JobBusy, PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES
-from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, Job, PipelineSummary, ReviewState
 from leichtfacile.web.api import BUSY, ReviewIn
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import (
@@ -35,6 +36,7 @@ from leichtfacile.web.jobs import (
     Submission,
     SubmissionError,
     create_job,
+    example_submission,
 )
 from leichtfacile.web.views import (
     STEP_WHO,
@@ -150,6 +152,38 @@ def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[st
     return out
 
 
+def prepared_letters(request: Request, t: Translator) -> list[dict]:
+    """The example letters with a recorded run, for the drafts list's Run buttons
+    (llm/replay.py): a letter is prepared once a clean run of it is recorded. Under
+    the recorded settings the button replays it in seconds (`recording`); under others
+    the letter runs live (`recording` None)."""
+    state = request.app.state
+    replay = state.llm.replay
+    if replay is None:
+        return []
+    out = []
+    for example in examples_for_page(t, state.settings.examples_dir):
+        recording = replay.recording(example["id"])
+        if recording is not None:
+            applies = recording.applies(state.settings)
+            out.append({**example, "recording": recording if applies else None})
+    return out
+
+
+def replayed_from(request: Request, job: Job) -> Recording | None:
+    """The recorded run a job's answers were replayed from (llm/replay.py), while every
+    answer came from it: after a rerun the model answered too."""
+    state = request.app.state
+    if state.llm.replay is None or not job.usage or not all(u.cached for u in job.usage):
+        return None
+    return state.llm.replay.recording_for(state.store.cache_keys(job.id))
+
+
+def _example(request: Request, example_id: str) -> dict[str, str] | None:
+    folder = request.app.state.settings.examples_dir
+    return next((e for e in example_sources(folder) if e["id"] == example_id), None)
+
+
 def _list_url(status: str, q: str, lang: str) -> str:
     params = {k: v for k, v in (("status", status), ("q", q), ("lang", lang)) if v and v != "all"}
     return "/?" + urlencode(params) if params else "/"
@@ -163,6 +197,8 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
     status = status if status in STATUS_FILTERS else "all"
     query = q.strip().casefold()
     total = store.count_jobs()
+    settings = request.app.state.settings
+    prepared = prepared_letters(request, t)
     if query:
         # The title search stays in Python: SQLite's LIKE folds ASCII letters only.
         matching = [
@@ -202,7 +238,9 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         filtered=bool(query or lang or status != "all"),
         filters=filters,
         langs=store.langs(),
-        examples=examples_for_page(t, request.app.state.settings.examples_dir) if not total else [],
+        prepared=prepared,
+        # Without prepared letters the empty state offers the example texts in the form.
+        examples=examples_for_page(t, settings.examples_dir) if not total and not prepared else [],
         rule_count=rule_count(),
         section="drafts",
         section_root=True,
@@ -251,15 +289,46 @@ def _new(
 @router.get("/new", response_class=HTMLResponse)
 def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
     """The form for a new draft; `?example=<id>` fills in one of the example letters."""
-    form: dict = {}
-    if example:
-        folder = request.app.state.settings.examples_dir
-        found = next((e for e in example_sources(folder) if e["id"] == example), None)
-        if found is not None:
-            form["text"] = found["text"]
-            # The decision mode's settings from the file next to the example, if any.
-            form.update({k: found[k] for k in ("mode", "addressee", "notice") if found.get(k)})
-    return _new(request, form=form)
+    found = _example(request, example) if example else None
+    return _new(request, form=_example_form(found) if found else {})
+
+
+def _example_form(example: dict[str, str]) -> dict[str, str]:
+    """The New draft form filled in with an example letter: its text and the decision
+    mode's settings from the file next to it, if any."""
+    settings = {k: example[k] for k in ("mode", "addressee", "notice") if example.get(k)}
+    return {"text": example["text"], **settings}
+
+
+@router.post("/examples/{example_id}/run")
+async def run_example(request: Request, example_id: str):
+    """The Run button of a prepared letter: the letter becomes a job as the New draft
+    form would make it, and the browser goes to the job's page. Its first run replays
+    the recorded answers when the settings are the recorded ones (llm/replay.py)."""
+    example = _example(request, example_id)
+    if example is None:
+        raise HTTPException(404, f"no example {example_id}")
+    state = request.app.state
+    try:
+        state.runner.ensure_room()
+        job = await run_in_threadpool(
+            create_job, state.store, state.settings, example_submission(example), state.ingest_slots
+        )
+    except (SubmissionError, QueueFull) as exc:
+        return _refused(request, exc, _example_form(example))
+    state.runner.submit(job.id)
+    return RedirectResponse(f"/jobs/{job.id}", status_code=303)
+
+
+def _refused(request: Request, exc: SubmissionError | QueueFull, form: dict) -> HTMLResponse:
+    """The New draft form again, with the submission and why it was refused."""
+    t = translator(request)
+    if isinstance(exc, QueueFull):
+        message = t("error.queue_full", n=request.app.state.settings.job_queue_limit)
+    else:
+        message = exc.text(t)
+    busy = isinstance(exc, QueueFull | ServerBusy)  # 429: try again, nothing is wrong
+    return _new(request, 429 if busy else 400, message, form)
 
 
 # -- Check my text: the rules alone, on a text the writer wrote ---------------------------
@@ -396,11 +465,6 @@ async def submit(
             create_job, state.store, state.settings, sub, state.ingest_slots
         )
     except (SubmissionError, QueueFull) as exc:
-        t = translator(request)
-        if isinstance(exc, QueueFull):
-            message = t("error.queue_full", n=state.settings.job_queue_limit)
-        else:
-            message = exc.text(t)
         form = {
             "text": text or "",
             "url": url or "",
@@ -415,8 +479,7 @@ async def submit(
             "addressee": addressee or "",
             "notice": notice or "",
         }
-        busy = isinstance(exc, QueueFull | ServerBusy)  # 429: try again, nothing is wrong
-        return _new(request, 429 if busy else 400, message, form)
+        return _refused(request, exc, form)
     state.runner.submit(job.id)
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)
 
@@ -427,11 +490,19 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
     job = _job_or_404(request, job_id)
     t = translator(request)
     title, _ = display_title(job)
+    replayed = replayed_from(request, job)
     if job.status in ("needs_review", "done"):
         view = review_view(state.store, job, version, t)
         if view is not None:
             return _render(
-                request, "review.html", job=job, v=view, t=t, title=title, section="drafts"
+                request,
+                "review.html",
+                job=job,
+                v=view,
+                t=t,
+                title=title,
+                replayed=replayed,
+                section="drafts",
             )
     progress = progress_view(state.store, job, t=t)
     return _render(
@@ -441,6 +512,7 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
         p=progress,
         t=t,
         title=title,
+        replayed=replayed,
         rule_count=rule_count(),
         section="drafts",
     )
@@ -457,6 +529,7 @@ def job_progress(request: Request, job_id: str) -> HTMLResponse:
         job=job,
         p=progress_view(request.app.state.store, job, t=t),
         t=t,
+        replayed=replayed_from(request, job),
         rule_count=rule_count(),
     )
     response.headers["X-Job-Status"] = job.status

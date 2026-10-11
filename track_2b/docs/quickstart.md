@@ -18,7 +18,9 @@ root: the recipes, `.env` and the default data folder are all resolved from ther
 
 Every way serves the web UI at <http://localhost:8000> (`/healthz` says the process is
 up, `/readyz` whether the model endpoint answers). The interface is in English, German
-or French; the two example letters are there on first start.
+or French; the two example jobs are there on first start, and the two prepared letters
+run with one click, replaying a run recorded on CSCS in seconds when the default
+models are set (track_2b/data/examples/README.md).
 
 ## The endpoint settings
 

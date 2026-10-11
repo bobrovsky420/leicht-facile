@@ -138,18 +138,22 @@
     if (!Number.isNaN(when.getTime())) el.textContent = t("saved_at", { time: clock(when) });
   });
 
-  // -- drafts list: hide the intro strip, filter by language on change ----------------
-  const introClose = $("#intro-close");
-  if (introClose) {
-    introClose.addEventListener("click", () => {
-      document.documentElement.classList.add("intro-hidden");
+  // -- drafts list: hide the intro strip and the prepared letters, filter by language --
+  [
+    ["#intro-close", "intro-hidden", "lf-intro-hidden"],
+    ["#prepared-close", "prepared-hidden", "lf-prepared-hidden"],
+  ].forEach(([button, hidden, key]) => {
+    const close = $(button);
+    if (!close) return;
+    close.addEventListener("click", () => {
+      document.documentElement.classList.add(hidden);
       try {
-        localStorage.setItem("lf-intro-hidden", "1");
+        localStorage.setItem(key, "1");
       } catch (e) {
         /* hidden until the page reloads */
       }
     });
-  }
+  });
   $$("select[data-autosubmit]").forEach((select) => {
     select.addEventListener("change", () => select.form.submit());
   });
