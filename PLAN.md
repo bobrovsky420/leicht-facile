@@ -59,6 +59,10 @@ The short path to the deadline, in dependency order. Each step points to where i
    rewrite by the team", pending the owner); version C re-rendered with the evidence
    scene of case A (C27, Zurich named; then C28 with "a strong single prompt", owner),
    about 119 s, `C:\Users\bobro\Videos\leicht-facile-demo-C30.mp4` ("a strong one-shot prompt").
+   11 Oct: the evidence scene with the repeated final run (case A2: 15.0 against 4.2
+   rule errors, 15 % lost, 83 against 100 % of the must-keep facts on screen; spoken
+   "under a third of the rule errors"), 119.6 s,
+   `C:\Users\bobro\Videos\leicht-facile-demo-C35.mp4`.
    Open: the owner's check of the render, the upload, the URL in README, report and
    form.*
 6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**

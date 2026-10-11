@@ -15,11 +15,13 @@ import { Wordmark } from "./Logo";
 const ERRORS_ZH = 15.0; // P0-ZH complete: rule errors per 100 blocks
 const ERRORS_LF = 4.2; // P2, 8B writer: rule errors per 100 blocks
 const LOST_ZH = 15; // P0-ZH complete: hard facts lost without a trace, percent
+const FACTS_LF = 100; // P2, 8B writer: must-keep facts found, percent
+const FACTS_ZH = 83; // P0-ZH complete: must-keep facts found, percent
 // the facts panel of the review at version 2, as captured: the facts still missing there come
 // first (the final version carries every fact, so it has none to show)
 const CROP = { x: 1040, y: 208, w: 400, h: 256 }; // CSS px of the capture: the panel down to the missing fact's source sentence
 const SCALE = 2; // the capture's device scale
-const CROP_W = 620; // narrower since 10 October: the right card gained the rule-errors line
+const CROP_W = 540; // narrower since 10 October (the rule-errors line) and 11 October (the facts line)
 
 export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
   const t = useSceneTime(offset);
@@ -52,6 +54,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
           {n}
         </div>
         <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 10, lineHeight: 1.25 }}>rule errors per 100 blocks; {LOST_ZH} % of the hard facts lost, and nothing tells the writer</div>
+        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>{FACTS_ZH} % of must-keep facts found</div>
       </div>
       <div style={{ ...card, left: 980, borderTop: `8px solid ${C.ok}`, opacity: ramp(t, b.s - 0.2, 0.4) }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -59,6 +62,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
           <Wordmark size={40} />
         </div>
         <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 18, lineHeight: 1.25 }}>{ERRORS_LF.toFixed(1)} rule errors per 100 blocks</div>
+        <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 6, lineHeight: 1.25 }}>{FACTS_LF} % of must-keep facts found</div>
         <div style={{ fontSize: 40, color: C.ink, fontWeight: 500, marginTop: 6, lineHeight: 1.25 }}>lists every hard fact it misses</div>
         <div style={{ position: "relative", width: CROP_W, height: CROP.h * SCALE * k, marginTop: 24, overflow: "hidden", borderRadius: 12, border: "1px solid #D7DBE0" }}>
           <Img
