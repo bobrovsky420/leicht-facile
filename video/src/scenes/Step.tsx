@@ -117,7 +117,7 @@ export const Step: React.FC<{ offset: number }> = ({ offset }) => {
     if (m === "passive") {
       const p = ramp(t, findingAt[1], 0.3);
       // dotted, not wavy: a wavy red line reads as a spell checker's mark
-      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "dotted", textDecorationColor: `rgba(229,72,77,${p})`, textUnderlineOffset: 10, textDecorationThickness: 4 };
+      return { textDecorationLine: p > 0.05 ? "underline" : "none", textDecorationStyle: "dotted", textDecorationColor: `rgba(229,72,77,${p})`, textUnderlineOffset: 10, textDecorationThickness: 6 };
     }
     if (m === "lex") {
       const p = ramp(t, findingAt[3], 0.3);

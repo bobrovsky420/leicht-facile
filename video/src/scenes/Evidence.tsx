@@ -1,5 +1,5 @@
 // Concept A, 1:09 One number, by the headline rules (case A of decision D-M in PLAN.md): same model,
-// a strong one-shot prompt against our pipeline; Leicht·Facile lists every hard fact it misses. The
+// a strong single prompt against our pipeline; Leicht·Facile lists every hard fact it misses. The
 // prompt's source is credited on the end card, not here (owner, 10 October: naming it next to a
 // project we build on would sound arrogant).
 // Numbers from report §5 (CSCS, 20 German eval pairs, final run of 10 October 2026).
@@ -44,10 +44,10 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
   return (
     <SceneFade offset={offset} bg={C.app}>
       <div style={{ position: "absolute", left: 0, right: 0, top: 96, textAlign: "center", fontFamily: F.sans, fontWeight: 600, fontSize: 50, color: C.ink, opacity: ramp(t, -0.1, 0.4) }}>
-        Same model. A strong one-shot prompt against our pipeline.
+        Same model. A strong single prompt against our pipeline.
       </div>
       <div style={{ ...card, left: 150, borderTop: `8px solid ${C.error}`, opacity: ramp(t, a.s - 0.1, 0.4) }}>
-        <div style={{ fontSize: 30, color: C.muted, fontWeight: 500 }}>A strong one-shot prompt, asked to keep every fact</div>
+        <div style={{ fontSize: 30, color: C.muted, fontWeight: 500 }}>A strong single prompt, asked to keep every fact</div>
         <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: 190, color: C.error, lineHeight: 1.1, marginTop: 60 }}>
           {n}
         </div>
@@ -68,7 +68,7 @@ export const Evidence: React.FC<{ offset: number }> = ({ offset }) => {
         </div>
       </div>
       <div style={{ position: "absolute", left: 0, right: 0, top: 904, textAlign: "center", fontFamily: F.sans, fontSize: 21, color: C.muted, opacity: ramp(t, a.s + 1, 0.5) }}>
-        Apertus 1.5 8B on CSCS · one-shot prompt asked to keep every fact · 20 German test pairs · final run, 10 Oct 2026 · hard facts: dates, amounts, contacts, other countable values
+        Apertus 1.5 8B on CSCS · single prompt asked to keep every fact · 20 German test pairs · final run, 10 Oct 2026 · hard facts: dates, amounts, contacts, other countable values
       </div>
     </SceneFade>
   );

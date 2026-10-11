@@ -38,7 +38,7 @@ only Apertus fits (§3). A single prompt ("rewrite this in Leichte Sprache"), wi
 fact contract, provenance or independent check, is our baseline P0; the full pipeline
 is P2.
 
-**Headline result.** Same model, the Canton of Zurich's published prompt against our
+**Headline result.** Same model, a strong single prompt (defined in §5) against our
 pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 10 October
 2026): 0.2 fewer invented values and 17.5 fewer rule errors per 100 blocks (0.0
 against 0.2, and 2.0 against 19.5), and every hard fact it misses is listed for the
@@ -46,7 +46,7 @@ reviewer. The pipeline finds 98 percent of the must-keep facts against 91 for th
 prompt in its complete mode; it keeps 87 percent of the source's countable values
 (dates, amounts, phone numbers, addresses) against 93 for that prompt and 67 for the
 official easy-language versions, which drop values on purpose, and lists every one it
-loses, where the prompt loses 7 percent (complete) or 25 percent (condensed, Zurich's
+loses, where the prompt loses 7 percent (complete) or 25 percent (condensed, its
 default) without a trace.
 
 ## 2. Architecture
@@ -223,7 +223,7 @@ fact. Each held-out pair runs under these conditions:
 | Code | Condition | Measures |
 |------|-----------|----------|
 | P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
-| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim (`complete`: keep everything; `condensed`: essentials only, their default); German only | Zurich's published prompt, the only public Swiss one we found |
+| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim (`complete`: keep everything; `condensed`: essentials only, their default); German only | The strong single prompt: Zurich's published prompt, the only public Swiss one we found |
 | P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning, provenance |
 | P2 | Full pipeline with judge and repair | Checking and repairing |
 
@@ -256,10 +256,10 @@ had just written, came from the cache and count 0 s, so their seconds undercount
 | P2, 70B everywhere | 97 % | 91 % | 0 % | 0.0 | 0.5 | 1.0 | 59 | 41.7 | 0.0260 | 44.5 |
 | P2, 70B reads, 8B writes | 99 % | 94 % | 0 % | 0.0 | 1.7 | 1.8 | 54 | 42.2 | 0.0166 | 32.5 |
 
-**Reading the table.** The one-sentence prompt and Zurich's complete prompt keep most
+**Reading the table.** The one-sentence prompt and the strong prompt's complete mode keep most
 values because they rewrite little (7.9 and 7.5 words per sentence; SARI rewards
-closeness to the source) and lose the rest without a trace; the condensed prompt,
-Zurich's default, simplifies more and drops a quarter of the values. The pipeline
+closeness to the source) and lose the rest without a trace; the condensed mode,
+its default, simplifies more and drops a quarter of the values. The pipeline
 nears the official sentence length (7.0 words against 6.1), keeps more hard facts
 than the official versions, which condense on purpose, and reads worse (54 against
 62). Judge, repair and the recover round (P1 to P2) raise fact coverage from 53 to 98
