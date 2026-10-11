@@ -29,7 +29,7 @@ Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
 Technical report: [track_2b/technical_report.md](technical_report.md) (PDF:
 `track_2b/RoestigrabenBridgers_Report.pdf`). Demo video: <https://youtu.be/V_R4AABLriI>. Maturity: a
 deployable prototype for German and French drafts of public texts and letters, a proof
-of concept for decisions **[OWNER: confirm]**. Built with AI coding assistants (report §3).
+of concept for decisions. Built with AI coding assistants (report §3).
 
 > Apertus does everything that needs language understanding. Plain code does
 > everything that can be counted.
@@ -53,20 +53,31 @@ of concept for decisions **[OWNER: confirm]**. Built with AI coding assistants (
 
 ### Why not one chatbot prompt?
 
-"Rewrite this in Leichte Sprache" gives a text with no fact contract, no provenance,
-no omission log and no independent check, and the chatbots people reach for run on
-foreign clouds. Leicht·Facile adds exactly those four things, a review workflow and
-an audit trail, and runs on infrastructure the organisation controls. The evaluation
-measures the difference: the single prompt is the baseline condition P0, the full
-pipeline is P2 (P as in pipeline, not a language level;
-[track_2b/docs/use-case-canton.md](docs/use-case-canton.md) §4). The fairer second
-baseline is the Canton of Zurich's published Leichte Sprache prompt
+Ask a chatbot to "rewrite this in Leichte Sprache" and you get a text, nothing more:
+
+- **no fact contract:** nothing says which deadlines, amounts and contacts must survive;
+- **no provenance:** no sentence points back to the source sentence it comes from;
+- **no omission log:** what was left out, and why, is not recorded;
+- **no independent check:** nothing but the model itself looks at the result.
+
+The chatbots people reach for also run on foreign clouds. Leicht·Facile adds those four
+things, a review workflow and an audit trail, and runs on infrastructure the
+organisation controls.
+
+**How we measure the difference.** The evaluation compares the full pipeline (P2) with
+single prompts on the same model (P as in pipeline, not a language level;
+[track_2b/docs/use-case-canton.md](docs/use-case-canton.md) §4). P0 is the plain chatbot prompt. The
+fairer baseline is the Canton of Zurich's published Leichte Sprache prompt
 ([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
-MIT), on the same model. Final run, 20 held-out German pairs on the CSCS endpoint
-(10 October 2026): the pipeline makes 0.0 instead of 0.2 invented values and 2.0 instead
-of 19.5 rule errors per 100 blocks, finds 98 instead of 91 percent of the must-keep
-facts, and lists every hard fact it misses, where the prompt loses 7 percent of them
-without a trace (25 percent in its default, condensed mode); report §5.
+MIT), here in its "complete" mode. Final run: 20 held-out German text pairs on the CSCS
+endpoint, 10 October 2026 (report §5).
+
+| | Zurich's prompt | Leicht·Facile |
+|---|---|---|
+| Must-keep facts found | 91 % | 98 % |
+| Hard facts lost without a trace | 7 % (25 % in its default, condensed mode) | none: it lists every one it misses |
+| Invented values, per 100 blocks | 0.2 | 0.0 |
+| Rule errors, per 100 blocks | 19.5 | 2.0 |
 
 ### Why only Apertus
 

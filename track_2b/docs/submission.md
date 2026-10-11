@@ -60,7 +60,7 @@ Leicht·Facile drafts easy-language versions of Swiss official texts and letters
 
 How it works. Apertus does what needs language understanding: the 8B reads the document into a fact sheet, writes a draft with a source for every sentence, repairs only the sentences a check flagged and asks once more for each value still missing; the 70B judges meaning. Plain code does what can be counted: 45 rules for German and 41 for French from the published Swiss guidelines, and an exact check that every fact value of the original (dates, amounts, phone numbers, periods, reference numbers) is in the draft and that the draft adds none. A person reviews source and draft side by side and exports the text with an audit trail.
 
-Maturity we declare: a deployable prototype for German and French drafts of public texts and letters; a proof of concept for court and KESB decisions (decision mode v1); image input explored, not built. [OWNER: confirm]
+Maturity we declare: a deployable prototype for German and French drafts of public texts and letters; a proof of concept for court and KESB decisions (decision mode v1); image input explored, not built.
 
 Try it. Set LLM_BASE_URL, LLM_API_KEY and LLM_NAME (the CSCS values work as they are), then run make run. The drafts list opens with two pre-computed example letters (German and French), so the review page can be seen without a model call. "Check my text" runs the rule checker on any pasted text, without a model.
 
@@ -130,7 +130,7 @@ answer each question:
 | | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | Answered with the final run of 10 October 2026: every row on the 20 German and 3 French held-out pairs (report §5) |
 | | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured, nor the vLLM profile's FP8 KV cache (its memory effect is, report §2) |
 | | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | Answered |
-| | (Maturity level declared) | Report header; README; message §3 | **[OWNER: confirm]** |
+| | (Maturity level declared) | Report header; README; message §3 | Confirmed by the owner, 11 October |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
 | | Is the running cost proportionate to the benefit per use? | Report §5 "Cost, and ten times the volume" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). **[PENDING: a published drafting time, or none found]** |

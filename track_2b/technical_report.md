@@ -11,7 +11,7 @@ by code.
 - **Demo:** <https://youtu.be/V_R4AABLriI>
 - **Maturity:** deployable prototype for German and French drafts of public texts and
   letters; proof of concept for court and KESB decisions; image input explored, not
-  built. **[OWNER: confirm]**
+  built.
 
 ## 1. Summary
 
