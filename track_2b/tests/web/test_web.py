@@ -353,7 +353,7 @@ def test_a_french_letter_runs_through_the_french_prompts_and_rules(app_env) -> N
     assert job["config"]["lang"] == "fr"
 
     prompts = [body["messages"][0]["content"] for body in endpoint.chat_bodies()]
-    assert prompts[0].startswith("Vous préparez une version en FALC.")
+    assert prompts[0].startswith("Tu prépares une version en FALC.")
     assert "Faits :" in prompts[1] and "au plus 15 mots" in prompts[1]
 
     rules = client.get(f"/api/jobs/{job_id}/artifacts/rules").json()

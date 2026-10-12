@@ -406,7 +406,7 @@ statement. A repair answer with a value that neither the source nor the fact she
 contains (the check of FACT-06) is sent back once with the values named; the second
 answer is used as it is, and FACT-06 flags what remains. A missing fact is listed with
 the fact sheet's value and, when that differs, the exact form the draft should write
-(`2026-03-31; schreiben Sie: 31. März 2026`). A finding of LEN-02 carries the rewrite
+(`2026-03-31; schreibe: 31. März 2026`). A finding of LEN-02 carries the rewrite
 recipe for its conjunction as the suggestion (track_2b/docs/rules.md). Every round is recorded
 (`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
 every answered sentence code left out with its reason (a repeat, example content, a

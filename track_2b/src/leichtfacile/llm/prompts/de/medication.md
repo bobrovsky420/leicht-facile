@@ -14,6 +14,6 @@ Das Dokument nennt Dosen von Medikamenten. Dafür gilt zusätzlich:
 
 Das Dokument nennt Medikamente. Dafür gilt zusätzlich:
 
-- Schreiben Sie jedes Medikament in einen eigenen Listenpunkt: den Namen, die Dosis, das Schema und die Dauer zusammen.
-- Schreiben Sie den Namen genau so wie im Dokument. Ändern Sie keine Dosis und kein Schema.
+- Schreibe jedes Medikament in einen eigenen Listenpunkt: den Namen, die Dosis, das Schema und die Dauer zusammen.
+- Schreibe den Namen genau so wie im Dokument. Ändere keine Dosis und kein Schema.
 {% endif %}

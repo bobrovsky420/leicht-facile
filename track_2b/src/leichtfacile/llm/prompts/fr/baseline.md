@@ -1,3 +1,3 @@
-Écrivez ce texte en {{ level_name }} :
+Écris ce texte en {{ level_name }} :
 
 {{ text }}

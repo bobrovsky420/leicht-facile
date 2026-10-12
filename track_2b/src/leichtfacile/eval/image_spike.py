@@ -48,15 +48,15 @@ INK = 140  # gray level below which a pixel counts as ink
 BORDER = 60  # pixels of the scanner's edge left out when the ink is measured
 PAD = 48  # margin kept around the ink
 PROMPTS = {
-    "de": "Schreiben Sie den Text auf dem Bild Wort für Wort ab. Fassen Sie nichts zusammen, "
-    "lassen Sie nichts weg und ändern Sie keine Zahl, kein Datum und keinen Namen. Tabellen: "
-    "eine Zeile pro Tabellenzeile, die Zellen mit einem Tabulator getrennt. Antworten Sie nur "
-    "mit dem abgeschriebenen Text. Wenn das Bild nicht lesbar ist, antworten Sie nur: "
+    "de": "Schreibe den Text auf dem Bild Wort für Wort ab. Fasse nichts zusammen, "
+    "lass nichts weg und ändere keine Zahl, kein Datum und keinen Namen. Tabellen: "
+    "eine Zeile pro Tabellenzeile, die Zellen mit einem Tabulator getrennt. Antworte nur "
+    "mit dem abgeschriebenen Text. Wenn das Bild nicht lesbar ist, antworte nur: "
     "unlesbar.",
-    "fr": "Recopiez le texte de l'image mot pour mot. Ne résumez rien, n'omettez rien et ne "
-    "changez aucun chiffre, aucune date, aucun nom. Tableaux : une ligne par ligne du tableau, "
-    "les cellules séparées par une tabulation. Répondez seulement avec le texte recopié. Si "
-    "l'image n'est pas lisible, répondez seulement : illisible.",
+    "fr": "Recopie le texte de l'image mot pour mot. Ne résume rien, n'omets rien et ne "
+    "change aucun chiffre, aucune date, aucun nom. Tableaux : une ligne par ligne du tableau, "
+    "les cellules séparées par une tabulation. Réponds seulement avec le texte recopié. Si "
+    "l'image n'est pas lisible, réponds seulement : illisible.",
 }
 UNREADABLE = ("unlesbar", "illisible", "unreadable")
 _IMAGE_SUFFIXES = (".jpg", ".jpeg", ".png")

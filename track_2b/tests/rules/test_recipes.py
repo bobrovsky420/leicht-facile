@@ -24,8 +24,8 @@ GERMAN = [
     ("Sobald das Geld da ist, schreibt Ihnen die Gemeinde.", "Sobald", "Zeit"),
     ("Sie sparen Geld, indem Sie früh zahlen.", "indem", "So sparen Sie Geld"),
     ("Sie zahlen früh, so dass Sie Geld sparen.", "dass", "So sparen Sie Geld"),
-    ("Das ist das Formular, das Sie brauchen.", "das", "wiederholen Sie das Nomen"),
-    ("Das ist das Formular, welches Sie brauchen.", "welches", "wiederholen Sie das Nomen"),
+    ("Das ist das Formular, das Sie brauchen.", "das", "wiederhole das Nomen"),
+    ("Das ist das Formular, welches Sie brauchen.", "welches", "wiederhole das Nomen"),
     ("Die Gemeinde prüft, ob Sie Anspruch haben.", "ob", "direkte Frage"),
     ("Die Gemeinde schreibt, dass Sie Anspruch haben.", "dass", "Doppelpunkt"),
     ("Es ist wichtig, das Formular zu schicken.", "schicken", "Schicken Sie das Formular"),
@@ -50,7 +50,7 @@ def test_each_german_conjunction_yields_its_recipe(text: str, opener: str, marke
 def test_several_main_clauses_get_the_two_sentences_recipe() -> None:
     finding = _finding("de", "Sie gehen zum Amt und Sie zeigen Ihren Ausweis.", "LEN-02")
     assert finding.message_key == "LEN-02.main"
-    assert finding.suggestion == recipe_de(None) == "Machen Sie 2 Sätze: eine Aussage pro Satz."
+    assert finding.suggestion == recipe_de(None) == "Mach 2 Sätze: eine Aussage pro Satz."
 
 
 FRENCH = [
@@ -66,9 +66,9 @@ FRENCH = [
     ("Quand vous recevez la lettre, vous payez la facture.", "quand", "Ensuite"),
     ("Dès que vous recevez la lettre, vous payez la facture.", "dès que", "Ensuite"),
     ("Avant de payer, lisez la lettre.", "avant de", "Ensuite"),
-    ("C'est le formulaire qui est important.", "qui", "répétez le nom"),
-    ("C'est la personne dont vous avez besoin.", "dont", "répétez le nom"),
-    ("C'est le bureau où vous allez.", "où", "répétez le nom"),
+    ("C'est le formulaire qui est important.", "qui", "répète le nom"),
+    ("C'est la personne dont vous avez besoin.", "dont", "répète le nom"),
+    ("C'est le bureau où vous allez.", "où", "répète le nom"),
     ("Nous vous informons que votre demande est acceptée.", "que", "deux-points"),
 ]
 

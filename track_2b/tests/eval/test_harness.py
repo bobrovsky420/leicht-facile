@@ -189,7 +189,7 @@ def test_a_failed_scoring_call_marks_the_pair_and_reruns_it(
     (row,) = _rows(path)
     assert row["status"] == "needs_review", row.get("error")
     assert row["fact_coverage"] == 1.0
-    assert endpoint.chat_bodies()[-1]["messages"][0]["content"].startswith("Sie bereiten")
+    assert endpoint.chat_bodies()[-1]["messages"][0]["content"].startswith("Du bereitest")
 
 
 def test_report_has_one_section_per_language(tmp_path) -> None:

@@ -19,24 +19,24 @@ if TYPE_CHECKING:
 RECIPE_RULES = frozenset({"LEN-02", "LEN-02-FR"})
 
 _DE = {
-    "reason": "Machen Sie 2 Sätze: zuerst der Grund, dann die Folge mit Deshalb. "
+    "reason": "Mach 2 Sätze: zuerst der Grund, dann die Folge mit Deshalb. "
     "(Sie verdienen wenig. Deshalb bekommen Sie Geld.)",
-    "aim": "Machen Sie 2 Sätze: zuerst das Ziel, dann der Weg mit Deshalb. "
+    "aim": "Mach 2 Sätze: zuerst das Ziel, dann der Weg mit Deshalb. "
     "(Sie wollen das Geld. Deshalb stellen Sie ein Gesuch.)",
-    "concession": "Machen Sie 2 Sätze. Der zweite beginnt mit Trotzdem. "
+    "concession": "Mach 2 Sätze. Der zweite beginnt mit Trotzdem. "
     "(Sie verdienen viel. Trotzdem bekommen Sie Geld.)",
-    "condition": "Machen Sie eine Frage und eine Antwort mit Dann. "
+    "condition": "Mach eine Frage und eine Antwort mit Dann. "
     "(Verdienen Sie wenig? Dann bekommen Sie Geld.) "
     "Nie vielleicht: die Bedingung bleibt eine Bedingung.",
-    "time": "Machen Sie 2 Sätze in der Reihenfolge der Zeit. Der zweite beginnt mit Dann. "
+    "time": "Mach 2 Sätze in der Reihenfolge der Zeit. Der zweite beginnt mit Dann. "
     "(Zuerst schicken Sie das Gesuch. Dann bekommen Sie einen Brief.)",
-    "means": "Machen Sie 2 Sätze. (Sie zahlen früh. So sparen Sie Geld.)",
-    "relative": "Machen Sie 2 Sätze und wiederholen Sie das Nomen. "
+    "means": "Mach 2 Sätze. (Sie zahlen früh. So sparen Sie Geld.)",
+    "relative": "Mach 2 Sätze und wiederhole das Nomen. "
     "(Das ist das Formular. Das Formular brauchen Sie.)",
-    "whether": "Machen Sie eine direkte Frage. (Haben Sie Anspruch? Das prüft die Gemeinde.)",
-    "that": "Schreiben Sie mit Doppelpunkt. (Die Gemeinde schreibt: Sie haben Anspruch.)",
-    "infinitive": "Machen Sie 2 Sätze. (Schicken Sie das Formular. Das ist wichtig.)",
-    "two": "Machen Sie 2 Sätze: eine Aussage pro Satz.",
+    "whether": "Mach eine direkte Frage. (Haben Sie Anspruch? Das prüft die Gemeinde.)",
+    "that": "Schreibe mit Doppelpunkt. (Die Gemeinde schreibt: Sie haben Anspruch.)",
+    "infinitive": "Mach 2 Sätze. (Schicken Sie das Formular. Das ist wichtig.)",
+    "two": "Mach 2 Sätze: eine Aussage pro Satz.",
 }
 _DE_OPENERS = {
     "weil": "reason", "da": "reason", "denn": "reason", "zumal": "reason",
@@ -75,23 +75,23 @@ def recipe_de(opener: Token | None) -> str:
 
 
 _FR = {
-    "reason": "Faites 2 phrases : d'abord la raison, puis la conséquence avec C'est pourquoi. "
+    "reason": "Fais 2 phrases : d'abord la raison, puis la conséquence avec C'est pourquoi. "
     "(Vous gagnez peu. C'est pourquoi vous recevez de l'argent.)",
-    "aim": "Faites 2 phrases : d'abord le but, puis le moyen avec Pour cela. "
+    "aim": "Fais 2 phrases : d'abord le but, puis le moyen avec Pour cela. "
     "(Vous voulez l'argent. Pour cela, vous faites une demande.)",
-    "concession": "Faites 2 phrases. La deuxième commence par Mais. "
+    "concession": "Fais 2 phrases. La deuxième commence par Mais. "
     "(Vous gagnez beaucoup. Mais vous recevez de l'argent.)",
-    "condition": "Faites une question et une réponse avec Alors. "
+    "condition": "Fais une question et une réponse avec Alors. "
     "(Vous gagnez peu ? Alors vous recevez de l'argent.) "
     "Jamais peut-être : la condition reste une condition.",
-    "time": "Faites 2 phrases dans l'ordre du temps. La deuxième commence par Ensuite. "
+    "time": "Fais 2 phrases dans l'ordre du temps. La deuxième commence par Ensuite. "
     "(D'abord vous recevez la lettre. Ensuite vous payez.)",
-    "relative": "Faites 2 phrases et répétez le nom. "
+    "relative": "Fais 2 phrases et répète le nom. "
     "(C'est le formulaire. Vous remplissez le formulaire.)",
-    "that": "Faites 2 phrases : répétez le nom (C'est le formulaire. Vous remplissez le "
-    "formulaire.), ou écrivez avec deux-points après un verbe (Nous vous informons : votre "
+    "that": "Fais 2 phrases : répète le nom (C'est le formulaire. Vous remplissez le "
+    "formulaire.), ou écris avec deux-points après un verbe (Nous vous informons : votre "
     "demande est acceptée.).",
-    "two": "Faites 2 phrases courtes : une information par phrase.",
+    "two": "Fais 2 phrases courtes : une information par phrase.",
 }
 _FR_OPENERS = {
     "parce que": "reason", "puisque": "reason", "comme": "reason", "car": "reason",

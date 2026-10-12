@@ -14,6 +14,6 @@ Le document indique des doses de médicaments. En plus :
 
 Le document cite des médicaments. En plus :
 
-- Écrivez chaque médicament dans son propre point de liste : le nom, la dose, le schéma et la durée ensemble.
-- Écrivez le nom exactement comme dans le document. Ne changez aucune dose et aucun schéma.
+- Écris chaque médicament dans son propre point de liste : le nom, la dose, le schéma et la durée ensemble.
+- Écris le nom exactement comme dans le document. Ne change aucune dose et aucun schéma.
 {% endif %}

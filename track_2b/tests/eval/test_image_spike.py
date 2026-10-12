@@ -93,7 +93,7 @@ def test_the_spike_runs_every_page_against_the_endpoint(endpoint, sleeps) -> Non
     body = endpoint.chat_bodies()[0]
     assert body["temperature"] == 0.0 and not body["model"].endswith("-thinking")
     content = body["messages"][0]["content"]
-    assert content[0]["text"].startswith("Recopiez le texte")
+    assert content[0]["text"].startswith("Recopie le texte")
     assert content[1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
     table = render_spike(report)
     assert "| steuermahnung-brief_scan | 1 | 0.0 |" in table

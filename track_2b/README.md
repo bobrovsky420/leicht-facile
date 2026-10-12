@@ -94,7 +94,7 @@ secrecy. Four conditions follow, and only Apertus meets all four:
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
 
 The Canton of Ticino already runs Apertus in-house to translate sensitive government
-documents. Tokens are nearly free (about one and a half US cents per page for the full pipeline at
+documents. Tokens are nearly free (about 1.3 US cents per page for the full pipeline at
 Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
 [track_2b/docs/use-cases.md §2](docs/use-cases.md#why-only-apertus).

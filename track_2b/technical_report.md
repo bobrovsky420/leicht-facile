@@ -234,7 +234,7 @@ fact. Each held-out pair runs under these conditions:
 
 | Code | Condition | Measures |
 |------|-----------|----------|
-| P0 | One prompt: "Schreiben Sie diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
+| P0 | One prompt: "Schreibe diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
 | P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim; German only | The strong single prompt: Zurich's published prompt, the only public Swiss one we found |
 | P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning, provenance |
 | P2 | Full pipeline with judge and repair | Checking and repairing |
@@ -261,6 +261,7 @@ too low.
 | REF (official) | - | 67 % | 33 % | 2.8 | - | 2.7 | 62 | - | - | - |
 | P0 | 92 % | 93 % | 7 % | 0.2 | - | 19.5 | 52 | 43.0 | 0.0001 | 2.6 |
 | P0-ZH complete | 83 % | 85 % | 15 % | 0.0 | - | 15.0 | 47 | 43.0 | 0.0003 | 2.4 |
+| P0-ZH complete, 70B | 85 % | 90 % | 10 % | 0.3 | - | 7.0 | 50 | 44.7 | 0.0028 | 6.0 |
 | P0-ZH condensed | 69 % | 67 % | 33 % | 0.2 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
 | P1 | 74 % | 73 % | 0 % | 1.1 | - | 8.3 | 51 | 40.6 | 0.0014 | - |
 | **P2 (ours)** | 100 % | 97 % | 0 % | 0.1 | 1.6 | 4.2 | 51 | 41.7 | 0.0131 | 63.3 |
@@ -287,13 +288,12 @@ too low.
 - French (3 pairs): 100 percent fact coverage, 87 percent of the hard facts, 4.9 errors,
   readability 74 (official 85).
 
-**Cost and scale.** At Public AI's list prices the pipeline costs about
-one and a half US cents per 250-word page (P2: 0.0131 USD, the recover and polish rounds
-included; the 70B everywhere 0.0262), so ten times the volume costs ten times the
-cents. On own
-hardware the GPU is a fixed cost until it is busy. Speed is the limit: at ten times the
-volume, jobs wait in a queue, as one runs at a time; running several at once is a
-setting we have not measured. The writer's time is the cost that
+**Cost and scale.** At Public AI's list prices our pipeline costs 0.0131 USD (about
+1.3 US cents) per 250-word page, the recover and polish rounds included; with the 70B
+everywhere, 0.0262 USD. The cost grows linearly with the number of pages: 10 times the
+volume costs 10 times as much. On own hardware the GPU is a fixed cost until it is busy.
+Speed is the limit: at 10 times the volume, jobs wait in a queue, as one runs at a time;
+running several at once is a setting we have not measured. The writer's time is the cost that
 matters: our own review of three P2 drafts in the UI (the two example letters and one
 dev pair, 1,079 source words together), from opening the review to the export, took
 15 minutes by stopwatch, about 3.5 minutes per 250-word page (the team, not experts).

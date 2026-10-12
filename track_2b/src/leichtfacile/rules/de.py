@@ -202,7 +202,7 @@ LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error
     title="At most N words per sentence",
     severity=sev("error"),
     scope="sentence",
-    guide="Schreiben Sie kurze Sätze: höchstens {max_words} Wörter pro Satz.",
+    guide="Schreibe kurze Sätze: höchstens {max_words} Wörter pro Satz.",
     kinds=SENTENCE_KINDS,
 )
 def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -229,9 +229,9 @@ def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     scope="sentence",
     guide={
         "A2": "Ein Satz hat nur eine Aussage. Keine Nebensätze: kein Satz mit weil, dass, "
-        "wenn, damit, obwohl, um ... zu oder einem Relativsatz. Schreiben Sie lieber "
+        "wenn, damit, obwohl, um ... zu oder einem Relativsatz. Schreibe lieber "
         "zwei kurze Sätze.",
-        "B1": "Höchstens ein Nebensatz pro Satz. Schreiben Sie lieber zwei kurze Sätze.",
+        "B1": "Höchstens ein Nebensatz pro Satz. Schreibe lieber zwei kurze Sätze.",
     },
     kinds=SENTENCE_KINDS,
 )
@@ -289,7 +289,7 @@ def _conjunct_chain(token: Token) -> list[Token]:
     title="Enumerations of three or more items become a list",
     severity=sev("warn"),
     scope="sentence",
-    guide="Zählen Sie 3 oder mehr Dinge auf? Dann schreiben Sie eine Liste.",
+    guide="Zählst du 3 oder mehr Dinge auf? Dann schreibe eine Liste.",
     kinds=("sentence",),
 )
 def len_03(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -331,7 +331,7 @@ def ord_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="No passive",
     severity=sev("error", "warn"),
     scope="sentence",
-    guide="Kein Passiv. Sagen Sie, wer etwas tut. Nicht: Das Formular wird geprüft. "
+    guide="Kein Passiv. Sag, wer etwas tut. Nicht: Das Formular wird geprüft. "
     "Sondern: Das Amt prüft das Formular.",
 )
 def gram_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -355,7 +355,7 @@ GENITIVE_ALLOWED = (
     title="No genitive; use von + dative",
     severity=sev("warn", "info"),
     scope="sentence",
-    guide="Kein Genitiv. Schreiben Sie von + Dativ: das Auto von meinem Vater.",
+    guide="Kein Genitiv. Schreibe von + Dativ: das Auto von meinem Vater.",
 )
 def gram_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     for noun, phrase in genitives(sent):
@@ -397,7 +397,7 @@ KONJUNKTIV_II = frozenset(
     title="No Konjunktiv",
     severity=sev("warn"),
     scope="sentence",
-    guide="Kein Konjunktiv (nicht: würde, hätte, wäre, könnte). Schreiben Sie direkt.",
+    guide="Kein Konjunktiv (nicht: würde, hätte, wäre, könnte). Schreibe direkt.",
 )
 def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in (t for t in sent if t.tag_ in FINITE_TAGS):  # also "sind bzw. wären"
@@ -421,7 +421,7 @@ def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="Perfekt instead of Präteritum for full verbs",
     severity=sev("warn"),
     scope="sentence",
-    guide="Für Vergangenes nehmen Sie das Perfekt: Sie haben einen Brief bekommen. "
+    guide="Für Vergangenes nimmst du das Perfekt: Sie haben einen Brief bekommen. "
     "Nicht: Sie bekamen einen Brief.",
 )
 def gram_04(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -621,7 +621,7 @@ def _antecedents(pronoun: Token, ctx: Context, sent: Span) -> tuple[set[str], bo
     severity=sev("info"),
     scope="sentence",
     guide="Pronomen wie er, sie oder dieser nur, wenn klar ist, wen sie meinen. "
-    "Wiederholen Sie lieber das Nomen.",
+    "Wiederhole lieber das Nomen.",
 )
 def gram_06(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -646,7 +646,7 @@ def gram_06(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="No indirect speech",
     severity=sev("info"),
     scope="sentence",
-    guide="Keine indirekte Rede. Schreiben Sie, wer was sagt.",
+    guide="Keine indirekte Rede. Schreibe, wer was sagt.",
 )
 def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -825,7 +825,7 @@ def neg_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="Prefer positive formulation",
     severity=sev("info"),
     scope="sentence",
-    guide="Schreiben Sie positiv, wenn es geht: Sie dürfen ... statt Sie dürfen nicht ...",
+    guide="Schreibe positiv, wenn es geht: Sie dürfen ... statt Sie dürfen nicht ...",
 )
 def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     found = negations(sent)
@@ -842,8 +842,8 @@ def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="Long compounds get a Mediopunkt, lowercase after the dot",
     severity=sev("warn"),
     scope="sentence",
-    guide="Lange Wörter trennen Sie mit dem Medio·punkt: Prämien·verbilligung, "
-    "Kranken·kasse. Nach dem Punkt schreiben Sie klein weiter.",
+    guide="Lange Wörter trennst du mit dem Medio·punkt: Prämien·verbilligung, "
+    "Kranken·kasse. Nach dem Punkt schreibst du klein weiter.",
 )
 def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     limit = ctx.params.max_word_letters
@@ -908,7 +908,7 @@ EMPHASIS_WORDS = frozenset({"JA", "NEIN", "NICHT", "KEIN", "UND", "ODER", "NUR",
     severity=sev("warn"),
     scope="block",
     guide="Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind CHF, AHV, IV, "
-    "SBB, WC und PDF. Andere Abkürzungen erklären Sie.",
+    "SBB, WC und PDF. Andere Abkürzungen erklärst du.",
 )
 def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask(block.text, [m.span() for m in URL_RE.finditer(block.text)])
@@ -945,8 +945,8 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="No foreign words, anglicisms, jargon",
     severity=sev("info"),
     scope="sentence",
-    guide="Nehmen Sie einfache, bekannte Wörter. Keine Fremdwörter und keine Fachwörter. "
-    "Ist ein schwieriges Wort nötig, erklären Sie es im Wörterbuch.",
+    guide="Nimm einfache, bekannte Wörter. Keine Fremdwörter und keine Fachwörter. "
+    "Ist ein schwieriges Wort nötig, erkläre es im Wörterbuch.",
 )
 def lex_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     office = covered_offsets(
@@ -1005,7 +1005,7 @@ GENDER_SIGN_RE = re.compile(rf"[{_LETTER}]+[*:_](?:innen|in)\b|[a-zäöü]Innen\
     title="Gender-fair, concrete forms",
     severity=sev("info"),
     scope="block",
-    guide="Keine Gender·zeichen wie * oder :. Schreiben Sie beide Formen: "
+    guide="Keine Gender·zeichen wie * oder :. Schreibe beide Formen: "
     "Mitarbeiterinnen und Mitarbeiter.",
 )
 def lex_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -1032,7 +1032,7 @@ ROLE_NOUN_RE = re.compile(
     title="Direct address with Sie",
     severity=sev("info"),
     scope="block",
-    guide="Sprechen Sie die Leserin oder den Leser direkt mit Sie an.",
+    guide="Sprich die Leserin oder den Leser direkt mit Sie an.",
 )
 def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in ROLE_NOUN_RE.finditer(block.text):
@@ -1050,7 +1050,7 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="Everyday words instead of office words",
     severity=sev("warn", "info"),
     scope="sentence",
-    guide="Nehmen Sie Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
+    guide="Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
     "nach statt gemäss, wenn nötig statt gegebenenfalls.",
 )
 def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -1081,7 +1081,7 @@ _ORDINAL_DIGITS = {"zweit": 2, "dritt": 3, "viert": 4, "fünft": 5, "sechst": 6,
     title="Numbers as digits, except ein/eine",
     severity=sev("warn"),
     scope="sentence",
-    guide="Zahlen schreiben Sie als Ziffern: 2, 3, 12. Nur ein und eine schreiben Sie als Wort.",
+    guide="Zahlen schreibst du als Ziffern: 2, 3, 12. Nur ein und eine schreibst du als Wort.",
 )
 def num_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -1126,7 +1126,7 @@ def _masked_numbers_text(text: str) -> str:
     title="Thousands separator for numbers of 4+ digits (500'000)",
     severity=sev("warn"),
     scope="block",
-    guide="Grosse Zahlen schreiben Sie mit Apostroph: 1'500 Franken, 500'000.",
+    guide="Grosse Zahlen schreibst du mit Apostroph: 1'500 Franken, 500'000.",
 )
 def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = _masked_numbers_text(block.text)
@@ -1147,7 +1147,7 @@ def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="Date format 4. Februar 2020",
     severity=sev("warn"),
     scope="block",
-    guide="Ein Datum schreiben Sie so: 4. Februar 2026.",
+    guide="Ein Datum schreibst du so: 4. Februar 2026.",
 )
 def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask(block.text, [m.span() for r in (URL_RE, PHONE_RE) for m in r.finditer(block.text)])
@@ -1192,7 +1192,7 @@ def _range_text(m: re.Match[str]) -> str:
     title="Time format 9 Uhr or 9.30 Uhr, ranges with bis",
     severity=sev("warn"),
     scope="block",
-    guide="Uhrzeiten schreiben Sie so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis 12 Uhr.",
+    guide="Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis 12 Uhr.",
 )
 def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = _masked_numbers_text(block.text)
@@ -1237,7 +1237,7 @@ DURATION_RE = re.compile(
     title="Durations in words and digits: 1 Stunde und 30 Minuten",
     severity=sev("info"),
     scope="block",
-    guide="Eine Dauer schreiben Sie so: 1 Stunde und 30 Minuten.",
+    guide="Eine Dauer schreibst du so: 1 Stunde und 30 Minuten.",
 )
 def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in DURATION_RE.finditer(block.text):
@@ -1250,7 +1250,7 @@ def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="Percent written out",
     severity=sev("warn"),
     scope="block",
-    guide="Schreiben Sie Prozent als Wort: 10 Prozent.",
+    guide="Schreibe Prozent als Wort: 10 Prozent.",
 )
 def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in re.finditer(r"(\d+(?:[.,]\d+)?)?\s?%", block.text):
@@ -1275,7 +1275,7 @@ AMOUNT_STYLE_RE = re.compile(
     title="Amounts as 500 Franken or CHF 500, no decimals when zero",
     severity=sev("info"),
     scope="block",
-    guide="Geld·beträge schreiben Sie so: 500 Franken oder CHF 500.",
+    guide="Geld·beträge schreibst du so: 500 Franken oder CHF 500.",
 )
 def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in AMOUNT_STYLE_RE.finditer(block.text):
@@ -1308,7 +1308,7 @@ def format_phone(text: str) -> str:
     title="Phone numbers spaced, no country code: 044 123 45 67",
     severity=sev("warn"),
     scope="block",
-    guide="Telefon·nummern schreiben Sie mit Abständen: 044 123 45 67.",
+    guide="Telefon·nummern schreibst du mit Abständen: 044 123 45 67.",
 )
 def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in PHONE_RE.finditer(block.text):
@@ -1378,7 +1378,7 @@ HELVETISMS = {
     title="Helvetisms where the official text uses them",
     severity=sev("info"),
     scope="sentence",
-    guide="Nehmen Sie Schweizer Wörter: Velo, parkieren, Trottoir, Spital.",
+    guide="Nimm Schweizer Wörter: Velo, parkieren, Trottoir, Spital.",
 )
 def ch_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:

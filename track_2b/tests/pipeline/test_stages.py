@@ -398,7 +398,7 @@ def test_french_prompts_render_completely_with_french_labels() -> None:
     assert "(faits : f02 ; source : s0002)" in prompts["judge"]
     assert "(vide)" in prompts["judge"]  # the empty glossary
     assert "Les faits qui manquent" in prompts["repair"]
-    assert prompts["baseline"].startswith("Écrivez ce texte en FALC :")
+    assert prompts["baseline"].startswith("Écris ce texte en FALC :")
 
 
 def test_repairs_do_not_repeat_sentences() -> None:
@@ -489,16 +489,16 @@ def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
     assert _example_key("fact_ids") not in keys
     # The style guide's lines, at both levels and without the list marker: a draft on
     # the 8B carried the guide as a section (8 October 2026).
-    guide = "Telefon·nummern schreiben Sie mit Abständen: 044 123 45 67."
+    guide = "Telefon·nummern schreibst du mit Abständen: 044 123 45 67."
     assert _example_key(guide) in keys and _example_key(guide) in example_keys("de", "repair")
-    assert _example_key("Schreiben Sie kurze Sätze: höchstens 12 Wörter pro Satz.") in keys
-    assert _example_key("Schreiben Sie kurze Sätze: höchstens 15 Wörter pro Satz.") in keys
+    assert _example_key("Schreibe kurze Sätze: höchstens 12 Wörter pro Satz.") in keys
+    assert _example_key("Schreibe kurze Sätze: höchstens 15 Wörter pro Satz.") in keys
     passive = (
-        "Kein Passiv. Sagen Sie, wer etwas tut. "
+        "Kein Passiv. Sag, wer etwas tut. "
         "Nicht: Das Formular wird geprüft. Sondern: Das Amt prüft das Formular."
     )
     assert copied_sentences([guide, passive], "de", "write") == 2
-    part = "Kein Passiv. Sagen Sie, wer etwas tut."  # a part of a line is no copy
+    part = "Kein Passiv. Sag, wer etwas tut."  # a part of a line is no copy
     assert copied_sentences([part], "de", "write") == 0
     for lang, stage in (
         ("fr", "write"),
@@ -749,7 +749,7 @@ def test_the_repair_record_keeps_the_answer_and_what_code_dropped(endpoint, slee
     # The prompt names the exact form next to the fact sheet's value.
     prompt = endpoint.chat_bodies()[0]["messages"][0]["content"]
     assert "- f01: Das Gesuch muss bis 31. März 2026 bei der Gemeinde sein. " in prompt
-    assert "(Wert: 2026-03-31; schreiben Sie: 31. März 2026)" in prompt
+    assert "(Wert: 2026-03-31; schreibe: 31. März 2026)" in prompt
 
 
 def test_the_exact_form_of_a_missing_value() -> None:
@@ -760,16 +760,16 @@ def test_the_exact_form_of_a_missing_value() -> None:
         return Fact(id="f01", kind=kind, text="x", value_norm=value)  # type: ignore[arg-type]
 
     assert missing_value_label(fact("deadline", "2026-03-31"), "de") == (
-        " (Wert: 2026-03-31; schreiben Sie: 31. März 2026)"
+        " (Wert: 2026-03-31; schreibe: 31. März 2026)"
     )
     assert missing_value_label(fact("deadline", "2026-03-31"), "fr") == (
-        " (valeur : 2026-03-31 ; écrivez : 31 mars 2026)"
+        " (valeur : 2026-03-31 ; écris : 31 mars 2026)"
     )
     assert missing_value_label(fact("amount", "1500"), "de") == (
-        " (Wert: 1500; schreiben Sie: 1'500 Franken)"
+        " (Wert: 1500; schreibe: 1'500 Franken)"
     )
     assert missing_value_label(fact("contact", "0441234567"), "de") == (
-        " (Wert: 0441234567; schreiben Sie: 044 123 45 67)"
+        " (Wert: 0441234567; schreibe: 044 123 45 67)"
     )
     # Already in its exact form, or a kind whose written form is the value itself.
     assert missing_value_label(fact("deadline", "30 Tage"), "de") == " (Wert: 30 Tage)"

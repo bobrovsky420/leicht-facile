@@ -392,7 +392,7 @@ LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error (as i
     title="At most N words per sentence",
     severity=sev("error"),
     scope="sentence",
-    guide="Écrivez des phrases courtes : au plus {max_words} mots par phrase.",
+    guide="Écris des phrases courtes : au plus {max_words} mots par phrase.",
     kinds=SENTENCE_KINDS,
 )
 def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -418,8 +418,8 @@ def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     guide={
         "A2": "Une seule information par phrase. Pas de subordonnée : pas de phrase avec "
         "parce que, que, si, quand, pour que, pour + verbe ou une relative avec qui, que, "
-        "dont, où. Écrivez plutôt 2 phrases courtes.",
-        "B1": "Au plus une subordonnée par phrase. Écrivez plutôt 2 phrases courtes.",
+        "dont, où. Écris plutôt 2 phrases courtes.",
+        "B1": "Au plus une subordonnée par phrase. Écris plutôt 2 phrases courtes.",
     },
     kinds=SENTENCE_KINDS,
 )
@@ -519,7 +519,7 @@ def _comma_list(sent: Span) -> str | None:
     title="Enumerations of three or more items become a list",
     severity=sev("warn"),
     scope="sentence",
-    guide="Vous citez 3 choses ou plus ? Faites une liste.",
+    guide="Tu cites 3 choses ou plus ? Fais une liste.",
     kinds=("sentence",),
 )
 def len_03(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -548,7 +548,7 @@ def len_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="No passive",
     severity=sev("error", "warn"),
     scope="sentence",
-    guide="Pas de voix passive. Dites qui fait quoi. Pas : Le formulaire est contrôlé par "
+    guide="Pas de voix passive. Dis qui fait quoi. Pas : Le formulaire est contrôlé par "
     "l'office. Mais : L'office contrôle le formulaire.",
 )
 def gram_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -630,7 +630,7 @@ def subjunctives(sent: Span) -> list[tuple[Token, str]]:
     severity=sev("warn"),
     scope="sentence",
     guide="Pas de subjonctif et pas de conditionnel (pas : il faudrait, vous pourriez, pour "
-    "que vous puissiez). Écrivez directement : vous devez, vous pouvez.",
+    "que vous puissiez). Écris directement : vous devez, vous pouvez.",
 )
 def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     for verb, reason in subjunctives(sent):
@@ -654,8 +654,8 @@ _ALLER = {("1", "Sing"): "vais", ("2", "Sing"): "vas", ("3", "Sing"): "va",
     "infinitive works",
     severity=sev("warn"),
     scope="sentence",
-    guide="Écrivez au présent. Pour le passé, prenez le passé composé : vous avez reçu une "
-    "lettre. Pour le futur, prenez aller + verbe : vous allez recevoir une lettre.",
+    guide="Écris au présent. Pour le passé, prends le passé composé : vous avez reçu une "
+    "lettre. Pour le futur, prends aller + verbe : vous allez recevoir une lettre.",
 )
 def gram_04(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -776,8 +776,8 @@ def _antecedents(pronoun: Token, ctx: Context) -> set[str]:
     title="Pronouns only with an unambiguous reference",
     severity=sev("info"),
     scope="sentence",
-    guide="Utilisez il, elle ou celui-ci seulement si on sait clairement de qui ou de quoi "
-    "vous parlez. Sinon, répétez le nom.",
+    guide="Utilise il, elle ou celui-ci seulement si on sait clairement de qui ou de quoi "
+    "tu parles. Sinon, répète le nom.",
 )
 def gram_06(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -797,7 +797,7 @@ def gram_06(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="No reported speech",
     severity=sev("info"),
     scope="sentence",
-    guide="Pas de discours rapporté. Dites qui dit quoi.",
+    guide="Pas de discours rapporté. Dis qui dit quoi.",
 )
 def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -828,7 +828,7 @@ IMPERSONAL_SOFT_RE = re.compile(
     title="No impersonal il convient de, il y a lieu de",
     severity=sev("warn"),
     scope="block",
-    guide="Pas de tournures impersonnelles comme il convient de ou il y a lieu de. Dites "
+    guide="Pas de tournures impersonnelles comme il convient de ou il y a lieu de. Dis "
     "qui doit faire quoi : vous devez.",
 )
 def gram_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -938,7 +938,7 @@ def neg_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     title="Prefer positive formulation",
     severity=sev("info"),
     scope="sentence",
-    guide="Écrivez de façon positive quand c'est possible : vous pouvez ... plutôt que vous "
+    guide="Écris de façon positive quand c'est possible : vous pouvez ... plutôt que vous "
     "ne pouvez pas ...",
 )
 def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -959,7 +959,7 @@ MAX_WORD_LETTERS = 12  # LEX-01-FR, both levels (track_2b/docs/rules.md)
     title="No long words",
     severity=sev("info"),
     scope="sentence",
-    guide="Évitez les mots longs. Prenez le mot court et connu.",
+    guide="Évite les mots longs. Prends le mot court et connu.",
 )
 def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     # The office words (émolument, moyennant) are LEX-07-FR's, from the vocabulary.
@@ -1015,8 +1015,8 @@ def _masked_links(text: str) -> str:
     title="No abbreviations except common ones",
     severity=sev("warn"),
     scope="block",
-    guide="Pas d'abréviations (pas : p. ex., etc., art.). Vous pouvez écrire CHF, AVS, AI et "
-    "CFF. Expliquez les autres abréviations.",
+    guide="Pas d'abréviations (pas : p. ex., etc., art.). Tu peux écrire CHF, AVS, AI et "
+    "CFF. Explique les autres abréviations.",
 )
 def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = _masked_links(block.text)
@@ -1054,8 +1054,8 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="No foreign words, anglicisms, jargon",
     severity=sev("info"),
     scope="sentence",
-    guide="Prenez des mots simples et connus. Pas de mots étrangers et pas de mots "
-    "techniques. Si un mot difficile est nécessaire, expliquez-le dans le lexique.",
+    guide="Prends des mots simples et connus. Pas de mots étrangers et pas de mots "
+    "techniques. Si un mot difficile est nécessaire, explique-le dans le lexique.",
 )
 def lex_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     office = covered_offsets(
@@ -1128,7 +1128,7 @@ INCLUSIVE_RE = re.compile(
     title="Inclusive forms without typographic devices",
     severity=sev("info"),
     scope="block",
-    guide="Pas d'écriture inclusive avec des points ou des parenthèses (employé·e·s). Écrivez "
+    guide="Pas d'écriture inclusive avec des points ou des parenthèses (employé·e·s). Écris "
     "les deux formes : les employées et les employés.",
 )
 def lex_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -1159,7 +1159,7 @@ ROLE_NOUN_WORD_RE = re.compile(r"\b" + _ROLE_NOUNS + r"\b", re.IGNORECASE)  # LE
     title="Direct address with vous",
     severity=sev("info"),
     scope="block",
-    guide="Parlez directement à la lectrice ou au lecteur avec vous.",
+    guide="Parle directement à la lectrice ou au lecteur avec vous.",
 )
 def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in ROLE_NOUN_RE.finditer(block.text):
@@ -1177,7 +1177,7 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="Everyday words instead of office words",
     severity=sev("warn", "info"),
     scope="sentence",
-    guide="Prenez les mots de tous les jours, pas les mots de l'administration (pas : "
+    guide="Prends les mots de tous les jours, pas les mots de l'administration (pas : "
     "émolument, moyennant, le cas échéant, dûment).",
 )
 def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -1207,7 +1207,7 @@ _ORDINAL_DIGITS = {"deux": 2, "trois": 3, "quatr": 4, "cinqu": 5, "six": 6, "sep
     title="Numbers as digits, except un/une",
     severity=sev("warn"),
     scope="sentence",
-    guide="Écrivez les nombres en chiffres : 2, 3, 12. Seuls un et une s'écrivent en lettres.",
+    guide="Écris les nombres en chiffres : 2, 3, 12. Seuls un et une s'écrivent en lettres.",
 )
 def num_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -1410,7 +1410,7 @@ def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     title="Percent written out",
     severity=sev("warn"),
     scope="block",
-    guide="Écrivez pour cent en lettres : 10 pour cent.",
+    guide="Écris pour cent en lettres : 10 pour cent.",
 )
 def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in re.finditer(r"(\d+(?:[.,]\d+)?)?\s?%", block.text):
@@ -1492,7 +1492,7 @@ FRANCE_NUMERAL_RE = re.compile(
     title="Swiss numerals septante, huitante or octante, nonante when numbers are written out",
     severity=sev("info"),
     scope="block",
-    guide="Si un nombre s'écrit en lettres, prenez les mots suisses : septante, nonante.",
+    guide="Si un nombre s'écrit en lettres, prends les mots suisses : septante, nonante.",
 )
 def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in FRANCE_NUMERAL_RE.finditer(block.text):

@@ -119,7 +119,7 @@ def test_c0_baseline_has_no_provenance(store, endpoint, sleeps) -> None:
     ]  # fmt: skip
     assert all(not b.segment_ids for b in draft.blocks)
     assert endpoint.chat_bodies()[0]["messages"][0]["content"].startswith(
-        "Schreiben Sie diesen Text in Leichter Sprache:"
+        "Schreibe diesen Text in Leichter Sprache:"
     )
 
 
@@ -325,8 +325,8 @@ def test_a_facts_round_asks_for_the_missing_facts_alone(store, endpoint, sleeps)
     assert summary.final_version == 3
     facts_prompt = endpoint.chat_bodies()[5]["messages"][0]["content"]
     assert "Die fehlenden Tatsachen" in facts_prompt
-    assert "(Wert: 0441234567; schreiben Sie: 044 123 45 67)" in facts_prompt
-    assert "Die Blöcke, die Sie verbessern:\n\n(keine)" in facts_prompt
+    assert "(Wert: 0441234567; schreibe: 044 123 45 67)" in facts_prompt
+    assert "Die Blöcke, die du verbesserst:\n\n(keine)" in facts_prompt
     # The record of each round: what was asked, what came back, what code dropped.
     first = store.get_artifact(job_id, "repair", RepairRecord, version=2)
     assert first.kind == "repair" and first.requested_blocks == ["b002", "b004"]  # passive, number
