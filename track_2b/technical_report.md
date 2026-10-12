@@ -166,8 +166,7 @@ on-premise): no single provider is needed.
   Letters that name a person fall under official, medical or tax secrecy and may not
   go to a foreign cloud, so the organisation must run the model itself and account
   for what it learned. Only Apertus combines open weights, open training data
-  (website opt-outs honoured), Swiss public origin and German, French and Italian
-  ([track_2b/docs/use-cases.md §2](docs/use-cases.md#why-only-apertus)).
+  (website opt-outs honoured), Swiss public origin and German, French and Italian.
 - **Why these sizes:** the 8B is enough to read and write. It finds the must-keep facts
   as well as the 70B does, at half the price per page (§5). The 70B judges, because
   meaning needs a second, larger model than the one that wrote the draft.
@@ -183,7 +182,7 @@ on-premise): no single provider is needed.
 
 **Prompts and parsing** ([track_2b/docs/prompts.md](docs/prompts.md)), in the document's
 language, each with one filled JSON example instead of the schema. Sentences and blocks
-carry ids (`[s0004]`, `[b007]`): the model cites, code verifies; the judge's unsupported
+carry ids (`s0004`, `b007`): the model cites, code verifies; the judge's unsupported
 verdicts must quote words that stand in the draft. The writer plans first
 (the reader's questions as headings) with the level's style guide and two example pairs
 written by the team; repair gets only the flagged blocks, their findings and facts.
@@ -196,7 +195,7 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   copied values from the prompt's example and broke JSON: code completes the fact
   sheet, splits compounds, returns answers with values the document lacks and repairs
   the JSON; facts rounds and the recover round ask again, a polish round repairs the
-  sentences they add.
+  sentences they add ([track_2b/docs/prompts.md](docs/prompts.md)).
 - Every fact number comes from code, not from the judge: the 70B judge's fact verdicts
   agree with blind labels hardly better than chance (kappa 0.08, §5).
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
@@ -204,8 +203,9 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
 - The 8B's drafts are harder to read than the official easy-language versions: their
   readability score is 51 against 62 (Amstad; higher is easier). With the 70B in every
   step, the drafts score 56, at twice the price per page.
-- On a whole scanned page both models change digits (in an IBAN or a phone number, for example); names
-  and e-mail addresses are unsafe in every setting. Image input is not built
+- On a scanned page sent as one image, both models change digits (in an IBAN or a phone
+  number, for example); cut into strips, the 8B reads every digit right, but names and
+  e-mail addresses are unsafe in every setting. Image input is not built
   ([track_2b/docs/image-input.md](docs/image-input.md)).
 
 **Other models and coding assistants.** No other model at runtime; spaCy's statistical
