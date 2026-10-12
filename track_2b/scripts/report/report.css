@@ -125,18 +125,18 @@ li::before {
 .meta dd { margin: 0; }
 .meta-maturity { grid-column: 1 / -1; }
 
-/* Each figure spans four rows of a subgrid, so values, labels and baselines line up. */
+/* Each figure spans three rows of a subgrid, so values, labels and explanations line up. */
 .key-figures {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, auto);
+  grid-template-rows: repeat(4, auto);
   margin: 0 0 5mm;
   padding: 7pt 0 0;
   border-top: 0.5pt solid var(--border-strong);
 }
 .key-figures .figure {
   display: grid;
-  grid-row: span 4;
+  grid-row: span 3;
   grid-template-rows: subgrid;
   padding: 0 10pt;
   border-left: 0.5pt solid var(--hairline);
@@ -147,14 +147,17 @@ li::before {
   font: 600 21pt/1.05 var(--sans);
   font-variant-numeric: tabular-nums;
   color: var(--accent);
+  white-space: nowrap;
 }
+/* The strong single prompt's figure beside ours ("100 % vs 83 %"): half the size, grey. */
+.key-figures .baseline { font-size: 0.5em; font-weight: 400; color: var(--muted); }
 .key-figures .label { margin-top: 2pt; font: 600 8pt/1.3 var(--sans); }
 .key-figures .explanation { font: 400 7pt/1.3 var(--sans); color: var(--text-2); }
-.key-figures .baseline { margin-top: 3pt; font: 400 7pt/1.3 var(--sans); color: var(--muted); }
+/* The caption under the key figures: one line, in the text's size. */
 .key-figures .note {
   grid-column: 1 / -1;
   margin-top: 6pt;
-  font: 400 6.8pt/1.35 var(--sans);
+  font: 400 9.1pt/1.35 var(--sans);
   color: var(--muted);
 }
 

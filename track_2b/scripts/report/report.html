@@ -35,10 +35,9 @@
 <section class="key-figures" aria-label="Key figures">
   {% for figure in report.key_figures %}
   <div class="figure">
-    <p class="value">{{ figure.value }}</p>
+    <p class="value">{{ figure.value }} <span class="baseline">vs <strong>{{ figure.baseline }}</strong></span></p>
     <p class="label">{{ figure.label }}</p>
     <p class="explanation">{{ figure.explanation }}</p>
-    <p class="baseline">Strong single prompt: <strong>{{ figure.baseline }}</strong></p>
   </div>
   {% endfor %}
   <p class="note">{{ key_note }}</p>

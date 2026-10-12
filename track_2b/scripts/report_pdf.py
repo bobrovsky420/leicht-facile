@@ -75,8 +75,8 @@ KEY_FIGURES = (
     ("Rule errors /100", "rule errors", "per 100 blocks"),
 )
 KEY_NOTE = (
-    "Our pipeline against the strong single prompt on the same model and the same "
-    "held-out pairs; §5 has the setup and every row."
+    "Our pipeline compared to a chatbot: the same model with a strong single prompt, "
+    "on 20 German test documents."
 )
 
 BROWSERS = (

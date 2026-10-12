@@ -130,8 +130,10 @@ with markdown-it-py, so every change of the report reaches it with the next prin
 - **First page:** a title block made from the list under the report's title, and four
   key figures read from the results table in §5, P2 (ours) against P0-ZH complete:
   fact coverage, hard facts kept, silent losses and rule errors, the headline's figures
-  (D-M), each with the prompt's figure in bold under it (owner, 11 October). A changed
-  cell changes them with the next print.
+  (D-M), each with the prompt's figure beside it, half the size and grey ("100 % vs
+  83 %"; owner, 12 October), and below them a one-line caption in the text's size
+  (owner, 12 October). A changed cell changes
+  them with the next print.
 - **Diagrams:** the two Mermaid diagrams of report §2 are drawn as SVG for the PDF, in
   the colours of Apertus, code and the human. `track_2b/tests/test_report_pdf.py`
   checks that the drawings carry every label of the diagrams; a changed diagram must
@@ -183,7 +185,7 @@ answer each question:
 | | (Maturity level declared) | Report header; README; message §3 | Confirmed by the owner, 11 October |
 | Value, cost and scalability | Is the problem evidenced, or only asserted? | Report §1 (FSO PIAAC, disability law, cantons publishing); [use-case-canton.md](use-case-canton.md) §1 | Answered |
 | | Does it name a specific user group? | Report §1: the people who write official texts (trained writers, case workers, clerks, physicians); their readers in §1's first sentence | Answered |
-| | Is the running cost proportionate to the benefit per use? | Report §5 "Cost and scale" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §5). No published drafting time per page to compare with. |
+| | Is the running cost proportionate to the benefit per use? | Report §1 "Review time"; §5 "Cost and scale" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §1 and §5). No published drafting time per page to compare with. |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost and scale" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
 | | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |

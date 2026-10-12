@@ -38,11 +38,12 @@ One container plus an OpenAI-compatible Apertus endpoint runs on-premise, air-ga
 on a Swiss cloud, as letters under official, medical or tax secrecy require; for those,
 only Apertus fits (§3).
 
-A single prompt ("rewrite this in Leichte Sprache"), with no fact contract, provenance
-or independent check, is our baseline P0; the full pipeline is P2.
+The baselines are single prompts on the same model, with no fact contract, provenance or
+independent check: a plain one ("rewrite this in Leichte Sprache") and a strong one, the
+Canton of Zurich's published prompt.
 
-**Headline result.** Our pipeline against a strong single prompt (defined in §5), on the
-same model and 20 held-out German pairs. Pipeline first, prompt second:
+**Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
+the same model and 20 German test documents. Pipeline first, prompt second:
 
 - **Must-keep facts found:** 100 against 83 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
@@ -52,6 +53,8 @@ same model and 20 held-out German pairs. Pipeline first, prompt second:
   value it loses for the reviewer.
 - **Rule errors per 100 blocks:** 4.2 against 15.0.
 - **Invented values per 100 blocks:** 0.1 against 0.0, rare on both sides.
+- **Review time:** about 3.5 minutes per 250-word page from opening the draft to the
+  export, in our own timing of three drafts.
 
 ## 2. Architecture
 
@@ -123,7 +126,7 @@ variable.
 |--------------|---------------|-----------|
 | a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. | vLLM on one NVIDIA L4 24 GB (rented AWS g6.xlarge in Zurich, Ubuntu 24.04, 10 October 2026): `make run` from a clean clone, two jobs end to end.<br>llama.cpp on a laptop RTX 4060 8 GB. |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. | Not run without a network. Tests check that the UI loads nothing from another host; CI starts the image against an unreachable endpoint. |
-| c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint. | The CSCS inference API in Lugano: every evaluation run in §5 and the two example letters. |
+| c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint. | The CSCS inference API in Lugano: every run evaluated in §5 and the two example letters. |
 
 What the running system contacts:
 
@@ -176,7 +179,7 @@ on-premise): no single provider is needed.
 | Judge | 70B | on | 0.0 | 12000 |
 | Repair | 8B | off | 0.2 | 6000 |
 | Recover | 8B | off | 0.2 | 1500 |
-| Baseline P0 | 8B | off | 0.3 | 6000 |
+| Baseline prompts | 8B | off | 0.3 | 6000 |
 
 **Prompts and parsing** ([track_2b/docs/prompts.md](docs/prompts.md)), in the document's
 language, each with one filled JSON example instead of the schema. Sentences and blocks
@@ -194,8 +197,8 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   sheet, splits compounds, returns answers with values the document lacks and repairs
   the JSON; facts rounds and the recover round ask again, a polish round repairs the
   sentences they add.
-- The 70B judge's fact verdicts agree with blind labels hardly better than chance (κ
-  0.08, §5), so every fact number comes from code.
+- Every fact number comes from code, not from the judge: the 70B judge's fact verdicts
+  agree with blind labels hardly better than chance (kappa 0.08, §5).
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
   without, 28 seconds and easy language. Write runs without thinking.
 - The 8B's drafts are harder to read than the official easy-language versions: their
@@ -264,21 +267,25 @@ too low.
 | P2, 70B everywhere | 99 % | 92 % | 0 % | 0.0 | 1.1 | 0.6 | 56 | 43.8 | 0.0262 | 57.5 |
 | P2, 70B reads, 8B writes | 100 % | 95 % | 0 % | 0.1 | 1.0 | 1.9 | 53 | 42.0 | 0.0163 | 32.4 |
 
-**Reading the table.** The one-sentence prompt and the strong prompt's complete mode keep most
-values because they rewrite little (7.6 and 7.0 words per sentence; SARI rewards
-closeness to the source) and lose the rest without a trace; the condensed mode,
-its default, simplifies more and drops a third of the values. The pipeline
-nears the official sentence length (7.1 words against 6.1), keeps more hard facts
-than the official versions, which condense on purpose, and reads worse (51 against
-62). Judge, repair and the recover round (P1 to P2) raise fact coverage from 74 to 100
-percent and cut rule errors from 8.3 to 4.2 per 100 blocks; no must-keep fact is
-missing from the final versions (205 on the 23 pairs). Two fifths of P2's rule errors
-come from one 7-page source, written out in full. On the 17 pairs with 3 or more hard
-facts P2 keeps 97 percent, the official versions 61. A single prompt varies from run to
-run: on unchanged templates, P0-ZH complete found 91 percent of the facts on 10 October
-and 83 on 11 October (one answer per pair at temperature 0.3). French (3 pairs): 100
-percent fact coverage, 87 percent of the hard facts, 4.9 errors, readability 74
-(official 85).
+**Reading the table:**
+
+- The one-sentence prompt and the strong prompt's complete mode keep most values because
+  they rewrite little (7.6 and 7.0 words per sentence; SARI rewards closeness to the
+  source) and lose the rest without a trace; the condensed mode, its default, simplifies
+  more and drops a third of the values.
+- The pipeline keeps more hard facts than the official versions: 97 against 67 percent,
+  and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions
+  drop values on purpose. It nears their sentence length (7.1 words against 6.1) but is
+  harder to read (Amstad 51 against 62).
+- Judge, repair and the recover round (P1 to P2) raise fact coverage from 74 to 100
+  percent and cut rule errors from 8.3 to 4.2 per 100 blocks; no must-keep fact is
+  missing from the final versions (205 on the 23 pairs).
+- Two fifths of P2's rule errors come from one 7-page source, written out in full.
+- A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
+  91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
+  temperature 0.3).
+- French (3 pairs): 100 percent fact coverage, 87 percent of the hard facts, 4.9 errors,
+  readability 74 (official 85).
 
 **Cost and scale.** At Public AI's list prices the pipeline costs about
 one and a half US cents per 250-word page (P2: 0.0131 USD, the recover and polish rounds
@@ -291,12 +298,14 @@ matters: our own review of three P2 drafts in the UI (the two example letters an
 dev pair, 1,079 source words together), from opening the review to the export, took
 15 minutes by stopwatch, about 3.5 minutes per 250-word page (the team, not experts).
 
-**Judge reliability.** 30 facts and 30 blocks from the P2 dev drafts of 6 October
-(70B judge), drawn evenly over the verdicts and labelled blind to them (`eval sample`,
-`eval kappa`). Blocks, supported or not: agreement 80 %, Cohen's κ 0.60. Facts,
-present, missing or distorted: 38 %, κ 0.08 (present or not: 62 %, κ 0.22). The fact
-verdicts are a hint for the reviewer, not a measure: every fact number here comes from
-code, and the review page shows a verdict that code contradicts as a doubt.
+**Judge reliability.** The judge's fact verdicts are a hint for the reviewer, not a
+measure: every fact number here comes from code, and the review page shows a verdict
+that code contradicts as a doubt. Its block verdicts, the basis of the "Unsupported"
+column, agree with blind labels far better. 30 facts and 30 blocks from the P2 dev
+drafts of 6 October (70B judge), drawn evenly over the verdicts and labelled blind to
+them (`eval sample`, `eval kappa`). Blocks, supported or not: agreement 80 %, Cohen's
+kappa 0.60. Facts, present, missing or distorted: 38 %, kappa 0.08 (present or not:
+62 %, kappa 0.22).
 
 **Checker calibration and tests.** On official pages each error is a real deviation or
 a false positive to fix; calibration cut errors per 100 blocks from 12.6 to 2.0 (30
