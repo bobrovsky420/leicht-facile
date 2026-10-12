@@ -51,9 +51,10 @@ The short path to the deadline, in dependency order. Each step points to where i
    pipeline, both clean; frozen unchanged on 10 Oct, so no rebuild is due)*.
    Run DE-4 and FR-4 inside a short letter for the Again scene, retake the app captures
    from the rebuilt bundles (video/README.md step 7; *done 10 Oct*), re-render version C,
-   upload, put the URL in README, report and form (*11 Oct: C38 uploaded by the owner,
-   https://youtu.be/3UVbaXQ8I6o, in both READMEs, the report and its PDF (printed
-   again) and submission.md; before it a temporary link to mock C26*). *10 Oct, night: DE-4 and FR-4 run
+   upload, put the URL in README, report and form (*12 Oct: C39 uploaded by the owner,
+   https://youtu.be/5el7q6Xtgik, in both READMEs, the report and its PDF (printed
+   again), submission.md and test_report_pdf.py; before it C38,
+   https://youtu.be/3UVbaXQ8I6o (11 Oct), and a temporary link to mock C26*). *10 Oct, night: DE-4 and FR-4 run
    inside a short letter each (`video/letters/`; not usable: a grammar slip in German,
    the consequence dropped in French; the team's rewrite stays, labelled "Illustrative
    rewrite by the team", pending the owner); version C re-rendered with the evidence
@@ -70,6 +71,10 @@ The short path to the deadline, in dependency order. Each step points to where i
    AI-generated (Kokoro)* in small type on the end card; 268 words, 118.7 s,
    `C:\Users\bobro\Videos\leicht-facile-demo-C38.mp4`; YouTube chapters in the
    description draft (submission.md §4); uploaded as https://youtu.be/3UVbaXQ8I6o.
+   12 Oct (owner): the voice credit removed from the end card again (`End.tsx`); it
+   stays in the YouTube description; rendered as C39, otherwise the same as C38 (118.7 s),
+   `C:\Users\bobro\Videos\leicht-facile-demo-C39.mp4`; uploaded 12 Oct as
+   https://youtu.be/5el7q6Xtgik, which replaces the C38 link everywhere.
    Open: the URL in the form on submission day.*
 6. [ ] **Finish the report and README (Wed 14 Oct, G5; WP11, WP16).**
    WP16's positioning paragraph and messaging pass, the owner's answers to every
@@ -1693,3 +1698,6 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-12 (findings link): at the owner's request the first bullet of report §3's "Where Apertus fell short" (the 8B drops facts, ignored compound splits, copied example values, broke JSON) ends with a link to track_2b/docs/prompts.md, as the image bullet ends with image-input.md. prompts.md records all four with their runs: the fact-retention diagnosis and the fact sheet completion, the Mediopunkt by code (change log 6: compounds kept unsplit through two repair rounds), the copied examples and the broken JSON answers. PDF printed again: 6 pages, before the references 6.
 - 2026-10-12 (image bullet: one image or strips): at the owner's request report §3's image bullet no longer says "on a whole scanned page", which could read as if part of a page were safe; it says what "whole" meant and what strips do: "On a scanned page sent as one image, both models change digits ...; cut into strips, the 8B reads every digit right, but names and e-mail addresses are unsafe in every setting" (track_2b/docs/image-input.md, findings 1 to 3; §8 plans strips). PDF printed again: 6 pages, before the references 6.
 - 2026-10-12 (ids without brackets): at the owner's request report §3's "Prompts and parsing" shows the id examples as `s0004` and `b007`, still set as code, without the square brackets the prompts put around them (hard to read, not needed to follow the point). PDF printed again: 6 pages, before the references 6.
+- 2026-10-12 (patient letters in next steps): at the owner's request report §8 has a bullet "Patient letters": code already checks doses and dosing schemes; left are a drug list, a medical judge (Apertus-70B-MeditronFO, EPFL's medical Apertus, not yet tried here) and an assessment under the Medical Devices Ordinance, as the further-use-cases row of this plan lists (the hospital pilot left out). Not in §6: the declared maturity does not include patient letters. MeditronFO is a family of EPFL LiGHT ("Fully Open Meditron"); its Apertus models are fine-tuned from `swiss-ai/Apertus-70B-Instruct-2509` and `Apertus-8B-Instruct-2509`, the first Apertus release, not 1.5 (model cards, checked 12 October). The references cite the 70B's model card. PDF printed again: 6 pages, before the references 6; "Next steps" balances its two columns.
+- 2026-10-12 (no voice credit on the end card): at the owner's request the end card (`video/src/scenes/End.tsx`) no longer shows *Voice AI-generated (Kokoro)* in its bottom right corner; the credit stays in the YouTube description (track_2b/docs/submission.md §4). track_2b/docs/demo-video.md follows. Rendered as C39 (118.7 s, otherwise as C38), `C:\Users\bobro\Videos\leicht-facile-demo-C39.mp4`; the YouTube upload is still C38.
+- 2026-10-12 (new video link): the owner uploaded the new render (C39, by the plan's record the only render not yet uploaded) as https://youtu.be/5el7q6Xtgik; it replaces the C38 link https://youtu.be/3UVbaXQ8I6o in the report's title block, both READMEs, submission.md (§1 deliverables, §2 form field), the absolute-link case of test_report_pdf.py and this plan's submission step. The C38 link stays only in the plan's history. PDF printed again: 6 pages, before the references 6.

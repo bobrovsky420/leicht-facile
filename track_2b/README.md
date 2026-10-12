@@ -27,7 +27,7 @@ only model that fits** ([why](#why-only-apertus)).
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
 Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
 Technical report: [track_2b/technical_report.md](technical_report.md) (PDF:
-`track_2b/RoestigrabenBridgers_Report.pdf`). Demo video: <https://youtu.be/3UVbaXQ8I6o>. Maturity: a
+`track_2b/RoestigrabenBridgers_Report.pdf`). Demo video: <https://youtu.be/5el7q6Xtgik>. Maturity: a
 deployable prototype for German and French drafts of public texts and letters, a proof
 of concept for decisions. Built with AI coding assistants (report §3).
 

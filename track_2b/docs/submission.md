@@ -18,7 +18,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 |-------------|-------|-------|
 | Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
 | Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. Printed again on 11 October with the video link of C38. **[PENDING: print again after any later change to the report]** |
-| Demo video (URL), at most 2 minutes | Version C, 118.7 s ([demo-video.md](demo-video.md)), render C38 (11 October, the final numbers), uploaded 11 October: https://youtu.be/3UVbaXQ8I6o (before: a temporary upload of mock C26) | Linked in both READMEs, the report and its PDF (printed again 11 October). A later render needs a new upload and the link replaced everywhere: YouTube cannot swap the video behind an existing link. |
+| Demo video (URL), at most 2 minutes | Version C, 118.7 s ([demo-video.md](demo-video.md)), render C39 (12 October: C38 with the final numbers, without the voice credit on the end card), uploaded 12 October: https://youtu.be/5el7q6Xtgik (before: C38, https://youtu.be/3UVbaXQ8I6o, and a temporary upload of mock C26) | Linked in both READMEs, the report and its PDF (printed again 12 October). A later render needs a new upload and the link replaced everywhere: YouTube cannot swap the video behind an existing link. |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
 | `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
 
@@ -43,7 +43,7 @@ site on 9 October; * = required):
 | Technical report (PDF, max. 6 pages) * | `track_2b/RoestigrabenBridgers_Report.pdf` |
 | Dataset (URL) | empty |
 | Git repo (URL) * | https://github.com/bobrovsky420/leicht-facile |
-| Demo video (URL), required for Track 2B | https://youtu.be/3UVbaXQ8I6o (render C38) |
+| Demo video (URL), required for Track 2B | https://youtu.be/5el7q6Xtgik (render C39) |
 | Your message (optional, at most 5,000 characters) | §3 |
 | Terms and Conditions * | Accept. Section 6, "What you build is open source": code Apache 2.0, report CC-BY-4.0 |
 

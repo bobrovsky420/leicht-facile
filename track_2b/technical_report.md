@@ -7,7 +7,7 @@ Easy-language drafts of Swiss official texts with Apertus, with every fact check
 - **Team:** Röstigraben Bridgers - Alexander Bobrovsky (bobrovsky@seznam.cz), Ivan
   Kuzmych (i.kuzmych@hotmail.com)
 - **Repository:** https://github.com/bobrovsky420/leicht-facile
-- **Demo video:** <https://youtu.be/3UVbaXQ8I6o>
+- **Demo video:** <https://youtu.be/5el7q6Xtgik>
 - **Maturity:** Deployable prototype for German and French drafts of public texts and
   letters. Proof of concept for decisions of child and adult protection authorities
   (KESB) and courts; these decisions contain strictly confidential data (such as a
@@ -329,7 +329,7 @@ sentences for every rule (two or more that fire, one that must not).
 - **Decision mode v1** is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), an air-gapped image bundle, user
-  accounts of its own (a shared token or the proxy's user header stand in).
+  accounts and roles.
 - **Unmeasured:** the rewrite recipes the checker hands the writer for a subordinate
   clause, in German and French; the dev runs measured the rounds, not them.
 
@@ -365,6 +365,9 @@ sentences for every rule (two or more that fire, one that must not).
   courts (decision mode v1 exists; next an anonymisation step), patient letters, penal
   and payment orders, social, school and tax decisions. Most depend on a period, a
   reference number, an address or a dose; code already checks these like a date.
+- **Patient letters.** Code already checks doses and dosing schemes; left are a drug
+  list, a medical judge (Apertus-70B-MeditronFO, EPFL's medical Apertus, not yet tried
+  here) and an assessment under the Medical Devices Ordinance.
 - **Italian.** Rules and prompts for lingua facile; today Italian texts get only the
   language-independent checks and no drafts.
 - **Scanned letters.** Image input, with the 8B reading each page in strips (on a whole
@@ -383,6 +386,7 @@ Attribution 4.0 (CC-BY-4.0).
 ## References
 
 - Apertus v1.5 model card: https://huggingface.co/swiss-ai/Apertus-v1.5-8B
+- EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
 - Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH)

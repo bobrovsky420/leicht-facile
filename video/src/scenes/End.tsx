@@ -28,10 +28,6 @@ export const End: React.FC<{ offset: number; kicker?: string; line?: string; sub
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 64, textAlign: "center", fontFamily: F.sans, fontSize: 21, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", opacity: ramp(t, 0.9, 0.5) }}>
         <div>Inspired by simply-simplify-language, Team Data, Office for Statistics and Data, Canton of Zurich.</div>
       </div>
-      {/* the only AI-generated part of the video; pictures are drawn in code or captured from the app */}
-      <div style={{ position: "absolute", right: 64, bottom: 64, fontFamily: F.sans, fontSize: 18, lineHeight: 1.5, color: "rgba(255,255,255,0.45)", opacity: ramp(t, 0.9, 0.5) }}>
-        Voice AI-generated (Kokoro)
-      </div>
     </SceneFade>
   );
 };

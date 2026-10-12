@@ -45,7 +45,7 @@ def plain(text: str) -> str:
         ),
         ("../LICENSE", f"{REPO}/blob/main/LICENSE"),
         ("eval/hardware/", f"{REPO}/tree/main/track_2b/eval/hardware/"),
-        ("https://youtu.be/3UVbaXQ8I6o", "https://youtu.be/3UVbaXQ8I6o"),
+        ("https://youtu.be/5el7q6Xtgik", "https://youtu.be/5el7q6Xtgik"),
     ],
 )
 def test_a_relative_link_points_to_the_repository_on_github(href: str, url: str) -> None:
