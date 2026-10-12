@@ -38,9 +38,9 @@ One container plus an OpenAI-compatible Apertus endpoint runs on-premise, air-ga
 on a Swiss cloud, as letters under official, medical or tax secrecy require; for those,
 only Apertus fits (§3).
 
-The baselines are single prompts on the same model, with no fact contract, provenance or
-independent check: a plain one ("rewrite this in Leichte Sprache") and a strong one, the
-Canton of Zurich's published prompt.
+The baselines are single prompts on the same model, with no list of the facts that must
+survive, no provenance and no independent check: a plain one ("rewrite this in Leichte
+Sprache") and a strong one, the Canton of Zurich's published prompt.
 
 **Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
 the same model and 20 German test documents. Pipeline first, prompt second:
@@ -190,7 +190,7 @@ written by the team; repair gets only the flagged blocks, their findings and fac
 Answers are parsed leniently and validated with pydantic (one retry with the error);
 calls are streamed, retried on broken streams, 429 and 5xx, and logged.
 
-**Where Apertus fell short**, and what does the job instead:
+**Where Apertus fell short**, and what we did about it:
 
 - The 8B drops must-keep facts while writing, ignored compound splits it was given,
   copied values from the prompt's example and broke JSON: code completes the fact
@@ -281,7 +281,8 @@ too low.
 - Judge, repair and the recover round (P1 to P2) raise fact coverage from 74 to 100
   percent and cut rule errors from 8.3 to 4.2 per 100 blocks; no must-keep fact is
   missing from the final versions (205 on the 23 pairs).
-- Two fifths of P2's rule errors come from one 7-page source, written out in full.
+- Two fifths of P2's rule errors come from one 7-page source that the pipeline rewrote
+  in full, without shortening it.
 - A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
   91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
   temperature 0.3).
@@ -362,8 +363,8 @@ sentences for every rule (two or more that fire, one that must not).
 - **The same need elsewhere.** Every canton and federal office that publishes easy
   language, and texts under secrecy, where only Apertus fits: decisions of KESB and
   courts (decision mode v1 exists; next an anonymisation step), patient letters, penal
-  and payment orders, social, school and tax decisions. Most turn on a period, a reference number, an
-  address or a dose, which code already checks like a date.
+  and payment orders, social, school and tax decisions. Most depend on a period, a
+  reference number, an address or a dose; code already checks these like a date.
 - **Italian.** Rules and prompts for lingua facile; today Italian texts get only the
   language-independent checks and no drafts.
 - **Scanned letters.** Image input, with the 8B reading each page in strips (on a whole
