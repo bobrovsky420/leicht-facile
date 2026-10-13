@@ -3,8 +3,8 @@
 Status: first draft, 9 October 2026. Everything the hackathon asks for by Fri 16 October,
 12:00 CEST, in one place: the deliverables, our entry for each field of the submission
 form, the message to the jury, the video page, and the jury's questions with where our
-documents answer them. A working document for the team. **[OWNER: delete it, or keep
-it, before the repository goes public.]**
+documents answer them. A working document for the team. **[OWNER: keep it in the public
+repository, or delete it before submitting.]**
 
 Placeholders, here and in README.md and track_2b/technical_report.md: **[PENDING: ...]** waits for
 a scheduled step (the final CSCS run after the prompt freeze of 10 October, the
@@ -16,7 +16,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 
 | Deliverable | Where | State |
 |-------------|-------|-------|
-| Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Private today (anonymous access gave 404 on 7 October). **[PENDING: public before submitting; `.env` absent from history; CI green on the submitted commit]** |
+| Git repo (URL), public | https://github.com/bobrovsky420/leicht-facile | Public (checked 13 October: the page opens without a login, the GitHub API says `"visibility": "public"`); `git log --all -p -- .env` is empty. CI run #118 green on `2fc4d7a` (13 October). **[PENDING: CI green on the submitted commit, if it is a later one]** |
 | Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. Printed again on 11 October with the video link of C38. **[PENDING: print again after any later change to the report]** |
 | Demo video (URL), at most 2 minutes | Version C, 118.7 s ([demo-video.md](demo-video.md)), render C39 (12 October: C38 with the final numbers, without the voice credit on the end card), uploaded 12 October: https://youtu.be/5el7q6Xtgik (before: C38, https://youtu.be/3UVbaXQ8I6o, and a temporary upload of mock C26) | Linked in both READMEs, the report and its PDF (printed again 12 October). A later render needs a new upload and the link replaced everywhere: YouTube cannot swap the video behind an existing link. |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
@@ -214,7 +214,7 @@ answer each question:
       render C39 (118.7 s) at https://youtu.be/5el7q6Xtgik, the only video link in both
       READMEs, the report and its PDF (text and link) and the form entry in §2; it opens
       without a login (YouTube's oEmbed answers for it anonymously).
-- [ ] Repository public; `git log -p -- .env` empty.
+- [x] Repository public; `git log -p -- .env` empty (both checked 13 October).
 - [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job
       (Linux, 10 October, commit 6936d05; after the move into `track_2b/`, 13 October,
       commit 7b1edbf in WSL with Ubuntu 24.04).

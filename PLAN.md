@@ -109,7 +109,8 @@ The short path to the deadline, in dependency order. Each step points to where i
 9. [ ] **Repo public, CI green (Thu 15 Oct, G6; WP11).**
    Check that `git log -p -- .env` is empty, make the repository public, confirm CI is
    green on the final commit. Optional afterwards: the awesome-apertus pull request
-   (WP16).
+   (WP16). *Public and `.env` never in history, checked 13 Oct; CI run #118 green on
+   2fc4d7a. Open: CI green on the submitted commit, if it is a later one.*
 10. [ ] **Submit (Thu 15 Oct; at the latest Fri 16 Oct before 12:00 CEST; WP11).**
     Fill the form from track_2b/docs/submission.md §2: repo URL, PDF, video URL, model "8B + 70B
     v1.5", the message to the jury. Work through the checklist in track_2b/docs/submission.md §7
@@ -1006,7 +1007,7 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
       - a short, friendly issue upstream: `strip_markdown` removes underscores in URLs
         and e-mail addresses; *done: issue #18 and the fix as PR #19, merged 12 Oct
         (after v1.6.0); named in the report References and prompts.md;*
-      - once the repo is public, a pull request to awesome-apertus (maintained by
+      - now that the repo is public (13 Oct), a pull request to awesome-apertus (maintained by
         Patrick Arnecke of the Zurich team, GitHub `rnckp`).
 - [x] **Video** (track_2b/docs/demo-video.md): *Closed 9 Oct: the concept "Find the deadline" of
       8 Oct replaced the first two points (the product scene is the example letter, no
@@ -1155,7 +1156,9 @@ since:
       demo video is "*link follows*". *Updated 9 Oct: status of 9 October (French,
       decision mode v1, Check my text, the recover step, 1,244 tests), what the
       container contacts at runtime, the maturity line, the coding assistants; the video
-      link and the final numbers as **[PENDING]**.*
+      link and the final numbers as **[PENDING]**.* *13 Oct: the template's challenge
+      text (from "Track 2 B: Own Project" to the end) removed from both copies at the
+      owner's request; the README ends with the Licence.*
 - [x] State the differentiator in README, report §1 and the video: not a translator, and
       not achievable with one chatbot prompt (fact contract, provenance, omission log,
       independent checks, audit trail). P0 is that baseline; cite the P0 vs P2 numbers.
@@ -1213,7 +1216,8 @@ since:
       (record again then, submission.md §7).*
 - [ ] Repo to public (anonymous access gave 404 on 7 October); `.env` absent from
       history (check `git log -p -- .env`); then check that CI is green on the submitted
-      commit.
+      commit. *Public and `.env` never in history, checked 13 Oct; CI run #118 green on
+      2fc4d7a; open: CI on the submitted commit.*
 - [ ] The owner's answers to the **[OWNER]** placeholders (track_2b/docs/submission.md): the
       declared maturity level (*confirmed 11 Oct*), the coding-assistant sentence, the first user (none
       named, D-Q; *its placeholder dropped from report §8, owner, 11 Oct*), who submits and with which Devpost e-mail (*Alexander Bobrovsky as `bobrovsky420`, bobrovsky@seznam.cz, owner, 13 Oct*), "Swiss student team", the
@@ -1741,3 +1745,5 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-13 (clean checkout after the move): next step 8 done by the owner in WSL (Ubuntu 24.04, GNU Make 4.3, Compose v5.5.1) on Docker Desktop's daemon, which WSL shares with Windows: so that nothing cached on Windows could help, the build cache was pruned, `leicht-facile:latest` removed, the Windows instance stopped (its volume kept), and the clone placed in `~/lf-fresh` for a new Compose project and volume. A clone of GitHub `main` at 7b1edbf through the Windows Git Credential Manager (the repository is still private), `.env` with the CSCS values. `make run` from the root built all 10 steps in about a minute, loaded the 2 recorded runs and 2 example jobs, `/readyz` 200; Run on a prepared letter (job cac90f15f345, "Individuelle Prämienverbilligung 2027") reached review in 4.2 s with 13 of 13 facts and 0 errors; `make run` from `track_2b/` started the same app. submission.md §1's PENDING and §7's checklist line follow. The uncommitted UI change above (the prepared letters card) is not in 7b1edbf; it touches no build file, so the test stands.
 - 2026-10-13 (positioning paragraph): at the owner's request WP16's positioning paragraph is in: "And the Canton of Zurich's app?" in both READMEs after "Why not one chatbot prompt?", and a bullet "Next to existing tools" in report §8 with the links inline (page 1 is full). Checked first: Zurich's current README (v1.6.0) has no roadmap; the four areas were its "Outlook" until 13 July 2025 (`8a9a511`, removed in `b492803` with the move to OpenRouter), so both texts say "until July 2025" and link that version; it still says to send only public, non-sensitive data. SUMM AI read on summ.ai (commercial, in Germany, cloud with ISO 27001 providers). PDF printed again (track_2b/scripts/report_pdf.py; `make` is not on this shell's path): 6 pages before the references, the sixth 91 % full; the references now end on a seventh page, which the limit does not count. test_copies.py and test_report_pdf.py pass.
 - 2026-10-13 (upstream fix in Zurich's app): the owner's goodwill item is done beyond the plan: issue #18 in machinelearningZH/simply-simplify-language and the fix as PR #19 ("keep literal *, _ and # in strip_markdown output"), merged 12 Oct after v1.6.0. Mentioned in the report's References (no change to the counted pages) and in track_2b/docs/prompts.md, the `zh_answer_text` docstring and the P0-ZH note in WP13: P0-ZH keeps the v1.6.0 setup without `strip_markdown`, so its numbers are unchanged. PDF printed again (6 pages, without the references 6, the last 75 % full); test_copies.py, test_report_pdf.py and test_baseline_zh.py pass. Then, at the owner's request, the section "And the Canton of Zurich's app?" removed from both READMEs (the PR sentence with it); the positioning item in WP16 says so. Seen on the way: the 13 Oct positioning entry names a bullet "Next to existing tools" in report §8 that the report no longer has.
+- 2026-10-13 (repo public): the owner made the repository public. Checked: github.com/bobrovsky420/leicht-facile opens without a login, the GitHub API says `"visibility": "public"`, `git log --all -p -- .env` is empty, CI run #118 green on 2fc4d7a. Next step 9 and the WP11 item note it (CI on the submitted commit still open), the awesome-apertus item no longer waits; track_2b/docs/submission.md: §1's repo row, the §7 checklist line ticked, the opening placeholder now asks whether the file stays in the public repository. The release badges and the wheel download, which needed a public repository (11 Oct), now work without a login.
+- 2026-10-13 (README without the template text): at the owner's request the template's challenge text (from "Track 2 B: Own Project" on: resources, target architecture, data, submission requirements, judging criteria, support, FAQ, contact) removed from both README copies; they now end with the Licence section. Nothing linked into it; architecture §11's file list says "project overview, quick start, documentation list". The challenge text stays online at hackapertus.notion.site (architecture's sources); the deliverables it asks for are tracked in track_2b/docs/submission.md §1. test_copies.py passes.

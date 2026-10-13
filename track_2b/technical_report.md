@@ -142,9 +142,12 @@ organisation's own login through its reverse proxy.
 ### Licences and providers
 
 Apertus 1.5 Apache 2.0 with an acceptable use policy (accepted once for the gated
-download), code Apache 2.0, spaCy models MIT (German) and LGPL-LR (French), fonts OFL.
+download), code Apache 2.0, spaCy models MIT and LGPL-LR, fonts OFL.
 Any OpenAI-compatible server works (used: CSCS, Public AI, llama.cpp; vLLM
 on-premise): no single provider is needed.
+
+**Documentation:** [architecture](docs/architecture.md), [rules](docs/rules.md),
+[prompts](docs/prompts.md); the full list in the [README](README.md#documentation).
 
 | Hardware | Model and server | Memory | Speed |
 |----------|------------------|--------|-------|
