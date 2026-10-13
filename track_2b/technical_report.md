@@ -102,7 +102,7 @@ flowchart LR
 | Judge | Apertus 70B, thinking | Each fact present, missing or distorted; unsupported blocks; meaning findings. The judge never rewrites |
 | Repair | Apertus 8B | New text for flagged blocks only; up to 3 rounds; every version kept |
 | Recover | Apertus 8B | One sentence for each must-keep value still missing (at most 10), checked and judged like a round |
-| Review, export | Human, then code | Per-block decisions; Markdown, HTML, Word and a JSON audit bundle |
+| Review, export | Human, Code | Per-block decisions; Markdown, HTML, Word and a JSON audit bundle |
 
 ### Key decisions
 
@@ -319,11 +319,11 @@ sentences for every rule (two or more that fire, one that must not).
 
 ## 6. Limitations
 
-- **Readability with an 8B model.** At level A2 the drafts do not yet read as easily as
-  the official versions: their sentences are almost as short (7.0 against 6.1 words),
-  but their readability score is lower (Amstad 52 against 62). The facts are not the
-  problem: the drafts keep all must-keep facts and 97 percent of the countable values,
-  and list every value they lose (20 German eval pairs, CSCS).
+- **Readability with an 8B model.** The drafts keep all must-keep facts and 97 percent
+  of the countable values, list every value they lose, and their sentences are almost
+  as short as the official versions' (7.0 against 6.1 words). What is left is the
+  readability score at level A2: 52 against 62 (Amstad); a larger writer and fine-tuning
+  (§8) are the next steps (20 German eval pairs, CSCS).
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
 - **Italian** gets only the language-independent rules (facts, layout, readability).

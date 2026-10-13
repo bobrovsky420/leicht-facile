@@ -10,9 +10,9 @@ no deadline, amount or phone number got lost. It is a drafting assistant for the
 people who write official texts, from trained easy-language writers to case workers,
 not a replacement for their review or for the test by readers from the target group.
 
-About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
-skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
-letters that decide their money, deadlines and rights.
+> About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
+> skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
+> letters that decide their money, deadlines and rights.
 
 Two use cases: a canton's letters and web pages
 ([track_2b/docs/use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that

@@ -236,9 +236,11 @@ table.keys td:first-child { white-space: nowrap; }
 tr.ours td { background: var(--accent-weak); font-weight: 600; }
 tr.ours td:first-child { box-shadow: -3.5pt 0 0 var(--accent-weak); }
 tr.ours td:last-child { box-shadow: 3.5pt 0 0 var(--accent-weak); }
-/* The "Done by" column takes the width of its longest entry, one line each. */
+/* The "Done by" column takes the width of its longest entry, one line each; a second
+   actor after a comma gets its own mark (span.who). */
 td.who { white-space: nowrap; }
-td.who::before {
+td.who::before,
+span.who {
   content: "";
   display: inline-block;
   width: 5pt;
@@ -247,9 +249,10 @@ td.who::before {
   border-radius: 1.2pt;
   vertical-align: middle;
 }
-td.ai::before { background: var(--apertus); }
-td.code::before { background: var(--code); }
-td.human::before { background: var(--human); }
+td.ai::before, span.ai { background: var(--apertus); }
+td.code::before, span.code { background: var(--code); }
+td.human::before, span.human { background: var(--human); }
+span.who { margin-left: 3pt; }
 
 /* -- figures: the Mermaid diagrams, drawn in report/*.svg -- */
 figure.diagram { column-span: all; margin: 2pt 0 7pt; break-inside: avoid; }

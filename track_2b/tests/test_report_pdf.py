@@ -112,6 +112,12 @@ def test_the_hardware_tables_model_column_does_not_wrap(report) -> None:
     assert str(report.body).count('<td class="nobr">8B in ') == 2
 
 
+def test_a_second_actor_in_the_done_by_column_gets_its_own_mark(report) -> None:
+    body = str(report.body)
+    assert '<td class="who human">Human <span class="who code"></span>Code</td>' in body
+    assert body.count('<span class="who') == 1
+
+
 def test_a_title_found_alone_starts_a_new_page() -> None:
     text = REPORT.read_text(encoding="utf-8")
     body = str(report_pdf.parse(text, breaks=frozenset({"8. Next steps", "4. Data"})).body)

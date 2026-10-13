@@ -96,6 +96,9 @@ LINKABLE = re.compile(r"https?://[^\s<>()]*[^\s<>().,;:!?'\"]|[\w.+-]+@[\w-]+(?:
 NOT_RELATIVE = re.compile(r"[a-zA-Z][a-zA-Z0-9+.-]*:|#|/")  # URL, anchor, from the root
 NUMBER = re.compile(r"-|[-+]?\d[\d,.]*(?: ?%)?")
 DONE_BY = {"apertus": "who ai", "code": "who code", "human": "who human"}
+# A second actor in a "Done by" cell ("Human, Code") gets its own colour mark in place of
+# the comma.
+SECOND = re.compile(r", (?=(apertus|code|human)\b)", re.IGNORECASE)
 
 
 @dataclass
@@ -242,11 +245,31 @@ def add_class(token: Token, name: str) -> None:
         token.attrSet("class", f"{token.attrGet('class') or ''} {name}".strip())
 
 
+def mark_second_actor(inline: Token) -> None:
+    children = []
+    for child in inline.children or []:
+        match = SECOND.search(child.content) if child.type == "text" else None
+        if match:
+            mark = Token("html_inline", "", 0)
+            mark.content = f'<span class="{DONE_BY[match[1].lower()]}"></span>'
+            children += [text_token(child.content[: match.start()] + " "), mark]
+            children.append(text_token(child.content[match.end() :]))
+        else:
+            children.append(child)
+    inline.children = children
+
+
+def text_token(content: str) -> Token:
+    token = Token("text", "", 0)
+    token.content = content
+    return token
+
+
 def style_table(table: list[Token]) -> None:
     """Wide tables span both columns; a table of long texts may break between its rows;
     numeric columns align right; a first column of short labels and the UNWRAPPED columns do
     not wrap; a bold first cell marks our own row; the "Done by" column gets the diagrams'
-    colours."""
+    colours, a second actor after a comma its own mark."""
     head, *body = cells(table)
     names = [inline.content for _, inline in head[1]]
     longest = max(len(inline.content) for _, row in [head, *body] for _, inline in row)
@@ -270,6 +293,7 @@ def style_table(table: list[Token]) -> None:
             for _, row in body:
                 who = (row[col][1].content.split() or [""])[0].strip(":,").lower()
                 add_class(row[col][0], DONE_BY.get(who, ""))
+                mark_second_actor(row[col][1])
     for tr, row in body:
         if row[0][1].content.startswith("**"):
             add_class(tr, "ours")
