@@ -10,8 +10,9 @@ Easy-language drafts of Swiss official texts with Apertus, with every fact check
 - **Demo video:** <https://youtu.be/5el7q6Xtgik>
 - **Maturity:** Deployable prototype for German and French drafts of public texts and
   letters. Proof of concept for decisions of child and adult protection authorities
-  (KESB) and courts; these decisions contain strictly confidential data (such as a
-  person's health, family and finances) and are a main reason for a sovereign model.
+  (KESB) and courts; these decisions contain strictly confidential personal data (a
+  person's name with details of their family, health and finances) and are a main
+  reason for a sovereign model.
 
 ## 1. Summary
 
@@ -45,14 +46,14 @@ Sprache") and a strong one, the Canton of Zurich's published prompt.
 **Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
 the same model and 20 German test documents. Pipeline first, prompt second:
 
-- **Must-keep facts found:** 100 against 83 percent.
+- **Must-keep facts found:** 100 against 82 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
   percent. The official easy-language versions keep 67 percent; they drop values on
   purpose.
 - **Values lost without a trace:** none against 15 percent. The pipeline lists every
   value it loses for the reviewer.
-- **Rule errors per 100 blocks:** 4.2 against 15.0.
-- **Invented values per 100 blocks:** 0.1 against 0.0, rare on both sides.
+- **Rule errors per 100 blocks:** 3.7 against 15.0.
+- **Invented values per 100 blocks:** 0.0 against 0.0, rare on both sides.
 - **Review time:** about 3.5 minutes per 250-word page from opening the draft to the
   export, in our own timing of three drafts.
 
@@ -250,48 +251,52 @@ judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against
 official version (a port of `SARI.py`, checked bit for bit); cost at Public AI's token
 prices and speed per 250-word page.
 
-Results on the 20 held-out German pairs, final run on the CSCS endpoint, 11 October
-2026. Each number is the mean over the pairs; "/100" means per 100 blocks. P1 and the
-last row reused answers from the cache: P1's time is not measured, the last row's is
-too low.
+Results on the 20 held-out German pairs, final run on the CSCS endpoint, 12 October
+2026; the strong prompt's two rows were sampled on 11 October and scored again against
+this run's fact sheets, since their templates did not change. Each number is the mean
+over the pairs; "/100" means per 100 blocks. P1 and the last row reused answers from
+the cache: P1's time is not measured, the last row's is too low.
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Values not in source /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
 |-------|---------------|-----------------|---------------|----------------------|--------------------------|------------------|--------|------|------------|----------|
 | SOURCE | - | 100 % | 0 % | 0.0 | - | 31.3 | 36 | - | - | - |
 | REF (official) | - | 67 % | 33 % | 2.8 | - | 2.7 | 62 | - | - | - |
-| P0 | 92 % | 93 % | 7 % | 0.2 | - | 19.5 | 52 | 43.0 | 0.0001 | 2.6 |
-| P0-ZH complete | 83 % | 85 % | 15 % | 0.0 | - | 15.0 | 47 | 43.0 | 0.0003 | 2.4 |
+| P0 | 94 % | 95 % | 5 % | 0.2 | - | 24.9 | 49 | 44.3 | 0.0001 | 2.8 |
+| P0-ZH complete | 82 % | 85 % | 15 % | 0.0 | - | 15.0 | 47 | 43.0 | 0.0003 | 2.4 |
 | P0-ZH complete, 70B | 85 % | 90 % | 10 % | 0.3 | - | 7.0 | 50 | 44.7 | 0.0028 | 6.0 |
-| P0-ZH condensed | 69 % | 67 % | 33 % | 0.2 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
-| P1 | 74 % | 73 % | 0 % | 1.1 | - | 8.3 | 51 | 40.6 | 0.0014 | - |
-| **P2 (ours)** | 100 % | 97 % | 0 % | 0.1 | 1.6 | 4.2 | 51 | 41.7 | 0.0131 | 63.3 |
-| P2, 70B everywhere | 99 % | 92 % | 0 % | 0.0 | 1.1 | 0.6 | 56 | 43.8 | 0.0262 | 57.5 |
-| P2, 70B reads, 8B writes | 100 % | 95 % | 0 % | 0.1 | 1.0 | 1.9 | 53 | 42.0 | 0.0163 | 32.4 |
+| P0-ZH condensed | 65 % | 67 % | 33 % | 0.0 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
+| P1 | 61 % | 59 % | 1 % | 0.1 | - | 9.7 | 50 | 39.6 | 0.0012 | - |
+| **P2 (ours)** | 100 % | 97 % | 0 % | 0.0 | 2.7 | 3.7 | 52 | 42.2 | 0.0159 | 59.6 |
+| P2, 70B everywhere | 100 % | 96 % | 0 % | 0.0 | 1.0 | 0.5 | 57 | 42.9 | 0.0250 | 60.0 |
+| P2, 70B reads, 8B writes | 99 % | 94 % | 0 % | 0.0 | 1.4 | 3.0 | 53 | 42.3 | 0.0145 | 31.8 |
 
 **Reading the table:**
 
 - The one-sentence prompt and the strong prompt's complete mode keep most values because
-  they rewrite little (7.6 and 7.0 words per sentence; SARI rewards closeness to the
+  they rewrite little (8.0 and 7.0 words per sentence; SARI rewards closeness to the
   source) and lose the rest without a trace; the condensed mode, its default, simplifies
   more and drops a third of the values.
 - The pipeline keeps more hard facts than the official versions: 97 against 67 percent,
   and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions
-  drop values on purpose. It nears their sentence length (7.1 words against 6.1) but is
-  harder to read (Amstad 51 against 62).
-- Judge, repair and the recover round (P1 to P2) raise fact coverage from 74 to 100
-  percent and cut rule errors from 8.3 to 4.2 per 100 blocks; no must-keep fact is
-  missing from the final versions (205 on the 23 pairs).
-- Two fifths of P2's rule errors come from one 7-page source that the pipeline rewrote
-  in full, without shortening it.
+  drop values on purpose. It nears their sentence length (7.0 words against 6.1) but is
+  harder to read (Amstad 52 against 62).
+- Judge, repair and the recover round (P1 to P2) raise fact coverage from 61 to 100
+  percent and cut rule errors from 9.7 to 3.7 per 100 blocks; 19 of the 20 final drafts
+  miss no must-keep fact, the twentieth misses 2 of its 23 (one behind the per-round cap
+  of missing facts, one asked for and not written).
+- A third of P2's rule errors (13 of 38) come from one two-page health-insurance text;
+  the 7-page source that gave two fifths of the errors on 11 October, rewritten in full
+  into 140 blocks, came out as a 44-block draft with one error this time.
 - A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
   91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
-  temperature 0.3).
-- French (3 pairs): 100 percent fact coverage, 87 percent of the hard facts, 4.9 errors,
-  readability 74 (official 85).
+  temperature 0.3); on 12 October its rows were scored again, not sampled again.
+- French (3 pairs): 100 percent fact coverage, 72 percent of the hard facts (one draft
+  of 117 words for a 489-word source kept 4 of 15, every one listed for the reviewer),
+  3.5 errors, readability 70 (official 85).
 
-**Cost and scale.** At Public AI's list prices our pipeline costs 0.0131 USD (about
-1.3 US cents) per 250-word page, the recover and polish rounds included; with the 70B
-everywhere, 0.0262 USD. The cost grows linearly with the number of pages: 10 times the
+**Cost and scale.** At Public AI's list prices our pipeline costs 0.0159 USD (about
+1.6 US cents) per 250-word page, the recover and polish rounds included; with the 70B
+everywhere, 0.0250 USD. The cost grows linearly with the number of pages: 10 times the
 volume costs 10 times as much. On own hardware the GPU is a fixed cost until it is busy.
 Speed is the limit: at 10 times the volume, jobs wait in a queue, as one runs at a time;
 running several at once is a setting we have not measured. The writer's time is the cost that
@@ -310,14 +315,14 @@ kappa 0.60. Facts, present, missing or distorted: 38 %, kappa 0.08 (present or n
 
 **Checker calibration and tests.** On official pages each error is a real deviation or
 a false positive to fix; calibration cut errors per 100 blocks from 12.6 to 2.0 (30
-German pages) and from 5.3 to 2.2 (5 French). 1,422 offline tests include golden
+German pages) and from 5.3 to 2.2 (5 French). 1,454 offline tests include golden
 sentences for every rule (two or more that fire, one that must not).
 
 ## 6. Limitations
 
 - **Readability with an 8B model.** At level A2 the drafts do not yet read as easily as
-  the official versions: their sentences are almost as short (7.1 against 6.1 words),
-  but their readability score is lower (Amstad 51 against 62). The facts are not the
+  the official versions: their sentences are almost as short (7.0 against 6.1 words),
+  but their readability score is lower (Amstad 52 against 62). The facts are not the
   problem: the drafts keep all must-keep facts and 97 percent of the countable values,
   and list every value they lose (20 German eval pairs, CSCS).
 - **Not a certification.** Easy-language texts must be tested by readers from the
@@ -348,8 +353,9 @@ sentences for every rule (two or more that fire, one that must not).
   through the response cache, and each result stores the hash of its prompt template.
 - **Hardware and commit:** the evaluation numbers come from the CSCS endpoint, the
   hardware figures in §2 from our own runs (the L4 run in `track_2b/eval/hardware/`);
-  commit `663b609` (the final run of 11 October
-  2026, on the prompt templates with the document fence against prompt injection).
+  commit **[PENDING: hash]** (the final run of 12 October 2026, on the prompt templates
+  that address the model informally and the value extractor fixed the same day; the
+  strong prompt's rows from the run of 11 October on commit `663b609`, scored again).
 
 ## 8. Next steps
 

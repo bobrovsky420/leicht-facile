@@ -247,3 +247,31 @@ def test_foreign_values_without_a_fact_sheet_suggest_contacts_only() -> None:
         ("b001", "date", "2026-06-30")
     ]  # a plain number is never foreign
     assert found[0].suggestion is None  # never a date: the source's only date may be a law's
+
+
+def test_a_leaflet_number_and_an_address_the_pattern_missed_are_not_foreign() -> None:
+    """The final run of 11 October 2026 flagged `Merkblatt 2.06.` (2 June for the date
+    pattern, the source's plain number 2.06) and `3003 Bern` after `Schweiz - ` as
+    invented; since 13 October the words of the source decide. An address or a date the
+    source has nowhere stays foreign."""
+    from leichtfacile.rules.document import foreign_values
+
+    source = SOURCE.model_copy(update={"segments": [
+        *SOURCE.segments,
+        Segment(id="s0006", kind="paragraph", para=4,
+                text="Mehr steht im Merkblatt 2.06 (Hausdienstarbeit)."),
+        Segment(id="s0007", kind="paragraph", para=5,
+                text="Bundesamt für Gesundheit Schwarzenburgstrasse 157 Schweiz - 3003 Bern"),
+    ]})  # fmt: skip
+    draft_ = Draft(doc_id="letter", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Lesen Sie das Merkblatt 2.06."),
+        Block(id="b002", kind="sentence",
+              text="Das Amt ist in Bern, Schwarzenburgstrasse 157, 3003 Bern."),
+        Block(id="b003", kind="sentence", text="Lesen Sie das Merkblatt 2.07."),
+        Block(id="b004", kind="sentence", text="Schreiben Sie an: 3000 Bern."),
+    ])  # fmt: skip
+    found = foreign_values(draft_, source, None, "de")
+    assert [(f.block_id, f.value.kind, f.value.text) for f in found] == [
+        ("b003", "date", "2.07."),
+        ("b004", "address", "3000 Bern"),
+    ]

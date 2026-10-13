@@ -346,3 +346,33 @@ def test_rescore_scores_the_stored_jobs_again_under_both_selection_rules(
     assert main(["eval", "rescore", "--manifest", str(pair_env), "--results", str(results),
                  "--role", "eval", "--out", str(tmp_path / "cli")]) == 0  # fmt: skip
     assert (tmp_path / "cli" / path.name).exists()
+
+
+def test_rescore_in_place_scores_a_baseline_again_without_sampling_it_again(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    """Since 12 October 2026: after a change of the metrics or of the P2 fact sheets, a
+    baseline whose prompt did not change keeps its answers; its rows are replaced in
+    the results folder, scored against the newest P1 or P2 fact sheet of its pair (here
+    the one the scoring made), without a model call."""
+    from leichtfacile.eval.run import rescore
+
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    reference_rows(pairs, results)
+    settings = make_settings(llm_max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(fx.UNDERSTAND)))
+    path = run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    assert row["status"] == "needs_review", row.get("error")
+    calls = len(endpoint.chat_bodies())
+
+    out = rescore(results, pairs=pairs, condition="P0", role="eval", in_place=True)
+    assert out == results and not (tmp_path / "results-rescored-facts").exists()
+    (again,) = _rows(path)
+    assert again["rescored"] is True and again["job_id"] == row["job_id"]
+    assert again["fact_coverage"] == row["fact_coverage"] == 1.0
+    assert "selection" not in again and "stored_final_version" not in again
+    assert len(endpoint.chat_bodies()) == calls  # no model call
+    assert (results / "REF.jsonl").exists()

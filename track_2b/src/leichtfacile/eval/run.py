@@ -192,16 +192,24 @@ def _score(
     return row
 
 
-def _reference_factsheet(
-    store: Store, orch: Orchestrator, pair: Pair, job_id: str
-) -> FactSheet | None:
-    """A fact sheet to score outputs without one (P0): reuse another condition's, or make one.
-    Calls made here are scoring calls and are not counted as the condition's cost."""
+def _pair_factsheet(store: Store, pair: Pair, job_id: str) -> FactSheet | None:
+    """Another job's fact sheet for the pair, the newest first: the P1 or P2 fact sheet
+    a baseline (P0, P0-ZH) is scored against."""
     for other in store.list_jobs(limit=1000):
         if other.title == pair.id and other.id != job_id:
             fs = store.get_artifact(other.id, "factsheet", FactSheet)
             if fs is not None:
                 return fs
+    return None
+
+
+def _reference_factsheet(
+    store: Store, orch: Orchestrator, pair: Pair, job_id: str
+) -> FactSheet | None:
+    """A fact sheet to score outputs without one (P0): reuse another condition's, or make one.
+    Calls made here are scoring calls and are not counted as the condition's cost."""
+    if (fs := _pair_factsheet(store, pair, job_id)) is not None:
+        return fs
     standard = store.get_artifact(job_id, "source", SourceDocument)
     fs, _ = stages.understand(
         orch.llm, standard, level=pair.level, model=orch.settings.llm_understand_name
@@ -255,21 +263,31 @@ def rescore(
     role: str | None = "dev",
     select: str = "facts",
     out_dir: Path | None = None,
+    in_place: bool = False,
 ) -> Path:
     """Score a condition's completed jobs again from their stored artifacts, without
     a model call: after a change of the metrics, or to compare the rules for the final
     version on the same jobs (`select`). The rows go to `out_dir` (default
     `<results>-rescored-<select>` next to the results folder) with the reference rows
-    copied, so `eval report` works on it; the results folder itself is not touched."""
+    copied, so `eval report` works on it; the results folder itself is not touched.
+    With `in_place` the rows replace those of the results folder (since 13 October
+    2026): a baseline whose prompt did not change is scored again against the newest
+    P1 or P2 fact sheet of its pair, as `run` scores it, instead of being sampled
+    again."""
     from leichtfacile.eval.labels import completed_rows
 
     if select not in SELECTIONS:
         raise ValueError(f"unknown selection {select!r}; use one of {SELECTIONS}")
-    out_dir = out_dir or results_dir.with_name(f"{results_dir.name}-rescored-{select}")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    reference = results_dir / "REF.jsonl"
-    if reference.exists():
-        (out_dir / "REF.jsonl").write_text(reference.read_text(encoding="utf-8"), encoding="utf-8")
+    if in_place:
+        out_dir = results_dir
+    else:
+        out_dir = out_dir or results_dir.with_name(f"{results_dir.name}-rescored-{select}")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        reference = results_dir / "REF.jsonl"
+        if reference.exists():
+            (out_dir / "REF.jsonl").write_text(
+                reference.read_text(encoding="utf-8"), encoding="utf-8"
+            )
     by_id = {p.id: p for p in pairs}
     store = Store(results_dir / "store.sqlite")
     written: dict[str, list[dict[str, Any]]] = {}
@@ -280,8 +298,10 @@ def rescore(
             if pair is None or job is None:
                 continue
             versions = store.versions(job.id, "draft")
-            factsheet = store.get_artifact(job.id, "factsheet", FactSheet) or store.get_artifact(
-                job.id, "score_factsheet", FactSheet
+            factsheet = (
+                store.get_artifact(job.id, "factsheet", FactSheet)
+                or _pair_factsheet(store, pair, job.id)
+                or store.get_artifact(job.id, "score_factsheet", FactSheet)
             )
             if not versions or factsheet is None:
                 continue
@@ -303,9 +323,15 @@ def rescore(
             new_row.update(score_output(job, draft, standard, easy, factsheet, judge_report, edits))
             if summary:
                 new_row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
-            new_row.update(
-                selection=select, stored_final_version=summary.final_version if summary else None
-            )
+                if summary.vocabulary:
+                    new_row["vocabulary"] = summary.vocabulary
+            if in_place:
+                new_row["rescored"] = True  # the model's answers are the run's, the scores new
+            else:
+                new_row.update(
+                    selection=select,
+                    stored_final_version=summary.final_version if summary else None,
+                )
             name = results_file(
                 out_dir, condition, row.get("writer", "?"), row.get("understand")
             ).name
@@ -313,6 +339,10 @@ def rescore(
     finally:
         store.close()
     for name, rows in written.items():
+        if in_place:
+            for new_row in rows:
+                _write_row(out_dir / name, new_row)
+            continue
         (out_dir / name).write_text(
             "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
         )

@@ -90,8 +90,16 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     )
     res.add_argument("--manifest", type=Path, default=MANIFEST)
     res.add_argument("--results", type=Path, default=Path("track_2b/eval/results"))
-    res.add_argument("--condition", type=canonical_condition, default="P2", choices=["P1", "P2"])
+    res.add_argument(
+        "--condition", type=canonical_condition, default="P2", choices=list(CONDITIONS)
+    )
     res.add_argument("--role", default="dev", choices=["dev", "eval", "all"])
+    res.add_argument(
+        "--in-place",
+        action="store_true",
+        help="replace the rows in the results folder (a baseline scored again, without "
+        "sampling it again, against the newest P1 or P2 fact sheet of its pair)",
+    )
     res.add_argument(
         "--select",
         default="facts",
@@ -246,6 +254,7 @@ def _rescore(args: argparse.Namespace) -> int:
         role=args.role,
         select=args.select,
         out_dir=args.out,
+        in_place=args.in_place,
     )
     print(
         f"rescored rows: {out} (render them with: eval report --results {out} --role {args.role})"

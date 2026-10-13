@@ -112,8 +112,17 @@ NUMBER_RE = re.compile(
 )
 _CURRENCY_BEFORE = re.compile(r"(?:CHF|Fr\.|SFr\.|sFr\.)[ ]?$")
 _CURRENCY_AFTER = re.compile(
-    r"^[ ]?(?:CHF|Fr\.|Franken|Rappen|francs?|franchi|franco)", re.IGNORECASE
+    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|Rappen|francs?|franchi|franco)", re.IGNORECASE
+)  # `2 millions de francs`
+# A multiplier after a number scales it (since 12 October 2026): `CHF 1,5 Mio.` and
+# `1'500'000 Franken` are the same amount, `20 Millionen Franken` is an amount, not the
+# plain number 20 (found on the Fedlex Answer snippets, track_2b/docs/rules.md).
+_MULTIPLIER_AFTER = re.compile(
+    r"^[ ]?(?P<word>Mio\.?|Millionen|Million|Mrd\.?|Milliarden?|millions?|milliards?"
+    r"|milion[ei]|miliard[oi])(?![\w·])",
+    re.IGNORECASE,
 )
+_MULTIPLIERS = {"mio": 1_000_000, "mil": 1_000_000, "mrd": 1_000_000_000, "mia": 1_000_000_000}
 
 # -- periods: a count with days, weeks, months or years --------------------------------
 
@@ -122,7 +131,8 @@ _CURRENCY_AFTER = re.compile(
 _NUMBER_WORDS: dict[str, dict[str, int]] = {
     "de": {
         "ein": 1, "eine": 1, "einem": 1, "einen": 1, "einer": 1, "eines": 1, "zwei": 2,
-        "drei": 3, "vier": 4, "fünf": 5, "sechs": 6, "sieben": 7, "acht": 8, "neun": 9,
+        "zweier": 2, "drei": 3, "dreier": 3,  # the genitive: innert dreier Monate
+        "vier": 4, "fünf": 5, "sechs": 6, "sieben": 7, "acht": 8, "neun": 9,
         "zehn": 10, "elf": 11, "zwölf": 12, "dreizehn": 13, "vierzehn": 14, "fünfzehn": 15,
         "sechzehn": 16, "siebzehn": 17, "achtzehn": 18, "neunzehn": 19, "zwanzig": 20,
         "dreissig": 30, "dreißig": 30, "vierzig": 40, "fünfzig": 50, "sechzig": 60,
@@ -167,11 +177,21 @@ _PERIOD_UNITS: dict[str, str] = {
         r"|(?P<m>mes[ei])|(?P<y>ann[oi])"
     ),
 }
+# One adjective may stand between the count and the unit: `die zwei folgenden Wochen`,
+# `les quatre derniers mois` (since 12 October 2026).
+_PERIOD_ADJECTIVE = (
+    r"(?:folgende[nmrs]?|nächste[nmrs]?|weitere[nmrs]?|letzte[nmrs]?|kommende[nmrs]?"
+    r"|vergangene[nmrs]?|volle[nmrs]?|ganze[nmrs]?"
+    r"|derni[eè]re?s?|prochaine?s?|premi[eè]re?s?|suivante?s?|pleine?s?|enti[eè]re?s?"
+    r"|prossim[oaie]|ultim[oaie]|prim[oaie]|successiv[oaie]|inter[oaie])"
+)
+# An apostrophe before the count is an elision (`d'un mois`, `d'une semaine`), unless a
+# digit stands before it: `1'000 jours` is not `000 jours` (since 12 October 2026).
 _PERIOD_RE: dict[str, re.Pattern[str]] = {
     lang: re.compile(
-        r"(?<![\w·.,'’-])"
+        r"(?<![\w·.,-])(?<!\d['’])"
         r"(?P<num>\d{1,4}|(?:[a-zäöüéèêß]+[ ]et[ ])?[a-zäöüéèêß]+(?:-[a-zäöüéèê]+)*)"
-        r"[ -]?(?:" + units + r")(?![\w·])",
+        r"(?:[ -]?|[ ]" + _PERIOD_ADJECTIVE + r"[ ])(?:" + units + r")(?![\w·])",
         re.IGNORECASE,
     )
     for lang, units in _PERIOD_UNITS.items()
@@ -208,18 +228,26 @@ _UID_RE = re.compile(r"(?<![\w-])CHE[- ]?\d{3}\.\d{3}\.\d{3}(?!\d)")
 _REF_KEYWORDS = (
     r"Referenz·?nummern?|Referenz|Ref\.|Dossier·?nummern?|Dossier|Akten·?zeichen|Geschäfts·?zeichen"
     r"|(?:Geschäfts|Kunden|Versicherten|Versicherungs|Policen|Fall|Rechnungs|Vertrags|Betreibungs"
-    r"|Verfahrens|Gesuchs|Entscheid|Verfügungs|Mitglieder|Partner|Vorgangs|Konto|Akten|Schaden)"
+    r"|Verfahrens|Gesuchs|Entscheid|Verfügungs|Mitglieder|Partner|Vorgangs|Konto|Akten|Schaden"
+    r"|Steuer|Patienten|Personal|Register|Kontroll|Auftrags|Mandats|Antrags|Bewilligungs|Objekt"
+    r"|Zahlungsbefehls|Strafbefehls|Beschwerde)"
     r"·?nummern?"
     r"|(?:Verfügung|Entscheid|Fall|Police|Rechnung|Vertrag|Gesuch|Betreibung|Verfahren|Urteil"
-    r"|Beschluss|Konto|Dossier|Referenz|Geschäft|Akte|Schaden)s?[ -]?(?:Nr\.?|Nummer)"
-    r"|Référence|Réf\.|Riferimento|Rif\.|Incarto"
+    r"|Beschluss|Konto|Dossier|Referenz|Geschäft|Akte|Schaden|Steuer|Patient|Register|Auftrag"
+    r"|Mandat|Antrag|Bewilligung|Objekt|Zahlungsbefehl|Strafbefehl|Beschwerde|Mahnung)"
+    r"s?[ -]?(?:Nr\.?|Nummer)"
+    r"|Référence|Réf\.|Riferimento|Rif\.|Incarto|Pratica"
     r"|(?:Numéro|N°|No\.?)[ ](?:de[ ]|du[ ]|d')?(?:référence|dossier|client|cliente|police|contrat"
-    r"|facture|cas|décision|assuré|affaire|procédure|membre|compte|sinistre)"
-    r"|(?:Décision|Facture|Contrat|Police|Cas|Affaire|Procédure|Compte|Dossier|Référence|Sinistre)"
+    r"|facture|cas|décision|assuré|affaire|procédure|membre|compte|sinistre|contribuable"
+    r"|patient|poursuite|commandement[ ]de[ ]payer|mandat|objet)"
+    r"|(?:Décision|Facture|Contrat|Police|Cas|Affaire|Procédure|Compte|Dossier|Référence|Sinistre"
+    r"|Commandement[ ]de[ ]payer|Poursuite|Patient|Mandat|Objet|Rappel)"
     r"[ ]?(?:n°|no\.?|numéro)"
     r"|(?:Numero|N\.|N°)[ ](?:di[ ]|del[ ]|della[ ]|dell')?(?:riferimento|incarto|cliente|polizza"
-    r"|contratto|fattura|caso|decisione|procedura|conto)"
-    r"|(?:Decisione|Fattura|Contratto|Polizza|Caso|Procedura|Conto|Incarto)[ ]?(?:n\.|n°|numero)"
+    r"|contratto|fattura|caso|decisione|procedura|conto|pratica|contribuente|paziente|esecuzione"
+    r"|precetto[ ]esecutivo)"
+    r"|(?:Decisione|Fattura|Contratto|Polizza|Caso|Procedura|Conto|Incarto|Pratica|Esecuzione"
+    r"|Precetto[ ]esecutivo|Paziente)[ ]?(?:n\.|n°|numero)"
 )
 _REF_FILLER = (
     r"(?:[ ]+(?:ist|lautet|heisst|hat|die|der|das|Ihre?[nmrs]?|unsere?[nmrs]?|von|vom|Nr\.?"
@@ -254,6 +282,7 @@ REFERENCE_RE = re.compile(
 _BARE_CODE_RE = re.compile(
     r"(?=.*\d)(?=.*[" + DASHES + r"A-Za-z/])[A-Za-z0-9]+(?:" + _CODE_SEP + r"[A-Za-z0-9]+)*"
 )
+_CODE_RE = re.compile(r"(?=.*\d)[A-Za-z0-9]+(?:" + _CODE_SEP + r"[A-Za-z0-9]+)*")
 _EXPLICIT_NUMBER = re.compile(r"nr\.?$|nummer|n°|no\.?$|numéro|numero|n\.$")
 
 # -- postal addresses: street and number, Postfach, postcode and place ----------------
@@ -576,14 +605,23 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
         if canonical is None:
             continue
         before = text[max(0, m.start() - 6) : m.start()]
-        after = text[m.end() : m.end() + 10]
+        end = m.end()
+        if multiplier := _MULTIPLIER_AFTER.match(text[end : end + 12]):
+            canonical = _scaled(canonical, _MULTIPLIERS[multiplier.group("word")[:3].lower()])
+            end += multiplier.end()
+        after = text[end : end + 10]
         is_amount = dash_decimals or bool(
             _CURRENCY_BEFORE.search(before) or _CURRENCY_AFTER.search(after)
         )
         kind: ValueKind = "amount" if is_amount else "number"
-        found.append(Value(kind, canonical, text[m.start() : m.end()], m.start(), m.end()))
+        found.append(Value(kind, canonical, text[m.start() : end], m.start(), end))
     found.sort(key=lambda v: v.start)
     return found
+
+
+def _scaled(canonical: str, factor: int) -> str:
+    """1.5 by a million is 1500000."""
+    return format((Decimal(canonical) * factor).normalize(), "f")
 
 
 def _split_decimal(number: str) -> tuple[str, str | None]:
@@ -798,6 +836,10 @@ def parse_value_norm(
         ("0", "41")
     ):
         return Value("phone", canonical_phone(raw if not raw.startswith("41") else "+" + raw))
+    if fact_kind == "identifier" and _CODE_RE.fullmatch(raw) and not raw.isdigit():
+        # A dotted or lettered code the model names as an identifier (`482.317.556`,
+        # `TIC-9988`) is one; its first digits are no plain number (12 October 2026).
+        return Value("identifier", re.sub("[" + DASHES + "]", "-", raw))
     values = extract_values(raw, lang)
     if not values:
         return None

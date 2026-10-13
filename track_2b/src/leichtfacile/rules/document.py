@@ -13,6 +13,7 @@ from leichtfacile.rules.messages import hit
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
+    canonical_number,
     contains,
     extract_values,
     format_address,
@@ -93,6 +94,11 @@ def source_values(source: SourceDocument, lang: str) -> list[Value]:
 def full_text(source: SourceDocument) -> str:
     """The text of a source with its title, where a medication's name is searched."""
     return "\n".join(part for part in (source.title, source.text()) if part)
+
+
+def _plain(text: str) -> str:
+    """A text for a word-for-word search: no Mediopunkt, one space, lower case."""
+    return " ".join(text.replace("·", "").replace(" ", " ").split()).casefold()
 
 
 def fact_coverage(
@@ -310,6 +316,7 @@ class KnownValues:
     source_values: list[Value]
     fact_values: list[Value]
     candidates: dict[str, set[str]]  # kind -> canonical source values of that kind
+    source_text: str = ""  # the source as `_plain` writes it, for an address word for word
 
     @classmethod
     def of(cls, source: SourceDocument, factsheet: FactSheet | None, lang: str) -> KnownValues:
@@ -324,7 +331,7 @@ class KnownValues:
         for v in values:
             if v.kind in HARD_KINDS:
                 candidates[v.kind].add(v.canonical)
-        return cls(lang, values, fact_values, candidates)
+        return cls(lang, values, fact_values, candidates, _plain(full_text(source)))
 
     def supports(self, value: Value) -> bool:
         if any(matches(value, v) for v in self.source_values):
@@ -342,6 +349,17 @@ class KnownValues:
             # is a plain number.
             hour = str(int(value.canonical[:2]))
             return any(v.kind == "number" and v.canonical == hour for v in self.source_values)
+        if value.kind == "date" and value.canonical.startswith("--"):
+            # "Merkblatt 2.06." at the end of a sentence reads as a date without a year;
+            # the source's plain number 2.06 (the final run of 11 October 2026).
+            month, day = value.canonical[2:4], str(int(value.canonical[5:7]))
+            forms = {f"{day}.{month}", f"{day}.{int(month)}", canonical_number(day, month)}
+            return any(v.kind == "number" and v.canonical in forms for v in self.source_values)
+        if value.kind == "address":
+            # An address the pattern misses in the source ("Schweiz - 3003 Bern", a
+            # postcode after a fax number) still stands there word for word.
+            parts = [_plain(part) for part in value.canonical.split("|") if part]
+            return all(part in self.source_text for part in parts)
         return False
 
     def foreign(self, text: str) -> list[Value]:

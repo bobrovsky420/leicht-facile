@@ -202,6 +202,9 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
         r"\bpare-brise",
         r"\bcarnet de vaccination",
         r"\bcontrôle des habitants",
+        # The dog's microchip of the write example: "le numéro de la puce" stood in five
+        # sentences of a final draft about petitions in the run of 11 October 2026.
+        r"\bpuce\b",
     ),
 }
 
@@ -955,8 +958,12 @@ def judge(
 
 
 def _quote_key(text: str) -> str:
-    """A text as the quote check compares it: no Mediopunkt or soft hyphen, one space
-    between words, no quotation marks or punctuation at the ends, lower case."""
+    """A text as the quote check compares it: no block id, heading or list marker in
+    front (the judge reads `[b012] - text`, `render.draft_lines`, and quoted the marker
+    in 43 of 66 dropped verdicts of the final run; 12 October 2026), no Mediopunkt or
+    soft hyphen, one space between words, no quotation marks or punctuation at the
+    ends, lower case."""
+    text = re.sub(r"^\s*(?:\[b[\w.]+\]\s*)?(?:#+\s+|-\s+)?", "", text)
     text = text.replace("·", "").replace("­", "")
     text = re.sub(r"\s+", " ", text).strip()
     return text.strip("\"'«»„“”‚‘’.,;:!? ").casefold()
@@ -985,7 +992,8 @@ def to_judge_report(
     out: JudgeOut, draft: Draft, factsheet: FactSheet, model: str, *, mode: str = "standard"
 ) -> JudgeReport:
     rule_ids = JUDGE_RULE_IDS | (DECISION_JUDGE_RULE_IDS if mode == "decision" else set())
-    blocks = set(draft.by_id())
+    by_id = draft.by_id()
+    blocks = set(by_id)
     facts = factsheet.fact_ids()
     seen: set[str] = set()
     checks = []
@@ -1006,7 +1014,12 @@ def to_judge_report(
         target = quoted_block(u.quote, u.block_id, draft)
         quote = clean_text(u.quote) if u.quote and u.quote.strip() else None
         item = Unsupported(block_id=target or u.block_id, quote=quote, note=clean_text(u.note))
-        if target is not None:
+        if target is not None and by_id[target].kind == "heading":
+            # A question heading is the reader's question (LAY-03), no statement: the
+            # 70B objected to "De quoi avez-vous besoin ?" as not in the original, and a
+            # repair would turn it into a statement (12 October 2026; the audit keeps it).
+            dropped.append(item)
+        elif target is not None:
             unsupported.append(item)
         elif u.block_id in blocks:  # a quote the draft does not contain: the audit keeps it
             dropped.append(item)

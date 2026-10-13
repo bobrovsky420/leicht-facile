@@ -81,7 +81,10 @@ thinking.
   counts as a topic too (`Einwohnerkontrolle`, `contrôle des habitants`, since
   8 October 2026): the repair example's addition "Rufen Sie die Einwohner·kontrolle
   an: 031 987 65 43." came back with a number of the document in 4 P2 jobs of the
-  CSCS evaluation and 3 example builds, in documents that never name the office.
+  CSCS evaluation and 3 example builds, in documents that never name the office. The
+  dog's microchip of the French write example (`puce`) too, since 12 October 2026:
+  "le numéro de la puce" stood in five sentences of a final draft about petitions in
+  the run of 11 October, flagged by the judge in every round and never removed.
 - **Values not in the document.** A repair answer with a date, amount, phone number,
   e-mail address, web address, percentage or time that neither the source nor the
   fact sheet contains (the check of rule FACT-06) is sent back once with the values
@@ -1436,6 +1439,86 @@ over the 20 eval pairs:
 - **Seconds per page** are complete for P2 on the 8B (63.3 s, every stage fresh), the
   70B everywhere and the baselines; P1 took every answer from the cache (not measured)
   and the hybrid its Understand answers (undercounts).
+
+### The extractor fixes and the quote check on the dev pairs (CSCS, 12 October 2026)
+
+Decision D-AM (PLAN.md): the value extractor's false alarms and gaps found with the
+test texts of two other hackathon projects and confirmed on the final run above (the
+genitive `dreier Monate`, the elision `d'un mois`, `Merkblatt 2.06.` read as a date,
+`Schweiz - 3003 Bern` as no address, multipliers, the identifier keywords of tax
+letters and payment orders; track_2b/docs/rules.md "Value kinds" and FACT-06), the
+judge's quote check ignoring the `- ` and `# ` markers and filing verdicts on question
+headings under `dropped` (architecture §4.5), and `puce` among the French example-topic
+words. Code only, no template changed. P2 on the 12 dev pairs with the du templates of
+change log 15, against the dev-final run of 10 October (formal templates, the old
+extractor; both runs fresh samples, so this is a sanity check before the repeated
+final run, not an ablation): German (10 pairs) fact coverage 96 against 96 percent,
+hard facts kept 89 against 87, invented values 0.0 against 0.0, rule errors 1.7
+against 1.3 per 100 blocks, warnings 43 against 36, unsupported 1.5 against 1.0;
+French (2 pairs) fact coverage 100 against 100, hard facts 97 against 97, rule errors
+1.1 against 2.9, unsupported 2.0 against 3.3. Every pair reached review. The repeated
+final run on the eval split follows below.
+
+### The final run on the fixed extractor (CSCS, 12 October 2026)
+
+Decisions D-AL and D-AM (PLAN.md): our rows again on the du templates of change log 15
+and the extractor fixes above, after a snapshot of the run of 11 October to
+`results-cscs-v8`. Order: P2 on the 8B first (fresh Understand and Write, so its
+seconds cover every stage), P1 from P2's cached answers, P0 with the cache off; then
+the two P0-ZH rows, whose template the du change did not touch, scored again in place
+against this run's fact sheets (`eval rescore --in-place`, no model call: the single
+prompts move by up to 8 points between samples on unchanged templates, and the
+headline's baseline side should move only by the fixes); then the 70B everywhere and
+the hybrid, and a retry pass. The main run took 17:13 to 20:05. Three pairs failed on
+the first pass: two P2 pairs on the 8B with unusable Understand answers (no `facts`
+field, no JSON) and the 70B everywhere on `zh-sebe-disability-de`, its Write stream cut
+in 9 attempts, as on 11 October (that row keeps 19 pairs). The retry pass took the
+night: the French pair `ge-prosecutor-election-fr` hung on the endpoint until the job's
+time budget of 7,200 s stopped it, with 2 minutes of model time logged for the whole
+step; it passed on a third try the next morning, `zh-political-rights-de` on the
+second. German means over the 20 eval pairs:
+
+| Setup | Fact coverage | Hard facts kept | Silent losses | Errors / 100 | Warnings / 100 | Readability | Unsupported / 100 | Invented values / 100 | Tokens / page | USD / page | s / page |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
+| P0 | 94 % | 95 % | 5 % | 24.9 | 108.6 | 49 | - | 0.2 | 999 | 0.0001 | 2.8 |
+| P0-ZH complete (sampled 11 Oct, rescored) | 82 % | 85 % | 15 % | 15.0 | 92.4 | 47 | - | 0.0 | 2,393 | 0.0003 | 2.4 |
+| P0-ZH condensed (sampled 11 Oct, rescored) | 65 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.0 | 2,198 | 0.0002 | 1.4 |
+| P1 | 61 % | 59 % | 1 % | 9.7 | 46.6 | 50 | - | 0.1 | 8,900 | 0.0012 | - |
+| P2, 8B | 100 % | 97 % | 0 % | 3.7 | 41.5 | 52 | 2.7 | 0.0 | 33,392 | 0.0159 | 59.6 |
+| P2, 70B everywhere (19 pairs) | 100 % | 96 % | 0 % | 0.5 | 22.2 | 57 | 1.0 | 0.0 | 22,295 | 0.0250 | 60.0 |
+| P2, hybrid: 70B reads, 8B writes | 99 % | 94 % | 0 % | 3.0 | 37.6 | 53 | 1.4 | 0.0 | 24,307 | 0.0145 | 31.8 |
+
+- **Case A2 of decision D-M again** (`eval numbers`): the pipeline finds 100 percent of
+  the must-keep facts against 82, loses none without a trace against 15 percent, and
+  has 3.7 against 15.0 rule errors per 100 blocks; invented values are rare on both
+  sides (0.0 against 0.0).
+- **The fixes' own share.** On the drafts of 11 October, scored again offline before the
+  run, they removed 1 of P2's 2 invented values on the German eval pairs, the only ones
+  of the condensed baseline and of the hybrid row, and added 2 hard facts to the 20
+  sources. The rescored P0-ZH complete row moved from 83 to 82 percent fact coverage on
+  the new fact sheets; its hard facts, errors and silent losses did not move.
+- **Against the run of 11 October.** P2's errors fell from 4.2 to 3.7: the 7-page pair
+  came out as a 44-block draft with one error instead of 140 blocks with 47, and a
+  third of the errors (13 of 38) now sit in one two-page health-insurance text. The
+  judge's unsupported verdicts rose from 1.6 to 2.7 per 100 blocks, not through the
+  quote fix (none of the 27 verdicts kept in the final reports carries a marker, one
+  was dropped) but through the sample: the 70B objected to the recover round's "Rufen
+  Sie ... an: number" sentences in one pair (8 of 50 blocks) and to supplies the source
+  lists in another (5 of 25), both wrongly. P1 fell from 74 to 61 percent fact coverage
+  on fresh answers: a single Write without judge, repair and recover rounds keeps that
+  variance, P2 ends at 100 in both runs. P2's tokens per page rose from 28,066 to
+  33,392 (USD 0.0131 to 0.0159) at the same mean of 1.8 rounds.
+- **Fact-retention diagnosis** (8B, 22 eval jobs): 216 checkable must-keep facts, 2
+  missing in the final versions, both in `zh-passport-id-de` (one behind the per-round
+  cap of missing facts, one asked for and not written).
+- **French** (3 pairs, 8B): fact coverage 100 percent, hard facts kept 72 (one draft of
+  117 words for a 489-word source kept 4 of 15, every one listed for the reviewer), 3.5
+  errors per 100 blocks, readability 70 (official 85); the 70B everywhere 100, 89 and
+  3.4; the hybrid 95, 87 and 8.8.
+- **Seconds per page** are complete for P2 on the 8B (59.6 s), the 70B everywhere
+  (60.0) and the baselines; P1 took every answer from the cache (not measured) and the
+  hybrid its Understand answers from the 70B row's cache (31.8 s undercounts).
 
 ## Change log
 

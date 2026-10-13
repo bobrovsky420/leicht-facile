@@ -373,6 +373,13 @@ via the segment ids). It answers only what code cannot:
    On the 12 dev pairs the verdicts over all versions fell from 188 to 102, German
    unsupported per 100 blocks from 5.3 to 3.1, facts unchanged but for one pair's
    fresh sample (track_2b/docs/prompts.md, "The judge's quotes on the dev pairs").
+   Since 12 October 2026 the comparison ignores the block id and the heading or list
+   marker the judge sees in front of a block (`[b012] - text`): the 70B had copied the
+   marker into 43 of the 66 dropped verdicts of the final run of 11 October, among
+   them a list item leaked from the prompt's own example (`- le numéro de la puce`)
+   that then went unrepaired. A verdict on a question heading is filed under `dropped`
+   too: the heading is the reader's question (LAY-03), and a repair would turn it into
+   a statement, as the semantic findings on headings are already left out of repairs.
 3. Semantic rule violations: metaphors and idioms, abstract nouns, pronouns whose
    reference is unclear, implied knowledge the reader may not have, and a changed
    obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
@@ -636,7 +643,7 @@ JudgeReport  (one per judged draft version)
   fact_checks[]: {fact_id, status (present|missing|distorted), block_ids[], note}
   unsupported[]: {block_id, quote?, note}
   semantic_findings[]: {block_id, rule_id (SEM-01..05, SEM-08), note}
-  dropped[]: {block_id, quote, note}      unsupported verdicts whose quote is in no block
+  dropped[]: {block_id, quote, note}      unsupported verdicts whose quote is in no block, or on a heading
 
 RepairRecord  (one per repair round, under the version it produced)
   draft_version, parent_version, kind (repair|facts|vocabulary|recover|polish)
@@ -1007,7 +1014,7 @@ language it was produced in.
 | `python -m leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `python -m leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
 | `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`) |
+| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again (12 October 2026) |
 | `python -m leichtfacile examples build` | Build the example jobs shown on first start |
 | `python -m leichtfacile examples record [--only] [--attempts] [--parallel]` | Record a clean run of each example letter for its Run button (§6, recorded runs) |
 
@@ -1088,13 +1095,14 @@ Each run with the 8B writer; P2 also with the 70B writer (every stage on the 70B
 with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
 runs both. The judge is always the 70B-thinking model, so P1 and P2 are judged by the
 same instrument; in the 70B-writer run it grades its own model's drafts, which the
-report notes. Result (final run, 11 October 2026, 20 German eval pairs, the 70B
-everywhere on 19): the 70B everywhere writes cleaner easy language (0.6 against 4.2
-errors per 100 blocks) and finds as many must-keep facts (99 against 100 percent
-coverage) but keeps fewer of the hard facts (92 against 97 percent), at twice the price
-per page; the hybrid finds 100 percent and keeps 95 percent of the hard facts at 1.9
-errors, for a quarter more than the 8B's price. The 8B writer stays the default, since
-it runs on one GPU; track_2b/docs/prompts.md has the tables.
+report notes. Result (final run, 12 October 2026, 20 German eval pairs, the 70B
+everywhere on 19): the 70B everywhere writes cleaner easy language (0.5 against 3.7
+errors per 100 blocks) and finds as many must-keep facts (100 against 100 percent
+coverage) but keeps fewer of the hard facts (96 against 97 percent), at 1.6 times the
+price per page; the hybrid finds 99 percent and keeps 94 percent of the hard facts at
+3.0 errors, at about the 8B's price (0.0145 against 0.0159 USD per page). The 8B
+writer stays the default, since it runs on one GPU; track_2b/docs/prompts.md has the
+tables.
 
 P0-ZH runs with the settings of P0 (no thinking, temperature 0.3, 6000 tokens) and
 with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags
@@ -1102,11 +1110,13 @@ is taken and ß becomes ss. Their Markdown stripping is not applied, because it 
 the underscores of web and e-mail addresses. An answer without the tags is used whole
 and noted in the job summary. The prompt file is a Jinja template whose licence note
 is a comment; track_2b/docs/prompts.md has the details. On the 20 German eval pairs (CSCS,
-final run of 11 October 2026) the complete variant kept 85 percent of the hard facts
-(fact coverage 83 percent) with 15.0 rule errors per 100 blocks and 15 percent silent
-losses, the condensed variant 67 percent at 9.0 errors; P2 on the 8B kept 97 percent
-(100) with 4.2 errors and no silent loss. On unchanged templates the single prompts
-move from run to run: the complete variant had 91 percent fact coverage on 10 October.
+final run of 12 October 2026; the two P0-ZH rows sampled on 11 October and scored
+again against this run's fact sheets, `eval rescore --in-place`) the complete variant
+kept 85 percent of the hard facts (fact coverage 82 percent) with 15.0 rule errors per
+100 blocks and 15 percent silent losses, the condensed variant 67 percent at 9.0
+errors; P2 on the 8B kept 97 percent (100) with 3.7 errors and no silent loss. On
+unchanged templates the single prompts move from run to run: the complete variant had
+91 percent fact coverage on 10 October and 83 on 11 October.
 
 ### Metrics
 

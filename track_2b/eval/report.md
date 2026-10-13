@@ -6,13 +6,13 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Original (standard language) | 20 | - | 100 % | 0 % | 31.3 | 164.5 | 9.8 | 36 | - | - | 0.0 | - | - | - |
 | Official easy-language version | 20 | - | 67 % | 33 % | 2.7 | 27.7 | 6.1 | 62 | - | - | 2.8 | - | - | - |
-| P0 baseline: one prompt (swiss-ai/Apertus-v1.5-8B) | 20 | 92 % | 93 % | 7 % | 19.5 | 95.2 | 7.6 | 52 | 43.0 | - | 0.2 | 982 | 0.0001 | 2.6 |
-| P0-ZH complete: Zurich's prompt, keep everything (swiss-ai/Apertus-v1.5-8B) | 20 | 83 % | 85 % | 15 % | 15.0 | 92.4 | 7.0 | 47 | 43.0 | - | 0.0 | 2393 | 0.0003 | 2.4 |
-| P0-ZH condensed: Zurich's prompt, essentials only (swiss-ai/Apertus-v1.5-8B) | 20 | 69 % | 67 % | 33 % | 9.0 | 80.0 | 6.1 | 46 | 41.5 | - | 0.2 | 2198 | 0.0002 | 1.4 |
-| P1 no judge: fact sheet + draft + rule check (swiss-ai/Apertus-v1.5-8B) | 20 | 74 % | 73 % | 0 % | 8.3 | 50.3 | 7.4 | 51 | 40.6 | - | 1.1 | 9555 | 0.0014 | 0.0 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-70B) | 19 | 99 % | 92 % | 0 % | 0.6 | 26.6 | 6.6 | 56 | 43.8 | 1.1 | 0.0 | 22988 | 0.0262 | 57.5 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B) | 20 | 100 % | 97 % | 0 % | 4.2 | 43.9 | 7.1 | 51 | 41.7 | 1.6 | 0.1 | 28066 | 0.0131 | 63.3 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 20 | 100 % | 95 % | 0 % | 1.9 | 41.4 | 7.1 | 53 | 42.0 | 1.0 | 0.1 | 27885 | 0.0163 | 32.4 |
+| P0 baseline: one prompt (swiss-ai/Apertus-v1.5-8B) | 20 | 94 % | 95 % | 5 % | 24.9 | 108.6 | 8.0 | 49 | 44.3 | - | 0.2 | 999 | 0.0001 | 2.8 |
+| P0-ZH complete: Zurich's prompt, keep everything (swiss-ai/Apertus-v1.5-8B) | 20 | 82 % | 85 % | 15 % | 15.0 | 92.4 | 7.0 | 47 | 43.0 | - | 0.0 | 2393 | 0.0003 | 2.4 |
+| P0-ZH condensed: Zurich's prompt, essentials only (swiss-ai/Apertus-v1.5-8B) | 20 | 65 % | 67 % | 33 % | 9.0 | 80.0 | 6.1 | 46 | 41.5 | - | 0.0 | 2198 | 0.0002 | 1.4 |
+| P1 no judge: fact sheet + draft + rule check (swiss-ai/Apertus-v1.5-8B) | 20 | 61 % | 59 % | 1 % | 9.7 | 46.6 | 7.1 | 50 | 39.6 | - | 0.1 | 8900 | 0.0012 | 3.6 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-70B) | 19 | 100 % | 96 % | 0 % | 0.5 | 22.2 | 6.5 | 57 | 42.9 | 1.0 | 0.0 | 22295 | 0.0250 | 60.0 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B) | 20 | 100 % | 97 % | 0 % | 3.7 | 41.5 | 7.0 | 52 | 42.2 | 2.7 | 0.0 | 33392 | 0.0159 | 59.6 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 20 | 99 % | 94 % | 0 % | 3.0 | 37.6 | 6.8 | 53 | 42.3 | 1.4 | 0.0 | 24307 | 0.0145 | 31.8 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -22,13 +22,13 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 |---|---|---|---|---|---|---|---|---|
 | SOURCE | 49.9 | 0.0 | 39.7 | 0.3 | 99.9 | - | 2.8 | 0.0 |
 | REF | 10.1 | 0.0 | 6.0 | 0.0 | 12.9 | - | 0.2 | 0.0 |
-| P0 (swiss-ai/Apertus-v1.5-8B) | 43.0 | 0.0 | 19.2 | 0.0 | 46.8 | 0.0 | 3.4 | 0.7 |
+| P0 (swiss-ai/Apertus-v1.5-8B) | 45.5 | 0.0 | 26.7 | 0.1 | 55.8 | 0.0 | 3.6 | 0.2 |
 | P0-ZH-complete (swiss-ai/Apertus-v1.5-8B) | 30.1 | 0.0 | 17.9 | 0.1 | 52.1 | 0.0 | 3.7 | 0.0 |
 | P0-ZH-condensed (swiss-ai/Apertus-v1.5-8B) | 24.7 | 0.0 | 16.4 | 0.1 | 39.9 | 0.0 | 3.1 | 0.0 |
-| P1 (swiss-ai/Apertus-v1.5-8B) | 22.1 | 0.0 | 13.3 | 0.0 | 17.3 | 33.4 | 3.0 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-70B) | 10.2 | 0.0 | 5.4 | 0.0 | 6.1 | 30.7 | 1.7 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-8B) | 17.1 | 0.0 | 9.7 | 0.0 | 15.3 | 36.5 | 3.5 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 19.3 | 0.0 | 9.4 | 0.0 | 8.8 | 36.6 | 2.9 | 0.0 |
+| P1 (swiss-ai/Apertus-v1.5-8B) | 23.8 | 0.0 | 11.8 | 0.1 | 14.5 | 34.8 | 2.2 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-70B) | 7.0 | 0.0 | 4.4 | 0.0 | 7.3 | 29.2 | 1.3 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-8B) | 17.6 | 0.0 | 9.6 | 0.0 | 11.9 | 34.1 | 3.2 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 16.3 | 0.0 | 9.2 | 0.0 | 9.1 | 32.3 | 3.4 | 0.0 |
 
 Fact-rich subset (17 pairs with at least 3 hard facts):
 
@@ -36,13 +36,13 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 |---|---|---|---|---|
 | SOURCE | 17 | 100 % | - | - |
 | REF | 17 | 61 % | - | - |
-| P0 (swiss-ai/Apertus-v1.5-8B) | 17 | 91 % | 90 % | - |
-| P0-ZH-complete (swiss-ai/Apertus-v1.5-8B) | 17 | 82 % | 80 % | - |
-| P0-ZH-condensed (swiss-ai/Apertus-v1.5-8B) | 17 | 67 % | 69 % | - |
-| P1 (swiss-ai/Apertus-v1.5-8B) | 17 | 68 % | 69 % | - |
-| P2 (swiss-ai/Apertus-v1.5-70B) | 16 | 90 % | 99 % | 3 % |
-| P2 (swiss-ai/Apertus-v1.5-8B) | 17 | 97 % | 100 % | 2 % |
-| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 17 | 94 % | 100 % | 2 % |
+| P0 (swiss-ai/Apertus-v1.5-8B) | 17 | 94 % | 93 % | - |
+| P0-ZH-complete (swiss-ai/Apertus-v1.5-8B) | 17 | 82 % | 79 % | - |
+| P0-ZH-condensed (swiss-ai/Apertus-v1.5-8B) | 17 | 68 % | 65 % | - |
+| P1 (swiss-ai/Apertus-v1.5-8B) | 17 | 58 % | 60 % | - |
+| P2 (swiss-ai/Apertus-v1.5-70B) | 16 | 96 % | 100 % | 3 % |
+| P2 (swiss-ai/Apertus-v1.5-8B) | 17 | 97 % | 99 % | 6 % |
+| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 17 | 96 % | 99 % | 4 % |
 
 Failed runs: 1 (zh-sebe-disability-de).
 
@@ -54,11 +54,11 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Original (standard language) | 3 | - | 100 % | 0 % | 36.4 | 85.8 | 10.1 | 59 | - | - | 0.0 | - | - | - |
 | Official easy-language version | 3 | - | 54 % | 46 % | 2.9 | 21.7 | 6.6 | 85 | - | - | 0.8 | - | - | - |
-| P0 baseline: one prompt (swiss-ai/Apertus-v1.5-8B) | 3 | 61 % | 68 % | 32 % | 10.6 | 27.2 | 5.6 | 54 | 36.8 | - | 0.5 | 950 | 0.0001 | 2.7 |
-| P1 no judge: fact sheet + draft + rule check (swiss-ai/Apertus-v1.5-8B) | 3 | 57 % | 53 % | 0 % | 11.3 | 29.4 | 8.5 | 72 | 40.4 | - | 0.0 | 5849 | 0.0008 | 3.2 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-70B) | 3 | 100 % | 91 % | 0 % | 4.6 | 28.1 | 9.2 | 80 | 46.2 | 0.0 | 0.0 | 17621 | 0.0201 | 42.3 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B) | 3 | 100 % | 87 % | 0 % | 4.9 | 34.0 | 8.6 | 74 | 41.6 | 1.5 | 0.0 | 23297 | 0.0113 | 47.2 |
-| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 3 | 100 % | 93 % | 0 % | 6.6 | 33.7 | 7.2 | 70 | 41.8 | 0.7 | 0.0 | 25412 | 0.0149 | 28.2 |
+| P0 baseline: one prompt (swiss-ai/Apertus-v1.5-8B) | 3 | 89 % | 89 % | 11 % | 29.7 | 68.3 | 8.9 | 54 | 36.8 | - | 0.4 | 983 | 0.0001 | 2.9 |
+| P1 no judge: fact sheet + draft + rule check (swiss-ai/Apertus-v1.5-8B) | 3 | 72 % | 63 % | 0 % | 6.3 | 30.1 | 8.0 | 67 | 39.7 | - | 0.0 | 5569 | 0.0008 | 4.9 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-70B) | 3 | 100 % | 89 % | 0 % | 3.4 | 17.4 | 7.7 | 80 | 47.3 | 0.5 | 0.0 | 14704 | 0.0177 | 39.2 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B) | 3 | 100 % | 72 % | 0 % | 3.5 | 25.8 | 8.2 | 70 | 40.2 | 8.4 | 0.0 | 23493 | 0.0156 | 43.5 |
+| P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 3 | 95 % | 87 % | 0 % | 8.8 | 45.5 | 8.7 | 73 | 42.4 | 13.6 | 0.0 | 26369 | 0.0157 | 38.9 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -68,11 +68,11 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 |---|---|---|---|---|---|---|---|---|
 | SOURCE | 53.7 | 0.0 | 24.5 | 0.0 | 39.5 | - | 4.5 | 0.0 |
 | REF | 17.0 | 0.0 | 4.0 | 0.0 | 3.1 | - | 0.5 | 0.0 |
-| P0 (swiss-ai/Apertus-v1.5-8B) | 18.1 | 0.0 | 1.8 | 0.0 | 16.6 | 0.0 | 1.3 | 0.0 |
-| P1 (swiss-ai/Apertus-v1.5-8B) | 21.1 | 0.0 | 8.9 | 0.0 | 6.1 | 0.0 | 4.7 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-70B) | 16.1 | 0.0 | 6.7 | 0.0 | 8.1 | 0.0 | 1.8 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-8B) | 17.7 | 0.0 | 5.6 | 0.0 | 8.9 | 0.0 | 6.7 | 0.0 |
-| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 14.4 | 0.0 | 7.7 | 0.0 | 12.4 | 0.0 | 5.9 | 0.0 |
+| P0 (swiss-ai/Apertus-v1.5-8B) | 43.0 | 0.0 | 20.7 | 0.0 | 30.0 | 0.0 | 4.4 | 0.0 |
+| P1 (swiss-ai/Apertus-v1.5-8B) | 14.4 | 0.0 | 7.0 | 0.0 | 11.4 | 0.0 | 3.6 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-70B) | 6.0 | 0.0 | 4.6 | 0.0 | 8.4 | 0.0 | 1.7 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-8B) | 14.4 | 0.0 | 4.7 | 0.0 | 7.5 | 0.0 | 2.7 | 0.0 |
+| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 17.0 | 0.0 | 7.8 | 0.0 | 22.4 | 0.0 | 7.2 | 0.0 |
 
 Fact-rich subset (3 pairs with at least 3 hard facts):
 
@@ -80,8 +80,8 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
 |---|---|---|---|---|
 | SOURCE | 3 | 100 % | - | - |
 | REF | 3 | 54 % | - | - |
-| P0 (swiss-ai/Apertus-v1.5-8B) | 3 | 68 % | 61 % | - |
-| P1 (swiss-ai/Apertus-v1.5-8B) | 3 | 53 % | 57 % | - |
-| P2 (swiss-ai/Apertus-v1.5-70B) | 3 | 91 % | 100 % | 0 % |
-| P2 (swiss-ai/Apertus-v1.5-8B) | 3 | 87 % | 100 % | 2 % |
-| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 3 | 93 % | 100 % | 0 % |
+| P0 (swiss-ai/Apertus-v1.5-8B) | 3 | 89 % | 89 % | - |
+| P1 (swiss-ai/Apertus-v1.5-8B) | 3 | 63 % | 72 % | - |
+| P2 (swiss-ai/Apertus-v1.5-70B) | 3 | 89 % | 100 % | 0 % |
+| P2 (swiss-ai/Apertus-v1.5-8B) | 3 | 72 % | 100 % | 5 % |
+| P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 3 | 87 % | 95 % | 8 % |

@@ -590,6 +590,11 @@ def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps
     # The examples' own values, in a sentence without a topic word.
     leak = "Rufen Sie an: 031 987 65 43."
     assert topic_sentences([leak], "de", "Telefon 044 123 45 67.") == [leak]
+    # The French write example's microchip, in a document about petitions (13 October
+    # 2026: five such sentences in a final draft of the run of 11 October).
+    chip = "Vous devez envoyer le numéro de la puce avec votre matériel de vote."
+    assert topic_sentences([chip], "fr", "Les pétitions sont déposées.") == [chip]
+    assert topic_sentences([chip], "fr", "La puce du chien est obligatoire.") == []
     assert topic_sentences([leak], "de", "Telefon 031 987 65 43.") == []
     assert topic_sentences(["Bezahlen Sie bis 30. April 2026."], "de", "Prämien.") == [
         "Bezahlen Sie bis 30. April 2026."
@@ -934,6 +939,39 @@ def test_an_unsupported_verdict_needs_its_quote_in_the_draft() -> None:
     ]
     assert [(u.block_id, u.quote) for u in report.dropped] == [("b003", "im Internet bezahlen")]
     assert report.problem_block_ids() == {"b002", "b003"}
+
+
+def test_a_quote_with_the_prompts_marker_is_found_and_a_heading_verdict_is_dropped() -> None:
+    """The judge reads `[b003] - text` and quoted the marker in 43 of the 66 dropped
+    verdicts of the final run of 11 October 2026 (a leaked `- le numéro de la puce`
+    among them); since 12 October 2026 the comparison ignores it. A verdict on a
+    question heading goes to `dropped`: the heading is the reader's question (LAY-03),
+    and a repair would turn it into a statement."""
+    from leichtfacile.pipeline.models import JudgeOut
+    from leichtfacile.pipeline.stages import to_judge_report
+    from leichtfacile.schemas import Block, Draft, FactSheet
+
+    draft = Draft(doc_id="d", lang="fr", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="De quoi avez-vous besoin ?"),
+        Block(id="b002", kind="list_item", text="le numéro de la puce"),
+        Block(id="b003", kind="sentence", text="Vous payez 20 francs."),
+    ])  # fmt: skip
+    out = JudgeOut.model_validate({"fact_checks": [], "unsupported": [
+        {"block_id": "b002", "quote": "- le numéro de la puce", "note": "pas dans l'original"},
+        {"block_id": "b003", "quote": "[b003] Vous payez 20 francs.", "note": "pas de montant"},
+        {"block_id": "b001", "quote": "# De quoi avez-vous besoin ?",
+         "note": "L'original ne pose pas cette question."},
+        {"block_id": "b001", "note": "sans citation, sur un titre"},
+    ]})  # fmt: skip
+    report = to_judge_report(out, draft, FactSheet(doc_id="d"), "m")
+    assert [(u.block_id, u.quote) for u in report.unsupported] == [
+        ("b002", "- le numéro de la puce"),
+        ("b003", "[b003] Vous payez 20 francs."),
+    ]
+    assert [(u.block_id, u.quote) for u in report.dropped] == [
+        ("b001", "# De quoi avez-vous besoin ?"),
+        ("b001", None),
+    ]
 
 
 def test_the_judge_filter_keeps_sem_09_and_sem_10_for_a_decision_only() -> None:

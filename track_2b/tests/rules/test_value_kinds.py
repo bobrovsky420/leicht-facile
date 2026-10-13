@@ -58,6 +58,21 @@ def keys(text: str, lang: str = "de") -> list[tuple[str, str]]:
         ("Geschäfts·nummer: K-4711", ("identifier", "K-4711")),
         ("Die Nummer von Ihrem Dossier ist 2026-0042.", ("identifier", "2026-0042")),
         ("Verfügung Nr. 12 vom 31.3.2026", ("identifier", "12")),
+        # 12 October 2026, from the final run and the Fedlex Answer and Klartext test
+        # texts: the genitive, an adjective between count and unit, multipliers and
+        # the keywords of tax letters, payment orders and patient letters.
+        ("innert dreier Monate", ("period", "3m")),
+        ("innert zweier Wochen", ("period", "2w")),
+        ("in den zwei folgenden Wochen", ("period", "2w")),
+        ("CHF 1,5 Mio.", ("amount", "1500000")),
+        ("1'500'000 Franken", ("amount", "1500000")),
+        ("20 Millionen Franken", ("amount", "20000000")),
+        ("4 Millionen Menschen", ("number", "4000000")),
+        ("CHF 3 Mrd.", ("amount", "3000000000")),
+        ("Steuernummer 123.456.789", ("identifier", "123.456.789")),
+        ("Zahlungsbefehl Nr. 998273", ("identifier", "998273")),
+        ("Patienten·nummer 4711-22", ("identifier", "4711-22")),
+        ("Strafbefehl Nr. SB.2026.17", ("identifier", "SB.2026.17")),
         ("Gerichtsstrasse 12, 8000 Musterwil", ("address", "Gerichtsstrasse 12||8000 Musterwil")),
         ("Gerichts·strasse 12, 8000 Musterwil", ("address", "Gerichtsstrasse 12||8000 Musterwil")),
         ("Bahnhofstr. 3a\n8001 Zürich", ("address", "Bahnhofstrasse 3a||8001 Zürich")),
@@ -97,10 +112,39 @@ def test_german_values(text: str, expected: tuple[str, str]) -> None:
         ("it", "entro 30 giorni", ("period", "30d")),
         ("it", "due settimane", ("period", "2w")),
         ("it", "Via Cantonale 3, 6900 Lugano", ("address", "Via Cantonale 3||6900 Lugano")),
+        # 12 October 2026: an elision before the count, an adjective between count and
+        # unit, a multiplier with the currency after `de`, and the keywords of tax
+        # letters and payment orders.
+        ("fr", "dans un délai d'un mois", ("period", "1m")),
+        ("fr", "d'une semaine", ("period", "1w")),
+        ("fr", "les quatre derniers mois", ("period", "4m")),
+        ("fr", "2 millions de francs", ("amount", "2000000")),
+        ("fr", "N° de contribuable : 482.317.556", ("identifier", "482.317.556")),
+        ("fr", "Commandement de payer n° 998273", ("identifier", "998273")),
+        ("it", "nei prossimi tre mesi", ("period", "3m")),
+        ("it", "Riferimento Pratica: TIC-9988", ("identifier", "TIC-9988")),
+        ("it", "Numero di contribuente 482.317.556", ("identifier", "482.317.556")),
     ],
 )  # fmt: skip
 def test_french_and_italian_values(lang: str, text: str, expected: tuple[str, str]) -> None:
     assert expected in keys(text, lang)
+
+
+def test_a_thousands_separator_is_no_elision_and_a_multiplier_is_part_of_the_value() -> None:
+    assert keys("1'000 jours", "fr") == [("number", "1000")]  # not `000 jours`
+    (value,) = extract_values("CHF 1,5 Mio. pro Jahr")
+    assert (value.kind, value.canonical, value.text) == ("amount", "1500000", "1,5 Mio.")
+    assert parse_value_norm("1,5 Mio.", "amount") == Value("amount", "1500000")
+    assert matches(Value("amount", "1500000"), extract_values("1'500'000 Franken")[0])
+
+
+def test_a_dotted_or_lettered_identifier_in_the_fact_sheet_is_the_code_itself() -> None:
+    """Before 12 October 2026 `482.317.556` of a fact of kind `identifier` was read as
+    the plain number 482, so a draft that kept the number was told it had lost it."""
+    assert parse_value_norm("482.317.556", "identifier") == Value("identifier", "482.317.556")
+    assert parse_value_norm("TIC-9988", "identifier") == Value("identifier", "TIC-9988")
+    assert parse_value_norm("12345", "identifier") == Value("number", "12345")  # D-O: as before
+    assert parse_value_norm("12.50", "amount") == Value("amount", "12.5")
 
 
 @pytest.mark.parametrize(
