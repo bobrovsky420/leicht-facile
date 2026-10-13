@@ -148,7 +148,7 @@ on-premise): no single provider is needed.
 
 | Hardware | Model and server | Memory | Speed |
 |----------|------------------|--------|-------|
-| NVIDIA L4 24 GB | 8B in bf16, vLLM | 17.2 GiB of weights; with the FP8 KV cache, one 32k request fits | 16 tokens per second, near the limit of the card's memory bandwidth |
+| NVIDIA L4 24 GB | 8B in bf16, vLLM | 18.5 GB of weights; with the FP8 KV cache, one 32k request fits | 16 tokens per second, near the limit of the card's memory bandwidth |
 | NVIDIA RTX 4060 8 GB | 8B in 4-bit, llama.cpp | 5.1 GB of weights | About 37 tokens per second |
 
 ## 3. Use of Apertus
@@ -219,8 +219,8 @@ evaluation scripts; the design, the decisions and every claim here are the team'
 | Reference pairs: **35** documents with an official easy-language version (**30** German: 20 eval, 10 dev; **5** French: 3 eval, 2 dev) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | Personal use only. The repository holds only the manifest (`track_2b/data/pairs/manifest.jsonl`: URLs, licence notes); `eval fetch` caches the texts, git-ignored, with a fetch date |
 | Example documents, few-shot examples, hard texts for tests | Written by the team: invented municipality, reserved `.example` domains | In the repository, under the project licence |
 
-Dev pairs serve prompt development and calibration; eval pairs are held out. No
-personal data is used. Evaluating against protected pages needs no consent as long as
+Dev pairs serve prompt development and calibration; eval pairs are held out and
+used only for the final measurement. No personal data is used. Evaluating against protected pages needs no consent as long as
 neither the texts nor our rewrites are published (Copyright Act art. 24a and 24d; our
 reading, not legal advice; [track_2b/docs/sources.md](docs/sources.md) §4).
 
@@ -272,7 +272,7 @@ the cache: P1's time is not measured, the last row's is too low.
   they rewrite little (8.0 and 7.0 words per sentence; SARI rewards closeness to the
   source) and lose the rest without a trace; the condensed mode, its default, simplifies
   more and drops a third of the values.
-- The pipeline keeps more hard facts than the official versions: 97 against 67 percent,
+- Our pipeline keeps more hard facts than the official versions: 97 against 67 percent,
   and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions
   drop values on purpose. It nears their sentence length (7.0 words against 6.1) but is
   harder to read (Amstad 52 against 62).
