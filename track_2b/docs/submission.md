@@ -72,7 +72,7 @@ Where Apertus fell short, and what we did about it: the 8B drops facts while wri
 
 Use of AI in development: the code, tests and documents were written with AI coding assistants (Claude Code, Anthropic), directed and reviewed by the team. Claude also labelled the 59 items of the judge agreement. No other model runs in the product.
 
-Where to start: README.md, track_2b/technical_report.md (as PDF: track_2b/RoestigrabenBridgers_Report.pdf), track_2b/eval/report.md, track_2b/docs/use-case-canton.md. Submitted commit: [PENDING: hash].
+Where to start: README.md, track_2b/technical_report.md (as PDF: track_2b/RoestigrabenBridgers_Report.pdf), track_2b/eval/report.md, track_2b/docs/use-case-canton.md. Submitted commit: the head of `main` on submission day (the final run's pipeline code: `1f67b11`).
 ```
 
 ## 4. The video page
@@ -198,14 +198,14 @@ answer each question:
 
 ## 7. Before we press Submit
 
-- [ ] Final CSCS run read (PLAN.md WP13, D-M); its numbers in one pass in report §1,
+- [x] Final CSCS run read (PLAN.md WP13, D-M); its numbers in one pass in report §1,
       §5 and §6, README and the video (`eval numbers`, `track_2b/eval/report.md`).
-- [ ] No **[PENDING]** or **[OWNER]** left in README.md and track_2b/technical_report.md.
+- [x] No **[PENDING]** or **[OWNER]** left in README.md and track_2b/technical_report.md (13 October: the final run's commit `1f67b11` in report §7).
 - [ ] Tests and ruff green; CI green on the submitted commit.
-- [ ] The prepared letters still replay on the submitted commit (`test_examples.py`
+- [x] The prepared letters still replay on the submitted commit (`test_examples.py`
       replays each recording without an endpoint); after any prompt change, record
       them again with `python -m leichtfacile examples record` (track_2b/data/examples/README.md).
-- [ ] Report printed with `make pdf` (§5) after its last change, at most 6 pages before
+- [x] Report printed with `make pdf` (§5) after its last change, at most 6 pages before
       the references, saved as `track_2b/RoestigrabenBridgers_Report.pdf`, committed.
 - [ ] Video rendered, uploaded, URL in README, report and form.
 - [ ] Repository public; `git log -p -- .env` empty.

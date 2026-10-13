@@ -252,9 +252,9 @@ official version (a port of `SARI.py`, checked bit for bit); cost at Public AI's
 prices and speed per 250-word page.
 
 Results on the 20 held-out German pairs, final run on the CSCS endpoint, 12 October
-2026; the strong prompt's two rows were sampled on 11 October and scored again against
-this run's fact sheets, since their templates did not change. Each number is the mean
-over the pairs; "/100" means per 100 blocks. P1 and the last row reused answers from
+2026. The strong prompt's two rows keep the answers of its run of 11 October, because
+its prompt did not change in between; only the checks ran again on them. Each number
+is the mean over the pairs; "/100" means per 100 blocks. P1 and the last row reused answers from
 the cache: P1's time is not measured, the last row's is too low.
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Values not in source /100 | Unsupported /100 (judge) | Rule errors /100 | Amstad | SARI | USD / page | s / page |
@@ -289,7 +289,7 @@ the cache: P1's time is not measured, the last row's is too low.
   into 140 blocks, came out as a 44-block draft with one error this time.
 - A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
   91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
-  temperature 0.3); on 12 October its rows were scored again, not sampled again.
+  temperature 0.3); the table keeps its answers of 11 October.
 - French (3 pairs): 100 percent fact coverage, 72 percent of the hard facts (one draft
   of 117 words for a 489-word source kept 4 of 15, every one listed for the reviewer),
   3.5 errors, readability 70 (official 85).
@@ -353,9 +353,7 @@ sentences for every rule (two or more that fire, one that must not).
   through the response cache, and each result stores the hash of its prompt template.
 - **Hardware and commit:** the evaluation numbers come from the CSCS endpoint, the
   hardware figures in §2 from our own runs (the L4 run in `track_2b/eval/hardware/`);
-  commit **[PENDING: hash]** (the final run of 12 October 2026, on the prompt templates
-  that address the model informally and the value extractor fixed the same day; the
-  strong prompt's rows from the run of 11 October on commit `663b609`, scored again).
+  commit `1f67b11` (the final run of 12 October 2026).
 
 ## 8. Next steps
 
