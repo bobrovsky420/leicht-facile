@@ -227,10 +227,10 @@ the spaCy models are direct references in its metadata. Needs Python 3.12 or new
 
 ```bash
 # as a tool on the PATH (uv picks or installs the Python)
-uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.5.0/leichtfacile-0.5.0-py3-none-any.whl
+uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
 
 # or into an environment of your own, for example in a custom image
-pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.5.0/leichtfacile-0.5.0-py3-none-any.whl
+pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
 ```
 
 ```bash

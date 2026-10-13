@@ -1,8 +1,8 @@
 # Leicht·Facile
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
-[![Release](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/bobrovsky420/leicht-facile)](https://github.com/bobrovsky420/leicht-facile/releases/latest)
+[![Build](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/bobrovsky420/leicht-facile)](https://github.com/bobrovsky420/leicht-facile/releases/latest)
 
 Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
 Sprache and Einfache Sprache, French FALC; Italian follows) with Apertus, and proves with code that
