@@ -40,5 +40,10 @@ out/
 .pytest_cache/
 .ruff_cache/
 
-# Local audit notes (not part of the submission)
+# Local working notes (not part of the submission)
 AUDIT.md
+/submission.md
+/video/
+/AGENTS.md
+/CLAUDE.md
+/PLAN.md

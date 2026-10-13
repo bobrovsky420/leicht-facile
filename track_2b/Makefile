@@ -117,7 +117,7 @@ eval-70b: check-env
 	uv run python -m leichtfacile eval report --results $(RESULTS) --out track_2b/eval/report.md
 
 # The technical report as a designed PDF, track_2b/RoestigrabenBridgers_Report.pdf
-# (track_2b/docs/submission.md §5). Needs Edge or Chrome; CHROME_PATH names another Chromium.
+# (submission.md §5). Needs Edge or Chrome; CHROME_PATH names another Chromium.
 pdf:
 	uv run python track_2b/scripts/report_pdf.py
 

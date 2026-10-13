@@ -1,6 +1,6 @@
 """The report's PDF renderer (track_2b/scripts/report_pdf.py) without a browser, and the
 printed PDF itself: at most six pages before the references, the hackathon's limit, with
-its document information (track_2b/docs/submission.md §5)."""
+its document information (submission.md §5)."""
 
 from __future__ import annotations
 

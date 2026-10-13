@@ -1,4 +1,4 @@
-"""The technical report as a designed PDF (track_2b/docs/submission.md §5).
+"""The technical report as a designed PDF (submission.md §5).
 
 Usage: uv run python track_2b/scripts/report_pdf.py [--out FILE] [--html FILE] [--browser PATH]
 (or `make pdf`). Lays out track_2b/technical_report.md on A4 in two columns with

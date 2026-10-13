@@ -60,6 +60,6 @@ def test_the_report_and_its_pdf_are_in_track_2b_only() -> None:
 
 def test_the_report_pdf_links_to_no_local_file() -> None:
     """Printed without absolute links, the browser writes each relative link as a path on
-    the machine that printed it (track_2b/docs/submission.md §5)."""
+    the machine that printed it (submission.md §5)."""
     links = re.findall(rb"/URI\s*\(([^)]*)\)", PDF.read_bytes())
     assert links and not [u for u in links if u.startswith(b"file:")]

@@ -1381,8 +1381,6 @@ pyproject.toml, uv.lock     dependencies (uv), Python 3.12+; .python-version pin
 .env.example                endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                   project overview, quick start, documentation list
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
-PLAN.md, AGENTS.md          the plan; the rules for AI agents
-video/                      the demo video as code (Remotion)
 track_2b/                   the template's folder, as the organisers require it
   Makefile                  run · stop · check-llm · test · lint · smoke · calibrate · day1 · eval ·
                             pdf; the recipes run from the root, also when called here

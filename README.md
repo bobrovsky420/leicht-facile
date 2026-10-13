@@ -153,19 +153,19 @@ page's server when a user enters a URL: no telemetry, no CDN, no login provider 
 
 ## Documentation
 
-- [track_2b/technical_report.md](track_2b/technical_report.md): the technical report (PDF: `track_2b/RoestigrabenBridgers_Report.pdf`)
-- [track_2b/docs/quickstart.md](track_2b/docs/quickstart.md): every way to start the app, from `make run` to a development server
-- [track_2b/docs/architecture.md](track_2b/docs/architecture.md): design and architecture
-- [track_2b/docs/ui-design.md](track_2b/docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
-- [track_2b/docs/rules.md](track_2b/docs/rules.md): the rule catalogue the checker implements
-- [track_2b/docs/prompts.md](track_2b/docs/prompts.md): prompt design and change log
-- [track_2b/docs/sources.md](track_2b/docs/sources.md): reference pairs, demo documents, licences
-- [track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md): a walkthrough for a cantonal administration
-- [track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
-- [track_2b/docs/use-cases.md](track_2b/docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
-- [track_2b/docs/image-input.md](track_2b/docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
-- [track_2b/docs/hard-texts.md](track_2b/docs/hard-texts.md): hard words and sentences for tests and the presentation
-- [track_2b/docs/demo-video.md](track_2b/docs/demo-video.md): script and storyboard for the demo video
+- [technical_report.md](track_2b/technical_report.md): the technical report (PDF: `track_2b/RoestigrabenBridgers_Report.pdf`)
+- [quickstart.md](track_2b/docs/quickstart.md): every way to start the app, from `make run` to a development server
+- [architecture.md](track_2b/docs/architecture.md): design and architecture
+- [ui-design.md](track_2b/docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
+- [rules.md](track_2b/docs/rules.md): the rule catalogue the checker implements
+- [prompts.md](track_2b/docs/prompts.md): prompt design and change log
+- [sources.md](track_2b/docs/sources.md): reference pairs, demo documents, licences
+- [use-case-canton.md](track_2b/docs/use-case-canton.md): a walkthrough for a cantonal administration
+- [use-case-decisions.md](track_2b/docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
+- [use-cases.md](track_2b/docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
+- [image-input.md](track_2b/docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
+- [hard-texts.md](track_2b/docs/hard-texts.md): hard words and sentences for tests and the presentation
+- [demo-video.md](track_2b/docs/demo-video.md): script and storyboard for the demo video
 
 ## Licence
 
