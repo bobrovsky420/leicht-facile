@@ -960,7 +960,7 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
       builds the wheel, installs it in a clean venv outside the checkout, runs the checker
       (spaCy models loaded) and publishes it as a GitHub release; the spaCy models are direct
       references in `pyproject.toml`, so the wheel installs with uv or pip without the repo.
-      Release and version badges in both READMEs; install commands in quickstart §9 (the
+      The release workflow's badge in both READMEs (the version badge dropped 13 Oct); install commands in quickstart §9 (the
       READMEs' Quick start keeps `make run` alone and links there, 11 Oct); `tests/test_release.py` keeps version and wheel URLs in step (AGENTS.md).
       *First release: `v0.5.0`, 11 Oct; version 0.6.0 on 13 Oct.*
 - [ ] **Numbers audit** (0.5 h at G4, again at G6; *the G4 pass done 10 Oct, night, with next step 4*): every number in README, report and
