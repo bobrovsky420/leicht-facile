@@ -30,15 +30,15 @@ site on 9 October; * = required):
 
 | Field | Our entry |
 |-------|-----------|
-| First name * | **[OWNER: the team member who submits]** |
-| Last name * | **[OWNER]** |
-| Email (used for Devpost sign-up) * | **[OWNER: the address used for the Devpost sign-up]** |
-| GitHub username * | `bobrovsky420` **[OWNER: or the submitter's own]** |
+| First name * | Alexander |
+| Last name * | Bobrovsky |
+| Email (used for Devpost sign-up) * | bobrovsky@seznam.cz |
+| GitHub username * | `bobrovsky420` |
 | Hugging Face username | empty (no dataset) |
 | Team name * | Röstigraben Bridgers |
 | Team members * (comma-separated names) | Alexander Bobrovsky, Ivan Kuzmych |
 | Project name * | Leicht·Facile |
-| Swiss student team * (Yes / No) | **[OWNER]** |
+| Swiss student team * (Yes / No) | No |
 | Model * (8B v1.5, 70B v1.5, or 8B + 70B v1.5) | 8B + 70B v1.5 |
 | Technical report (PDF, max. 6 pages) * | `track_2b/RoestigrabenBridgers_Report.pdf` |
 | Dataset (URL) | empty |
@@ -201,13 +201,19 @@ answer each question:
 - [x] Final CSCS run read (PLAN.md WP13, D-M); its numbers in one pass in report §1,
       §5 and §6, README and the video (`eval numbers`, `track_2b/eval/report.md`).
 - [x] No **[PENDING]** or **[OWNER]** left in README.md and track_2b/technical_report.md (13 October: the final run's commit `1f67b11` in report §7).
-- [ ] Tests and ruff green; CI green on the submitted commit.
+- [ ] Tests and ruff green; CI green on the submitted commit. State on 13 October,
+      commit `6b3bb7b` (Windows, local): `pytest` 1,454 passed, none failed or skipped;
+      `ruff check` and `ruff format --check` clean. CI run #115 on `6b3bb7b` green (owner,
+      13 October). Open: the same on the submitted commit, if it is a later one.
 - [x] The prepared letters still replay on the submitted commit (`test_examples.py`
       replays each recording without an endpoint); after any prompt change, record
       them again with `python -m leichtfacile examples record` (track_2b/data/examples/README.md).
 - [x] Report printed with `make pdf` (§5) after its last change, at most 6 pages before
       the references, saved as `track_2b/RoestigrabenBridgers_Report.pdf`, committed.
-- [ ] Video rendered, uploaded, URL in README, report and form.
+- [x] Video rendered, uploaded, URL in README, report and form. State on 13 October:
+      render C39 (118.7 s) at https://youtu.be/5el7q6Xtgik, the only video link in both
+      READMEs, the report and its PDF (text and link) and the form entry in §2; it opens
+      without a login (YouTube's oEmbed answers for it anonymously).
 - [ ] Repository public; `git log -p -- .env` empty.
 - [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job
       (Linux, 10 October, commit 6936d05).

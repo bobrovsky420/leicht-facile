@@ -1196,7 +1196,7 @@ since:
       commit.
 - [ ] The owner's answers to the **[OWNER]** placeholders (track_2b/docs/submission.md): the
       declared maturity level (*confirmed 11 Oct*), the coding-assistant sentence, the first user (none
-      named, D-Q; *its placeholder dropped from report §8, owner, 11 Oct*), who submits and with which Devpost e-mail, "Swiss student team", the
+      named, D-Q; *its placeholder dropped from report §8, owner, 11 Oct*), who submits and with which Devpost e-mail (*Alexander Bobrovsky as `bobrovsky420`, bobrovsky@seznam.cz, owner, 13 Oct*), "Swiss student team", the
       video platform, and whether track_2b/docs/submission.md stays in the public repository.
 - [ ] Submit at hackapertus.ch/online-hack/submissions: repo URL, PDF, video URL, model
       "8B + 70B v1.5" and the message to the jury; every field with our entry and the
