@@ -71,14 +71,14 @@ fairer baseline is a strong single prompt: a published Leichte Sprache prompt fr
 Swiss public administration
 ([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
 MIT), here in its "complete" mode. Final run: 20 held-out German text pairs on the CSCS
-endpoint, 11 October 2026 (report §5).
+endpoint, 12 October 2026 (report §5).
 
 | | A strong single prompt | Leicht·Facile |
 |---|---|---|
-| Must-keep facts found | 83 % | 100 % |
+| Must-keep facts found | 82 % | 100 % |
 | Hard facts lost without a trace | 15 % (33 % in its default, condensed mode) | none: it lists every one it misses |
-| Invented values, per 100 blocks | 0.0 | 0.1 |
-| Rule errors, per 100 blocks | 15.0 | 4.2 |
+| Invented values, per 100 blocks | 0.0 | 0.0 |
+| Rule errors, per 100 blocks | 15.0 | 3.7 |
 
 ### Why only Apertus
 
@@ -94,7 +94,7 @@ secrecy. Four conditions follow, and only Apertus meets all four:
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
 
 The Canton of Ticino already runs Apertus in-house to translate sensitive government
-documents. Tokens are nearly free (about 1.3 US cents per page for the full pipeline at
+documents. Tokens are nearly free (about 1.6 US cents per page for the full pipeline at
 Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
 [track_2b/docs/use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus).

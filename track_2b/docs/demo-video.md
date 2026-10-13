@@ -44,8 +44,10 @@ idea per shot, English captions burned in.
   lost without a trace (owner, 11 October: more important than the rule errors): the
   prompt loses 15 percent, Leicht·Facile none, since it lists every hard fact it misses
   for the writer (code checks the values; a fact without a value rests on the judge).
-  The rule errors (4.2 against 15.0 per 100 blocks) and the must-keep facts found (100
-  against 83 percent) stay in the report. The scene does not name the prompt's source
+  The rule errors (3.7 against 15.0 per 100 blocks since the repeated run of 12
+  October; 4.2 on 11 October) and the must-keep facts found (100 against 82 percent;
+  83 on 11 October) stay in the report; the scene's 15 against 0 percent did not move,
+  as the prompt's rows were scored again, not sampled again. The scene does not name the prompt's source
   (owner, 10 October: next to a project we build on, that would sound arrogant);
   the end card carries the credit to Zurich (D-L).
 - Second message: patient letters, child protection decisions and tax letters are

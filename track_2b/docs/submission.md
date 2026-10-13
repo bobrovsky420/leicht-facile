@@ -66,7 +66,7 @@ Try it. Set LLM_BASE_URL, LLM_API_KEY and LLM_NAME (the CSCS values work as they
 
 What the running system contacts: only the Apertus endpoint in LLM_BASE_URL (the document text, inside prompts) and, when a user enters a URL, that page's server. No telemetry, no CDN, no login provider; on-premise or air-gapped, no data leaves the organisation. Why Apertus is the only model that fits letters under official, medical or tax secrecy: README, "Why only Apertus".
 
-Results. Same model, a strong single prompt (a published Leichte Sprache prompt from a Swiss public administration) against our pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 11 October 2026): the pipeline finds 100 percent of the must-keep facts against 83, loses none without a trace against 15 percent, and has 4.2 against 15.0 rule errors per 100 blocks; invented values are rare on both sides (0.1 against 0.0).
+Results. Same model, a strong single prompt (a published Leichte Sprache prompt from a Swiss public administration) against our pipeline, on 20 held-out German pairs on the CSCS endpoint (final run, 12 October 2026): the pipeline finds 100 percent of the must-keep facts against 82, loses none without a trace against 15 percent, and has 3.7 against 15.0 rule errors per 100 blocks; invented values are rare on both sides (0.0 against 0.0).
 
 Where Apertus fell short, and what we did about it: the 8B drops facts while writing and ignores word-level instructions, so code completes the fact sheet and checks every value; the 70B judge's fact verdicts agree with blind labels hardly better than chance (kappa 0.08), so every fact number in the report comes from code; on scanned letters both models change digits on a whole page and names in every setting, so image input is not built (track_2b/docs/image-input.md has every run).
 
@@ -160,8 +160,8 @@ with markdown-it-py, so every change of the report reaches it with the next prin
   `track_2b/tests/test_report_pdf.py` checks the same on the committed PDF, and that it
   came from the renderer; `track_2b/tests/test_copies.py` that no link is a local path.
 
-Printed 11 October from the final numbers: 6 pages, the last 92 % full. Without the
-references also 6, the sixth 75 % full, so the text may grow by about a quarter of a
+Printed 13 October from the numbers of the run of 12 October: 6 pages, the last 96 % full. Without the
+references also 6, the sixth 76 % full, so the text may grow by about a quarter of a
 page; the references then move to a seventh page, which the limit does not count. The
 full-width blocks, not the text size, set the page breaks.
 
@@ -175,11 +175,11 @@ answer each question:
 | Dimension | Question | Where we answer it | State |
 |-----------|----------|--------------------|-------|
 | Purposeful use of AI | Is Apertus suited to the task, and is that choice reasoned? | Report §1 and §3 ("why only Apertus"); README, "Why only Apertus"; [use-cases.md](use-cases.md) §2 | Answered |
-| | Is the model size justified, 8B where sufficient, 70B where needed? | Report §3 "Why these sizes"; §5 table (70B everywhere, hybrid) | Answered with the final run of 11 October (report §3 and §5) |
+| | Is the model size justified, 8B where sufficient, 70B where needed? | Report §3 "Why these sizes"; §5 table (70B everywhere, hybrid) | Answered with the final run of 12 October (report §3 and §5) |
 | | Is every other model right-sized? | Report §3 "Other models and coding assistants": none at runtime; spaCy and wordfreq | Answered |
 | | Does it say where Apertus fell short? | Report §3 "Where Apertus fell short"; §5 judge reliability; [image-input.md](image-input.md) | Answered |
 | Technical rigour | Does it run reproducibly from the documented command? | `make run`; report §7 | Clean checkout passed on Windows and Linux. **[PENDING: CI green on the submitted commit]** |
-| | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | Answered with the final run of 11 October 2026: every row on the 20 German and 3 French held-out pairs, the 70B everywhere on 19 German (report §5) |
+| | Is the claim backed by evaluation, not a single demo? | Report §5: 20 held-out pairs, two baselines, the official versions | Answered with the final run of 12 October 2026: every row on the 20 German and 3 French held-out pairs, the 70B everywhere on 19 German (report §5) |
 | | Where optimisation was applied (quantisation, batching, caching), is its effect shown? | Report §3 and §5: the 4-bit build only for development, never mixed; the response cache makes reruns exact and seconds undercount; Write without thinking (24 min against 28 s, 4-bit) | Partly: the cache's and the 4-bit build's effect on quality is not measured, nor the vLLM profile's FP8 KV cache (its memory effect is, report §2) |
 | | Are limitations and the use of coding assistants declared? | Report §6; report §3 "Other models and coding assistants"; README team line | Answered |
 | | (Maturity level declared) | Report header; README; message §3 | Confirmed by the owner, 11 October |
