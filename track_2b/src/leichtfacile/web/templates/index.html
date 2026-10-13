@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
 {% block content %}
-{% set recorded = prepared | selectattr('recording') | map(attribute='recording.recorded_at') | list %}
+{% set recorded = prepared | selectattr('recording') | list %}
 <div class="page">
   <div class="pagetitle">
     <div class="grow">
@@ -30,8 +30,9 @@
   <section class="card prepared" id="prepared" aria-labelledby="prepared-h">
     <div class="prepared-head">
       <div class="grow">
+        <span class="prepared-label">{{ t('prepared.label') }}</span>
         <h2 id="prepared-h">{{ t('prepared.title') }}</h2>
-        <p class="prepared-note">{{ t('prepared.text') }} {% if recorded %}{{ t('prepared.recorded', date=(recorded | max).strftime('%d.%m.%Y')) }}{% else %}{{ t('prepared.live') }}{% endif %}</p>
+        <p class="prepared-note">{{ t('prepared.text') }} {% if not recorded %}{{ t('prepared.live') }}{% endif %}</p>
       </div>
       <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="prepared-close" aria-label="{{ t('prepared.hide') }}">{{ icons.icon('x', 14) }}</button>
     </div>
@@ -45,6 +46,7 @@
         <span class="prepared-actions">
           <a class="btn btn-sm" href="/new?example={{ e.id }}">{{ t('prepared.edit') }}</a>
           <form method="post" action="/examples/{{ e.id }}/run">
+            {% if e.recording %}<button type="submit" class="btn btn-sm" name="live" value="1" title="{{ t('prepared.run_live_hint') }}" aria-label="{{ t('prepared.run_live_label', title=e.title) }}">{{ t('prepared.run_live') }}</button>{% endif %}
             <button type="submit" class="btn btn-primary btn-sm" aria-label="{{ t('prepared.run_label', title=e.title) }}">{{ icons.icon('play', 12) }}{{ t('prepared.run') }}</button>
           </form>
         </span>

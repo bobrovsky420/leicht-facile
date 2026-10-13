@@ -175,6 +175,22 @@ def test_cache_serves_repeated_calls(endpoint, make_client, tmp_path):
     cache.close()
 
 
+def test_without_cache_reads_the_endpoint_answers_and_refreshes_the_cache(
+    endpoint, make_client, tmp_path
+):
+    """A job run without cache (`JobConfig.live`): every call goes to the endpoint, and
+    its answer replaces the cached one."""
+    cache = ResponseCache(tmp_path / "cache.sqlite")
+    client = make_client(cache=cache)
+    endpoint.push(chat_response("alt"), chat_response("neu"))
+    client.complete(MSG, temperature=0.2)
+    with client.reading_cache(False):
+        assert client.complete(MSG, temperature=0.2).text == "neu"
+    assert client.complete(MSG, temperature=0.2).text == "neu"  # from the cache
+    assert len(endpoint.chat_bodies()) == 2
+    cache.close()
+
+
 def test_cache_key_depends_on_parameters(endpoint, make_client, tmp_path):
     cache = ResponseCache(tmp_path / "cache.sqlite")
     client = make_client(cache=cache)

@@ -235,17 +235,22 @@ Layout, at most 1440 px wide with 24 px gutters:
    a second model judges and flagged blocks are repaired; you review every block and
    export. A close button hides it, and `localStorage` remembers that per browser.
    Without JavaScript the strip stays and the button is not shown.
-3. The card "Try a prepared letter" (since 11 October 2026): one sentence on what a
-   click does, then, when a recorded run applies to the running settings, "Apertus's
-   answers to these letters were recorded on CSCS on {date}, so a run takes seconds
-   instead of minutes. Change the text or run a step again, and Apertus answers
-   live." (else "Apertus answers live: a run takes a few minutes."). One row per
-   example letter with a recorded run (architecture §6; the others stay in the New
-   draft form): its title (in the letter's `lang`) and, 12 px muted, the language,
-   "Letter" or "Decision letter" and "replays the recorded run (1 min 10 s on CSCS)"
-   or "runs live"; on the right "Edit first" (`/new?example=<id>`) and the primary
-   small button "Run" with a play icon, a form that posts to `/examples/{id}/run`
-   (works without JavaScript; its accessible name is "Run: {title}"). The rows wrap
+3. The card "Try a prepared letter" (since 11 October 2026): an accent border and a
+   head band in the accent colour with white text (since 13 October 2026), so the
+   hackathon demo path stands out; above the title, 17 px, an amber uppercase pill
+   "Hackathon demo". Under the title, 14 px over the card's full width, "Press Run to
+   send a ready-made sample letter through the whole pipeline, or Edit first to change
+   it before the pipeline starts.", and when no recorded run applies to the running
+   settings, "Apertus answers live: a run takes a few minutes.". One row per example
+   letter with a recorded run (architecture §6; the others stay in the New draft
+   form): its title (in the letter's `lang`) and, 12 px muted, the language, "Demo
+   letter" or "Demo decision letter" and "replays the recorded run (1 min 10 s on
+   CSCS)" or "runs live"; on the right "Edit first" (`/new?example=<id>`) and a form
+   that posts to `/examples/{id}/run` (works without JavaScript): for a row with a
+   recorded run the small button "Run without cache" (`live=1`, since 13 October 2026;
+   tooltip "Every answer comes live from Apertus: a run takes a few minutes.",
+   accessible name "Run without cache: {title}"), then the primary small button "Run"
+   with a play icon (accessible name "Run: {title}"). The rows wrap
    under each other at phone width. A close button hides the card like the intro
    strip (`lf-prepared-hidden`).
 4. One white card: a toolbar (search field, status filter as a segmented control
@@ -824,16 +829,19 @@ js.reader_not_complete    Review not marked complete
 
 rule.<ID>                 the rule's title from RuleSpec.title, merged like finding.<key>
 
+prepared.label            Hackathon demo                             (13 October 2026)
 prepared.title            Try a prepared letter                      (11 October 2026)
-prepared.text             One click sends a letter the team wrote through the whole pipeline, as if you had pasted it.
-prepared.recorded         Apertus's answers to these letters were recorded on CSCS on {date}, so a run takes seconds instead of minutes. Change the text or run a step again, and Apertus answers live.
+prepared.text             Press Run to send a ready-made sample letter through the whole pipeline, or Edit first to change it before the pipeline starts.   (13 October 2026)
 prepared.live             Apertus answers live: a run takes a few minutes.
-prepared.kind.standard    Letter
-prepared.kind.decision    Decision letter
+prepared.kind.standard    Demo letter                                (13 October 2026)
+prepared.kind.decision    Demo decision letter                       (13 October 2026)
 prepared.row.recorded     replays the recorded run ({time} on CSCS)
 prepared.row.live         runs live
 prepared.run              Run
 prepared.run_label        Run: {title}
+prepared.run_live         Run without cache                          (13 October 2026)
+prepared.run_live_label   Run without cache: {title}
+prepared.run_live_hint    Every answer comes live from Apertus: a run takes a few minutes.
 prepared.edit             Edit first
 prepared.hide             Hide the prepared letters
 progress.usage_replayed.* {n} calls · {tokens} tokens · recorded

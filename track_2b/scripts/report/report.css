@@ -225,6 +225,8 @@ th {
   vertical-align: bottom;
 }
 td { padding: 2.4pt 3.5pt; border-top: 0.5pt solid var(--hairline); vertical-align: top; }
+/* A second paragraph in a cell, after the gap between paragraphs. */
+td p { margin: 4.6pt 0 0; }
 tbody tr:first-child td { border-top: 0; }
 th:first-child, td:first-child { padding-left: 0; }
 th:last-child, td:last-child { padding-right: 0; }

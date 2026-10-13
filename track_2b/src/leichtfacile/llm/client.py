@@ -55,6 +55,9 @@ _LIMIT: ContextVar[RunLimit | None] = ContextVar("llm_limit", default=None)
 # Whether the current thread's calls may be answered from the recorded runs, set by
 # `LLMClient.replaying`.
 _REPLAYING: ContextVar[bool] = ContextVar("llm_replaying", default=False)
+# Whether the current thread's calls may be answered from the response cache, set by
+# `LLMClient.reading_cache`; off for a job run without cache (`JobConfig.live`).
+_CACHE_READS: ContextVar[bool] = ContextVar("llm_cache_reads", default=True)
 
 
 class LLMError(RuntimeError):
@@ -208,7 +211,7 @@ class LLMClient:
         key = cache_key(name, messages, params) if self._cache or replay else None
         # A recorded answer first: the replay has to take the recorded run's path.
         hit = replay.get(key) if replay is not None and key else None
-        if hit is None and self._cache and key:
+        if hit is None and self._cache and key and _CACHE_READS.get():
             hit = self._cache.get(key)
         if hit is not None:
             usage = Usage(
@@ -432,6 +435,17 @@ class LLMClient:
             yield
         finally:
             _REPLAYING.reset(token)
+
+    @contextmanager
+    def reading_cache(self, enabled: bool = True) -> Iterator[None]:
+        """Whether the calls made in this thread inside the block may be answered from
+        the response cache (LLM_CACHE). Off, every call goes to the endpoint and its
+        answer replaces the cached one."""
+        token = _CACHE_READS.set(enabled)
+        try:
+            yield
+        finally:
+            _CACHE_READS.reset(token)
 
     def _record(self, usage: Usage) -> None:
         log.info("llm_call %s", asdict(usage))

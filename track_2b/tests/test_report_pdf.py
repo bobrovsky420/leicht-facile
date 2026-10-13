@@ -84,11 +84,12 @@ def test_the_foot_table_moves_down_its_subsection_only() -> None:
     assert (heading, header) == ("Target architecture", "Architecture How it is met Tested on")
     for shift in (*range(reach + 1), reach + 3):
         body = str(report_pdf.parse(text, shift=shift).body)
-        table, contacts = body.index("How it is met"), body.index("What it receives")
+        table, after = body.index("How it is met"), body.index("Apart from that endpoint")
         assert body.index("Target architecture") < table < body.index("Use of Apertus")
-        assert (table < contacts) == (shift == 0)
-        # never between a sentence ending in a colon and the table it introduces
-        assert not body.index("What the running system contacts:") < table < contacts
+        assert (table < after) == (shift == 0)
+        # the page ends with the table
+        end = body.index("</table>", table)
+        assert body[end:].startswith('</table>\n<div class="balance new-page"></div>')
 
 
 def test_the_summary_starts_its_second_column_with_the_deployment(report) -> None:

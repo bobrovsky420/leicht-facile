@@ -94,13 +94,18 @@ The short path to the deadline, in dependency order. Each step points to where i
 7. [x] **Hardware statement for the on-prem profile (parallel; cut if blocked; WP10).**
    Done 10 Oct: `local-llm` ran on an AWS g6.xlarge (one L4 24 GB) in Zurich and took
    the example letter end to end; track_2b/eval/hardware/aws-l4-2026-10-10/, report §2.
-8. [ ] **Clean-checkout test on Linux or a second machine (by Wed 14 Oct, G5; WP11).**
+8. [x] **Clean-checkout test on Linux or a second machine (by Wed 14 Oct, G5; WP11).**
    Done 10 Oct on the same Linux machine (commit 6936d05): clone, `.env`, `make run`
    unchanged, one job end to end against the local vLLM. Repeat only if the Dockerfile,
    the dependencies or the Makefile change before the submission. *Due again: the move
    into `track_2b/` (10 Oct) changed the Dockerfile and the Makefile, and the audit's hardening layer (10 Oct, night) bound docker-compose.yml to `127.0.0.1:8000` (`BIND_HOST`); from a fresh clone,
    `make run` from the root and from `track_2b/`, and Run on a prepared letter, which
-   should reach review in seconds with the CSCS values (WP11, demo mode).*
+   should reach review in seconds with the CSCS values (WP11, demo mode).* *Done 13 Oct
+   at 7b1edbf: a clone from GitHub in WSL (Ubuntu 24.04), Docker emptied first (no
+   build cache, no image, a new volume); `make run` from the root built every step and
+   a prepared letter reached review in 4 s (13 of 13 facts); `make run` from
+   `track_2b/` started the same app. Repeat only if the Dockerfile, the dependencies,
+   the Makefile or docker-compose.yml change.*
 9. [ ] **Repo public, CI green (Thu 15 Oct, G6; WP11).**
    Check that `git log -p -- .env` is empty, make the repository public, confirm CI is
    green on the final commit. Optional afterwards: the awesome-apertus pull request
@@ -476,7 +481,9 @@ prompt on the same model?" (report §5), and the headline follows D-M (case A2, 
   baseline, `P0-ZH-complete` and `P0-ZH-condensed` (D-K). The template
   `llm/prompts/de/baseline_zh.md` is verbatim, with the licence in a Jinja comment and
   `THIRD_PARTY_NOTICES.md`. It runs with P0's settings and ß becomes ss; their
-  `strip_markdown` is left out because it breaks URLs. German only. It also ran on the
+  `strip_markdown` is left out because in v1.6.0 it breaks URLs (fixed upstream by the
+  owner's PR #19, merged 12 Oct after v1.6.0; P0-ZH keeps the v1.6.0 setup, so its
+  numbers stay as they are). German only. It also ran on the
   10 German dev pairs, so dev comparisons use the same pairs.
 - **Fact retention:** `eval diagnose` puts every must-keep value missing from a final
   version into a bucket (never asked for, wrong surface form, dropped by code, not
@@ -963,8 +970,19 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
       the current count since 56030bb; the first P0 scorings in `track_2b/eval/results-cscs`
       used a fact sheet without code completion, fixed 6 Oct evening in `eval/run.py`;
       rescore P0 with `--redo` from the cache before the numbers are final)*.
-- [ ] **Positioning paragraph** (1 h). README gets "And the Canton of Zurich's app?"
+- [x] **Positioning paragraph** (1 h). README gets "And the Canton of Zurich's app?"
       next to "Why not one chatbot prompt?"; report §1 or §6 gets the same.
+      *Done 13 Oct (owner): the section in both READMEs, a bullet "Next to existing
+      tools" in report §8 (page 1 is full). Zurich's roadmap was the "Outlook" of their
+      README until 13 July 2025 (removed in `b492803`; linked at `8a9a511`), so the text
+      says "until July 2025". Three of its four areas claimed (fact checks by code,
+      passive and Konjunktiv rules, on-premise); a vocabulary each organisation manages
+      stays WP17, so "most of" stays. SUMM AI in one clause (summ.ai: commercial, in
+      Germany, cloud). The complement angle names Check my text (rules only; "verify a
+      draft" stays WP17). Removed again 13 Oct at the owner's request: the README
+      section is gone from both copies (the report §8 bullet was already gone); Zurich
+      stays credited where P0-ZH appears (README "How we measure the difference" with
+      link and licence, report §5 and References, THIRD_PARTY_NOTICES.md).*
       - the sentence in rule 6 of the messaging rules below, with credit to Zurich (link, licence) and SUMM AI in
         one clause;
       - the complement angle: our checks work on any draft, also one from Zurich's app
@@ -986,7 +1004,8 @@ decision runs as a decision job with the notice in the export and FACT-08 silent
         file is useful either way.
 - [ ] Optional goodwill (owner):
       - a short, friendly issue upstream: `strip_markdown` removes underscores in URLs
-        and e-mail addresses;
+        and e-mail addresses; *done: issue #18 and the fix as PR #19, merged 12 Oct
+        (after v1.6.0); named in the report References and prompts.md;*
       - once the repo is public, a pull request to awesome-apertus (maintained by
         Patrick Arnecke of the Zurich team, GitHub `rnckp`).
 - [x] **Video** (track_2b/docs/demo-video.md): *Closed 9 Oct: the concept "Find the deadline" of
@@ -1173,7 +1192,8 @@ since:
       Linux (Ubuntu 24.04, AWS) at 6936d05: a clone of a git bundle of `main` (the
       repository is private), `.env` for the local vLLM, `make run` unchanged, one job
       end to end through the API (WP10's hardware run). The endpoint was the local
-      vLLM, not CSCS.*
+      vLLM, not CSCS. 13 Oct, after the move into `track_2b/`: at 7b1edbf in WSL
+      (Ubuntu 24.04) against CSCS, next step 8.*
 - [x] Demo mode for the jury (11 Oct, owner; D-AK): on first start a judge sends a
       letter through the pipeline with one click, without pasting one and without
       waiting minutes for CSCS. The drafts list's card "Try a prepared letter" holds the
@@ -1716,3 +1736,8 @@ Add one line per working session: date, what was finished, what moved.
 - 2026-10-12 (maturity: personal data): at the owner's request the report's maturity line says the decisions "contain strictly confidential personal data (a person's name with details of their family, health and finances)" instead of "strictly confidential data (such as a person's health, family and finances)", which on its own read like medical records; health stays, as KESB decisions turn on it (adult protection, involuntary placement). PDF printed again: 6 pages, before the references 6; the maturity entry keeps its three lines on page 1.
 - 2026-10-12/13 (the repeated final run for D-AL and D-AM, and its numbers pass): P2 on the 12 dev pairs first (all to review, German fact coverage 96 percent, hard facts 89, no invented value, 1.7 errors per 100 blocks; prompts.md "The extractor fixes and the quote check on the dev pairs"), then the run: snapshot `results-cscs-v8`, our five rows with `--redo` 17:13 to 20:05, the two P0-ZH rows scored again in place (`eval rescore --in-place`) right after P1, as the run of 11 Oct scored them. Three pairs failed on the first pass (two unusable Understand answers on the 8B, the 70B everywhere on `zh-sebe-disability-de` as on 11 Oct, so that row keeps 19 pairs); the retry pass hung overnight on the endpoint (the French pair stopped by the job's 7,200 s budget, 2 min of model time in 12 h), the two 8B pairs passed on the next tries the morning of 13 Oct, the French one under a `timeout`. German eval pairs, CSCS: P2 100 percent fact coverage, 97 hard facts kept, 0 silent, 3.7 errors, 2.7 unsupported, 0.0 invented, USD 0.0159 per page; the rescored strong prompt 82, 85, 15, 15.0, 0.0; P0 94, 95, 5, 24.9; P1 61, 59, 1, 9.7; the 70B everywhere 100, 96, 0.5 at USD 0.0250; the hybrid 99, 94, 3.0 at 0.0145; French P2 100, 72, 3.5. `eval numbers`: case A2 again, its sentence taken as printed (D-M). `eval diagnose` (8B): 216 checkable must-keep facts, 2 missing, both in one pair. The rise in unsupported verdicts (1.6 to 2.7) is the judge's sample, not the quote fix (no kept verdict carries a marker). Numbers pass (next step 4): report §1, §5, §6, §7 (commit **[PENDING]**), both READMEs (82 percent, 0.0, 3.7, 1.6 US cents, 12 October), submission.md (results sentence, checklist dates, the print note), architecture §9, prompts.md (a section for the run), demo-video.md §1 (the evidence scene's 15 against 0 percent unchanged, no re-render). PDF printed 13 Oct: 6 pages, the last 96 percent full, 76 without the references. 1,454 tests. Open for the owner: the commit and its hash in report §7; `examples build` is optional (the example jobs on the start page carry the old checker's findings; the prepared-letter replays still match).
 - 2026-10-13 (commit in the report): the owner committed the run and its numbers pass as 1f67b11 (code, report, PDF, docs) and 77bc67f (READMEs, demo-video.md, submission.md) and pushed. Report §7 names 1f67b11 as the final run's commit (its pipeline code), the PDF printed again; submission.md: the message to the jury names 1f67b11 for the run and the head of `main` on submission day as the submitted commit, the checklist ticks the final run, the placeholders and the replays. Open: CI green on the submitted commit (to check on GitHub), the repo public, the form.
+- 2026-10-13 (submission notes, report polish): submission.md: the form's submitter (Alexander Bobrovsky, `bobrovsky420`, bobrovsky@seznam.cz); the checklist notes the state of the day (1,454 tests and ruff green locally on 6b3bb7b, CI run #115 on 6b3bb7b green per the owner; the video item ticked: C39 at youtu.be/5el7q6Xtgik in both READMEs, the report, its PDF and the form entry, playable without a login). At the owner's request report §1's "One rule" sentence is a paragraph of its own and the headline result reads "Our pipeline ... Our pipeline first, the prompt second"; report §2 "Target architecture" drops the line "What the running system contacts" and its table, and the paragraph below the architecture table now names the two services itself (the jury's question on runtime contacts is still answered there; submission.md §6 points to it; `test_report_pdf.py` follows). The page now ends with the architecture table (`report_pdf.py` puts a page break after it, as Chromium breaks a page inside the columns only at a block that spans them), so page 2 keeps Key decisions and Target architecture side by side above it and the paragraph starts page 3; in its "Tested on" cell, llama.cpp is a paragraph of its own (`td p` in report.css: the gap between paragraphs); the hardware table names the card "NVIDIA RTX 4060 8 GB" (was "Laptop RTX 4060 8 GB"), like the NVIDIA L4 above it. PDF printed again: 6 pages, before the references 6.
+- 2026-10-13 (prepared letters card stands out): at the owner's request the drafts list's card "Try a prepared letter" has an accent border and an accent head band with white text, and above the title an amber pill "Hackathon demo" (`prepared.label` in EN, DE and FR); the note, 14 px over the card's full width, says what the two buttons do ("Press Run to send a ready-made sample letter through the whole pipeline, or Edit first to change it before the pipeline starts.", and without a recording "Apertus answers live: a run takes a few minutes."; `prepared.recorded` is gone); the rows say "Demo letter" or "Demo decision letter" instead of "Letter" or "Decision letter"; the sentence on the recording date and seconds instead of minutes is gone, and the rows still name the recorded run's time. A second button per row, Run without cache (`prepared.run_live`, tooltip and accessible name in EN, DE and FR), posts the same form with `live=1`: the job gets `JobConfig.live`, and the orchestrator then turns off the replay and the response-cache reads for it (`LLMClient.reading_cache`; the live answers still replace the cached ones). Tests: the route and the client (tests/web/test_prepared.py, tests/llm/test_client.py). Checked in headless Edge screenshots; tests/web, tests/llm and tests/pipeline pass. Docs: ui-design §5 item 3 and the string table, architecture §5 (Job), §6 and §7, the examples README.
+- 2026-10-13 (clean checkout after the move): next step 8 done by the owner in WSL (Ubuntu 24.04, GNU Make 4.3, Compose v5.5.1) on Docker Desktop's daemon, which WSL shares with Windows: so that nothing cached on Windows could help, the build cache was pruned, `leicht-facile:latest` removed, the Windows instance stopped (its volume kept), and the clone placed in `~/lf-fresh` for a new Compose project and volume. A clone of GitHub `main` at 7b1edbf through the Windows Git Credential Manager (the repository is still private), `.env` with the CSCS values. `make run` from the root built all 10 steps in about a minute, loaded the 2 recorded runs and 2 example jobs, `/readyz` 200; Run on a prepared letter (job cac90f15f345, "Individuelle Prämienverbilligung 2027") reached review in 4.2 s with 13 of 13 facts and 0 errors; `make run` from `track_2b/` started the same app. submission.md §1's PENDING and §7's checklist line follow. The uncommitted UI change above (the prepared letters card) is not in 7b1edbf; it touches no build file, so the test stands.
+- 2026-10-13 (positioning paragraph): at the owner's request WP16's positioning paragraph is in: "And the Canton of Zurich's app?" in both READMEs after "Why not one chatbot prompt?", and a bullet "Next to existing tools" in report §8 with the links inline (page 1 is full). Checked first: Zurich's current README (v1.6.0) has no roadmap; the four areas were its "Outlook" until 13 July 2025 (`8a9a511`, removed in `b492803` with the move to OpenRouter), so both texts say "until July 2025" and link that version; it still says to send only public, non-sensitive data. SUMM AI read on summ.ai (commercial, in Germany, cloud with ISO 27001 providers). PDF printed again (track_2b/scripts/report_pdf.py; `make` is not on this shell's path): 6 pages before the references, the sixth 91 % full; the references now end on a seventh page, which the limit does not count. test_copies.py and test_report_pdf.py pass.
+- 2026-10-13 (upstream fix in Zurich's app): the owner's goodwill item is done beyond the plan: issue #18 in machinelearningZH/simply-simplify-language and the fix as PR #19 ("keep literal *, _ and # in strip_markdown output"), merged 12 Oct after v1.6.0. Mentioned in the report's References (no change to the counted pages) and in track_2b/docs/prompts.md, the `zh_answer_text` docstring and the P0-ZH note in WP13: P0-ZH keeps the v1.6.0 setup without `strip_markdown`, so its numbers are unchanged. PDF printed again (6 pages, without the references 6, the last 75 % full); test_copies.py, test_report_pdf.py and test_baseline_zh.py pass. Then, at the owner's request, the section "And the Canton of Zurich's app?" removed from both READMEs (the PR sentence with it); the positioning item in WP16 says so. Seen on the way: the 13 Oct positioning entry names a bullet "Next to existing tools" in report §8 that the report no longer has.

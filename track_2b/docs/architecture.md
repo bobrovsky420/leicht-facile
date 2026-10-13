@@ -667,7 +667,7 @@ Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
   config: {lang, level, condition (P0|P1|P2), writer_model, understand_model,
            judge_model, use_judge, max_repair_rounds, max_facts_rounds,
-           mode (standard|decision), addressee?, notice?}
+           mode (standard|decision), addressee?, notice?, live}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?    a stopped job carries "cancelled", one over its budget names the budget
   counts?: {source_type, source_uri?, source_chars?, has_draft, errors, warnings,
@@ -793,7 +793,10 @@ writers wait for each other (5 s) instead of failing midway.
   (`Replay`); inside `LLMClient.replaying`, which the orchestrator turns on for a job's
   first run only (no call billed yet), a recorded answer comes before the cache. Only a
   byte-identical prompt matches, so an edited letter, other models or settings, a rerun
-  and every other text go to the endpoint; the CLI, `make smoke` and the evaluation
+  and every other text go to the endpoint, and so does a job with `config.live` (the
+  card's **Run without cache**, since 13 October 2026), which also reads nothing from
+  the response cache (`LLMClient.reading_cache`; its answers still replace the cached
+  ones); the CLI, `make smoke` and the evaluation
   never load the recordings. A replayed call is billed as cached with 0 ms, and the
   pages say the answers were recorded, when and how long the recorded run took (§7).
   `track_2b/tests/test_examples.py` replays every recording without an endpoint and
@@ -887,7 +890,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   example letters that have a recorded run (§6): **Run** sends one with one click as
   the New draft form would (`POST /examples/{id}/run`) and opens its job, **Edit
   first** opens the filled form (`/new?example=<id>`). Under the recorded settings the
-  run replays in seconds; under others the card says the letters run live. The card
+  run replays in seconds, and **Run without cache** (the same form with `live=1`)
+  sends the letter to the model instead; under others the card says the letters run
+  live. The card
   can be hidden as well, and stands above the empty state when there are no jobs;
   without recordings there is no card, and the empty state offers the example texts
   as buttons to the filled form.

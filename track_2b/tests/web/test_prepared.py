@@ -103,7 +103,8 @@ def _run_to_review(client, app, response) -> str:
 def test_a_prepared_letter_replays_its_recorded_run(recorded) -> None:
     client, app, store, endpoint = recorded
     page = client.get("/").text
-    assert "were recorded on CSCS on" in page
+    assert "Edit first to change it before the pipeline starts." in page
+    assert "Apertus answers live" not in page and "Demo letter" in page
     assert re.search(r"replays the recorded run \(\d+ (min|s)", page)
 
     job_id = _run_to_review(
@@ -121,6 +122,20 @@ def test_a_prepared_letter_replays_its_recorded_run(recorded) -> None:
     # After a rerun the model answered too: the page no longer says it replayed.
     store.add_usage(job_id, Usage("judge", "swiss-ai/Apertus-v1.5-70B", 10, 10, 900))
     assert "Recorded answers" not in client.get(f"/jobs/{job_id}").text
+
+
+def test_run_without_cache_sends_the_letter_to_the_model(recorded) -> None:
+    """The second button of a row: the job skips the recorded answers."""
+    client, app, store, endpoint = recorded
+    page = client.get("/").text
+    assert 'aria-label="Run without cache: Individuelle Prämienverbilligung 2027"' in page
+    job_id = _run_to_review(
+        client,
+        app,
+        client.post(f"/examples/{LETTER}/run", data={"live": "1"}, follow_redirects=False),
+    )
+    assert store.get_job(job_id).config.live
+    assert endpoint.chat_bodies()  # nothing scripted answers: the job fails, but it asked
 
 
 def test_the_new_draft_form_with_an_unchanged_example_replays_too(recorded) -> None:
@@ -144,5 +159,5 @@ def test_under_other_settings_a_prepared_letter_runs_live(tmp_path, endpoint) ->
     with TestClient(app) as client:
         page = client.get("/").text
     store.close()
-    assert "replays the recorded run" not in page
+    assert "replays the recorded run" not in page and "Demo letter" in page
     assert "Apertus answers live" in page and "runs live" in page

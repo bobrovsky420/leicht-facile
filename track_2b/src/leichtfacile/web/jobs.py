@@ -98,18 +98,21 @@ class Submission:
     mode: str = "standard"  # or "decision" (track_2b/docs/use-case-decisions.md)
     addressee: str | None = None
     notice: str | None = None
+    live: bool = False  # no recorded answer, no cached response (`JobConfig.live`)
 
 
-def example_submission(example: dict[str, str]) -> Submission:
+def example_submission(example: dict[str, str], *, live: bool = False) -> Submission:
     """What the Run button of a prepared letter submits (`examples.example_sources`):
     its text with the job settings of the file next to it, everything else as the New
     draft form sends it by default. `examples record` submits the same, so that a run
-    from the button sends the recorded prompts (llm/replay.py)."""
+    from the button sends the recorded prompts (llm/replay.py). `live`: the button Run
+    without cache, every call goes to the model."""
     return Submission(
         text=example["text"],
         mode=example.get("mode") or "standard",
         addressee=example.get("addressee"),
         notice=example.get("notice"),
+        live=live,
     )
 
 
@@ -195,6 +198,7 @@ def create_job(
         mode=sub.mode,  # type: ignore[arg-type]
         addressee=(sub.addressee or "").strip() or None,
         notice=notice,
+        live=sub.live,
     )
     title = sub.title or source.title or sub.url or sub.file_name or "Pasted text"
     job = store.create_job(config, title=title[:200], counts=source_counts(source))

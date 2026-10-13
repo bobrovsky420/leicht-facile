@@ -394,8 +394,9 @@ def block_ends(tokens: list[Token], start: int) -> list[int]:
 
 
 def place_foot_table(tokens: list[Token], shift: int) -> tuple[int, str, str] | None:
-    """Move the FOOT_TABLE down its subsection by `shift` blocks. Returns how many blocks
-    follow it there, the subsection's heading and the table's header row."""
+    """Move the FOOT_TABLE down its subsection by `shift` blocks; the page ends with it.
+    Returns how many blocks follow it there, the subsection's heading and the table's
+    header row."""
     for i, token in enumerate(tokens):
         if "foot" not in str(token.attrGet("class")).split():
             continue
@@ -408,6 +409,10 @@ def place_foot_table(tokens: list[Token], shift: int) -> tuple[int, str, str] | 
         if shift and ends:
             to = ends[min(shift, len(ends)) - 1]
             tokens[i:to] = tokens[end:to] + tokens[i:end]
+            end = to
+        # Chromium breaks the page inside the columns only at a block that spans them.
+        page_end = '<div class="balance new-page"></div>\n'
+        tokens.insert(end, Token("html_block", "", 0, content=page_end))
         return len(ends), heading, header
     return None
 

@@ -1568,8 +1568,9 @@ def zh_answer_text(answer: str) -> tuple[str, bool]:
     """Post-processing as in Zurich's app: the parts between the <leichtesprache> tags
     joined with a line break, stripped, and ß written as ss. Their app reports an error
     when the tags are missing; here the whole answer is used and the flag says so. Their
-    `strip_markdown` is not applied: it deletes every underscore, so web and e-mail
-    addresses would break (track_2b/docs/prompts.md)."""
+    `strip_markdown` is not applied: in v1.6.0 it deletes every underscore, so web and
+    e-mail addresses would break; fixed upstream after v1.6.0 by our PR #19
+    (track_2b/docs/prompts.md)."""
     parts = _ZH_TAGGED.findall(answer)
     text = "\n".join(parts).strip() if parts else answer.strip()
     return text.replace("ß", "ss"), bool(parts)

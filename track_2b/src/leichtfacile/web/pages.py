@@ -301,18 +301,20 @@ def _example_form(example: dict[str, str]) -> dict[str, str]:
 
 
 @router.post("/examples/{example_id}/run")
-async def run_example(request: Request, example_id: str):
+async def run_example(request: Request, example_id: str, live: Annotated[str, Form()] = ""):
     """The Run button of a prepared letter: the letter becomes a job as the New draft
     form would make it, and the browser goes to the job's page. Its first run replays
-    the recorded answers when the settings are the recorded ones (llm/replay.py)."""
+    the recorded answers when the settings are the recorded ones (llm/replay.py); the
+    button Run without cache (`live=1`) sends every call to the model."""
     example = _example(request, example_id)
     if example is None:
         raise HTTPException(404, f"no example {example_id}")
     state = request.app.state
+    sub = example_submission(example, live=live == "1")
     try:
         state.runner.ensure_room()
         job = await run_in_threadpool(
-            create_job, state.store, state.settings, example_submission(example), state.ingest_slots
+            create_job, state.store, state.settings, sub, state.ingest_slots
         )
     except (SubmissionError, QueueFull) as exc:
         return _refused(request, exc, _example_form(example))

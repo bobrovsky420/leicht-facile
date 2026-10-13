@@ -20,7 +20,7 @@ lists them all; none may be left in README.md and track_2b/technical_report.md w
 | Technical report (PDF, at most 6 pages without the references) | `track_2b/RoestigrabenBridgers_Report.pdf`, printed from `track_2b/technical_report.md` with `make pdf`; both only in `track_2b/` since 11 October (owner) | Printed 11 October from the final numbers (method and limit in §5): 6 pages, the references on the sixth below the licence note, links absolute, no placeholder left. Printed again on 11 October with the video link of C38. **[PENDING: print again after any later change to the report]** |
 | Demo video (URL), at most 2 minutes | Version C, 118.7 s ([demo-video.md](demo-video.md)), render C39 (12 October: C38 with the final numbers, without the voice credit on the end card), uploaded 12 October: https://youtu.be/5el7q6Xtgik (before: C38, https://youtu.be/3UVbaXQ8I6o, and a temporary upload of mock C26) | Linked in both READMEs, the report and its PDF (printed again 12 October). A later render needs a new upload and the link replaced everywhere: YouTube cannot swap the video behind an existing link. |
 | Dataset (URL), optional | none | Dropped by the owner on 9 October (PLAN.md D-G) |
-| `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. **[PENDING: a fresh clone of the commit with the move, PLAN.md next step 8]** |
+| `make run` from the root on a clean checkout | Makefile (at the root; it includes `track_2b/Makefile` with the targets), docker-compose.yml | Passed on Windows (fresh clone, no `.env`) and on Linux (Ubuntu 24.04 on AWS, 10 October, commit 6936d05: `make run` unchanged, one job end to end against the local vLLM profile; [track_2b/eval/hardware/](../eval/hardware/aws-l4-2026-10-10/)). After the move into `track_2b/` (10 October, working tree on Windows): `make run` and `make stop` from the root and from `track_2b/`, healthy, both example jobs imported. Fresh clone after the move (13 October, commit 7b1edbf, WSL with Ubuntu 24.04, Docker without build cache, image or volume): `make run` from the root built every step, Run on a prepared letter reached review in 4 seconds (13 of 13 facts), and `make run` from `track_2b/` started the same app. |
 
 ## 2. The submission form
 
@@ -160,9 +160,9 @@ with markdown-it-py, so every change of the report reaches it with the next prin
   `track_2b/tests/test_report_pdf.py` checks the same on the committed PDF, and that it
   came from the renderer; `track_2b/tests/test_copies.py` that no link is a local path.
 
-Printed 13 October from the numbers of the run of 12 October: 6 pages, the last 96 % full. Without the
-references also 6, the sixth 76 % full, so the text may grow by about a quarter of a
-page; the references then move to a seventh page, which the limit does not count. The
+Printed 13 October with the positioning bullet in §8 ("Next to existing tools"): 6 pages
+before the references, the sixth 91 % full, so the text may grow by a few lines only;
+the references end on a seventh page (12 % full), which the limit does not count. The
 full-width blocks, not the text size, set the page breaks.
 
 ## 6. The jury's questions
@@ -188,7 +188,7 @@ answer each question:
 | | Is the running cost proportionate to the benefit per use? | Report §1 "Review time"; §5 "Cost and scale" | Review time measured 10 Oct: about 3.5 minutes per 250-word page (team, not experts; report §1 and §5). No published drafting time per page to compare with. |
 | | What happens to cost and speed at ten times the volume? | Report §5 "Cost and scale" | Answered; more workers neither built nor measured |
 | Sovereign deployability | Can it be self-hosted on realistic hardware? | Report §2 target architecture and hardware | Answered: the vLLM profile ran on one NVIDIA L4 24 GB (`track_2b/eval/hardware/`) |
-| | Does runtime data leave the user's environment? | Report §2 "What the running system contacts" | Answered |
+| | Does runtime data leave the user's environment? | Report §2 "Target architecture", the paragraph below its table | Answered |
 | | Are weights, licences and dependencies free of blocking terms? | Report §2 "Licences and providers" | Answered |
 | | Is it independent of any single commercial provider? | Report §2 "Licences and providers" (any OpenAI-compatible server) | Answered |
 | Implementation feasibility | Does use require a realistic change of work? | [use-case-canton.md](use-case-canton.md) §5; report §8 "Into use"; report §2: the reviewed draft also exports to Word, where the writers work (since 11 October) | Answered |
@@ -216,6 +216,7 @@ answer each question:
       without a login (YouTube's oEmbed answers for it anonymously).
 - [ ] Repository public; `git log -p -- .env` empty.
 - [x] Clean-checkout test on Linux or macOS: clone, `.env`, `make run`, one job
-      (Linux, 10 October, commit 6936d05).
+      (Linux, 10 October, commit 6936d05; after the move into `track_2b/`, 13 October,
+      commit 7b1edbf in WSL with Ubuntu 24.04).
 - [ ] Form filled and submitted by one of us, by Thu 15 October (G6); deadline Fri 16
       October, 12:00 CEST, no extension.

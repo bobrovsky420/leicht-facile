@@ -457,6 +457,9 @@ class JobConfig(Artifact):
     mode: JobMode = "standard"
     addressee: str | None = None  # decision mode: the person the letter speaks to
     notice: str | None = None  # decision mode: the authority's fixed notice in the export
+    # True: no recorded answer (llm/replay.py) and no cached response, every call goes
+    # to the model (the prepared letters' "Run without cache").
+    live: bool = False
 
     @field_validator("condition", mode="before")
     @classmethod

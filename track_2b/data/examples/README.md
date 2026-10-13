@@ -68,7 +68,9 @@ a Run button, which sends it as the New draft form would. The job's first run th
 takes Apertus's answers from the recording, in about 3 seconds instead of a minute
 or more, and the job and review pages say so, with the date and the recorded run's
 duration. Only a byte-identical prompt replays: change the text, a setting or a
-model, or run a step again, and Apertus answers live. The same letter's example job
+model, or run a step again, and Apertus answers live. The button Run without cache
+next to Run (since 13 October 2026) sends the unchanged letter to Apertus live as
+well, past the recording and the response cache. The same letter's example job
 (above) is a different run, so its draft differs.
 
 A recording holds the answers in call order (stage, model, tokens, latency and the

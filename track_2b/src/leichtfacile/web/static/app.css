@@ -311,12 +311,19 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .stepno { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--lf-track); color: var(--lf-ink); font-size: 11px;
           line-height: 18px; font-weight: 600; text-align: center; }
 /* The prepared letters, each started with one click (llm/replay.py) */
-.prepared { margin-bottom: 16px; }
+.prepared { margin-bottom: 16px; border-color: var(--lf-accent); }
 .prepared-hidden .prepared { display: none; }
-.prepared-head { display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 12px 16px; border-bottom: 1px solid var(--lf-border); }
+/* The head is an accent band, so the card stands out as the hackathon demo path */
+.prepared-head { display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 14px 16px; border-radius: 7px 7px 0 0;
+                 background: var(--lf-accent); color: var(--lf-surface); }
 .prepared-head .grow { flex: 1; min-width: 0; }
-.prepared-head h2 { font-size: 15px; line-height: 22px; }
-.prepared-note { max-width: 860px; margin: 2px 0 0; color: var(--lf-text-2); font-size: 13px; line-height: 19px; }
+.prepared-head h2 { font-size: 17px; line-height: 24px; color: var(--lf-surface); }
+.prepared-label { display: inline-block; height: 20px; margin-bottom: 4px; padding: 0 8px; border-radius: 10px; background: var(--lf-warn-weak);
+                  color: var(--lf-warn-text); font-size: 11px; line-height: 20px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.prepared-note { margin: 4px 0 0; color: var(--lf-accent-weak); font-size: 14px; line-height: 21px; }
+.prepared-head .btn-quiet { color: var(--lf-accent-weak); }
+.prepared-head .btn-quiet:hover { background: var(--lf-accent-hover); color: var(--lf-surface); }
+.prepared-head :focus-visible { outline-color: var(--lf-surface); }
 .prepared-list { margin: 0; padding: 0; list-style: none; }
 .prepared-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; }
 .prepared-item + .prepared-item { border-top: 1px solid var(--lf-divider); }
@@ -324,7 +331,7 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .prepared-title { color: var(--lf-ink); font-weight: 600; overflow-wrap: anywhere; }
 .prepared-meta { color: var(--lf-muted); font-size: 12px; line-height: 17px; }
 .prepared-actions { display: flex; align-items: center; gap: 8px; }
-.prepared-actions form { margin: 0; }
+.prepared-actions form { display: flex; gap: 8px; margin: 0; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--lf-border); }
 .search { position: relative; flex: 0 1 300px; min-width: 200px; }
 .search .ico { position: absolute; left: 10px; top: 8px; color: var(--lf-muted); pointer-events: none; }

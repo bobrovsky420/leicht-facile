@@ -27,7 +27,9 @@ check every deadline, amount and phone number against the original.
 
 **Approach.** Leicht·Facile is a drafting assistant for the people who write official
 texts: trained writers, and the case workers, clerks and physicians who write decisions
-and letters themselves. One rule: *Apertus does everything that needs language
+and letters themselves.
+
+One rule: *Apertus does everything that needs language
 understanding; plain code does everything that can be counted.* Apertus turns the
 document into a fact sheet, writes a draft with provenance for every sentence, judges
 meaning with a second, larger model, repairs only the flagged sentences and asks again
@@ -44,7 +46,7 @@ survive, no provenance and no independent check: a plain one ("rewrite this in L
 Sprache") and a strong one, the Canton of Zurich's published prompt.
 
 **Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
-the same model and 20 German test documents. Pipeline first, prompt second:
+the same model and 20 German test documents. Our pipeline first, the prompt second:
 
 - **Must-keep facts found:** 100 against 82 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
@@ -125,18 +127,12 @@ variable.
 
 | Architecture | How it is met | Tested on |
 |--------------|---------------|-----------|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. | vLLM on one NVIDIA L4 24 GB (rented AWS g6.xlarge in Zurich, Ubuntu 24.04, 10 October 2026): `make run` from a clean clone, two jobs end to end.<br>llama.cpp on a laptop RTX 4060 8 GB. |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. | vLLM on one NVIDIA L4 24 GB (rented AWS g6.xlarge in Zurich, Ubuntu 24.04, 10 October 2026): `make run` from a clean clone, two jobs end to end.<p>llama.cpp on a laptop RTX 4060 8 GB.</p> |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. | Not run without a network. Tests check that the UI loads nothing from another host; CI starts the image against an unreachable endpoint. |
 | c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint. | The CSCS inference API in Lugano: every run evaluated in §5 and the two example letters. |
 
-What the running system contacts:
-
-| Service | When | What it receives |
-|---------|------|------------------|
-| Apertus endpoint (`LLM_BASE_URL`) | Every model call; its model list once per process | Document text, fact sheet and drafts, inside prompts |
-| The server of a URL the user enters | Only for URL input | A request for that page; no document data |
-
-Nothing else: no telemetry, CDN, outside fonts or scripts, update check or login
+Apart from that endpoint and, for URL input, that page's server, the running system
+contacts nothing: no telemetry, CDN, outside fonts or scripts, update check or login
 provider; on-premise or air-gapped, no data leaves the organisation at runtime. Build
 time: PyPI (`uv.lock`), spaCy wheels from GitHub, images from Docker Hub and GHCR.
 The container runs without root rights and by default can be reached only from the
@@ -153,7 +149,7 @@ on-premise): no single provider is needed.
 | Hardware | Model and server | Memory | Speed |
 |----------|------------------|--------|-------|
 | NVIDIA L4 24 GB | 8B in bf16, vLLM | 17.2 GiB of weights; with the FP8 KV cache, one 32k request fits | 16 tokens per second, near the limit of the card's memory bandwidth |
-| Laptop RTX 4060 8 GB | 8B in 4-bit, llama.cpp | 5.1 GB of weights | About 37 tokens per second |
+| NVIDIA RTX 4060 8 GB | 8B in 4-bit, llama.cpp | 5.1 GB of weights | About 37 tokens per second |
 
 ## 3. Use of Apertus
 
@@ -181,7 +177,7 @@ on-premise): no single provider is needed.
 | Recover | 8B | off | 0.2 | 1500 |
 | Baseline prompts | 8B | off | 0.3 | 6000 |
 
-**Prompts and parsing** ([track_2b/docs/prompts.md](docs/prompts.md)), in the document's
+**Prompts and parsing**, in the document's
 language, each with one filled JSON example instead of the schema. Sentences and blocks
 carry ids (`s0004`, `b007`): the model cites, code verifies; the judge's unsupported
 verdicts must quote words that stand in the draft. The writer plans first
@@ -342,7 +338,8 @@ sentences for every rule (two or more that fire, one that must not).
 
 - **Run:** `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` in the shell or in `.env`, then
   `make run`, which opens http://localhost:8000 in the browser once the app is up;
-  `make smoke` runs a bundled letter end to end.
+  `make smoke` runs a bundled letter end to end. `LLM_JUDGE_NAME` is optional: unset,
+  the 70B judges when the endpoint lists it, else the `LLM_NAME` model.
 - **Numbers:** `make eval` fetches the pairs, runs P0, P0-ZH, P1 and P2 with the
   response cache (an interrupted run resumes) and writes the tables; `make calibrate`
   runs the checker on the official pages without a model.
@@ -393,7 +390,7 @@ Attribution 4.0 (CC-BY-4.0).
 - EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
-- Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH)
+- Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH); our fix to its Markdown clean-up, which removed underscores from web and e-mail addresses: [PR #19](https://github.com/machinelearningZH/simply-simplify-language/pull/19), merged 12 October 2026
 - EBGB, [Leitfaden Leichte Sprache](https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf)
 - EBGB, [Behindertengleichstellungsgesetz BehiG](https://www.ebgb.admin.ch/de/behindertengleichstellungsgesetz-behig) (SR 151.3)
 - Inclusion Europe, "Information for all" (German, French and Italian editions)
