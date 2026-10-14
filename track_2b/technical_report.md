@@ -161,13 +161,14 @@ on-premise): no single provider is needed.
 - **Models:** `swiss-ai/Apertus-v1.5-8B` writes (Understand, Write, Repair, Recover,
   baseline) and `swiss-ai/Apertus-v1.5-70B` judges, set by `LLM_NAME` and
   `LLM_JUDGE_NAME`.
-- **How it is used:** inference, as a structured-output agent pipeline without tool
-  calling (the thinking variants are served with tools disabled). No fine-tuning.
-- **Where it runs, and why only Apertus:** the CSCS inference API for the hackathon;
-  the same client works unchanged with vLLM, llama.cpp or a Swiss cloud endpoint.
-  Letters that name a person fall under official, medical or tax secrecy and may not
-  go to a foreign cloud, so the organisation must run the model itself and account
-  for what it learned. Only Apertus combines open weights, open training data
+- **How it is used:** inference in a structured-output pipeline; no tool calling, no
+  fine-tuning.
+- **Where it runs, and why only Apertus:** CSCS for the hackathon; vLLM,
+  llama.cpp or a Swiss cloud unchanged. Letters that name a person fall under
+  official, medical or tax secrecy (StGB art. 320, 321; DBG art. 110) and may go to a
+  foreign cloud only encrypted with a key the provider lacks (privatim 2025); a model
+  reads them in clear, so the organisation must run it itself and account for what it
+  learned. Only Apertus combines open weights, open training data
   (website opt-outs honoured), Swiss public origin and German, French and Italian.
 - **Why these sizes:** the 8B is enough to read and write. It finds the must-keep facts
   as well as the 70B does, at half the price per page (§5). The 70B judges, because
@@ -203,8 +204,8 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
   without, 28 seconds and easy language. Write runs without thinking.
 - The 8B's drafts are harder to read than the official easy-language versions: their
-  readability score is 51 against 62 (Amstad; higher is easier). With the 70B in every
-  step, the drafts score 56, at twice the price per page.
+  readability score is 52 against 62 (Amstad; higher is easier). With the 70B in every
+  step, the drafts score 57, at twice the price per page.
 - On a scanned page sent as one image, both models change digits (in an IBAN or a phone
   number, for example). Image input is not built ([image-input.md](docs/image-input.md)).
 
@@ -289,7 +290,8 @@ the cache: P1's time is not measured, the last row's is too low.
   into 140 blocks, came out as a 44-block draft with one error this time.
 - A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
   91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
-  temperature 0.3); the table keeps its answers of 11 October.
+  temperature 0.3); the table keeps its answers of 11 October, scored with the final
+  checks: 82 percent.
 - French (3 pairs): 100 percent fact coverage, 72 percent of the hard facts (one draft
   of 117 words for a 489-word source kept 4 of 15, every one listed for the reviewer),
   3.5 errors, readability 70 (official 85).
@@ -363,7 +365,9 @@ sentences for every rule (two or more that fire, one that must not).
   non-sensitive texts. We are in touch with that team: at their invitation we fixed a
   bug in the app, and they merged our pull request on 12 October 2026; we have not yet
   offered them Leicht·Facile. Leicht·Facile adds the fact and rule checks by code and a review with an audit trail. For public
-  texts and standard letters a cloud endpoint is enough, even Public AI. Left before
+  texts and standard letters that name no person a cloud endpoint is enough, even
+  Public AI, though it serves part of its Apertus calls from outside Switzerland
+  ([architecture](docs/architecture.md) §6). Left before
   the first text goes out: the canton's IT security review and its login proxy in front
   of the app (the app already reads the user from the proxy's header).
 - **Air-gapped installation.** A one-step package; today the images and the weights
@@ -391,15 +395,17 @@ Attribution 4.0 (CC-BY-4.0).
 
 ## References
 
-- Apertus v1.5 model card: https://huggingface.co/swiss-ai/Apertus-v1.5-8B
 - EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
 - Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH); our merged fix, [PR #19](https://github.com/machinelearningZH/simply-simplify-language/pull/19)
 - EBGB, [Leitfaden Leichte Sprache](https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf)
 - EBGB, [Behindertengleichstellungsgesetz BehiG](https://www.ebgb.admin.ch/de/behindertengleichstellungsgesetz-behig) (SR 151.3)
-- Inclusion Europe, "Information for all" (German, French and Italian editions)
 - Swiss Federal Statistical Office (2024): [PIAAC 2022/2023, first results](https://www.bfs.admin.ch/asset/fr/33346105)
 - Amstad, T. (1978): Wie verständlich sind unsere Zeitungen? (German readability index)
 - Xu, W. et al. (2016): Optimizing SMT for Text Simplification. TACL 4 (SARI)
 - Swiss [Copyright Act (URG)](https://www.fedlex.admin.ch/eli/cc/1993/1798_1798_1798/de), art. 5, 24a, 24d
+- Swiss Criminal Code (StGB, SR 311.0), art. 320, 321; Federal Act on Direct Federal
+  Taxation (DBG, SR 642.11), art. 110: https://www.fedlex.admin.ch
+- privatim (2025): [resolution on outsourcing data processing to international cloud
+  services](https://www.privatim.ch/wp-content/uploads/2025/11/20251124_privatim_Resolution-Hyperscaler_DE.pdf), 18 November 2025

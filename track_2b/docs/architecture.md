@@ -723,7 +723,11 @@ writers wait for each other (5 s) instead of failing midway.
      older Apertus 1 8B through Featherless. The gateway's response cache ignores
      the thinking switch, so the profile turns it off per request
      (`LLM_EXTRA_BODY={"cache": {"no-cache": true}}`). Results from this profile are
-     labelled Public AI, never CSCS;
+     labelled Public AI, never CSCS. Checked again on 13 October 2026, one small call
+     per name: the 8B still went to Juelich (Germany, 4 of 4 calls), the 70B was split
+     between Infomaniak (Switzerland) and Featherless (a US company), 8 of 11 calls
+     to Featherless, and both `-thinking` names answered with an error. So Public AI
+     is not Swiss-hosted throughout, whatever its own pages say;
   4. the Hugging Face inference router, for development only. It serves only the
      older Apertus 1 models (`swiss-ai/Apertus-8B-Instruct-2509` through Public AI,
      `…-70B-Instruct-2509` through Featherless). No Hugging Face provider serves
@@ -1152,7 +1156,14 @@ protected pages); `python -m leichtfacile eval report` renders the tables for th
 technical report from aggregates only, and `eval numbers` prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the case of decision D-M (PLAN.md, WP13) they fall into, with the headline
-sentence filled in, so that README, report and video carry the same numbers.
+sentence filled in, so that README, report and video carry the same numbers. Since 14
+October 2026 it also prints their uncertainty: P2 against the Zurich prompt, and every
+other P2 writer (the 70B everywhere) against the headline's, paired over the pairs both
+have, each measure with the mean difference, a bootstrap 95 % interval over the pairs
+(10,000 resamples, seed 0, so a second print gives the same interval) and the pairs
+where P2 is better, worse or level; and, pooled over the pairs, the hard values each
+side lost without a trace with an exact (Clopper-Pearson) 95 % interval. The intervals
+cover the choice of pairs, not a second sample of the same pairs.
 
 ## 10. Deployment and sovereignty
 
