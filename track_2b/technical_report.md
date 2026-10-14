@@ -103,7 +103,7 @@ flowchart LR
 | Rule check | Code: spaCy, regex, wordfreq | Findings with rule id, severity, evidence, suggestion |
 | Judge | Apertus 70B, thinking | Each fact present, missing or distorted; unsupported blocks; meaning findings. The judge never rewrites |
 | Repair | Apertus 8B | New text for flagged blocks only; up to 3 rounds; every version kept |
-| Recover | Apertus 8B | One sentence for each must-keep value still missing (at most 10), checked and judged like a round |
+| Recover | Apertus 8B | One sentence for each must-keep value still missing, checked and judged like a round |
 | Review, export | Human, Code | Per-block decisions; Markdown, HTML, Word and a JSON audit bundle |
 
 ### Key decisions
@@ -220,6 +220,7 @@ evaluation scripts; the design, the decisions and every claim here are the team'
 |------|--------|----------------------|
 | Reference pairs: **35** documents with an official easy-language version (**30** German: 20 eval, 10 dev; **5** French: 3 eval, 2 dev) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | Personal use only. The repository holds only the manifest (`track_2b/data/pairs/manifest.jsonl`: URLs, licence notes); `eval fetch` caches the texts, git-ignored, with a fetch date |
 | Example documents, few-shot examples, hard texts for tests | Written by the team: invented municipality, reserved `.example` domains | In the repository, under the project licence |
+| Recorded runs of the two prepared letters (German, French) and their finished example jobs, so a first run shows a result in seconds | Apertus answers from the CSCS endpoint, 12 October 2026 | In the repository; the page says the answers were recorded; an edited letter, other settings or **Run without cache** go to the endpoint |
 
 Dev pairs serve prompt development and calibration; eval pairs are held out and
 used only for the final measurement. No personal data is used. Evaluating against the
@@ -274,7 +275,7 @@ the cache: P1's time is not measured, the last row's is too low.
 - The one-sentence prompt and the strong prompt's complete mode keep most values because
   they rewrite little (8.0 and 7.0 words per sentence; SARI rewards closeness to the
   source) and lose the rest without a trace; the condensed mode, its default, simplifies
-  more and drops a third of the values.
+  more but drops a third of the values, all without a trace.
 - Our pipeline keeps more hard facts than the official versions: 97 against 67 percent,
   and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions
   drop values on purpose. It nears their sentence length (7.0 words against 6.1) but is
@@ -326,16 +327,15 @@ sentences for every rule (two or more that fire, one that must not).
   (§8) are the next steps (20 German eval pairs, CSCS).
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
-- **Italian** gets only the language-independent rules (facts, layout, readability).
-  The B1 thresholds are our own; no official Swiss B1 rule set exists.
-- **The judge is a model**, and obligations and conditions without a value rely on it
+- **Italian and B1.** Italian texts get only the language-independent rules (facts,
+  layout, readability). The B1 thresholds are our own; no official Swiss B1 rule set
+  exists.
+- **The judge is a model.** Obligations and conditions without a value rely on it
   alone; many pages carry few countable facts, so the fact-rich subset is reported too.
-- **Decision mode v1** is calibrated on one team-written KESB decision and one
+- **Decision mode v1.** It is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), an air-gapped image bundle, user
   accounts and roles.
-- **Unmeasured:** the rewrite recipes the checker hands the writer for a subordinate
-  clause, in German and French; the dev runs measured the rounds, not them.
 
 ## 7. Reproducibility
 
