@@ -335,6 +335,11 @@ sentences for every rule (two or more that fire, one that must not).
   exists.
 - **The judge is a model.** Obligations and conditions without a value rely on it
   alone; many pages carry few countable facts, so the fact-rich subset is reported too.
+- **What the numbers rest on.** Fact coverage counts the facts of our own fact sheet,
+  which the baselines never see; hard facts kept, counted by code from the source, is
+  the neutral comparison. The rule checker was calibrated on the official versions, so
+  their low error count is partly by design. The review time comes from three drafts,
+  two of them the example letters, each picked as the cleanest of 30 runs.
 - **Decision mode v1.** It is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
 - **Not yet supported:** scanned PDFs and photos (§3), an air-gapped image bundle, user
