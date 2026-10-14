@@ -111,9 +111,10 @@ flowchart LR
 Meaning in the model, countable rules in code (exact, free, reproducible, no
 self-grading).
 
-Every must-keep value must appear in an accepted form (`31. März 2026`, `31.3.2026`),
-so a deadline that became `30 March` is caught; every value the source does not
-contain is flagged.
+Code checks that every must-keep value is in the draft and that the draft adds none.
+If the source says "bis spätestens 31. März 2027", the draft must keep that date, as
+"31. März 2027" or "31.3.2027"; a draft that says "30. März" loses the deadline and
+adds a date, and code flags both.
 
 Typed artifacts in SQLite let a failed job resume and the UI and the evaluation show
 every intermediate result.

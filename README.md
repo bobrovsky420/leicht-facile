@@ -50,6 +50,12 @@ of concept for decisions. Built with AI coding assistants (report §3).
 6. **Review** (human): source and draft side by side, provenance, fact checklist,
    approve, edit or reject each block, export with an audit trail.
 
+![The review page: the source on the left, the easy-language draft in the middle, the must-keep facts on the right](track_2b/docs/images/review-page.png)
+
+*The review page with the German example letter (team-written): the source with what
+was left out and why, the draft with its versions and findings, and the must-keep
+facts.*
+
 ### Why not one chatbot prompt?
 
 Ask a chatbot to "rewrite this in Leichte Sprache" and you get a text, nothing more:
@@ -82,12 +88,13 @@ endpoint, 12 October 2026 (report §5).
 ### Why only Apertus
 
 For a public web page, any good model would do. A letter that names a person is under
-official secrecy, a patient letter under medical secrecy, a tax letter under tax
-secrecy. Four conditions follow, and only Apertus meets all four:
+official secrecy (StGB art. 320), a patient letter under medical secrecy (StGB art.
+321), a tax letter under tax secrecy (DBG art. 110). Four conditions follow, and only
+Apertus meets all four:
 
 | Condition | Rules out | Apertus |
 |-----------|-----------|---------|
-| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' resolution of November 2025) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped: the 8B on one 24 GB GPU with the official vLLM image (run by the team on an NVIDIA L4); Swisscom and Infomaniak serve the 70B in Switzerland |
+| The text stays inside the organisation (secrecy law; the cantonal data protection commissioners' [resolution of November 2025](https://www.privatim.ch/wp-content/uploads/2025/11/20251124_privatim_Resolution-Hyperscaler_DE.pdf)) | Chatbots and model APIs on foreign clouds | Runs on-premise or air-gapped: the 8B on one 24 GB GPU with the official vLLM image (run by the team on an NVIDIA L4); Swisscom and Infomaniak serve the 70B in Switzerland |
 | The organisation runs the model itself | Closed models | Open weights |
 | The organisation can account for what the model learned | Open-weight models that keep their training data secret (Llama, Gemma, Qwen, Mistral) | Open training data and code; website opt-outs honoured, also for older crawls |
 | The model is Swiss | Fully open models built and trained abroad (EuroLLM, SmolLM3) | Built by EPFL, ETH Zurich and CSCS, trained in Lugano; German, French and Italian, with Swiss German and Romansh data |
