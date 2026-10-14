@@ -188,8 +188,6 @@ h2 .num { color: var(--accent); }
 /* A paragraph or subheading that starts the right column (NEW_COLUMN in the renderer). */
 .new-column { break-before: column; }
 h3.new-column { margin-top: 0; }
-/* A chapter in one column across the page (SINGLE_COLUMN in the renderer). */
-section.single > * { column-span: all; }
 main > section:first-child h2 { margin-top: 0; }
 h3 { margin: 9pt 0 3pt; font: 600 9pt/1.3 var(--sans); break-after: avoid; }
 /* Right under a full-width block a subheading starts the columns, as at a column top. */

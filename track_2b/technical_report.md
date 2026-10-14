@@ -22,8 +22,9 @@ disabilities, language learners and people with dementia need easy language too.
 
 Disability law (Behindertengleichstellungsgesetz BehiG and the UN disability convention)
 asks authorities for accessible information, and cantons have begun to publish in Leichte Sprache, FALC or
-lingua facile; each version is written by hand by a few trained writers, who must
-check every deadline, amount and phone number against the original.
+lingua facile; each version is written by hand by a few trained writers, who decide
+which facts the reader needs and must check every deadline, amount and phone number
+against the original.
 
 **Approach.** Leicht·Facile is a drafting assistant for the people who write official
 texts: trained writers, and the case workers, clerks and physicians who write decisions
@@ -31,8 +32,9 @@ and letters themselves.
 
 One rule: *Apertus does everything that needs language
 understanding; plain code does everything that can be counted.* Apertus turns the
-document into a fact sheet, writes a draft with provenance for every sentence, judges
-meaning with a second, larger model, repairs only the flagged sentences and asks again
+document into a fact sheet that marks the facts the reader must get, writes a draft
+with provenance for every sentence, judges meaning with a second, larger model,
+repairs only the flagged sentences and asks again
 for each value still missing. Code checks the published easy-language rules
 (45 checks for German, 41 for French), including the exact presence of every fact
 value. A person reviews source and draft side by side and exports with an audit trail.
@@ -195,7 +197,7 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   copied values from the prompt's example and broke JSON: code completes the fact
   sheet, splits compounds, returns answers with values the document lacks and repairs
   the JSON; facts rounds and the recover round ask again, a polish round repairs the
-  sentences they add ([track_2b/docs/prompts.md](docs/prompts.md)).
+  sentences they add ([prompts.md](docs/prompts.md)).
 - Every fact number comes from code, not from the judge: the 70B judge's fact verdicts
   agree with blind labels hardly better than chance (kappa 0.08, §5).
 - On the local 4-bit build, Write with thinking took 24 minutes and paraphrased;
@@ -204,15 +206,12 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   readability score is 51 against 62 (Amstad; higher is easier). With the 70B in every
   step, the drafts score 56, at twice the price per page.
 - On a scanned page sent as one image, both models change digits (in an IBAN or a phone
-  number, for example); cut into strips, the 8B reads every digit right, but names and
-  e-mail addresses are unsafe in every setting. Image input is not built
-  ([track_2b/docs/image-input.md](docs/image-input.md)).
+  number, for example). Image input is not built ([image-input.md](docs/image-input.md)).
 
-**Other models and coding assistants.** No other model at runtime; spaCy's statistical
-parsers and wordfreq serve the checker. The 59 labels for the judge's agreement (§5)
-were made by Claude (Anthropic), blind to the verdicts; no pipeline score depends on
-them. The code, tests and documents were written with AI coding assistants (Claude Code, Anthropic),
-directed and reviewed by the team; the assistants also ran the tests and the
+**Other models and coding assistants.** No other model at runtime. The 59 labels for
+the judge's agreement (§5) were made by Claude (Anthropic), blind to the verdicts; no
+pipeline score depends on them. The code, tests and documents were written with AI
+coding assistants (Claude Code, Anthropic), directed and reviewed by the team; the assistants also ran the tests and the
 evaluation scripts; the design, the decisions and every claim here are the team's.
 
 ## 4. Data
@@ -223,9 +222,10 @@ evaluation scripts; the design, the decisions and every claim here are the team'
 | Example documents, few-shot examples, hard texts for tests | Written by the team: invented municipality, reserved `.example` domains | In the repository, under the project licence |
 
 Dev pairs serve prompt development and calibration; eval pairs are held out and
-used only for the final measurement. No personal data is used. Evaluating against protected pages needs no consent as long as
+used only for the final measurement. No personal data is used. Evaluating against the
+cantonal and federal web pages, public but under copyright, needs no consent as long as
 neither the texts nor our rewrites are published (Copyright Act art. 24a and 24d; our
-reading, not legal advice; [track_2b/docs/sources.md](docs/sources.md) §4).
+reading, not legal advice; [sources.md](docs/sources.md) §4).
 
 ## 5. Evaluation
 
@@ -357,30 +357,32 @@ sentences for every rule (two or more that fire, one that must not).
 
 ## 8. Next steps
 
-- **Into use.** For a canton's public texts and standard letters, a cloud endpoint is
-  enough, even Public AI; the canton needs no GPU server. Two steps remain before the
-  first text goes out. The canton's IT puts its login proxy in front of the app; the app
-  already reads the logged-in user from a header the proxy adds. Then the setup must pass
-  the canton's IT security review. Letters that name people need more: the model on the
-  canton's own GPU server and a data protection assessment. Testing the texts with
-  readers from the target group stays with the canton; the tool does not replace it.
+- **Into use.** The first user we aim for is the cantonal administration of Zurich. Its
+  open-source app simply-simplify-language, by Team Data of the Office for Statistics
+  and Data, rewrites texts through commercial models and allows only public,
+  non-sensitive texts. We are in touch with that team: at their invitation we fixed a
+  bug in the app, and they merged our pull request on 12 October 2026; we have not yet
+  offered them Leicht·Facile. Leicht·Facile adds the fact and rule checks by code and a review with an audit trail. For public
+  texts and standard letters a cloud endpoint is enough, even Public AI. Left before
+  the first text goes out: the canton's IT security review and its login proxy in front
+  of the app (the app already reads the user from the proxy's header).
+- **Air-gapped installation.** A one-step package; today the images and the weights
+  are moved by hand.
+- **Fine-tuning.** A LoRA on the 8B, trained on the drafts that writers approved and
+  the edits they made.
 - **The same need elsewhere.** Every canton and federal office that publishes easy
   language, and texts under secrecy, where only Apertus fits: decisions of KESB and
   courts (decision mode v1 exists; next an anonymisation step), patient letters, penal
   and payment orders, social, school and tax decisions. Most depend on a period, a
   reference number, an address or a dose; code already checks these like a date.
-- **Patient letters.** Code already checks doses and dosing schemes; left are a drug
-  list, a medical judge (Apertus-70B-MeditronFO, EPFL's medical Apertus, not yet tried
-  here) and an assessment under the Medical Devices Ordinance.
-- **Italian.** Rules and prompts for lingua facile; today Italian texts get only the
-  language-independent checks and no drafts.
-- **Scanned letters.** Image input, with the 8B reading each page in strips (on a whole
-  page the models misread digits) and a person checking every name and address against
-  the original.
-- **Air-gapped installation.** A one-step package for a network without internet
-  access; today the images and the weights are moved by hand.
-- **Fine-tuning.** A LoRA on the 8B, trained on the drafts that writers approved and
-  the edits they made.
+- **Patient letters.** Code already checks doses; left are a drug list, a medical judge
+  (Apertus-70B-MeditronFO, not yet tried) and an assessment under the Medical Devices
+  Ordinance.
+- **Italian.** Rules and prompts for lingua facile; Italian texts get only the
+  language-independent checks today.
+- **Scanned letters.** Image input: the app cuts each scanned page into horizontal
+  strips small enough that the endpoint keeps every pixel (five per A4 page), and the
+  8B reads them one by one.
 
 ## License
 
@@ -393,7 +395,7 @@ Attribution 4.0 (CC-BY-4.0).
 - EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
-- Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH); our fix to its Markdown clean-up, which removed underscores from web and e-mail addresses: [PR #19](https://github.com/machinelearningZH/simply-simplify-language/pull/19), merged 12 October 2026
+- Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH); our merged fix, [PR #19](https://github.com/machinelearningZH/simply-simplify-language/pull/19)
 - EBGB, [Leitfaden Leichte Sprache](https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf)
 - EBGB, [Behindertengleichstellungsgesetz BehiG](https://www.ebgb.admin.ch/de/behindertengleichstellungsgesetz-behig) (SR 151.3)
 - Inclusion Europe, "Information for all" (German, French and Italian editions)

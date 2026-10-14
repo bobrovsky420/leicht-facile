@@ -52,9 +52,6 @@ FIGURES = ("architecture.svg", "pipeline.svg")  # the report's Mermaid diagrams,
 FOOT_TABLE = "Architecture"
 # Columns, by their header, whose cells do not wrap (owner, 11 October 2026).
 UNWRAPPED = ("Model and server",)
-# Chapters, by their title without the number, set in one column across the page (owner,
-# 11 October 2026).
-SINGLE_COLUMN = ("Data",)
 # Wide tables, by the first cell of their header, whose introducing paragraph stays in the
 # columns instead of spanning the page as their caption (owner, 11 October 2026).
 NO_CAPTION = ("Setup", "Hardware")
@@ -501,7 +498,7 @@ def sections(
     apart, the others (licence, references) are end matter. A heading followed by diagrams
     or a wide table spans both columns with them, so that it never stays behind at the
     foot of a page; a heading in `breaks` (it stood alone at the foot of a page) starts a
-    new page; a chapter in SINGLE_COLUMN runs across the page."""
+    new page."""
     starts = [i for i, t in enumerate(tokens) if t.type == "heading_open" and t.tag == "h2"]
     out = []
     for start, end in zip(starts, [*starts[1:], len(tokens)], strict=True):
@@ -530,8 +527,6 @@ def sections(
             heading = heading.replace("<h2>", '<h2 class="new-page">', 1)
         rest = md.renderer.render(tokens[body:end], md.options, env)
         kind = "numbered" if number else "end"
-        if inline.content[number.end() if number else 0 :] in SINGLE_COLUMN:
-            kind += " single"
         out.append(f'<section class="{kind}">\n{heading}{rest}</section>\n')
     return "".join(out)
 

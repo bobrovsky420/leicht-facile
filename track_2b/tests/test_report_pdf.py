@@ -96,10 +96,10 @@ def test_the_summary_starts_its_second_column_with_the_deployment(report) -> Non
     assert '<p class="new-column">One container plus an' in str(report.body)
 
 
-def test_the_data_chapter_runs_across_the_page(report) -> None:
+def test_the_data_chapters_paragraph_stays_in_the_columns(report) -> None:
     body = str(report.body)
-    assert body.count('<section class="numbered single">') == 1
-    assert body.index('<section class="numbered single">') < body.index("Dev pairs serve")
+    assert '<section class="numbered single">' not in body
+    assert "</div>\n<p>Dev pairs serve" in body
 
 
 def test_the_results_table_leaves_its_introduction_in_the_columns(report) -> None:
