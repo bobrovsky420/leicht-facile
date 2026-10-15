@@ -300,8 +300,10 @@ the cache: P1's time is not measured, the last row's is too low.
 
 **Cost and scale.** At Public AI's list prices our pipeline costs 0.0159 USD (about
 1.6 US cents) per 250-word page, the recover and polish rounds included; with the 70B
-everywhere, 0.0250 USD. The cost grows linearly with the number of pages: 10 times the
-volume costs 10 times as much. On own hardware the GPU is a fixed cost until it is busy.
+everywhere, 0.0250 USD. The cost grows linearly with the number of pages: 100 pages of
+the same size cost about 1.60 USD (2.50 USD with the 70B everywhere). These are token
+costs only: hosting and running the application itself are not included. On own
+hardware the GPU is a fixed cost until it is busy.
 Speed is the limit: at 10 times the volume, jobs wait in a queue, as one runs at a time;
 running several at once is a setting we have not measured. The writer's time is the cost that
 matters: our own review of three P2 drafts in the UI (the two example letters and one
@@ -327,7 +329,7 @@ sentences for every rule (two or more that fire, one that must not).
 - **Readability with an 8B model.** The drafts keep all must-keep facts and 97 percent
   of the countable values, list every value they lose, and their sentences are almost
   as short as the official versions' (7.0 against 6.1 words). What is left is the
-  readability score at level A2: 52 against 62 (Amstad); a larger writer and fine-tuning
+  readability score at level A2: 52 against 62 (Amstad; higher is easier); a larger writer and fine-tuning
   (§8) are the next steps (20 German eval pairs, CSCS).
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
