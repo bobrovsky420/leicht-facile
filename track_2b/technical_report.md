@@ -267,7 +267,7 @@ the cache: P1's time is not measured, the last row's is too low.
 | P0 | 94 % | 95 % | 5 % | 0.2 | - | 24.9 | 49 | 44.3 | 0.0001 | 2.8 |
 | P0-ZH complete | 82 % | 85 % | 15 % | 0.0 | - | 15.0 | 47 | 43.0 | 0.0003 | 2.4 |
 | P0-ZH complete, 70B | 85 % | 90 % | 10 % | 0.3 | - | 7.0 | 50 | 44.7 | 0.0028 | 6.0 |
-| P0-ZH condensed | 65 % | 67 % | 33 % | 0.0 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
+| P0-ZH default | 65 % | 67 % | 33 % | 0.0 | - | 9.0 | 46 | 41.5 | 0.0002 | 1.4 |
 | P1 | 61 % | 59 % | 1 % | 0.1 | - | 9.7 | 50 | 39.6 | 0.0012 | - |
 | **P2 (ours)** | 100 % | 97 % | 0 % | 0.0 | 2.7 | 3.7 | 52 | 42.2 | 0.0159 | 59.6 |
 | P2, 70B everywhere | 100 % | 96 % | 0 % | 0.0 | 1.0 | 0.5 | 57 | 42.9 | 0.0250 | 60.0 |
@@ -277,7 +277,7 @@ the cache: P1's time is not measured, the last row's is too low.
 
 - The one-sentence prompt and the strong prompt's complete mode keep most values because
   they rewrite little (8.0 and 7.0 words per sentence; SARI rewards closeness to the
-  source) and lose the rest without a trace; the condensed mode, its default, simplifies
+  source) and lose the rest without a trace; the default mode simplifies
   more but drops a third of the values, all without a trace.
 - Our pipeline keeps more hard facts than the official versions: 97 against 67 percent,
   and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions

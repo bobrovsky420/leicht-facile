@@ -82,7 +82,7 @@ CSCS endpoint, 12 October 2026 (report §5).
 | | A strong single prompt | Leicht·Facile |
 |---|---|---|
 | Must-keep facts found | 82 % | 100 % |
-| Hard facts lost without a trace | 15 % (33 % in its default, condensed mode) | none: it lists every one it misses |
+| Hard facts lost without a trace | 15 % (33 % in its default mode) | none: it lists every one it misses |
 | Invented values, per 100 blocks | 0.0 | 0.0 |
 | Rule errors, per 100 blocks | 15.0 | 3.7 |
 

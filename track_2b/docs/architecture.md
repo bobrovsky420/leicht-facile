@@ -1122,7 +1122,7 @@ is a comment; track_2b/docs/prompts.md has the details. On the 20 German eval pa
 final run of 12 October 2026; the two P0-ZH rows sampled on 11 October and scored
 again against this run's fact sheets, `eval rescore --in-place`) the complete variant
 kept 85 percent of the hard facts (fact coverage 82 percent) with 15.0 rule errors per
-100 blocks and 15 percent silent losses, the condensed variant 67 percent at 9.0
+100 blocks and 15 percent silent losses, the default variant 67 percent at 9.0
 errors; P2 on the 8B kept 97 percent (100) with 3.7 errors and no silent loss. On
 unchanged templates the single prompts move from run to run: the complete variant had
 91 percent fact coverage on 10 October and 83 on 11 October.

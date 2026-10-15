@@ -389,11 +389,11 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as P1
 |---|---|---|---|---|---|---|---|---|---|---|
 | eval (20) | P0 | 93 % | 100 % | 22.0 | 95.0 | 7.7 | 50 | 44.5 | 0.0 | 982 |
 | eval (20) | P0-ZH complete | 91 % | 95 % | 15.4 | 85.6 | 6.8 | 47 | 43.2 | 0.0 | 2374 |
-| eval (20) | P0-ZH condensed | 75 % | 77 % | 8.7 | 74.7 | 6.1 | 48 | 41.7 | 0.0 | 2199 |
+| eval (20) | P0-ZH default | 75 % | 77 % | 8.7 | 74.7 | 6.1 | 48 | 41.7 | 0.0 | 2199 |
 | eval (20) | P2, 8B | 84 % | 80 % | 4.3 | 58.4 | 6.8 | 51 | 40.6 | 0.1 | 21711 |
 | dev (10) | P0 | 74 % | 83 % | 26.1 | 108.0 | 8.3 | 49 | 42.0 | 0.0 | 936 |
 | dev (10) | P0-ZH complete | 75 % | 87 % | 26.2 | 114.0 | 8.3 | 43 | 39.8 | 0.0 | 1979 |
-| dev (10) | P0-ZH condensed | 74 % | 81 % | 13.0 | 94.4 | 6.6 | 47 | 41.2 | 0.1 | 1861 |
+| dev (10) | P0-ZH default | 74 % | 81 % | 13.0 | 94.4 | 6.6 | 47 | 41.2 | 0.1 | 1861 |
 | dev (9 of 10) | P2, 8B, run of 6 Oct afternoon | 61 % | 61 % | 2.8 | 57.3 | 6.8 | 52 | 40.5 | 2.1 | 18235 |
 
 - **Zurich's complete prompt beats our one-sentence P0 on every quality column** and
@@ -407,7 +407,7 @@ German dev pairs, 8B without thinking, scored against the same fact sheets as P1
   silent loss" and state the coverage gap openly; the fact-retention diagnosis (WP13)
   was the next step. The final run of 10 October gives case A ("The final run on the
   eval split", below).
-- **The condensed variant, their default for Leichte Sprache, drops a quarter of the
+- **The default variant for Leichte Sprache drops a quarter of the
   hard facts** (77 percent kept, 69 on the fact-rich pairs) and nobody is told. That is
   the silent loss in numbers.
 - **Neither baseline invents values** on these pages (0.0 per 100 blocks). The invented
@@ -1347,7 +1347,7 @@ D-AB measure, the silent-loss key). German means over the 20 eval pairs
 | REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
 | P0 | 88 % | 88 % | 12 % | 22.2 | 103.3 | 50 | - | 0.2 | 944 | 0.0001 | 2.5 |
 | P0-ZH complete | 91 % | 93 % | 7 % | 19.5 | 100.3 | 46 | - | 0.2 | 2,385 | 0.0003 | 2.4 |
-| P0-ZH condensed | 74 % | 75 % | 25 % | 9.6 | 74.2 | 47 | - | 0.0 | 2,218 | 0.0002 | 1.6 |
+| P0-ZH default | 74 % | 75 % | 25 % | 9.6 | 74.2 | 47 | - | 0.0 | 2,218 | 0.0002 | 1.6 |
 | P1 | 53 % | 51 % | 0 % | 7.0 | 40.0 | 50 | - | 0.1 | 8,661 | 0.0012 | 6.5 |
 | P2, 8B | 98 % | 87 % | 0 % | 2.0 | 36.5 | 54 | 1.8 | 0.0 | 32,775 | 0.0171 | 33.6 |
 | P2, 70B everywhere | 97 % | 91 % | 0 % | 1.0 | 20.3 | 59 | 0.5 | 0.0 | 23,223 | 0.0260 | 44.5 |
@@ -1406,7 +1406,7 @@ over the 20 eval pairs:
 | REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
 | P0 | 92 % | 93 % | 7 % | 19.5 | 95.2 | 52 | - | 0.2 | 982 | 0.0001 | 2.6 |
 | P0-ZH complete | 83 % | 85 % | 15 % | 15.0 | 92.4 | 47 | - | 0.0 | 2,393 | 0.0003 | 2.4 |
-| P0-ZH condensed | 69 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.2 | 2,198 | 0.0002 | 1.4 |
+| P0-ZH default | 69 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.2 | 2,198 | 0.0002 | 1.4 |
 | P1 | 74 % | 73 % | 0 % | 8.3 | 50.3 | 51 | - | 1.1 | 9,555 | 0.0014 | - |
 | P2, 8B | 100 % | 97 % | 0 % | 4.2 | 43.9 | 51 | 1.6 | 0.1 | 28,066 | 0.0131 | 63.3 |
 | P2, 70B everywhere (19 pairs) | 99 % | 92 % | 0 % | 0.6 | 26.6 | 56 | 1.1 | 0.0 | 22,988 | 0.0262 | 57.5 |
@@ -1483,7 +1483,7 @@ second. German means over the 20 eval pairs:
 | REF | - | 67 % | 33 % | 2.7 | 27.7 | 62 | - | 2.8 | - | - | - |
 | P0 | 94 % | 95 % | 5 % | 24.9 | 108.6 | 49 | - | 0.2 | 999 | 0.0001 | 2.8 |
 | P0-ZH complete (sampled 11 Oct, rescored) | 82 % | 85 % | 15 % | 15.0 | 92.4 | 47 | - | 0.0 | 2,393 | 0.0003 | 2.4 |
-| P0-ZH condensed (sampled 11 Oct, rescored) | 65 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.0 | 2,198 | 0.0002 | 1.4 |
+| P0-ZH default (sampled 11 Oct, rescored) | 65 % | 67 % | 33 % | 9.0 | 80.0 | 46 | - | 0.0 | 2,198 | 0.0002 | 1.4 |
 | P1 | 61 % | 59 % | 1 % | 9.7 | 46.6 | 50 | - | 0.1 | 8,900 | 0.0012 | - |
 | P2, 8B | 100 % | 97 % | 0 % | 3.7 | 41.5 | 52 | 2.7 | 0.0 | 33,392 | 0.0159 | 59.6 |
 | P2, 70B everywhere (19 pairs) | 100 % | 96 % | 0 % | 0.5 | 22.2 | 57 | 1.0 | 0.0 | 22,295 | 0.0250 | 60.0 |

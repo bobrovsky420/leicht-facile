@@ -30,7 +30,7 @@ LABELS = {
     "REF": "Official easy-language version",
     "P0": "P0 baseline: one prompt",
     "P0-ZH-complete": "P0-ZH complete: Zurich's prompt, keep everything",
-    "P0-ZH-condensed": "P0-ZH condensed: Zurich's prompt, essentials only",
+    "P0-ZH-condensed": "P0-ZH default: Zurich's prompt, essentials only",
     "P1": "P1 no judge: fact sheet + draft + rule check",
     "P2": "P2 full: pipeline with judge and repair",
 }

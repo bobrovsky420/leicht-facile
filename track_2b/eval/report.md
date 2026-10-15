@@ -8,7 +8,7 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Official easy-language version | 20 | - | 67 % | 33 % | 2.7 | 27.7 | 6.1 | 62 | - | - | 2.8 | - | - | - |
 | P0 baseline: one prompt (swiss-ai/Apertus-v1.5-8B) | 20 | 94 % | 95 % | 5 % | 24.9 | 108.6 | 8.0 | 49 | 44.3 | - | 0.2 | 999 | 0.0001 | 2.8 |
 | P0-ZH complete: Zurich's prompt, keep everything (swiss-ai/Apertus-v1.5-8B) | 20 | 82 % | 85 % | 15 % | 15.0 | 92.4 | 7.0 | 47 | 43.0 | - | 0.0 | 2393 | 0.0003 | 2.4 |
-| P0-ZH condensed: Zurich's prompt, essentials only (swiss-ai/Apertus-v1.5-8B) | 20 | 65 % | 67 % | 33 % | 9.0 | 80.0 | 6.1 | 46 | 41.5 | - | 0.0 | 2198 | 0.0002 | 1.4 |
+| P0-ZH default: Zurich's prompt, essentials only (swiss-ai/Apertus-v1.5-8B) | 20 | 65 % | 67 % | 33 % | 9.0 | 80.0 | 6.1 | 46 | 41.5 | - | 0.0 | 2198 | 0.0002 | 1.4 |
 | P1 no judge: fact sheet + draft + rule check (swiss-ai/Apertus-v1.5-8B) | 20 | 61 % | 59 % | 1 % | 9.7 | 46.6 | 7.1 | 50 | 39.6 | - | 0.1 | 8900 | 0.0012 | 3.6 |
 | P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-70B) | 19 | 100 % | 96 % | 0 % | 0.5 | 22.2 | 6.5 | 57 | 42.9 | 1.0 | 0.0 | 22295 | 0.0250 | 60.0 |
 | P2 full: pipeline with judge and repair (swiss-ai/Apertus-v1.5-8B) | 20 | 100 % | 97 % | 0 % | 3.7 | 41.5 | 7.0 | 52 | 42.2 | 2.7 | 0.0 | 33392 | 0.0159 | 59.6 |

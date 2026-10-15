@@ -184,7 +184,7 @@ def test_report_orders_zurichs_baselines_between_c0_and_c1(tmp_path) -> None:
     labels = [
         "P0 baseline: one prompt (m)",
         "P0-ZH complete: Zurich's prompt, keep everything (m)",
-        "P0-ZH condensed: Zurich's prompt, essentials only (m)",
+        "P0-ZH default: Zurich's prompt, essentials only (m)",
         "P1 no judge: fact sheet + draft + rule check (m)",
     ]
     positions = [report.index(label) for label in labels]
