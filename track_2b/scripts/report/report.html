@@ -10,6 +10,9 @@
   @top-left { content: {{ (report.name ~ "  ·  " ~ report.kind) | css_string }}; }
   @top-right { content: {{ (report.meta_text.get("Event", "") ~ "  ·  " ~ report.meta_text.get("Track", "")) | css_string }}; }
   @bottom-left { content: {{ (report.team ~ "  ·  " ~ report.meta_text.get("Repository", "").removeprefix("https://")) | css_string }}; }
+  {% if report.pages %}
+  @bottom-right { content: counter(page) {{ (" / " ~ report.pages) | css_string }}; }
+  {% endif %}
 }
 </style>
 </head>
@@ -46,5 +49,11 @@
 {{ report.body }}
 <div class="balance"></div>
 </main>
+{% if report.references %}
+<main class="references">
+{{ report.references }}
+<div class="balance"></div>
+</main>
+{% endif %}
 </body>
 </html>

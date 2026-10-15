@@ -16,9 +16,15 @@ Easy-language drafts of Swiss official texts with Apertus, with every fact check
 
 ## 1. Summary
 
-**Problem.** About 1.25 million adults in Switzerland aged 16 to 65 (22%) have low
+**Problem.** About 1.25 million adults in Switzerland aged 16 to 65 have low
 reading skills (Swiss Federal Statistical Office, PIAAC 2022/23); people with intellectual
 disabilities, language learners and people with dementia need easy language too.
+A sentence like this one from a letter, in "Amtssprache" and with three negations, loses
+them, although the reader has only one question: do I get my money back?
+
+| Before: the letter | After: easy language |
+|--------------------|----------------------|
+| Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können. | Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst bekommen Sie kein Geld zurück. |
 
 Disability law (Behindertengleichstellungsgesetz BehiG and the UN disability convention)
 asks authorities for accessible information, and cantons have begun to publish in Leichte Sprache, FALC or
@@ -28,7 +34,13 @@ against the original.
 
 **Approach.** Leicht·Facile is a drafting assistant for the people who write official
 texts: trained writers, and the case workers, clerks and physicians who write decisions
-and letters themselves.
+and letters themselves. It writes the first draft; the person stays the author and
+decides what goes out.
+
+For the writer, it takes four steps: **upload** a document (a PDF, a web address or
+pasted text), **generate** a draft (about a minute per page), **review** the flagged
+issues (missing facts, rule errors, the judge's doubts) with source and draft side by
+side, and **export** the approved text with an audit trail (Markdown, HTML, Word).
 
 One rule: *Apertus does everything that needs language
 understanding; plain code does everything that can be counted.* Apertus turns the
@@ -37,7 +49,7 @@ with provenance for every sentence, judges meaning with a second, larger model,
 repairs only the flagged sentences and asks again
 for each value still missing. Code checks the published easy-language rules
 (45 checks for German, 41 for French), including the exact presence of every fact
-value. A person reviews source and draft side by side and exports with an audit trail.
+value.
 
 One container plus an OpenAI-compatible Apertus endpoint runs on-premise, air-gapped or
 on a Swiss cloud, as letters under official, medical or tax secrecy require; for those,
@@ -117,8 +129,8 @@ If the source says "bis spätestens 31. März 2027", the draft must keep that da
 "31. März 2027" or "31.3.2027"; a draft that says "30. März" loses the deadline and
 adds a date, and code flags both.
 
-Typed artifacts in SQLite let a failed job resume and the UI and the evaluation show
-every intermediate result.
+Each stage saves its result in a database (SQLite), so a failed job picks up where it
+stopped, and the UI and the evaluation can show the result of every step.
 
 One service: FastAPI, a server-rendered UI, one worker thread by default; no Node
 build, no CDN.
@@ -152,11 +164,6 @@ on-premise): no single provider is needed.
 
 **Documentation:** [architecture](docs/architecture.md), [rules](docs/rules.md),
 [prompts](docs/prompts.md); the full list in the [README](README.md#documentation).
-
-| Hardware | Model and server | Memory | Speed |
-|----------|------------------|--------|-------|
-| NVIDIA L4 24 GB | 8B in bf16, vLLM | 18.5 GB of weights; with the FP8 KV cache, one 32k request fits | 16 tokens per second, near the limit of the card's memory bandwidth |
-| NVIDIA RTX 4060 8 GB | 8B in 4-bit, llama.cpp | 5.1 GB of weights | About 37 tokens per second |
 
 ## 3. Use of Apertus
 
@@ -194,6 +201,19 @@ written by the team; repair gets only the flagged blocks, their findings and fac
 Answers are parsed leniently and validated with pydantic (one retry with the error);
 calls are streamed, retried on broken streams, 429 and 5xx, and logged.
 
+**On our own hardware**, measured in our own runs:
+
+| Hardware | Model and server | Memory | Speed |
+|----------|------------------|--------|-------|
+| NVIDIA L4 24 GB | 8B in bf16, vLLM | 18.5 GB of weights; with the FP8 KV cache, one 32k request fits | 16 tokens per second, near the limit of the card's memory bandwidth |
+| NVIDIA RTX 4060 8 GB | 8B in 4-bit, llama.cpp | 5.1 GB of weights | About 37 tokens per second |
+
+**Other models and coding assistants.** No other model at runtime. The 59 labels for
+the judge's agreement (§5) were made by Claude (Anthropic), blind to the verdicts; no
+pipeline score depends on them. The code, tests and documents were written with AI
+coding assistants (Claude Code, Anthropic), directed and reviewed by the team; the assistants also ran the tests and the
+evaluation scripts; the design, the decisions and every claim here are the team's.
+
 **Where Apertus fell short**, and what we did about it:
 
 - The 8B drops must-keep facts while writing, ignored compound splits it was given,
@@ -210,12 +230,6 @@ calls are streamed, retried on broken streams, 429 and 5xx, and logged.
   step, the drafts score 57, at twice the price per page.
 - On a scanned page sent as one image, both models change digits (in an IBAN or a phone
   number, for example). Image input is not built ([image-input.md](docs/image-input.md)).
-
-**Other models and coding assistants.** No other model at runtime. The 59 labels for
-the judge's agreement (§5) were made by Claude (Anthropic), blind to the verdicts; no
-pipeline score depends on them. The code, tests and documents were written with AI
-coding assistants (Claude Code, Anthropic), directed and reviewed by the team; the assistants also ran the tests and the
-evaluation scripts; the design, the decisions and every claim here are the team's.
 
 ## 4. Data
 
@@ -285,25 +299,18 @@ the cache: P1's time is not measured, the last row's is too low.
   harder to read (Amstad 52 against 62).
 - Judge, repair and the recover round (P1 to P2) raise fact coverage from 61 to 100
   percent and cut rule errors from 9.7 to 3.7 per 100 blocks; 19 of the 20 final drafts
-  miss no must-keep fact, the twentieth misses 2 of its 23 (one behind the per-round cap
-  of missing facts, one asked for and not written).
-- A third of P2's rule errors (13 of 38) come from one two-page health-insurance text;
-  the 7-page source that gave two fifths of the errors on 11 October, rewritten in full
-  into 140 blocks, came out as a 44-block draft with one error this time.
-- A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
-  91 percent of the facts in a first run on 10 October, scored with the checks of that
-  day; the table keeps its answers of 11 October, scored with the final checks: 82
-  percent (one answer per pair at temperature 0.3).
+  miss no must-keep fact, the 20th misses 2 of its 23.
+- A third of P2's rule errors (13 of 38) come from one two-page health-insurance text.
+- A single prompt varies from run to run: with unchanged templates, P0-ZH complete found
+  91 percent of the facts on 10 October and 82 in the table's run.
 - French (3 pairs): 100 percent fact coverage, 72 percent of the hard facts (one draft
   of 117 words for a 489-word source kept 4 of 15, every one listed for the reviewer),
   3.5 errors, readability 70 (official 85).
 
 **Cost and scale.** At Public AI's list prices our pipeline costs 0.0159 USD (about
 1.6 US cents) per 250-word page, the recover and polish rounds included; with the 70B
-everywhere, 0.0250 USD. The cost grows linearly with the number of pages: 100 pages of
-the same size cost about 1.60 USD (2.50 USD with the 70B everywhere). These are token
-costs only: hosting and running the application itself are not included. On own
-hardware the GPU is a fixed cost until it is busy.
+everywhere, 0.0250 USD. The cost grows linearly with the number of pages. These are
+token costs only, without hosting. On own hardware the GPU is a fixed cost until it is busy.
 Speed is the limit: at 10 times the volume, jobs wait in a queue, as one runs at a time;
 running several at once is a setting we have not measured. The writer's time is the cost that
 matters: our own review of three P2 drafts in the UI (the two example letters and one
@@ -315,7 +322,7 @@ measure: every fact number here comes from code, and the review page shows a ver
 that code contradicts as a doubt. Its block verdicts, the basis of the "Unsupported"
 column, agree with blind labels far better. 30 facts and 30 blocks from the P2 dev
 drafts of 6 October (70B judge), drawn evenly over the verdicts and labelled blind to
-them (`eval sample`, `eval kappa`). Blocks, supported or not: agreement 80 %, Cohen's
+them. Blocks, supported or not: agreement 80 %, Cohen's
 kappa 0.60. Facts, present, missing or distorted: 38 %, kappa 0.08 (present or not:
 62 %, kappa 0.22).
 
@@ -363,7 +370,7 @@ sentences for every rule (two or more that fire, one that must not).
 - **Seeds:** temperatures above zero are not seeded; reruns reproduce exact outputs
   through the response cache, and each result stores the hash of its prompt template.
 - **Hardware and commit:** the evaluation numbers come from the CSCS endpoint, the
-  hardware figures in §2 from our own runs (the L4 run in `track_2b/eval/hardware/`);
+  hardware figures in §3 from our own runs (the L4 run in `track_2b/eval/hardware/`);
   commit `1f67b11` (the final run of 12 October 2026).
 
 ## 8. Next steps
@@ -404,17 +411,33 @@ Attribution 4.0 (CC-BY-4.0).
 
 ## References
 
-- EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
+- Project Apertus (2025): [Apertus: Democratizing Open and Compliant LLMs for Global
+  Language Environments](https://arxiv.org/abs/2509.14233). arXiv 2509.14233
+- Swiss AI Initiative, Apertus 1.5 model cards: [8B](https://huggingface.co/swiss-ai/Apertus-v1.5-8B),
+  [70B](https://huggingface.co/swiss-ai/Apertus-v1.5-70B); [usage policy](https://github.com/swiss-ai/apertus-legal/tree/main/apertus_1.5)
+- Apertus AI, [serving Apertus with vLLM](https://apertus-ai.org/docs/guides/vllm/) (the image
+  `ghcr.io/swiss-ai/vllm_apertus_1.5_release`)
 - CSCS LLM inference API: https://docs.cscs.ch/services/inference/api/
+- EPFL LiGHT, Apertus-70B-MeditronFO model card: https://huggingface.co/EPFLiGHT/Apertus-70B-MeditronFO
 - Canton of Zürich, [rules for Leichte Sprache](https://www.zh.ch/de/webangebote-entwickeln-und-gestalten/inhalt/barrierefreiheit/regeln-fuer-leichte-sprache.html)
 - Canton of Zürich, [simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language) (the prompt of P0-ZH); our merged fix, [PR #19](https://github.com/machinelearningZH/simply-simplify-language/pull/19)
 - EBGB, [Leitfaden Leichte Sprache](https://www.ebgb.admin.ch/dam/de/sd-web/ZHKNDzIYahOc/Leitfaden%20Leichte%20Sprache.pdf)
+- Inclusion Europe (2010): [Information for all](https://www.inclusion-europe.eu/easy-to-read-standards-guidelines/),
+  European standards for easy-to-read information; in [French](https://www.inclusion-europe.eu/wp-content/uploads/2017/06/FR_Information_for_all.pdf)
+  and [Italian](https://www.inclusion-europe.eu/wp-content/uploads/2017/06/IT_Information_for_all.pdf)
 - EBGB, [Behindertengleichstellungsgesetz BehiG](https://www.ebgb.admin.ch/de/behindertengleichstellungsgesetz-behig) (SR 151.3)
+- UN Convention on the Rights of Persons with Disabilities (SR 0.109), art. 9, 21:
+  https://www.fedlex.admin.ch
 - Swiss Federal Statistical Office (2024): [PIAAC 2022/2023, first results](https://www.bfs.admin.ch/asset/fr/33346105)
+- Flesch, R. (1948): A new readability yardstick. Journal of Applied Psychology 32 (3)
 - Amstad, T. (1978): Wie verständlich sind unsere Zeitungen? (German readability index)
-- Xu, W. et al. (2016): Optimizing SMT for Text Simplification. TACL 4 (SARI)
+- Xu, W. et al. (2016): Optimizing SMT for Text Simplification. TACL 4 (SARI); the
+  reference implementation [SARI.py](https://github.com/cocoxu/simplification)
+- Cohen, J. (1960): A coefficient of agreement for nominal scales. Educational and
+  Psychological Measurement 20 (1) (kappa)
 - Swiss [Copyright Act (URG)](https://www.fedlex.admin.ch/eli/cc/1993/1798_1798_1798/de), art. 5, 24a, 24d
 - Swiss Criminal Code (StGB, SR 311.0), art. 320, 321; Federal Act on Direct Federal
-  Taxation (DBG, SR 642.11), art. 110: https://www.fedlex.admin.ch
+  Taxation (DBG, SR 642.11), art. 110; Medical Devices Ordinance (MepV, SR 812.213):
+  https://www.fedlex.admin.ch
 - privatim (2025): [resolution on outsourcing data processing to international cloud
   services](https://www.privatim.ch/wp-content/uploads/2025/11/20251124_privatim_Resolution-Hyperscaler_DE.pdf), 18 November 2025

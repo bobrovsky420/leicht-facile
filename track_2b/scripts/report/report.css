@@ -37,6 +37,11 @@
   @top-left { content: none; }
   @top-right { content: none; }
 }
+/* The references start a page of their own, without a number: the limit leaves them out. */
+main.references { page: references; }
+@page references {
+  @bottom-right { content: none; }
+}
 
 /* -- base -- */
 html {
@@ -170,7 +175,7 @@ main { columns: 2; column-gap: 7mm; orphans: 2; widows: 2; }
    led by a chapter title has the title's margin). */
 .spread:has(> p:first-child) { margin-top: 12pt; }
 /* The summary is the abstract: a size larger, on the first page. */
-main > section:first-child { font-size: 9.8pt; line-height: 1.5; }
+main:not(.references) > section:first-child { font-size: 9.8pt; line-height: 1.5; }
 /* A chapter title spans the page, ruled above and below; the columns before it are
    balanced, so each chapter starts at the top of a new pair of columns. */
 h2 {
@@ -214,6 +219,12 @@ table.foot { table-layout: fixed; margin-top: 10pt; }
 table.foot th:nth-child(1) { width: 17.5%; }
 table.foot th:nth-child(2) { width: 41%; }
 table.foot th:nth-child(3) { width: 41.5%; }
+/* The before/after example: two halves of the page, its columns aligned with the text's
+   columns: half of main's column-gap (7mm) on each side of the middle. */
+table.halves { table-layout: fixed; }
+table.halves th { width: 50%; }
+table.halves :is(th, td):first-child { padding-right: 3.5mm; }
+table.halves :is(th, td):last-child { padding-left: 3.5mm; }
 tr { break-inside: avoid; }
 th {
   padding: 0 3.5pt 3pt;

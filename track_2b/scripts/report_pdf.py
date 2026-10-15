@@ -54,10 +54,13 @@ FOOT_TABLE = "Architecture"
 UNWRAPPED = ("Model and server",)
 # Wide tables, by the first cell of their header, whose introducing paragraph stays in the
 # columns instead of spanning the page as their caption (owner, 11 October 2026).
-NO_CAPTION = ("Setup", "Hardware")
+NO_CAPTION = ("Setup", "Hardware", "Before: the letter")
+# Narrow tables, by the first cell of their header, that span the page all the same, in
+# two equal halves (owner, 15 October 2026).
+SPANNED = ("Before: the letter",)
 # Paragraphs and subheadings, by their first words, that start a new column (owner,
 # 11 October 2026).
-NEW_COLUMN = ("One container plus an", "Licences and providers")
+NEW_COLUMN = ("**Headline result.**", "Licences and providers", "**Where Apertus fell short**")
 MAX_PAGES = 6  # before the references, which do not count (organisers, 11 October 2026)
 MARGIN_TOP, MARGIN_BOTTOM = 17, 15  # mm, as in report.css
 KEYWORDS = "Apertus, easy language, Leichte Sprache, FALC, Swiss official texts, Hack Apertus"
@@ -108,6 +111,9 @@ class Report:
     meta: dict[str, Markup] = field(default_factory=dict)  # the list under the title
     meta_text: dict[str, str] = field(default_factory=dict)
     body: Markup = Markup()
+    # the references, on pages of their own without a number (owner, 15 October 2026)
+    references: Markup = Markup()
+    pages: int = 0  # the numbered pages before the references; 0 while not yet printed
     key_figures: list[dict[str, str]] = field(default_factory=list)
     # the foot table: how many blocks it can move down, its subsection's heading, its header
     foot: tuple[int, str, str] | None = None
@@ -263,15 +269,17 @@ def text_token(content: str) -> Token:
 
 
 def style_table(table: list[Token]) -> None:
-    """Wide tables span both columns; a table of long texts may break between its rows;
-    numeric columns align right; a first column of short labels and the UNWRAPPED columns do
-    not wrap; a bold first cell marks our own row; the "Done by" column gets the diagrams'
-    colours, a second actor after a comma its own mark."""
+    """Wide tables and the SPANNED ones (in halves) span both columns; a table of long texts
+    may break between its rows; numeric columns align right; a first column of short labels
+    and the UNWRAPPED columns do not wrap; a bold first cell marks our own row; the "Done by"
+    column gets the diagrams' colours, a second actor after a comma its own mark."""
     head, *body = cells(table)
     names = [inline.content for _, inline in head[1]]
     longest = max(len(inline.content) for _, row in [head, *body] for _, inline in row)
     if names[0] == FOOT_TABLE:
         add_class(table[0], "span foot")
+    elif names[0] in SPANNED:
+        add_class(table[0], "span halves")
     elif len(names) >= 6 or (len(names) >= 3 and longest > 60):
         add_class(table[0], "span")
     elif longest > 120:
@@ -383,7 +391,18 @@ def parse(
                 report.meta_text[label[1]] = " ".join(label[2].split())
     if "Team" in report.meta:
         report.meta["Team"] = team_lines(report.meta["Team"])
-    report.body = Markup(sections(md, tokens[first:], env, breaks))
+    refs = next(
+        (
+            i
+            for i in range(first, len(tokens))
+            if tokens[i].type == "heading_open"
+            and tokens[i].tag == "h2"
+            and tokens[i + 1].content == "References"
+        ),
+        len(tokens),
+    )
+    report.body = Markup(sections(md, tokens[first:refs], env, breaks))
+    report.references = Markup(sections(md, tokens[refs:], env, breaks))
     return report
 
 
@@ -415,7 +434,8 @@ def block_ends(tokens: list[Token], start: int) -> list[int]:
 
 
 def place_foot_table(tokens: list[Token], shift: int) -> tuple[int, str, str] | None:
-    """Move the FOOT_TABLE down its subsection by `shift` blocks; the page ends with it.
+    """Move the FOOT_TABLE down its subsection by `shift` blocks; the text goes on after it
+    without a page break (owner, 15 October 2026).
     Returns how many blocks follow it there, the subsection's heading and the table's
     header row."""
     for i, token in enumerate(tokens):
@@ -431,9 +451,6 @@ def place_foot_table(tokens: list[Token], shift: int) -> tuple[int, str, str] | 
             to = ends[min(shift, len(ends)) - 1]
             tokens[i:to] = tokens[end:to] + tokens[i:end]
             end = to
-        # Chromium breaks the page inside the columns only at a block that spans them.
-        page_end = '<div class="balance new-page"></div>\n'
-        tokens.insert(end, Token("html_block", "", 0, content=page_end))
         return len(ends), heading, header
     return None
 
@@ -717,6 +734,14 @@ def main(argv: list[str] | None = None) -> int:
             if not stranded:
                 break
             breaks |= stranded
+        # The numbered pages count only the pages before the references. Page numbers
+        # stand in the margin, so printing again with their count keeps the layout.
+        if report.references:
+            report.pages = measure(printed.read_bytes())[1][0]
+            page = page_html(report)
+            (work / "report.html").write_text(page, encoding="utf-8")
+            printed = work / "report-numbered.pdf"
+            print_pdf(browser, work / "report.html", printed, work / "profile")
         info = {
             "Title": report.title,
             "Author": report.authors,

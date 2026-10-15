@@ -4,6 +4,7 @@ its document information (submission.md §5)."""
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import re
 import sys
@@ -62,9 +63,19 @@ def test_every_section_of_the_report_is_on_the_page(report) -> None:
     headings = re.findall(r"^## (?:\d+\. )?(.+)$", REPORT.read_text(encoding="utf-8"), re.MULTILINE)
     shown = [
         plain(h)
-        for h in re.findall(r"<h2>(?:<span class=\"num\">\d+\.</span> )?(.*?)</h2>", report.body)
+        for h in re.findall(
+            r"<h2>(?:<span class=\"num\">\d+\.</span> )?(.*?)</h2>", report.body + report.references
+        )
     ]
     assert shown == headings
+
+
+def test_the_references_stand_apart_from_the_numbered_pages(report) -> None:
+    assert "<h2>References</h2>" in report.references
+    assert "References</h2>" not in report.body
+    page = report_pdf.page_html(dataclasses.replace(report, pages=6))
+    assert '<main class="references">' in page
+    assert 'counter(page) " / 6"' in page
 
 
 def test_the_team_shows_one_member_per_line_and_its_name_by_the_wordmark(report) -> None:
@@ -87,13 +98,23 @@ def test_the_foot_table_moves_down_its_subsection_only() -> None:
         table, after = body.index("How it is met"), body.index("Apart from that endpoint")
         assert body.index("Target architecture") < table < body.index("Use of Apertus")
         assert (table < after) == (shift == 0)
-        # the page ends with the table
+        # the text goes on after the table, without a page break
         end = body.index("</table>", table)
-        assert body[end:].startswith('</table>\n<div class="balance new-page"></div>')
+        assert "new-page" not in body[end : end + 60]
 
 
-def test_the_summary_starts_its_second_column_with_the_deployment(report) -> None:
-    assert '<p class="new-column">One container plus an' in str(report.body)
+def test_the_summary_flows_on_without_a_column_break(report) -> None:
+    body = str(report.body)
+    assert "<p>One container plus an" in body
+    assert '<p class="new-column">One container' not in body
+    assert '<p class="new-column"><strong>Headline result.</strong>' in body
+    assert '<p class="new-column"><strong>Where Apertus fell short</strong>' in body
+
+
+def test_the_before_after_example_spans_the_page_in_halves(report) -> None:
+    body = str(report.body)
+    assert '<table class="span halves">' in body
+    assert '<div class="spread">\n<p><strong>Problem.' not in body
 
 
 def test_the_data_chapters_paragraph_stays_in_the_columns(report) -> None:
