@@ -291,9 +291,9 @@ the cache: P1's time is not measured, the last row's is too low.
   the 7-page source that gave two fifths of the errors on 11 October, rewritten in full
   into 140 blocks, came out as a 44-block draft with one error this time.
 - A single prompt varies from run to run: on unchanged templates, P0-ZH complete found
-  91 percent of the facts on 10 October and 83 on 11 October (one answer per pair at
-  temperature 0.3); the table keeps its answers of 11 October, scored with the final
-  checks: 82 percent.
+  91 percent of the facts in a first run on 10 October, scored with the checks of that
+  day; the table keeps its answers of 11 October, scored with the final checks: 82
+  percent (one answer per pair at temperature 0.3).
 - French (3 pairs): 100 percent fact coverage, 72 percent of the hard facts (one draft
   of 117 words for a 489-word source kept 4 of 15, every one listed for the reviewer),
   3.5 errors, readability 70 (official 85).
@@ -372,8 +372,8 @@ sentences for every rule (two or more that fire, one that must not).
   non-sensitive texts. We are in touch with that team: at their invitation we fixed a
   bug in the app, and they merged our pull request on 12 October 2026; we have not yet
   offered them Leicht·Facile. Leicht·Facile adds the fact and rule checks by code and a review with an audit trail. For public
-  texts and standard letters that name no person a cloud endpoint is enough, even
-  Public AI, though it serves part of its Apertus calls from outside Switzerland
+  texts and standard letters that name no person a cloud endpoint is enough, Public
+  AI included, though it serves part of its Apertus calls from outside Switzerland
   ([architecture](docs/architecture.md) §6). Left before
   the first text goes out: the canton's IT security review and its login proxy in front
   of the app (the app already reads the user from the proxy's header).
