@@ -157,7 +157,7 @@ li::before {
 .key-figures .note {
   grid-column: 1 / -1;
   margin-top: 6pt;
-  font: 400 9.1pt/1.35 var(--sans);
+  font: 400 8.3pt/1.35 var(--sans);
   color: var(--muted);
 }
 

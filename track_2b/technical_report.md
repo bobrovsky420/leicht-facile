@@ -48,7 +48,8 @@ survive, no provenance and no independent check: a plain one ("rewrite this in L
 Sprache") and a strong one, the Canton of Zurich's published prompt.
 
 **Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
-the same model and 20 German test documents. Our pipeline first, the prompt second:
+the same model and 20 real German texts from Swiss authorities. Our pipeline first, the
+prompt second:
 
 - **Must-keep facts found:** 100 against 82 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
@@ -220,7 +221,7 @@ evaluation scripts; the design, the decisions and every claim here are the team'
 
 | Data | Origin | Licence and handling |
 |------|--------|----------------------|
-| Reference pairs: **35** documents with an official easy-language version (**30** German: 20 eval, 10 dev; **5** French: 3 eval, 2 dev) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | Personal use only. The repository holds only the manifest (`track_2b/data/pairs/manifest.jsonl`: URLs, licence notes); `eval fetch` caches the texts, git-ignored, with a fetch date |
+| Reference pairs: **35** real texts with an official easy-language version (**30** German: 20 eval, 10 dev; **5** French: 3 eval, 2 dev) | Cantons Zürich, Bern, St. Gallen, Luzern, Basel-Stadt, Graubünden, Zug, Geneva, Neuchâtel; federal offices BAG, BWL, EBGB | Personal use only. The repository holds only the manifest (`track_2b/data/pairs/manifest.jsonl`: URLs, licence notes); `eval fetch` caches the texts, git-ignored, with a fetch date |
 | Example documents, few-shot examples, hard texts for tests | Written by the team: invented municipality, reserved `.example` domains | In the repository, under the project licence |
 | Recorded runs of the two prepared letters (German, French) and their finished example jobs, so a first run shows a result in seconds | Apertus answers from the CSCS endpoint, 12 October 2026 | In the repository; the page says the answers were recorded; an edited letter, other settings or **Run without cache** go to the endpoint |
 
@@ -253,7 +254,7 @@ judge); *rule errors*; *readability* (Amstad, the German Flesch); *SARI* against
 official version (a port of `SARI.py`, checked bit for bit); cost at Public AI's token
 prices and speed per 250-word page.
 
-Results on the 20 held-out German pairs, final run on the CSCS endpoint, 12 October
+Results on the 20 real held-out German pairs, final run on the CSCS endpoint, 12 October
 2026. The strong prompt's two rows keep the answers of its run of 11 October, because
 its prompt did not change in between; only the checks ran again on them. Each number
 is the mean over the pairs; "/100" means per 100 blocks. P1 and the last row reused answers from

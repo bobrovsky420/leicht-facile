@@ -73,7 +73,7 @@ KEY_FIGURES = (
 )
 KEY_NOTE = (
     "Our pipeline compared to a chatbot: the same model with a strong single prompt, "
-    "on 20 German test documents."
+    "on 20 real German texts from Swiss authorities."
 )
 
 BROWSERS = (

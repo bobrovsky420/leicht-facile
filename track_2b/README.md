@@ -75,8 +75,9 @@ single prompts on the same model (P as in pipeline, not a language level;
 fairer baseline is a strong single prompt: a published Leichte Sprache prompt from a
 Swiss public administration
 ([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
-MIT), here in its "complete" mode. Final run: 20 held-out German text pairs on the CSCS
-endpoint, 12 October 2026 (report §5).
+MIT), here in its "complete" mode. Final run: 20 held-out pairs of real German texts,
+published by Swiss cantons and federal offices with their easy-language versions, on the
+CSCS endpoint, 12 October 2026 (report §5).
 
 | | A strong single prompt | Leicht·Facile |
 |---|---|---|
