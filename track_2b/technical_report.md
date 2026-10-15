@@ -51,22 +51,16 @@ for each value still missing. Code checks the published easy-language rules
 (45 checks for German, 41 for French), including the exact presence of every fact
 value.
 
-One container plus an OpenAI-compatible Apertus endpoint runs on-premise, air-gapped or
-on a Swiss cloud, as letters under official, medical or tax secrecy require; for those,
-only Apertus fits (§3).
-
-The baselines are single prompts on the same model, with no list of the facts that must
-survive, no provenance and no independent check: a plain one ("rewrite this in Leichte
+The baselines are single prompts on the same model, without a list of the facts that
+must survive, provenance or an independent check: a plain one ("rewrite this in Leichte
 Sprache") and a strong one, the Canton of Zurich's published prompt.
 
-**Headline result.** Our pipeline compared to the strong single prompt (defined in §5), on
-the same model and 20 real German texts from Swiss authorities. Our pipeline first, the
+**Headline result.** Our pipeline compared to the strong single prompt, on the same model and 20 real German texts from Swiss authorities. Our pipeline first, the
 prompt second:
 
 - **Must-keep facts found:** 100 against 82 percent.
 - **Countable values kept** (dates, amounts, phone numbers, addresses): 97 against 85
-  percent. The official easy-language versions keep 67 percent; they drop values on
-  purpose.
+  percent.
 - **Values lost without a trace:** none against 15 percent. The pipeline lists every
   value it loses for the reviewer.
 - **Rule errors per 100 blocks:** 3.7 against 15.0.
@@ -133,7 +127,7 @@ Each stage saves its result in a database (SQLite), so a failed job picks up whe
 stopped, and the UI and the evaluation can show the result of every step.
 
 One service: FastAPI, a server-rendered UI, one worker thread by default; no Node
-build, no CDN.
+build.
 
 ### Target architecture
 
@@ -144,7 +138,7 @@ variable.
 | Architecture | How it is met | Tested on |
 |--------------|---------------|-----------|
 | a) On-premise | `docker compose --profile local-llm up` adds a vLLM service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release` serving Apertus 1.5 8B on one GPU; the app points at `http://vllm:8000/v1`. | vLLM on one NVIDIA L4 24 GB (rented AWS g6.xlarge in Zurich, Ubuntu 24.04, 10 October 2026): `make run` from a clean clone, two jobs end to end.<p>llama.cpp on a laptop RTX 4060 8 GB.</p> |
-| b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; no telemetry, no CDN, no installs at runtime. | Not run without a network. Tests check that the UI loads nothing from another host; CI starts the image against an unreachable endpoint. |
+| b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, spaCy models and UI assets are baked into the image; nothing is installed at runtime. | Not run without a network. Tests check that the UI loads nothing from another host; CI starts the image against an unreachable endpoint. |
 | c) Sovereign Swiss cloud | `LLM_BASE_URL` points at a Swiss-operated Apertus endpoint. | The CSCS inference API in Lugano: every run evaluated in §5 and the two example letters. |
 
 Apart from that endpoint and, for URL input, that page's server, the running system
@@ -172,8 +166,8 @@ on-premise): no single provider is needed.
   `LLM_JUDGE_NAME`.
 - **How it is used:** inference in a structured-output pipeline; no tool calling, no
   fine-tuning.
-- **Where it runs, and why only Apertus:** CSCS for the hackathon; vLLM,
-  llama.cpp or a Swiss cloud unchanged. Letters that name a person fall under
+- **Where it runs, and why only Apertus:** CSCS for the hackathon; any other
+  OpenAI-compatible endpoint unchanged (§2). Letters that name a person fall under
   official, medical or tax secrecy (StGB art. 320, 321; DBG art. 110) and may go to a
   foreign cloud only encrypted with a key the provider lacks (privatim 2025); a model
   reads them in clear, so the organisation must run it itself and account for what it
@@ -253,7 +247,7 @@ fact. Each held-out pair runs under these conditions:
 | Code | Condition | Measures |
 |------|-----------|----------|
 | P0 | One prompt: "Schreibe diesen Text in Leichter Sprache:" | What a user gets from a chatbot |
-| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim; German only | The strong single prompt: Zurich's published prompt, the only public Swiss one we found |
+| P0-ZH | The Canton of Zurich's public Leichte Sprache prompt, verbatim; German only | The strong single prompt, the only public Swiss one we found |
 | P1 | Understand, Write, rule check; no judge, no repair | Fact sheet, planning, provenance |
 | P2 | Full pipeline with judge and repair | Checking and repairing |
 
@@ -295,8 +289,7 @@ the cache: P1's time is not measured, the last row's is too low.
   more but drops a third of the values, all without a trace.
 - Our pipeline keeps more hard facts than the official versions: 97 against 67 percent,
   and 97 against 61 on the 17 pairs with 3 or more hard facts; the official versions
-  drop values on purpose. It nears their sentence length (7.0 words against 6.1) but is
-  harder to read (Amstad 52 against 62).
+  drop values on purpose. It nears their sentence length (7.0 words against 6.1).
 - Judge, repair and the recover round (P1 to P2) raise fact coverage from 61 to 100
   percent and cut rule errors from 9.7 to 3.7 per 100 blocks; 19 of the 20 final drafts
   miss no must-keep fact, the 20th misses 2 of its 23.
@@ -318,8 +311,7 @@ dev pair, 1,079 source words together), from opening the review to the export, t
 15 minutes by stopwatch, about 3.5 minutes per 250-word page (the team, not experts).
 
 **Judge reliability.** The judge's fact verdicts are a hint for the reviewer, not a
-measure: every fact number here comes from code, and the review page shows a verdict
-that code contradicts as a doubt. Its block verdicts, the basis of the "Unsupported"
+measure (§3); the review page shows a verdict that code contradicts as a doubt. Its block verdicts, the basis of the "Unsupported"
 column, agree with blind labels far better. 30 facts and 30 blocks from the P2 dev
 drafts of 6 October (70B judge), drawn evenly over the verdicts and labelled blind to
 them. Blocks, supported or not: agreement 80 %, Cohen's
@@ -333,11 +325,9 @@ sentences for every rule (two or more that fire, one that must not).
 
 ## 6. Limitations
 
-- **Readability with an 8B model.** The drafts keep all must-keep facts and 97 percent
-  of the countable values, list every value they lose, and their sentences are almost
-  as short as the official versions' (7.0 against 6.1 words). What is left is the
-  readability score at level A2: 52 against 62 (Amstad; higher is easier); a larger writer and fine-tuning
-  (§8) are the next steps (20 German eval pairs, CSCS).
+- **Readability with an 8B model.** At level A2 the drafts score 52 against the official
+  versions' 62 (Amstad; higher is easier); a larger writer and fine-tuning (§8) are the
+  next steps.
 - **Not a certification.** Easy-language texts must be tested by readers from the
   target group; the tool prepares that test, it does not replace it.
 - **Italian and B1.** Italian texts get only the language-independent rules (facts,
@@ -348,12 +338,11 @@ sentences for every rule (two or more that fire, one that must not).
 - **What the numbers rest on.** Fact coverage counts the facts of our own fact sheet,
   which the baselines never see; hard facts kept, counted by code from the source, is
   the neutral comparison. The rule checker was calibrated on the official versions, so
-  their low error count is partly by design. The review time comes from three drafts,
-  two of them the example letters, each picked as the cleanest of 30 runs.
+  their low error count is partly by design. The review time comes from three drafts
+  (§5); the two example letters among them were picked as the cleanest of 30 runs.
 - **Decision mode v1.** It is calibrated on one team-written KESB decision and one
   published court decision; no authority and no reader has seen its output.
-- **Not yet supported:** scanned PDFs and photos (§3), an air-gapped image bundle, user
-  accounts and roles.
+- **Not yet supported:** scanned PDFs and photos (§3), user accounts and roles.
 
 ## 7. Reproducibility
 
@@ -398,8 +387,7 @@ sentences for every rule (two or more that fire, one that must not).
 - **Patient letters.** Code already checks doses; left are a drug list, a medical judge
   (Apertus-70B-MeditronFO, not yet tried) and an assessment under the Medical Devices
   Ordinance.
-- **Italian.** Rules and prompts for lingua facile; Italian texts get only the
-  language-independent checks today.
+- **Italian.** Rules and prompts for lingua facile (§6).
 - **Scanned letters.** Image input: the app cuts each scanned page into horizontal
   strips small enough that the endpoint keeps every pixel (five per A4 page), and the
   8B reads them one by one.

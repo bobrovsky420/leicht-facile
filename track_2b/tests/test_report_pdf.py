@@ -103,10 +103,8 @@ def test_the_foot_table_moves_down_its_subsection_only() -> None:
         assert "new-page" not in body[end : end + 60]
 
 
-def test_the_summary_flows_on_without_a_column_break(report) -> None:
+def test_the_headline_result_and_the_shortcomings_start_a_new_column(report) -> None:
     body = str(report.body)
-    assert "<p>One container plus an" in body
-    assert '<p class="new-column">One container' not in body
     assert '<p class="new-column"><strong>Headline result.</strong>' in body
     assert '<p class="new-column"><strong>Where Apertus fell short</strong>' in body
 

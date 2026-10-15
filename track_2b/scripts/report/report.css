@@ -221,7 +221,7 @@ table.foot th:nth-child(2) { width: 41%; }
 table.foot th:nth-child(3) { width: 41.5%; }
 /* The before/after example: two halves of the page, its columns aligned with the text's
    columns: half of main's column-gap (7mm) on each side of the middle. */
-table.halves { table-layout: fixed; }
+table.halves { table-layout: fixed; font-size: inherit; line-height: inherit; }
 table.halves th { width: 50%; }
 table.halves :is(th, td):first-child { padding-right: 3.5mm; }
 table.halves :is(th, td):last-child { padding-left: 3.5mm; }
