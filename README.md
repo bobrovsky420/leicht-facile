@@ -14,19 +14,19 @@ not a replacement for their review or for the test by readers from the target gr
 > letters that decide their money, deadlines and rights.
 
 Two use cases: a canton's letters and web pages
-([track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md)), and easy-language letters that
+([use-case-canton.md](track_2b/docs/use-case-canton.md)), and easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
 that may never leave the authority (decision mode v1;
-[track_2b/docs/use-case-decisions.md](track_2b/docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
+[use-case-decisions.md](track_2b/docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
-[track_2b/docs/use-cases.md](track_2b/docs/use-cases.md). Most of them are under official, medical or
+[use-cases.md](track_2b/docs/use-cases.md). Most of them are under official, medical or
 tax secrecy and may not go to a chatbot on a foreign cloud: for them, **Apertus is the
 only model that fits** ([why](#why-only-apertus)).
 
 **Hack Apertus 2026, Track 2B (own project).** Team Röstigraben Bridgers: Alexander
 Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych (i.kuzmych@hotmail.com).
-Technical report: [track_2b/technical_report.md](track_2b/technical_report.md) (PDF:
-`track_2b/RoestigrabenBridgers_Report.pdf`). Demo video: <https://youtu.be/5el7q6Xtgik>. Maturity: a
+Technical report: [technical_report.md](track_2b/technical_report.md) (PDF:
+[RoestigrabenBridgers_Report.pdf](track_2b/RoestigrabenBridgers_Report.pdf)). Demo video: <https://youtu.be/5el7q6Xtgik>. Maturity: a
 deployable prototype for German and French drafts of public texts and letters, a proof
 of concept for decisions. Built with AI coding assistants (report §3).
 
@@ -71,7 +71,7 @@ organisation controls.
 
 **How we measure the difference.** The evaluation compares the full pipeline (P2) with
 single prompts on the same model (P as in pipeline, not a language level;
-[track_2b/docs/use-case-canton.md](track_2b/docs/use-case-canton.md) §4). P0 is the plain chatbot prompt. The
+[use-case-canton.md](track_2b/docs/use-case-canton.md) §4). P0 is the plain chatbot prompt. The
 fairer baseline is a strong single prompt: a published Leichte Sprache prompt from a
 Swiss public administration
 ([simply-simplify-language](https://github.com/machinelearningZH/simply-simplify-language),
@@ -104,7 +104,7 @@ The Canton of Ticino already runs Apertus in-house to translate sensitive govern
 documents. Tokens are nearly free (about 1.6 US cents per page for the full pipeline at
 Public AI's list prices, report §5); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
-[track_2b/docs/use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus).
+[use-cases.md §2](track_2b/docs/use-cases.md#why-only-apertus).
 
 ## Quick start
 
@@ -118,38 +118,60 @@ make run                  # builds and starts the container, opens http://localh
 
 The three variables can also come from the shell instead of `.env`. Every other way to
 start the app (Compose or plain Docker, a local vLLM or llama.cpp server, without Docker,
-the release wheel, the command line alone), reaching it from other machines and what to
-do when it does not start: [track_2b/docs/quickstart.md](track_2b/docs/quickstart.md).
+the release wheel, the command line alone), the other make targets, reaching it from
+other machines and what to do when it does not start: [quickstart.md](track_2b/docs/quickstart.md).
 
 Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
 endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
-the 8B write. `track_2b/eval/report.md` compares the three.
+the 8B write. [report.md](track_2b/eval/report.md) compares the three.
 
-In the browser (English, German or French), paste a text, upload a PDF or enter a URL,
-choose language and level (A2 Leichte Sprache or B1 Einfache Sprache; the level names
-the rule set, not a measured reader level), and follow the stages to the review page.
-Without a text of your own, click **Run** on a prepared letter on the start page (German
-or French): Apertus's answers to it were recorded on CSCS, so with the default models
-the run reaches the review page in seconds instead of minutes; a changed text, other
-models and every rerun go to Apertus live. **Check my text** runs the rule checker on
-any text you paste, without a model and without storing it.
+### Your first draft
 
-Other targets: `make check-llm` (one call to the endpoint), `make test`, `make lint`,
-`make smoke` (one document through the pipeline), `make calibrate` (rule checker on
-official easy-language pages, no model needed), `make day1` (endpoint checks),
-`make pdf` (the technical report as PDF, printed with Edge or Chrome),
-`make eval` (conditions P0, P1, P2 on the reference pairs; `RESULTS=track_2b/eval/results-cscs`
-keeps one endpoint's results together). `python -m leichtfacile eval sample` writes the
-hand-labelling sheets for the judge and `eval kappa` scores a filled sheet; `eval diagnose`
-says why must-keep facts are missing from the final drafts of a run, without a model call.
+The interface speaks English, German or French (switch at the top right).
+
+**1. Run a prepared letter (the recorded demo).** The start page offers two prepared
+letters, a municipality's letter about premium reduction in German and in French
+(team-written, described in the examples' [README.md](track_2b/data/examples/README.md)). Click **Run**:
+Apertus's answers to that letter were recorded on CSCS, so with the default models the
+run reaches the review page in seconds instead of minutes. **Run without cache** sends
+the same letter to Apertus live (a few minutes); **Edit first** opens it in the New
+draft form, and a changed text, other models and every rerun go to Apertus live. The two
+drafts already in the list are the same letters, run in advance, to open straight away.
+
+![The start page: the two prepared letters with Run, Run without cache and Edit first, and the list of drafts](track_2b/docs/images/first-draft-start.png)
+
+**2. Follow the stages.** The page updates by itself: Read, Write, Check, Judge and
+Repair, each with its result as soon as it is done (the fact sheet, then each draft
+version). A banner says when the answers come from a recording. When the pipeline is
+done, the review page opens.
+
+![A running job: the pipeline at the repair stage, the fact sheet and the current draft next to it](track_2b/docs/images/first-draft-progress.png)
+
+**3. Review and export.** The review page (screenshot above, below "How it works")
+shows the source, the draft and the must-keep facts. Click a block or a fact to see
+where it comes from. Approve, edit or reject each block (or **Approve all undecided**),
+tick **Review complete** and click **Save review**. **Reader view** shows the text as a
+reader gets it; **Export** writes it as Markdown, HTML or Word, or the whole job as an
+audit bundle (JSON).
+
+**4. Your own text.** Click **New draft**, paste a text, enter a web address or upload a
+file (PDF, HTML, text or Markdown), choose the language (or let it be detected), the
+level (A2 Leichte Sprache or FALC, B1 Einfache Sprache or langage clair; the level names
+the rule set, not a measured reader level) and the pipeline (P2 full by default), and
+click **Create draft**. Apertus answers live: a run takes a few minutes.
+
+![The New draft form with the German example letter pasted, and the settings: language, level and pipeline](track_2b/docs/images/first-draft-new.png)
+
+**Check my text** runs the rule checker on any text you paste, without a model and
+without storing it.
 
 ## Sovereign deployment
 
 | Target architecture | How |
 |---------------------|-----|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [track_2b/eval/hardware/](track_2b/eval/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
+| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [aws-l4-2026-10-10/](track_2b/eval/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
 | b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and the UI assets are inside the image: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the hackathon demo runs against CSCS in Lugano |
 
@@ -161,7 +183,7 @@ page's server when a user enters a URL: no telemetry, no CDN, no login provider 
 
 ## Documentation
 
-- [technical_report.md](track_2b/technical_report.md): the technical report (PDF: `track_2b/RoestigrabenBridgers_Report.pdf`)
+- [technical_report.md](track_2b/technical_report.md): the technical report (PDF: [RoestigrabenBridgers_Report.pdf](track_2b/RoestigrabenBridgers_Report.pdf))
 - [quickstart.md](track_2b/docs/quickstart.md): every way to start the app, from `make run` to a development server
 - [architecture.md](track_2b/docs/architecture.md): design and architecture
 - [ui-design.md](track_2b/docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
@@ -179,4 +201,4 @@ page's server when a user enters a URL: no telemetry, no CDN, no login provider 
 
 Code: Apache License 2.0, see [LICENSE](LICENSE). Texts from cantonal and federal web
 pages are not part of the repository; the evaluation fetches them from their URLs
-([track_2b/docs/sources.md](track_2b/docs/sources.md) §4).
+([sources.md](track_2b/docs/sources.md) §4).

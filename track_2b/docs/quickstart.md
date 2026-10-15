@@ -248,6 +248,23 @@ DATA_DIR=./leichtfacile-data leichtfacile serve      # http://127.0.0.1:8000
   `uv sync` steps of the repository's Dockerfile; start the app with
   `uvicorn leichtfacile.web.app:create_app --factory --host 0.0.0.0 --port 8000`.
 
+## Other make targets
+
+Besides `make run`, the Makefile has:
+
+- `make check-llm`: one call to the endpoint
+- `make test`, `make lint`
+- `make smoke`: one document through the pipeline
+- `make calibrate`: the rule checker on official easy-language pages, no model needed
+- `make day1`: endpoint checks
+- `make pdf`: the technical report as PDF, printed with Edge or Chrome
+- `make eval`: conditions P0, P1, P2 on the reference pairs;
+  `RESULTS=track_2b/eval/results-cscs` keeps one endpoint's results together
+
+`python -m leichtfacile eval sample` writes the hand-labelling sheets for the judge and
+`eval kappa` scores a filled sheet; `eval diagnose` says why must-keep facts are missing
+from the final drafts of a run, without a model call.
+
 ## Reaching the app from other machines
 
 Every way above publishes the app on this machine only (`127.0.0.1:8000`). To reach it
