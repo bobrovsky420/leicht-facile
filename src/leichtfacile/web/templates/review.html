@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
+{% block title %}{{ t('review.title', title=title) }} - Leicht·Facile{% endblock %}
+{% block body_class %}fit-screen{% endblock %}
+{% block content %}
+{% set counts = v.counts %}
+{% set fc = v.fact_counts %}
+{% set sc = v.segment_counts %}
+{% set doc_lang = v.draft.lang %}
+{% set total = v.items %}
+<div class="workspace">
+<section class="pagehead">
+  <div class="pagehead-row">
+    <div class="pagehead-title">
+      <a class="crumb" href="/">{{ t('site.drafts') }}{{ icons.icon('chevron-right', 12) }}</a>
+      <div class="titleline">
+        <h1 lang="{{ doc_lang }}">{{ title }}</h1>
+        <span class="badge status-{{ job.status }}" id="job-status">{{ t('status.' ~ job.status) }}</span>
+      </div>
+    </div>
+    <nav class="pagehead-actions" aria-label="{{ t('review.actions') }}">
+      <span class="seg" role="group" aria-label="{{ t('review.view') }}">
+        <a class="seg-item view-opt" href="?version={{ v.draft.version }}" data-view="review" aria-current="true">{{ t('review.view.review') }}</a>
+        <a class="seg-item view-opt" href="/jobs/{{ job.id }}/preview?version={{ v.draft.version }}" data-view="reader">{{ t('review.reader_view') }}</a>
+      </span>
+      <details class="menu">
+        <summary class="btn">{{ t('review.export') }}{{ icons.icon('chevron-down', 14) }}</summary>
+        <div class="menu-panel">
+          <a href="/api/jobs/{{ job.id }}/export?format=md&amp;version={{ v.draft.version }}">Markdown<span class="ext">.md</span></a>
+          <a href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}">HTML<span class="ext">.html</span></a>
+          <a href="/api/jobs/{{ job.id }}/export?format=docx&amp;version={{ v.draft.version }}">Word<span class="ext">.docx</span></a>
+          <a href="/api/jobs/{{ job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
+        </div>
+      </details>
+      <span class="save-state{% if v.saved_at %} saved{% endif %}" id="save-status" role="status">{% if v.saved_at %}<time datetime="{{ v.saved_at.isoformat() }}" data-saved>{{ t('review.saved_at', time=v.saved_at.strftime('%H:%M') ~ ' UTC') }}</time>{% else %}{{ t('review.never_saved') }}{% endif %}</span>
+      <button type="submit" form="review-form" class="btn btn-primary" aria-keyshortcuts="Control+S">{{ t('review.save') }}</button>
+    </nav>
+  </div>
+  <div class="strip">
+    <span title="{{ t('level.' ~ v.draft.level) }}">{{ t.get('lang.' ~ doc_lang, doc_lang) }} · {{ v.draft.level }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
+    <nav class="versions" aria-label="{{ t('review.versions_label') }}">
+      <span class="muted">{{ t('review.versions') }}</span>
+      {% for row in v.version_rows %}
+      <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}>v{{ row.version }}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}{% if row.blocking is not none %} <span class="vcount{% if row.blocking == 0 %} zero{% endif %}">{{ t('review.blocking_n', count=row.blocking) }}</span>{% endif %}</a>
+      {% endfor %}
+      {% if v.summary %}<span class="muted" title="{{ t('review.rounds', n=v.summary.rounds, reason=stop_reason(t, v.summary.stop_reason)) }}">{{ t('review.rounds_short', n=v.summary.rounds) }}</span>{% endif %}
+      {% if v.code_splits %}<span class="muted" title="{{ t('review.code_splits_title') }}">{{ t('review.code_splits', n=v.code_splits) }}</span>{% endif %}
+    </nav>
+    <span class="grow"></span>
+    <span class="stat">{{ icons.sev('error' if counts.error else 'none') }}{{ t('count.errors', n=counts.error) }}</span>
+    <span class="stat">{{ icons.sev('warn') }}{{ t('count.warnings', n=counts.warn) }}</span>
+    {% if fc.total %}<span>{{ t('review.facts_present', present=fc.present, total=fc.total) }}</span>{% endif %}
+  </div>
+</section>
+
+<div class="panes" id="review-grid">
+  <section class="pane source" aria-label="{{ t('review.source_label') }}">
+    <div class="pane-head">
+      <h2>{{ t('review.source') }}</h2>
+      <span class="count">{{ t('review.sentences', n=sc.sentences) }}</span>
+    </div>
+    <div class="pane-body" lang="{{ doc_lang }}">
+      <div class="legend" lang="{{ ui_lang }}">
+        <span><span class="sw sw-linked"></span>{{ t('review.legend.linked') }}</span>
+        {% if sc.unused %}<span><span class="sw sw-unused"></span>{{ t('review.legend.unused_n', count=sc.unused) }}</span>{% endif %}
+        {% if sc.omitted %}<span><span class="tag">{{ t('review.tag.left_out') }}</span>{{ sc.omitted }}</span>{% endif %}
+      </div>
+      {% set ns = namespace(para=None) %}
+      {% for seg in v.source.segments %}
+        {% if seg.kind == "heading" %}
+        <p class="seg-row seg-heading{% if ns.para is not none %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}"><span class="sid">{{ seg.id }}</span><span class="seg-main"><span class="seg-text">{{ seg.text }}</span></span></p>
+        {% else %}
+        {% set state = "used" if seg.id in v.used_segments else ("omitted" if seg.id in v.omitted_segments else "unused") %}
+        <p class="seg-row {{ state }}{% if ns.para is not none and seg.para != ns.para %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}">
+          <span class="sid">{{ seg.id }}</span>
+          <span class="seg-main">
+            <span class="seg-text">{% if seg.kind == "list_item" %}&bull; {% endif %}{{ seg.text }}</span>
+            {% if state == "omitted" %}<span class="seg-note"><span class="tag" lang="{{ ui_lang }}">{{ t('review.tag.left_out') }}</span><span>{{ v.omitted_segments[seg.id] }}</span></span>
+            {% elif state == "unused" %}<span class="seg-note" lang="{{ ui_lang }}"><span class="tag tag-warn">{{ t('review.tag.unused') }}</span></span>{% endif %}
+          </span>
+        </p>
+        {% endif %}
+        {% set ns.para = seg.para %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="pane draft" aria-label="{{ t('review.draft_label') }}">
+    <div class="pane-head">
+      <h2>{{ t('draft.version', version=v.draft.version) }}</h2>
+      <span class="count">{{ t('review.blocks', n=v.rows | length) }}</span>
+      <span class="grow"></span>
+      <div class="seg seg-sunken seg-sm js-only" role="group" aria-label="{{ t('review.filter') }}">
+        <button type="button" class="seg-item filter active" data-filter="all" aria-pressed="true">{{ t('review.filter.all') }}<span class="n">{{ total }}</span></button>
+        <button type="button" class="seg-item filter" data-filter="issues" aria-pressed="false">{{ t('review.filter.issues') }}<span class="n">{{ v.blocks_with_issues }}</span></button>
+        <button type="button" class="seg-item filter" data-filter="undecided" aria-pressed="false">{{ t('review.filter.undecided') }}<span class="n" id="undecided-n">{{ total - v.decided }}</span></button>
+      </div>
+    </div>
+    <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" data-saved-at="{{ v.saved_at.isoformat() if v.saved_at else '' }}" lang="{{ doc_lang }}">
+    {% if job.config.notice %}
+      <p class="notice-banner"><span class="label" lang="{{ ui_lang }}">{{ t('review.notice') }}</span>{{ job.config.notice }}</p>
+    {% endif %}
+    {% for row in v.rows %}
+      {% set b = row.block %}
+      {% set d = row.decision.decision if row.decision else "" %}
+      {% set edited_text = row.decision.text if row.decision and row.decision.text else b.text %}
+      {% set counted = row.issues | rejectattr('severity', 'equalto', 'info') | list | length %}
+      <article class="block kind-{{ b.kind }}{% if row.worst %} sev-{{ row.worst }} has-issues{% endif %}{% if d %} decided {{ d }}{% endif %}" id="blk-{{ b.id }}"
+               data-block="{{ b.id }}" data-segments="{{ b.segment_ids | join(' ') }}" data-facts="{{ b.fact_ids | join(' ') }}" tabindex="0">
+        <span class="bid">{{ b.id }}</span>
+        <span class="block-sev" lang="{{ ui_lang }}">{% if row.worst %}{{ icons.sev(row.worst, t('count.findings', n=row.issues | length)) }}{% if counted %}<span class="n-{{ row.worst }}" aria-hidden="true">{{ counted }}</span>{% endif %}{% elif row.issues %}{{ icons.sev('info', t('count.findings', n=row.issues | length)) }}{% endif %}</span>
+        <div class="block-main">
+          <p class="block-text"><span class="orig-text">{{ b.text }}</span><span class="edited-text">{{ edited_text }}</span></p>
+        </div>
+        <span class="block-state" lang="{{ ui_lang }}">{{ icons.decision_states() }}</span>
+        <div class="block-details" lang="{{ ui_lang }}">
+          <div class="edit-area">
+            <label class="label" for="t-{{ b.id }}">{{ t('review.edited_text') }}</label>
+            <textarea id="t-{{ b.id }}" name="t-{{ b.id }}" rows="2" lang="{{ doc_lang }}">{{ edited_text }}</textarea>
+          </div>
+          {% if row.issues %}
+          <div class="findings">
+            {% for i in row.issues %}
+            <div class="finding issue sev-{{ i.severity }}">
+              <span class="sev">{{ icons.sev(i.severity, t('sev.' ~ i.severity)) }}</span>
+              <div class="finding-body">
+                <div class="finding-meta"><span class="rid">{{ i.rule_id }}</span><span class="tag by-{{ i.source }}">{{ icons.icon('chip' if i.source == 'judge' else 'code', 12) }}{{ t('review.tag.judge') if i.source == 'judge' else t('review.tag.code') }}</span></div>
+                <div class="finding-msg">{{ i.message }}</div>
+                {% if i.suggestion %}
+                <div class="suggest">{{ t('review.suggestion', text='') }}<strong lang="{{ doc_lang }}">{{ i.suggestion }}</strong>{% if i.applicable %}<button type="button" class="btn btn-sm js-only" data-apply data-evidence="{{ i.evidence }}" data-suggestion="{{ i.suggestion }}">{{ t('review.apply') }}</button>{% endif %}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if b.fact_ids %}
+          <div class="carries"><span>{{ t('review.carries') }}</span>{% for fid in b.fact_ids %}{% set f = v.facts_by_id.get(fid) %}<span class="carry"><span class="id">{{ fid }}</span>{% if f %}<span class="text" lang="{{ doc_lang }}">{{ f.expected or (f.fact.text | truncate(34, True, '…', 0)) }}</span>{% endif %}</span>{% endfor %}</div>
+          {% endif %}
+          <div class="decision" role="radiogroup" aria-label="{{ t('review.decision_for', block=b.id) }}">
+            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ b.id }}" value="approved"{% if d == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
+            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ b.id }}" value="edited"{% if d == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
+            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ b.id }}" value="rejected"{% if d == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
+            <button type="button" class="btn btn-quiet btn-sm js-only next-undecided">{{ t('review.next_undecided') }}<kbd aria-hidden="true">N</kbd></button>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+    {% if v.glossary_rows %}
+      <h3 class="draft-section" lang="{{ ui_lang }}">{{ t('review.glossary') }} <span class="hint">{{ t('review.glossary_review_hint') }}</span></h3>
+      {% for g in v.glossary_rows %}
+      {% set d = g.decision.decision if g.decision else "" %}
+      {% set edited_text = g.decision.text if g.decision and g.decision.text else g.entry.explanation %}
+      <article class="block kind-glossary{% if d %} decided {{ d }}{% endif %}" id="blk-{{ g.gid }}"
+               data-block="{{ g.gid }}" data-segments="" data-facts="" tabindex="0">
+        <span class="bid">{{ g.gid }}</span>
+        <span class="block-sev"></span>
+        <div class="block-main">
+          <p class="block-text"><strong class="gloss-term">{{ g.entry.term }}</strong> <span class="orig-text">{{ g.entry.explanation }}</span><span class="edited-text">{{ edited_text }}</span></p>
+        </div>
+        <span class="block-state" lang="{{ ui_lang }}">{{ icons.decision_states() }}</span>
+        <div class="block-details" lang="{{ ui_lang }}">
+          <div class="edit-area">
+            <label class="label" for="t-{{ g.gid }}">{{ t('review.edited_explanation') }}</label>
+            <textarea id="t-{{ g.gid }}" name="t-{{ g.gid }}" rows="2" lang="{{ doc_lang }}">{{ edited_text }}</textarea>
+          </div>
+          {% if g.entry.origin == 'vocabulary' %}<p class="hint">{{ t('review.glossary_vocabulary_title') }}</p>{% endif %}
+          <div class="decision" role="radiogroup" aria-label="{{ t('review.decision_for', block=g.gid) }}">
+            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ g.gid }}" value="approved"{% if d == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
+            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ g.gid }}" value="edited"{% if d == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
+            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ g.gid }}" value="rejected"{% if d == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
+            <button type="button" class="btn btn-quiet btn-sm js-only next-undecided">{{ t('review.next_undecided') }}<kbd aria-hidden="true">N</kbd></button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    {% endif %}
+      <p class="no-match" id="no-match" lang="{{ ui_lang }}" hidden>{{ t('review.no_match') }}</p>
+    </form>
+    <div class="draft-foot">
+      <div class="progress">
+        <span id="decided-count" data-total="{{ total }}">{{ t('js.decided', decided=v.decided, total=total) }}</span>
+        <span class="meter"><span id="decided-meter" style="width: {{ v.decided_pct }}%"></span></span>
+      </div>
+      <span class="grow"></span>
+      <button type="button" id="approve-all" class="btn js-only">{{ t('review.approve_all') }}</button>
+      <label class="complete-check"><input type="checkbox" name="completed" form="review-form"{% if v.review and v.review.completed %} checked{% endif %}>{{ t('review.complete') }}</label>
+    </div>
+  </section>
+
+  <aside class="pane checks" aria-label="{{ t('review.checks') }}">
+    <div class="tabs" role="tablist" aria-label="{{ t('review.checks') }}">
+      <button type="button" class="tab" role="tab" id="tab-facts" aria-controls="panel-facts" aria-selected="true">{{ t('review.tab.facts') }}{% if fc.total %}<span class="n">{{ fc.present }}/{{ fc.total }}</span>{% endif %}</button>
+      <button type="button" class="tab" role="tab" id="tab-findings" aria-controls="panel-findings" aria-selected="false" tabindex="-1">{{ t('review.tab.findings') }}<span class="n">{{ v.doc_issues | length }}</span></button>
+      <button type="button" class="tab" role="tab" id="tab-questions" aria-controls="panel-questions" aria-selected="false" tabindex="-1">{{ t('review.tab.questions') }}{% if v.core %}<span class="n">{{ v.core | length }}</span>{% endif %}</button>
+      <button type="button" class="tab" role="tab" id="tab-more" aria-controls="panel-more" aria-selected="false" tabindex="-1">{{ t('review.tab.more') }}</button>
+    </div>
+    <div class="pane-body">
+      <section class="tabpanel active" id="panel-facts" role="tabpanel" aria-labelledby="tab-facts">
+        <h3 class="tabpanel-title">{{ t('review.facts') }}</h3>
+        {% if v.facts %}
+        <div class="facts-summary">
+          <div class="fs-top"><strong>{{ t('review.facts_present', present=fc.present, total=fc.total) }}</strong><span>{{ t('review.facts_must') }}</span></div>
+          {% if fc.total %}
+          {% set fc_text = t('review.facts_counts', present=fc.present, distorted=fc.distorted, missing=fc.missing) ~ ((' · ' ~ t('review.facts_doubted', n=fc.doubted)) if fc.doubted else '') %}
+          <div class="stackbar" role="img" aria-label="{{ fc_text }}">
+            {% if fc.present %}<span class="sb-present" style="flex: {{ fc.present }}"></span>{% endif %}{% if fc.distorted %}<span class="sb-distorted" style="flex: {{ fc.distorted }}"></span>{% endif %}{% if fc.missing %}<span class="sb-missing" style="flex: {{ fc.missing }}"></span>{% endif %}{% if fc.doubted %}<span class="sb-doubted" style="flex: {{ fc.doubted }}"></span>{% endif %}{% if fc.unchecked %}<span class="sb-unchecked" style="flex: {{ fc.unchecked }}"></span>{% endif %}
+          </div>
+          <div class="fs-legend" aria-hidden="true">{{ fc_text }}</div>
+          {% endif %}
+          <p class="hint">{{ t('review.facts_hint') }}</p>
+        </div>
+        {% for f in v.facts_sorted %}
+        <button type="button" class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" data-fact-segments="{{ f.fact.segment_ids | join(' ') }}" aria-pressed="false">
+          <span class="fact-top">{{ icons.sev(f.status) }}<span class="id">{{ f.fact.id }}</span>{% if f.expected %}<span class="chip" lang="{{ doc_lang }}">{{ f.expected }}</span>{% endif %}<span class="fstatus">{{ t('fact.' ~ f.status) }}</span></span>
+          <span class="fact-text" lang="{{ doc_lang }}" title="{{ f.fact.text }}">{{ f.fact.text }}</span>
+          {% if f.judge_note %}<span class="fact-note"><span class="tag">{{ t('review.tag.judge') }}</span><span lang="{{ doc_lang }}">{{ f.judge_note }}</span></span>{% endif %}
+          {% if not f.fact.must_keep %}<span class="fact-note muted">{{ t('review.fact.background') }}</span>{% endif %}
+        </button>
+        {% if f.status == 'missing' and f.fact.segment_ids %}
+        <div class="fact-recover js-only" data-recover="{{ f.fact.id }}">
+          <button type="button" class="btn btn-sm" data-recover-ask>{{ icons.icon('chip', 12) }}{{ t('review.recover') }}</button>
+          <div class="recover-out" role="status" aria-live="polite"></div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% else %}
+        <p class="section-intro">{{ t('review.no_facts') }}</p>
+        {% endif %}
+      </section>
+
+      <section class="tabpanel" id="panel-findings" role="tabpanel" aria-labelledby="tab-findings">
+        <h3 class="tabpanel-title">{{ t('review.doc_findings') }}</h3>
+        <p class="section-intro">{{ t('review.findings_hint') }}</p>
+        {% for g in v.finding_groups %}
+        <div class="group">
+          <div class="group-head">{{ icons.sev(g.worst, t('sev.' ~ g.worst)) }}<span class="rid">{{ g.rule_id }}</span><span class="title">{{ g.title }}</span><span class="n">{{ g.issues | length }}</span></div>
+          <ul>
+            {% for i in g.issues %}
+            <li class="issue sev-{{ i.severity }}{% if i.segment_ids or i.fact_id %} linkable{% endif %}"{% if i.segment_ids %} data-segments="{{ i.segment_ids | join(' ') }}"{% elif i.fact_id %} data-fact-ref="{{ i.fact_id }}"{% endif %}{% if i.segment_ids or i.fact_id %} role="button" tabindex="0"{% endif %}><span class="ref">{{ i.ref }}</span><span>{{ i.message }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% else %}
+        <p class="section-intro">{{ t('review.no_doc_findings') }}</p>
+        {% endfor %}
+      </section>
+
+      <section class="tabpanel" id="panel-questions" role="tabpanel" aria-labelledby="tab-questions">
+        <h3 class="tabpanel-title">{{ t('review.core') }}</h3>
+        {% if v.core %}
+        <p class="section-intro">{{ t('review.core_hint') }}</p>
+        <dl class="qa">
+          {% for c in v.core %}
+          <div><dt>{{ c.label }}</dt><dd lang="{{ doc_lang }}"{% if c.answer.segment_ids %} class="linkable" role="button" tabindex="0" data-segments="{{ c.answer.segment_ids | join(' ') }}"{% endif %}>{% if c.answer.text %}{{ c.answer.text }}{% else %}<span class="muted" lang="{{ ui_lang }}">{{ t('core.unanswered') }}</span>{% endif %}</dd></div>
+          {% endfor %}
+        </dl>
+        {% else %}
+        <p class="section-intro">{{ t('review.no_facts') }}</p>
+        {% endif %}
+      </section>
+
+      <section class="tabpanel" id="panel-more" role="tabpanel" aria-labelledby="tab-more">
+        <h3 class="tabpanel-title">{{ t('review.tab.more') }}</h3>
+        {% if v.draft.omissions %}
+        <div class="more-section">
+          <h3>{{ t('review.omissions') }} <span class="n">{{ v.draft.omissions | length }}</span></h3>
+          {% for o in v.draft.omissions %}
+          <div class="omission{% if o.segment_ids %} linkable{% endif %}" lang="{{ doc_lang }}"{% if o.segment_ids %} role="button" tabindex="0" data-segments="{{ o.segment_ids | join(' ') }}"{% endif %}>
+            <div class="top"><span class="what">{{ o.what }}</span><span class="id">{{ o.segment_ids | join(' ') }}</span></div>
+            <div class="why">{{ o.why }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if v.draft.glossary %}
+        <div class="more-section">
+          <h3>{{ t('review.glossary') }} <span class="n">{{ v.draft.glossary | length }}</span></h3>
+          <dl class="gloss" lang="{{ doc_lang }}">{% for g in v.draft.glossary %}<div><dt>{{ g.term }}{% if g.origin == 'vocabulary' %} <span class="muted" lang="{{ ui_lang }}" title="{{ t('review.glossary_vocabulary_title') }}">{{ t('review.glossary_vocabulary') }}</span>{% endif %}</dt><dd>{{ g.explanation }}</dd></div>{% endfor %}</dl>
+        </div>
+        {% endif %}
+        {% if v.rules %}
+        <div class="more-section">
+          <h3>{{ t('review.measures') }}</h3>
+          <dl class="measures">
+            <div><dt>{{ t('measure.sentences') }}</dt><dd>{{ v.rules.metrics.sentences }}</dd></div>
+            <div><dt>{{ t('measure.words') }}</dt><dd>{{ t('measure.words_value', avg=v.rules.metrics.avg_words, max=v.rules.metrics.max_words) }}</dd></div>
+            <div><dt>{{ t('measure.readability', formula=v.rules.metrics.readability_formula) }}</dt><dd>{{ v.rules.metrics.readability if v.rules.metrics.readability is not none else "-" }}</dd></div>
+            <div><dt>{{ t('measure.passive') }}</dt><dd>{{ v.rules.metrics.pct_passive }} %</dd></div>
+            <div><dt>{{ t('measure.facts') }}</dt><dd>{% if v.rules.metrics.fact_coverage is not none %}{{ t('measure.facts_value', found=v.rules.metrics.facts_found, total=v.rules.metrics.facts_total) }}{% else %}-{% endif %}</dd></div>
+          </dl>
+        </div>
+        {% endif %}
+        <div class="more-section">
+          <h3>{{ t('review.run') }}</h3>
+          <dl class="runinfo">
+            <dt>{{ t('review.run.cost') }}</dt><dd>{{ t('review.cost', tokens=number(v.tokens_in + v.tokens_out, ui_lang), time=duration(v.seconds)) }}</dd>
+          {% if v.summary %}
+            <dt>{{ t('progress.writer') }}</dt><dd>{{ v.summary.writer_model }}</dd>
+            {% if v.summary.understand_model %}<dt>{{ t('index.models.understand') }}</dt><dd>{{ v.summary.understand_model }}</dd>{% endif %}
+            {% if v.summary.judge_model %}<dt>{{ t('progress.judge') }}</dt><dd>{{ v.summary.judge_model }}</dd>{% endif %}
+          {% endif %}
+          </dl>
+          {% if v.summary and v.summary.notes %}<ul class="notes">{% for n in v.summary.notes %}<li class="hint">{{ n }}</li>{% endfor %}</ul>{% endif %}
+          <form method="post" action="/jobs/{{ job.id }}/rerun" class="rerun">
+            <label class="hint" for="rerun-stage">{{ t('review.rerun_from') }}</label>
+            <select id="rerun-stage" name="stage">
+              <option value="write">{{ t('review.rerun.write') }}</option>
+              <option value="understand">{{ t('review.rerun.understand') }}</option>
+              {% if job.config.condition == 'P2' %}<option value="judge">{{ t('review.rerun.judge') }}</option>{% endif %}
+            </select>
+            <button type="submit" class="btn btn-sm">{{ t('review.rerun') }}</button>
+          </form>
+          <form method="post" action="/jobs/{{ job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
+            <button type="submit" class="btn btn-danger btn-sm">{{ t('review.delete') }}</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </aside>
+</div>
+
+<div class="reader" id="reader-pane" hidden>
+  <div class="reader-page">
+    <div class="paper"><iframe id="reader-frame" title="{{ t('review.reader_view') }}" sandbox="allow-same-origin allow-modals"></iframe></div>
+  </div>
+  <aside class="reader-side" aria-label="{{ t('review.export') }}">
+    <section>
+      <h2>{{ t('review.export') }}</h2>
+      <p class="lead" id="reader-note">{{ t('review.reader.hint') }}</p>
+      <fieldset>
+        <legend>{{ t('reader.format') }}</legend>
+        <div class="optlist">
+          {% for fmt, label, ext in (('md', 'Markdown', '.md'), ('html', 'HTML', '.html'), ('docx', 'Word', '.docx'), ('json', t('review.export.json'), '.json')) %}
+          <label class="opt"><input type="radio" name="export-format" value="{{ fmt }}" data-ext="{{ ext }}"{% if fmt == 'html' %} checked{% endif %}><span class="opt-text"><span class="opt-title">{{ label }} <span class="ext">{{ ext }}</span></span><span class="opt-desc">{{ t('reader.' ~ fmt ~ '.desc') }}</span></span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <a class="btn btn-primary btn-lg btn-block" id="export-download" href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">{{ icons.icon('download') }}<span id="export-label">{{ t('js.download', ext='.html') }}</span></a>
+      <p class="hint" id="export-note" style="margin: 10px 0 0">{{ t('js.saved_only') }}</p>
+      <button type="button" class="btn btn-block js-only" id="reader-print" style="margin-top: 16px">{{ t('reader.print') }}</button>
+      <p class="hint js-only" style="margin: 8px 0 0">{{ t('reader.print_hint') }}</p>
+    </section>
+    <section>
+      <h2>{{ t('reader.before') }}</h2>
+      <ul class="checklist">
+        <li id="check-decided"{% if v.decided == total %} class="done"{% endif %}>
+          <span class="ck ck-ok">{{ icons.sev('present') }}</span><span class="ck ck-todo">{{ icons.sev('warn') }}</span>
+          <span><strong id="check-decided-text">{{ t('js.reader_decided', decided=v.decided, total=total) }}</strong><span class="sub">{{ t('reader.decided_hint') }}</span></span>
+        </li>
+        {% if v.current_blocking is not none %}
+        <li{% if v.current_blocking == 0 %} class="done"{% endif %}>
+          <span class="ck ck-ok">{{ icons.sev('present') }}</span><span class="ck ck-todo">{{ icons.sev('error') }}</span>
+          <span><strong>{{ t('reader.blocking', n=v.current_blocking, version=v.draft.version) }}</strong>{% if fc.missing + fc.distorted %}<span class="sub">{{ t('reader.blocking_facts', n=fc.missing + fc.distorted) }}</span>{% endif %}</span>
+        </li>
+        {% endif %}
+        <li id="check-complete"{% if v.review and v.review.completed %} class="done"{% endif %}>
+          <span class="ck ck-ok">{{ icons.sev('present') }}</span><span class="ck ck-todo">{{ icons.sev('info') }}</span>
+          <span><strong id="check-complete-text">{{ t('js.reader_complete') if v.review and v.review.completed else t('js.reader_not_complete') }}</strong><span class="sub">{{ t('reader.complete_hint') }}</span></span>
+        </li>
+      </ul>
+      <p class="disclaimer">{{ t('site.footer') }}</p>
+    </section>
+  </aside>
+</div>
+</div>
+{% endblock %}

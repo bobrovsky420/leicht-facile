@@ -10,8 +10,9 @@
 *.ckpt
 *.pt
 
-# Labelling sheets quote the reference pages (track_2b/docs/sources.md)
-track_2b/eval/labels/
+# Evaluation output: the results rewrite the reference pages and the labelling sheets
+# quote them (docs/sources.md), so nothing in eval/ is committed
+/eval/
 
 # Python
 __pycache__/
@@ -30,20 +31,14 @@ build/
 .vscode/
 
 # Leicht·Facile runtime data and tool caches
-track_2b/data/cache/
-track_2b/data/*.sqlite
-track_2b/data/*.sqlite-*
-track_2b/data/*.db
-track_2b/eval/results/
-track_2b/eval/results-*/
+data/cache/
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
 out/
 .pytest_cache/
 .ruff_cache/
 
-# Local working notes (not part of the submission)
-AUDIT.md
-/submission.md
-/video/
+# Local instructions for AI coding agents
 /AGENTS.md
 /CLAUDE.md
-/PLAN.md

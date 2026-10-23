@@ -35,7 +35,6 @@ leichtfacile = "leichtfacile.cli:main"
 [dependency-groups]
 dev = [
     "fpdf2>=2.8.9",
-    "markdown-it-py>=4.2",
     "pytest>=8.4",
     "pyyaml>=6.0.3",
     "ruff>=0.13",
@@ -49,17 +48,17 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["track_2b/src/leichtfacile"]
+packages = ["src/leichtfacile"]
 
 [tool.pytest.ini_options]
-testpaths = ["track_2b/tests"]
+testpaths = ["tests"]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 # First-party packages for the import order: leichtfacile and the tests.
-src = ["track_2b/src", "track_2b"]
+src = ["src", "."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,0 +1,524 @@
+# German vocabulary for easy language (Leichte Sprache A2, Einfache Sprache B1),
+# Swiss usage. Written for this project; checked by tests/rules/test_vocabulary.py.
+#
+# [replace.<group>]  hard word = everyday word to use instead. A suggestion for the
+#                    writer and the checker, not a blind substitution: case and word
+#                    order may change ("innert 30 Tagen" -> "innerhalb von 30 Tagen").
+# [explain.<group>]  a term that has to stay, because the reader meets it again on
+#                    forms, letters and the phone = a plain explanation for the
+#                    glossary, in short sentences that pass the checker.
+# [<kind>.context]   words with a second, everyday sense: the writer gets them as a
+#                    hint, code never flags or adds them on its own.
+# [not_in]           phrases in which a term does not count (zur Verfügung).
+#
+# A trailing "# TERMDAT <id>" names the entry of the federal terminology database
+# (www.termdat.bk.admin.ch/entry/<id>) that confirms the official term.
+# Terms TERMDAT lacks name the act that defines them instead ("# ELG Art. 11").
+#
+# Base forms: nouns in the singular, verbs in the infinitive. No Mediopunkt (code
+# adds it, rules/mediopunkt.py). Swiss spelling: ss, never sharp s. Every term
+# appears once per file.
+
+# -- replace -----------------------------------------------------------------------
+
+[replace.connectors]
+"innert" = "innerhalb von"
+"gemäss" = "nach"
+"bezüglich" = "zu"
+"hinsichtlich" = "zu"
+"betreffend" = "zu"
+"seitens" = "von"
+"mittels" = "mit"
+"zwecks" = "für"
+"infolge" = "wegen"
+"aufgrund" = "wegen"
+"anlässlich" = "bei"
+"zuzüglich" = "plus"
+"abzüglich" = "minus"
+"nebst" = "und"
+"samt" = "mit"
+"exklusive" = "ohne"
+"ungeachtet" = "trotz"
+"mangels" = "ohne"
+"sofern" = "wenn"
+"falls" = "wenn"
+"andernfalls" = "sonst"
+"ansonsten" = "sonst"
+"jedoch" = "aber"
+"indes" = "aber"
+"sowie" = "und"
+"zudem" = "auch"
+"ferner" = "auch"
+"überdies" = "auch"
+"des Weiteren" = "auch"
+"ebenfalls" = "auch"
+"diesbezüglich" = "dazu"
+"hierzu" = "dazu"
+"hierfür" = "dafür"
+"hiermit" = "mit diesem Brief"
+"beiliegend" = "mit diesem Brief"
+"in der Beilage" = "mit diesem Brief"
+"diesfalls" = "dann"
+"untenstehend" = "unten"
+"nachstehend" = "unten"
+"vorstehend" = "oben"
+"respektive" = "in 2 Sätzen sagen"
+"resp." = "in 2 Sätzen sagen"
+"widrigenfalls" = "sonst"
+"zulasten" = "auf Kosten von"
+"namentlich" = "vor allem"
+"obgenannt" = "oben genannt"
+"vorgenannt" = "oben genannt"
+"vorliegend" = "dieser"
+
+[replace.adverbs]
+"gegebenenfalls" = "wenn nötig"
+"nötigenfalls" = "wenn nötig"
+"allenfalls" = "vielleicht"
+"allfällig" = "möglich"
+"etwaig" = "möglich"
+"unter Umständen" = "vielleicht"
+"voraussichtlich" = "wahrscheinlich"
+"umgehend" = "sofort"
+"unverzüglich" = "sofort"
+"baldmöglichst" = "so bald wie möglich"
+"fristgerecht" = "rechtzeitig"
+"fristgemäss" = "rechtzeitig"
+"vorgängig" = "vorher"
+"vorab" = "vorher"
+"nachträglich" = "später"
+"erneut" = "noch einmal"
+"derzeit" = "jetzt"
+"künftig" = "in Zukunft"
+"fortan" = "ab jetzt"
+"bislang" = "bis jetzt"
+"sämtliche" = "alle"
+"lediglich" = "nur"
+"ausschliesslich" = "nur"
+"vollumfänglich" = "ganz"
+"gesamthaft" = "zusammen"
+"grundsätzlich" = "in der Regel"
+"zwingend" = "unbedingt"
+"fakultativ" = "freiwillig"
+"unentgeltlich" = "gratis"
+"kostenpflichtig" = "kostet Geld"
+"befristet" = "nur für eine bestimmte Zeit"
+"unbefristet" = "ohne Enddatum"
+"wohnhaft" = "wohnt in"
+"zuständig" = "verantwortlich"
+"minderjährig" = "unter 18 Jahre alt"
+"volljährig" = "18 Jahre alt oder älter"
+"verstorben" = "gestorben"
+"säumig" = "zu spät"
+"in Verzug" = "zu spät"
+"berechtigt" = "darf"
+"verpflichtet" = "muss"
+"befugt" = "darf"
+"ledig" = "nicht verheiratet"
+"erwerbstätig" = "arbeitet gegen Lohn"
+"erwerbslos" = "ohne Arbeit"
+"angemessen" = "passend"
+"ausstehend" = "noch nicht bezahlt"
+"abschlägig" = "mit Nein"
+"gegenstandslos" = "nicht mehr nötig"
+"anspruchsberechtigt" = "hat ein Recht darauf"
+"alleinstehend" = "lebt allein"
+"rückwirkend" = "auch für die Zeit vorher"
+
+[replace.verbs]
+"einreichen" = "schicken"
+"zustellen" = "schicken"
+"übermitteln" = "schicken"
+"retournieren" = "zurückschicken"
+"beilegen" = "mitschicken"
+"beifügen" = "mitschicken"
+"nachreichen" = "später schicken"
+"unterzeichnen" = "unterschreiben"
+"ersuchen" = "bitten"
+"erachten" = "finden"
+"entrichten" = "bezahlen"
+"begleichen" = "bezahlen"
+"vergüten" = "bezahlen"
+"rückerstatten" = "zurückzahlen"
+"gewähren" = "geben"
+"erteilen" = "geben"
+"beanspruchen" = "nutzen"
+"in Anspruch nehmen" = "nutzen"
+"geltend machen" = "verlangen"
+"verwirken" = "verlieren"
+"erlöschen" = "enden"
+"mitteilen" = "sagen"
+"in Kenntnis setzen" = "informieren"
+"benachrichtigen" = "informieren"
+"kontaktieren" = "anrufen oder schreiben"
+"vorweisen" = "zeigen"
+"vorlegen" = "zeigen"
+"bewilligen" = "erlauben"
+"genehmigen" = "erlauben"
+"ermächtigen" = "erlauben"
+"untersagen" = "verbieten"
+"abweisen" = "ablehnen"
+"gutheissen" = "recht geben"
+"anfechten" = "sich wehren gegen"
+"widerrufen" = "zurücknehmen"
+"sistieren" = "unterbrechen"
+"obliegen" = "müssen"
+"ermitteln" = "herausfinden"
+"festsetzen" = "bestimmen"
+"bemessen" = "berechnen"
+"abklären" = "prüfen"
+"tätigen" = "machen"
+"vornehmen" = "machen"
+"durchführen" = "machen"
+"veranlassen" = "dafür sorgen"
+"gewährleisten" = "sorgen für"
+"sicherstellen" = "sorgen für"
+"berücksichtigen" = "beachten"
+"in Kraft treten" = "gelten"
+"verfügen über" = "haben"
+"zur Auszahlung gelangen" = "ausbezahlt werden"
+"bedürfen" = "brauchen"
+"offenlegen" = "alles zeigen"
+"verauslagen" = "zuerst selbst bezahlen"
+"veräussern" = "verkaufen"
+
+[replace.nouns]
+"Amtsstelle" = "Amt"
+"Wohnsitz" = "Wohnort"
+"Domizil" = "Adresse"
+"Ehegatte" = "Ehemann oder Ehefrau"
+"Ehegattin" = "Ehefrau"
+"Erziehungsberechtigte" = "Eltern"
+"Minderjährige" = "Kind unter 18 Jahren"
+"Hinterbliebene" = "Familie von der gestorbenen Person"
+"Ableben" = "Tod"
+"Drittperson" = "andere Person"
+"Gesuchsteller" = "Person mit dem Gesuch"
+"Antragsteller" = "Person mit dem Antrag"
+"Leistungsbezüger" = "Person, die Geld oder Hilfe bekommt"
+"Gläubiger" = "Person, der Sie Geld schulden"
+"Schuldner" = "Person mit Schulden"
+"Entgelt" = "Lohn"
+"Erwerbseinkommen" = "Lohn"
+"Erwerbstätigkeit" = "Arbeit"
+"Vergütung" = "Bezahlung"
+"Aufwendungen" = "Kosten"
+"Auslagen" = "Ausgaben"
+"Rückerstattung" = "Rückzahlung"
+"Restbetrag" = "Rest"
+"Saldo" = "offener Betrag"
+"Ratenzahlung" = "Zahlung in Teilen"
+"Teilzahlung" = "Zahlung in Teilen"
+"Ermässigung" = "tieferer Preis"
+"Vergünstigung" = "tieferer Preis"
+"Beleg" = "Papier als Beweis"
+"Nachweis" = "Beweis"
+"Wegleitung" = "Anleitung"
+"Vorschrift" = "Regel"
+"Sachverhalt" = "was passiert ist"
+"Angelegenheit" = "Sache"
+"Anliegen" = "Frage oder Wunsch"
+"Zuschrift" = "Brief"
+"Eingabe" = "Brief an ein Amt"
+"Korrespondenz" = "Briefe"
+"Mitteilung" = "Nachricht"
+"Auskunft" = "Information"
+"Kenntnisnahme" = "Information"
+"Bewilligung" = "Erlaubnis"
+"Einwilligung" = "Erlaubnis"
+"Berechtigung" = "Recht"
+"Verpflichtung" = "Pflicht"
+"Abklärung" = "Prüfung"
+"Bedarf" = "was Sie brauchen"
+"Inanspruchnahme" = "Nutzung"
+"Einreichung" = "Abgabe"
+"Kalenderjahr" = "Jahr"
+"Stichtag" = "Datum"
+"Zeitraum" = "Zeit"
+"Inkrafttreten" = "Beginn"
+"Mietzins" = "Miete"
+"Liegenschaft" = "Haus oder Grundstück"
+"Webauftritt" = "Internetseite"
+"obligatorische Krankenpflegeversicherung" = "Grundversicherung"  # TERMDAT 37586
+"elterliche Sorge" = "Sorgerecht"  # TERMDAT 216979
+"Kindes- und Erwachsenenschutzbehörde" = "KESB"  # TERMDAT 379564
+"Beschwerdeführer" = "Person mit der Beschwerde"  # TERMDAT 414084
+"Rechtsgrundlage" = "Regel im Gesetz"  # TERMDAT 56839
+"Verfahrenskosten" = "Kosten für das Verfahren"  # TERMDAT 383679
+"Pauschale" = "fester Betrag"  # TERMDAT 96993
+"Staatsangehörigkeit" = "Nationalität"  # TERMDAT 217278
+"Personalien" = "Angaben zu Ihrer Person"  # TERMDAT 325295
+"Wohnsitzgemeinde" = "Gemeinde, in der Sie wohnen"  # TERMDAT 217182
+"Voraussetzung" = "Bedingung"
+"Attest" = "Arztzeugnis"
+"Wegzug" = "Umzug aus der Gemeinde"
+"Nachfrist" = "letzte Frist"
+"Sanktion" = "Strafe"
+
+[replace.abbreviations]
+"z. B." = "zum Beispiel"
+"bzw." = "in 2 Sätzen sagen"
+"ggf." = "wenn nötig"
+"evtl." = "vielleicht"
+"ca." = "ungefähr"
+"inkl." = "mit"
+"exkl." = "ohne"
+"usw." = "und so weiter"
+"u. a." = "auch"
+"d. h." = "das heisst"
+"vgl." = "siehe"
+"Nr." = "Nummer"
+"Tel." = "Telefon"
+"Art." = "Artikel"
+"Abs." = "Absatz"
+"lit." = "Buchstabe"
+"EL" = "Ergänzungsleistungen"
+"IPV" = "Prämienverbilligung"
+"KVG" = "Gesetz über die Krankenversicherung"
+"ELG" = "Gesetz über die Ergänzungsleistungen"
+"BehiG" = "Gesetz für die Gleichstellung von Menschen mit Behinderung"
+
+
+[replace.context]
+# Words whose hard sense depends on the letter (Schreiben: a letter or to write).
+# The writer gets them as a hint; code never flags them.
+"Schreiben" = "Brief"
+"erhalten" = "bekommen"
+"beziehen" = "bekommen"
+"Bestimmung" = "Regel"
+"aufheben" = "ungültig machen"
+"ausrichten" = "auszahlen"
+"unterliegen" = "gelten für"
+"Auflage" = "Pflicht"
+"Unterlagen" = "Papiere"
+"obligatorisch" = "Pflicht"
+"Dienststelle" = "Amt"
+"Beeinträchtigung" = "Behinderung"
+"inklusive" = "mit"
+
+# -- explain -----------------------------------------------------------------------
+
+[explain.law]
+"Verfügung" = "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie."
+"Entscheid" = "Ein Entscheid ist die Antwort von einem Amt oder Gericht. Er sagt: Das gilt in Ihrer Sache."
+"Einsprache" = "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal."
+"Beschwerde" = "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie an eine höhere Stelle, zum Beispiel an ein Gericht. Diese Stelle prüft den Entscheid."
+"Rekurs" = "Ein Rekurs ist eine Beschwerde gegen einen Entscheid. Manche Kantone sagen Rekurs. Andere Kantone sagen Beschwerde."
+"Rechtsmittel" = "Mit einem Rechtsmittel wehren Sie sich gegen einen Entscheid. Zum Beispiel mit einer Einsprache. Oder mit einer Beschwerde."
+"Rechtsmittelbelehrung" = "Dieser Text steht am Ende von einem Entscheid. Er sagt: So können Sie sich wehren. Er sagt auch, bis wann und bei wem."
+"rechtskräftig" = "Gegen den Entscheid kann sich niemand mehr wehren. Der Entscheid gilt jetzt endgültig."
+"Frist" = "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun."
+"Fristerstreckung" = "Sie bekommen mehr Zeit für eine Aufgabe. Fragen Sie das Amt vor dem Ende von der Frist."
+"Gesuch" = "Mit einem Gesuch bitten Sie ein Amt um etwas. Zum Beispiel um Geld oder um eine Erlaubnis."
+"Anspruch" = "Sie haben einen Anspruch heisst: Sie haben ein Recht darauf. Zum Beispiel auf Geld."
+"Nichteintreten" = "Das Amt prüft Ihr Gesuch nicht. Zum Beispiel fehlen Papiere. Oder die Frist ist vorbei."
+"Beilage" = "Eine Beilage ist ein Blatt im gleichen Brief. Zum Beispiel ein Formular oder eine Kopie."
+"Vollmacht" = "Mit einer Vollmacht erlauben Sie einer anderen Person: Sie darf etwas für Sie erledigen."
+"Gesetz" = "Ein Gesetz ist eine Regel vom Staat. Alle müssen sich daran halten."
+"Gericht" = "Ein Gericht entscheidet bei einem Streit. Es prüft auch Entscheide von Ämtern."
+"Datenschutz" = "Datenschutz heisst: Ihre Daten sind geschützt. Nur bestimmte Personen dürfen sie sehen."
+"Schweigepflicht" = "Fachleute dürfen anderen nichts über Sie erzählen. Das ist die Schweigepflicht."
+"KESB" = "Die KESB ist ein Amt. Sie schützt Kinder und Erwachsene in schwierigen Lagen. Sie kann zum Beispiel eine Beistandschaft bestimmen."
+"Beistandschaft" = "Eine Person hilft Ihnen bei wichtigen Sachen. Zum Beispiel beim Geld oder bei Briefen vom Amt. Die KESB bestimmt diese Person."
+"Beistand" = "Ein Beistand oder eine Beiständin hilft Ihnen bei wichtigen Sachen. Die KESB bestimmt diese Person."
+"unentgeltliche Rechtspflege" = "Sie haben wenig Geld? Dann müssen Sie das Verfahren vielleicht nicht bezahlen. Sie bekommen auch eine Anwältin oder einen Anwalt. Ihr Fall muss aber Chancen haben."  # TERMDAT 79024
+"Akteneinsicht" = "Sie dürfen die Akten zu Ihrer Sache lesen. Akten sind alle Papiere vom Amt zu Ihrer Sache."  # TERMDAT 47777
+"rechtliches Gehör" = "Vor einem Entscheid dürfen Sie Ihre Meinung sagen. Das Amt muss Ihre Meinung prüfen."  # TERMDAT 47696
+"Zustellung" = "Zustellung heisst: Das Amt schickt Ihnen einen Brief oder einen Entscheid. Oft beginnt an diesem Tag eine Frist."  # TERMDAT 47814
+"Mitwirkungspflicht" = "Sie müssen dem Amt helfen. Zum Beispiel geben Sie alle nötigen Papiere ab. Sonst kann das Amt die Leistung kürzen."  # TERMDAT 379493
+"Meldepflicht" = "Sie müssen dem Amt Änderungen melden. Zum Beispiel einen neuen Lohn oder eine neue Adresse."
+"Rückerstattungspflicht" = "Sie haben zu viel Geld bekommen. Dann müssen Sie es zurückzahlen."  # TERMDAT 37961
+"Härtefall" = "Ihre Lage ist sehr schwierig. Darum macht das Amt eine Ausnahme von der Regel."  # TERMDAT 386670
+"Urteilsfähigkeit" = "Sie verstehen eine Sache. Sie können vernünftig entscheiden. Dann sind Sie urteilsfähig."  # TERMDAT 379558
+"Handlungsfähigkeit" = "Sie dürfen selbst Verträge machen. Dafür müssen Sie 18 Jahre alt und urteilsfähig sein."  # TERMDAT 379569
+"gesetzliche Vertretung" = "Eine Person handelt für Sie. Das Gesetz erlaubt ihr das. Zum Beispiel die Eltern für ihr Kind."  # TERMDAT 47787
+"Vorsorgeauftrag" = "Sie bestimmen heute eine Person. Später können Sie vielleicht nicht mehr selbst entscheiden. Dann entscheidet diese Person für Sie."  # TERMDAT 379515
+"Patientenverfügung" = "Sie schreiben Ihre Wünsche für eine medizinische Behandlung auf. Später können Sie vielleicht nicht mehr selbst entscheiden. Dann halten sich die Ärzte an Ihre Wünsche."  # TERMDAT 379518
+"fürsorgerische Unterbringung" = "Eine Person muss gegen ihren Willen in eine Klinik. Das ist zu ihrem Schutz. Eine Ärztin oder die KESB entscheidet das."  # TERMDAT 379534
+"Kindesschutzmassnahme" = "Die KESB schützt ein Kind. Zum Beispiel bestimmt sie eine Beiständin oder einen Beistand für das Kind."  # TERMDAT 103040
+"aufschiebende Wirkung" = "Sie wehren sich gegen einen Entscheid. Bis zum neuen Entscheid gilt der alte Entscheid noch nicht. Manchmal nimmt das Amt die aufschiebende Wirkung weg. Dann gilt der Entscheid sofort."  # VwVG Art. 55
+"Kostenvorschuss" = "Sie bezahlen Geld für das Verfahren im Voraus. Ohne diese Zahlung prüft das Gericht Ihre Beschwerde vielleicht nicht."  # VwVG Art. 63
+"Wiedererwägung" = "Das Amt prüft seinen eigenen Entscheid noch einmal. Zum Beispiel bei einem Fehler im Entscheid."  # ATSG Art. 53
+"Vorbescheid" = "Die IV sagt Ihnen vor dem Entscheid: So wollen wir entscheiden. Sie haben 30 Tage Zeit für Ihre Meinung."  # IVG Art. 57a
+"Rückforderung" = "Sie haben zu viel Geld bekommen. Das Amt verlangt dieses Geld zurück."  # ATSG Art. 25
+"Weisung" = "Eine Weisung ist eine Anweisung vom Amt. Sie müssen sich daran halten. Sonst kann das Amt die Leistung kürzen."
+"Verjährung" = "Nach einer bestimmten Zeit kann niemand mehr eine Schuld verlangen. Das ist die Verjährung."
+"Vorinstanz" = "Die Vorinstanz hat vorher in Ihrer Sache entschieden. Zum Beispiel ein Amt vor dem Gericht."
+"vollstreckbar" = "Vollstreckbar heisst: Das Amt darf den Entscheid jetzt durchsetzen. Zum Beispiel mit einer Betreibung."
+"Gefährdungsmeldung" = "Jemand macht sich Sorgen um ein Kind oder einen Erwachsenen. Dann kann diese Person an die KESB schreiben. Das ist eine Gefährdungsmeldung."
+"Vormundschaft" = "Ein Kind hat keine Eltern mit Sorgerecht. Dann bestimmt die KESB einen Vormund oder eine Vormundin. Diese Person sorgt für das Kind."
+"Busse" = "Eine Busse ist eine Strafe in Geld."
+"Strafregisterauszug" = "Ein Papier vom Bund. Es zeigt Ihre Strafen. Sie brauchen es zum Beispiel für die Einbürgerung."
+"Behörde" = "Eine Behörde ist ein Amt. Zum Beispiel die Gemeinde oder das Steueramt."
+"Merkblatt" = "Ein Merkblatt ist ein Blatt mit wichtigen Informationen zu einem Thema."
+
+[explain.debt]
+"Mahnung" = "Eine Mahnung ist ein Brief. Darin steht: Sie haben eine Rechnung noch nicht bezahlt. Bitte bezahlen Sie jetzt."
+"Betreibung" = "Sie haben Schulden. Mit einer Betreibung holt jemand dieses Geld. Das Betreibungsamt hilft dabei."
+"Betreibungsamt" = "Das Betreibungsamt ist ein Amt. Es holt Geld bei Menschen mit Schulden. Danach gibt es das Geld weiter."
+"Zahlungsbefehl" = "Ein Zahlungsbefehl ist ein Brief vom Betreibungsamt. Darin steht: Sie sollen eine Schuld bezahlen."
+"Rechtsvorschlag" = "Sie sagen dem Betreibungsamt: Ich bin mit der Schuld nicht einverstanden. Dafür haben Sie 10 Tage Zeit."
+"Pfändung" = "Das Betreibungsamt nimmt einen Teil von Ihrem Lohn oder von Ihren Sachen. Damit bezahlt es Ihre Schulden."
+"Verlustschein" = "Ein Verlustschein ist ein Papier vom Betreibungsamt. Darin steht: Diese Schulden sind noch nicht bezahlt."
+"Existenzminimum" = "So viel Geld braucht eine Person mindestens zum Leben. Dieses Geld darf das Betreibungsamt nicht nehmen."
+"Inkasso" = "Eine Inkasso-Firma holt Geld für andere Firmen. Sie haben bei diesen Firmen Schulden."
+"Schuldenberatung" = "Fachleute helfen Ihnen bei Schulden. Sie machen mit Ihnen einen Plan."
+"Verrechnung" = "Das Amt zieht Ihre Schulden vom Geld für Sie ab. Sie bekommen nur den Rest."  # TERMDAT 97006
+"Verzugszins" = "Sie bezahlen eine Rechnung zu spät. Dann kostet es mehr. Dieses zusätzliche Geld heisst Verzugszins."  # TERMDAT 43049
+"Betreibungsregisterauszug" = "Ein Papier vom Betreibungsamt. Es zeigt Ihre Betreibungen. Vermieter verlangen es oft."  # TERMDAT 384196
+"Lohnpfändung" = "Das Betreibungsamt nimmt jeden Monat einen Teil von Ihrem Lohn. Damit bezahlt es Ihre Schulden."  # TERMDAT 385114
+"Konkurs" = "Eine Firma oder eine Person kann ihre Schulden nicht mehr bezahlen. Dann verkauft das Amt ihr Vermögen."  # TERMDAT 86789
+"Stundung" = "Sie dürfen eine Schuld später bezahlen. Das Amt gibt Ihnen dafür mehr Zeit."
+"Rechtsöffnung" = "Sie haben Rechtsvorschlag gemacht. Mit der Rechtsöffnung lässt ein Gericht die Betreibung trotzdem weiterlaufen."
+"IBAN" = "Die IBAN ist die Nummer von Ihrem Bankkonto. Ihre Bank gibt Ihnen diese Nummer."
+
+[explain.insurance]
+"Krankenkasse" = "Die Krankenkasse bezahlt Kosten für Arzt und Spital. Sie bezahlt auch Medikamente. Alle in der Schweiz müssen eine Krankenkasse haben."
+"Grundversicherung" = "Die Grundversicherung ist die Krankenkasse für alle. Jede Person in der Schweiz muss sie haben."
+"Zusatzversicherung" = "Eine Zusatzversicherung ist freiwillig. Sie bezahlt mehr als die Grundversicherung. Zum Beispiel ein Einzelzimmer im Spital."
+"Prämie" = "Die Prämie ist das Geld für eine Versicherung. Sie bezahlen es regelmässig, zum Beispiel jeden Monat."
+"Prämienverbilligung" = "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld."
+"Franchise" = "Die Franchise ist ein fester Betrag pro Jahr. Bis zu diesem Betrag bezahlen Sie Arzt und Medikamente selbst. Danach zahlt die Krankenkasse."
+"Selbstbehalt" = "Nach der Franchise bezahlen Sie noch einen Teil von den Kosten selbst. Das ist der Selbstbehalt."
+"Kostenbeteiligung" = "Ihr Teil an den Kosten für Arzt und Medikamente. Dazu gehören die Franchise und der Selbstbehalt."
+"Rente" = "Eine Rente ist Geld für jeden Monat. Sie bekommen es zum Beispiel im Alter. Oder bei einer Behinderung."
+"AHV" = "Die AHV ist eine Versicherung. Sie bezahlt eine Rente im Alter. Sie hilft auch der Familie nach einem Todesfall."
+"IV" = "Die IV ist eine Versicherung. Sie ist für Menschen mit Behinderung oder langer Krankheit. Sie hilft zum Beispiel bei der Arbeit. Oder sie bezahlt eine Rente."
+"Ergänzungsleistungen" = "Ergänzungsleistungen sind Geld vom Staat. Sie kommen zur AHV-Rente oder IV-Rente dazu. Die Rente reicht nicht zum Leben? Dann bekommen Sie Ergänzungsleistungen."
+"Hilflosenentschädigung" = "Dieses Geld ist für Menschen mit viel Hilfe im Alltag. Sie brauchen zum Beispiel Hilfe bei der Körperpflege."
+"Assistenzbeitrag" = "Geld von der IV. Damit können Sie eine Person anstellen. Diese Person hilft Ihnen zu Hause."
+"Taggeld" = "Taggeld ist Geld für jeden Tag ohne Arbeit. Zum Beispiel bei Krankheit oder nach einem Unfall."
+"Kostengutsprache" = "Eine Stelle sagt Ihnen schriftlich: Wir bezahlen diese Kosten. Sie sagt es vor der Behandlung."
+"Hilfsmittel" = "Hilfsmittel sind Dinge für Menschen mit Behinderung. Sie helfen im Alltag. Zum Beispiel ein Rollstuhl oder ein Hörgerät."
+"Pensionskasse" = "Die Pensionskasse spart Geld für Ihr Alter. Sie und Ihr Arbeitgeber zahlen jeden Monat etwas vom Lohn ein."
+"Säule 3a" = "Die Säule 3a ist ein Konto für das Alter. Darauf sparen Sie Geld. Für dieses Geld zahlen Sie weniger Steuern. Meistens bekommen Sie es erst kurz vor der Pension."
+"Arbeitslosenversicherung" = "Sie haben Ihre Arbeit verloren? Dann zahlt die Arbeitslosenversicherung Ihnen Geld. Sie hilft auch bei der Suche nach Arbeit."
+"RAV" = "Das RAV ist ein Amt. Es hilft Menschen ohne Arbeit bei der Suche nach einer Stelle."
+"Unfallversicherung" = "Die Unfallversicherung bezahlt Kosten nach einem Unfall. Zum Beispiel den Arzt. Sie zahlt auch Geld für die Zeit ohne Arbeit."
+"Leistungserbringer" = "Leistungserbringer behandeln Sie. Zum Beispiel eine Ärztin oder ein Spital. Sie schicken die Rechnung an Sie oder an die Krankenkasse."  # TERMDAT 37415
+"Hausarztmodell" = "Bei Gesundheitsproblemen gehen Sie zuerst zu Ihrer Hausärztin oder Ihrem Hausarzt. Dafür bezahlen Sie eine tiefere Prämie."  # TERMDAT 37543
+"Versicherungspflicht" = "Sie müssen eine Versicherung haben. Das verlangt das Gesetz. Für die Krankenkasse gilt das für alle in der Schweiz."  # TERMDAT 37640
+"Generikum" = "Ein Generikum ist ein günstigeres Medikament. Es wirkt gleich wie das Original."  # TERMDAT 37534
+"Suva" = "Die Suva ist eine grosse Unfallversicherung. Viele Arbeitgeber versichern ihre Angestellten bei der Suva."  # TERMDAT 3042
+"Arbeitsunfähigkeit" = "Sie können wegen Krankheit oder Unfall nicht arbeiten. Oder Sie können nur weniger arbeiten."  # TERMDAT 37485
+"Erwerbsunfähigkeit" = "Sie können wegen Ihrer Gesundheit nicht mehr genug verdienen. Das gilt für lange Zeit."  # TERMDAT 37525
+"Invaliditätsgrad" = "Der Invaliditätsgrad ist eine Zahl in Prozent. Sie zeigt: So viel Lohn verlieren Sie wegen Ihrer Gesundheit. Davon hängt die IV-Rente ab."  # TERMDAT 294549
+"berufliche Eingliederung" = "Die IV hilft Ihnen bei der Rückkehr in die Arbeit. Zum Beispiel mit einem Kurs. Oder mit einer neuen Ausbildung."  # TERMDAT 89634
+"Einspracheentscheid" = "Das Amt hat Ihre Einsprache geprüft. Der Einspracheentscheid ist seine Antwort darauf."  # TERMDAT 37518
+"Arbeitslosenentschädigung" = "Sie haben keine Arbeit mehr? Dann bekommen Sie dieses Geld von der Arbeitslosenversicherung."  # TERMDAT 525519
+"Einstelltage" = "An Einstelltagen bekommen Sie kein Geld von der Arbeitslosenversicherung. Das ist eine Strafe. Zum Beispiel bei zu wenig Bewerbungen."  # TERMDAT 525599
+"zumutbare Arbeit" = "Diese Arbeit passt zu Ihnen. Sie müssen sie annehmen. Sonst bekommen Sie weniger Geld von der Arbeitslosenversicherung."  # TERMDAT 6551
+"Rahmenfrist" = "Die Rahmenfrist ist eine Zeit von 2 Jahren. Nur in dieser Zeit bekommen Sie Geld von der Arbeitslosenversicherung."  # TERMDAT 525720
+"Beitragslücke" = "In einem Jahr fehlen Ihre Beiträge an die AHV. Später bekommen Sie darum eine kleinere Rente."  # TERMDAT 444051
+"Mutterschaftsentschädigung" = "Geld für Mütter nach der Geburt. Sie bekommen es 14 Wochen lang. Das gilt für Mütter mit Arbeit."  # TERMDAT 93386
+"Familienzulage" = "Geld für Familien mit Kindern. Sie bekommen es meistens mit dem Lohn."  # TERMDAT 41628
+"Kinderzulage" = "Geld für jedes Kind bis 16 Jahre. Es ist eine Familienzulage."  # TERMDAT 6614
+"Ausbildungszulage" = "Geld für jedes Kind in Ausbildung. Das gibt es von 16 bis 25 Jahren."  # TERMDAT 93630
+"anrechenbare Einnahmen" = "Dieses Geld zählt das Amt für die Ergänzungsleistungen. Zum Beispiel Ihre Rente oder Ihr Lohn."  # ELG Art. 11
+"anerkannte Ausgaben" = "Diese Kosten zählt das Amt für die Ergänzungsleistungen. Zum Beispiel die Miete oder die Prämie für die Krankenkasse."  # ELG Art. 10
+"Vermögensverzehr" = "Sie sollen auch von Ihrem Vermögen leben. Darum zählt das Amt jedes Jahr einen Teil davon als Einnahme."  # ELG Art. 11
+"Verzichtsvermögen" = "Sie haben Vermögen verschenkt. Oder Sie haben es zu billig verkauft. Das Amt zählt dieses Vermögen trotzdem."  # ELG Art. 11a
+"Durchschnittsprämie" = "Das ist die mittlere Prämie für die Krankenkasse in Ihrem Kanton. Das Amt rechnet mit dieser Prämie."  # ELG Art. 10
+"Prämienregion" = "Die Prämie für die Krankenkasse hängt von Ihrem Wohnort ab. Ein Kanton hat bis zu 3 Prämienregionen."  # KVG Art. 61
+"Richtprämie" = "Mit der Richtprämie berechnet der Kanton die Prämienverbilligung. Sie ist ein fester Betrag pro Person."  # kantonal, zum Beispiel Zürich
+"Sozialversicherung" = "Sozialversicherungen helfen bei Krankheit oder Unfall. Sie helfen auch im Alter und ohne Arbeit. Zum Beispiel die AHV oder die IV."
+"Lebensbedarf" = "Geld für den Alltag bei den Ergänzungsleistungen. Zum Beispiel für Essen und Kleider. Das Gesetz legt den Betrag fest."
+"Freibetrag" = "Bis zu diesem Betrag zählt das Amt Ihr Geld nicht. Zum Beispiel einen Teil von Ihrem Vermögen."
+"Entschädigung" = "Eine Entschädigung ist Geld als Ausgleich. Zum Beispiel für einen Schaden oder einen Verlust."
+
+[explain.health]
+"ambulant" = "Ambulant heisst: Sie gehen nach der Behandlung am gleichen Tag nach Hause."
+"stationär" = "Stationär heisst: Sie bleiben für die Behandlung über Nacht im Spital."
+"Spitex" = "Fachleute von der Spitex kommen zu Ihnen nach Hause. Sie helfen bei der Pflege oder im Haushalt."
+"Arztzeugnis" = "Ein Papier vom Arzt oder von der Ärztin. Darin steht: Sie sind krank und können nicht arbeiten."
+"Bedarfsabklärung" = "Eine Fachperson prüft Ihre Lage. Danach weiss sie: Diese Hilfe brauchen Sie."
+"Opferhilfe" = "Die Opferhilfe hilft Menschen nach Gewalt. Die Beratung ist gratis. Die Fachleute erzählen nichts weiter."
+"Gebärdensprache" = "Eine Sprache mit den Händen und dem Gesicht. Viele gehörlose Menschen sprechen sie."
+"barrierefrei" = "Barrierefrei heisst: Alle Menschen können es gut benutzen. Auch Menschen mit einer Behinderung."
+
+[explain.social]
+"Sozialhilfe" = "Die Sozialhilfe ist Geld vom Staat. Sie ist für Menschen mit zu wenig Geld zum Leben."
+"Sozialdienst" = "Der Sozialdienst ist ein Amt in der Gemeinde. Er hilft Menschen in einer schwierigen Lage. Zum Beispiel mit Geld oder mit Beratung."
+"Lohnausweis" = "Ein Papier vom Arbeitgeber. Darauf steht Ihr Lohn für ein ganzes Jahr. Sie brauchen es für die Steuererklärung."
+"Kündigungsfrist" = "Die Zeit zwischen der Kündigung und dem Ende vom Vertrag."
+"Probezeit" = "Die ersten Wochen an einer neuen Stelle. In dieser Zeit können beide Seiten schneller kündigen."
+"Nebenkosten" = "Kosten für die Wohnung, zusätzlich zur Miete. Zum Beispiel für Heizung und Wasser."
+"Mietzinsdepot" = "Geld als Sicherheit für den Vermieter. Es liegt auf einem besonderen Konto bei der Bank. Nach dem Auszug bekommen Sie es zurück."
+"Hausverwaltung" = "Die Hausverwaltung kümmert sich für den Besitzer um ein Haus. Sie ist auch für die Mieter da."
+"Sorgerecht" = "Die Eltern mit dem Sorgerecht entscheiden über wichtige Sachen für das Kind. Zum Beispiel über die Schule und die Gesundheit."
+"Obhut" = "Das Kind wohnt bei Ihnen. Sie sorgen jeden Tag für das Kind."
+"Unterhaltsbeitrag" = "Geld für den Lebensunterhalt von einem Kind oder von einem früheren Ehepartner. Eine Person bezahlt es regelmässig an die andere."
+"Zivilstand" = "Der Zivilstand sagt zum Beispiel: Sie sind verheiratet. Oder: Sie sind nicht verheiratet."
+"verwitwet" = "Verwitwet heisst: Ihr Ehemann oder Ihre Ehefrau ist gestorben."
+"Stipendium" = "Geld vom Kanton für eine Ausbildung. Sie müssen es nicht zurückzahlen."  # TERMDAT 56159
+"Ausbildungsbeitrag" = "Geld vom Kanton für eine Ausbildung. Das kann ein Stipendium sein. Oder ein Darlehen. Ein Darlehen zahlen Sie später zurück."  # TERMDAT 385216
+"Konkubinat" = "2 Personen wohnen als Paar zusammen. Sie sind aber nicht verheiratet."  # TERMDAT 216966
+"Unterhaltspflicht" = "Sie müssen für den Unterhalt von einer anderen Person zahlen. Zum Beispiel Eltern für ihre Kinder."  # TERMDAT 56279
+"Mietzinsmaximum" = "So viel Miete zählt das Amt höchstens. Ist Ihre Wohnung teurer? Dann bezahlen Sie den Rest selbst."  # TERMDAT 385470
+"Grundbedarf" = "Geld für den Alltag in der Sozialhilfe. Zum Beispiel für Essen und Kleider. Der Betrag hängt von der Grösse vom Haushalt ab."  # SKOS-Richtlinien
+"Unterstützungseinheit" = "Dazu gehören die Personen in Ihrem Haushalt mit Pflichten füreinander. Zum Beispiel Eltern und ihre Kinder. Die Sozialhilfe rechnet für sie zusammen."  # SKOS-Richtlinien
+"Alimentenbevorschussung" = "Ein Elternteil zahlt den Unterhalt für das Kind nicht. Dann zahlt die Gemeinde oder der Kanton vorläufig. Danach holt das Amt das Geld beim anderen Elternteil."  # ZGB Art. 293, kantonal
+"Nettomiete" = "Die Nettomiete ist die Miete ohne Nebenkosten."
+"Bruttomiete" = "Die Bruttomiete ist die Miete mit den Nebenkosten."
+
+[explain.tax]
+"Steuererklärung" = "Ein Formular für die Steuern. Darin schreiben Sie Ihr Einkommen auf. Sie schreiben auch Ihr Vermögen auf."
+"Veranlagung" = "Das Steueramt berechnet Ihre Steuern. Das Ergebnis heisst Veranlagung. Sie bekommen es als Brief."
+"provisorische Rechnung" = "Eine erste Rechnung für die Steuern. Die genaue Rechnung kommt später."
+"Quellensteuer" = "Der Arbeitgeber zieht die Steuern direkt vom Lohn ab. Das gilt zum Beispiel für Menschen mit Ausweis B."
+"Abzug" = "Ein Abzug ist ein Betrag. Sie dürfen ihn vom Einkommen abziehen. Dann bezahlen Sie weniger Steuern."
+"steuerbares Einkommen" = "Ihr Einkommen nach allen Abzügen. Davon berechnet das Steueramt die Steuern."
+"massgebendes Einkommen" = "Dieses Einkommen zählt für einen Entscheid. Das Amt berechnet es nach eigenen Regeln."
+"Vermögen" = "Zum Vermögen gehören alle Ihre Sachen mit Geldwert. Zum Beispiel Geld auf dem Konto oder ein Haus."
+"steuerpflichtig" = "Steuerpflichtig heisst: Sie müssen Steuern bezahlen."
+"Steuererlass" = "Sie können Ihre Steuern wegen einer Notlage nicht bezahlen. Dann kann das Amt Ihnen die Steuern ganz oder zum Teil schenken."  # TERMDAT 97116
+"Zahlungserleichterung" = "Sie dürfen später oder in Teilen bezahlen. Das Amt muss zustimmen."  # kantonale Steuergesetze
+"Steuerperiode" = "Das Jahr für Ihre Steuern. Meistens vom 1. Januar bis 31. Dezember."  # DBG Art. 40
+"Schlussrechnung" = "Die letzte genaue Rechnung für ein Steuerjahr. Vorher haben Sie vielleicht schon provisorische Rechnungen bezahlt."  # kantonale Steuergesetze
+"Nachsteuer" = "Sie haben nicht alles Einkommen oder Vermögen angegeben. Darum verlangt das Steueramt Steuern für frühere Jahre nach."
+"Ermessensveranlagung" = "Sie haben keine Steuererklärung abgegeben. Dann schätzt das Steueramt Ihr Einkommen und Ihr Vermögen."
+
+[explain.residence]
+"Aufenthaltsbewilligung" = "Sie dürfen für eine bestimmte Zeit in der Schweiz wohnen. Dann müssen Sie die Erlaubnis verlängern. Das ist der Ausweis B."
+"Niederlassungsbewilligung" = "Sie dürfen ohne Zeitgrenze in der Schweiz wohnen. Das ist der Ausweis C."
+"Einwohnerkontrolle" = "Ein Amt in der Gemeinde. Dort melden Sie Ihre Adresse. Zum Beispiel nach einem Umzug."
+"Zivilstandsamt" = "Dieses Amt schreibt wichtige Daten in ein Register. Zum Beispiel eine Geburt oder eine Heirat."
+"Einbürgerung" = "Sie werden Schweizer Bürgerin oder Schweizer Bürger. Dann bekommen Sie den Schweizer Pass."
+"Heimatort" = "Ihre Familie hat an diesem Ort das Bürgerrecht. Der Heimatort steht im Pass. Oft wohnen Sie an einem anderen Ort."
+"vorläufige Aufnahme" = "Sie dürfen vorläufig in der Schweiz bleiben. Eine Rückkehr in Ihr Land ist im Moment nicht möglich. Das ist der Ausweis F."  # TERMDAT 38432
+"Schutzstatus S" = "Sie sind vor einem Krieg geflüchtet. Die Schweiz schützt Sie für eine bestimmte Zeit. Das ist der Ausweis S."  # TERMDAT 500839
+"Familiennachzug" = "Ihre Familie kommt aus dem Ausland zu Ihnen in die Schweiz. Dafür brauchen Sie eine Erlaubnis."  # TERMDAT 37788
+
+[explain.vote]
+"Abstimmung" = "Bei einer Abstimmung sagen die Stimmberechtigten Ja oder Nein zu einer Frage."
+"Stimmrecht" = "Sie dürfen bei Abstimmungen und Wahlen mitmachen. Meistens haben das Erwachsene mit Schweizer Pass."
+"stimmberechtigt" = "Stimmberechtigt heisst: Sie haben das Stimmrecht."
+"Volksinitiative" = "Menschen sammeln Unterschriften für eine neue Regel in der Verfassung. Mit genug Unterschriften gibt es eine Abstimmung."
+"Referendum" = "Menschen sammeln Unterschriften gegen ein neues Gesetz. Mit genug Unterschriften stimmt das Volk darüber ab."
+"Gegenvorschlag" = "Ein anderer Vorschlag vom Parlament oder von der Regierung. Er kommt als Antwort auf eine Volksinitiative."
+"Stimmrechtsausweis" = "Diese Karte kommt mit den Papieren für die Abstimmung. Sie unterschreiben die Karte und schicken sie mit. Nur dann zählt Ihre Stimme."
+"Urne" = "Die Urne ist eine Box für die Stimmzettel. An die Urne gehen heisst: im Wahllokal abstimmen."
+"Kantonsrat" = "Der Kantonsrat ist das Parlament vom Kanton. Er macht die Gesetze für den Kanton. Manche Kantone sagen Grosser Rat."
+"Regierungsrat" = "Der Regierungsrat ist die Regierung vom Kanton. Er hat 5 oder 7 Mitglieder."
+"Gemeindeversammlung" = "An der Gemeindeversammlung treffen sich die Stimmberechtigten. Sie entscheiden zusammen über Fragen in der Gemeinde."
+"Vernehmlassung" = "Vor einem neuen Gesetz fragt die Regierung viele Gruppen nach ihrer Meinung. Das heisst Vernehmlassung."
+"Verfassung" = "Die Verfassung ist das wichtigste Gesetz vom Land oder vom Kanton. Darin stehen die Grundregeln und Ihre Rechte."
+
+[explain.context]
+# Terms with a second, everyday sense (Leistung in a school report, Wartezeit at
+# the doctor's). Kept for the writer and the termbase; code never adds them.
+"Eröffnung" = "Eröffnung heisst hier: Das Amt gibt Ihnen den Entscheid. Ab diesem Tag läuft die Frist."
+"Wartezeit" = "Wartezeit heisst hier: Die Versicherung zahlt erst nach einigen Tagen. Diese Tage müssen Sie warten."  # TERMDAT 56382
+"Beitrag" = "Ein Beitrag ist Geld für eine Versicherung. Zum Beispiel für die AHV. Bei Angestellten zieht der Arbeitgeber ihn vom Lohn ab."
+"Leistung" = "Eine Leistung bekommen Sie von einer Versicherung oder einem Amt. Das kann Geld sein oder Hilfe."
+"solidarisch" = "Solidarisch heisst hier: Jede Person muss die ganze Schuld bezahlen. Zum Beispiel ein Ehepaar bei den Steuern."
+"Forderung" = "Eine Forderung ist Geld. Jemand verlangt dieses Geld von Ihnen."
+"Verordnung" = "Eine Verordnung ist eine Sammlung von Regeln. Die Regierung macht sie. Sie erklärt ein Gesetz genauer."
+
+# -- not in ------------------------------------------------------------------------
+
+# Phrases in which a term does not mean what the vocabulary explains:
+# zur Verfügung stehen is not a decision.
+[not_in]
+"Verfügung" = ["zur Verfügung", "zu Ihrer Verfügung"]
+"Abstimmung" = ["in Abstimmung mit", "Abstimmung mit"]

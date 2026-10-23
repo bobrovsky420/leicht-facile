@@ -2,7 +2,7 @@
 #
 # The wheel installs with uv or pip without a checkout: the spaCy models are direct
 # references in its metadata (pyproject.toml). The tag must match the version in
-# pyproject.toml; track_2b/tests/test_release.py keeps that version, the package's
+# pyproject.toml; tests/test_release.py keeps that version, the package's
 # __version__, publiccode.yml and the install commands (quickstart §9) in step.
 # Every action is pinned to a commit; the comment after the hash names the release.
 
@@ -36,7 +36,7 @@ jobs:
       - name: Versions and install commands agree
         run: |
           uv sync --frozen
-          uv run pytest -q track_2b/tests/test_release.py
+          uv run pytest -q tests/test_release.py
       - name: Build the wheel
         run: uv build --wheel --out-dir dist
       # A clean environment outside the checkout: the rule checker loads the spaCy

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
+{% block content %}
+<div class="page">
+  <div class="pagetitle">
+    <div class="grow">
+      <h1>{{ t('site.drafts') }}</h1>
+      {% if total %}<p class="subline">{{ t('drafts.count', n=total) }}{% if review_count %} {{ t('drafts.to_review', n=review_count) }}{% endif %}</p>{% endif %}
+    </div>
+    <a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
+  </div>
+
+  {% if total %}
+  <section class="intro" id="intro" aria-label="{{ t('drafts.how.title') }}">
+    <span class="intro-title">{{ t('drafts.how.title') }}</span>
+    <ol>
+      <li><span class="stepno" aria-hidden="true">1</span>{{ t('drafts.how.read') }}</li>
+      <li><span class="stepno" aria-hidden="true">2</span>{{ t('drafts.how.check', count=rule_count) }}</li>
+      <li><span class="stepno" aria-hidden="true">3</span>{{ t('drafts.how.judge') }}</li>
+      <li><span class="stepno" aria-hidden="true">4</span>{{ t('drafts.how.review') }}</li>
+    </ol>
+    <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="intro-close" aria-label="{{ t('drafts.how.hide') }}">{{ icons.icon('x', 14) }}</button>
+  </section>
+  {% endif %}
+
+  <div class="card">
+    {% if total %}
+    <form class="toolbar" method="get" action="/" role="search">
+      <div class="search">
+        {{ icons.icon('search') }}
+        <input type="search" name="q" value="{{ q }}" placeholder="{{ t('drafts.search') }}" aria-label="{{ t('drafts.search_label') }}">
+      </div>
+      <nav class="seg" aria-label="{{ t('drafts.filter') }}">
+        {% for f in filters %}<a class="seg-item" href="{{ f.url }}"{% if f.current %} aria-current="true"{% endif %}>{{ f.label }}<span class="n">{{ f.n }}</span></a>{% endfor %}
+      </nav>
+      {% if status != 'all' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+      <span class="grow"></span>
+      {% if langs | length > 1 or lang %}
+      <label class="inline">{{ t('index.lang') }}
+        <select name="lang" data-autosubmit>
+          <option value="">{{ t('drafts.lang.all') }}</option>
+          {% for code in langs %}<option value="{{ code }}"{% if code == lang %} selected{% endif %}>{{ t.get('lang.' ~ code, code) }}</option>{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <button type="submit" class="btn btn-sm no-js">{{ t('drafts.apply_filters') }}</button>
+    </form>
+    {% endif %}
+
+    {% if rows %}
+    <div class="table-wrap">
+      <table class="drafts">
+        <colgroup><col class="c-doc"><col class="c-lang"><col class="c-pipe"><col class="c-status"><col class="c-checks"><col class="c-review"><col class="c-created"><col class="c-actions"></colgroup>
+        <thead>
+          <tr>
+            <th scope="col">{{ t('jobs.document') }}</th>
+            <th scope="col">{{ t('index.lang') }}</th>
+            <th scope="col">{{ t('index.condition') }}</th>
+            <th scope="col">{{ t('jobs.status') }}</th>
+            <th scope="col">{{ t('drafts.col.checks') }}</th>
+            <th scope="col">{{ t('drafts.col.review') }}</th>
+            <th scope="col">{{ t('jobs.created') }}</th>
+            <th scope="col"><span class="visually-hidden">{{ t('drafts.col.actions') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>
+              <span class="doc-title"><a href="/jobs/{{ r.job.id }}"{% if r.doc_lang %} lang="{{ r.doc_lang }}"{% endif %}>{{ r.title }}</a>{% if r.job.config.mode == 'decision' %}<span class="tag">{{ t('drafts.decision') }}</span>{% endif %}</span>
+              {% if r.source_line %}<span class="doc-sub">{{ r.source_line }}</span>{% endif %}
+            </td>
+            <td>{{ r.language }}{% if r.job.config.level %} <span class="muted">· {{ r.job.config.level }}</span>{% endif %}</td>
+            <td>{{ t.get('condition.short.' ~ r.job.config.condition, r.job.config.condition) }}</td>
+            <td>
+              <span class="badge status-{{ r.job.status }}">{{ t('status.' ~ r.job.status) }}</span>
+              {% if r.status_note %}<span class="cell-note{% if r.job.status == 'failed' %} bad{% endif %}">{{ r.status_note }}</span>{% endif %}
+            </td>
+            <td>
+              {% if r.has_checks %}
+              <span class="checks-cell">
+                <span class="stat">{{ icons.sev('error' if r.errors else 'none', t('count.errors', n=r.errors)) }}<span aria-hidden="true">{{ r.errors }}</span></span>
+                <span class="stat">{{ icons.sev('warn', t('count.warnings', n=r.warnings)) }}<span aria-hidden="true">{{ r.warnings }}</span></span>
+                {% if r.facts_total %}<span class="muted">{{ t('drafts.facts', present=r.facts_present, total=r.facts_total) }}</span>{% endif %}
+              </span>
+              {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
+            </td>
+            <td>
+              {% if r.blocks %}
+              <span class="review-cell"><span class="meter{% if r.complete %} complete{% endif %}"><span style="width: {{ r.review_pct }}%"></span></span>{{ t('drafts.reviewed_complete' if r.complete else 'drafts.reviewed', decided=r.decided, total=r.blocks) }}</span>
+              {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
+            </td>
+            <td class="created">
+              <time datetime="{{ r.job.created_at.isoformat() }}" data-local><span class="day">{{ r.job.created_at.strftime('%d.%m.%Y') }}</span><span class="tm">{{ r.job.created_at.strftime('%H:%M') }} UTC</span></time>
+            </td>
+            <td>
+              <details class="menu">
+                <summary class="btn btn-quiet btn-icon" aria-label="{{ t('drafts.actions_for', title=r.title) }}">{{ icons.icon('kebab') }}</summary>
+                <div class="menu-panel">
+                  <a href="/jobs/{{ r.job.id }}">{{ t('drafts.open') }}</a>
+                  {% if r.has_checks %}
+                  <a href="/jobs/{{ r.job.id }}/preview">{{ t('review.reader_view') }}</a>
+                  <hr>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=md">Markdown<span class="ext">.md</span></a>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=html">HTML<span class="ext">.html</span></a>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=docx">Word<span class="ext">.docx</span></a>
+                  <a href="/api/jobs/{{ r.job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
+                  {% endif %}
+                  <hr>
+                  <form method="post" action="/jobs/{{ r.job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
+                    <button type="submit" class="danger">{{ t('drafts.delete') }}</button>
+                  </form>
+                </div>
+              </details>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-foot">
+      <span>{% if matching > rows | length or filtered %}{{ t('drafts.shown', shown=rows | length, total=total) }}{% else %}{{ t('drafts.count', n=total) }}{% endif %}</span>
+      <span class="grow"></span>
+      <span>{{ t('drafts.newest_first') }}</span>
+    </div>
+    {% elif total %}
+    <div class="empty">
+      <p>{{ t('drafts.no_match') }}</p>
+      <div class="actions"><a class="btn" href="/">{{ t('drafts.clear') }}</a></div>
+    </div>
+    {% else %}
+    <div class="empty">
+      <h2>{{ t('drafts.empty.title') }}</h2>
+      <p>{{ t('site.tagline') }}</p>
+      <p>{{ t('drafts.empty.text') }}</p>
+      <div class="actions">
+        {% for e in examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}
+        <a class="btn btn-primary" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <p class="pagefoot">Leicht·Facile {{ version }}. {{ t('site.footer') }}</p>
+</div>
+{% endblock %}
