@@ -56,8 +56,9 @@ warm-up. The first start downloads the weights first (about 140 s here).
 
 ## The two jobs
 
-Both ran the team's example letter `data/examples/sources/praemienverbilligung-brief.txt`
-(232 words, German) as P2 at level A2, posted to `/api/jobs` of the app that `make run`
+Both ran the team's example letter (today
+`src/leichtfacile/letters/praemienverbilligung-brief.txt`, 232 words, German) as P2 at
+level A2, posted to `/api/jobs` of the app that `make run`
 had started. One job at a time, nothing else on the GPU.
 
 | | Job 1: thinking in Understand and Judge | Job 2: thinking only in Understand |
@@ -110,15 +111,21 @@ thinking in one job and without in the other.
 
 ## Running it again
 
-On a host with one NVIDIA GPU of 24 GB or more and Docker with the NVIDIA Container
-Toolkit: copy `.env.example` to `.env`, switch to profile B and set `HF_TOKEN` (the
-weights are gated: accept their terms on Hugging Face once). Then:
+The run used the Docker Compose setup of commit 6936d05; Docker was removed from the
+project on 23 October 2026. Today the model server runs on its own and the app is a
+Python package ([docs/quickstart.md](../../quickstart.md), "Running a model yourself").
+On a host with one NVIDIA GPU of 24 GB or more, start vLLM with the Swiss AI team's
+official image and the flags in `docker-compose.override.yml` above, on port 8001 so
+that it does not clash with the app (the weights are gated: accept their terms on
+Hugging Face once and give the server `HF_TOKEN`). Then:
 
 ```
-docker compose --profile local-llm up -d vllm   # ready at "Application startup complete"
-make run OPEN_BROWSER=0
+leichtfacile setup --preset local --base-url http://127.0.0.1:8001/v1 --api-key local \
+  --model swiss-ai/Apertus-v1.5-8B
+# then add LLM_THINKING_MODE=chat-template to the config file setup names
+leichtfacile serve --no-browser
 # in a second terminal
-curl -F file=@data/examples/sources/praemienverbilligung-brief.txt -F level=A2 \
+curl -F file=@src/leichtfacile/letters/praemienverbilligung-brief.txt -F level=A2 \
   -F condition=P2 http://localhost:8000/api/jobs
 ```
 

@@ -1,22 +1,30 @@
 # Example documents
 
-Texts in `sources/` are written by the team for testing and demonstration. They imitate
-the style of Swiss official letters but describe no real authority: the municipalities
-Musterwil and Exempleville are invented, the web and e-mail addresses use the reserved
-`.example` domain, and 044 123 45 67 and 022 123 45 67 are example numbers in the style
-of Swiss style guides. The New draft form offers each one as a one-click fill
-(`/new?example=<file name>`), and so does the drafts list while it is empty.
+The example documents live in two folders. The example letters the app offers are part
+of the package, in [`src/leichtfacile/letters/`](../../src/leichtfacile/letters/), so an
+installed wheel brings them along. This folder, `data/examples/`, holds the printed
+letters of the image input spike in `data/examples/print/` (below).
+
+## Example letters (`src/leichtfacile/letters/`)
+
+The letters in `src/leichtfacile/letters/` are written by the team for testing and
+demonstration. They imitate the style of Swiss official letters but describe no real
+authority: the municipalities Musterwil and Exempleville are invented, the web and
+e-mail addresses use the reserved `.example` domain, and 044 123 45 67 and
+022 123 45 67 are example numbers in the style of Swiss style guides. The New draft
+form offers each one as a one-click fill (`/new?example=<file name>`), and so does the
+drafts list while it is empty.
 
 | File | Content | Use |
 |------|---------|-----|
-| `sources/praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), tests, an example text in the New draft form |
-| `sources/reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, an example text in the New draft form |
-| `sources/entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Decision mode (docs/use-case-decisions.md), tests, an example text in the New draft form |
+| `praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), tests, an example text in the New draft form |
+| `reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, an example text in the New draft form |
+| `entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Decision mode (docs/use-case-decisions.md), tests, an example text in the New draft form |
 
-A JSON file next to a source holds that example's job settings, any `JobConfig` field:
-`sources/entscheid-beistandschaft-musterwil.json` runs the KESB decision in decision mode
+A JSON file next to a letter holds that example's job settings, any `JobConfig` field:
+`entscheid-beistandschaft-musterwil.json` runs the KESB decision in decision mode
 (`mode`), speaking to Lea Muster (`addressee`), with the KESB's fixed notice (`notice`).
-Sources without one run as standard P2 jobs at level A2.
+Letters without one run as standard P2 jobs at level A2.
 
 The KESB decision follows the layout of real ones: the header with the panel, the
 person and the subject, then I. Sachverhalt, II. Erwägungen, III. Entscheid and the
@@ -27,9 +35,14 @@ wording. The AHV number has a wrong check digit and the IBAN the check digits 00
 neither can belong to anyone. The people, the street, the bank and the doctor are
 invented.
 
+`EXAMPLES_DIR` points the app at another folder of letters instead, set in the config
+file, `.env` or the environment: `.txt` or `.md` files, each with an optional `.json`
+of job settings next to it. The default is the package's folder (`LETTERS_DIR` in
+`src/leichtfacile/config.py`).
+
 ## Printed letters (image input)
 
-`print/` holds two more letters, made for the image input spike ([image-input.md](../../docs/image-input.md)): each as a
+`data/examples/print/` holds two more letters, made for the image input spike ([image-input.md](../../docs/image-input.md)): each as a
 PDF to print and as the printed text in reading order (`.txt`: blocks separated by a
 blank line, table cells by a tab), the reference a transcription is compared with.
 `uv run python scripts/print_letters.py` writes all four files again, byte for byte the
@@ -62,6 +75,6 @@ layer, so the PDF ingest refuses them as scans. A test takes the page JPEGs out
 unchanged (pdfplumber: `page.images[0]["stream"].get_rawdata()`), without rendering
 or re-encoding.
 
-Texts from cantonal or federal web pages are not stored here: their publishers do not
-allow reproduction (docs/sources.md §4). The evaluation fetches them into the
-git-ignored `data/cache/` instead.
+Texts from cantonal or federal web pages are stored in neither folder: their
+publishers do not allow reproduction (docs/sources.md §4). The evaluation fetches them
+into the git-ignored `data/cache/` instead.

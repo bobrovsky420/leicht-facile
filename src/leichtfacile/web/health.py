@@ -1,8 +1,8 @@
 """Liveness and readiness.
 
-`GET /healthz` answers from the process alone: the Docker health check, the browser
-opener of `make run` and a load balancer ask it every few seconds, and none of them
-should make the server call the paid model endpoint with the organisation's key.
+`GET /healthz` answers from the process alone: a service manager's health check, the
+browser opener of `leichtfacile serve` and a load balancer ask it every few seconds, and
+none of them should make the server call the paid model endpoint with the organisation's key.
 
 `GET /readyz` adds the model endpoint: reachable, and are the configured models
 listed. The endpoint is asked at most once per `READY_CACHE_S` seconds, whoever asks

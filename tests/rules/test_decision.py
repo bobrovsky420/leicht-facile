@@ -236,7 +236,7 @@ def test_the_parts_of_a_decision_do_not_trip_fact_02() -> None:
 
 
 ROOT = Path(__file__).parents[2]
-EXAMPLE = ROOT / "data" / "examples" / "sources" / "entscheid-beistandschaft-musterwil.txt"
+EXAMPLE = ROOT / "src" / "leichtfacile" / "letters" / "entscheid-beistandschaft-musterwil.txt"
 PUBLISHED = ROOT / "data" / "cache" / "decisions" / "SZ_VG_001_III-2022-132_2022-10-17.pdf"
 
 

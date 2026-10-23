@@ -1,7 +1,7 @@
-# Continuous integration: lint, tests and a start of the Docker image.
+# Continuous integration: lint, tests and a start of the service.
 #
 # No model endpoint is needed: the tests answer model calls from a fake endpoint, and
-# the Docker job starts the image against an unreachable LLM_BASE_URL to show that the
+# the serve job starts the app against an unreachable LLM_BASE_URL to show that the
 # service and its liveness check do not depend on the endpoint. Every action is pinned
 # to a commit; the comment after the hash names the release.
 
@@ -53,20 +53,23 @@ jobs:
       - run: uv sync --frozen
       - run: uv run pytest -q
 
-  docker:
-    name: Docker image starts
+  serve:
+    name: The service starts without its endpoint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Build the image
-        run: docker build -t leicht-facile:ci .
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
       - name: Start it with an unreachable endpoint and call /healthz and /readyz
+        env:
+          LLM_BASE_URL: http://127.0.0.1:9/v1
+          LLM_API_KEY: none
+          LLM_NAME: any-model
+          DATA_DIR: ${{ runner.temp }}/data
         run: |
-          docker run -d --name app -p 127.0.0.1:8000:8000 \
-            -e LLM_BASE_URL=http://127.0.0.1:9/v1 \
-            -e LLM_API_KEY=none \
-            -e LLM_NAME=swiss-ai/Apertus-v1.5-8B \
-            leicht-facile:ci
+          .venv/bin/leichtfacile serve --no-browser > serve.log 2>&1 &
           for i in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:8000/healthz -o healthz.json; then
               cat healthz.json
@@ -79,17 +82,5 @@ jobs:
             sleep 2
           done
           echo "the service did not answer within 90 s"
-          docker logs app
+          cat serve.log
           exit 1
-      - name: Stop it
-        if: always()
-        run: docker rm -f app
-      # Vulnerability scan of the image: advisory only, it never fails the build.
-      - name: Scan the image (advisory)
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: leicht-facile:ci
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"

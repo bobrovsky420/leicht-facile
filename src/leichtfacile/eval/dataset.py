@@ -17,7 +17,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-from leichtfacile.config import Paths
+from leichtfacile.config import paths
 from leichtfacile.schemas import SourceDocument
 
 log = logging.getLogger(__name__)
@@ -27,9 +27,9 @@ Side = Literal["standard", "easy"]
 
 
 def data_dir() -> Path:
-    """DATA_DIR from the environment or .env, without the model settings (no key is
-    needed for the dataset)."""
-    return Paths().data_dir
+    """DATA_DIR from the config file, .env or the environment, without the model
+    settings (no key is needed for the dataset)."""
+    return paths().data_dir
 
 
 def cache_dir() -> Path:

@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from leichtfacile.config import LETTERS_DIR
 from leichtfacile.llm.client import LLMClient, Usage
 from leichtfacile.rules import RULES
 from leichtfacile.rules.vocabulary import load_vocabulary
@@ -52,7 +53,6 @@ Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67.
 
 @pytest.fixture
 def env(tmp_path, endpoint: FakeEndpoint, sleeps, monkeypatch):
-    monkeypatch.setenv("EXAMPLES_DIR", str(REPO / "data" / "examples"))
     settings = make_settings(data_dir=tmp_path, llm_max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     store = Store(tmp_path / "ui.sqlite")
@@ -98,9 +98,7 @@ def _titles(client, **params) -> list[str]:
 
 def test_drafts_list_filters_by_status_search_and_language(env) -> None:
     client, _, store, settings, _ = env
-    french = (REPO / "data" / "examples" / "sources" / "reduction-primes-lettre.txt").read_text(
-        encoding="utf-8"
-    )
+    french = (LETTERS_DIR / "reduction-primes-lettre.txt").read_text(encoding="utf-8")
     queued_job(store, settings, title="Brief")
     create_job(store, settings, Submission(text=french, title="Lettre"))
     failed = queued_job(store, settings, title="Beispiel")

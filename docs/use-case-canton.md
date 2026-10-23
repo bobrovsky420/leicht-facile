@@ -23,14 +23,20 @@ important was lost or invented along the way.
 
 ## 2. Setup, done once by IT
 
-IT runs one container on the canton's own infrastructure. The container needs exactly
-one outbound connection: an Apertus endpoint. That endpoint is either a GPU server the
-canton operates with vLLM, or a Swiss-hosted Apertus service. Nothing leaves the
-canton's network, there are no accounts with foreign providers, and there is no
-telemetry. Documents and review records stay on a volume the canton controls.
+IT installs Leicht·Facile, a Python package, on a server in the canton's own
+infrastructure: the release wheel with `uv tool install` or pip, then
+`leichtfacile setup` once for the model endpoint and `leichtfacile serve` to start it
+([quickstart.md](quickstart.md)). The app needs exactly one outbound connection: an
+OpenAI-compatible model endpoint. For letters to named persons that is Apertus, the
+recommended model for texts under official secrecy
+([use-cases.md §2](use-cases.md#why-apertus-fits-best)): either a GPU server the canton
+operates with vLLM, or a Swiss-hosted Apertus service. Nothing leaves the canton's
+network, there are no accounts with foreign providers, and there is no telemetry.
+Documents and review records stay in a data folder (`DATA_DIR`) on a disk the canton
+controls.
 
-See [architecture.md §10](architecture.md#10-deployment-and-sovereignty) for the three
-deployment profiles and the hardware involved.
+See [architecture.md §10](architecture.md#10-deployment-and-sovereignty) for the
+deployment options and the hardware involved.
 
 ## 3. A typical case: the premium-reduction letter
 

@@ -18,14 +18,15 @@ softwareType: standalone/web
 description:
   en:
     shortDescription: >-
-      Easy-language drafts of Swiss official texts with the open Swiss model Apertus;
-      every fact value checked by code, every draft reviewed by a person.
+      Easy-language drafts of Swiss official texts with any LLM (tested with Apertus);
+      every fact checked by code, every draft reviewed by a person.
     longDescription: >-
       Leicht·Facile helps cantonal and municipal writers turn an official text (a web
       page, a letter, a decision) into Leichte Sprache or FALC. A fact sheet lists what
       must survive: deadlines, amounts, phone numbers, addresses, case numbers, periods.
-      The draft is written by Apertus, the open Swiss language model, and then checked
-      twice: by deterministic rules (sentence length, passive, genitive, numbers, dates,
+      The draft is written by a language model the organisation chooses (any
+      OpenAI-compatible endpoint; built and evaluated with Apertus, the open Swiss
+      model) and then checked twice: by deterministic rules (sentence length, passive, genitive, numbers, dates,
       Swiss spelling, every fact value of the fact sheet present and no value the source lacks)
       and by a second model that judges meaning. A repair loop fixes what the checks
       find; what cannot be fixed goes to the reviewer with the finding next to the block.
@@ -33,8 +34,9 @@ description:
       audit bundle records the model, the prompts, every check and every decision of the
       reviewer. A decision mode keeps the operative part and the appeal instructions of a
       decision untouchable and adds the authority's fixed notice to every export. The
-      service runs on a laptop, on the Swiss AI platform (CSCS) or on the organisation's
-      own hardware; no text leaves the chosen deployment.
+      service is a Python package for a laptop or a server; the model runs where the
+      organisation chooses (its own hardware, the Swiss AI platform CSCS or another
+      provider), and no text goes anywhere else.
     features:
       - Fact sheet with the reader's core questions and every hard value of the source
       - Deterministic checks for easy-language rules, fact values and Swiss spelling
@@ -44,14 +46,16 @@ description:
       - German and French; decision mode for letters that go out with a decision
   de:
     shortDescription: >-
-      Leichte-Sprache-Fassungen von Schweizer Behördentexten mit dem offenen Schweizer
-      Modell Apertus; jeden Faktenwert prüft Code, ein Mensch gibt frei.
+      Leichte-Sprache-Fassungen von Behördentexten mit einem Sprachmodell nach Wahl
+      (geprüft mit Apertus); Code prüft jeden Wert, ein Mensch gibt frei.
     longDescription: >-
       Leicht·Facile hilft Schreibenden in Kantonen und Gemeinden, einen Behördentext
       (eine Webseite, einen Brief, einen Entscheid) in Leichte Sprache oder FALC zu
       bringen. Ein Faktenblatt hält fest, was erhalten bleiben muss: Fristen, Beträge,
-      Telefonnummern, Adressen, Geschäftsnummern, Zeiträume. Den Entwurf schreibt
-      Apertus, das offene Schweizer Sprachmodell. Danach prüfen ihn zwei Instanzen:
+      Telefonnummern, Adressen, Geschäftsnummern, Zeiträume. Den Entwurf schreibt ein
+      Sprachmodell nach Wahl der Organisation (jeder OpenAI-kompatible Endpunkt;
+      entwickelt und geprüft mit Apertus, dem offenen Schweizer Sprachmodell). Danach
+      prüfen ihn zwei Instanzen:
       deterministische Regeln (Satzlänge, Passiv, Genitiv, Zahlen, Daten, Schweizer
       Rechtschreibung, jeder Wert des Faktenblatts vorhanden, kein Wert, den die
       Quelle nicht hat) und ein zweites Modell, das den Sinn beurteilt. Eine
@@ -60,9 +64,10 @@ description:
       Entwurfs nennt die Quellensätze, aus denen er stammt, und das Prüfpaket hält
       Modell, Prompts, jede Prüfung und jede Entscheidung der Freigabe fest. Ein
       Entscheid-Modus hält Dispositiv und Rechtsmittelbelehrung unantastbar und setzt den
-      festen Hinweis der Behörde in jeden Export. Der Dienst läuft auf einem Laptop, auf
-      der Swiss-AI-Plattform (CSCS) oder auf eigener Hardware; kein Text verlässt die
-      gewählte Umgebung.
+      festen Hinweis der Behörde in jeden Export. Der Dienst ist ein Python-Paket für
+      einen Laptop oder einen Server; das Modell läuft, wo die Organisation es will
+      (eigene Hardware, die Swiss-AI-Plattform CSCS oder ein anderer Anbieter), und kein
+      Text geht anderswohin.
     features:
       - Faktenblatt mit den Kernfragen der Leserin oder des Lesers und jedem harten Wert der Quelle
       - Deterministische Prüfung der Regeln für Leichte Sprache, der Faktenwerte und der Schweizer Rechtschreibung
@@ -72,14 +77,16 @@ description:
       - Deutsch und Französisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
   fr:
     shortDescription: >-
-      Versions FALC de textes officiels suisses avec Apertus, le modèle ouvert suisse ;
-      chaque valeur vérifiée par du code, relecture par une personne.
+      Versions FALC de textes officiels suisses avec un modèle au choix (testé avec
+      Apertus) ; le code vérifie chaque valeur, une personne relit.
     longDescription: >-
       Leicht·Facile aide les rédactrices et rédacteurs des cantons et des communes à
       mettre un texte officiel (une page web, une lettre, une décision) en langage FALC
       ou en Leichte Sprache. Une fiche de faits retient ce qui doit rester : délais,
       montants, numéros de téléphone, adresses, numéros de dossier, périodes. Le brouillon
-      est écrit par Apertus, le modèle de langue ouvert suisse, puis vérifié deux fois :
+      est écrit par un modèle de langue choisi par l'organisation (tout point d'accès
+      compatible OpenAI ; développé et évalué avec Apertus, le modèle ouvert suisse),
+      puis vérifié deux fois :
       par des règles déterministes (longueur des phrases, passif, nombres, dates,
       orthographe suisse, chaque valeur de la fiche présente et aucune valeur absente de la
       source) et par un second modèle qui juge le sens. Une boucle de réparation corrige
@@ -88,9 +95,10 @@ description:
       phrases de la source dont elle vient, et le dossier d'audit garde le modèle, les
       prompts, chaque vérification et chaque décision de la relecture. Un mode décision
       garde intacts le dispositif et les voies de droit d'une décision et place l'avis
-      fixe de l'autorité dans chaque export. Le service tourne sur un ordinateur
-      portable, sur la plateforme Swiss AI (CSCS) ou sur le matériel de l'organisation ;
-      aucun texte ne quitte l'environnement choisi.
+      fixe de l'autorité dans chaque export. Le service est un paquet Python pour un
+      ordinateur portable ou un serveur ; le modèle tourne où l'organisation le veut
+      (son propre matériel, la plateforme Swiss AI CSCS ou un autre fournisseur), et
+      aucun texte ne va ailleurs.
     features:
       - Fiche de faits avec les questions principales du lecteur et chaque valeur dure de la source
       - Vérification déterministe des règles FALC, des valeurs des faits et de l'orthographe suisse
@@ -133,4 +141,4 @@ dependsOn:
     - name: Python
       versionMin: "3.12"
     - name: Apertus
-      optional: false
+      optional: true

@@ -663,7 +663,7 @@
     onActivate(el, () => showFact(el.dataset.factRef, $(`.fact[data-fact="${el.dataset.factRef}"]`)));
   });
 
-  // a missing fact: sentences from its source paragraph, one Apertus call
+  // a missing fact: sentences from its source paragraph, one model call
   // (POST /api/jobs/{id}/facts/{fact}/recover); the reviewer adds them to a block as an edit
   const el = (tag, cls, text) => {
     const node = document.createElement(tag);

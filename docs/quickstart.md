@@ -1,288 +1,385 @@
-# Quick start: every way to start Leicht·Facile
+# Quick start
 
-This page lists every way to start the application, from the one default command to
-a development server with live reload. Run every command from the repository
-root: the recipes, `.env` and the default data folder are all resolved from there.
+Leicht·Facile drafts easy-language versions of Swiss official texts with any
+OpenAI-compatible model endpoint. The endpoint comes from outside the app: a cloud API,
+a gateway or a model server the organisation runs. The app itself never runs a model. It
+was built and evaluated with Apertus 1.5 (the 8B writes, the 70B judges), and the
+reported numbers are Apertus results. For texts under secrecy, use a model the
+organisation controls; Apertus fits best
+([docs/use-cases.md](use-cases.md#why-apertus-fits-best)).
 
-| Way | Command | Model endpoint | Needs |
-|-----|---------|----------------|-------|
-| [1. `make run`](#1-make-run-the-default) | `make run` | remote (CSCS by default) | Docker, make, an API key |
-| [2. Docker Compose](#2-docker-compose-without-make) | `docker compose up --build` | remote | Docker, an API key |
-| [3. Plain Docker](#3-plain-docker-without-compose) | `docker build` + `docker run` | remote | Docker, an API key |
-| [4. Local vLLM](#4-on-premise-local-vllm-official-apertus-15-8b) | `docker compose --profile local-llm up` | in Compose, official 8B | NVIDIA GPU with 24 GB+ |
-| [5. Local llama.cpp in Compose](#5-small-office-llamacpp-in-compose) | `docker compose --profile local-llm-small up` | in Compose, 4-bit 8B | NVIDIA GPU with 8 GB |
-| [6. Without Docker](#6-without-docker-uv-on-the-host) | `uv run python -m leichtfacile serve` | any | uv, Python 3.12+ |
-| [7. llama.cpp on the host](#7-llamacpp-on-the-host-no-key) | `llama-server ...` + 1, 2 or 6 | on the host, 4-bit 8B | GPU with 8 GB, llama.cpp |
-| [8. Command line only](#8-command-line-only-no-web-ui) | `python -m leichtfacile simplify ...` | any | as 1 or 6 |
-| [9. Release wheel](#9-from-the-release-wheel-no-checkout) | `uv tool install <wheel URL>` | any | uv or pip, Python 3.12+ |
+The app is a Python package (Python 3.12 or newer) with one command, `leichtfacile`.
 
-Every way serves the web UI at <http://localhost:8000> (`/healthz` says the process is
-up, `/readyz` whether the model endpoint answers). The interface is in English, German
-or French; the New draft form offers the example letters as one-click fills
-(data/examples/README.md).
+| Way | Commands | Needs |
+|-----|----------|-------|
+| [1. Install and run](#1-install-and-run) | `uv tool install <wheel URL>`, `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+, an endpoint |
+| [2. From a checkout (development)](#2-from-a-checkout-development) | `uv sync`, `uv run leichtfacile serve` | git, uv |
+| [3. Command line only](#3-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1 or 2 |
+| [4. On a server](#4-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 1, a login or a reverse proxy |
+| [5. Offline install](#5-offline-install-air-gapped) | `pip wheel` on a connected machine, `pip install --no-index` on the target | a connected machine of the same kind |
 
-## The endpoint settings
+The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
+whether the model endpoint answers and lists the configured models. The interface is in
+English, German or French. The New draft form and the empty drafts list offer the
+example letters shipped with the package as one-click fills.
 
-Every way needs three variables: `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME`. Put them
-in `.env`:
+## The model endpoint
+
+Three settings are required: `LLM_BASE_URL` (the endpoint's address, for most servers
+ending in `/v1`), `LLM_API_KEY` and `LLM_NAME` (the model that reads, writes and
+repairs). `leichtfacile setup` asks for them and writes the user's config file. It asks
+which endpoint to use, its address and the API key (hidden input), lists the endpoint's
+models (`GET /models`) and asks for the model and an optional judge model.
+
+| Preset | Endpoint | Notes |
+|--------|----------|-------|
+| `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key. Also writes `LLM_THINKING_MODE=model-suffix` (thinking models are separate names ending in `-thinking`) and `LLM_MAX_RETRIES=8` (CSCS closes about one long thinking stream in four midway, and the client retries) |
+| `publicai` | Apertus on the Public AI gateway | Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. Also writes `LLM_THINKING_MODE=chat-template` and `LLM_EXTRA_BODY={"cache": {"no-cache": true}}` (the gateway's cache ignores the thinking switch) |
+| `local` | A server of your own: llama.cpp (port 8080), Ollama (port 11434), vLLM | Takes any key; [Running a model yourself](#running-a-model-yourself) |
+| `openai`, `mistral` | OpenAI, Mistral AI | Check where the provider processes the text before sending anything confidential |
+| `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
+
+Flags answer the questions in advance: `--preset`, `--base-url`, `--api-key`, `--model`,
+`--judge`, and `--force` to replace an existing config file. With the address, the key
+and the model given, setup asks nothing, so it runs from a script. `--api-key` ends up in
+the shell history; leave it out to be asked.
 
 ```bash
-cp .env.example .env      # then fill in LLM_API_KEY; the CSCS profile is the default
+leichtfacile setup --preset cscs     # asks for the key, the model and the judge
+leichtfacile check-llm               # lists the endpoint's models and makes one short call
 ```
 
-or export them in the shell (for these three, the shell wins over `.env`):
+[.env.example](../.env.example) lists every setting with its default and the reasons
+behind the endpoint settings, including the Hugging Face router (development only: it
+serves Apertus 1, not 1.5).
+
+### Where the settings come from
+
+Each source overrides the one before:
+
+1. the user's config file, written by `leichtfacile setup`;
+2. `.env` in the current folder;
+3. the environment.
+
+The config file is the path in `LEICHTFACILE_CONFIG` when that is set in the
+environment, else as below. It is a plain `KEY=value` file, readable by its owner only
+where the system supports it (the key is in it); edit it or run `leichtfacile setup`
+again. The data (the database `leichtfacile.sqlite` and the caches) lives in `DATA_DIR`:
+
+| System | Config file | `DATA_DIR` by default |
+|--------|-------------|-----------------------|
+| Windows | `%APPDATA%\leichtfacile\config.env` | `%LOCALAPPDATA%\leichtfacile` |
+| macOS | `~/Library/Application Support/leichtfacile/config.env` | `~/Library/Application Support/leichtfacile` |
+| Linux and others | `$XDG_CONFIG_HOME/leichtfacile/config.env`, else `~/.config/leichtfacile/config.env` | `$XDG_DATA_HOME/leichtfacile`, else `~/.local/share/leichtfacile` |
+
+`EXAMPLES_DIR` points the New draft form at another folder of letters (`.txt` or `.md`,
+each with an optional `.json` of job settings next to it); by default it offers the
+letters in `src/leichtfacile/letters/`: the premium-reduction letter in German and in
+French, and a KESB decision with its decision-mode settings.
+
+### Thinking
+
+Thinking is off by default (`LLM_THINKING_MODE=off`), since every endpoint switches it its
+own way:
+
+- `model-suffix`: the thinking model is a separate model named `<name>-thinking`
+  (Apertus on CSCS);
+- `chat-template`: the request switches it through the chat template (vLLM, llama.cpp).
+
+It applies to the stages in `LLM_THINKING_STAGES` (default `understand,judge`). The
+`cscs` and `publicai` presets write the mode; for a server of your own, add
+`LLM_THINKING_MODE=chat-template` to the config file. `leichtfacile check-llm --thinking`
+makes its test call with thinking and says whether reasoning came back.
+
+### The judge
+
+The judge grades the drafts. Its model is `LLM_JUDGE_NAME` when set; else the 70B of an
+Apertus 8B writer when the endpoint lists it (the setup the evaluation measured); else the
+writer's model, as on a server with one model. `/readyz` names the judge model in use.
+
+## 1. Install and run
+
+Every release publishes a wheel on the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases). It installs
+without a checkout and brings the spaCy models with it (direct references in its
+metadata). Needs Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) or pip.
 
 ```bash
-export LLM_BASE_URL=https://api.inference.cscs.ch/v1 LLM_API_KEY=... LLM_NAME=swiss-ai/Apertus-v1.5-8B
-```
+# as a command on the PATH (uv picks or installs a suitable Python)
+uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
 
-`.env.example` lists five endpoint profiles with their settings and caveats:
-
-| Profile | Endpoint | Use |
-|---------|----------|-----|
-| A (default) | CSCS inference API, Lugano | a CSCS key; the reported numbers |
-| B | local vLLM (way 4) | on-premise, air-gapped |
-| C | Public AI gateway | development with public documents only |
-| D | Hugging Face router | development only; serves Apertus 1, not 1.5 |
-| E | local llama.cpp (ways 5 and 7) | development, small offices, no key |
-
-Every other setting (model tiers, jobs, retention, login) is optional and documented in
-`.env.example`.
-
-## 1. `make run` (the default)
-
-The simplest way. Needs Docker with Compose v2 and GNU make.
-
-```bash
-cp .env.example .env      # set LLM_API_KEY
-make run                  # builds the image, starts it, opens http://localhost:8000
-```
-
-- `make run` checks the three variables and that Docker is running before it builds,
-  and fails with a short message otherwise.
-- The browser opens once `/healthz` answers. The first build installs the Python
-  packages and the spaCy models and can take a few minutes. `make run OPEN_BROWSER=0`
-  only prints the address; on a machine without a desktop that happens anyway.
-- Ctrl+C stops the containers; `make stop` (or `docker compose down`) removes them. The
-  jobs stay in the Docker volume `appdata`.
-- On Windows, make needs a POSIX shell: the Makefile uses `sh.exe` from Git for Windows
-  (`C:/Program Files/Git/usr/bin`; `make run GIT_SH_DIR=...` if Git lives elsewhere).
-
-Before the first real document, `make check-llm` lists the endpoint's models and makes
-one short call, and `make smoke` sends one example letter through the whole pipeline.
-
-## 2. Docker Compose without make
-
-The same container as way 1, without the checks and the browser opener:
-
-```bash
-docker compose up --build          # in the foreground; Ctrl+C stops it
-docker compose up --build -d       # in the background
-docker compose logs -f app         # follow the log
-docker compose down                # stop and remove the containers (the volume stays)
-```
-
-## 3. Plain Docker without Compose
-
-For a host with Docker but without the Compose plugin. The image builds with BuildKit
-(the default in current Docker).
-
-```bash
-docker build -t leicht-facile:latest .
-docker run --rm --env-file .env -p 127.0.0.1:8000:8000 -v leicht-facile-data:/data leicht-facile:latest
-```
-
-Keep the port on `127.0.0.1` unless a login is set (see [Reaching the app from other
-machines](#reaching-the-app-from-other-machines)).
-
-## 4. On-premise: local vLLM, official Apertus 1.5 8B
-
-Compose adds a vLLM server with the official Apertus 1.5 image on one NVIDIA GPU with
-24 GB or more (run on an NVIDIA L4, `docs/hardware/`). Needs the NVIDIA
-Container Toolkit. In `.env`, use profile B:
-
-```bash
-LLM_BASE_URL=http://vllm:8000/v1
-LLM_API_KEY=local                  # any value; vLLM runs without a key
-LLM_NAME=swiss-ai/Apertus-v1.5-8B
-LLM_JUDGE_NAME=swiss-ai/Apertus-v1.5-8B
-LLM_THINKING_MODE=chat-template
-HF_TOKEN=...                       # to download the weights on first start
-```
-
-```bash
-docker compose --profile local-llm up --build
-```
-
-The app starts at once; jobs work as soon as vLLM has loaded the weights (several
-minutes on first start; `/readyz` turns `ok`). The weights stay in the volume
-`hf-cache`. vLLM serves parallel requests, so `JOB_WORKERS=2` or more runs jobs side by
-side.
-
-**Air-gapped:** on a connected machine, build the app image, pull the vLLM image
-(`docker compose --profile local-llm pull vllm`) and start once to fill the `hf-cache`
-volume; then move both images (`docker save`, `docker load`) and the volume's content.
-The app image holds everything else (Python packages, spaCy models, UI assets). A
-one-step bundle (`make bundle`) is not implemented yet.
-
-## 5. Small office: llama.cpp in Compose
-
-Compose adds a llama.cpp server with a community 4-bit, text-only conversion of Apertus
-1.5 8B (unofficial, no image input) that fits a GPU with 8 GB. In `.env`:
-
-```bash
-LLM_BASE_URL=http://llamacpp:8080/v1
-LLM_API_KEY=local
-LLM_NAME=apertus-v1.5-8b-q4-llamacpp
-LLM_THINKING_MODE=chat-template
-LLM_TIMEOUT_S=1800                 # thinking calls take minutes on a small GPU
+# or into a virtual environment of your own
+pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
 ```
 
 ```bash
-docker compose --profile local-llm-small up --build
+leichtfacile setup        # the endpoint, the key and the model
+leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 ```
 
-The weights (5 GB) download on first start into the volume `llamacpp-models`. Results
-from this setup are never reported as CSCS numbers.
+- `serve` opens the default browser once `/healthz` answers, but only when the app runs on
+  this machine (`--host` 127.0.0.1, localhost or ::1) and, on Linux, only with a desktop
+  (`DISPLAY` or `WAYLAND_DISPLAY`). `--no-browser` leaves it closed.
+- `--port 8001` picks another port; `--host` publishes the app beyond this machine and
+  needs a login ([Reaching the app from other machines](#reaching-the-app-from-other-machines)).
+- Ctrl+C stops the server; the jobs stay in `DATA_DIR`.
+- `leichtfacile --help` lists the commands, `leichtfacile <command> --help` their options;
+  `python -m leichtfacile` does the same as `leichtfacile`.
+- `uv tool uninstall leichtfacile` removes the program; the config file and the data stay.
 
-## 6. Without Docker: uv on the host
+## 2. From a checkout (development)
 
-For development. Needs [uv](https://docs.astral.sh/uv/); uv installs the Python version
-in `.python-version` (3.14; 3.12 or newer works) and the spaCy models from `uv.lock`.
+Needs git and uv. `uv sync` installs the Python version in `.python-version` (3.14; 3.12
+or newer works), the dependencies and the spaCy models from `uv.lock`.
 
 ```bash
-uv sync                                     # once, and after every dependency change
-uv run python -m leichtfacile serve         # http://127.0.0.1:8000
+git clone https://github.com/bobrovsky420/leicht-facile.git
+cd leicht-facile
+uv sync                         # once, and after every dependency change
+uv run leichtfacile setup       # or: cp .env.example .env and fill it in
+uv run leichtfacile serve
 ```
 
-- The settings come from `.env` in the current folder and from the shell, as in Docker.
-- The data lives in `data/` (`leichtfacile.sqlite`, git-ignored);
-  `DATA_DIR=...` moves it.
-- `serve --port 8001` picks another port. `serve --host 0.0.0.0` publishes the app on
-  every interface and needs a login (below), as `BIND_HOST` does in Compose.
-- With live reload while editing code (`--no-access-log`: the app writes its own
-  access line, with the request id and without the query string):
+- A `.env` in the checkout overrides the user's config file there, for example to try
+  another endpoint. `DATA_DIR=data` in it keeps the database and the caches in the
+  repository's `data/`, where git ignores them (the evaluation's page cache lives in
+  `data/cache/`).
+- With live reload while editing code (`--no-access-log`: the app writes its own access
+  line, with the request id and without the query string):
 
   ```bash
   uv run uvicorn leichtfacile.web.app:create_app --factory --reload --no-access-log
   ```
 
-- The same commands without uv, in a virtual environment with the project installed:
-  `python -m leichtfacile serve` or the script `leichtfacile serve`.
+The Makefile has the development tasks; the app itself needs no make.
 
-## 7. llama.cpp on the host (no key)
+| Target | Does |
+|--------|------|
+| `make test` | the test suite |
+| `make lint`, `make format` | ruff checks; ruff fixes and formats |
+| `make check-llm` | `leichtfacile check-llm` |
+| `make smoke` | the German example letter through the whole pipeline against the live endpoint; the artifacts land in `out/smoke` |
+| `make calibrate` | the rule checker on the official easy-language pages, no model |
+| `make eval` | conditions P0, P0-ZH, P1 and P2 on the held-out pairs, then the report tables; `RESULTS=eval/results-<endpoint>` keeps one endpoint's results together |
+| `make eval-70b` | P2 with the 70B writer and with the hybrid (the 70B reads, the 8B writes) |
 
-A llama.cpp server on the host, for development on a laptop GPU without any API key
-(profile E). Start the server:
+On Windows, make needs a POSIX shell: the Makefile uses `sh.exe` from Git for Windows
+(`C:/Program Files/Git/usr/bin`; `make test GIT_SH_DIR=...` if Git lives elsewhere).
+`uv run leichtfacile eval --help` lists the evaluation's commands
+([docs/evaluation.md](evaluation.md)).
+
+## 3. Command line only
+
+The pipeline, the rule checker and the ingest step also run without the web UI, after way 1
+(or with `uv run` in a checkout):
+
+```bash
+leichtfacile simplify letter.pdf --lang de --level A2 --out out    # the whole pipeline
+leichtfacile check easy-text.txt --lang de                         # rule checker, no model
+leichtfacile ingest letter.pdf                                     # the segments the pipeline reads
+leichtfacile check-llm                                             # lists the models, one short call
+```
+
+- `simplify` takes a file (`.txt`, `.md`, `.html`, `.htm`, `.pdf`) or an http(s) URL and
+  writes `draft.md`, `draft.html`, `draft.docx` and `bundle.json` (the audit bundle) to
+  `<out>/<job id>/`. The job is also stored in the database, so the web UI shows it for
+  review.
+- Its options: `--lang` (de, fr, it; detected when left out), `--level` (A2, B1),
+  `--condition` (P0, P1 or P2; default P2, the full pipeline), `--writer`, `--understand`
+  and `--judge` (models other than the settings'), and `--mode decision` with
+  `--addressee` and `--notice` for the letter that goes out with a decision
+  ([docs/use-case-decisions.md](use-case-decisions.md)):
+
+  ```bash
+  leichtfacile simplify entscheid.txt --mode decision --addressee "Lea Muster" \
+    --notice "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
+  ```
+
+## 4. On a server
+
+Install as in way 1 (or way 5 without internet) and run the app as a service of the
+system, in one of two ways:
+
+- behind a reverse proxy (recommended): `leichtfacile serve --no-browser` on 127.0.0.1;
+  the proxy ends TLS and logs the users in;
+- directly: `leichtfacile serve --host 0.0.0.0 --no-browser` with `AUTH_TOKEN` set.
+
+[Reaching the app from other machines](#reaching-the-app-from-other-machines) explains
+both logins. On Linux with systemd, with a dedicated user, the program in
+`/opt/leichtfacile`, the config in `/etc/leichtfacile` and the data in
+`/var/lib/leichtfacile` (Python 3.12 or newer with venv, on Debian and Ubuntu the package
+`python3-venv`):
+
+```bash
+sudo useradd --system --home-dir /var/lib/leichtfacile --shell /usr/sbin/nologin leichtfacile
+sudo python3 -m venv /opt/leichtfacile
+sudo /opt/leichtfacile/bin/pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
+sudo mkdir -p /etc/leichtfacile
+sudo env LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env /opt/leichtfacile/bin/leichtfacile setup
+sudo chown leichtfacile /etc/leichtfacile/config.env
+```
+
+`/etc/systemd/system/leichtfacile.service`:
+
+```ini
+[Unit]
+Description=Leicht-Facile
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=leichtfacile
+StateDirectory=leichtfacile
+Environment=DATA_DIR=/var/lib/leichtfacile
+Environment=LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env
+ExecStart=/opt/leichtfacile/bin/leichtfacile serve --no-browser
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now leichtfacile
+journalctl -u leichtfacile -f              # the log
+curl http://127.0.0.1:8000/readyz          # "ok" once the endpoint answers
+```
+
+- `StateDirectory` creates `/var/lib/leichtfacile` for the service's user.
+- The app reads the config file itself through `LEICHTFACILE_CONFIG`; `Environment=` lines
+  or an `EnvironmentFile=` override it.
+- For the direct way, add `--host 0.0.0.0` to `ExecStart` and `AUTH_TOKEN=<secret>` to the
+  config file.
+- `DATA_RETENTION_DAYS` deletes jobs after so many days, `LOG_FORMAT=json` writes one JSON
+  object per line for a log collector, and `JOB_WORKERS` runs jobs side by side when the
+  endpoint serves parallel requests ([.env.example](../.env.example)).
+
+## 5. Offline install (air-gapped)
+
+On a connected machine with the same operating system, CPU architecture and Python
+version as the target, collect the wheel and every dependency in one folder:
+
+```bash
+pip wheel https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl -w wheelhouse
+```
+
+`pip wheel` downloads the wheels, the spaCy models included, and builds one for any
+dependency published only as source. Carry the folder over and install on the target:
+
+```bash
+python3 -m venv /opt/leichtfacile
+/opt/leichtfacile/bin/pip install --no-index --no-deps wheelhouse/*.whl
+/opt/leichtfacile/bin/pip check            # every dependency is there
+```
+
+`--no-deps` is needed: the wheel names the spaCy models by their download URLs, and pip
+would try to fetch them even with `--no-index --find-links wheelhouse`. In PowerShell,
+pass the files as `(Get-ChildItem wheelhouse\*.whl).FullName`.
+
+The model server runs inside the network too, with its weights carried over the same way
+(llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
+it with `leichtfacile setup --preset local` and run it as in way 4.
+
+## Running a model yourself
+
+Running a model is outside the app: start a model server and point `LLM_BASE_URL` at it
+(`leichtfacile setup --preset local`). Two setups are known to work.
+
+### Apertus 1.5 8B on vLLM, one 24 GB GPU
+
+The Swiss AI team's official vLLM image ran Apertus 1.5 8B (the official bf16 weights) on
+one NVIDIA L4 with 24 GB; [docs/hardware/aws-l4-2026-10-10/](hardware/aws-l4-2026-10-10/)
+shows the commands used, the memory and the timings. On a 24 GB card the server needs
+`--kv-cache-dtype=fp8` and `--max-num-seqs=16` next to `--max-model-len=32768`: the stages
+ask for up to 16,000 output tokens on top of the prompt. The weights are gated: accept
+their terms on Hugging Face once and give the server a token (`HF_TOKEN`). The app's
+settings:
+
+```bash
+LLM_BASE_URL=http://<model server>:8000/v1
+LLM_API_KEY=local                  # any value, unless the server was started with a key
+LLM_NAME=swiss-ai/Apertus-v1.5-8B
+LLM_THINKING_MODE=chat-template
+```
+
+- The judge is then the 8B too, the only model the server lists.
+- vLLM serves parallel requests, so `JOB_WORKERS=2` or more runs jobs side by side.
+- On the L4 one letter took 63 minutes with the default thinking stages and 22 minutes
+  with `LLM_THINKING_STAGES=understand`.
+- vLLM listens on port 8000 by default, as the app does: on one machine, start one of
+  them on another port.
+
+### Apertus 1.5 8B on llama.cpp, one 8 GB GPU
+
+A community 4-bit, text-only conversion of Apertus 1.5 8B (unofficial, no image input)
+runs on llama.cpp on a GPU with 8 GB, for development and small offices without any key.
+The weights (5 GB) download on the first start:
 
 ```bash
 llama-server -hf Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF -ngl 99 -c 16384 -fa on \
-  -ctk q8_0 -ctv q8_0 --jinja -sp -np 1 --alias apertus-v1.5-8b-q4-llamacpp \
-  --host 0.0.0.0 --port 8080
+  -ctk q8_0 -ctv q8_0 --jinja -sp -np 1 --alias apertus-v1.5-8b-q4-llamacpp --port 8080
 ```
 
-Then point the app at it in `.env` and start it with way 1, 2 or 6:
+`-sp` keeps the reasoning markers visible so that the client can strip the reasoning; the
+alias names what runs, so that results from this setup are never mistaken for the
+official model (they are never reported as CSCS numbers). The server answers on this
+machine only; `--host 0.0.0.0` opens it to an app on another machine, and to anyone else
+unless it is started with `--api-key`. Then:
 
 ```bash
-LLM_BASE_URL=http://host.docker.internal:8080/v1   # app in Docker (ways 1, 2)
-# LLM_BASE_URL=http://127.0.0.1:8080/v1            # app on the host (way 6)
-LLM_API_KEY=local
-LLM_NAME=apertus-v1.5-8b-q4-llamacpp
+leichtfacile setup --preset local --base-url http://127.0.0.1:8080/v1 --api-key local --model apertus-v1.5-8b-q4-llamacpp
+```
+
+and add to the config file:
+
+```bash
 LLM_THINKING_MODE=chat-template
-LLM_TIMEOUT_S=1800
+LLM_TIMEOUT_S=1800                 # thinking calls take minutes on a small GPU
 ```
 
-On Linux, `host.docker.internal` needs `extra_hosts: ["host.docker.internal:host-gateway"]`
-on the app service; Docker Desktop (Windows, macOS) provides it.
+### Other models
 
-## 8. Command line only (no web UI)
-
-The pipeline and the checker also run from the command line, in the container or on
-the host:
-
-```bash
-# in the container (as `make smoke` does)
-docker compose run --rm --build app python -m leichtfacile simplify data/examples/sources/praemienverbilligung-brief.txt --out /data/out
-
-# on the host (way 6)
-uv run python -m leichtfacile simplify letter.pdf --lang de --level A2 --out out/
-uv run python -m leichtfacile check easy-text.txt --lang de        # rule checker, no endpoint
-uv run python -m leichtfacile check-llm                            # one call to the endpoint
-```
-
-`python -m leichtfacile --help` lists every command (`serve`, `check-llm`, `ingest`,
-`check`, `simplify`, `eval`, `examples`); `simplify` accepts a file path or an http(s)
-URL and writes every artifact to the output folder. On Windows in Git Bash, prefix a
-command that names a container path with `MSYS_NO_PATHCONV=1`.
-
-## 9. From the release wheel (no checkout)
-
-Every version tag publishes a wheel on the
-[releases page](https://github.com/bobrovsky420/leicht-facile/releases)
-(`.github/workflows/release.yml`). It installs with uv or pip without the repository:
-the spaCy models are direct references in its metadata. Needs Python 3.12 or newer.
-
-```bash
-# as a tool on the PATH (uv picks or installs the Python)
-uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
-
-# or into an environment of your own, for example in a custom image
-pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
-```
-
-```bash
-export LLM_BASE_URL=https://api.inference.cscs.ch/v1 LLM_API_KEY=... LLM_NAME=swiss-ai/Apertus-v1.5-8B
-DATA_DIR=./leichtfacile-data leichtfacile serve      # http://127.0.0.1:8000
-```
-
-- The settings come from `.env` in the current folder and from the shell, as in way 6.
-- Set `DATA_DIR`: its default, `data`, is a path in a checkout and would be
-  created below the current folder.
-- The wheel holds the app, the prompts, the rules and the UI, not the example letters:
-  the New draft form offers none unless `EXAMPLES_DIR` points at a copy of
-  `data/examples/`.
-- In a Dockerfile, `pip install <wheel URL>` in a `python:3.14-slim` stage replaces the
-  `uv sync` steps of the repository's Dockerfile; start the app with
-  `uvicorn leichtfacile.web.app:create_app --factory --host 0.0.0.0 --port 8000`.
-
-## Other make targets
-
-Besides `make run`, the Makefile has:
-
-- `make check-llm`: one call to the endpoint
-- `make test`, `make lint`
-- `make smoke`: one document through the pipeline
-- `make calibrate`: the rule checker on official easy-language pages, no model needed
-- `make eval`: conditions P0, P1, P2 on the reference pairs;
-  `RESULTS=eval/results-cscs` keeps one endpoint's results together
-
-`python -m leichtfacile eval sample` writes the hand-labelling sheets for the judge and
-`eval kappa` scores a filled sheet; `eval diagnose` says why must-keep facts are missing
-from the final drafts of a run, without a model call.
+Ollama (`http://127.0.0.1:11434/v1`, the model names `ollama list` shows) or any other
+OpenAI-compatible server works the same way. Thinking stays off unless the server
+switches it through the chat template. The reported numbers hold for Apertus 1.5 only.
 
 ## Reaching the app from other machines
 
-Every way above publishes the app on this machine only (`127.0.0.1:8000`). To reach it
-from the organisation's network:
+By default the app answers on this machine only (`127.0.0.1:8000`). Published on any
+other address, it needs one of two logins and refuses to start without one.
 
-- **Behind a reverse proxy (recommended):** keep `BIND_HOST=127.0.0.1`, let the proxy
-  log users in and publish the app, and optionally trust its user header
-  (`AUTH_PROXY_HEADER`, `AUTH_PROXY_FROM`).
-- **Directly:** set `BIND_HOST=0.0.0.0` in `.env` together with `AUTH_TOKEN=<secret>`.
-  The browser asks for the token (any user name, the token as the password); scripts
-  send `Authorization: Bearer <secret>`.
+- **Behind a reverse proxy (recommended).** Keep `--host 127.0.0.1` (the default) and let
+  the proxy end TLS, log the users in and publish the app. Optionally trust its user
+  header: `AUTH_PROXY_HEADER=X-Forwarded-User` (or `Remote-User`) with `AUTH_PROXY_FROM`,
+  the proxy's addresses or networks, comma-separated (`127.0.0.1` for a proxy on the same
+  machine). A request from elsewhere is refused (403), one without the header is not
+  logged in (401). With the proxy on another machine, `--host` names an address the proxy
+  reaches, and the header counts as the login.
+- **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with
+  `AUTH_TOKEN=<secret>` in the config file, `.env` or the environment. Browsers ask for it
+  (HTTP Basic: any user name, the token as the password); scripts send
+  `Authorization: Bearer <secret>`. Without TLS the token crosses the network readable, so
+  use this inside a trusted network. A secret:
+  `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
 
-Without a login, the app refuses to start on anything but the loopback interface.
-Details: [architecture.md §10](architecture.md#10-deployment-and-sovereignty).
+`AUTH_TOKEN` and `AUTH_PROXY_HEADER` exclude each other. `/healthz`, `/readyz` and the
+static files need no login. Details:
+[docs/architecture.md §10](architecture.md#10-deployment-and-sovereignty).
 
 ## When it does not start
 
 | Message or symptom | Fix |
 |--------------------|-----|
-| `Variable LLM_... is not set` | copy `.env.example` to `.env` and fill it in, or export the variable |
-| `Docker is not running` | start Docker Desktop, or `sudo systemctl start docker` on Linux |
-| `Docker Compose v2 is missing` | update Docker Desktop or install the Compose plugin |
+| `Not set: LLM_BASE_URL, ... Run leichtfacile setup, ...` | run `leichtfacile setup`, or set them in the config file, in `.env` or in the environment |
+| `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
+| setup says `Nothing changed (... exists; --force replaces it)` | `leichtfacile setup --force`, or edit the config file |
+| setup says `The endpoint's model list could not be read` | the address or the key is wrong, or the server is not running; setup still asks for the model, and `leichtfacile check-llm` checks again later |
+| settings seem to be ignored | a `.env` in the current folder or a variable in the environment overrides the config file |
+| `BIND_HOST='0.0.0.0' publishes the app beyond this machine` | set `AUTH_TOKEN`, or `AUTH_PROXY_HEADER` with `AUTH_PROXY_FROM`, or serve on 127.0.0.1 |
+| `AUTH_PROXY_HEADER needs AUTH_PROXY_FROM` | set the proxy's addresses or networks |
+| `set AUTH_TOKEN or AUTH_PROXY_HEADER, not both` | keep one of them |
+| the browser does not open | it opens only for an app on this machine and, on Linux, with a desktop; open <http://127.0.0.1:8000> yourself |
+| `/readyz` says `degraded` | the endpoint is unreachable or does not list `LLM_NAME` or the judge's model; `leichtfacile check-llm` shows why. Review, export and Check my text still work |
+| port 8000 in use (also by vLLM) | `leichtfacile serve --port 8001`, or move the other service |
 | make runs the recipes in `cmd.exe` (Windows) | install Git for Windows, or set `GIT_SH_DIR` |
-| the app refuses to start because of `BIND_HOST` | set `AUTH_TOKEN` or `AUTH_PROXY_HEADER`, or keep `BIND_HOST=127.0.0.1` |
-| `/readyz` says `degraded` | the endpoint is unreachable or does not list `LLM_NAME`; `make check-llm` shows why. Review, export and Check my text still work |
-| port 8000 in use | stop the other service; on the host, `serve --port 8001` |

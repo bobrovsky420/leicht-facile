@@ -1,13 +1,17 @@
-"""Settings from environment variables (and a local `.env` file during development).
+"""Settings from the user's config file, a `.env` file in the current folder and the
+environment, each overriding the one before.
 
-The three required variables are `LLM_BASE_URL`,
-`LLM_API_KEY` and `LLM_NAME`. Everything else has a default.
+The three required variables are `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME`: any
+OpenAI-compatible endpoint. `leichtfacile setup` writes them to the config file
+(`config_file`). Everything else has a default.
 """
 
 from __future__ import annotations
 
 import ipaddress
+import os
 import re
+import sys
 from collections.abc import Iterable
 from functools import lru_cache
 from pathlib import Path
@@ -25,19 +29,58 @@ Network = ipaddress.IPv4Network | ipaddress.IPv6Network
 # The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
 # 70B judges by default when the endpoint serves it.
 _APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
+APP = "leichtfacile"
+# The example letters shipped with the package (examples.py).
+LETTERS_DIR = Path(__file__).parent / "letters"
+
+
+def config_file() -> Path:
+    """The user's settings file, written by `leichtfacile setup`: LEICHTFACILE_CONFIG
+    when set, else config.env in the platform's folder for settings (Windows:
+    %APPDATA%\\leichtfacile, macOS: ~/Library/Application Support/leichtfacile, else
+    $XDG_CONFIG_HOME or ~/.config/leichtfacile)."""
+    if override := os.environ.get("LEICHTFACILE_CONFIG"):
+        return Path(override)
+    if sys.platform == "win32":
+        base = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return base / APP / "config.env"
+
+
+def default_data_dir() -> Path:
+    """Where the database lives unless DATA_DIR says otherwise (Windows:
+    %LOCALAPPDATA%\\leichtfacile, macOS: ~/Library/Application Support/leichtfacile,
+    else $XDG_DATA_HOME or ~/.local/share/leichtfacile)."""
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share")
+    return base / APP
+
+
+def env_files() -> tuple[Path, ...]:
+    """The files settings are read from, the later one winning: the user's config file,
+    then `.env` in the current folder. The environment wins over both."""
+    return (config_file(), Path(".env"))
 
 
 class Paths(BaseSettings):
     """The settings that need no model endpoint. The dataset tools and the example
-    loader read them as `Paths()` without a key; the application reads them as part of
-    `Settings`. Every environment variable goes through one of the two, so `.env` is
-    honoured everywhere (audit B1)."""
+    loader read them as `paths()` without a key; the application reads them as part of
+    `Settings`. Every environment variable goes through one of the two, so the config
+    file and `.env` are honoured everywhere (audit B1)."""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    data_dir: Path = Path("data")
-    # The example letters the New draft form and the empty drafts list offer (sources/).
-    examples_dir: Path = Path("data/examples")
+    data_dir: Path = Field(default_factory=default_data_dir)
+    # The example letters the New draft form and the empty drafts list offer: .txt or .md,
+    # each with an optional .json of job settings next to it (examples.py).
+    examples_dir: Path = LETTERS_DIR
 
 
 class Settings(Paths):
@@ -50,7 +93,11 @@ class Settings(Paths):
     # the 70B reads, the 8B writes; docs/prompts.md compares the tiers). Empty: the
     # writer's model.
     llm_understand_name: str | None = None
-    llm_thinking_mode: ThinkingMode = "model-suffix"
+    # Thinking, for the stages below: off by default, since each endpoint switches it its
+    # own way. Apertus on CSCS serves it as models named "<name>-thinking"
+    # (model-suffix); vLLM and llama.cpp take it through the chat template
+    # (chat-template). .env.example has the settings per endpoint.
+    llm_thinking_mode: ThinkingMode = "off"
     llm_thinking_suffix: str = "-thinking"
     # Stages that use the thinking model. Writing without thinking was faster and closer
     # to easy language in the first local tests (docs/prompts.md).
@@ -133,10 +180,9 @@ class Settings(Paths):
     # internal pages); the redirect hops are still walked and checked (ingest/fetch.py).
     allow_private_urls: bool = False
 
-    # Deployment (docs/architecture.md §10, web/security.py). The interface the
-    # port is published on: docker-compose.yml reads the same variable, so one line in
-    # .env publishes the app and tells it so. Published on anything but the loopback
-    # interface, the app refuses to start without one of the two logins below.
+    # Deployment (docs/architecture.md §10, web/security.py). The interface the app is
+    # published on; `leichtfacile serve --host` sets it. Published on anything but the
+    # loopback interface, the app refuses to start without one of the two logins below.
     bind_host: str = "127.0.0.1"
     # A shared secret: browsers are asked for it (HTTP Basic, any user name, the token as
     # the password), scripts send `Authorization: Bearer <token>`. Empty: no login.
@@ -243,4 +289,10 @@ class Settings(Paths):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()  # type: ignore[call-arg]  # values come from the environment
+    # values come from the config file, .env and the environment
+    return Settings(_env_file=env_files())  # type: ignore[call-arg]
+
+
+def paths() -> Paths:
+    """DATA_DIR and EXAMPLES_DIR without the model settings (no key needed)."""
+    return Paths(_env_file=env_files())  # type: ignore[call-arg]

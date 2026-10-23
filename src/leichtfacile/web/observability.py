@@ -11,7 +11,7 @@ meanwhile carries it. When the response is out it writes one line to
 `leichtfacile.web.access`: method, path, status, duration and the client address,
 never the query string (the drafts list's search is what a reviewer typed), and counts
 the request for `/metrics`. uvicorn's own access log, whose line has the query string,
-is off (Dockerfile, `leichtfacile serve`).
+is off (`leichtfacile serve`).
 
 `GET /metrics` answers in the Prometheus text format from three sources: the jobs
 table (jobs by status, the queue depth), the runner (workers, busy workers, the

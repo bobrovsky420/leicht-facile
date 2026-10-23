@@ -7,10 +7,11 @@ from pathlib import Path
 
 import pytest
 
+from leichtfacile.config import LETTERS_DIR
 from leichtfacile.examples import example_config, example_sources
 from leichtfacile.schemas import JobConfig
 
-EXAMPLES = Path(__file__).resolve().parents[1] / "data" / "examples"
+EXAMPLES = LETTERS_DIR
 
 
 def test_a_source_without_a_settings_file_has_none(tmp_path: Path) -> None:
@@ -40,7 +41,7 @@ def test_the_settings_files_are_no_example_texts() -> None:
 
 def test_the_kesb_decision_runs_in_decision_mode() -> None:
     config = JobConfig.model_validate(
-        example_config(EXAMPLES / "sources" / "entscheid-beistandschaft-musterwil.txt")
+        example_config(EXAMPLES / "entscheid-beistandschaft-musterwil.txt")
     )
     assert config.mode == "decision"
     assert config.addressee == "Lea Muster"

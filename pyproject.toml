@@ -1,7 +1,7 @@
 [project]
 name = "leichtfacile"
 version = "0.6.0"
-description = "Drafts easy-language versions of Swiss official texts with Apertus."
+description = "Drafts easy-language versions of Swiss official texts with a large language model."
 readme = "README.md"
 license = "Apache-2.0"
 authors = [

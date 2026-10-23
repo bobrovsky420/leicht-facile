@@ -53,5 +53,5 @@
 
 {# Who does a stage's work, as a grey tag with an icon. #}
 {% macro who(kind) -%}
-<span class="tag">{{ icon('chip' if kind == 'apertus' else ('code' if kind == 'code' else 'person'), 12) }}{{ t('who.' ~ kind ~ '_title') if kind in ('code', 'human') else t('who.apertus') }}</span>
+<span class="tag">{{ icon('chip' if kind == 'model' else ('code' if kind == 'code' else 'person'), 12) }}{{ t('who.' ~ kind ~ '_title') if kind in ('code', 'human') else t('who.model') }}</span>
 {%- endmacro %}

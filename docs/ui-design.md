@@ -52,7 +52,7 @@ drafts for hours every day.
 - **Keyboard first** on the review page; with the mouse, a block takes at most two
   clicks (select, decide).
 - **Same architecture.** Server-rendered Jinja2, one `app.css`, one `app.js`, no
-  framework, no build step, no CDN: the fonts are vendored, the image works
+  framework, no build step, no CDN: the fonts are vendored, the app works
   air-gapped. Pages keep working without JavaScript where they do today (§6).
 - **Same data.** The view models in `views.py` gain a few fields; the API, the
   schemas, the stored artifacts and the pipeline do not change. The only new route
@@ -110,7 +110,7 @@ Rules:
   and a word or a number.
 - No coloured left borders as decoration. A 3 px inset bar marks two things only:
   the selection (accent) and a source sentence nobody explained (amber).
-- Apertus, code and the reviewer are told apart by a word and an icon in a grey tag,
+- The model, code and the reviewer are told apart by a word and an icon in a grey tag,
   no longer by purple and teal.
 
 ### 3.2 Type
@@ -177,7 +177,7 @@ the fonts with the version used.
 | Segmented control | `.seg`, `.seg-item` | Track `--lf-track` (`--lf-track-sunken` in pane headers). Selected item: white, 1 px `--lf-border-input` outline, weight 600, `aria-pressed` or `aria-current` |
 | Tabs | `.tabs` | `role=tablist`, 40 px; selected tab: 2 px accent underline and weight 600 |
 | Status badge | `.badge` | 22 px pill, white, 1 px border, 8 px dot: queued hollow grey, running accent, needs review amber, done green, failed red |
-| Tag | `.tag` | 18 px, `--lf-hover` fill, 11 px 500, optional 12 px icon: Apertus and Judge (chip), Code (brackets), You (person); "Left out" grey; "Not explained" in `--lf-warn-weak` with `--lf-warn-text` |
+| Tag | `.tag` | 18 px, `--lf-hover` fill, 11 px 500, optional 12 px icon: Model (`who.model`) and Judge (chip), Code (brackets), You (person); "Left out" grey; "Not explained" in `--lf-warn-weak` with `--lf-warn-text` |
 | Value chip | `.chip` | Mono 11 to 12 px, `--lf-sunken` fill, hairline border |
 | Keycap | `kbd` | Mono 11 px, 1 px `--lf-keycap` border with a 2 px bottom |
 | Severity icon | macro `sev(kind)` | Error: red circle with "!"; warning: amber triangle with "!"; note: grey ring with "i"; present: green circle with a check; distorted: red triangle; doubted (code finds the value, the judge misses the statement): amber triangle |
@@ -229,7 +229,7 @@ Layout, at most 1440 px wide with 24 px gutters:
 
 1. Page header: h1 "Drafts", the line "10 drafts. 3 need your review." and the
    primary link button "New draft".
-2. Intro strip "How it works" on one line, four numbered steps: Apertus reads the
+2. Intro strip "How it works" on one line, four numbered steps: the model reads the
    text and writes the draft; code checks 45 rules (`rule_count()`) and every value;
    a second model judges and flagged blocks are repaired; you review every block and
    export. A close button hides it, and `localStorage` remembers that per browser.
@@ -265,8 +265,9 @@ handler.
 Empty states:
 
 - No jobs at all: "No drafts yet", the tagline, one sentence on what to paste, the
-  sample letters (`data/examples/sources/`) as one-click fills of the New draft form
-  (buttons that open `/new?example=<id>` with the text filled in), and "New draft".
+  sample letters (`src/leichtfacile/letters/`, or the folder `EXAMPLES_DIR` names) as
+  one-click fills of the New draft form (buttons that open `/new?example=<id>` with the
+  text filled in), and "New draft".
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
   status." with a "Clear filters" link to `/`.
 
@@ -310,7 +311,7 @@ them into local time and "Today" or "Yesterday".
   - Pipeline: radio list, "P2 full" with a "Default" tag ("Fact sheet, draft, rule
     check, judge, repair"), "P1 no judge" ("Fact sheet, draft, rule check"), "P0
     baseline" ("One prompt, for comparison"). Field name `condition`, unchanged.
-    Under it the stages the choice runs, as small chips with Apertus, code or you
+    Under it the stages the choice runs, as small chips with Model, code or you
     (from `STEPS_BY_CONDITION`). All three sequences are rendered and CSS shows the
     checked one's (`:has()`), so it works without JavaScript.
   - Title (optional).
@@ -335,7 +336,7 @@ them into local time and "Today" or "Yesterday".
   - the state icon: done, a green check; running, an accent spinner; waiting, a grey
     ring; skipped, a dashed ring; failed, a red "!";
   - a connector line to the next stage, green after a done stage;
-  - title, who tag (Apertus, Code, You), the state word on the right, the
+  - title, who tag (Model, Code, You), the state word on the right, the
     description, the detail line (`Step.detail`, as today);
   - new: a usage line, "1 call · 2,813 tokens · 47 s" from the stage's
     `StageUsage`, and "45 rules · no model call" for Check.
@@ -344,11 +345,11 @@ them into local time and "Today" or "Yesterday".
   usage table goes.
 - Right, "Results so far" with "Shown as each stage finishes. The review opens by
   itself when the pipeline is done." Two cards side by side:
-  - Fact sheet (Apertus tag, "14 facts"): the five core questions, label above
+  - Fact sheet (Model tag, "14 facts"): the five core questions, label above
     answer; then "Facts that must survive", one line each: id, kind (`kind.*`), the
     fact's text with an ellipsis, the normalised value as a chip; the background line
     as today.
-  - Draft v{n} (tags Apertus and "Checked by code", "10 errors · 9 warnings"): the
+  - Draft v{n} (tags Model and "Checked by code", "10 errors · 9 warnings"): the
     blocks as text, headings in bold, a severity icon in a gutter for blocks with
     findings; under it "Findings about the whole document, such as missing facts,
     are not marked on a block."
@@ -490,8 +491,9 @@ the four panels stack with their headings.
   blocks that carry it (`--lf-accent-faint` and the bar) and scrolls to the first.
   Under a missing fact with a source sentence (since 9 October 2026), a small "Suggest a
   sentence" button (JavaScript only; it sits next to the fact's button, not in it).
-  While Apertus answers, the box says so (`role=status`). Then a sunken card: "Suggestion
-  from Apertus, from the source paragraph only", the sentences (ink, 500), the fact's
+  While the model answers, the box says so ("Asking the model for a sentence from the
+  source paragraph...", `role=status`). Then a sunken card: "Suggestion from the model,
+  from the source paragraph only", the sentences (ink, 500), the fact's
   source sentence with its id in mono, the code check (green when FACT-01 finds the
   value with the sentences, and always "Code does not check the meaning: compare it with
   the source sentence"), the rule findings on the sentences (rule id, message), and
@@ -655,7 +657,7 @@ drafts.count.other        {n} drafts.
 drafts.to_review.one      {n} needs your review.
 drafts.to_review.other    {n} need your review.
 drafts.how.title          How it works
-drafts.how.read           Apertus reads the text and writes the draft
+drafts.how.read           The model reads the text and writes the draft
 drafts.how.check          Code checks {count} rules and every value
 drafts.how.judge          A second model judges, flagged blocks are repaired
 drafts.how.review         You review every block and export
@@ -775,7 +777,8 @@ reader.blocking.other     {n} blocking problems in v{version}
 reader.complete_hint      Mark it complete in the review once every block is decided.
 
 js.unsaved                Unsaved changes
-js.recover_title          Suggestion from Apertus, from the source paragraph only
+js.recover_asking         Asking the model for a sentence from the source paragraph...
+js.recover_title          Suggestion from the model, from the source paragraph only
 js.recover_resolved       Code finds the fact's value with this sentence. Code does not check the meaning: compare it with the source sentence.
 js.recover_add            Add to block {block}
 js.recover_added          Added to block {block} as an edit. Read it and save the review.
@@ -803,6 +806,26 @@ Existing keys used again: `site.tagline` (empty state), `site.footer`, `site.dra
 `review.reader.hint`, `review.export*`, `status.*`, `condition.short.*`, `level.*`,
 `who.*`, `step.*`, `detail.*`, `fact.*`, `kind.*`, `core.*`, `js.endpoint.*`,
 `js.reader_unsaved`.
+
+Since 23 October 2026 the interface names no model family, because the endpoint can
+serve any model. The who tag of the model stages is `who.model`: "Model", "Modell",
+"Modèle", with the chip icon as before. `drafts.how.read`, `js.recover_asking` and
+`js.recover_title` above show their new texts; the other texts that changed with it, in
+English:
+
+```text
+site.tagline              Easy-language drafts of Swiss official texts. A language model writes, code checks, you decide.
+step.understand.desc      The model reads the document and writes the fact sheet
+step.write.desc           The model writes the easy-language draft
+step.judge.desc           A judge model checks meaning and facts
+step.repair.desc          The model rewrites only the flagged blocks
+step.baseline.desc        The model rewrites the text with one prompt
+js.recover_rejected.no_answer  No suggestion: the model gave no usable sentence in two tries.
+```
+
+The German and French texts follow suit: the tagline ends "Ein Sprachmodell schreibt,
+Code prüft, Sie entscheiden." and "Un modèle de langage écrit, le code contrôle, vous
+décidez."; the catalogs in `src/leichtfacile/web/locales/` have every text.
 
 Probably unused afterwards (remove once `grep` confirms): `index.title`,
 `index.lede`, `index.how.*`, `index.new`, `index.condition.P0` to `P2`,
@@ -911,7 +934,8 @@ Checks before the redesign counts as done:
 - Keyboard only: review five blocks with the keys alone; the tab order; the focus
   ring; the shortcuts silent outside the draft pane.
 - Contrast of every token pair in §3.1, by script or by hand.
-- `make run` from a clean checkout serves the UI without a request to another host.
+- `leichtfacile serve` from a fresh install of the wheel serves the UI without a request
+  to another host.
 
 ## 13. Build order, effort, cut order
 

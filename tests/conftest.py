@@ -1,4 +1,5 @@
-"""Shared fixtures: settings isolated from the local .env, and a fake model endpoint."""
+"""Shared fixtures: settings isolated from the local .env and the user's config file,
+and a fake model endpoint."""
 
 from __future__ import annotations
 
@@ -15,6 +16,13 @@ import pytest
 from leichtfacile.config import Settings
 from leichtfacile.llm.client import LLMClient
 
+
+@pytest.fixture(autouse=True)
+def _no_user_config(monkeypatch, tmp_path_factory):
+    """No test reads the config file of the developer running it (`leichtfacile setup`)."""
+    monkeypatch.setenv("LEICHTFACILE_CONFIG", str(tmp_path_factory.getbasetemp() / "none.env"))
+
+
 BASE_URL = "http://llm.test/v1"
 MODEL = "swiss-ai/Apertus-v1.5-8B"
 
@@ -27,6 +35,9 @@ def make_settings(**overrides: Any) -> Settings:
         # The fake endpoint answers with plain JSON; streaming tests switch this on and
         # push `sse_response` bodies instead.
         "llm_stream": False,
+        # The fake endpoint plays Apertus on CSCS, which serves thinking as "-thinking"
+        # models; the default is off (config.py).
+        "llm_thinking_mode": "model-suffix",
         # Never the repository's data/ folder: every test gets a fresh directory.
         "data_dir": Path(tempfile.mkdtemp(prefix="leichtfacile-test-")),
     }

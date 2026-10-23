@@ -60,7 +60,7 @@
       {% if p.factsheet %}
       <section class="card" aria-labelledby="fs-h">
         <div class="card-head">
-          <h3 id="fs-h">{{ t('progress.factsheet') }}</h3>{{ icons.who('apertus') }}
+          <h3 id="fs-h">{{ t('progress.factsheet') }}</h3>{{ icons.who('model') }}
           <span class="grow"></span>
           <span class="meta">{{ t('detail.facts', n=p.factsheet.facts | length, keep=p.factsheet.facts | selectattr('must_keep') | list | length) }}</span>
         </div>
@@ -84,7 +84,7 @@
       {% set warns = p.rules.findings | selectattr('severity', 'equalto', 'warn') | list | length if p.rules else 0 %}
       <section class="card" aria-labelledby="dv-h">
         <div class="card-head">
-          <h3 id="dv-h">{{ t('draft.version', version=p.draft.version) }}</h3>{{ icons.who('apertus') }}
+          <h3 id="dv-h">{{ t('draft.version', version=p.draft.version) }}</h3>{{ icons.who('model') }}
           {% if p.rules %}<span class="tag">{{ icons.icon('code', 12) }}{{ t('progress.checked_by_code') }}</span>{% endif %}
           <span class="grow"></span>
           {% if p.rules %}<span class="meta">{{ t('count.errors', n=errors) }} · {{ t('count.warnings', n=warns) }}</span>{% endif %}

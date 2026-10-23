@@ -39,7 +39,10 @@ can always be traced to the exact prompt that produced it.
 | baseline (P0, P0-ZH) | off | 0.3 | 6000 / 12000 |
 | recover (review page; the recover round with `MAX_RECOVER_FACTS`) | off | 0.2 | 1500 / 6000 |
 
-`LLM_THINKING_STAGES` overrides the first column. Thinking models need a generous
+`LLM_THINKING_STAGES` overrides the first column. The column applies once the endpoint's
+thinking switch is set: `LLM_THINKING_MODE` is `off` by default since 23 October 2026,
+and the Apertus profiles set it (`model-suffix` on CSCS, `chat-template` on Public AI,
+vLLM and llama.cpp). Thinking models need a generous
 `max_tokens`: the reasoning can be several times longer than the answer. When the
 reasoning runs out of tokens before the answer, the stage is answered once more without
 thinking.
@@ -135,7 +138,7 @@ laptop GPU (RTX 4060 8 GB): the community text-only conversion
 `andreasmartin/apertus-v1.5-8b-text`). Numbers from this setup are labelled as such and
 never mixed with CSCS results.
 
-First full run, on the team's sample letter (`data/examples/sources/`), 6 October 2026:
+First full run, on the team's sample letter (`src/leichtfacile/letters/`), 6 October 2026:
 
 | Stage | Thinking | Output tokens | Time | Result |
 |-------|----------|---------------|------|--------|
@@ -172,7 +175,7 @@ code) and an office name taken from a few-shot example (now prevented in the pro
 the 8B judge did not catch it).
 
 French, same setup, on the team's French letter
-(`data/examples/sources/reduction-primes-lettre.txt`), 6 October 2026. Two runs: one
+(`src/leichtfacile/letters/reduction-primes-lettre.txt`), 6 October 2026. Two runs: one
 with the default thinking stages (understand and judge), one with thinking for
 understand only.
 

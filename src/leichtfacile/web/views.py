@@ -459,12 +459,12 @@ def core_questions(factsheet: FactSheet, t: Translator = ENGLISH) -> list[CoreRo
 # Who does the work in each step: the model, code, or the reviewer. Title and
 # description are the catalog texts `step.<key>.title` and `step.<key>.desc`.
 STEP_WHO = {
-    "baseline": "apertus",
-    "understand": "apertus",
-    "write": "apertus",
+    "baseline": "model",
+    "understand": "model",
+    "write": "model",
     "check": "code",
-    "judge": "apertus",
-    "repair": "apertus",
+    "judge": "model",
+    "repair": "model",
     "review": "human",
 }
 STEPS_BY_CONDITION = {
@@ -481,7 +481,7 @@ class Step:
     key: str
     title: str
     description: str
-    who: str  # apertus, code, human
+    who: str  # model, code, human
     state: str  # pending, running, done, skipped, failed
     detail: str = ""
     usage: StageUsage | None = None  # the stage's model calls so far

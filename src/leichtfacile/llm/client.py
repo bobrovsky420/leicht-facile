@@ -1,4 +1,5 @@
-"""One client for every Apertus endpoint: CSCS, local vLLM, Swiss cloud, Hugging Face.
+"""One client for every model endpoint: Apertus on CSCS or Public AI, a local vLLM,
+llama.cpp or Ollama server, a Swiss cloud or another provider.
 
 All of them speak the OpenAI chat-completions protocol, so the deployment target is a
 matter of configuration (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`). This module adds

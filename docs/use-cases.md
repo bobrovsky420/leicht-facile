@@ -1,7 +1,8 @@
 # Use cases
 
-Status: overview, 6 October 2026; why only Apertus fits (§2) and tax letters (§12)
-added 7 October 2026. The first two use cases are described step by step
+Status: overview, 6 October 2026; why Apertus fits (§2) and tax letters (§12)
+added 7 October 2026; §2 revised 23 October 2026: Apertus is the recommended model,
+not the only one the app runs with. The first two use cases are described step by step
 in their own documents, [use-case-canton.md](use-case-canton.md) and
 [use-case-decisions.md](use-case-decisions.md). The others are sketched here: what the
 document is, which facts must survive, who reviews, and what the checker still needs.
@@ -29,8 +30,8 @@ checks built for them since are listed in
 | 12 | Tax administration | Assessments, reminders, payment plans | 30 days to object, payment dates | The tax office's writers, debt counselling | Tax secrecy | Close to 1 (§12) |
 
 The column "What keeps the text inside" names the secrecy or the kind of data that rules
-out a foreign cloud; [§2](#why-only-apertus) gives the legal basis and why that leaves
-Apertus as the only model.
+out a foreign cloud; [§2](#why-apertus-fits-best) gives the legal basis and why that
+makes Apertus the recommended model.
 
 ## 2. What they share
 
@@ -47,8 +48,8 @@ Apertus as the only model.
   the Federal Act on Data Protection (FADP, art. 5 lit. c) and the cantonal data
   protection laws, and most of the texts are under a secrecy obligation as well. That
   makes a deployment on infrastructure the organisation controls a requirement rather
-  than an option, and leaves Apertus as the only model that fits
-  ([below](#why-only-apertus)).
+  than an option, and makes Apertus the model that fits best
+  ([below](#why-apertus-fits-best)).
 
 The tool is used in one of two ways:
 
@@ -60,10 +61,14 @@ The tool is used in one of two ways:
   notice says that only the letter counts, and the explanation gives no advice (use
   cases 4, 6 and 12, and any letter a reader brings).
 
-### Why only Apertus
+### Why Apertus fits best
 
-For a public web page, any good model would do. For almost every use case above, the
-text names a person, and four conditions follow one after the other.
+Leicht·Facile works with any OpenAI-compatible model endpoint, provided outside the
+app: a cloud API, a gateway, or a model server the organisation runs. It was built and
+evaluated with Apertus 1.5 (the 8B writes, the 70B judges), and the numbers it reports
+are Apertus results. For a public web page, any good model would do. For almost every
+use case above, the text names a person, and four conditions follow one after the
+other.
 
 1. **The text stays inside the organisation.** Every authority is bound by official
    secrecy (art. 320 StGB), doctors by professional secrecy (art. 321 StGB), tax
@@ -100,19 +105,23 @@ consideration to Swiss data protection and copyright law, trained on the Alps
 supercomputer in Lugano on more than 1,000 languages, with dedicated Swiss German and
 Romansh data, and released under Apache 2.0 with an acceptable use policy. Swisscom
 and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one 24 GB GPU in
-the organisation's own building with the official vLLM image, run by the team on an
-NVIDIA L4
-([architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The Canton of
-Ticino already runs Apertus in-house to translate sensitive government documents. This
-project's default setup uses the CSCS inference API, which serves research, not
-administrations.
+the organisation's own building, served by vLLM with the Swiss AI team's official
+Apertus image, run by the team on an NVIDIA L4
+([docs/hardware/aws-l4-2026-10-10/](hardware/aws-l4-2026-10-10/),
+[architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The model server
+runs outside the app, which reaches it at the address in `LLM_BASE_URL`. The Canton of
+Ticino already runs Apertus in-house to translate sensitive government documents. The
+reported numbers come from the CSCS inference API, the first endpoint
+`leichtfacile setup` offers, which serves research, not administrations.
 
-For the use cases that name a person, Apertus is therefore not one option among
-several: it is the only model that meets all four conditions. Conditions 1 to 3 follow
-from the law and from accountability; condition 4 is the sovereignty choice. An
-authority that drops it is left with a short list of foreign, fully open models; one
-that also drops condition 3 has many open-weight models to choose from, but cannot say
-what they learned.
+For the use cases that name a person, Apertus is therefore the recommended model: it
+meets all four conditions, and each of the other models named above misses at least
+one. Conditions 1 to 3 follow from the law and from accountability; condition 4 is the
+sovereignty choice. An authority that drops it is left with a short list of foreign,
+fully open models; one that also drops condition 3 has many open-weight models to
+choose from, but cannot say what they learned. The choice stays with the organisation:
+the app does not limit it, and the code checks of facts and rules work the same way
+with any model.
 
 ## 3. Patient letters
 

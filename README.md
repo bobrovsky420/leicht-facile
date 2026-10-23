@@ -4,10 +4,13 @@
 [![Release](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
 
 Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
-Sprache and Einfache Sprache, French FALC; Italian follows) with Apertus, and proves with code that
-no deadline, amount or phone number got lost. It is a drafting assistant for the
-people who write official texts, from trained easy-language writers to case workers,
-not a replacement for their review or for the test by readers from the target group.
+Sprache and Einfache Sprache, French FALC; Italian follows) with a large language model,
+and proves with code that no deadline, amount or phone number got lost. It works with any
+OpenAI-compatible endpoint (a provider's API, a gateway or a model server of your own)
+and was built and evaluated with Apertus, the open Swiss model. It is a drafting
+assistant for the people who write official texts, from trained easy-language writers to
+case workers, not a replacement for their review or for the test by readers from the
+target group.
 
 > About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
 > skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
@@ -20,8 +23,9 @@ that may never leave the authority (decision mode v1;
 [use-case-decisions.md](docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
 [use-cases.md](docs/use-cases.md). Most of them are under official, medical or
-tax secrecy and may not go to a chatbot on a foreign cloud: for them, **Apertus is the
-only model that fits** ([why](#why-only-apertus)).
+tax secrecy and may not go to a chatbot on a foreign cloud: for them, the model has to
+run where the organisation controls it, and **Apertus fits best**
+([why](#why-apertus-for-confidential-texts)).
 
 Authors: Alexander Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych
 (i.kuzmych@hotmail.com). Demo video: <https://youtu.be/5el7q6Xtgik>. Maturity: a
@@ -29,21 +33,21 @@ deployable prototype for German and French drafts of public texts and letters, a
 of concept for decisions. Built with AI coding assistants (Claude Code), directed and
 reviewed by the authors.
 
-> Apertus does everything that needs language understanding. Plain code does
-> everything that can be counted.
+> The language model does everything that needs language understanding. Plain code
+> does everything that can be counted.
 
-1. **Understand** (Apertus): the document becomes a fact sheet: the reader's core
+1. **Understand** (the model): the document becomes a fact sheet: the reader's core
    questions, every fact with its exact value, hard words, passages that can go.
    Code adds every date, amount and contact the model missed.
-2. **Write** (Apertus): a draft in easy language, every sentence linked to the source
+2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
 3. **Check** (code): 45 deterministic rules for German and 41 for French from the
    published Swiss guidelines (sentence length, passive, genitive, numbers, Swiss
    spelling, Mediopunkt, ...) and an exact check of every fact value in both
    directions (no value lost, no value invented), in milliseconds, without a model.
-4. **Judge** (a second, larger Apertus model): meaning only: distorted facts, invented
+4. **Judge** (a second model, ideally a larger one): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
-5. **Repair** (Apertus): only the flagged sentences, until no blocking finding is left
+5. **Repair** (the model): only the flagged sentences, until no blocking finding is left
    (at most 3 rounds); then one sentence for each must-keep value still missing (at
    most 10), checked like the rest.
 6. **Review** (human): source and draft side by side, provenance, fact checklist,
@@ -85,12 +89,13 @@ CSCS endpoint, 12 October 2026 (all numbers: [evaluation.md](docs/evaluation.md)
 | Invented values, per 100 blocks | 0.0 | 0.0 |
 | Rule errors, per 100 blocks | 15.0 | 3.7 |
 
-### Why only Apertus
+### Why Apertus for confidential texts
 
-For a public web page, any good model would do. A letter that names a person is under
-official secrecy (StGB art. 320), a patient letter under medical secrecy (StGB art.
-321), a tax letter under tax secrecy (DBG art. 110). Four conditions follow, and only
-Apertus meets all four:
+For a public web page, any good model would do, and Leicht·Facile works with any of
+them. A letter that names a person is under official secrecy (StGB art. 320), a
+patient letter under medical secrecy (StGB art. 321), a tax letter under tax secrecy
+(DBG art. 110). Four conditions follow, and of the models we know, only Apertus meets
+all four:
 
 | Condition | Rules out | Apertus |
 |-----------|-----------|---------|
@@ -103,25 +108,28 @@ The Canton of Ticino already runs Apertus in-house to translate sensitive govern
 documents. Tokens are nearly free (about 1.6 US cents per page for the full pipeline at
 Public AI's list prices, [evaluation.md](docs/evaluation.md)); on own hardware the GPU is the cost. The legal
 basis, the sources and the use cases:
-[use-cases.md §2](docs/use-cases.md#why-only-apertus).
+[use-cases.md §2](docs/use-cases.md#why-apertus-fits-best).
 
 ## Quick start
 
-Requirements: Docker with Compose, `make`, and an API key for an Apertus endpoint
-(`.env.example` is set up for the CSCS inference API).
+Requirements: Python 3.12 or newer with [uv](https://docs.astral.sh/uv/) (or pip), and
+an OpenAI-compatible model endpoint with its key: Apertus on the CSCS inference API or
+the Public AI gateway, a model server of your own (vLLM, llama.cpp, Ollama) or a
+provider's API.
 
 ```bash
-cp .env.example .env      # LLM_BASE_URL and LLM_NAME are set for CSCS; add your LLM_API_KEY
-make run                  # builds and starts the container, opens http://localhost:8000
+uv tool install <wheel URL>  # the current release's URL is in docs/quickstart.md
+leichtfacile setup           # asks for the endpoint, the key and the model
+leichtfacile serve           # starts the app and opens http://127.0.0.1:8000
 ```
 
-The three variables can also come from the shell instead of `.env`. Every other way to
-start the app (Compose or plain Docker, a local vLLM or llama.cpp server, without Docker,
-the release wheel, the command line alone), the other make targets, reaching it from
+`setup` writes the user's config file; `.env` in the current folder and the environment
+override it. A checkout for development, the command line alone, a server for an
+organisation, an offline install, running a model yourself, reaching the app from
 other machines and what to do when it does not start: [quickstart.md](docs/quickstart.md).
 
-Model tiers: by default the 8B reads, writes and repairs, and the 70B judges (when the
-endpoint serves it; otherwise `LLM_NAME` judges).
+Model tiers with Apertus: by default the 8B reads, writes and repairs, and the 70B
+judges (when the endpoint serves it; otherwise `LLM_NAME` judges).
 `LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
 `LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
 the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
@@ -138,7 +146,7 @@ with it filled in, or click **New draft** and paste a text, enter a web address 
 upload a file (PDF, HTML, text or Markdown). Choose the language (or let it be
 detected), the level (A2 Leichte Sprache or FALC, B1 Einfache Sprache or langage clair;
 the level names the rule set, not a measured reader level) and the pipeline (P2 full by
-default), and click **Create draft**. Apertus answers live: a run takes a few minutes.
+default), and click **Create draft**. The model answers live: a run takes a few minutes.
 
 ![The start page before the first draft: the three example letters and New draft](docs/images/first-draft-start.png)
 
@@ -160,22 +168,21 @@ without storing it.
 
 ## Sovereign deployment
 
-| Target architecture | How |
-|---------------------|-----|
-| a) On-premise | `docker compose --profile local-llm up` adds a vLLM server with Apertus 1.5 8B on one GPU with 24 GB or more (official image; run on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); set `LLM_BASE_URL=http://vllm:8000/v1` |
-| b) Air-gapped | As (a), with images and weights pulled in advance. Python packages, the spaCy model and the UI assets are inside the image: no CDN, no telemetry, no installs at runtime |
-| c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated Apertus endpoint; the reported numbers come from CSCS in Lugano |
+| Where the model runs | How |
+|----------------------|-----|
+| a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point `LLM_BASE_URL` at it |
+| b) Air-gapped | As (a), and the app installed offline from a folder of wheels collected on a connected machine ([quickstart.md](docs/quickstart.md)). The spaCy models and the UI assets come with it: no CDN, no telemetry, no installs at runtime |
+| c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
 
-Documents and review records stay in a SQLite database on a volume the organisation
-controls. At runtime the container contacts only the Apertus endpoint, and a web
+Documents and review records stay in a SQLite database in a folder the organisation
+controls (`DATA_DIR`). At runtime the app contacts only the model endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider
-([architecture.md](docs/architecture.md) §10). Which texts need this, and why it leaves
-Apertus as the only model:
-[Why only Apertus](#why-only-apertus).
+([architecture.md](docs/architecture.md) §10). Which texts need this, and why Apertus
+fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidential-texts).
 
 ## Documentation
 
-- [quickstart.md](docs/quickstart.md): every way to start the app, from `make run` to a development server
+- [quickstart.md](docs/quickstart.md): installing and starting the app, the model endpoints, servers, offline installs, development
 - [architecture.md](docs/architecture.md): design and architecture
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [rules.md](docs/rules.md): the rule catalogue the checker implements

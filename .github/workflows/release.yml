@@ -3,7 +3,7 @@
 # The wheel installs with uv or pip without a checkout: the spaCy models are direct
 # references in its metadata (pyproject.toml). The tag must match the version in
 # pyproject.toml; tests/test_release.py keeps that version, the package's
-# __version__, publiccode.yml and the install commands (quickstart §9) in step.
+# __version__, publiccode.yml and the install commands (docs/quickstart.md) in step.
 # Every action is pinned to a commit; the comment after the hash names the release.
 
 name: Release

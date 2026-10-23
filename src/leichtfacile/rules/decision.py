@@ -10,7 +10,7 @@ names the verb of deciding and ends with a colon (`Demnach erkennt das
 Verwaltungsgericht:`) followed by numbered items, and a paragraph that begins `Gegen
 diesen Entscheid kann`. A court's PDF often has no headings at all: the Schwyz decision
 III 2022 132 (docs/sources.md) has three, none of them the operative part. Calibrated
-on the team's KESB decision (data/examples/sources) and on that one, 8 October 2026.
+on the team's KESB decision (src/leichtfacile/letters) and on that one, 8 October 2026.
 
 The distribution list that closes an operative part (`Zustellung an:`, `Mitteilung an:`)
 is not protected: who gets a copy is not something the letter must carry.

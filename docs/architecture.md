@@ -1,20 +1,25 @@
 # Leicht·Facile - design and architecture
 
-Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12).
+Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12); since 23 October 2026 a Python package that works with any OpenAI-compatible model endpoint, without Docker (§10).
 Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
 
 ## 1. What it is
 
 Leicht·Facile drafts easy-language versions of Swiss official texts - letters, forms,
 web pages, decisions - in German (Leichte Sprache / Einfache Sprache), French (FALC)
-and Italian (lingua facile), using Apertus 1.5. It is a **drafting assistant for the
-professionals who write easy language today**, not a replacement for them or for the
-review by readers from the target group.
+and Italian (lingua facile), with a language model behind any OpenAI-compatible
+endpoint: a cloud API, a gateway, or a model server the organisation runs. The app
+never runs a model itself. It was built and evaluated with Apertus 1.5 (the 8B writes,
+the 70B judges), and the results reported here are Apertus results; for texts
+under secrecy a model the organisation controls is recommended, and Apertus fits best
+there (open weights, open training data, Swiss, one GPU; §10). It is a **drafting
+assistant for the professionals who write easy language today**, not a replacement for
+them or for the review by readers from the target group.
 
 The design rests on one rule:
 
-> Apertus does everything that needs language understanding. Plain code does
-> everything that can be counted.
+> The language model does everything that needs language understanding. Plain code
+> does everything that can be counted.
 
 That split keeps the use of AI purposeful, and it stops the
 model from grading its own homework on things a script can check exactly.
@@ -34,8 +39,9 @@ from the administration's point of view.
    Swiss spelling, …) and prove it with numbers, not demos.
 3. Give the human reviewer provenance for every sentence and a checklist of facts, so
    review is faster than writing from scratch.
-4. Run entirely on infrastructure the organisation controls: one container plus an
-   OpenAI-compatible Apertus endpoint, no other network dependency.
+4. Be able to run entirely on infrastructure the organisation controls: one Python
+   service plus an OpenAI-compatible model endpoint, which can be a model server of its
+   own, no other network dependency.
 
 ### Non-goals (for now)
 
@@ -85,7 +91,7 @@ flowchart TB
         UI["Review UI<br/>(server-rendered HTML + small JS)"]
     end
 
-    subgraph app["leicht-facile container (FastAPI, Python 3.14)"]
+    subgraph app["Leicht·Facile: one Python process (FastAPI, Python 3.12+)"]
         API["HTTP API"]
         Q["Job runner<br/>(worker threads, the jobs table as queue)"]
         ING["Ingest<br/>PDF · HTML · text · image"]
@@ -95,14 +101,14 @@ flowchart TB
         JUD["Meaning judge → JudgeReport"]
         REP["Repair loop<br/>(flagged blocks only, ≤ 3 rounds)"]
         EXP["Export<br/>MD · HTML · JSON"]
-        DB[("SQLite + JSON artifacts<br/>(mounted volume)")]
+        DB[("SQLite + JSON artifacts<br/>(in DATA_DIR)")]
         LLM["LLM client<br/>(OpenAI-compatible, retries, cache, usage log)"]
     end
 
-    subgraph model["Apertus endpoint (any one of)"]
-        CSCS["CSCS inference API"]
-        VLLM["Local vLLM<br/>(on-prem / air-gapped)"]
-        SC["Swiss sovereign cloud<br/>(Swisscom, Infomaniak)"]
+    subgraph model["Model endpoint, outside the app (any OpenAI-compatible one)"]
+        CSCS["CSCS inference API<br/>(Apertus; the evaluation)"]
+        VLLM["Model server of the organisation<br/>(vLLM, llama.cpp, Ollama;<br/>on-prem / air-gapped)"]
+        SC["Swiss-operated or other provider<br/>(Swisscom, Infomaniak, ...)"]
     end
 
     UI <--> API
@@ -123,20 +129,21 @@ flowchart TB
     class ING,RUL,EXP code
 ```
 
-Purple stages call Apertus. Teal stages are deterministic code. Everything runs in one
-container; the only outbound connection is `LLM_BASE_URL`.
+Purple stages call the language model (Apertus in every measured run). Teal stages are
+deterministic code. The app is one Python process and runs no model itself; its only
+outbound connections are `LLM_BASE_URL` and the web addresses users submit.
 
 ### Key decisions
 
 | # | Decision | Why |
 |---|----------|-----|
-| D1 | One Python service (FastAPI) serves both the API and a server-rendered review UI. No Node build step. | One container, one `make run`, nothing to break on another machine. The UI is a review tool, not a product front-end. |
-| D2 | All model access goes through one OpenAI-compatible client configured by `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`. | The CSCS endpoint, local vLLM and Swiss cloud providers all speak the same protocol. "Sovereign deployment" becomes a change of one variable. |
+| D1 | One Python service (FastAPI) serves both the API and a server-rendered review UI. No Node build step. | One Python package, one process (`leichtfacile serve`), nothing to build on another machine. The UI is a review tool, not a product front-end. |
+| D2 | All model access goes through one OpenAI-compatible client configured by `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`. | The CSCS endpoint, a model server of the organisation's own (vLLM, llama.cpp, Ollama), Swiss cloud providers and commercial APIs all speak the same protocol. "Sovereign deployment" becomes a change of one variable; `leichtfacile setup` writes the three (§10). |
 | D3 | The pipeline is a sequence of explicit stages with typed, persisted artifacts (pydantic models stored as JSON). | Every intermediate result is visible in the UI, re-runnable in isolation, and usable for evaluation and ablations. |
-| D4 | Countable rules live in code (spaCy morphology + regex). Apertus only judges what needs meaning. | Exact, free, reproducible; removes self-grading bias on the easy half of the rules. |
-| D5 | Writer and judge are separate model instances; by default 8B writes, 70B (thinking) judges. `LLM_UNDERSTAND_NAME` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
+| D4 | Countable rules live in code (spaCy morphology + regex). The model only judges what needs meaning. | Exact, free, reproducible; removes self-grading bias on the easy half of the rules. |
+| D5 | Writer and judge are separate model instances; with Apertus by default the 8B writes, the 70B (thinking) judges. `LLM_UNDERSTAND_NAME` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
 | D6 | Each language is simplified from its own original. | Simplifying a translation compounds errors; three fact sheets also allow a cross-language consistency check. |
-| D7 | Storage is SQLite plus JSON files on a mounted volume. | Zero operations, works air-gapped, trivially backed up. |
+| D7 | Storage is SQLite plus JSON in one folder, `DATA_DIR`. | Zero operations, works air-gapped, trivially backed up. |
 | D8 | The evaluation harness is a first-class module with a fixed dataset manifest and three conditions (baseline, pipeline without repair, full pipeline). | Quality is shown by the comparison, not by the demo. |
 
 ## 4. The pipeline
@@ -170,7 +177,7 @@ Chunking is not needed for understanding - Apertus 1.5 has a 262,144-token conte
 but documents over 3,000 words are **written** section by section (sharing one fact
 sheet), to keep output quality.
 
-### 4.2 Understand (Apertus)
+### 4.2 Understand (model)
 
 One call over the whole document. Output: the `FactSheet` - the most important
 artifact, because every later step is checked against it.
@@ -188,7 +195,8 @@ artifact, because every later step is checked against it.
 - `omit_candidates[]`: passages the model considers droppable, with reasons - the
   reviewer sees these.
 
-Model: `LLM_NAME` (8B), thinking on, temperature 0.1. `LLM_UNDERSTAND_NAME` gives this
+Model: `LLM_NAME` (8B), thinking on (when `LLM_THINKING_MODE` is not `off`, §6), temperature
+0.1. `LLM_UNDERSTAND_NAME` gives this
 stage another model while the writer stays the 8B: on CSCS the 70B found more facts
 with a third of the 8B's reasoning, but the 8B writer then kept fewer of them
 (docs/prompts.md). Output is JSON; see §6 for how JSON is enforced.
@@ -221,7 +229,7 @@ habitants) for 6 documents of the CSCS evaluation, and the writer then sent the 
 to it. Since 7 October 2026; `USE_VOCABULARY=0` switches this and the
 other uses below off, only to measure them.
 
-### 4.3 Plan and write (Apertus)
+### 4.3 Plan and write (model)
 
 Easy language is not a sentence-by-sentence translation, so the prompt asks for a
 plan first: order content by what matters to the reader, use questions as headings,
@@ -357,7 +365,7 @@ both calibrated on the official easy-language pages; 12 rules for facts, layout 
 readability apply to every language. Italian texts get only those until their rule set
 ships.
 
-### 4.5 Meaning check (Apertus as judge)
+### 4.5 Meaning check (a model as judge)
 
 A second model call with the fact sheet and the draft (source available on request
 via the segment ids). It answers only what code cannot:
@@ -384,7 +392,9 @@ via the segment ids). It answers only what code cannot:
    obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
    not become `können`, and a `wenn` never `vielleicht`).
 
-Model: `LLM_JUDGE_NAME` (default `swiss-ai/Apertus-v1.5-70B-thinking`), temperature
+Model: `LLM_JUDGE_NAME` (default: the 70B of the writer's Apertus family when the
+endpoint lists it, else the writer's model, §6; on CSCS `swiss-ai/Apertus-v1.5-70B`,
+thinking through its `-thinking` name), temperature
 0. The judge never rewrites; it only reports. Its reliability is measured, not
 assumed (§9).
 
@@ -396,7 +406,7 @@ with a value left on final drafts were such facts). The pipeline still counts it
 blocking and asks for the fact again: a dev rerun without that left three of ten German
 drafts worse (docs/prompts.md, "Judge doubts on values").
 
-### 4.6 Repair (Apertus)
+### 4.6 Repair (model)
 
 Only flagged blocks are sent back, each with its findings (rule and judge, with the
 checker's suggestion where there is one) and the facts it must keep. The model returns
@@ -589,9 +599,13 @@ could be trained from them - in effect distilling the 70B judge's standard into 
 8B writer. Only attempted if compute is available (Phoeniqs applications closed on
 4 October; Hugging Face credits or a Kaggle notebook remain).
 
-### Where Apertus is used - summary
+### Where the model is used - summary
 
-| Stage | Role of Apertus | Model (default) | Thinking | Temp. | Output |
+The models and thinking settings below are the ones the pipeline was built and evaluated
+with, on Apertus 1.5; another OpenAI-compatible model takes their place through the same
+settings (§6).
+
+| Stage | Role of the model | Model (default) | Thinking | Temp. | Output |
 |-------|-----------------|-----------------|----------|-------|--------|
 | Ingest (scans only) | Read a photographed or scanned letter (image input) | 8B | off | 0.0 | segments |
 | Understand | Extract facts, core answers, hard terms | 8B (`LLM_UNDERSTAND_NAME` overrides) | on | 0.1 | `FactSheet` JSON |
@@ -693,18 +707,25 @@ writers wait for each other (5 s) instead of failing midway.
 
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
-- **Configuration** from environment variables: `LLM_BASE_URL`, `LLM_API_KEY`,
+- **Configuration** from the settings (the user's config file, `.env` in the current
+  folder, the environment; §10): `LLM_BASE_URL`, `LLM_API_KEY`,
   `LLM_NAME`; plus `LLM_JUDGE_NAME` (default: the 70B of the writer's family when the
   endpoint lists it, looked up once per process, else `LLM_NAME`), `LLM_UNDERSTAND_NAME`
-  (default `LLM_NAME`) and `LLM_THINKING_MODE` = `model-suffix` (CSCS exposes thinking as separate
+  (default `LLM_NAME`) and `LLM_THINKING_MODE` = `off` (the default, since each
+  endpoint switches thinking its own way: the model name goes out as it is, with no
+  switch) | `model-suffix` (Apertus on CSCS exposes thinking as separate
   `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
-  (local vLLM: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
-  `off`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
+  (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`).
+  The mode is set per endpoint, by a preset of `leichtfacile setup` or as in the
+  profiles of `.env.example`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
   `LLM_EXTRA_BODY` (JSON fields sent with every request, for gateway switches).
-- **Endpoint profiles** (documented in `.env.example`):
-  1. CSCS inference API, the default;
-  2. local vLLM from the `local-llm` compose profile, for on-premise and air-gapped
-     deployments;
+- **Endpoint profiles** (documented in `.env.example`; `leichtfacile setup` has the
+  presets `cscs`, `publicai`, `local` for a server of one's own, `openai`, `mistral`
+  and `other`, and the two Apertus presets set the thinking mode too):
+  1. CSCS inference API, on which the reported numbers were measured
+     (`LLM_THINKING_MODE=model-suffix`);
+  2. a vLLM server the organisation runs, for on-premise and air-gapped deployments
+     (§10; `LLM_THINKING_MODE=chat-template`);
   3. the Public AI gateway (`https://api.publicai.co/v1`), for development and
      evaluation with public documents. It lists `swiss-ai/apertus-v1.5-8b` and
      `-70b`, each with a `-thinking` variant, at USD 0.10/0.20 per million
@@ -734,7 +755,7 @@ writers wait for each other (5 s) instead of failing midway.
 
   All facts on third-party endpoints were checked on 5 October 2026.
 - **Thinking per stage.** `LLM_THINKING_STAGES` (default `understand,judge`) names
-  the stages that use the thinking model. When the reasoning of a thinking call runs
+  the stages that use the thinking model when `LLM_THINKING_MODE` is not `off`. When the reasoning of a thinking call runs
   out of tokens before the answer, the stage is answered once more without thinking;
   both calls are counted in the usage log.
 - **Graceful degradation.** A failing judge or repair round does not fail the job:
@@ -849,8 +870,9 @@ A workbench for people who review drafts for hours every day
 screens, texts, accessibility). Server-rendered Jinja2 pages, one `app.css`, one
 `app.js`, no framework, no build step, no CDN. Calm on purpose: white and grey
 surfaces, one institutional blue for actions, selection and focus; red, amber and
-green only for status, always with a shape and a word or number. Apertus, code and
-the reviewer are told apart by a grey tag with a word and an icon. Every page can be
+green only for status, always with a shape and a word or number. The model, code and
+the reviewer are told apart by a grey tag with a word and an icon ("Model", "Code",
+"You"), whatever model the endpoint serves. Every page can be
 read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
@@ -865,7 +887,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   GET parameters, so they work without JavaScript; at most 50 rows, newest first, with
   the counts computed per request from `review_view`. An intro strip explains the four
   steps and can be hidden. With no jobs, the empty state offers the team-written sample
-  letters as one-click fills of the New draft form (buttons to `/new?example=<id>`).
+  letters shipped with the package (`src/leichtfacile/letters/`, or the folder
+  `EXAMPLES_DIR` names) as one-click fills of the New draft form (buttons to
+  `/new?example=<id>`).
 - **New draft** (`/new`): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
   (`/new?example=<id>` fills the text without JavaScript, and the decision mode's
@@ -926,7 +950,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      distorted, "judge doubts" in amber when code finds the value the judge misses
      (§4.5), unchecked) and the judge's note;
      selecting a fact marks the blocks that carry it. Under a missing fact with a
-     source sentence, "Suggest a sentence" (JavaScript only) shows Apertus's sentences
+     source sentence, "Suggest a sentence" (JavaScript only) shows the model's sentences
      with the source sentence, the code check and the rule findings, and "Add to block
      ..." appends them to that block as an edit (§4.7). **Findings**, the document's
      findings grouped by rule with the rule's title; a FACT-04 line marks its source
@@ -977,14 +1001,19 @@ language it was produced in.
 
 ### CLI
 
+The package installs the command `leichtfacile`; `python -m leichtfacile` runs the same
+commands. `serve`, `check-llm` and `simplify` need the model settings and, when one is
+missing, name it and `leichtfacile setup` in a short message (`cli.settings_or_exit`).
+
 | Command | Purpose |
 |---------|---------|
-| `python -m leichtfacile serve` | The web application |
-| `python -m leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
-| `python -m leichtfacile ingest <file\|url> [--section]` | Print the segments |
-| `python -m leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
-| `python -m leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `python -m leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again (12 October 2026) |
+| `leichtfacile setup [--preset] [--base-url] [--api-key] [--model] [--judge] [--force]` | Asks for the endpoint (presets `cscs`, `publicai`, `local`, `openai`, `mistral`, `other`), its address and its key (not echoed), lists the endpoint's models (`GET /models`), asks for the model and an optional judge, and writes the user's config file (`configure.py`, §10); with the address, the key and the model given it asks nothing; `--force` replaces an existing file |
+| `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` sets `BIND_HOST` (§10) |
+| `leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
+| `leichtfacile ingest <file\|url> [--section]` | Print the segments |
+| `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
+| `leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
+| `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again (12 October 2026) |
 
 ## 8. Languages and levels
 
@@ -1026,8 +1055,8 @@ word counts, `facts_estimate`, `licence_note` and `notes`. It holds 35 verified 
 Graubünden, Zug and three federal offices, and 5 French (3 `eval`, 2 `dev`). `dev`
 pairs are for prompt development and checker calibration; `eval` pairs are held out
 for the final numbers. `python -m leichtfacile eval fetch` (or
-`scripts/fetch_pairs.py`) downloads and caches the texts under `data/cache/pairs/`
-(git-ignored). The publishers do not allow reproduction, so the manifest and the
+`scripts/fetch_pairs.py`) downloads and caches the texts under `DATA_DIR/cache/pairs/`
+(with `DATA_DIR=data` in a checkout, the git-ignored `data/cache/pairs/`). The publishers do not allow reproduction, so the manifest and the
 fetch command are the dataset.
 
 These reference pairs measure the pipeline; they are not the demo. The demo uses
@@ -1126,42 +1155,70 @@ cover the choice of pairs, not a second sample of the same pairs.
 
 ## 10. Deployment and sovereignty
 
-### `make run`
+### Starting the app
 
-`make run` → `docker compose up --build`. The Makefile first checks that
-`LLM_BASE_URL`, `LLM_API_KEY` and `LLM_NAME` are set, each in the shell or in `.env`,
-and prints a short help text otherwise. The `.env` file is optional: Compose reads it
-when it exists and passes the three variables through from the shell, where a value
-in the shell wins over `.env`. It then checks that Docker is installed, that the
-daemon answers and that Compose v2 is there, and otherwise says which one is missing
-and how to start Docker (`check-docker`, also before `stop`, `check-llm` and `smoke`). Next to Compose it starts `scripts/open_browser.sh`, which polls
-`/healthz` from the host and opens http://localhost:8000 in the default browser
-(Windows, macOS, Linux desktops, WSL); without a desktop it prints the address, and
-`OPEN_BROWSER=0` turns it off. The helper is stopped with Compose. The image is built from `python:3.14-slim` (the project supports
-Python 3.12 and later) and installs the locked dependencies from `uv.lock` with `uv`
-at **build** time, including the spaCy models as pinned wheel URLs. German and French
-are in the image; the Italian model is added when Italian ships. The
-vendored UI assets are copied in the same way. At **runtime** the container needs
-exactly one outbound connection: `LLM_BASE_URL`. It runs as a non-root user, keeps
-its data in the named volume `appdata` (mounted at `/data`), and has a Docker health
-check on `/healthz`. Compose publishes the app on `127.0.0.1:8000`, this machine only
-(`BIND_HOST=0.0.0.0` publishes it on every interface and then needs a login, below).
-While the drafts list is empty, it offers the team's sample letters in
-`data/examples/sources/` (the premium-reduction letter in German and in French, the
-KESB decision) as one-click fills of the New draft form (§7). A source's job settings,
-such as the decision mode and the addressee, come from a JSON file next to it
-(data/examples/README.md).
+The app is a Python package (Python 3.12 and later), published as a wheel on a GitHub
+release for every version tag (`.github/workflows/release.yml`).
+`uv tool install <wheel URL>` puts the command `leichtfacile` on the path;
+`pip install <wheel URL>` installs it into an environment of one's own
+(docs/quickstart.md has the commands). The spaCy models for German and French are
+direct references in the wheel's metadata and come with it; the Italian model is added
+when Italian ships. The vendored UI assets are inside the package. The app never runs
+a model itself: the endpoint is provided outside it (below).
 
-`make check-llm` lists the endpoint's models and makes one short call from inside the
-container; it is the first thing to run once a key is set.
+`leichtfacile setup` (`configure.py`) asks for the endpoint, with the presets `cscs`,
+`publicai`, `local`, `openai`, `mistral` and `other`, then for its address and its key
+(not echoed), lists the endpoint's models (`GET /models`), asks for the model and an
+optional judge, and writes the user's config file; an Apertus preset adds its
+endpoint's further settings, such as the thinking mode (§6). With `--base-url`,
+`--api-key` and `--model` given it asks nothing; `--preset`, `--judge` and `--force`
+(replace an existing file) complete the flags. The settings are read from that file,
+then from `.env` in the current folder, then from the environment, each overriding the
+one before (`config.env_files`, `config.get_settings`; `config.paths` reads `DATA_DIR`
+and `EXAMPLES_DIR` without the model settings). The config file is `LEICHTFACILE_CONFIG`
+when that is set, else `config.env` in the platform's folder for settings:
+`%APPDATA%\leichtfacile` (Windows),
+`~/Library/Application Support/leichtfacile` (macOS), else
+`$XDG_CONFIG_HOME/leichtfacile` or `~/.config/leichtfacile`. It holds the key, so on
+POSIX systems `setup` makes it readable by its owner alone. `serve`, `check-llm` and
+`simplify` stop with a short message naming a missing `LLM_BASE_URL`, `LLM_API_KEY` or
+`LLM_NAME` and `leichtfacile setup`, not with a traceback (`cli.settings_or_exit`).
+
+`leichtfacile serve` starts the web app on `127.0.0.1:8000`, this machine only, and
+opens it in the default browser as soon as `/healthz` answers (`cli.open_when_ready`):
+only for a loopback host, and on Linux only with a desktop (`DISPLAY` or
+`WAYLAND_DISPLAY`), since Python would otherwise start a text browser in the terminal
+(`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `BIND_HOST`: beyond
+the loopback interface the app needs a login (below). The database goes to `DATA_DIR`,
+by default `%LOCALAPPDATA%\leichtfacile` (Windows),
+`~/Library/Application Support/leichtfacile` (macOS), else
+`$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
+is empty, it offers the example letters shipped with the package in
+`src/leichtfacile/letters/` (the premium-reduction letter in German and in French, the
+KESB decision) as one-click fills of the New draft form (§7); `EXAMPLES_DIR` names
+another folder of letters. A letter's job settings, such as the decision mode and the
+addressee, come from a JSON file next to it (`examples.py`).
+
+`leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
+the first thing to run after `setup`. The Makefile is for development in a checkout
+only (`test`, `lint`, `format`, `check-llm`, `smoke`, `calibrate`, `eval`,
+`eval-70b`); the app needs no make. CI starts the app natively with
+`leichtfacile serve --no-browser` against an unreachable endpoint and checks that
+`/healthz` answers and `/readyz` reports the endpoint unreachable
+(`.github/workflows/ci.yml`).
 
 ### The three target architectures
 
-| Architecture | How Leicht·Facile meets it |
-|--------------|----------------------------|
-| a) On-premise | `docker compose --profile local-llm up`: adds a `vllm` service from the official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` serving `swiss-ai/Apertus-v1.5-8B` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app points at `http://vllm:8000/v1` with `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: it starts and `make run` takes a letter end to end (below). |
-| b) Air-gapped | Same as (a) with images and weights pulled in advance; spaCy models and UI assets are inside the image; no telemetry, no CDN, no package installs at runtime. A `make bundle` target saves the images to a tarball. |
-| c) Sovereign Swiss cloud | Set `LLM_BASE_URL` to a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations. |
+In each, Leicht·Facile is the same Python service (above), on a workstation or on a
+server of the organisation; the model runs where the organisation wants it, behind an
+OpenAI-compatible endpoint that `LLM_BASE_URL` names (D2). Running the model is outside
+the app.
+
+| Architecture | Where the model runs and how Leicht·Facile meets it |
+|--------------|-----------------------------------------------------|
+| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup --preset local`, or the server's address. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
+| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the spaCy models among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version, carried over and installed with `pip install --no-index --no-deps` ([quickstart.md](quickstart.md) way 5 has the commands; `--no-deps` because the wheel names the spaCy models by their download URLs, which pip would otherwise try to fetch). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
+| c) A Swiss-operated or other provider | Set `LLM_BASE_URL` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
 g6.xlarge in Zurich (`docs/hardware/aws-l4-2026-10-10/`): the official checkpoint
@@ -1169,14 +1226,14 @@ g6.xlarge in Zurich (`docs/hardware/aws-l4-2026-10-10/`): the official checkpoin
 refused to start: one 32k request needs 4.0 GiB of KV cache, and 2.13 GiB were left at
 90 % utilisation (17,440 tokens). A shorter context does not help, because the stages
 ask for up to 16,000 output tokens on top of the prompt and vLLM rejects a request
-that does not fit. So the profile stores the KV cache in FP8 (`--kv-cache-dtype=fp8`:
+that does not fit. So the server stores the KV cache in FP8 (`--kv-cache-dtype=fp8`:
 38,752 tokens, 1.18 requests of 32k at once) and allows at most 16 parallel sequences
 (`--max-num-seqs=16`): with the default 256, the CUDA graphs (0.84 GiB, now 0.16) and
 the sampler's warm-up ran out of memory. By the same arithmetic a card with 32 GB or
 more needs neither flag (not tested). The start takes about 7 minutes with the weights
 on disk. One request generates 16.2 tokens per second, close to the limit of the L4's
 memory bandwidth (300 GB/s for about 16 GB of weights per token). With the 8B also
-judging (profile B), the example letter took 63 minutes with thinking in Understand
+judging, the example letter took 63 minutes with thinking in Understand
 and Judge, and 22 minutes with thinking only in Understand
 (`LLM_THINKING_STAGES=understand`); in both runs Understand's reasoning hit the
 12,000-token cap, which costs 744 s on this card. What the FP8 KV cache does to
@@ -1192,37 +1249,46 @@ context and about 17 near 16k; Understand took about 1.5 minutes and Write, with
 thinking, about 12 minutes for a 400-word letter. It runs the whole pipeline
 including thinking mode (`LLM_THINKING_MODE=chat-template`, `llama-server -sp`), but
 it has no image input and is an unofficial conversion, so it serves development and
-small offices, not the evaluation. `docker compose --profile local-llm-small up` adds
-this server as a `llamacpp` service (official `ghcr.io/ggml-org/llama.cpp:server-cuda`
-image, weights downloaded on first start); it is served under the alias
+small offices, not the evaluation. The server is started next to the app, as
+`.env.example` shows (`llama-server -hf Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF ...`,
+weights downloaded on first start); it is served under the alias
 `apertus-v1.5-8b-q4-llamacpp`, so its results can never be mistaken for the official
-model. Tested on 6 October 2026 with that image (llama.cpp b11429, CUDA) on the same
-laptop: the model starts in 6 seconds from the named volume and takes 5.9 GB of GPU
-memory. Mounting the model file from a Windows folder instead stalls the start for
-many minutes (memory-mapped reads through Docker Desktop's file sharing); the named
-volume avoids that. The 70B is served with tensor parallelism over four
+model. Tested on 6 October 2026 with llama.cpp's official CUDA build (b11429) on the
+same laptop: the model starts in 6 seconds with the weights on disk and takes 5.9 GB
+of GPU memory. The 70B is served with tensor parallelism over four
 GPUs in the official guide; FP8/NVFP4 builds reduce that. The business argument of
 the stretch goal (§4.8) is precisely that a fine-tuned 8B makes the 70B unnecessary
 at runtime.
 
 ### Security and privacy
 
-- Documents contain personal data. In production the model endpoint is inside the
-  organisation, so content never leaves. The demo uses public documents only.
-  Decisions of child and adult protection authorities and courts are the most
-  sensitive case: before anonymisation they name a person and describe their health,
-  family and finances ([use-case-decisions.md](use-case-decisions.md) §2). Why such
-  texts leave Apertus as the only model that fits: [use-cases.md §2](use-cases.md#why-only-apertus).
-- Published on this machine only by default (`127.0.0.1:8000`); the organisation's
+- Documents contain personal data. For them the model endpoint is inside the
+  organisation, (a) or (b) above, so content never leaves. The demo uses public
+  documents only. Decisions of child and adult protection authorities and courts are
+  the most sensitive case: before anonymisation they name a person and describe their
+  health, family and finances ([use-case-decisions.md](use-case-decisions.md) §2). Why
+  such texts need a model the organisation controls, and why Apertus fits best there:
+  [use-cases.md §2](use-cases.md#why-apertus-fits-best).
+- Reachable from this machine only by default (`127.0.0.1:8000`); the organisation's
   reverse proxy publishes it further. Two optional logins (`web/security.py`): a
   shared token (`AUTH_TOKEN`; browsers are asked for it with HTTP Basic, any user
   name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
   tries per minute and client, then 429) or the proxy's user header
   (`AUTH_PROXY_HEADER`, trusted only from the proxy's addresses in `AUTH_PROXY_FROM`;
   the user lands in `request.state.user`). The probes and the static files need no
-  login. `BIND_HOST` names the published interface; beyond the loopback interface the
-  app refuses to start without one of the two. No accounts or roles of its own: that
-  limitation stays, every logged-in user sees every job.
+  login. `BIND_HOST` (which `serve --host` sets) names the interface the app listens
+  on; beyond the loopback interface the app refuses to start without one of the two.
+  No accounts or roles of its own: that limitation stays, every logged-in user sees
+  every job.
+- On a server the app runs as a system service (a systemd unit, for example) under a
+  dedicated service account with no other rights:
+  `leichtfacile serve --host 0.0.0.0 --no-browser` with `AUTH_TOKEN`, or on the
+  loopback interface behind the reverse proxy with its user header. `DATA_DIR` lies on
+  a disk the organisation controls; that folder and the config file, which holds the
+  key, are readable and writable by the service account alone (`setup` writes the
+  config file so on POSIX systems; `DATA_DIR`'s permissions are the organisation's to
+  set). Outbound, the service connects to the model endpoint and to the web addresses
+  users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
 - Every response carries a Content-Security-Policy (scripts from this server only,
   the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
   plug-ins; the API docs pages, which load Swagger UI from a CDN, get the other
@@ -1250,7 +1316,7 @@ at runtime.
   own access log, which has the query string, is off. `LOG_FORMAT=json` writes every
   line as one JSON object (time, level, logger, message, request_id, job_id, the
   access line's fields, the traceback) for a log collector; `text` is the default.
-- Jobs and artifacts live on the mounted volume and can be deleted via the API and
+- Jobs and artifacts live in `DATA_DIR` and can be deleted via the API and
   the pages; the data lifecycle below says what is kept, for how long, and what a
   deletion takes with it.
 - The server fetches the URLs users submit, so a URL that resolves to a private,
@@ -1304,9 +1370,11 @@ What the service stores, where, for how long, and how it leaves:
   model, tokens, latency, no text). With `LLM_CACHE=1`, the response cache keeps every
   prompt (which contains the document) and answer, keyed by their hash; it is off by
   default and meant for development and evaluation.
-- **Where.** `DATA_DIR` (the Compose volume `appdata`): `leichtfacile.sqlite` and, with
+- **Where.** `DATA_DIR` (by default the user's data folder, such as
+  `~/.local/share/leichtfacile` or `%LOCALAPPDATA%\leichtfacile`, §10; on a server a
+  folder on a disk the organisation controls): `leichtfacile.sqlite` and, with
   the cache on, `llm_cache.sqlite`. Nothing else is written; the exports are generated
-  on request and not stored. Encryption at rest belongs to the volume: put `DATA_DIR`
+  on request and not stored. Encryption at rest belongs to the disk: put `DATA_DIR`
   on an encrypted file system or disk (LUKS, BitLocker, the cloud provider's encrypted
   volume), which costs nothing in the application and covers the WAL and temporary
   files too; the application does not encrypt rows itself.
@@ -1321,8 +1389,10 @@ What the service stores, where, for how long, and how it leaves:
   of the job's calls are recorded in `llm_calls`), so no prompt with the document
   outlives the job. A running job is stopped first.
 - **What leaves the machine.** Only the model calls: the document text, the fact sheet
-  and the drafts go to the endpoint named by `LLM_BASE_URL`, nowhere else; the
-  deployment profiles in §10 say which endpoints are sovereign.
+  and the drafts go to the endpoint named by `LLM_BASE_URL`, nowhere else; the target
+  architectures above and the endpoint profiles in §6 say which endpoints are
+  sovereign. Fetching a web address a user submitted sends a request to that site,
+  with nothing of a document in it.
 - **Logs.** Model, stage, tokens and latency per call; job ids and stages; one line
   per request with method, path, status, duration, client address and request id, no
   query string; errors without the words of the document or the answer (above).
@@ -1331,20 +1401,18 @@ What the service stores, where, for how long, and how it leaves:
 ## 11. Repository layout
 
 ```text
-.github/workflows/ci.yml    CI: ruff, pytest, Docker image built and started against an unreachable endpoint
+.github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release
-Makefile                    run · stop · check-llm · test · lint · format · smoke · calibrate · eval ·
-                            eval-70b · bundle
-docker-compose.yml          app (+ profile local-llm: vllm; profile local-llm-small: llamacpp)
-Dockerfile                  the image keeps the repository's layout under /app
-pyproject.toml, uv.lock     dependencies (uv), Python 3.12+; .python-version pins 3.14
+Makefile                    development only: test · lint · format · check-llm · smoke · calibrate · eval ·
+                            eval-70b
+pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 .env.example                endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                   project overview, quick start, documentation list
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues
 docs/
-  quickstart.md             every way to start the app (make, Compose, Docker, local models, uv, CLI)
+  quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   architecture.md           this document
   ui-design.md              the web UI's specification
   rules.md                  rule catalogue → implemented by src/leichtfacile/rules
@@ -1354,13 +1422,15 @@ docs/
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
 src/leichtfacile/
-  __main__.py, cli.py       serve, check-llm, ingest, check, simplify, eval
-  config.py                 env → settings (pydantic-settings)
+  __main__.py, cli.py       setup, serve, check-llm, ingest, check, simplify, eval
+  config.py                 config file, .env and environment → settings (pydantic-settings)
+  configure.py              `leichtfacile setup`: the endpoint questions, the config file
   schemas.py                artifacts (§5)
   store.py                  SQLite access
   examples.py               the sample letters and their job settings (New draft form, empty drafts list)
   lifecycle.py              the counts on the job row, deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
+  letters/                  the example letters shipped with the package
   llm/                      client.py, json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
@@ -1382,11 +1452,11 @@ src/leichtfacile/
   eval/                     dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing), image_spike.py,
                             numbers.py (the headline numbers), cli.py
-scripts/                    fetch_pairs.py, print_letters.py, image_spike.py, open_browser.sh
+scripts/                    fetch_pairs.py, print_letters.py, image_spike.py
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
-  examples/                 team-written sample documents and printable letters
-  cache/, *.sqlite          fetched texts, LLM cache, the app's database (git-ignored)
+  examples/                 README.md and printable letters
+  cache/, *.sqlite          with DATA_DIR=data: fetched texts, LLM cache, the database (git-ignored)
 eval/                       evaluation outputs (results*/) and labelling sheets (labels/), git-ignored
 tests/                      rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
                             eval, web
@@ -1420,7 +1490,7 @@ client removes.
 
 ### Results on the Public AI gateway, 6 October 2026
 
-With profile C (§6): the 8B `swiss-ai/apertus-v1.5-8b`, served by vLLM
+On the Public AI gateway (§6): the 8B `swiss-ai/apertus-v1.5-8b`, served by vLLM
 at Juelich. The CSCS key had not arrived.
 
 1. **Models.** All four Apertus 1.5 names are listed, in lowercase
@@ -1468,7 +1538,7 @@ letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
 
 ### Results on CSCS, 6 October 2026
 
-With profile A, the same afternoon.
+On CSCS, the same afternoon.
 
 1. **Models and host.** `https://api.inference.cscs.ch/v1` lists `swiss-ai/Apertus-v1.5-8B`,
    `-8B-thinking`, `-70B` and `-70B-thinking` in that spelling, next to the Apertus 1
@@ -1507,7 +1577,8 @@ With profile A, the same afternoon.
 | JSON output unstable | Schema in prompt, lenient parse, pydantic validation, one error-feedback retry; measured in endpoint check 3 (§12). |
 | Model judging itself is biased | Everything countable is in code; the judge is a different, larger model; judge agreement with human labels is reported. |
 | CSCS endpoint rate-limited or down | Backoff and cache; single-worker queue; evaluation runs overnight. |
-| Image input not available on the default endpoint | Feature flagged; demo uses text and HTML; scans shown with local vLLM only if time allows. |
+| A model other than Apertus 1.5 behind the endpoint | The reported numbers hold for Apertus 1.5 only. The code checks (facts, values, rules) work the same for any model, and `make eval` measures another endpoint on the same pairs. |
+| Image input not available on the CSCS endpoint | Feature flagged; demo uses text and HTML; scans shown with local vLLM only if time allows. |
 | Scope creep across three languages | German end-to-end with numbers first (by 10 October); FR/IT only afterwards. |
 | No compute for the LoRA | Stretch goal; the pipeline's value does not depend on it. The data it would need (approved drafts, edits) is collected regardless. |
 | Over-promising to public-sector users | Positioned as a drafting assistant for professionals; target-group review stays mandatory; limitations stated in the documentation. |

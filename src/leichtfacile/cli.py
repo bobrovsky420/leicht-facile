@@ -1,6 +1,7 @@
-"""Command line: `python -m leichtfacile <command>`.
+"""Command line: `leichtfacile <command>` (or `python -m leichtfacile <command>`).
 
-- `serve`      run the web application
+- `setup`      ask for the model endpoint and write the user's config file
+- `serve`      run the web application and open it in the browser
 - `check-llm`  list the endpoint's models and make one short call
 - `ingest`     print the segments of a file or URL
 - `check`      run the rule checker on an existing easy-language text
@@ -17,9 +18,14 @@ import os
 import sys
 from collections import Counter
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from leichtfacile import __version__
+from leichtfacile.configure import PRESETS, run_setup
 from leichtfacile.schemas import CONDITIONS, canonical_condition
+
+if TYPE_CHECKING:
+    from leichtfacile.config import Settings
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,9 +33,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
 
+    setup = sub.add_parser("setup", help="set up the model endpoint (writes the config file)")
+    setup.add_argument("--preset", choices=list(PRESETS), help="a known endpoint")
+    setup.add_argument("--base-url", help="the endpoint's address (OpenAI-compatible)")
+    setup.add_argument(
+        "--api-key", help="the key; it ends up in the shell history, so leave it out to be asked"
+    )
+    setup.add_argument("--model", help="the model that reads, writes and repairs")
+    setup.add_argument("--judge", help="the judge's model (default: the same model)")
+    setup.add_argument("--force", action="store_true", help="replace an existing config file")
+
     serve = sub.add_parser("serve", help="run the web application")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--no-browser", action="store_true", help="do not open the browser")
 
     check_llm = sub.add_parser("check-llm", help="list models and make one short call")
     check_llm.add_argument("--model", help="model name (default: LLM_NAME)")
@@ -81,8 +98,16 @@ def main(argv: list[str] | None = None) -> int:
     add_eval_parser(sub)
 
     args = parser.parse_args(argv)
+    if args.command == "setup":
+        try:
+            return run_setup(preset=args.preset, base_url=args.base_url, api_key=args.api_key,
+                             model=args.model, judge=args.judge, force=args.force)  # fmt: skip
+        except (EOFError, KeyboardInterrupt):
+            print("\nSetup cancelled; nothing written.", file=sys.stderr)
+            return 1
     if args.command == "serve":
-        return _serve(args.host, args.port)  # the app configures its logs (logs.py)
+        # the app configures its logs (logs.py)
+        return _serve(args.host, args.port, browser=not args.no_browser)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     if args.command == "check-llm":
@@ -99,12 +124,38 @@ def main(argv: list[str] | None = None) -> int:
     return 2
 
 
-def _serve(host: str, port: int) -> int:
+def settings_or_exit() -> Settings:
+    """The settings, or a short message instead of a traceback when they are
+    incomplete or invalid."""
+    from pydantic import ValidationError
+
+    from leichtfacile.config import config_file, get_settings
+
+    try:
+        return get_settings()
+    except ValidationError as exc:
+        missing = [str(e["loc"][0]).upper() for e in exc.errors() if e["type"] == "missing"]
+        if missing:
+            print(f"Not set: {', '.join(missing)}. Run `leichtfacile setup`, or set them in "
+                  f"{config_file()}, in .env or in the environment.", file=sys.stderr)  # fmt: skip
+        else:
+            print("The settings are not valid:", file=sys.stderr)
+            for error in exc.errors():
+                where = ".".join(str(part) for part in error["loc"]).upper() or "settings"
+                print(f"- {where}: {error['msg']}", file=sys.stderr)
+        raise SystemExit(2) from None
+
+
+def _serve(host: str, port: int, *, browser: bool = True) -> int:
     import uvicorn
 
     # The app refuses to start published beyond this machine without a login
-    # (web/security.py); `--host` says where it is published, as BIND_HOST does in Compose.
+    # (web/security.py); `--host` says where it is published.
     os.environ.setdefault("BIND_HOST", host)
+    settings_or_exit()  # a missing setting stops here with a hint, not inside the server
+    if browser and wants_browser(host):
+        address = f"[{host}]" if ":" in host else host
+        open_when_ready(f"http://{address}:{port}/")
     # The app writes its own access line, with the request id and without the query
     # string (web/observability.py); uvicorn's would double it.
     uvicorn.run(
@@ -113,11 +164,42 @@ def _serve(host: str, port: int) -> int:
     return 0
 
 
+def wants_browser(host: str) -> bool:
+    """Open the browser only for a server on this machine, and on Linux only with a
+    desktop: elsewhere Python would start a text browser in the terminal."""
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        return False
+    if sys.platform in ("win32", "darwin"):
+        return True
+    return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+
+
+def open_when_ready(url: str, timeout_s: float = 60.0) -> None:
+    """Open `url` in the default browser as soon as its /healthz answers, from a thread,
+    so that the server starts meanwhile; nothing happens if it never answers."""
+    import threading
+    import time
+    import urllib.request
+    import webbrowser
+
+    def wait() -> None:
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            try:
+                urllib.request.urlopen(url + "healthz", timeout=2).close()
+            except OSError:
+                time.sleep(0.5)
+                continue
+            webbrowser.open(url)
+            return
+
+    threading.Thread(target=wait, name="open-browser", daemon=True).start()
+
+
 def _check_llm(model: str | None, thinking: bool) -> int:
-    from leichtfacile.config import get_settings
     from leichtfacile.llm.client import LLMClient, LLMError
 
-    settings = get_settings()
+    settings = settings_or_exit()
     client = LLMClient(settings)
     name, extra = client.resolve_model(model, thinking)
     print(f"endpoint:  {settings.llm_base_url}")
@@ -226,7 +308,6 @@ def _check(args: argparse.Namespace) -> int:
 
 
 def _simplify(args: argparse.Namespace) -> int:
-    from leichtfacile.config import get_settings
     from leichtfacile.export.bundle import build_bundle
     from leichtfacile.export.docx import to_docx
     from leichtfacile.export.html import to_html
@@ -237,7 +318,7 @@ def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.schemas import Draft, JobConfig, PipelineSummary
     from leichtfacile.store import Store
 
-    settings = get_settings()
+    settings = settings_or_exit()
     try:
         source = load_source(args.input, args.lang)
     except (IngestError, OSError) as exc:

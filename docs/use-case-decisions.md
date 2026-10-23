@@ -41,13 +41,14 @@ binding text.
 
 Before anonymisation, a decision names the person and describes their health, family
 and finances. Such a text may not go to a chatbot on a foreign cloud. Leicht·Facile
-runs as one container next to an Apertus endpoint that the authority or the canton
-controls: on its own servers, air-gapped, or on a Swiss cloud under the canton's
-contract ([architecture.md §10](architecture.md#10-deployment-and-sovereignty)).
+is a Python package installed inside the network, and for decisions it is pointed at a
+model endpoint that the authority or the canton controls: on its own servers,
+air-gapped, or on a Swiss cloud under the canton's contract
+([architecture.md §10](architecture.md#10-deployment-and-sovereignty)).
 Nothing else leaves the network. Official secrecy binds the authority, which must also
 be able to account for the model it uses and depend on no foreign supplier for it:
-that leaves Apertus as the only model that fits
-([use-cases.md §2](use-cases.md#why-only-apertus)).
+that makes Apertus the model that fits best, and the one recommended for decisions
+([use-cases.md §2](use-cases.md#why-apertus-fits-best)).
 
 The audit bundle stays in the case file. It shows which sentence of the decision each
 easy-language sentence rests on and who approved it, so the authority can show exactly
@@ -169,7 +170,7 @@ Works today, unchanged from the first use case: PDF and text ingest, the fact sh
 with the reader's core questions, code completion of dates, amounts, phone numbers,
 e-mail and web addresses, percentages and times, the rule checker with FACT-01 and
 FACT-06, the judge, repair, the review UI, the exports with the audit bundle, and the
-three deployment profiles. Since 7 October 2026, for this use case: periods such as
+deployment options. Since 7 October 2026, for this use case: periods such as
 30 days, identifiers (case and reference numbers, AHV number, IBAN) and postal
 addresses are facts that must come back exactly (`period`, `identifier`, `address`),
 found by code, checked by FACT-01 and FACT-06, with the exact string as the repair
@@ -203,7 +204,7 @@ Two decisions went through P2 on CSCS (8B writer, 70B judge), each once with the
 decision-mode prompts that exist so far (the partial and the addressee, without
 protected segments) and once as a standard job:
 
-- **The team's KESB decision** (`data/examples/sources/entscheid-beistandschaft-musterwil.txt`,
+- **The team's KESB decision** (`src/leichtfacile/letters/entscheid-beistandschaft-musterwil.txt`,
   1,000 words, 26 hard values). Every identifier, address and the 30 days that the draft
   carried came back exactly. But in decision mode the Understand model computed an end
   of the appeal period ("Die Beschwerdefrist endet am 15. November 2026") that the

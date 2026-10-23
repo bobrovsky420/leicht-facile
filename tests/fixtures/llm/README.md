@@ -1,7 +1,7 @@
 # Recorded model answers
 
 Real answers of Apertus v1.5 8B on the team's sample letter
-(`data/examples/sources/praemienverbilligung-brief.txt`), recorded on 6 October 2026
+(`src/leichtfacile/letters/praemienverbilligung-brief.txt`), recorded on 6 October 2026
 before the CSCS key was available. They come from the community 4-bit text-only
 conversion `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF`, served by llama.cpp on a laptop
 GPU, not from the official model on the CSCS endpoint. They test the parsing and
