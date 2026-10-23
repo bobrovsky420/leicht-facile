@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
 [![Release](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
+[![PyPI package](https://img.shields.io/pypi/v/leichtfacile?label=pypi%20package)](https://pypi.org/project/leichtfacile/)
+[![Python](https://img.shields.io/pypi/pyversions/leichtfacile)](https://pypi.org/project/leichtfacile/)
 
 Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
 Sprache and Einfache Sprache, French FALC; Italian follows) with a large language model,
