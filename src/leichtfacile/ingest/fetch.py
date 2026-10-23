@@ -21,7 +21,7 @@ things make the fetch safe:
   body, checked on the declared length and again while it arrives.
 
 `allow_private=True` lifts the address check for an intranet deployment that needs
-internal pages (`ALLOW_PRIVATE_URLS=1`); the hops are still walked and checked for
+internal pages (`server.allow_private_urls`); the hops are still walked and checked for
 their scheme. `resolve` replaces the system resolver in tests.
 """
 

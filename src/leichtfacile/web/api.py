@@ -282,7 +282,7 @@ def recover(request: Request, job_id: str, fact_id: str, version: int | None = N
         pick_language(
             request.cookies.get(COOKIE),
             request.headers.get("accept-language"),
-            state.settings.ui_lang,
+            state.settings.server.ui_lang,
         )
     )
     fact = next(f for f in factsheet.facts if f.id == fact_id)

@@ -30,11 +30,11 @@ def orchestrator(store: Store, endpoint: FakeEndpoint, sleeps: list[float]) -> O
     # Without the vocabulary and the recover round: the answers below end before them.
     # Both have their own tests (test_vocabulary.py, and the recover tests below).
     settings = make_settings(
-        llm_judge_name="swiss-ai/Apertus-v1.5-70B",
-        llm_max_retries=0,
-        use_vocabulary=False,
-        max_recover_facts=0,
-        max_polish_rounds=0,
+        llm__models__judge="swiss-ai/Apertus-v1.5-70B",
+        llm__max_retries=0,
+        pipeline__vocabulary=False,
+        pipeline__recover_facts=0,
+        pipeline__polish_rounds=0,
     )
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, settings)
@@ -240,7 +240,7 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
     request = build_request(draft, rules, None, fs)
     assert len(request.missing) == MAX_MISSING_PER_ROUND
     assert [f.kind for f in request.missing][:3] == ["deadline", "amount", "amount"]
-    # A facts-only round takes its own cap (MAX_MISSING_PER_FACTS_ROUND).
+    # A facts-only round takes its own cap (pipeline.missing_per_facts_round).
     assert len(build_request(draft, rules, None, fs, facts_only=True, limit=8).missing) == 8
     assert len(build_request(draft, rules, None, fs, facts_only=True, limit=2).missing) == 2
 
@@ -519,12 +519,13 @@ def test_a_dropped_part_of_a_decision_blocks_and_is_asked_for_first() -> None:
 def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
     store, endpoint, sleeps
 ) -> None:
-    """MAX_RECOVER_FACTS: after the facts rounds, the value still missing is asked for
+    """pipeline.recover_facts: after the facts rounds, the value still missing is asked for
     alone with its source paragraph; its sentence goes after its block as a new version,
     judged, and the final version when it has fewer values missing."""
     settings = make_settings(
-        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False,
-        max_recover_facts=3, max_polish_rounds=0,
+        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0,
+        pipeline__vocabulary=False,
+        pipeline__recover_facts=3, pipeline__polish_rounds=0,
     )  # fmt: skip
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
@@ -581,7 +582,7 @@ def test_without_max_recover_facts_there_is_no_recover_round(store, endpoint, sl
     assert "recover" not in [u.stage for u in store.get_job(job_id).usage]
 
 
-# -- the polish round (MAX_POLISH_ROUNDS) ---------------------------------------------
+# -- the polish round (pipeline.polish_rounds) -----------------------------------------
 
 REPAIR_LONG = {
     "repairs": [
@@ -602,12 +603,13 @@ POLISH = {
 
 
 def test_the_polish_round_repairs_the_rule_errors_the_loop_left(store, endpoint, sleeps) -> None:
-    """MAX_POLISH_ROUNDS: after the facts and recover rounds, the best version's rule
+    """pipeline.polish_rounds: after the facts and recover rounds, the best version's rule
     errors go to one more repair round, without facts and without the judge's problems;
     its version is the final one when it loses no fact and adds no blocking finding."""
     settings = make_settings(
-        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=False,
-        max_recover_facts=0, max_polish_rounds=1,
+        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0,
+        pipeline__vocabulary=False,
+        pipeline__recover_facts=0, pipeline__polish_rounds=1,
     )  # fmt: skip
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(
@@ -649,7 +651,7 @@ def test_without_max_polish_rounds_there_is_no_polish_round(store, endpoint, sle
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
     job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=0)
-    orchestrator(store, endpoint, sleeps).run(job_id)  # max_polish_rounds=0 in the helper
+    orchestrator(store, endpoint, sleeps).run(job_id)  # pipeline__polish_rounds=0 in the helper
     job = store.get_job(job_id)
     assert job.status == "needs_review" and not endpoint.queue
     assert "polish 1" not in [u.stage for u in job.usage]

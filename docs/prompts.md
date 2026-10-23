@@ -37,10 +37,10 @@ can always be traced to the exact prompt that produced it.
 | judge | on | 0.0 | 6000 / 12000 |
 | repair | off | 0.2 | 6000 / 12000 |
 | baseline (P0, P0-ZH) | off | 0.3 | 6000 / 12000 |
-| recover (review page; the recover round with `MAX_RECOVER_FACTS`) | off | 0.2 | 1500 / 6000 |
+| recover (review page; the recover round with `pipeline.recover_facts`) | off | 0.2 | 1500 / 6000 |
 
-`LLM_THINKING_STAGES` overrides the first column. The column applies once the endpoint's
-thinking switch is set: `LLM_THINKING_MODE` is `off` by default since 23 October 2026,
+`llm.thinking_stages` overrides the first column. The column applies once the endpoint's
+thinking switch is set: `llm.thinking` is `off` by default since 23 October 2026,
 and the Apertus profiles set it (`model-suffix` on CSCS, `chat-template` on Public AI,
 vLLM and llama.cpp). Thinking models need a generous
 `max_tokens`: the reasoning can be several times longer than the answer. When the
@@ -114,14 +114,14 @@ thinking.
 - **Facts-only rounds** (7 October 2026). The repair loop stops when a
   round brings no progress on the whole; on the dev pairs that left must-keep values
   missing in 15 of 16 jobs, because a round that adds facts also gets new judge
-  findings. After the loop, up to `MAX_FACTS_ROUNDS` (default 1) rounds ask for the
+  findings. After the loop, up to `pipeline.facts_rounds` (default 1) rounds ask for the
   missing facts alone, with no block flagged, and are measured by the FACT-01 count:
   they go on while a round adds a fact. The judge reruns as in any round with facts
-  involved. A facts round asks for up to `MAX_MISSING_PER_FACTS_ROUND` (10) missing
+  involved. A facts round asks for up to `pipeline.missing_per_facts_round` (10) missing
   facts, a repair round for 5 next to its flagged blocks; the cap was raised from 5 on
   the measured dev rerun of 7 October ("Fact-retention diagnosis" below). The final
   version is the one with the fewest must-keep values missing, then the fewest blocking
-  findings. Set `MAX_FACTS_ROUNDS=0` to measure the pipeline without them.
+  findings. Set `pipeline.facts_rounds = 0` to measure the pipeline without them.
 - **Repair records.** Every round stores what it asked for, the answer as given and
   every answered sentence code left out with its reason (a repeat, example content, a
   block the round had not flagged), under the version it produced. `eval diagnose`
@@ -290,7 +290,8 @@ a second write call when it fires.
 
 ### Full evaluation on CSCS (6 October 2026)
 
-`make eval RESULTS=eval/results-cscs`: P0, P1 and P2 on the 23 held-out pairs (20
+The evaluation commands ([quickstart.md](quickstart.md#the-evaluation)) into
+`eval/results-cscs`: P0, P1 and P2 on the 23 held-out pairs (20
 German, 3 French), thinking for Understand and the judge, then P2 with the 70B writer
 on the first 5 German pairs. 23 of 23 pairs completed under every condition after the
 reruns of failed pairs (the harness reruns them with the cache on, and unusable answers
@@ -331,10 +332,11 @@ coverage. The 70B writes cleaner (2.0 errors, readability 58) but keeps fewer fa
 P2 on the 23 held-out pairs (20 German, 3 French) in three settings: the 8B writer
 (the default: the 8B for Understand, Write and Repair), every stage on the 70B
 (`--writer swiss-ai/Apertus-v1.5-70B`) and the hybrid with the 70B for Understand
-only (`--understand swiss-ai/Apertus-v1.5-70B`, in production `LLM_UNDERSTAND_NAME`).
+only (`--understand swiss-ai/Apertus-v1.5-70B`, in production `llm.models.understand`).
 The judge is the 70B-thinking in all three. The hybrid's fact sheets came from the
 cache of the 70B run, so the hybrid and the 70B run score against the same sheets.
-German means over the 20 pairs (`make eval-70b` reproduces the two extra runs):
+German means over the 20 pairs (`eval run --condition P2` with each of the two flags
+reproduces the two extra runs, [quickstart.md](quickstart.md#the-evaluation)):
 
 | Setup | Fact coverage | Hard facts kept | Errors / 100 | Warnings / 100 | Readability | Unsupported / 100 | Invented values / 100 | Words | USD / page |
 |-------|---------------|-----------------|--------------|----------------|-------------|-------------------|-----------------------|-------|------------|
@@ -377,7 +379,7 @@ German means over the 20 pairs (`make eval-70b` reproduces the two extra runs):
   writes much shorter texts (154 against 400 words) at readability 83 (official: 85);
   the hybrid keeps the most hard facts (78 percent) but at 1,160 words a page.
 
-Decision: the default stays the 8B writer with the 70B judge. `LLM_NAME` set to the
+Decision: the default stays the 8B writer with the 70B judge. `llm.models.writer` set to the
 70B is the quality tier for style at about twice the price and, on-premise, four GPUs
 instead of one; the hybrid is documented as tested and not better.
 
@@ -502,7 +504,7 @@ in the final version goes into one bucket.
 
 | Bucket | Meaning | How the tool decides |
 |---|---|---|
-| a | never asked for in any round | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of missing facts per round (5 in a repair round, `MAX_MISSING_PER_FACTS_ROUND` in a facts round), no round ran at all (the loop stopped or failed before one), or never flagged by FACT-01 when the job ran |
+| a | never asked for in any round | the requests of each round, from the repair record or recomputed with `build_request` from the stored findings; the reason apart: behind the cap of missing facts per round (5 in a repair round, `pipeline.missing_per_facts_round` in a facts round), no round ran at all (the loop stopped or failed before one), or never flagged by FACT-01 when the job ran |
 | b | asked for and written, but in a form FACT-01 rejects | the record's answer carries the fact's digits or words, but no value the matcher accepts |
 | c | asked for and written, then dropped by code | the answered sentence is in the record's dropped list (a repeat, example content, a block the round had not flagged) |
 | d | asked for, and the model did not write it | no answered sentence for the fact, nothing loose either |
@@ -547,7 +549,7 @@ not rerun.
 
 The ablation on the 10 German dev pairs, the same cached Understand and Write answers
 on both sides (`eval/results-cscs` with the facts rounds, `eval/results-cscs-nofacts`
-with `MAX_FACTS_ROUNDS=0`, run in sequence):
+with `pipeline.facts_rounds = 0`, run in sequence):
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Invented values / 100 | Judge: unsupported / 100 | Errors / 100 | Tokens / page | USD / page |
 |---|---|---|---|---|---|---|---|---|
@@ -630,12 +632,12 @@ errors per 100 blocks: the sentences a facts round adds are the ones the judge t
 flags. The silent losses do not move with the rule, as they should not: they are a
 property of the fact sheet stored when the job ran, and the completion fixes show
 only in the next run. The cap of a facts-only round is a setting now
-(`MAX_MISSING_PER_FACTS_ROUND`, default 5): the one experiment left for the dev split
+(`pipeline.missing_per_facts_round`, default 5): the one experiment left for the dev split
 before the freeze.
 
 The fifth run, the same day, under the final code (facts first, the fixed completion;
 `--redo`, the rows before it kept in `eval/results-cscs-v5`), then the cap experiment
-in a fresh folder `eval/results-cscs-cap10` with `MAX_MISSING_PER_FACTS_ROUND=10`, run
+in a fresh folder `eval/results-cscs-cap10` with `pipeline.missing_per_facts_round = 10`, run
 after it on the same cache, so both replay the same Understand and Write answers and
 the cap-10 run made only 4 fresh calls. German dev pairs, P2:
 
@@ -784,7 +786,7 @@ Apertus community, by kind of value: `docs/image-input.md`.
 
 Three runs of P2 on the 12 dev pairs (10 German, 2 French) with the settings of the day
 (8B writer, 70B judge, thinking for Understand and Judge, 3 repair rounds, 1 facts round
-of up to 10 facts): without the vocabulary (`USE_VOCABULARY=0`), with all of it
+of up to 10 facts): without the vocabulary (`pipeline.vocabulary = false`), with all of it
 including the word list in the write prompt (a setting of that day, removed since),
 and with all of it
 but the word list, the default since. The Understand prompt did not change, so the three
@@ -872,7 +874,7 @@ does. Results in `eval/results-cscs-vocab-round-v2` (and `-rescored-facts`).
   That a rewritten sentence loses its unsupported finding without a new judgment cannot
   happen: carry-over only meets versions without one.
 - Cost: 12 rewrite calls of the 8B (1.4 s each) and 10 judge reruns of the 70B (11 s
-  each), about 11 s per job. Part of the vocabulary since this run (`USE_VOCABULARY`).
+  each), about 11 s per job. Part of the vocabulary since this run (`pipeline.vocabulary`).
 
 ### Fact-sheet values the source lacks: P2 on the dev pairs on CSCS (7 October 2026)
 
@@ -1057,9 +1059,9 @@ code checks the value, not the meaning; the reviewer decides.
 One fact on one letter is not a rate: at temperature 0.2 the runs are close to
 identical. The dev pairs' facts still missing at the end are the measurement that
 counts. In the pipeline it runs as the recover round
-(`MAX_RECOVER_FACTS`, architecture §4.6), on by default since the dev run below.
+(`pipeline.recover_facts`, architecture §4.6), on by default since the dev run below.
 
-**The recover round on the dev pairs** (CSCS, 9 October 2026). `MAX_RECOVER_FACTS=10`,
+**The recover round on the dev pairs** (CSCS, 9 October 2026). `pipeline.recover_facts = 10`,
 P2, into `eval/results-cscs-recover-on`, right after the default run
 `eval/results-cscs-en-before` of the English-instructions test on the same code, so the cache replayed every call before
 the round: the seven pairs with no value missing came out identical, and the
@@ -1118,7 +1120,7 @@ whose key is the whole prompt). The English prompts were only 2 to 4 percent sho
 tokens, since most of a prompt is the document, the fact sheet and the draft.
 
 **The measurement.** P2 on the 12 dev pairs (10 German, 2 French) on CSCS, 8B writer,
-70B judge, the recover round off (`MAX_RECOVER_FACTS=0`), one folder per run:
+70B judge, the recover round off (`pipeline.recover_facts = 0`), one folder per run:
 
 - `en-before`: the frozen prompts, replayed from the cache (the same as
   `prov-after` of 8 October);
@@ -1232,7 +1234,7 @@ template's example document kinds in the document's language.
 ### The polish round on the dev pairs (10 October 2026)
 
 One more repair round after the recover round, for the rule findings of the best version
-alone (`MAX_POLISH_ROUNDS`, default 1): its repairable errors, or its
+alone (`pipeline.polish_rounds`, default 1): its repairable errors, or its
 warnings once no error is left; no fact, no judge's problem, no office word. Run on the
 12 dev pairs on CSCS into `eval/results-cscs-polish`, with the cache replaying
 every call before the round, against the recover-on run of 9 October (same code
@@ -1399,7 +1401,7 @@ answers, P0 and both P0-ZH variants with the cache off, the 70B everywhere, the 
 (its Understand from the 70B row's cache), then a retry pass. One P2 pair failed on
 broken JSON in Understand and passed on the retry; the 70B everywhere failed on
 `zh-sebe-disability-de`, where the server cut the long Write stream in all 35 attempts
-(9, 9 and 17 with `LLM_MAX_RETRIES=16`), so that row has 19 German pairs. German means
+(9, 9 and 17 with `llm.max_retries = 16`), so that row has 19 German pairs. German means
 over the 20 eval pairs:
 
 | Setup | Fact coverage | Hard facts kept | Silent losses | Errors / 100 | Warnings / 100 | Readability | Unsupported / 100 | Invented values / 100 | Tokens / page | USD / page | s / page |
@@ -1537,11 +1539,11 @@ second. German means over the 20 eval pairs:
 | 6 | 2026-10-06 | No template change. Code: the Mediopunkt is written by code after the write stage and after every repair round, in P1 and P2 (`rules/mediopunkt.py`, docs/rules.md "Edits made by code"), and LEX-01 no longer exempts a compound because it is in the glossary. Reason: in the owner's first CSCS job through the web UI the 8B kept `Krankenversicherungspolice` and `Sozialversicherungsstelle` unsplit through two repair rounds. The repair prompt therefore no longer carries LEX-01 lines for compound nouns. Rescored without model calls on the final drafts already in the CSCS store (97 German P1 and P2 jobs, 3453 blocks): LEX-01 warnings per 100 blocks fall from 39.1 to 3.0 (P1, 8B), 31.9 to 3.1 (P2, 8B) and 27.0 to 2.2 (P2, 70B), all warnings per 100 blocks from 77.9 to 42.0, 66.7 to 38.0 and 53.8 to 29.3; 30 to 41 words per 100 blocks get the dot, 157 of the 1177 in glossary terms. Reading splits by hand found two wrong joints in the first 25: `Ostermundi·gens·trasse`, fixed in the splitter (a nested split now counts by its weakest part, giving `Ostermundigen·strasse`) and by leaving the word in front of a house number alone; and `Kostengut·sprache` for `Kosten·gutsprache`, which stays, because the splitter does not know the Swiss term. The next 25 had none. What the step saves in repair rounds shows only in the next `--redo` rerun on CSCS, which is still open. |
 | 6 | 2026-10-06 | No template change. Code: the compound splitter treats the feminine ending `-innen` as an ending (`Sozial·arbeiterinnen`, never `Schweizer·innen`), and the evaluation counts the splits of earlier rounds that the final version keeps. The dev rerun on CSCS with and without the step is in "Mediopunkt by code" above: LEX-01 from 35 to 5 warnings per 100 blocks, no repair round saved, no fact lost. |
 | 7 | 2026-10-07 | Judge prompt (German and French): one more rule, SEM-08, an obligation, a possibility or a condition that changed (`müssen` to `können`, a `wenn` written as `vielleicht`); the judge filter accepts it. All four standard templates in both languages get one line, `{% if mode is defined and mode == "decision" %}{% include "<lang>/decision.md" %}{% endif %}`, which renders to nothing for a standard job (same prompt text, same cache key; the template hash changes once) and pulls in the stage's section of the new partial `decision.md` for a job in the decision mode (docs/use-case-decisions.md; first draft, free to change after the freeze). |
-| 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`MAX_FACTS_ROUNDS`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
+| 7 | 2026-10-07 | No further template change. Code: the missing-fact lines of a repair request name the exact form of the value next to the fact sheet's; LEN-02 findings carry a rewrite recipe per conjunction as the suggestion; facts-only rounds after the repair loop (`pipeline.facts_rounds`, default 1); a record per repair round of the request, the answer and what code dropped; `eval diagnose` for the fact-retention diagnosis; silent losses in the evaluation; the image input spike script. Dev rerun on CSCS the same day ("Fact-retention diagnosis" above): missing must-keep values from 50 of 102 to 16 of 122, fact coverage 75 against 68 percent without the facts rounds, no invented value on either side. |
 | 7 | 2026-10-08 | No template change. Code, from the second and third dev runs: the code completion takes the values from the document text with segment offsets and stores a percentage as `10%`; a value counts as covered only when a reader who searches the fact sheet for it finds it; the final version is the one with the fewest must-keep values missing, then the fewest blocking findings; an unusable repair answer no longer cancels the facts round; `eval rescore` scores stored jobs under either rule without a model call. |
-| 8 | 2026-10-07 | Write prompt (German and French): after the fact sheet, the office words of the document part with their everyday word, from the vocabulary (`Diese Wörter aus dem Dokument sind schwer. Schreiben Sie stattdessen das einfache Wort:`, `Ces mots du document sont difficiles. Écrivez plutôt le mot simple :`, at most 15). The block renders to nothing when the part has no office word or with `USE_VOCABULARY=0`: the prompt is then the same text as before. The generated style guide gets a LEX-07 line in German (`Nehmen Sie Alltags·wörter statt Amts·wörtern ...`), and in French the administrative words move from the LEX-01-FR line to a LEX-07-FR line. Code: the fact sheet's hard terms get the vocabulary's checked explanations and up to 6 terms of the source; code adds missing glossary entries from the vocabulary after the write stage and every repair round; LEX-07 and LEX-07-FR findings go to the polish round (docs/rules.md "Vocabulary"). Dev run on CSCS with and without: "Vocabulary in the pipeline" above; after it the word list is off by default (`VOCABULARY_PROMPT=0`), because it primed the 8B to write the listed office words. |
+| 8 | 2026-10-07 | Write prompt (German and French): after the fact sheet, the office words of the document part with their everyday word, from the vocabulary (`Diese Wörter aus dem Dokument sind schwer. Schreiben Sie stattdessen das einfache Wort:`, `Ces mots du document sont difficiles. Écrivez plutôt le mot simple :`, at most 15). The block renders to nothing when the part has no office word or with `pipeline.vocabulary = false`: the prompt is then the same text as before. The generated style guide gets a LEX-07 line in German (`Nehmen Sie Alltags·wörter statt Amts·wörtern ...`), and in French the administrative words move from the LEX-01-FR line to a LEX-07-FR line. Code: the fact sheet's hard terms get the vocabulary's checked explanations and up to 6 terms of the source; code adds missing glossary entries from the vocabulary after the write stage and every repair round; LEX-07 and LEX-07-FR findings go to the polish round (docs/rules.md "Vocabulary"). Dev run on CSCS with and without: "Vocabulary in the pipeline" above; after it the word list is off by default (`VOCABULARY_PROMPT=0`), because it primed the 8B to write the listed office words. |
 | 8 | 2026-10-07 | No template change. Code: the vocabulary round, a last round through the repair prompt for the office words still in the best version (LEX-07 findings alone, each sentence with its everyday word); its version takes the next free number and is kept only if it loses no must-keep value and adds no blocking finding. Measured with every earlier answer replayed from the cache ("The vocabulary round" above): office words in the final drafts 42 to 19, no fact lost, about 11 s per job; on by default (`VOCABULARY_ROUND=1`). |
-| 9 | 2026-10-07 | Write prompt (German and French): the word list of version 8 removed; the template is the text of version 7 again, so the rendered prompt is the same as before the vocabulary. The writer gets no vocabulary of office words (it primed the 8B); the office words are handled after writing, by LEX-07 and the vocabulary round. One switch, `USE_VOCABULARY`, for the vocabulary's other uses, the vocabulary round included. |
+| 9 | 2026-10-07 | Write prompt (German and French): the word list of version 8 removed; the template is the text of version 7 again, so the rendered prompt is the same as before the vocabulary. The writer gets no vocabulary of office words (it primed the 8B); the office words are handled after writing, by LEX-07 and the vocabulary round. One switch, `pipeline.vocabulary`, for the vocabulary's other uses, the vocabulary round included. |
 | 9 | 2026-10-08 | No template change. Code: the copy guard renders the write and repair prompts with the style guide of both levels, so the guide's lines (without their list marker) and its example values (`044 123 45 67`, `4. Februar 2026`) count as the prompt's own text; a decision-mode draft on the 8B had carried the style guide as a section of the draft (7 October). The value kind `phone` takes the ten-digit service numbers in both groupings (`0800 33 66 55`, `0848 35 45 55`), which were four plain numbers before, so FACT-01, FACT-06 and the hard-fact metric see the emergency pages' hotlines; SOURCE and REF recomputed. |
 | 9 | 2026-10-08 | Decision partial only (`decision.md`, German and French; no standard template and no hash changes), from the test runs of 7 October (use-case-decisions.md §7): the values of the header and the reasoning are background unless a core answer cites them; a period is copied as written, with its start, and never computed to an end date (the Understand model had written "endet am 15. November 2026"); a task stays with its owner in the fact sheet and the draft ("Die Beiständin bezahlt Ihre Rechnungen", not "Sie bezahlen"), and the judge reports a "Sie" that takes the deputy's task as SEM-03 and a computed date as SEM-10. Code the same day: `rules/decision.py` (protected parts, FACT-07, FACT-08), the judge filter for SEM-09 and SEM-10 in decision mode, the notice in the exports, the form fields. |
 | 10 | 2026-10-08 | Understand and write prompts (German and French): one more include line each, `{% if medication is defined and medication %}{% include "<lang>/medication.md" %}{% endif %}`, and the new partial `medication.md`. Code switches it on for Understand when the source has a dose or a dosing scheme (`rules/medication.py`, `has_doses`) and for Write when the fact sheet names a medication; it asks for one fact of kind `medication` per drug with the name alone as the value, and for one list item per medication with name, dose, scheme and duration. No evaluation source has a dose (checked on the 35 standard texts and the decision), so every evaluation prompt renders byte for byte as before; the template hash changes once. Code the same day: the value kind `medication` (rules/values.py), FACT-09 (a medication in one block with its dose, scheme and duration; repairable on the block that names it), medication facts first among the missing facts of a repair round, and the Mediopunkt step leaves the names alone (docs/rules.md). |
@@ -1549,7 +1551,7 @@ second. German means over the 20 eval pairs:
 | 10 | 2026-10-08 | No template change. Code, from the example jobs: a block without a source sentence takes those of the facts it names, else the one it says in other words (`stages.wording_source`), and a sentence id the source does not have is dropped (FACT-03, and the judge sees the sentence); a hard term of the model that the source does not contain leaves the fact sheet (`stages.in_source`; the Understand example's office for 6 documents); the examples' office (`Einwohnerkontrolle`, `contrôle des habitants`) is a topic word of the copy guard. P2 on the 12 dev pairs on CSCS, the committed code (`eval/results-cscs-ab-before`) against these changes on the same cache (`eval/results-cscs-prov-after`): five pairs identical; fact coverage 76 to 81 percent, hard facts kept 69 to 76, must-keep values missing 43 to 33 in all, rule errors 2.7 to 2.3 per 100 blocks, unsupported 5.3 to 6.2, invented values 0.64 to 0.85. Of the seven changed pairs three ended better (be-tax-extension-fr, fact coverage 13 to 94 percent after the copied term "case number" left its fact sheet), two worse (sg-el-costs-de lost three values after the copy guard sent back an Understand answer with the office; bwl-emergency-supplies-fr gained an invented period), two mixed: too few pairs to separate the changes from the 8B's noise. |
 | 11 | 2026-10-09 | New template `recover.md` (German and French), used only by the review page's "Suggest a sentence" for one missing fact, never by the pipeline: no other template changes, the evaluated runs render the same prompts. It names the missing value and its source sentence, and gets only the fact's paragraph and the blocks at its place ("Recovering a missing fact" above). Labels `recover_value` and `recover_foreign` for the two checks that send an answer back. |
 | 11 | 2026-10-09 | No change to the German and French templates. English templates for German and French documents (understand, write, judge, repair and the two partials, with an English style guide and labels, behind a setting that named the stages) were built, measured on the dev pairs on CSCS and not taken ("English instructions" above): longer, less plain German in repair on equal input, Understand failing on 2 of 12 pages and dropping content, English in omission entries, and gains on facts within the noise of two German runs. Removed the same day with their tests and measurement scripts (commit `ff0544a` has them); the results are kept above. |
-| 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`MAX_POLISH_ROUNDS`, default 1): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |
+| 11 | 2026-10-10 | No template change. Code: GRAM-08 no longer flags a separable verb at the end of a verb-final clause (`wenn Sie wegziehen`, three false errors in one draft of the example rebuild; `rules/de.py`, golden negatives). The polish round after the recover round (`pipeline.polish_rounds`, default 1): the best version's repairable rule errors, or its warnings once no error is left, in one more round through the repair prompt, no fact and no judge's problem; the facts and recover rounds add the source's sentences nearly verbatim and no round saw them again. Measured on the dev pairs ("The polish round on the dev pairs" above). |
 | 12 | 2026-10-10 | Judge prompt (German and French): an unsupported verdict carries a `quote`, the words of the block the original does not cover, as they stand there, and another wording of the same statement is no problem. Code keeps a verdict only when its quote stands in a block of the draft, on that block, and files the rest under `dropped` in the judge report: the 70B had cited the prompt example's own block ids. Measured on the dev pairs ("The judge's quotes on the dev pairs" above). |
 | 13 | 2026-10-10 | Judge prompt (German and French): another spelling of the same value is no distortion (42'000 Franken for CHF 42'000.-, 4. Februar 2026 for 04.02.2026); the judge had called amounts distorted for their punctuation. Code, in the same change: a fact without a value and without values in its text is conveyed by every block that cites one of its sentences, a fact with values in its text by the blocks of its sentences that together hold all of them (`stages.link_facts`, FACT-02), and FACT-03 skips a question block. Measured on the dev pairs ("Fact links, questions and the judge's spellings on the dev pairs" above). |
 | 13 | 2026-10-10 | No template change. Code: a sentence a repair round adds after a list item, and a sentence the recover round places after one, go after the list's last item instead of between its items (`stages.apply_repairs`, `stages.add_sentences`). Found in the example letters' lists of enclosures, which the facts and recover rounds had split. Measured on the dev pairs ("Sentence placement on the dev pairs" above). |

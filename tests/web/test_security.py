@@ -31,7 +31,7 @@ from tests.web.test_web import LETTER, run_job
 
 EVIL = {"origin": "https://evil.example"}
 OWN = {"origin": "http://testserver", "sec-fetch-site": "same-origin"}
-PROXY = {"auth_proxy_header": "X-Forwarded-User", "auth_proxy_from": "10.0.0.0/8, 192.168.1.5"}
+PROXY = {"auth__proxy_header": "X-Forwarded-User", "auth__proxy_from": "10.0.0.0/8, 192.168.1.5"}
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def make_app(tmp_path, endpoint: FakeEndpoint, sleeps):
     stores: list[Store] = []
 
     def factory(client_ip: str = "testclient", **overrides) -> TestClient:
-        settings = make_settings(data_dir=tmp_path, llm_max_retries=0, **overrides)
+        settings = make_settings(data__dir=tmp_path, llm__max_retries=0, **overrides)
         llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
         store = Store(tmp_path / f"security-{len(stores)}.sqlite")
         stores.append(store)
@@ -156,7 +156,7 @@ def test_the_bounds_on_the_list_and_the_review(app_env) -> None:
 
 
 def test_a_shared_token_protects_everything_but_the_probes_and_static_files(make_app) -> None:
-    client = make_app(auth_token="s3cret")
+    client = make_app(auth__token="s3cret")
     for open_path in ("/healthz", "/readyz", "/static/app.css"):
         assert client.get(open_path).status_code == 200, open_path
     refused = client.get("/")
@@ -177,7 +177,7 @@ def test_a_shared_token_protects_everything_but_the_probes_and_static_files(make
 
 
 def test_repeated_wrong_tokens_are_slowed_down(make_app) -> None:
-    client = make_app(auth_token="s3cret")
+    client = make_app(auth__token="s3cret")
     wrong = {"Authorization": "Bearer nope"}
     for _ in range(AUTH_FAILURES_PER_MINUTE):
         assert client.get("/", headers=wrong).status_code == 401
@@ -226,25 +226,25 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
 
 
 def test_the_app_refuses_to_start_published_without_a_login() -> None:
-    with pytest.raises(ValidationError, match="AUTH_TOKEN"):
-        make_settings(bind_host="0.0.0.0")
-    with pytest.raises(ValidationError, match="AUTH_TOKEN"):
-        make_settings(bind_host="192.168.1.20")
-    with pytest.raises(ValidationError, match="AUTH_TOKEN"):
-        make_settings(bind_host="")
+    with pytest.raises(ValidationError, match="auth.token"):
+        make_settings(server__host="0.0.0.0")
+    with pytest.raises(ValidationError, match="auth.token"):
+        make_settings(server__host="192.168.1.20")
+    with pytest.raises(ValidationError, match="auth.token"):
+        make_settings(server__host="")
     with pytest.raises(ValidationError, match="not both"):
-        make_settings(auth_token="x", **PROXY)
-    with pytest.raises(ValidationError, match="AUTH_PROXY_FROM"):
-        make_settings(auth_proxy_header="X-Forwarded-User")
+        make_settings(auth__token="x", **PROXY)
+    with pytest.raises(ValidationError, match="auth.proxy_from"):
+        make_settings(auth__proxy_header="X-Forwarded-User")
     with pytest.raises(ValidationError, match="does not appear to be an IPv4 or IPv6 network"):
-        make_settings(auth_proxy_header="X-Forwarded-User", auth_proxy_from="the-proxy")
+        make_settings(auth__proxy_header="X-Forwarded-User", auth__proxy_from="the-proxy")
     for host in ("127.0.0.1", "localhost", "::1", "[::1]", "127.0.0.2"):
-        assert make_settings(bind_host=host).bound_to_loopback, host
-    assert make_settings().auth_mode == "none"
-    exposed = make_settings(bind_host="0.0.0.0", auth_token="s3cret")
-    assert exposed.auth_mode == "token" and not exposed.bound_to_loopback
-    assert make_settings(bind_host="0.0.0.0", **PROXY).auth_mode == "proxy"
-    assert make_settings(auth_token="").auth_mode == "none", "an empty token is none"
+        assert make_settings(server__host=host).server.bound_to_loopback, host
+    assert make_settings().auth.mode == "none"
+    exposed = make_settings(server__host="0.0.0.0", auth__token="s3cret")
+    assert exposed.auth.mode == "token" and not exposed.server.bound_to_loopback
+    assert make_settings(server__host="0.0.0.0", **PROXY).auth.mode == "proxy"
+    assert make_settings(auth__token="").auth.mode == "none", "an empty token is none"
 
 
 # -- 2. Rate limit -------------------------------------------------------------------------
@@ -265,7 +265,7 @@ def test_rate_limit_counts_a_sliding_minute() -> None:
 
 
 def test_writes_beyond_the_budget_are_refused(make_app) -> None:
-    client = make_app(rate_limit_per_minute=3)
+    client = make_app(server__rate_limit_per_minute=3)
     for _ in range(3):
         assert client.post("/check", data={"text": "Hallo."}).status_code != 429
     refused = client.post("/check", data={"text": "Hallo."})
@@ -274,7 +274,7 @@ def test_writes_beyond_the_budget_are_refused(make_app) -> None:
     assert int(refused.headers["retry-after"]) >= 1
     assert client.get("/").status_code == 200, "reads are never limited"
     assert client.get("/check").status_code == 200
-    unlimited = make_app(rate_limit_per_minute=0)
+    unlimited = make_app(server__rate_limit_per_minute=0)
     for _ in range(5):
         assert unlimited.post("/check", data={"text": "Hallo."}).status_code != 429
 
@@ -287,7 +287,9 @@ def test_client_address_behind_the_trusted_proxy() -> None:
         "headers": [(b"x-forwarded-for", b"198.51.100.1, 203.0.113.9")],
     }
     assert client_address(scope, direct) == "203.0.113.7", "no proxy: the header is not trusted"
-    proxied = make_settings(auth_proxy_header="X-Forwarded-User", auth_proxy_from="203.0.113.0/24")
+    proxied = make_settings(
+        auth__proxy_header="X-Forwarded-User", auth__proxy_from="203.0.113.0/24"
+    )
     assert client_address(scope, proxied) == "203.0.113.9", "the entry the proxy added"
     assert client_address({**scope, "client": ("10.0.0.1", 1)}, proxied) == "10.0.0.1"
     assert client_address({**scope, "client": None}, direct) == "unknown"

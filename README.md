@@ -29,12 +29,6 @@ tax secrecy and may not go to a chatbot on a foreign cloud: for them, the model 
 run where the organisation controls it, and **Apertus fits best**
 ([why](#why-apertus-for-confidential-texts)).
 
-Authors: Alexander Bobrovsky (bobrovsky@seznam.cz) and Ivan Kuzmych
-(i.kuzmych@hotmail.com). Demo video: <https://youtu.be/5el7q6Xtgik>. Maturity: a
-deployable prototype for German and French drafts of public texts and letters, a proof
-of concept for decisions. Built with AI coding assistants (Claude Code), directed and
-reviewed by the authors.
-
 > The language model does everything that needs language understanding. Plain code
 > does everything that can be counted.
 
@@ -125,17 +119,19 @@ leichtfacile setup            # the endpoint, the key and the model; then the la
 leichtfacile serve            # starts the app and opens http://127.0.0.1:8000
 ```
 
-`setup` writes the user's config file (`.env` in the current folder and the environment
-override it) and offers the spaCy models for German and French, about 90 MB from
-GitHub (`leichtfacile models` gets them later). A checkout for development, the command line alone, a server for an
-organisation, an offline install, running a model yourself, reaching the app from
-other machines and what to do when it does not start: [quickstart.md](docs/quickstart.md).
+`setup` saves the endpoint in the user's config file, a TOML file with a section per
+topic, and offers the spaCy models for German and French, about 90 MB from GitHub
+(`leichtfacile models` gets them later). `leichtfacile config show` lists every setting
+and where it comes from; [configuration.md](docs/configuration.md) explains them. A
+checkout for development, the command line alone, a server for an organisation, an
+offline install, running a model yourself, reaching the app from other machines and
+what to do when it does not start: [quickstart.md](docs/quickstart.md).
 
 Model tiers with Apertus: by default the 8B reads, writes and repairs, and the 70B
-judges (when the endpoint serves it; otherwise `LLM_NAME` judges).
-`LLM_NAME=swiss-ai/Apertus-v1.5-70B` runs every stage on the 70B;
-`LLM_UNDERSTAND_NAME=swiss-ai/Apertus-v1.5-70B` lets the 70B read (the fact sheet) and
-the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
+judges (when the endpoint serves it; otherwise the writer judges).
+`models = { writer = "swiss-ai/Apertus-v1.5-70B" }` runs every stage on the 70B;
+`models = { understand = "swiss-ai/Apertus-v1.5-70B" }` lets the 70B read (the fact
+sheet) and the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
 
 ### Your first draft
 
@@ -173,12 +169,12 @@ without storing it.
 
 | Where the model runs | How |
 |----------------------|-----|
-| a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point `LLM_BASE_URL` at it |
+| a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point the endpoint's `url` at it |
 | b) Air-gapped | As (a), and the app installed offline from a folder of wheels collected on a connected machine, the spaCy models unpacked from the same folder ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
-| c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
+| c) Sovereign Swiss cloud | Point the endpoint's `url` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
 
 Documents and review records stay in a SQLite database in a folder the organisation
-controls (`DATA_DIR`). At runtime the app contacts only the model endpoint, and a web
+controls (`data.dir`). At runtime the app contacts only the model endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider
 ([architecture.md](docs/architecture.md) §10). Which texts need this, and why Apertus
 fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidential-texts).
@@ -186,6 +182,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 ## Documentation
 
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model endpoints, servers, offline installs, development
+- [configuration.md](docs/configuration.md): the settings, the saved endpoints and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [rules.md](docs/rules.md): the rule catalogue the checker implements

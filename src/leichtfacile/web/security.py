@@ -10,21 +10,21 @@ sees a request first and a response last):
    `Permissions-Policy`. The API documentation pages load Swagger UI from a CDN with
    inline scripts and get the headers without the policy. HTTPS and its
    `Strict-Transport-Security` belong to the reverse proxy that ends TLS.
-2. `RateLimitGuard`: at most `RATE_LIMIT_PER_MINUTE` writes (POST, PUT, PATCH, DELETE:
+2. `RateLimitGuard`: at most `server.rate_limit_per_minute` writes (POST, PUT, PATCH, DELETE:
    submissions, model calls, saves, deletions) per client address in any minute, 429
    with `Retry-After` beyond; reads are never limited. In memory, per process.
-3. `Authentication`, off unless configured (`Settings.auth_mode`):
-   - `token`: `AUTH_TOKEN` is a shared secret. Browsers are asked for it with HTTP
+3. `Authentication`, off unless configured (`settings.auth.mode`):
+   - `token`: `auth.token` is a shared secret. Browsers are asked for it with HTTP
      Basic (any user name, the token as the password); scripts send
      `Authorization: Bearer <token>`. Compared in constant time; a client with
      `AUTH_FAILURES_PER_MINUTE` wrong tries in a minute gets 429.
    - `proxy`: the reverse proxy logs the user in and names them in the header
-     `AUTH_PROXY_HEADER` (`X-Forwarded-User`, `Remote-User`). The header is trusted
-     only from the proxy's addresses (`AUTH_PROXY_FROM`); a request from elsewhere is
+     `auth.proxy_header` (`X-Forwarded-User`, `Remote-User`). The header is trusted
+     only from the proxy's addresses (`auth.proxy_from`); a request from elsewhere is
      403, one without the header 401. The user lands in `request.state.user`.
    The probes `/healthz` and `/readyz` and the static files need no login.
    `Settings` refuses to start the app published beyond the loopback interface
-   (`BIND_HOST`) without one of the two.
+   (`server.host`) without one of the two.
 4. `CrossSiteGuard`: a state-changing request from a page on another site is refused
    with 403 (cross-site request forgery), see its docstring.
 5. `BodyLimit`: a request body over `MAX_BODY_BYTES` is refused with 413, by its
@@ -200,7 +200,7 @@ def client_address(scope: Scope, settings: Settings) -> str:
     trusted reverse proxy, the one the proxy appended to `X-Forwarded-For`."""
     client = scope.get("client")
     peer = client[0] if client else "unknown"
-    if settings.auth_proxy_header and _in_networks(peer, settings.proxy_networks):
+    if settings.auth.proxy_header and _in_networks(peer, settings.auth.proxy_networks):
         forwarded = Headers(scope=scope).get("x-forwarded-for", "")
         if forwarded.strip():
             return forwarded.rsplit(",", 1)[-1].strip() or peer
@@ -213,7 +213,7 @@ class RateLimitGuard:
     def __init__(self, app: ASGIApp, settings: Settings) -> None:
         self.app = app
         self.settings = settings
-        self.limit = RateLimit(settings.rate_limit_per_minute)
+        self.limit = RateLimit(settings.server.rate_limit_per_minute)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http" and scope["method"] in UNSAFE_METHODS:
@@ -257,7 +257,7 @@ class Authentication:
     def __init__(self, app: ASGIApp, settings: Settings) -> None:
         self.app = app
         self.settings = settings
-        self.mode = settings.auth_mode
+        self.mode = settings.auth.mode
         self.failures = RateLimit(AUTH_FAILURES_PER_MINUTE)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -266,7 +266,7 @@ class Authentication:
             return
         headers = Headers(scope=scope)
         if self.mode == "token":
-            if token_matches(headers.get("authorization"), self.settings.auth_token_value):
+            if token_matches(headers.get("authorization"), self.settings.auth.token_value):
                 await self.app(scope, receive, send)
                 return
             wait = self.failures.take(client_address(scope, self.settings))
@@ -282,10 +282,10 @@ class Authentication:
         # proxy: the connection must come from the proxy, and the proxy must name the user
         client = scope.get("client")
         peer = client[0] if client else ""
-        if not _in_networks(peer, self.settings.proxy_networks):
+        if not _in_networks(peer, self.settings.auth.proxy_networks):
             await _refuse(scope, receive, send, 403, "not from the trusted reverse proxy")
             return
-        user = (headers.get(self.settings.auth_proxy_header or "") or "").strip()
+        user = (headers.get(self.settings.auth.proxy_header or "") or "").strip()
         if not user:
             await _refuse(scope, receive, send, 401, "the reverse proxy sent no user")
             return

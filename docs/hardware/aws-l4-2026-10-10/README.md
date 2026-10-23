@@ -17,7 +17,7 @@ README and in docs/architecture.md rest on.
 | vLLM | `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64`, digest `sha256:d85533f251c8272218ae2e519510836376e5a335b44f2204f193018e37753bc6`, vLLM 0.23.1rc1.dev1029+ga601a9d99 |
 | Model | `swiss-ai/Apertus-v1.5-8B`, revision `a411d838600baf0e3635a3daf66fb7c55fc97bb6`: bf16 with the image encoder, 17.2 GiB on disk (18.4 GB) |
 | Server flags | docker-compose.yml of 6936d05 plus `--kv-cache-dtype=fp8` and `--max-num-seqs=16` (`docker-compose.override.yml` here); both are defaults in docker-compose.yml since this run |
-| App | Profile B of `.env.example`: `LLM_BASE_URL=http://vllm:8000/v1`, the 8B writes and judges, `LLM_THINKING_MODE=chat-template`, `LLM_CACHE=0` |
+| App | Profile B of the example settings at 6936d05: `llm.url = "http://vllm:8000/v1"`, the 8B writes and judges, `llm.thinking = "chat-template"`, `llm.cache = false` |
 
 The machine started as plain Ubuntu. The driver came from `ubuntu-drivers install
 --gpgpu nvidia:595-server-open` with `nvidia-utils-595-server`, Docker from Docker's apt
@@ -63,7 +63,7 @@ had started. One job at a time, nothing else on the GPU.
 
 | | Job 1: thinking in Understand and Judge | Job 2: thinking only in Understand |
 |---|---|---|
-| Setting | Profile B as in `.env.example` | Plus `LLM_THINKING_STAGES=understand` |
+| Setting | Profile B as above | Plus `llm.thinking_stages = ["understand"]` |
 | Job id | `36c565d96a6a` | `a516c6801eb6` |
 | From submission to review | 3,794 s (63.2 min) | 1,323 s (22.1 min) |
 | Model calls | 15, together 3,790 s | 12, together 1,320 s |
@@ -122,7 +122,7 @@ Hugging Face once and give the server `HF_TOKEN`). Then:
 ```
 leichtfacile setup --preset local --base-url http://127.0.0.1:8001/v1 --api-key local \
   --model swiss-ai/Apertus-v1.5-8B
-# then add LLM_THINKING_MODE=chat-template to the config file setup names
+leichtfacile config set endpoints.local.thinking chat-template
 leichtfacile serve --no-browser
 # in a second terminal
 curl -F file=@src/leichtfacile/letters/praemienverbilligung-brief.txt -F level=A2 \

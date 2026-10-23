@@ -29,7 +29,6 @@ dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
     "pydantic>=2.12",
-    "pydantic-settings>=2.11",
     "openai>=3.0",
     "httpx>=0.28",
     "spacy>=3.8.16,<3.9",
@@ -39,6 +38,8 @@ dependencies = [
     "jinja2>=3.1.6",
     "python-multipart>=0.0.32",
     "wordfreq>=3.1.1",
+    "tomlkit>=0.13",
+    "python-dotenv>=1.1",
 ]
 
 [project.urls]

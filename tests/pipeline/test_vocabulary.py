@@ -116,7 +116,7 @@ def test_office_words_go_to_the_repair_round_only_with_the_vocabulary() -> None:
 
 @pytest.mark.parametrize("on", [True, False])
 def test_a_job_uses_the_vocabulary_unless_it_is_switched_off(store, endpoint, sleeps, on) -> None:
-    settings = make_settings(llm_max_retries=0, use_vocabulary=on, max_polish_rounds=0)
+    settings = make_settings(llm__max_retries=0, pipeline__vocabulary=on, pipeline__polish_rounds=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = new_job(store, condition="P1")
@@ -187,8 +187,8 @@ def test_the_vocabulary_round_rewrites_the_office_words_of_the_best_version(
     store, endpoint, sleeps, on
 ) -> None:
     settings = make_settings(
-        llm_judge_name="swiss-ai/Apertus-v1.5-70B", llm_max_retries=0, use_vocabulary=on,
-        max_polish_rounds=0,
+        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0, pipeline__vocabulary=on,
+        pipeline__polish_rounds=0,
     )  # fmt: skip
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     answers = [fx.UNDERSTAND, fx.WRITE, fx.JUDGE_FIRST, REPAIR_OFFICE, fx.JUDGE_SECOND]

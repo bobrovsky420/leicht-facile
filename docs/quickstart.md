@@ -25,79 +25,77 @@ example letters shipped with the package as one-click fills.
 
 ## The model endpoint
 
-Three settings are required: `LLM_BASE_URL` (the endpoint's address, for most servers
-ending in `/v1`), `LLM_API_KEY` and `LLM_NAME` (the model that reads, writes and
-repairs). `leichtfacile setup` asks for them and writes the user's config file. It asks
-which endpoint to use, its address and the API key (hidden input), lists the endpoint's
-models (`GET /models`) and asks for the model and an optional judge model.
+The app needs one thing it has no default for: the model endpoint, with its address, its
+key and the model that reads, writes and repairs. `leichtfacile setup` asks which
+endpoint to use, its address, a name for it and the API key (hidden input), lists the
+endpoint's models (`GET /models`) and asks for the model and an optional judge model. It
+saves the endpoint as `[endpoints.<name>]` in the user's config file, its key in the
+`.env` next to that file, and uses it. Run it again to save another endpoint;
+`leichtfacile endpoint use <name>` switches between them.
 
 | Preset | Endpoint | Notes |
 |--------|----------|-------|
-| `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key. Also writes `LLM_THINKING_MODE=model-suffix` (thinking models are separate names ending in `-thinking`) and `LLM_MAX_RETRIES=8` (CSCS closes about one long thinking stream in four midway, and the client retries) |
-| `publicai` | Apertus on the Public AI gateway | Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. Also writes `LLM_THINKING_MODE=chat-template` and `LLM_EXTRA_BODY={"cache": {"no-cache": true}}` (the gateway's cache ignores the thinking switch) |
+| `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key. Thinking models are separate names ending in `-thinking` |
+| `publicai` | Apertus on the Public AI gateway | Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The preset turns the gateway's response cache off, which ignores the thinking switch |
 | `local` | A server of your own: llama.cpp (port 8080), Ollama (port 11434), vLLM | Takes any key; [Running a model yourself](#running-a-model-yourself) |
 | `openai`, `mistral` | OpenAI, Mistral AI | Check where the provider processes the text before sending anything confidential |
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
 
-Flags answer the questions in advance: `--preset`, `--base-url`, `--api-key`, `--model`,
-`--judge`, `--force` to replace an existing config file, and `--no-models` to leave the
-spaCy models for later (`leichtfacile models`). With the address, the key
-and the model given, setup asks nothing, so it runs from a script. `--api-key` ends up in
-the shell history; leave it out to be asked.
+Flags answer the questions in advance: `--preset`, `--name`, `--base-url`, `--api-key`,
+`--api-key-env` (a variable that holds the key), `--model`, `--judge`, `--force` to
+update an endpoint saved already, and `--no-models` to leave the spaCy models for later
+(`leichtfacile models`). With the address, the key and the model given or known from the
+preset, setup asks nothing, so it runs from a script. `--api-key` ends up in the shell
+history; leave it out to be asked.
 
 ```bash
-leichtfacile setup --preset cscs     # asks for the key, the model and the judge
+leichtfacile setup --preset cscs     # asks for the key; the rest comes from the preset
 leichtfacile check-llm               # lists the endpoint's models and makes one short call
+leichtfacile config show             # every setting, its value and where it comes from
 ```
 
-[.env.example](../.env.example) lists every setting with its default and the reasons
-behind the endpoint settings, including the Hugging Face router (development only: it
-serves Apertus 1, not 1.5).
+### The settings
 
-### Where the settings come from
+[configuration.md](configuration.md) explains the config file, the saved endpoints and
+their presets, the keys, the commands that change settings (`leichtfacile config set`,
+`leichtfacile config edit`) and every setting with its default. In short: the user's
+config file is a TOML file with a section per topic; a `leichtfacile.toml` in the current
+folder overrides it, `LEICHTFACILE_<SECTION>__<KEY>` variables override both, and the
+command line (`--endpoint`, `serve --host`, `serve --port`) overrides everything. A
+`.env` holds keys only. The data (the database `leichtfacile.sqlite`, the caches and the
+spaCy models in `models/`) lives in `data.dir`:
 
-Each source overrides the one before:
-
-1. the user's config file, written by `leichtfacile setup`;
-2. `.env` in the current folder;
-3. the environment.
-
-The config file is the path in `LEICHTFACILE_CONFIG` when that is set in the
-environment, else as below. It is a plain `KEY=value` file, readable by its owner only
-where the system supports it (the key is in it); edit it or run `leichtfacile setup`
-again. The data (the database `leichtfacile.sqlite`, the caches and the spaCy models in
-`models/`) lives in `DATA_DIR`:
-
-| System | Config file | `DATA_DIR` by default |
+| System | Config file | `data.dir` by default |
 |--------|-------------|-----------------------|
-| Windows | `%APPDATA%\leichtfacile\config.env` | `%LOCALAPPDATA%\leichtfacile` |
-| macOS | `~/Library/Application Support/leichtfacile/config.env` | `~/Library/Application Support/leichtfacile` |
-| Linux and others | `$XDG_CONFIG_HOME/leichtfacile/config.env`, else `~/.config/leichtfacile/config.env` | `$XDG_DATA_HOME/leichtfacile`, else `~/.local/share/leichtfacile` |
+| Windows | `%APPDATA%\leichtfacile\config.toml` | `%LOCALAPPDATA%\leichtfacile` |
+| macOS | `~/Library/Application Support/leichtfacile/config.toml` | `~/Library/Application Support/leichtfacile` |
+| Linux and others | `$XDG_CONFIG_HOME/leichtfacile/config.toml`, else `~/.config/leichtfacile/config.toml` | `$XDG_DATA_HOME/leichtfacile`, else `~/.local/share/leichtfacile` |
 
-`EXAMPLES_DIR` points the New draft form at another folder of letters (`.txt` or `.md`,
-each with an optional `.json` of job settings next to it); by default it offers the
-letters in `src/leichtfacile/letters/`: the premium-reduction letter in German and in
+`data.examples_dir` points the New draft form at another folder of letters (`.txt` or
+`.md`, each with an optional `.json` of job settings next to it); by default it offers
+the letters in `src/leichtfacile/letters/`: the premium-reduction letter in German and in
 French, and a KESB decision with its decision-mode settings.
 
 ### Thinking
 
-Thinking is off by default (`LLM_THINKING_MODE=off`), since every endpoint switches it its
-own way:
+Thinking is off by default (`thinking = "off"`), since every endpoint switches it its own
+way:
 
-- `model-suffix`: the thinking model is a separate model named `<name>-thinking`
+- `model-suffix`: the thinking model is a separate model named `<model>-thinking`
   (Apertus on CSCS);
 - `chat-template`: the request switches it through the chat template (vLLM, llama.cpp).
 
-It applies to the stages in `LLM_THINKING_STAGES` (default `understand,judge`). The
-`cscs` and `publicai` presets write the mode; for a server of your own, add
-`LLM_THINKING_MODE=chat-template` to the config file. `leichtfacile check-llm --thinking`
-makes its test call with thinking and says whether reasoning came back.
+It applies to the stages in `thinking_stages` (default `["understand", "judge"]`). The
+`cscs` and `publicai` presets set the mode; for a server of your own, set it on its
+endpoint: `leichtfacile config set endpoints.<name>.thinking chat-template`.
+`leichtfacile check-llm --thinking` makes its test call with thinking and says whether
+reasoning came back.
 
 ### The judge
 
-The judge grades the drafts. Its model is `LLM_JUDGE_NAME` when set; else the 70B of an
-Apertus 8B writer when the endpoint lists it (the setup the evaluation measured); else the
-writer's model, as on a server with one model. `/readyz` names the judge model in use.
+The judge grades the drafts. Its model is `models.judge` when set; else the 70B of an
+Apertus 8B writer when the endpoint lists it (the setup the evaluation measured); else
+the writer's model, as on a server with one model. `/readyz` names the judge model in use.
 
 ## 1. Install and run
 
@@ -123,16 +121,17 @@ leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 
 - `setup` ends by offering the spaCy models the rule checker parses German and French
   with: about 90 MB from spaCy's releases on GitHub, checked against pinned SHA-256
-  hashes and unpacked into `DATA_DIR/models` (they are not on PyPI, so the package
+  hashes and unpacked into `models/` in `data.dir` (they are not on PyPI, so the package
   cannot bring them). `leichtfacile models` gets them at any time; `setup --no-models`
   skips them. Without them `serve`, `check` and `simplify` stop with a hint instead of
   checking less.
 - `serve` opens the default browser once `/healthz` answers, but only when the app runs on
   this machine (`--host` 127.0.0.1, localhost or ::1) and, on Linux, only with a desktop
   (`DISPLAY` or `WAYLAND_DISPLAY`). `--no-browser` leaves it closed.
-- `--port 8001` picks another port; `--host` publishes the app beyond this machine and
-  needs a login ([Reaching the app from other machines](#reaching-the-app-from-other-machines)).
-- Ctrl+C stops the server; the jobs stay in `DATA_DIR`.
+- `--port 8001` picks another port (`leichtfacile config set server.port 8001` keeps it);
+  `--host` publishes the app beyond this machine and needs a login
+  ([Reaching the app from other machines](#reaching-the-app-from-other-machines)).
+- Ctrl+C stops the server; the jobs stay in `data.dir`.
 - `leichtfacile --help` lists the commands, `leichtfacile <command> --help` their options;
   `python -m leichtfacile` does the same as `leichtfacile`.
 - `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
@@ -147,14 +146,15 @@ or newer works), the dependencies and the spaCy models from `uv.lock`.
 git clone https://github.com/bobrovsky420/leicht-facile.git
 cd leicht-facile
 uv sync                         # once, and after every dependency change
-uv run leichtfacile setup       # or: cp .env.example .env and fill it in
+uv run leichtfacile setup       # or a leichtfacile.toml in the checkout, see below
 uv run leichtfacile serve
 ```
 
-- A `.env` in the checkout overrides the user's config file there, for example to try
-  another endpoint. `DATA_DIR=data` in it keeps the database and the caches in the
-  repository's `data/`, where git ignores them (the evaluation's page cache lives in
-  `data/cache/`).
+- A `leichtfacile.toml` in the checkout (git ignores it) overrides the user's config file
+  there, for example to try another endpoint. `[data] dir = "data"` in it keeps the
+  database and the caches in the repository's `data/`, where git ignores them (the
+  evaluation's page cache lives in `data/cache/`). The keys go into the checkout's
+  `.env` ([configuration.md](configuration.md#in-a-checkout)).
 - With live reload while editing code (`--no-access-log`: the app writes its own access
   line, with the request id and without the query string):
 
@@ -162,22 +162,42 @@ uv run leichtfacile serve
   uv run uvicorn leichtfacile.web.app:create_app --factory --reload --no-access-log
   ```
 
-The Makefile has the development tasks; the app itself needs no make.
+The development tasks run with uv:
 
-| Target | Does |
-|--------|------|
-| `make test` | the test suite |
-| `make lint`, `make format` | ruff checks; ruff fixes and formats |
-| `make check-llm` | `leichtfacile check-llm` |
-| `make smoke` | the German example letter through the whole pipeline against the live endpoint; the artifacts land in `out/smoke` |
-| `make calibrate` | the rule checker on the official easy-language pages, no model |
-| `make eval` | conditions P0, P0-ZH, P1 and P2 on the held-out pairs, then the report tables; `RESULTS=eval/results-<endpoint>` keeps one endpoint's results together |
-| `make eval-70b` | P2 with the 70B writer and with the hybrid (the 70B reads, the 8B writes) |
+| Command | Does |
+|---------|------|
+| `uv run pytest` | the test suite |
+| `uv run ruff check .`, `uv run ruff format --check .` | the checks CI runs; `uv run ruff format .` and `uv run ruff check --fix .` fix what they can |
+| `uv run leichtfacile check-llm` | lists the endpoint's models and makes one short call |
+| `uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke` | the smoke run: the German example letter through the whole pipeline against the live endpoint; it succeeds when the job reaches review |
+| `uv run python scripts/config_reference.py` | writes the settings reference in [configuration.md](configuration.md#reference) again after a change of the settings |
 
-On Windows, make needs a POSIX shell: the Makefile uses `sh.exe` from Git for Windows
-(`C:/Program Files/Git/usr/bin`; `make test GIT_SH_DIR=...` if Git lives elsewhere).
-`uv run leichtfacile eval --help` lists the evaluation's commands
-([docs/evaluation.md](evaluation.md)).
+### The evaluation
+
+The evaluation runs the conditions on the held-out pairs and writes the tables of
+[evaluation.md](evaluation.md). `--results` keeps one endpoint's results together
+(`eval/results-cscs` for the reported numbers); `--cache` reuses the cached answers, so
+an interrupted run resumes cheaply. `uv run leichtfacile eval --help` lists every
+evaluation command.
+
+```bash
+# the pairs, and the rule checker on the official easy-language pages (no model)
+uv run leichtfacile eval fetch --role all
+uv run leichtfacile eval calibrate --role all --lang de
+uv run leichtfacile eval calibrate --role all --lang fr
+# the originals and the official versions, P0, P0-ZH (the Canton of Zurich's prompt,
+# German only), P1 and P2, then the tables
+uv run leichtfacile eval reference --role all --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P0 --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P0-ZH-complete --lang de --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P0-ZH-condensed --lang de --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P1 --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P2 --results eval/results-cscs
+uv run leichtfacile eval report --results eval/results-cscs --out docs/evaluation.md
+# the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
+uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
+uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
+```
 
 ## 3. Command line only
 
@@ -213,7 +233,7 @@ system, in one of two ways:
 
 - behind a reverse proxy (recommended): `leichtfacile serve --no-browser` on 127.0.0.1;
   the proxy ends TLS and logs the users in;
-- directly: `leichtfacile serve --host 0.0.0.0 --no-browser` with `AUTH_TOKEN` set.
+- directly: `leichtfacile serve --host 0.0.0.0 --no-browser` with a token (`auth.token`).
 
 [Reaching the app from other machines](#reaching-the-app-from-other-machines) explains
 both logins. On Linux with systemd, with a dedicated user, the program in
@@ -225,11 +245,12 @@ both logins. On Linux with systemd, with a dedicated user, the program in
 sudo useradd --system --home-dir /var/lib/leichtfacile --shell /usr/sbin/nologin leichtfacile
 sudo python3 -m venv /opt/leichtfacile
 sudo /opt/leichtfacile/bin/pip install leichtfacile
-sudo mkdir -p /etc/leichtfacile
-sudo env LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env /opt/leichtfacile/bin/leichtfacile setup --no-models
-sudo chown leichtfacile /etc/leichtfacile/config.env
+CONFIG="--config /etc/leichtfacile/config.toml"
+sudo /opt/leichtfacile/bin/leichtfacile $CONFIG setup --no-models
+sudo /opt/leichtfacile/bin/leichtfacile $CONFIG config set data.dir /var/lib/leichtfacile
+sudo chown -R leichtfacile /etc/leichtfacile
 sudo install -d -o leichtfacile /var/lib/leichtfacile
-sudo -u leichtfacile env DATA_DIR=/var/lib/leichtfacile /opt/leichtfacile/bin/leichtfacile models
+sudo -u leichtfacile /opt/leichtfacile/bin/leichtfacile $CONFIG models
 ```
 
 `/etc/systemd/system/leichtfacile.service`:
@@ -243,8 +264,7 @@ Wants=network-online.target
 [Service]
 User=leichtfacile
 StateDirectory=leichtfacile
-Environment=DATA_DIR=/var/lib/leichtfacile
-Environment=LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env
+Environment=LEICHTFACILE_CONFIG=/etc/leichtfacile/config.toml
 ExecStart=/opt/leichtfacile/bin/leichtfacile serve --no-browser
 Restart=on-failure
 
@@ -259,16 +279,18 @@ journalctl -u leichtfacile -f              # the log
 curl http://127.0.0.1:8000/readyz          # "ok" once the endpoint answers
 ```
 
+- `setup` writes the endpoint into `/etc/leichtfacile/config.toml` and its key into
+  `/etc/leichtfacile/.env`, both readable by the service's user alone after the `chown`.
 - `StateDirectory` keeps `/var/lib/leichtfacile` for the service's user; the models are
-  in its `models/` folder, so `leichtfacile models` runs as that user with that
-  `DATA_DIR`.
-- The app reads the config file itself through `LEICHTFACILE_CONFIG`; `Environment=` lines
-  or an `EnvironmentFile=` override it.
-- For the direct way, add `--host 0.0.0.0` to `ExecStart` and `AUTH_TOKEN=<secret>` to the
-  config file.
-- `DATA_RETENTION_DAYS` deletes jobs after so many days, `LOG_FORMAT=json` writes one JSON
-  object per line for a log collector, and `JOB_WORKERS` runs jobs side by side when the
-  endpoint serves parallel requests ([.env.example](../.env.example)).
+  in its `models/` folder, so `leichtfacile models` runs as that user.
+- The app reads the config file itself through `LEICHTFACILE_CONFIG`;
+  `Environment=LEICHTFACILE_<SECTION>__<KEY>=...` lines override single settings.
+- For the direct way, put a secret into `/etc/leichtfacile/.env`
+  (`LEICHTFACILE_TOKEN=<secret>`), then `config set auth.token_env LEICHTFACILE_TOKEN` and
+  `config set server.host 0.0.0.0` (with `$CONFIG`, as above).
+- `data.retention_days` deletes jobs after so many days, `log.format = "json"` writes one
+  JSON object per line for a log collector, and `jobs.workers` runs jobs side by side when
+  the endpoint serves parallel requests ([configuration.md](configuration.md#reference)).
 
 ## 5. Offline install (air-gapped)
 
@@ -293,8 +315,8 @@ python3 -m venv /opt/leichtfacile
 ```
 
 `models --from` checks the two models' SHA-256 as the download does and unpacks them
-into `DATA_DIR/models`; on a server, run it as the service's user with its `DATA_DIR`
-(way 4).
+into `models/` in `data.dir`; on a server, run it as the service's user with its config
+file (way 4).
 
 The model server runs inside the network too, with its weights carried over the same way
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
@@ -302,7 +324,7 @@ it with `leichtfacile setup --preset local` and run it as in way 4.
 
 ## Running a model yourself
 
-Running a model is outside the app: start a model server and point `LLM_BASE_URL` at it
+Running a model is outside the app: start a model server and save it as an endpoint
 (`leichtfacile setup --preset local`). Two setups are known to work.
 
 ### Apertus 1.5 8B on vLLM, one 24 GB GPU
@@ -313,19 +335,20 @@ shows the commands used, the memory and the timings. On a 24 GB card the server 
 `--kv-cache-dtype=fp8` and `--max-num-seqs=16` next to `--max-model-len=32768`: the stages
 ask for up to 16,000 output tokens on top of the prompt. The weights are gated: accept
 their terms on Hugging Face once and give the server a token (`HF_TOKEN`). The app's
-settings:
+endpoint, in the config file:
 
-```bash
-LLM_BASE_URL=http://<model server>:8000/v1
-LLM_API_KEY=local                  # any value, unless the server was started with a key
-LLM_NAME=swiss-ai/Apertus-v1.5-8B
-LLM_THINKING_MODE=chat-template
+```toml
+[endpoints.vllm]
+url = "http://<model server>:8000/v1"
+api_key = "local"                  # any value, unless the server was started with a key
+thinking = "chat-template"
+models = { writer = "swiss-ai/Apertus-v1.5-8B" }
 ```
 
 - The judge is then the 8B too, the only model the server lists.
-- vLLM serves parallel requests, so `JOB_WORKERS=2` or more runs jobs side by side.
+- vLLM serves parallel requests, so `[jobs] workers = 2` or more runs jobs side by side.
 - On the L4 one letter took 63 minutes with the default thinking stages and 22 minutes
-  with `LLM_THINKING_STAGES=understand`.
+  with `thinking_stages = ["understand"]`.
 - vLLM listens on port 8000 by default, as the app does: on one machine, start one of
   them on another port.
 
@@ -347,14 +370,9 @@ machine only; `--host 0.0.0.0` opens it to an app on another machine, and to any
 unless it is started with `--api-key`. Then:
 
 ```bash
-leichtfacile setup --preset local --base-url http://127.0.0.1:8080/v1 --api-key local --model apertus-v1.5-8b-q4-llamacpp
-```
-
-and add to the config file:
-
-```bash
-LLM_THINKING_MODE=chat-template
-LLM_TIMEOUT_S=1800                 # thinking calls take minutes on a small GPU
+leichtfacile setup --preset local --name laptop --model apertus-v1.5-8b-q4-llamacpp
+leichtfacile config set endpoints.laptop.thinking chat-template
+leichtfacile config set endpoints.laptop.timeout_s 1800    # thinking takes minutes on a small GPU
 ```
 
 ### Other models
@@ -370,19 +388,21 @@ other address, it needs one of two logins and refuses to start without one.
 
 - **Behind a reverse proxy (recommended).** Keep `--host 127.0.0.1` (the default) and let
   the proxy end TLS, log the users in and publish the app. Optionally trust its user
-  header: `AUTH_PROXY_HEADER=X-Forwarded-User` (or `Remote-User`) with `AUTH_PROXY_FROM`,
-  the proxy's addresses or networks, comma-separated (`127.0.0.1` for a proxy on the same
-  machine). A request from elsewhere is refused (403), one without the header is not
+  header: `auth.proxy_header = "X-Forwarded-User"` (or `Remote-User`) with
+  `auth.proxy_from`, the proxy's addresses or networks (`["127.0.0.1"]` for a proxy on the
+  same machine). A request from elsewhere is refused (403), one without the header is not
   logged in (401). With the proxy on another machine, `--host` names an address the proxy
   reaches, and the header counts as the login.
-- **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with
-  `AUTH_TOKEN=<secret>` in the config file, `.env` or the environment. Browsers ask for it
+- **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with a token:
+  `auth.token = "<secret>"` in the config file, or `auth.token_env` naming a variable that
+  holds it, in the environment or a `.env` ([configuration.md](configuration.md#keys)).
+  Browsers ask for it
   (HTTP Basic: any user name, the token as the password); scripts send
   `Authorization: Bearer <secret>`. Without TLS the token crosses the network readable, so
   use this inside a trusted network. A secret:
   `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
 
-`AUTH_TOKEN` and `AUTH_PROXY_HEADER` exclude each other. `/healthz`, `/readyz` and the
+`auth.token` and `auth.proxy_header` exclude each other. `/healthz`, `/readyz` and the
 static files need no login. Details:
 [docs/architecture.md §10](architecture.md#10-deployment-and-sovereignty).
 
@@ -390,16 +410,18 @@ static files need no login. Details:
 
 | Message or symptom | Fix |
 |--------------------|-----|
-| `Not set: LLM_BASE_URL, ... Run leichtfacile setup, ...` | run `leichtfacile setup`, or set them in the config file, in `.env` or in the environment |
+| `No model endpoint is set up: run leichtfacile setup` | run `leichtfacile setup` |
+| `Settings are missing: - llm.api_key: the variable CSCS_API_KEY ... is not set` | put the key into the `.env` next to the config file (or the current folder's), or set the variable; `leichtfacile setup --force` asks for it again |
+| `The settings are not valid: - server.prot (...): Extra inputs are not permitted` | a misspelt key or a wrong value; the message names the file or the variable it came from |
+| `Several endpoints are saved (...) and llm.endpoint picks none` | `leichtfacile endpoint use <name>` |
 | `Missing the spaCy models ...: run leichtfacile models` | `leichtfacile models` (about 90 MB from GitHub), offline `leichtfacile models --from <folder>` (way 5) |
 | `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
-| setup says `Nothing changed (... exists; --force replaces it)` | `leichtfacile setup --force`, or edit the config file |
+| setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |
 | setup says `The endpoint's model list could not be read` | the address or the key is wrong, or the server is not running; setup still asks for the model, and `leichtfacile check-llm` checks again later |
-| settings seem to be ignored | a `.env` in the current folder or a variable in the environment overrides the config file |
-| `BIND_HOST='0.0.0.0' publishes the app beyond this machine` | set `AUTH_TOKEN`, or `AUTH_PROXY_HEADER` with `AUTH_PROXY_FROM`, or serve on 127.0.0.1 |
-| `AUTH_PROXY_HEADER needs AUTH_PROXY_FROM` | set the proxy's addresses or networks |
-| `set AUTH_TOKEN or AUTH_PROXY_HEADER, not both` | keep one of them |
+| settings seem to be ignored | `leichtfacile config show` names the source of each setting: a `leichtfacile.toml` in the current folder, a `LEICHTFACILE_` variable or a flag wins over the config file |
+| `server.host = '0.0.0.0' publishes the app beyond this machine` | set `auth.token` (or `auth.token_env`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1 |
+| `auth.proxy_header needs auth.proxy_from` | set the proxy's addresses or networks |
+| `set auth.token or auth.proxy_header, not both` | keep one of them |
 | the browser does not open | it opens only for an app on this machine and, on Linux, with a desktop; open <http://127.0.0.1:8000> yourself |
-| `/readyz` says `degraded` | the endpoint is unreachable or does not list `LLM_NAME` or the judge's model; `leichtfacile check-llm` shows why. Review, export and Check my text still work |
+| `/readyz` says `degraded` | the endpoint is unreachable or does not list the writer's or the judge's model; `leichtfacile check-llm` shows why. Review, export and Check my text still work |
 | port 8000 in use (also by vLLM) | `leichtfacile serve --port 8001`, or move the other service |
-| make runs the recipes in `cmd.exe` (Windows) | install Git for Windows, or set `GIT_SH_DIR` |

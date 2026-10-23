@@ -2,7 +2,7 @@
 
 Results go to eval/results/ (git-ignored: they contain model rewrites of protected
 pages). Jobs and artifacts are kept in eval/results/store.sqlite for inspection, and
-the LLM cache (LLM_CACHE=1) makes reruns cheap.
+the LLM cache (llm.cache) makes reruns cheap.
 """
 
 from __future__ import annotations
@@ -102,12 +102,12 @@ def run_condition(
 ) -> Path:
     """Run one condition on every pair that has no result yet (all of them with `redo`,
     after a prompt change; the old rows are replaced). `understand` names another model
-    for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)."""
+    for the Understand stage (default: llm.models.understand, else the writer)."""
     results_dir.mkdir(parents=True, exist_ok=True)
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
-    writer_name = writer or settings.llm_name
-    reader_name = understand or settings.llm_understand_name or writer_name
+    writer_name = writer or settings.llm.models.writer
+    reader_name = understand or settings.llm.models.understand or writer_name
     if condition in BASELINE_CONDITIONS or reader_name == writer_name:
         reader_name = None  # no Understand stage, or the writer reads too
     out = results_file(results_dir, condition, writer_name, reader_name)
@@ -127,8 +127,8 @@ def run_condition(
             writer_model=writer,
             understand_model=understand,
             judge_model=judge,
-            max_repair_rounds=settings.max_repair_rounds,
-            max_facts_rounds=settings.max_facts_rounds,
+            max_repair_rounds=settings.pipeline.repair_rounds,
+            max_facts_rounds=settings.pipeline.facts_rounds,
         )
         job = store.create_job(config, title=pair.id)
         store.put_artifact(job.id, "source", standard)
@@ -212,7 +212,7 @@ def _reference_factsheet(
         return fs
     standard = store.get_artifact(job_id, "source", SourceDocument)
     fs, _ = stages.understand(
-        orch.llm, standard, level=pair.level, model=orch.settings.llm_understand_name
+        orch.llm, standard, level=pair.level, model=orch.settings.llm.models.understand
     )
     # Completed by code as in the pipeline, so a baseline scored before any P1 or P2 job
     # exists is held to the same facts as one scored after them.

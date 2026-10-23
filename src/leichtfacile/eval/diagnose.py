@@ -80,7 +80,8 @@ BUCKETS = {
 }
 REASONS_A = {
     "cap": "behind the cap of missing facts per round "
-    f"({MAX_MISSING_PER_ROUND} in a repair round, MAX_MISSING_PER_FACTS_ROUND in a facts round)",
+    f"({MAX_MISSING_PER_ROUND} in a repair round, pipeline.missing_per_facts_round in a facts "
+    "round)",
     "no_round": "no repair round ran",
     "unflagged": "never flagged by FACT-01 in the stored findings",
 }

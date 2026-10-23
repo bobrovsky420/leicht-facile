@@ -1,10 +1,11 @@
-"""Shared fixtures: settings isolated from the local .env and the user's config file,
-and a fake model endpoint."""
+"""Shared fixtures: settings isolated from the developer's own, and a fake model
+endpoint."""
 
 from __future__ import annotations
 
 import json
 import math
+import os
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
@@ -13,14 +14,26 @@ from typing import Any
 import httpx
 import pytest
 
+from leichtfacile import config
 from leichtfacile.config import Settings
 from leichtfacile.llm.client import LLMClient
 
 
 @pytest.fixture(autouse=True)
 def _no_user_config(monkeypatch, tmp_path_factory):
-    """No test reads the config file of the developer running it (`leichtfacile setup`)."""
-    monkeypatch.setenv("LEICHTFACILE_CONFIG", str(tmp_path_factory.getbasetemp() / "none.env"))
+    """No test reads the settings of the developer running it: the user's config file
+    (`leichtfacile setup`), a leichtfacile.toml or .env in the current folder, or a
+    LEICHTFACILE_ variable."""
+    none = tmp_path_factory.getbasetemp() / "none"
+    monkeypatch.setenv("LEICHTFACILE_CONFIG", str(none / "config.toml"))
+    monkeypatch.setattr(config, "PROJECT_FILE", none / "leichtfacile.toml")
+    monkeypatch.setattr(config, "LOCAL_ENV_FILE", none / ".env")
+    for name in list(os.environ):
+        if name.upper().startswith(config.ENV_PREFIX) and "__" in name:
+            monkeypatch.delenv(name)
+    config.use_overrides({})
+    yield
+    config.use_overrides({})  # the command line's, from a test that runs `main`
 
 
 BASE_URL = "http://llm.test/v1"
@@ -28,21 +41,30 @@ MODEL = "swiss-ai/Apertus-v1.5-8B"
 
 
 def make_settings(**overrides: Any) -> Settings:
-    values: dict[str, Any] = {
-        "llm_base_url": BASE_URL,
-        "llm_api_key": "test-key",
-        "llm_name": MODEL,
-        # The fake endpoint answers with plain JSON; streaming tests switch this on and
-        # push `sse_response` bodies instead.
-        "llm_stream": False,
-        # The fake endpoint plays Apertus on CSCS, which serves thinking as "-thinking"
-        # models; the default is off (config.py).
-        "llm_thinking_mode": "model-suffix",
+    """Settings for a test: the fake endpoint's, changed by keywords that name a setting
+    by its path, with two underscores (`llm__max_retries=0`, `server__host="0.0.0.0"`)."""
+    tree: dict[str, Any] = {
+        "llm": {
+            "url": BASE_URL,
+            "api_key": "test-key",
+            "models": {"writer": MODEL},
+            # The fake endpoint answers with plain JSON; streaming tests switch this on
+            # and push `sse_response` bodies instead.
+            "stream": False,
+            # The fake endpoint plays Apertus on CSCS, which serves thinking as
+            # "-thinking" models; the default is off (config.py).
+            "thinking": "model-suffix",
+        },
         # Never the repository's data/ folder: every test gets a fresh directory.
-        "data_dir": Path(tempfile.mkdtemp(prefix="leichtfacile-test-")),
+        "data": {"dir": Path(tempfile.mkdtemp(prefix="leichtfacile-test-"))},
     }
-    values.update(overrides)
-    return Settings(_env_file=None, **values)  # type: ignore[call-arg]
+    for key, value in overrides.items():
+        *heads, last = key.split("__")
+        node = tree
+        for head in heads:
+            node = node.setdefault(head, {})
+        node[last] = value
+    return Settings.model_validate(tree)
 
 
 def chat_response(

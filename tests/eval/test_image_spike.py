@@ -80,7 +80,7 @@ def test_the_spike_runs_every_page_against_the_endpoint(endpoint, sleeps) -> Non
     fr = (PRINT / "bourse-etudes-decision.txt").read_text(encoding="utf-8")
     half = len(fr) // 2
     endpoint.push(chat_response(fr[:half]), chat_response(fr[half:]), chat_response(de))
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     report = run_spike(llm, PRINT, max_side=800)
     assert [c["capture"] for c in report["captures"]] == [
         "bourse-etudes-decision_scan", "steuermahnung-brief_scan",
@@ -145,7 +145,7 @@ def test_the_spike_in_strips_joins_the_parts_in_order(endpoint, sleeps) -> None:
     chunks = ["".join(lines[i : i + step]) for i in range(0, len(lines), step)]
     assert len(chunks) == count
     endpoint.push(*(chat_response(chunk) for chunk in chunks))
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     report = run_spike(llm, PRINT, strips=True, names=["steuermahnung-brief_scan"])
     (german,) = report["captures"]
     assert [p["part"] for p in german["pages"]] == [f"strip {i}" for i in range(1, count + 1)]

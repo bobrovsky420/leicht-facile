@@ -3,7 +3,7 @@
 - the counts the drafts list shows, written to the job row when the job is created,
   when the pipeline ends and when a review is saved, so the list opens no artifact;
 - deletion, which takes the job's rows in the response cache with it;
-- the retention purge (`DATA_RETENTION_DAYS`);
+- the retention purge (`data.retention_days`);
 - the log filter that keeps a model's words out of the logs when an exception text
   carries them.
 """
@@ -73,7 +73,7 @@ def job_counts(store: Store, job: Job) -> JobCounts:
 
 def remove_job(store: Store, llm: LLMClient, job_id: str) -> bool:
     """Delete the job with its artifacts and calls, and its prompts and answers from the
-    response cache (`LLM_CACHE=1`), which carry the document. False when the job does
+    response cache (`llm.cache`), which carry the document. False when the job does
     not exist or a worker is running it."""
     keys = store.cache_keys(job_id)
     if not store.delete_job(job_id):
@@ -86,7 +86,7 @@ def remove_job(store: Store, llm: LLMClient, job_id: str) -> bool:
 def purge_expired(
     store: Store, llm: LLMClient, days: int, *, now: datetime | None = None
 ) -> list[str]:
-    """Delete every job not changed for `days` days (`DATA_RETENTION_DAYS`), with its
+    """Delete every job not changed for `days` days (`data.retention_days`), with its
     artifacts, calls and cache rows; running jobs stay. 0 days
     keeps everything. The ids deleted."""
     if days <= 0:

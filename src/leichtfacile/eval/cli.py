@@ -1,6 +1,7 @@
 """`python -m leichtfacile eval ...`: the evaluation commands.
 
-fetch, calibrate and reference need no model; run needs the endpoint in .env.
+fetch, calibrate and reference need no model; run needs a model endpoint
+(`leichtfacile setup`).
 """
 
 from __future__ import annotations
@@ -44,18 +45,22 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     run.add_argument(
         "--condition", type=canonical_condition, choices=list(CONDITIONS), required=True
     )
-    run.add_argument("--writer", help="writer model (default: LLM_NAME)")
+    run.add_argument("--writer", help="writer model (default: llm.models.writer)")
     run.add_argument(
         "--understand",
-        help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
+        help="model for the Understand stage (default: llm.models.understand, else the writer)",
     )
-    run.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
+    run.add_argument("--judge", help="judge model (default: llm.models.judge)")
     run.add_argument("--judge-all", action="store_true", help="also judge P0 and P1 outputs")
     run.add_argument("--limit", type=int, help="at most this many pairs")
     run.add_argument(
         "--redo", action="store_true", help="run pairs again even when they have a result"
     )
     run.add_argument("--results", type=Path, default=Path("eval/results"))
+    run.add_argument("--endpoint", help="a saved endpoint for this run (default: llm.endpoint)")
+    run.add_argument(
+        "--cache", action="store_true", help="reuse cached answers (llm.cache), cheap reruns"
+    )
     run.set_defaults(handler=_run)
 
     smp = evsub.add_parser("sample", help="hand-labelling sheets for the judge (no model)")
@@ -181,11 +186,11 @@ def _reference(args: argparse.Namespace) -> int:
 
 
 def _run(args: argparse.Namespace) -> int:
-    from leichtfacile.config import get_settings
+    from leichtfacile.cli import settings_or_exit
     from leichtfacile.eval.run import run_condition
     from leichtfacile.llm.client import LLMClient
 
-    settings = get_settings()
+    settings = settings_or_exit()
     pairs = _pairs(args)[: args.limit] if args.limit else _pairs(args)
     llm = LLMClient.from_settings(settings)
     path = run_condition(

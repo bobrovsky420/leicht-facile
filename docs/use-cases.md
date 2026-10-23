@@ -109,7 +109,7 @@ the organisation's own building, served by vLLM with the Swiss AI team's officia
 Apertus image, run by the team on an NVIDIA L4
 ([docs/hardware/aws-l4-2026-10-10/](hardware/aws-l4-2026-10-10/),
 [architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The model server
-runs outside the app, which reaches it at the address in `LLM_BASE_URL`. The Canton of
+runs outside the app, which reaches it at the address in `llm.url`. The Canton of
 Ticino already runs Apertus in-house to translate sensitive government documents. The
 reported numbers come from the CSCS inference API, the first endpoint
 `leichtfacile setup` offers, which serves research, not administrations.

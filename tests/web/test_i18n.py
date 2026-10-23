@@ -140,14 +140,14 @@ def test_the_language_choice() -> None:
     assert pick_language(None, "fr-CH, en;q=0.5, de;q=0.7") == "fr"
     assert pick_language(None, "it-CH, en;q=0.5, de;q=0.7") == "de"  # no Italian catalog
     assert pick_language(None, "de;q=0, en") == "en"
-    assert pick_language(None, "de-CH", default="en") == "en"  # UI_LANG beats the browser
+    assert pick_language(None, "de-CH", default="en") == "en"  # server.ui_lang beats the browser
     assert pick_language("en", "de-CH", default="de") == "en"  # the switcher beats both
     assert pick_language("xx", "de-CH") == "de"
 
 
 @pytest.fixture
 def client(tmp_path, endpoint: FakeEndpoint, sleeps):
-    settings = make_settings(data_dir=tmp_path, llm_max_retries=0)
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     store = Store(tmp_path / "i18n.sqlite")
     app = create_app(settings, llm, store)
@@ -201,7 +201,7 @@ def test_the_browser_language_applies_without_a_choice(client) -> None:
 
 
 def test_progress_and_errors_in_german(tmp_path) -> None:
-    settings = make_settings(data_dir=tmp_path)
+    settings = make_settings(data__dir=tmp_path)
     store = Store(tmp_path / "jobs.sqlite")
     job = create_job(store, settings, Submission(text=LETTER, condition="P2"))
     view = progress_view(store, job, t=Translator("de"))
@@ -254,7 +254,7 @@ def test_rule_findings_follow_the_interface_language(tmp_path) -> None:
     assert finding_text(de, legacy.model_copy(update={"message_key": "LEN-99"})) == "legacy text"
 
     # The review page builds its issues from the stored findings, in the reviewer's language.
-    settings = make_settings(data_dir=tmp_path)
+    settings = make_settings(data__dir=tmp_path)
     store = Store(tmp_path / "jobs.sqlite")
     job = create_job(store, settings, Submission(text=LETTER))
     blocks = [Block(id="b001", kind="sentence", text="Ein Satz.")]

@@ -1,6 +1,8 @@
 """Command line: `leichtfacile <command>` (or `python -m leichtfacile <command>`).
 
-- `setup`      ask for the model endpoint, write the user's config file, get the models
+- `setup`      ask for a model endpoint, save it in the config file, get the models
+- `endpoint`   list the saved endpoints, pick the one in use, remove one
+- `config`     show the settings and their sources, set, unset or edit them
 - `models`     download (or unpack) the spaCy models for German and French
 - `serve`      run the web application and open it in the browser
 - `check-llm`  list the endpoint's models and make one short call
@@ -22,8 +24,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from leichtfacile import __version__
-from leichtfacile.configure import PRESETS, run_setup
+from leichtfacile import __version__, configure
+from leichtfacile.config import PRESETS, ConfigError, use_overrides
 from leichtfacile.schemas import CONDITIONS, canonical_condition
 
 if TYPE_CHECKING:
@@ -33,18 +35,53 @@ if TYPE_CHECKING:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="leichtfacile", description=__doc__.splitlines()[0])
     parser.add_argument("--version", action="version", version=__version__)
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="the settings file (default: LEICHTFACILE_CONFIG, else the user's config.toml)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    setup = sub.add_parser("setup", help="set up the model endpoint (writes the config file)")
+    setup = sub.add_parser("setup", help="save a model endpoint in the config file and use it")
     setup.add_argument("--preset", choices=list(PRESETS), help="a known endpoint")
+    setup.add_argument("--name", help="the endpoint's name in the file (default: the preset's)")
     setup.add_argument("--base-url", help="the endpoint's address (OpenAI-compatible)")
     setup.add_argument(
-        "--api-key", help="the key; it ends up in the shell history, so leave it out to be asked"
+        "--api-key",
+        help="the key, saved in the .env next to the config file; it ends up in the shell "
+        "history, so leave it out to be asked",
     )
+    setup.add_argument("--api-key-env", help="the variable that holds the key (nothing saved)")
     setup.add_argument("--model", help="the model that reads, writes and repairs")
-    setup.add_argument("--judge", help="the judge's model (default: the same model)")
-    setup.add_argument("--force", action="store_true", help="replace an existing config file")
+    setup.add_argument("--judge", help="the judge's model")
+    setup.add_argument("--force", action="store_true", help="update an endpoint saved already")
     setup.add_argument("--no-models", action="store_true", help="do not download the spaCy models")
+
+    endpoint = sub.add_parser("endpoint", help="list the saved endpoints, pick one, remove one")
+    endpoint_sub = endpoint.add_subparsers(dest="endpoint_command", required=True)
+    endpoint_sub.add_parser("list", help="the saved endpoints, the one in use marked")
+    endpoint_use = endpoint_sub.add_parser("use", help="use this endpoint from now on")
+    endpoint_remove = endpoint_sub.add_parser("remove", help="remove a saved endpoint")
+    for p in (endpoint_use, endpoint_remove):
+        p.add_argument("name")
+        p.add_argument("--local", action="store_true", help="in ./leichtfacile.toml")
+
+    settings = sub.add_parser("config", help="show, set, unset or edit the settings")
+    settings_sub = settings.add_subparsers(dest="config_command", required=True)
+    show = settings_sub.add_parser("show", help="every setting, its value and its source")
+    show.add_argument(
+        "--defaults", action="store_true", help="every setting with its default and meaning"
+    )
+    with_endpoint(show)
+    config_path = settings_sub.add_parser("path", help="print the config file's path")
+    config_set = settings_sub.add_parser("set", help="set a setting (section.key value)")
+    config_set.add_argument("key", help="section.key, as `config show` lists them")
+    config_set.add_argument("value", help='as TOML reads it (8001, true, ["understand"]) or text')
+    config_unset = settings_sub.add_parser("unset", help="remove a setting from the file")
+    config_unset.add_argument("key")
+    config_edit = settings_sub.add_parser("edit", help="open the file in the editor")
+    for p in (config_path, config_set, config_unset, config_edit):
+        p.add_argument("--local", action="store_true", help="./leichtfacile.toml instead")
 
     models = sub.add_parser("models", help="download the spaCy models (German, French)")
     models.add_argument(
@@ -53,13 +90,15 @@ def main(argv: list[str] | None = None) -> int:
     models.add_argument("--force", action="store_true", help="replace models already there")
 
     serve = sub.add_parser("serve", help="run the web application")
-    serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--host", help="the interface (default: server.host, 127.0.0.1)")
+    serve.add_argument("--port", type=int, help="the port (default: server.port, 8000)")
     serve.add_argument("--no-browser", action="store_true", help="do not open the browser")
+    with_endpoint(serve)
 
     check_llm = sub.add_parser("check-llm", help="list models and make one short call")
-    check_llm.add_argument("--model", help="model name (default: LLM_NAME)")
+    check_llm.add_argument("--model", help="model name (default: llm.models.writer)")
     check_llm.add_argument("--thinking", action="store_true", help="use thinking mode")
+    with_endpoint(check_llm)
 
     ingest = sub.add_parser("ingest", help="print the segments of a file or URL")
     ingest.add_argument("input", help="file path or http(s) URL")
@@ -82,12 +121,12 @@ def main(argv: list[str] | None = None) -> int:
         "--condition", type=canonical_condition, choices=list(CONDITIONS), default="P2"
     )
     simplify.add_argument("--out", type=Path, default=Path("out"), help="output folder")
-    simplify.add_argument("--writer", help="writer model (default: LLM_NAME)")
+    simplify.add_argument("--writer", help="writer model (default: llm.models.writer)")
     simplify.add_argument(
         "--understand",
-        help="model for the Understand stage (default: LLM_UNDERSTAND_NAME, else the writer)",
+        help="model for the Understand stage (default: llm.models.understand, else the writer)",
     )
-    simplify.add_argument("--judge", help="judge model (default: LLM_JUDGE_NAME)")
+    simplify.add_argument("--judge", help="judge model (default: llm.models.judge)")
     simplify.add_argument("--no-judge", action="store_true", help="P2 without the judge")
     simplify.add_argument("--no-repair", action="store_true", help="P2 without repair rounds")
     simplify.add_argument(
@@ -101,28 +140,55 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument(
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )
+    with_endpoint(simplify)
 
     from leichtfacile.eval.cli import add_eval_parser
 
     add_eval_parser(sub)
 
     args = parser.parse_args(argv)
+    if args.config:
+        os.environ["LEICHTFACILE_CONFIG"] = str(args.config)
+    use_overrides({
+        "llm.endpoint": getattr(args, "endpoint", None),
+        "llm.cache": True if getattr(args, "cache", False) else None,
+        "server.host": getattr(args, "host", None),
+        "server.port": getattr(args, "port", None),
+    })  # fmt: skip
+    try:
+        return _dispatch(parser, args)
+    except ConfigError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+
+
+def with_endpoint(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--endpoint", help="a saved endpoint for this run (default: llm.endpoint)")
+
+
+def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     if args.command == "setup":
-        scripted = bool(args.base_url and args.api_key and args.model)
         try:
-            code = run_setup(preset=args.preset, base_url=args.base_url, api_key=args.api_key,
-                             model=args.model, judge=args.judge, force=args.force)  # fmt: skip
+            code = configure.run_setup(
+                preset=args.preset, name=args.name, base_url=args.base_url, api_key=args.api_key,
+                api_key_env=args.api_key_env, model=args.model, judge=args.judge, force=args.force,
+            )  # fmt: skip
             if code == 0 and not args.no_models:
+                scripted = bool(args.api_key or args.api_key_env or args.preset == "local")
                 code = offer_models(ask=None if scripted else input)
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.", file=sys.stderr)
             return 1
         return code
+    if args.command == "endpoint":
+        return _endpoint(args)
+    if args.command == "config":
+        return _config(args)
     if args.command == "models":
         return _models(args.source, force=args.force)
     if args.command == "serve":
         # the app configures its logs (logs.py)
-        return _serve(args.host, args.port, browser=not args.no_browser)
+        return _serve(browser=not args.no_browser)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     if args.command == "check-llm":
@@ -142,34 +208,55 @@ def main(argv: list[str] | None = None) -> int:
 def settings_or_exit() -> Settings:
     """The settings, or a short message instead of a traceback when they are
     incomplete or invalid."""
-    from pydantic import ValidationError
-
-    from leichtfacile.config import config_file, get_settings
+    from leichtfacile.config import get_settings
 
     try:
         return get_settings()
-    except ValidationError as exc:
-        missing = [str(e["loc"][0]).upper() for e in exc.errors() if e["type"] == "missing"]
-        if missing:
-            print(f"Not set: {', '.join(missing)}. Run `leichtfacile setup`, or set them in "
-                  f"{config_file()}, in .env or in the environment.", file=sys.stderr)  # fmt: skip
-        else:
-            print("The settings are not valid:", file=sys.stderr)
-            for error in exc.errors():
-                where = ".".join(str(part) for part in error["loc"]).upper() or "settings"
-                print(f"- {where}: {error['msg']}", file=sys.stderr)
+    except ConfigError as exc:
+        print(exc, file=sys.stderr)
         raise SystemExit(2) from None
 
 
-def _serve(host: str, port: int, *, browser: bool = True) -> int:
+def _endpoint(args: argparse.Namespace) -> int:
+    from leichtfacile.config import PROJECT_FILE, config_file
+
+    if args.endpoint_command == "list":
+        return configure.list_endpoints()
+    path = PROJECT_FILE if args.local else config_file()
+    if args.endpoint_command == "use":
+        return configure.use_endpoint(args.name, path=path)
+    return configure.remove_endpoint(args.name, path=path)
+
+
+def _config(args: argparse.Namespace) -> int:
+    from leichtfacile.config import PROJECT_FILE, config_file, reference_toml
+
+    command = args.config_command
+    if command == "show":
+        if args.defaults:
+            print(reference_toml(), end="")
+            return 0
+        return configure.show()
+    path = PROJECT_FILE if args.local else config_file()
+    if command == "path":
+        print(path.resolve())
+        return 0
+    if command == "set":
+        return configure.set_value(path, args.key, args.value)
+    if command == "unset":
+        return configure.unset_value(path, args.key)
+    return configure.edit(path)
+
+
+def _serve(*, browser: bool = True) -> int:
     import uvicorn
 
-    # The app refuses to start published beyond this machine without a login
-    # (web/security.py); `--host` says where it is published.
-    os.environ.setdefault("BIND_HOST", host)
-    settings_or_exit()  # a missing setting stops here with a hint, not inside the server
+    # A missing setting stops here with a hint, not inside the server; so does a host
+    # beyond this machine without a login (web/security.py).
+    settings = settings_or_exit()
     models_or_exit()
-    if browser and wants_browser(host):
+    host, port = settings.server.host, settings.server.port
+    if browser and settings.server.open_browser and wants_browser(host):
         address = f"[{host}]" if ":" in host else host
         open_when_ready(f"http://{address}:{port}/")
     # The app writes its own access line, with the request id and without the query
@@ -264,7 +351,10 @@ def _check_llm(model: str | None, thinking: bool) -> int:
     settings = settings_or_exit()
     client = LLMClient(settings)
     name, extra = client.resolve_model(model, thinking)
-    print(f"endpoint:  {settings.llm_base_url}")
+    print(
+        f"endpoint:  {settings.llm.url}"
+        + (f" ({settings.llm.endpoint})" if settings.llm.endpoint else "")
+    )
     print(f"model:     {name} {extra or ''}".rstrip())
 
     try:
@@ -388,7 +478,7 @@ def _simplify(args: argparse.Namespace) -> int:
     except (IngestError, OSError) as exc:
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
-    store = Store(settings.data_dir / "leichtfacile.sqlite")
+    store = Store(settings.data.dir / "leichtfacile.sqlite")
     config = JobConfig(
         lang=source.lang,
         level=args.level,
@@ -397,8 +487,8 @@ def _simplify(args: argparse.Namespace) -> int:
         understand_model=args.understand,
         judge_model=args.judge,
         use_judge=not args.no_judge,
-        max_repair_rounds=0 if args.no_repair else settings.max_repair_rounds,
-        max_facts_rounds=0 if args.no_repair else settings.max_facts_rounds,
+        max_repair_rounds=0 if args.no_repair else settings.pipeline.repair_rounds,
+        max_facts_rounds=0 if args.no_repair else settings.pipeline.facts_rounds,
         mode=args.mode,
         addressee=args.addressee,
         notice=args.notice,

@@ -1,6 +1,7 @@
 """The example letters in src/leichtfacile/letters/, shipped with the package: offered as
 one-click fills of the New draft form and of the empty drafts list, and used by the
-tests and `make smoke`. EXAMPLES_DIR points at another folder of letters.
+tests and the smoke run (docs/quickstart.md). data.examples_dir points at another folder
+of letters.
 
 Only team-written or article-5 texts are used as examples (docs/sources.md §4).
 """
@@ -16,9 +17,8 @@ from leichtfacile.schemas import JobConfig
 
 
 def examples_dir() -> Path:
-    """EXAMPLES_DIR from the config file, .env or the environment, without the model
-    settings (no key is needed to read the examples). The web app passes
-    `Settings.examples_dir`."""
+    """data.examples_dir from the settings, without the endpoint (no key is needed to
+    read the examples). The web app passes `settings.data.examples_dir`."""
     return paths().examples_dir
 
 

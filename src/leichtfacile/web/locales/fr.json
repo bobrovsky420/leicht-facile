@@ -391,7 +391,7 @@
   "error.busy": "Le serveur lit d'autres documents en ce moment. Réessayez dans un instant.",
   "js.endpoint.listed": "Point d'accès {url} : joignable, modèle listé.",
   "js.endpoint.unlisted": "Point d'accès {url} : joignable, modèle absent de la liste du point d'accès.",
-  "js.endpoint.unreachable": "Point d'accès {url} injoignable ({error}). Vérifiez LLM_BASE_URL et LLM_API_KEY.",
+  "js.endpoint.unreachable": "Point d'accès {url} injoignable ({error}). Vérifiez son adresse et sa clé : leichtfacile config show.",
   "js.endpoint.no_answer": "pas de réponse",
   "js.endpoint.unknown": "État du point d'accès inconnu.",
   "js.decided": "{decided} sur {total} décidés",

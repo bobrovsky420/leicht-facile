@@ -370,8 +370,8 @@ class RepairRecord(Artifact):
     parent_version: int
     # facts: a round that asks for facts only; vocabulary: the last round, for the
     # office words of the best version (LEX-07); recover: the missing values asked for
-    # one by one with their source paragraphs (MAX_RECOVER_FACTS); polish: the rule
-    # findings of the best version after the recover round (MAX_POLISH_ROUNDS)
+    # one by one with their source paragraphs (pipeline.recover_facts); polish: the rule
+    # findings of the best version after the recover round (pipeline.polish_rounds)
     kind: Literal["repair", "facts", "vocabulary", "recover", "polish"] = "repair"
     requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
     requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
@@ -446,9 +446,9 @@ class JobConfig(Artifact):
     lang: Lang | None = None  # None: detect from the source
     level: Level = "A2"
     condition: Condition = "P2"
-    writer_model: str | None = None  # None: LLM_NAME
-    understand_model: str | None = None  # None: LLM_UNDERSTAND_NAME, else the writer
-    judge_model: str | None = None  # None: LLM_JUDGE_NAME
+    writer_model: str | None = None  # None: llm.models.writer
+    understand_model: str | None = None  # None: llm.models.understand, else the writer
+    judge_model: str | None = None  # None: llm.models.judge
     use_judge: bool = True  # P2 only: False repairs on rule findings alone
     max_repair_rounds: int = Field(default=3, ge=0, le=10)  # 0: no repair
     # Rounds that ask for the missing facts alone once the loop above has stopped with

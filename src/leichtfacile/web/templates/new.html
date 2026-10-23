@@ -128,11 +128,11 @@
           <summary>{{ icons.icon('chevron-right', 12) }}{{ t('index.models') }} <span class="muted" style="font-weight: 400">{{ t('new.models_defaults') }}</span></summary>
           <div class="fields">
             <div><label class="label" for="writer_model">{{ t('index.models.writer') }}</label>
-              <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm_name }}"></div>
+              <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm.models.writer }}"></div>
             <div><label class="label" for="understand_model">{{ t('index.models.understand') }}</label>
-              <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.understand_name }}"></div>
+              <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.llm.understand_model }}"></div>
             <div><label class="label" for="judge_model">{{ t('index.models.judge') }}</label>
-              <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.judge_name }}"></div>
+              <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.llm.judge_model }}"></div>
             <p class="hint">{{ t('index.models.hint') }}</p>
           </div>
         </details>
@@ -142,7 +142,7 @@
           <button type="submit" class="btn btn-primary btn-lg">{{ t('new.create') }}</button>
           <a class="btn btn-lg" href="/">{{ t('new.cancel') }}</a>
         </div>
-        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm_name }}</code></span></p>
+        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm.models.writer }}</code></span></p>
       </div>
     </section>
   </form>

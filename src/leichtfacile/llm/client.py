@@ -2,7 +2,7 @@
 llama.cpp or Ollama server, a Swiss cloud or another provider.
 
 All of them speak the OpenAI chat-completions protocol, so the deployment target is a
-matter of configuration (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`). This module adds
+matter of configuration (`llm.url`, `llm.api_key`, `llm.models.writer`). This module adds
 what the pipeline needs on top of the SDK: thinking-mode handling, reasoning removal,
 streaming (so that a proxy in front of the endpoint cannot time out a long answer),
 retries with backoff, a usage record per call and an optional response cache.
@@ -145,9 +145,9 @@ class LLMClient:
         self._warned_no_usage = False
         self._judge_model: str | None = None
         self._client = openai.OpenAI(
-            base_url=settings.llm_base_url,
-            api_key=settings.llm_api_key.get_secret_value(),
-            timeout=settings.llm_timeout_s,
+            base_url=settings.llm.url,
+            api_key=settings.llm.api_key.get_secret_value() if settings.llm.api_key else "none",
+            timeout=settings.llm.timeout_s,
             max_retries=0,  # retries are handled here, with logging and Retry-After support
             default_headers={"User-Agent": USER_AGENT},
             http_client=http_client,
@@ -155,17 +155,17 @@ class LLMClient:
 
     @classmethod
     def from_settings(cls, settings: Settings, **kwargs: Any) -> LLMClient:
-        if settings.llm_cache and "cache" not in kwargs:
-            kwargs["cache"] = ResponseCache(settings.data_dir / "llm_cache.sqlite")
+        if settings.llm.cache and "cache" not in kwargs:
+            kwargs["cache"] = ResponseCache(settings.data.dir / "llm_cache.sqlite")
         return cls(settings, **kwargs)
 
     # -- model resolution -------------------------------------------------------------
 
     def resolve_model(self, model: str | None, thinking: bool) -> tuple[str, dict[str, Any]]:
         """Return the model name to send and any extra request body for thinking mode."""
-        name = model or self.settings.llm_name
-        mode = self.settings.llm_thinking_mode
-        suffix = self.settings.llm_thinking_suffix
+        name = model or self.settings.llm.models.writer
+        mode = self.settings.llm.thinking
+        suffix = self.settings.llm.thinking_suffix
         if mode == "model-suffix":
             if thinking and not name.endswith(suffix):
                 name += suffix
@@ -190,7 +190,7 @@ class LLMClient:
         response_format: dict[str, Any] | None = None,
     ) -> LLMResult:
         name, thinking_body = self.resolve_model(model, thinking)
-        extra_body = {**self.settings.llm_extra_body, **thinking_body}
+        extra_body = {**self.settings.llm.extra_body, **thinking_body}
         params: dict[str, Any] = {"temperature": temperature, "max_tokens": max_tokens}
         if response_format:
             params["response_format"] = response_format
@@ -265,15 +265,15 @@ class LLMClient:
         """The judge's model (`Settings.judge_for`). The endpoint's list is asked once,
         and only when it decides; while it cannot be read, the writer's model judges."""
         settings = self.settings
-        if settings.llm_judge_name or not settings.larger_name:
-            return settings.judge_name
+        if settings.llm.models.judge or not settings.llm.larger_model:
+            return settings.llm.judge_model
         if self._judge_model is None:
             try:
                 models = self.list_models()
             except Exception as exc:  # the judge still runs, on the writer's model
                 log.warning("model list for the judge failed: %s", type(exc).__name__)
-                return settings.llm_name
-            self._judge_model = settings.judge_for(models)
+                return settings.llm.models.writer
+            self._judge_model = settings.llm.judge_for(models)
             log.info("judge model: %s", self._judge_model)
         return self._judge_model
 
@@ -282,7 +282,7 @@ class LLMClient:
     def _create_with_retries(
         self, name: str, messages: list[Message], params: dict[str, Any], stage: str
     ) -> _Reply:
-        attempts = self.settings.llm_max_retries + 1
+        attempts = self.settings.llm.max_retries + 1
         for attempt in range(1, attempts + 1):
             check_limit()
             try:
@@ -324,14 +324,14 @@ class LLMClient:
         self._sleep(delay)
 
     def _request(self, name: str, messages: list[Message], params: dict[str, Any]) -> _Reply:
-        """One request, streamed unless `LLM_STREAM=0`.
+        """One request, streamed unless `llm.stream = false`.
 
         Streaming makes the endpoint send the answer as it is generated, so a proxy in
         front of it (Cloudflare in front of the Public AI gateway cuts a response after
         about 100 seconds) never waits for a long answer. The token counts come with the
         last chunk (`stream_options.include_usage`).
         """
-        if not self.settings.llm_stream:
+        if not self.settings.llm.stream:
             response = self._client.chat.completions.create(
                 model=name,
                 messages=messages,  # type: ignore[arg-type]

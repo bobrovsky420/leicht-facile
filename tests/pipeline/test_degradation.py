@@ -23,10 +23,10 @@ def store(tmp_path) -> Store:
 
 
 def orchestrator(store, endpoint, sleeps, **settings) -> Orchestrator:
-    settings.setdefault("use_vocabulary", False)  # its own tests: test_vocabulary.py
-    settings.setdefault("max_recover_facts", 0)  # its own tests: test_recover.py
-    settings.setdefault("max_polish_rounds", 0)  # its own tests: test_orchestrator.py
-    cfg = make_settings(llm_max_retries=0, **settings)
+    settings.setdefault("pipeline__vocabulary", False)  # its own tests: test_vocabulary.py
+    settings.setdefault("pipeline__recover_facts", 0)  # its own tests: test_recover.py
+    settings.setdefault("pipeline__polish_rounds", 0)  # its own tests: test_orchestrator.py
+    cfg = make_settings(llm__max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, cfg)
 
@@ -40,7 +40,7 @@ def new_job(store: Store, **config) -> str:
 def test_thinking_follows_the_configured_stages(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = new_job(store, condition="P1")
-    orchestrator(store, endpoint, sleeps, llm_thinking_stages="write").run(job_id)
+    orchestrator(store, endpoint, sleeps, llm__thinking_stages="write").run(job_id)
     models = [b["model"] for b in endpoint.chat_bodies()]
     assert not models[0].endswith("-thinking")  # understand
     assert models[1].endswith("-thinking")  # write
@@ -50,10 +50,10 @@ BIG = "swiss-ai/Apertus-v1.5-70B"
 
 
 def test_understand_can_run_on_another_model(store, endpoint, sleeps) -> None:
-    """The hybrid: LLM_UNDERSTAND_NAME reads (with thinking), LLM_NAME writes."""
+    """The hybrid: llm.models.understand reads (with thinking), llm.models.writer writes."""
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = new_job(store, condition="P1")
-    orchestrator(store, endpoint, sleeps, llm_understand_name=BIG).run(job_id)
+    orchestrator(store, endpoint, sleeps, llm__models__understand=BIG).run(job_id)
     assert [b["model"] for b in endpoint.chat_bodies()] == [BIG + "-thinking", MODEL]
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.writer_model == MODEL and summary.understand_model == BIG
@@ -66,10 +66,10 @@ def test_understand_follows_the_job_writer_unless_overridden(store, endpoint, sl
     assert [b["model"] for b in endpoint.chat_bodies()] == [BIG + "-thinking", BIG]
     assert store.get_artifact(job_id, "summary", PipelineSummary).understand_model is None
 
-    # The job's own understand model wins over LLM_UNDERSTAND_NAME.
+    # The job's own understand model wins over llm.models.understand.
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = new_job(store, condition="P1", understand_model="other-reader")
-    orchestrator(store, endpoint, sleeps, llm_understand_name=BIG).run(job_id)
+    orchestrator(store, endpoint, sleeps, llm__models__understand=BIG).run(job_id)
     assert [b["model"] for b in endpoint.chat_bodies()][2:] == ["other-reader-thinking", MODEL]
     assert store.get_artifact(job_id, "summary", PipelineSummary).understand_model == "other-reader"
 
@@ -176,7 +176,7 @@ def test_a_failing_recover_round_keeps_the_drafts(store, endpoint, sleeps) -> No
         RuntimeError("boom"),  # the recover call
     )
     job_id = new_job(store, condition="P2", max_facts_rounds=0)
-    orchestrator(store, endpoint, sleeps, max_recover_facts=3).run(job_id)
+    orchestrator(store, endpoint, sleeps, pipeline__recover_facts=3).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
     summary = store.get_artifact(job_id, "summary", PipelineSummary)

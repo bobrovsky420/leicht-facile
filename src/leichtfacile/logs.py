@@ -4,8 +4,8 @@ and the job id on every record, and the redacting filter of lifecycle.py in fron
 `request_id` is set by the request middleware (web/observability.py) for the time a
 request is handled, `job_id` by the orchestrator for the time a worker runs a job.
 Both are context variables, so a line written anywhere in between carries them
-without being told. `configure_logging` is called by `create_app` with `LOG_LEVEL`
-and `LOG_FORMAT`; the CLI's other commands keep `logging.basicConfig`.
+without being told. `configure_logging` is called by `create_app` with `log.level`
+and `log.format`; the CLI's other commands keep `logging.basicConfig`.
 
 Privacy (docs/architecture.md §10) is the business of what is logged, not of
 this module: no document text above DEBUG, and the redacting filter as the net.

@@ -1,6 +1,6 @@
 """SQLite storage for jobs, artifacts and model calls (docs/architecture.md §5).
 
-One database file in DATA_DIR. Artifacts are pydantic models stored as JSON text, with
+One database file in data.dir. Artifacts are pydantic models stored as JSON text, with
 a version per name (draft 1, draft 2, ...). The standard library is enough: the schema
 is small and there are a few worker threads plus the web handlers.
 

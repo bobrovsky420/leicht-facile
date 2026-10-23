@@ -308,7 +308,7 @@ count (`dans le cadre du`), and a French verb is listed without its pronoun
 `ai` is never the `AI`. Of overlapping matches the longest wins (`opposition à la
 poursuite` over `opposition`).
 
-**Use in the pipeline** (since 7 October 2026; `USE_VOCABULARY=0` switches it off, only
+**Use in the pipeline** (since 7 October 2026; `pipeline.vocabulary = false` switches it off, only
 to measure it; docs/architecture.md §4.2, §4.3, §4.6):
 
 1. the fact sheet: a hard term the model listed gets the vocabulary's explanation, and

@@ -14,7 +14,7 @@ from tests.conftest import FakeEndpoint, make_settings
 
 @pytest.fixture
 def app_env(tmp_path, endpoint: FakeEndpoint, sleeps):
-    settings = make_settings(data_dir=tmp_path, llm_max_retries=0)
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     store = Store(tmp_path / "web.sqlite")
     app = create_app(settings, llm, store)

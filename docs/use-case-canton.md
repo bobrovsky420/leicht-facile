@@ -33,7 +33,7 @@ recommended model for texts under official secrecy
 ([use-cases.md §2](use-cases.md#why-apertus-fits-best)): either a GPU server the canton
 operates with vLLM, or a Swiss-hosted Apertus service. Nothing leaves the canton's
 network, there are no accounts with foreign providers, and there is no telemetry.
-Documents and review records stay in a data folder (`DATA_DIR`) on a disk the canton
+Documents and review records stay in a data folder (`data.dir`) on a disk the canton
 controls.
 
 See [architecture.md §10](architecture.md#10-deployment-and-sovereignty) for the

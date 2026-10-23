@@ -101,7 +101,7 @@ flowchart TB
         JUD["Meaning judge → JudgeReport"]
         REP["Repair loop<br/>(flagged blocks only, ≤ 3 rounds)"]
         EXP["Export<br/>MD · HTML · JSON"]
-        DB[("SQLite + JSON artifacts<br/>(in DATA_DIR)")]
+        DB[("SQLite + JSON artifacts<br/>(in data.dir)")]
         LLM["LLM client<br/>(OpenAI-compatible, retries, cache, usage log)"]
     end
 
@@ -131,19 +131,19 @@ flowchart TB
 
 Purple stages call the language model (Apertus in every measured run). Teal stages are
 deterministic code. The app is one Python process and runs no model itself; its only
-outbound connections are `LLM_BASE_URL` and the web addresses users submit.
+outbound connections are `llm.url` and the web addresses users submit.
 
 ### Key decisions
 
 | # | Decision | Why |
 |---|----------|-----|
 | D1 | One Python service (FastAPI) serves both the API and a server-rendered review UI. No Node build step. | One Python package, one process (`leichtfacile serve`), nothing to build on another machine. The UI is a review tool, not a product front-end. |
-| D2 | All model access goes through one OpenAI-compatible client configured by `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_NAME`. | The CSCS endpoint, a model server of the organisation's own (vLLM, llama.cpp, Ollama), Swiss cloud providers and commercial APIs all speak the same protocol. "Sovereign deployment" becomes a change of one variable; `leichtfacile setup` writes the three (§10). |
+| D2 | All model access goes through one OpenAI-compatible client configured by `llm.url`, `llm.api_key`, `llm.models.writer`. | The CSCS endpoint, a model server of the organisation's own (vLLM, llama.cpp, Ollama), Swiss cloud providers and commercial APIs all speak the same protocol. "Sovereign deployment" becomes a change of the endpoint; `leichtfacile setup` saves the three as a named endpoint (§10). |
 | D3 | The pipeline is a sequence of explicit stages with typed, persisted artifacts (pydantic models stored as JSON). | Every intermediate result is visible in the UI, re-runnable in isolation, and usable for evaluation and ablations. |
 | D4 | Countable rules live in code (spaCy morphology + regex). The model only judges what needs meaning. | Exact, free, reproducible; removes self-grading bias on the easy half of the rules. |
-| D5 | Writer and judge are separate model instances; with Apertus by default the 8B writes, the 70B (thinking) judges. `LLM_UNDERSTAND_NAME` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
+| D5 | Writer and judge are separate model instances; with Apertus by default the 8B writes, the 70B (thinking) judges. `llm.models.understand` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
 | D6 | Each language is simplified from its own original. | Simplifying a translation compounds errors; three fact sheets also allow a cross-language consistency check. |
-| D7 | Storage is SQLite plus JSON in one folder, `DATA_DIR`. | Zero operations, works air-gapped, trivially backed up. |
+| D7 | Storage is SQLite plus JSON in one folder, `data.dir`. | Zero operations, works air-gapped, trivially backed up. |
 | D8 | The evaluation harness is a first-class module with a fixed dataset manifest and three conditions (baseline, pipeline without repair, full pipeline). | Quality is shown by the comparison, not by the demo. |
 
 ## 4. The pipeline
@@ -195,8 +195,8 @@ artifact, because every later step is checked against it.
 - `omit_candidates[]`: passages the model considers droppable, with reasons - the
   reviewer sees these.
 
-Model: `LLM_NAME` (8B), thinking on (when `LLM_THINKING_MODE` is not `off`, §6), temperature
-0.1. `LLM_UNDERSTAND_NAME` gives this
+Model: `llm.models.writer` (8B), thinking on (when `llm.thinking` is not `off`, §6), temperature
+0.1. `llm.models.understand` gives this
 stage another model while the writer stays the 8B: on CSCS the 70B found more facts
 with a third of the 8B's reasoning, but the 8B writer then kept fewer of them
 (docs/prompts.md). Output is JSON; see §6 for how JSON is enforced.
@@ -226,7 +226,7 @@ are never added by code. A hard term of the model that the source does not conta
 neither as written nor word for word in another form, is dropped (`stages.in_source`):
 the 8B listed the Understand example's own office (Einwohnerkontrolle, contrôle des
 habitants) for 6 documents of the CSCS evaluation, and the writer then sent the reader
-to it. Since 7 October 2026; `USE_VOCABULARY=0` switches this and the
+to it. Since 7 October 2026; `pipeline.vocabulary = false` switches this and the
 other uses below off, only to measure them.
 
 ### 4.3 Plan and write (model)
@@ -254,10 +254,10 @@ Output: `Draft` - blocks (`heading` | `sentence` | `list_item`), each with the
 `fact_ids` it conveys and the `segment_ids` it was derived from (this is the
 provenance the UI shows), plus `omissions[]` with reasons and a `glossary[]`.
 
-Model: `LLM_NAME` (8B), temperature 0.3, thinking off by default. In the first local
+Model: `llm.models.writer` (8B), temperature 0.3, thinking off by default. In the first local
 tests, writing with thinking took 24 minutes and produced a paraphrase of the original,
 while writing without thinking took 28 seconds and produced easy language (question
-headings, `Sie`, no passive); `LLM_THINKING_STAGES` switches thinking per stage, and
+headings, `Sie`, no passive); `llm.thinking_stages` switches thinking per stage, and
 the endpoint checks on CSCS (§12) decide the final setting.
 
 An answer cut off at `max_tokens` is never used (its last objects are incomplete);
@@ -392,7 +392,7 @@ via the segment ids). It answers only what code cannot:
    obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
    not become `können`, and a `wenn` never `vielleicht`).
 
-Model: `LLM_JUDGE_NAME` (default: the 70B of the writer's Apertus family when the
+Model: `llm.models.judge` (default: the 70B of the writer's Apertus family when the
 endpoint lists it, else the writer's model, §6; on CSCS `swiss-ai/Apertus-v1.5-70B`,
 thinking through its `-thinking` name), temperature
 0. The judge never rewrites; it only reports. Its reliability is measured, not
@@ -438,11 +438,11 @@ Then:
 - the loop stops when no blocking finding remains (rule errors, missing fact values,
   facts the judge found missing or distorted, invented statements), when a round brings
   no progress, when only warnings are left after the first round, or after
-  `MAX_REPAIR_ROUNDS` (3).
+  `pipeline.repair_rounds` (3).
 
 When the loop has stopped and must-keep values are still missing (FACT-01), up to
-`MAX_FACTS_ROUNDS` (1) more rounds ask for the missing facts alone, no block flagged,
-up to `MAX_MISSING_PER_FACTS_ROUND` (10) of them at a time; a repair round asks for at
+`pipeline.facts_rounds` (1) more rounds ask for the missing facts alone, no block flagged,
+up to `pipeline.missing_per_facts_round` (10) of them at a time; a repair round asks for at
 most 5 next to its flagged blocks.
 They are measured by the FACT-01 count, not by the whole: the loop above stops on "no
 progress" when a round adds facts and the judge finds as many new problems, which on
@@ -452,7 +452,7 @@ the limit; none runs without repair rounds or after a round the endpoint failed 
 an answer the code could not use, it still runs: a smaller prompt, a new try). Since
 7 October 2026.
 
-**The recover round** (since 9 October 2026, on by default: `MAX_RECOVER_FACTS=10`;
+**The recover round** (since 9 October 2026, on by default: `pipeline.recover_facts = 10`;
 0 turns it off). The must-keep values still missing (FACT-01) in the
 best version after the facts rounds, the most important kinds first and at most that
 many, are asked for one by one through `stages.recover_fact`, the call behind the
@@ -469,7 +469,7 @@ round, so office words in its sentences go there too. An error of any other kind
 call ends the round with a note, never the job. On the dev pairs it raised German fact
 coverage from 78 to 96 percent (docs/prompts.md, "The recover round on the dev pairs").
 
-**The polish round** (since 10 October 2026, on by default: `MAX_POLISH_ROUNDS=1`;
+**The polish round** (since 10 October 2026, on by default: `pipeline.polish_rounds = 1`;
 0 turns it off). The facts and recover rounds add the source's sentences
 nearly verbatim, and the loop never sees them again: in the example rebuild of
 10 October the long passive sentences in the final drafts had all come in that way.
@@ -495,7 +495,7 @@ rounds stay on what blocks a draft. The round starts from the best version, so i
 version takes the next free number and names that version as its parent. The choice
 below keeps it only when it loses no must-keep value and adds no blocking finding; at a
 tie the later version wins, so a round that only replaces office words is kept. Not with
-`USE_VOCABULARY=0`, not without repair rounds, not after a round the endpoint failed. On
+`pipeline.vocabulary = false`, not without repair rounds, not after a round the endpoint failed. On
 the 12 dev pairs (docs/prompts.md, "The vocabulary round") it ran in 11 jobs and was
 kept in 8: office words in the final drafts from 42 to 19, no fact lost, about 11 s more
 per job.
@@ -511,7 +511,7 @@ scores stored jobs under either rule without a model call.
 Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH), missing fact values
 (FACT-01) and values the source does not contain (FACT-06) are repaired; provenance and
 bookkeeping findings (FACT-02 to FACT-05) and layout go to the reviewer. All draft versions are kept; the version with the fewest blocking findings
-is marked final, and the reviewer can switch to any other version. Model: `LLM_NAME`,
+is marked final, and the reviewer can switch to any other version. Model: `llm.models.writer`,
 thinking off, temperature 0.2.
 
 **Decision mode** (`JobConfig.mode = "decision"`, with `addressee` and `notice`;
@@ -608,7 +608,7 @@ settings (§6).
 | Stage | Role of the model | Model (default) | Thinking | Temp. | Output |
 |-------|-----------------|-----------------|----------|-------|--------|
 | Ingest (scans only) | Read a photographed or scanned letter (image input) | 8B | off | 0.0 | segments |
-| Understand | Extract facts, core answers, hard terms | 8B (`LLM_UNDERSTAND_NAME` overrides) | on | 0.1 | `FactSheet` JSON |
+| Understand | Extract facts, core answers, hard terms | 8B (`llm.models.understand` overrides) | on | 0.1 | `FactSheet` JSON |
 | Plan & write | Reorder, simplify, explain, record omissions | 8B | off (configurable) | 0.3 | `Draft` JSON |
 | Meaning check | Judge fact fidelity, hallucinations, semantic rules | 70B-thinking | on | 0.0 | `JudgeReport` JSON |
 | Repair | Rewrite flagged blocks | 8B | off | 0.2 | blocks |
@@ -691,7 +691,7 @@ Job
             2026 until its first listing fills it
 ```
 
-Storage: one SQLite database (`DATA_DIR/leichtfacile.sqlite`) with the tables `jobs`,
+Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`,
 `artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
 the response cache's key when the cache is on, so that a deleted job takes its cached
 prompts with it); the response cache is a second file (`llm_cache.sqlite`). Standard
@@ -707,25 +707,27 @@ writers wait for each other (5 s) instead of failing midway.
 
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
-- **Configuration** from the settings (the user's config file, `.env` in the current
-  folder, the environment; §10): `LLM_BASE_URL`, `LLM_API_KEY`,
-  `LLM_NAME`; plus `LLM_JUDGE_NAME` (default: the 70B of the writer's family when the
-  endpoint lists it, looked up once per process, else `LLM_NAME`), `LLM_UNDERSTAND_NAME`
-  (default `LLM_NAME`) and `LLM_THINKING_MODE` = `off` (the default, since each
+- **Configuration** from the settings' `[llm]` section, the saved endpoint in use (the
+  config files, the environment, the command line; §10): `llm.url`, `llm.api_key` (or
+  `llm.api_key_env`, the variable that holds it), `llm.models.writer`; plus
+  `llm.models.judge` (default: the 70B of the writer's family when the endpoint lists
+  it, looked up once per process, else `llm.models.writer`), `llm.models.understand`
+  (default `llm.models.writer`) and `llm.thinking` = `off` (the default, since each
   endpoint switches thinking its own way: the model name goes out as it is, with no
   switch) | `model-suffix` (Apertus on CSCS exposes thinking as separate
-  `…-thinking` model names; the suffix is `LLM_THINKING_SUFFIX`) | `chat-template`
+  `…-thinking` model names; the suffix is `llm.thinking_suffix`) | `chat-template`
   (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`).
-  The mode is set per endpoint, by a preset of `leichtfacile setup` or as in the
-  profiles of `.env.example`. Optional: `LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`, `LLM_CACHE`, and
-  `LLM_EXTRA_BODY` (JSON fields sent with every request, for gateway switches).
-- **Endpoint profiles** (documented in `.env.example`; `leichtfacile setup` has the
-  presets `cscs`, `publicai`, `local` for a server of one's own, `openai`, `mistral`
-  and `other`, and the two Apertus presets set the thinking mode too):
+  The mode is set per endpoint, by its preset or in its `[endpoints.<name>]` section.
+  Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, and `llm.extra_body`
+  (fields sent with every request, for gateway switches).
+- **Endpoint profiles** (`leichtfacile setup` has the presets `cscs`, `publicai`,
+  `local` for a server of one's own, `openai` and `mistral`, in `config.PRESETS` and
+  [configuration.md](configuration.md), and takes any other endpoint; the two
+  Apertus presets set the thinking mode too):
   1. CSCS inference API, on which the reported numbers were measured
-     (`LLM_THINKING_MODE=model-suffix`);
+     (`thinking = "model-suffix"`);
   2. a vLLM server the organisation runs, for on-premise and air-gapped deployments
-     (§10; `LLM_THINKING_MODE=chat-template`);
+     (§10; `thinking = "chat-template"`);
   3. the Public AI gateway (`https://api.publicai.co/v1`), for development and
      evaluation with public documents. It lists `swiss-ai/apertus-v1.5-8b` and
      `-70b`, each with a `-thinking` variant, at USD 0.10/0.20 per million
@@ -742,7 +744,7 @@ writers wait for each other (5 s) instead of failing midway.
      `-thinking` names are not used, because `apertus-v1.5-8b-thinking` serves the
      older Apertus 1 8B through Featherless. The gateway's response cache ignores
      the thinking switch, so the profile turns it off per request
-     (`LLM_EXTRA_BODY={"cache": {"no-cache": true}}`). Results from this profile are
+     (`extra_body = { cache = { no-cache = true } }`). Results from this profile are
      labelled Public AI, never CSCS. Checked again on 13 October 2026, one small call
      per name: the 8B still went to Juelich (Germany, 4 of 4 calls), the 70B was split
      between Infomaniak (Switzerland) and Featherless (a US company), 8 of 11 calls
@@ -754,8 +756,8 @@ writers wait for each other (5 s) instead of failing midway.
      Apertus 1.5, so its results are never reported as Apertus 1.5 numbers.
 
   All facts on third-party endpoints were checked on 5 October 2026.
-- **Thinking per stage.** `LLM_THINKING_STAGES` (default `understand,judge`) names
-  the stages that use the thinking model when `LLM_THINKING_MODE` is not `off`. When the reasoning of a thinking call runs
+- **Thinking per stage.** `llm.thinking_stages` (default `["understand", "judge"]`) names
+  the stages that use the thinking model when `llm.thinking` is not `off`. When the reasoning of a thinking call runs
   out of tokens before the answer, the stage is answered once more without thinking;
   both calls are counted in the usage log.
 - **Graceful degradation.** A failing judge or repair round does not fail the job:
@@ -781,13 +783,13 @@ writers wait for each other (5 s) instead of failing midway.
   way.
   The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
   but it made no difference in the endpoint check (§12), so it is not used.
-- **Streaming.** Every response is streamed (`LLM_STREAM`, on by default): the
+- **Streaming.** Every response is streamed (`llm.stream`, on by default): the
   endpoint sends the answer as it is generated and the client assembles it, with the
   token counts from the last chunk (`stream_options.include_usage`). Without it, a
   proxy in front of the endpoint can cut a long answer: Cloudflare in front of the
   Public AI gateway does so after about 100 seconds, which lost 3 of 6 evaluation
   pairs to 504 errors on 6 October 2026. A stream that breaks is retried like any
-  other failure. `LLM_STREAM=0` is for a server that cannot stream.
+  other failure. `llm.stream = false` is for a server that cannot stream.
 - **Reliability.** Retries on 429, 5xx, connection errors and broken streams with
   exponential backoff and jitter, honouring `Retry-After`; other 4xx errors are not
   retried. Per-call timeout, and `max_tokens` sized generously for thinking models
@@ -798,7 +800,7 @@ writers wait for each other (5 s) instead of failing midway.
   (`LLMClient.recording` around the job's run), so a stage that fails after some
   calls, and the job it fails, still show them.
 - **Cache.** Responses are cached by hash of (model, messages, parameters) in SQLite
-  when `LLM_CACHE=1`. It speeds up development and makes evaluation reruns cheap. The
+  when `llm.cache = true` (or `eval run --cache`). It speeds up development and makes evaluation reruns cheap. The
   repository ships with an empty cache: the live run must work from the endpoint.
   An answer that cannot be used (no valid JSON, a copy of the example) is dropped
   from the cache again, so a rerun of a failed pair asks the model.
@@ -810,7 +812,7 @@ writers wait for each other (5 s) instead of failing midway.
 - **A local endpoint for development without a key.** llama.cpp's `llama-server`
   speaks the same protocol. With the community conversion
   `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (text only, 4-bit, unofficial) and
-  `LLM_THINKING_MODE=chat-template` it serves Apertus v1.5 8B on an 8 GB laptop GPU;
+  `thinking = "chat-template"` it serves Apertus v1.5 8B on an 8 GB laptop GPU;
   see §10. Results from it are never reported as CSCS numbers.
 
 Privacy: document text is never written to logs above `DEBUG`.
@@ -835,14 +837,14 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /readyz` | Readiness: the model endpoint reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
 
-Jobs run on `JOB_WORKERS` worker threads (one by default: enough for a reviewer's
+Jobs run on `jobs.workers` worker threads (one by default: enough for a reviewer's
 workload; more share an endpoint that serves parallel requests, as vLLM does). The jobs
 table is the queue: a worker takes the job that has waited longest with one guarded
 `UPDATE` (`queued` to `running`), so the workers never take the same job, nothing in
 memory is lost on a restart, and a job left `running` by a stopped process is queued
-again on start (`pipeline/runner.py`). No message broker. `JOB_QUEUE_LIMIT` (50) jobs
+again on start (`pipeline/runner.py`). No message broker. `jobs.queue_limit` (50) jobs
 may wait; a submission beyond it is refused with 429 and `Retry-After`. Each job has a
-time budget, `JOB_TIME_BUDGET_S` (two hours; 0 for none): over it, or on `cancel`, the
+time budget, `jobs.time_budget_s` (two hours; 0 for none): over it, or on `cancel`, the
 job ends at its next stage, model attempt or streamed chunk, keeps the stages that
 finished and shows why. What belongs to one run (notes, the last round's failure, the
 budget, the stop signal) lives in a `RunState` the orchestrator makes per run, never on
@@ -852,12 +854,12 @@ loaded (above); the shared spaCy pipelines take one text at a time. The UI polls
 job page every 2 s for two minutes, then every 5 s.
 
 A submission is read (fetched, parsed, segmented) in the request's thread, so the
-submitter gets a 400 with the reason at once; at most `INGEST_SLOTS` (4) submissions
+submitter gets a 400 with the reason at once; at most `jobs.ingest_slots` (4) submissions
 are read at a time, the next one is refused with 429 and asked to try again, so slow
 documents never fill the thread pool (`web/jobs.py`).
 
 Every request passes the hardening layer first (`web/security.py`, §10): a body over
-16 MB is refused with 413, more than `RATE_LIMIT_PER_MINUTE` writes per client address
+16 MB is refused with 413, more than `server.rate_limit_per_minute` writes per client address
 and minute with 429, a write from a page on another site with 403, and with a login
 configured everything but the probes and the static files needs it (401). `limit` takes
 1 to 200; a review's edit holds at most 10,000 characters, a comment 2,000, a review
@@ -888,7 +890,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   the counts computed per request from `review_view`. An intro strip explains the four
   steps and can be hidden. With no jobs, the empty state offers the team-written sample
   letters shipped with the package (`src/leichtfacile/letters/`, or the folder
-  `EXAMPLES_DIR` names) as one-click fills of the New draft form (buttons to
+  `data.examples_dir` names) as one-click fills of the New draft form (buttons to
   `/new?example=<id>`).
 - **New draft** (`/new`): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
@@ -985,7 +987,7 @@ them and provides `t(key, ...)` to the templates and view models. The texts `app
 needs (keys under `js.`) are embedded in each page as JSON, and the script picks
 plural forms and relative times with `Intl`. The language is the choice from the EN /
 DE / FR switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
-`UI_LANG`, else the browser's `Accept-Language`, else English. Adding Italian means
+`server.ui_lang`, else the browser's `Accept-Language`, else English. Adding Italian means
 adding `it.json`, as French was added: the switcher, the language choice and the
 tests pick it up, and a test fails until the catalog has every English key with the
 same placeholders. The rule checker's findings follow the switch too: a check reports
@@ -1004,12 +1006,15 @@ language it was produced in.
 The package installs the command `leichtfacile`; `python -m leichtfacile` runs the same
 commands. `serve`, `check-llm` and `simplify` need the model settings and, when one is
 missing, name it and `leichtfacile setup` in a short message (`cli.settings_or_exit`).
+They and `eval run` take `--endpoint <name>`, a saved endpoint for one run.
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [--preset] [--base-url] [--api-key] [--model] [--judge] [--force] [--no-models]` | Asks for the endpoint (presets `cscs`, `publicai`, `local`, `openai`, `mistral`, `other`), its address and its key (not echoed), lists the endpoint's models (`GET /models`), asks for the model and an optional judge, and writes the user's config file (`configure.py`, §10); with the address, the key and the model given it asks nothing; `--force` replaces an existing file At the end it offers the spaCy models (`--no-models` skips them). |
-| `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `DATA_DIR/models` (`spacy_models.py`); lists the models already there. |
-| `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` sets `BIND_HOST` (§10) |
+| `leichtfacile setup [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Asks for the endpoint (presets `cscs`, `publicai`, `local`, `openai`, `mistral`, or another), its address, a name and its key (not echoed), lists the endpoint's models (`GET /models`), asks for the model and an optional judge, and saves the endpoint as `[endpoints.<name>]` in the user's config file and uses it (`configure.py`, §10); with the address, the key and the model given or known from the preset it asks nothing; `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile endpoint list\|use <name>\|remove <name>` | The saved endpoints, the one in use marked; use another from now on; remove one (`configure.py`) |
+| `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
+| `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
+| `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10) |
 | `leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
@@ -1056,8 +1061,8 @@ word counts, `facts_estimate`, `licence_note` and `notes`. It holds 35 verified 
 Graubünden, Zug and three federal offices, and 5 French (3 `eval`, 2 `dev`). `dev`
 pairs are for prompt development and checker calibration; `eval` pairs are held out
 for the final numbers. `python -m leichtfacile eval fetch` (or
-`scripts/fetch_pairs.py`) downloads and caches the texts under `DATA_DIR/cache/pairs/`
-(with `DATA_DIR=data` in a checkout, the git-ignored `data/cache/pairs/`). The publishers do not allow reproduction, so the manifest and the
+`scripts/fetch_pairs.py`) downloads and caches the texts under `cache/pairs/` in `data.dir`
+(with `data.dir = "data"` in a checkout, the git-ignored `data/cache/pairs/`). The publishers do not allow reproduction, so the manifest and the
 fetch command are the dataset.
 
 These reference pairs measure the pipeline; they are not the demo. The demo uses
@@ -1090,8 +1095,9 @@ P0-ZH. The evaluation report (`eval report`) shows the compounds split by code p
 family, so the deterministic share of the LEX improvement is visible.
 
 Each run with the 8B writer; P2 also with the 70B writer (every stage on the 70B) and
-with the 70B for the Understand stage only (`--understand`, the hybrid); `make eval-70b`
-runs both. The judge is always the 70B-thinking model, so P1 and P2 are judged by the
+with the 70B for the Understand stage only (`--understand`, the hybrid); `eval run --condition P2` with
+`--writer swiss-ai/Apertus-v1.5-70B` or `--understand swiss-ai/Apertus-v1.5-70B` runs
+them ([quickstart.md](quickstart.md#the-evaluation)). The judge is always the 70B-thinking model, so P1 and P2 are judged by the
 same instrument; in the 70B-writer run it grades its own model's drafts. Result (final run, 12 October 2026, 20 German eval pairs, the 70B
 everywhere on 19): the 70B everywhere writes cleaner easy language (0.5 against 3.7
 errors per 100 blocks) and finds as many must-keep facts (100 against 100 percent
@@ -1166,51 +1172,62 @@ the path; `pip install leichtfacile` installs it into an environment of one's ow
 on PyPI, and PyPI refuses dependencies given by URL, so the package does not depend on
 them: `leichtfacile models` (`spacy_models.py`, offered at the end of `setup`)
 downloads the pinned wheels from spaCy's releases on GitHub, checks their SHA-256 and
-unpacks the model folders into `DATA_DIR/models`, which needs no pip; a checkout gets
+unpacks the model folders into `models/` in `data.dir`, which needs no pip; a checkout gets
 them as packages from the `models` dependency group. Without them the checker raises
 `ModelMissing`, and `serve`, `check` and `simplify` stop with a hint, instead of
 checking German or French on a blank pipeline. The Italian model is added when
 Italian ships. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).
 
-`leichtfacile setup` (`configure.py`) asks for the endpoint, with the presets `cscs`,
-`publicai`, `local`, `openai`, `mistral` and `other`, then for its address and its key
+The settings are one TOML file with a section per topic and any number of saved model
+endpoints ([configuration.md](configuration.md)). `leichtfacile setup` (`configure.py`)
+asks for the endpoint, with the presets `cscs`, `publicai`, `local`, `openai` and
+`mistral` (`config.PRESETS`) or another, then for its address, a name and its key
 (not echoed), lists the endpoint's models (`GET /models`), asks for the model and an
-optional judge, and writes the user's config file; an Apertus preset adds its
-endpoint's further settings, such as the thinking mode (§6). With `--base-url`,
-`--api-key` and `--model` given it asks nothing; `--preset`, `--judge` and `--force`
-(replace an existing file) complete the flags. The settings are read from that file,
-then from `.env` in the current folder, then from the environment, each overriding the
-one before (`config.env_files`, `config.get_settings`; `config.paths` reads `DATA_DIR`
-and `EXAMPLES_DIR` without the model settings). The config file is `LEICHTFACILE_CONFIG`
-when that is set, else `config.env` in the platform's folder for settings:
+optional judge, and saves the endpoint as `[endpoints.<name>]` in the user's config
+file and uses it; an endpoint saved with a preset gets the preset's further settings,
+such as the thinking mode of the two Apertus presets (§6). With the address,
+the key and the model given or known from the preset it asks nothing; `--preset`,
+`--name`, `--api-key-env`, `--judge` and `--force` (update an endpoint saved already)
+complete the flags. `leichtfacile endpoint` lists, switches and removes the saved
+endpoints, `leichtfacile config` shows and changes every setting (§7). The settings
+come from the defaults, the endpoint's preset, the user's config file,
+`leichtfacile.toml` in the current folder, the variables `LEICHTFACILE_<SECTION>__<KEY>`
+and the command line (`--endpoint`, `serve --host` and `--port`), each overriding the
+one before (`config.load`, `config.get_settings`; `config.paths` reads `[data]` without
+the endpoint); `leichtfacile config show` names the source of each setting. The config
+file is `LEICHTFACILE_CONFIG` (or `--config`) when that is set, else `config.toml` in
+the platform's folder for settings:
 `%APPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
-`$XDG_CONFIG_HOME/leichtfacile` or `~/.config/leichtfacile`. It holds the key, so on
-POSIX systems `setup` makes it readable by its owner alone. `serve`, `check-llm` and
-`simplify` stop with a short message naming a missing `LLM_BASE_URL`, `LLM_API_KEY` or
-`LLM_NAME` and `leichtfacile setup`, not with a traceback (`cli.settings_or_exit`).
+`$XDG_CONFIG_HOME/leichtfacile` or `~/.config/leichtfacile`. A key is written into the
+file (`llm.api_key`) or named (`llm.api_key_env`) and then read from the environment
+or from a `.env` file, which holds such keys and nothing else; `setup` writes the key
+into the `.env` next to the config file and, on POSIX systems, makes both files
+readable by their owner alone. `serve`, `check-llm` and `simplify` stop with a short
+message naming a missing `llm.url`, `llm.api_key` or `llm.models.writer` and
+`leichtfacile setup`, not with a traceback (`cli.settings_or_exit`).
 
 `leichtfacile serve` starts the web app on `127.0.0.1:8000`, this machine only, and
 opens it in the default browser as soon as `/healthz` answers (`cli.open_when_ready`):
 only for a loopback host, and on Linux only with a desktop (`DISPLAY` or
 `WAYLAND_DISPLAY`), since Python would otherwise start a text browser in the terminal
-(`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `BIND_HOST`: beyond
-the loopback interface the app needs a login (below). The database goes to `DATA_DIR`,
+(`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `server.host`: beyond
+the loopback interface the app needs a login (below). The database goes to `data.dir`,
 by default `%LOCALAPPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
 `$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
 is empty, it offers the example letters shipped with the package in
 `src/leichtfacile/letters/` (the premium-reduction letter in German and in French, the
-KESB decision) as one-click fills of the New draft form (§7); `EXAMPLES_DIR` names
+KESB decision) as one-click fills of the New draft form (§7); `data.examples_dir` names
 another folder of letters. A letter's job settings, such as the decision mode and the
 addressee, come from a JSON file next to it (`examples.py`).
 
 `leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
-the first thing to run after `setup`. The Makefile is for development in a checkout
-only (`test`, `lint`, `format`, `check-llm`, `smoke`, `calibrate`, `eval`,
-`eval-70b`); the app needs no make. CI starts the app natively with
-`leichtfacile serve --no-browser` against an unreachable endpoint and checks that
+the first thing to run after `setup`. In a checkout, development tasks run with
+`uv run`: `uv run pytest`, `uv run ruff check .` and `uv run ruff format .`, and the
+evaluation commands ([quickstart.md](quickstart.md#the-evaluation)). CI starts the app
+natively with `leichtfacile serve --no-browser` against an unreachable endpoint and checks that
 `/healthz` answers and `/readyz` reports the endpoint unreachable
 (`.github/workflows/ci.yml`).
 
@@ -1218,14 +1235,14 @@ only (`test`, `lint`, `format`, `check-llm`, `smoke`, `calibrate`, `eval`,
 
 In each, Leicht·Facile is the same Python service (above), on a workstation or on a
 server of the organisation; the model runs where the organisation wants it, behind an
-OpenAI-compatible endpoint that `LLM_BASE_URL` names (D2). Running the model is outside
+OpenAI-compatible endpoint that `llm.url` names (D2). Running the model is outside
 the app.
 
 | Architecture | Where the model runs and how Leicht·Facile meets it |
 |--------------|-----------------------------------------------------|
-| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup --preset local`, or the server's address. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `LLM_THINKING_MODE=chat-template`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
+| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup --preset local`, or the server's address. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
 | b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies are collected with `pip wheel`, the two spaCy model wheels with `pip download`, on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs the app and `leichtfacile models --from <folder>` checks and unpacks the models ([quickstart.md](quickstart.md) way 5 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
-| c) A Swiss-operated or other provider | Set `LLM_BASE_URL` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
+| c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
 g6.xlarge in Zurich (`docs/hardware/aws-l4-2026-10-10/`): the official checkpoint
@@ -1242,7 +1259,7 @@ on disk. One request generates 16.2 tokens per second, close to the limit of the
 memory bandwidth (300 GB/s for about 16 GB of weights per token). With the 8B also
 judging, the example letter took 63 minutes with thinking in Understand
 and Judge, and 22 minutes with thinking only in Understand
-(`LLM_THINKING_STAGES=understand`); in both runs Understand's reasoning hit the
+(`thinking_stages = ["understand"]`); in both runs Understand's reasoning hit the
 12,000-token cap, which costs 744 s on this card. What the FP8 KV cache does to
 quality is not measured. The FP8 build of the weights (`onprem-ai/Apertus-v1.5-8B-FP8`,
 keeps image input, not tested) is 11.42 GB against 18.44 GB for the full multimodal
@@ -1254,10 +1271,10 @@ Vulkan build b9637) with the community 4-bit text-only conversion
 16k context with an 8-bit KV cache. It generated about 37 tokens per second at short
 context and about 17 near 16k; Understand took about 1.5 minutes and Write, with
 thinking, about 12 minutes for a 400-word letter. It runs the whole pipeline
-including thinking mode (`LLM_THINKING_MODE=chat-template`, `llama-server -sp`), but
+including thinking mode (`thinking = "chat-template"`, `llama-server -sp`), but
 it has no image input and is an unofficial conversion, so it serves development and
 small offices, not the evaluation. The server is started next to the app, as
-`.env.example` shows (`llama-server -hf Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF ...`,
+[quickstart.md](quickstart.md#running-a-model-yourself) shows (`llama-server -hf Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF ...`,
 weights downloaded on first start); it is served under the alias
 `apertus-v1.5-8b-q4-llamacpp`, so its results can never be mistaken for the official
 model. Tested on 6 October 2026 with llama.cpp's official CUDA build (b11429) on the
@@ -1278,23 +1295,23 @@ at runtime.
   [use-cases.md §2](use-cases.md#why-apertus-fits-best).
 - Reachable from this machine only by default (`127.0.0.1:8000`); the organisation's
   reverse proxy publishes it further. Two optional logins (`web/security.py`): a
-  shared token (`AUTH_TOKEN`; browsers are asked for it with HTTP Basic, any user
+  shared token (`auth.token`; browsers are asked for it with HTTP Basic, any user
   name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
   tries per minute and client, then 429) or the proxy's user header
-  (`AUTH_PROXY_HEADER`, trusted only from the proxy's addresses in `AUTH_PROXY_FROM`;
+  (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
   the user lands in `request.state.user`). The probes and the static files need no
-  login. `BIND_HOST` (which `serve --host` sets) names the interface the app listens
+  login. `server.host` (which `serve --host` sets) names the interface the app listens
   on; beyond the loopback interface the app refuses to start without one of the two.
   No accounts or roles of its own: that limitation stays, every logged-in user sees
   every job.
 - On a server the app runs as a system service (a systemd unit, for example) under a
   dedicated service account with no other rights:
-  `leichtfacile serve --host 0.0.0.0 --no-browser` with `AUTH_TOKEN`, or on the
-  loopback interface behind the reverse proxy with its user header. `DATA_DIR` lies on
-  a disk the organisation controls; that folder and the config file, which holds the
-  key, are readable and writable by the service account alone (`setup` writes the
-  config file so on POSIX systems; `DATA_DIR`'s permissions are the organisation's to
-  set). Outbound, the service connects to the model endpoint and to the web addresses
+  `leichtfacile serve --host 0.0.0.0 --no-browser` with `auth.token`, or on the
+  loopback interface behind the reverse proxy with its user header. `data.dir` lies on
+  a disk the organisation controls; that folder, the config file and the `.env` next
+  to it, which hold the key, are readable and writable by the service account alone
+  (`setup` writes the two files so on POSIX systems; `data.dir`'s permissions are the
+  organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
   users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
 - Every response carries a Content-Security-Policy (scripts from this server only,
   the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
@@ -1305,7 +1322,7 @@ at runtime.
 - A request body over 16 MB is refused with 413 by its `Content-Length` before a byte
   is read, else as soon as the count passes the limit; the 15 MB file limit, the
   200,000 characters of text and the bounds on the review fields (§7) hold inside it.
-  Writes (POST, PUT, PATCH, DELETE) are limited to `RATE_LIMIT_PER_MINUTE` (120) per
+  Writes (POST, PUT, PATCH, DELETE) are limited to `server.rate_limit_per_minute` (120) per
   client address and minute, 429 with `Retry-After` beyond; behind the trusted proxy
   the client is the address it forwards. In memory, per process.
 - `/healthz` answers from the process alone; `/readyz` asks the model endpoint at most
@@ -1320,10 +1337,10 @@ at runtime.
   while it runs a job carries the job id (`logs.py`, context variables). One access
   line per request names method, path, status, duration and client address, never the
   query string, which can carry what a reviewer typed into the drafts search; uvicorn's
-  own access log, which has the query string, is off. `LOG_FORMAT=json` writes every
+  own access log, which has the query string, is off. `log.format = "json"` writes every
   line as one JSON object (time, level, logger, message, request_id, job_id, the
   access line's fields, the traceback) for a log collector; `text` is the default.
-- Jobs and artifacts live in `DATA_DIR` and can be deleted via the API and
+- Jobs and artifacts live in `data.dir` and can be deleted via the API and
   the pages; the data lifecycle below says what is kept, for how long, and what a
   deletion takes with it.
 - The server fetches the URLs users submit, so a URL that resolves to a private,
@@ -1336,7 +1353,7 @@ at runtime.
   The check unwraps an IPv4 address carried in IPv6 (IPv4-mapped, NAT64) and names the
   ranges that CPython 3.12.0 to 3.12.3 still counted as global (6to4 among them), so it
   refuses the same addresses on every supported Python; CI runs the tests on 3.12,
-  3.13 and 3.14. `ALLOW_PRIVATE_URLS=1` lifts the address check for an intranet that needs internal
+  3.13 and 3.14. `server.allow_private_urls = true` lifts the address check for an intranet that needs internal
   pages.
 - A state-changing request from a page on another site (cross-site request forgery)
   is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
@@ -1344,7 +1361,7 @@ at runtime.
   headers, from scripts and API clients, pass; reads are never refused.
 - A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
   event loop, so a server that trickles its page or a large PDF does not hold every
-  other request (`/healthz` included) while it is ingested; at most `INGEST_SLOTS`
+  other request (`/healthz` included) while it is ingested; at most `jobs.ingest_slots`
   submissions are read at a time (the next is refused with 429), so they cannot fill
   the pool either. A queue limit, a time budget per job and a Stop button bound what
   one submitter can make the workers do (§7).
@@ -1374,18 +1391,18 @@ What the service stores, where, for how long, and how it leaves:
 - **What.** For every job: the source document as segments, the fact sheet, every
   draft version with its rule findings, judge reports and repair records, the review
   with the reviewer's edits, the pipeline summary, and one row per model call (stage,
-  model, tokens, latency, no text). With `LLM_CACHE=1`, the response cache keeps every
+  model, tokens, latency, no text). With `llm.cache = true`, the response cache keeps every
   prompt (which contains the document) and answer, keyed by their hash; it is off by
   default and meant for development and evaluation.
-- **Where.** `DATA_DIR` (by default the user's data folder, such as
+- **Where.** `data.dir` (by default the user's data folder, such as
   `~/.local/share/leichtfacile` or `%LOCALAPPDATA%\leichtfacile`, §10; on a server a
   folder on a disk the organisation controls): `leichtfacile.sqlite` and, with
   the cache on, `llm_cache.sqlite`. Nothing else is written; the exports are generated
-  on request and not stored. Encryption at rest belongs to the disk: put `DATA_DIR`
+  on request and not stored. Encryption at rest belongs to the disk: put `data.dir`
   on an encrypted file system or disk (LUKS, BitLocker, the cloud provider's encrypted
   volume), which costs nothing in the application and covers the WAL and temporary
   files too; the application does not encrypt rows itself.
-- **How long.** By default until someone deletes the job. `DATA_RETENTION_DAYS` (0 by
+- **How long.** By default until someone deletes the job. `data.retention_days` (0 by
   default) makes a housekeeping thread delete, once an hour, every job that nobody
   changed for that many days, with its artifacts, calls and cache rows; running jobs
   stay. A deployment that handles letters with personal data should set it to the
@@ -1396,7 +1413,7 @@ What the service stores, where, for how long, and how it leaves:
   of the job's calls are recorded in `llm_calls`), so no prompt with the document
   outlives the job. A running job is stopped first.
 - **What leaves the machine.** Only the model calls: the document text, the fact sheet
-  and the drafts go to the endpoint named by `LLM_BASE_URL`, nowhere else; the target
+  and the drafts go to the endpoint named by `llm.url`, nowhere else; the target
   architectures above and the endpoint profiles in §6 say which endpoints are
   sovereign. Fetching a web address a user submitted sends a request to that site,
   with nothing of a document in it.
@@ -1410,16 +1427,14 @@ What the service stores, where, for how long, and how it leaves:
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release
-Makefile                    development only: test · lint · format · check-llm · smoke · calibrate · eval ·
-                            eval-70b
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
-.env.example                endpoint profiles: CSCS, local vLLM, Public AI, Hugging Face, llama.cpp
 README.md                   project overview, quick start, documentation list
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
+  configuration.md          the settings: the config file, the saved endpoints and presets, every key
   architecture.md           this document
   ui-design.md              the web UI's specification
   rules.md                  rule catalogue → implemented by src/leichtfacile/rules
@@ -1429,9 +1444,9 @@ docs/
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
 src/leichtfacile/
-  __main__.py, cli.py       setup, serve, check-llm, ingest, check, simplify, eval
-  config.py                 config file, .env and environment → settings (pydantic-settings)
-  configure.py              `leichtfacile setup`: the endpoint questions, the config file
+  __main__.py, cli.py       setup, endpoint, config, serve, check-llm, ingest, check, simplify, eval
+  config.py                 the settings: defaults, presets, TOML files, LEICHTFACILE_ variables, keys from .env
+  configure.py              `leichtfacile setup`, `endpoint`, `config`: the endpoint questions, changes to the file
   spacy_models.py           the pinned spaCy models: find, download, check, unpack
   schemas.py                artifacts (§5)
   store.py                  SQLite access
@@ -1464,7 +1479,7 @@ scripts/                    fetch_pairs.py, print_letters.py, image_spike.py
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters
-  cache/, *.sqlite          with DATA_DIR=data: fetched texts, LLM cache, the database (git-ignored)
+  cache/, *.sqlite          with data.dir = "data": fetched texts, LLM cache, the database (git-ignored)
 eval/                       evaluation outputs (results*/) and labelling sheets (labels/), git-ignored
 tests/                      rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
                             eval, web
@@ -1480,7 +1495,7 @@ through `chat_template_kwargs`, the reasoning arrives inline between `<|inner_pr
 and `<|inner_suffix|>` and is stripped, and the answer ends with a control token that the
 client removes.
 
-1. `GET {LLM_BASE_URL}/v1/models` lists `swiss-ai/Apertus-v1.5-8B`, `…-8B-thinking`,
+1. `GET {llm.url}/models` lists `swiss-ai/Apertus-v1.5-8B`, `…-8B-thinking`,
    `…-70B`, `…-70B-thinking`; the base URL host
    (`api.inference.cscs.ch` per the CSCS docs; some public projects use
    `api.swissai.svc.cscs.ch`).
@@ -1552,7 +1567,7 @@ On CSCS, the same afternoon.
    `-8B-thinking`, `-70B` and `-70B-thinking` in that spelling, next to the Apertus 1
    models (`Apertus-8B-Instruct-2509`, `-70B-`) and six models of other makers. A short
    call answers in about 100 milliseconds.
-2. **Thinking.** `LLM_THINKING_MODE=model-suffix` works as designed: the `-thinking`
+2. **Thinking.** `thinking = "model-suffix"` works as designed: the `-thinking`
    models reason, and the reasoning arrives in the `reasoning` field of every streamed
    chunk (the newer vLLM name; the client reads `reasoning_content` too), never inline.
    The budget is the price: for the 400-word sample letter the 8B wrote 3,000 to 17,000
@@ -1572,9 +1587,10 @@ On CSCS, the same afternoon.
    `incomplete chunked`), after seconds to a minute of generation; 10 of the 40 calls of
    check 3 needed retries and one failed after five attempts. The rate is the same for
    sequential and for eight parallel calls, so it is not our load. The client retries
-   such drops; `LLM_MAX_RETRIES` defaults to 8, which makes a hard failure rare, at the
+   such drops; `llm.max_retries` defaults to 8, which makes a hard failure rare, at the
    price of repeated generation time.
-7. **Baseline.** P0 on the eval pairs runs on CSCS with `make eval`; the Public AI
+7. **Baseline.** P0 on the eval pairs runs on CSCS with the evaluation commands
+   ([quickstart.md](quickstart.md#the-evaluation)); the Public AI
    baseline above was the first reading.
 
 ## 13. Risks and mitigations
@@ -1585,7 +1601,7 @@ On CSCS, the same afternoon.
 | JSON output unstable | Schema in prompt, lenient parse, pydantic validation, one error-feedback retry; measured in endpoint check 3 (§12). |
 | Model judging itself is biased | Everything countable is in code; the judge is a different, larger model; judge agreement with human labels is reported. |
 | CSCS endpoint rate-limited or down | Backoff and cache; single-worker queue; evaluation runs overnight. |
-| A model other than Apertus 1.5 behind the endpoint | The reported numbers hold for Apertus 1.5 only. The code checks (facts, values, rules) work the same for any model, and `make eval` measures another endpoint on the same pairs. |
+| A model other than Apertus 1.5 behind the endpoint | The reported numbers hold for Apertus 1.5 only. The code checks (facts, values, rules) work the same for any model, and `eval run` measures another endpoint on the same pairs. |
 | Image input not available on the CSCS endpoint | Feature flagged; demo uses text and HTML; scans shown with local vLLM only if time allows. |
 | Scope creep across three languages | German end-to-end with numbers first (by 10 October); FR/IT only afterwards. |
 | No compute for the LoRA | Stretch goal; the pipeline's value does not depend on it. The data it would need (approved drafts, edits) is collected regardless. |

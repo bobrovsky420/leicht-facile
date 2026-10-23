@@ -206,7 +206,7 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
   `needs_review` (`aria-label` "3 drafts need review") and **New draft** (`/new`).
   The current section has a 2 px accent underline and `aria-current`.
 - Right: the endpoint indicator, a dot, "Endpoint" and the configured model name
-  (`settings.llm_name`, mono 12). The dot is grey until `app.js` has the `/readyz`
+  (`settings.llm.models.writer`, mono 12). The dot is grey until `app.js` has the `/readyz`
   answer: green when the endpoint is reachable and the model listed, amber when it
   is reachable without the model, red when it is unreachable. The full sentence
   (the existing `js.endpoint.*` texts) goes into the indicator's `title` and
@@ -265,7 +265,7 @@ handler.
 Empty states:
 
 - No jobs at all: "No drafts yet", the tagline, one sentence on what to paste, the
-  sample letters (`src/leichtfacile/letters/`, or the folder `EXAMPLES_DIR` names) as
+  sample letters (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as
   one-click fills of the New draft form (buttons that open `/new?example=<id>` with the
   text filled in), and "New draft".
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
@@ -924,7 +924,7 @@ Checks before the redesign counts as done:
 
 - Screenshots with a headless browser (`msedge --headless=new --screenshot=<file>
   --window-size=<w>,<h> <url>` against `python -m leichtfacile serve` on a copy of
-  `data/`, with `LLM_BASE_URL` pointing at an unreachable port so no model is
+  `data/`, with `llm.url` pointing at an unreachable port so no model is
   called), in English and German, at 1440 × 900,
   1280 × 800, 1024 × 768 and 390 × 844: the empty list, the list with jobs, New draft
   with an example, a queued, a running and a failed job, a review with a selected

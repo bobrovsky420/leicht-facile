@@ -319,7 +319,7 @@ def run_spike(
 ) -> dict[str, Any]:
     """Every capture of the folder through the model; the report per capture and call."""
     report: dict[str, Any] = {
-        "endpoint": llm.settings.llm_base_url,
+        "endpoint": llm.settings.llm.url,
         "model": llm.resolve_model(model, False)[0],
         "max_side": max_side,
         "strips": strips,

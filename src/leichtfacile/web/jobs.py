@@ -2,7 +2,7 @@
 
 The ingest (the fetch of a URL, the parse of a PDF, the segmentation) runs in the
 request's thread so that the submitter gets a 400 with the reason at once; at most
-`INGEST_SLOTS` submissions are read at a time, the next one is refused with 429 and
+`jobs.ingest_slots` submissions are read at a time, the next one is refused with 429 and
 asked to try again (`ServerBusy`), so slow documents never fill the thread pool and
 the other requests, the probes included, keep their threads (audit V4).
 """
@@ -69,7 +69,7 @@ class ServerBusy(SubmissionError):
 
 @contextmanager
 def ingest_slot(slots: threading.Semaphore | None) -> Iterator[None]:
-    """One of the `INGEST_SLOTS` while the document is read; `ServerBusy` at once when
+    """One of the `jobs.ingest_slots` while the document is read; `ServerBusy` at once when
     none is free (never a wait, which would hold the thread the limit protects)."""
     if slots is None:
         yield
@@ -159,8 +159,9 @@ def create_job(
         raise SubmissionError("unknown_condition", condition=sub.condition)
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
-    with ingest_slot(slots):  # ALLOW_PRIVATE_URLS: an intranet that needs internal pages
-        source = ingest_submission(sub, allow_private_urls=settings.allow_private_urls)
+    # server.allow_private_urls: an intranet that needs internal pages
+    with ingest_slot(slots):
+        source = ingest_submission(sub, allow_private_urls=settings.server.allow_private_urls)
     if not source.segments:
         raise SubmissionError("no_text")
     if source.lang not in available_languages():
@@ -177,8 +178,8 @@ def create_job(
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
-        max_repair_rounds=settings.max_repair_rounds,
-        max_facts_rounds=settings.max_facts_rounds,
+        max_repair_rounds=settings.pipeline.repair_rounds,
+        max_facts_rounds=settings.pipeline.facts_rounds,
         mode=sub.mode,  # type: ignore[arg-type]
         addressee=(sub.addressee or "").strip() or None,
         notice=notice,

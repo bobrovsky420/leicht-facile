@@ -417,7 +417,7 @@
 
   "js.endpoint.listed": "Endpunkt {url}: erreichbar, Modell aufgeführt.",
   "js.endpoint.unlisted": "Endpunkt {url}: erreichbar, aber das Modell fehlt in seiner Liste.",
-  "js.endpoint.unreachable": "Endpunkt {url} nicht erreichbar ({error}). Prüfen Sie LLM_BASE_URL und LLM_API_KEY.",
+  "js.endpoint.unreachable": "Endpunkt {url} nicht erreichbar ({error}). Prüfen Sie Adresse und Schlüssel: leichtfacile config show.",
   "js.endpoint.no_answer": "keine Antwort",
   "js.endpoint.unknown": "Status des Endpunkts unbekannt.",
   "js.decided": "{decided} von {total} entschieden",

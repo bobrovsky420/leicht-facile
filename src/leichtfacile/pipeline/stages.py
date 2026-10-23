@@ -95,8 +95,8 @@ STAGES: dict[str, StageSettings] = {
 
 
 def thinking_for(llm: LLMClient, stage: str) -> bool:
-    """Whether a stage uses the thinking model (LLM_THINKING_STAGES)."""
-    return stage in llm.settings.thinking_stages
+    """Whether a stage uses the thinking model (llm.thinking_stages)."""
+    return stage in llm.settings.llm.thinking_stages
 
 
 def mode_context(stage: str, mode: str = "standard", addressee: str | None = None) -> dict:

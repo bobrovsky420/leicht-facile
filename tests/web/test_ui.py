@@ -53,7 +53,7 @@ Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67.
 
 @pytest.fixture
 def env(tmp_path, endpoint: FakeEndpoint, sleeps, monkeypatch):
-    settings = make_settings(data_dir=tmp_path, llm_max_retries=0)
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     store = Store(tmp_path / "ui.sqlite")
     app = create_app(settings, llm, store)
@@ -82,7 +82,7 @@ def test_start_page_lists_the_drafts_and_starts_empty_with_the_examples(env) -> 
     assert "No drafts yet" in page.text
     assert 'href="/new?example=praemienverbilligung-brief"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
-    assert settings.llm_name in page.text  # the endpoint indicator in the app bar
+    assert settings.llm.models.writer in page.text  # the endpoint indicator in the app bar
 
     queued_job(store, settings, title="Brief")
     page = client.get("/")
@@ -153,7 +153,7 @@ def test_new_draft_page_offers_the_examples(env) -> None:
     assert "Try an example" in page.text and 'id="example-texts"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
     assert 'name="condition" value="P2" checked' in page.text
-    assert settings.llm_name in page.text
+    assert settings.llm.models.writer in page.text
     empty_area = 'data-max="200000"></textarea>'
     assert empty_area in page.text
     filled = client.get("/new", params={"example": "praemienverbilligung-brief"})

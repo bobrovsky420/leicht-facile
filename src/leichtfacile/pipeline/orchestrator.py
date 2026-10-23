@@ -87,7 +87,7 @@ ARTIFACTS_FROM = {
     "judge": ["judge", "repair", "summary", "review"],
 }
 # The error a job carries when it was stopped (web/templates/_progress.html shows it as
-# such) or ran over its time budget (`JOB_TIME_BUDGET_S`).
+# such) or ran over its time budget (`jobs.time_budget_s`).
 CANCELLED = "cancelled"
 OVER_BUDGET = "stopped after the time budget of {seconds} s"
 
@@ -258,7 +258,7 @@ class Orchestrator:
         job = self.store.get_job(job_id)
         if job is None:
             raise PipelineError(f"unknown job {job_id}")
-        budget = self.settings.job_time_budget_s
+        budget = self.settings.jobs.time_budget_s
         run = RunState(
             job_id,
             stop_after,
@@ -320,7 +320,7 @@ class Orchestrator:
             error = (
                 CANCELLED
                 if exc.reason == "cancelled"
-                else OVER_BUDGET.format(seconds=int(self.settings.job_time_budget_s))
+                else OVER_BUDGET.format(seconds=int(self.settings.jobs.time_budget_s))
             )
             log.info("job %s %s", job_id, error)
             self._set(job_id, status="failed", error=error)
@@ -397,7 +397,7 @@ class Orchestrator:
             factsheet = stages.complete_factsheet(factsheet, source)
             if cfg.mode == "decision":
                 factsheet = protect_factsheet(factsheet, source)
-            if self.settings.use_vocabulary:
+            if self.settings.pipeline.vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)
         self._maybe_stop(run, "understand")
@@ -415,7 +415,7 @@ class Orchestrator:
                 addressee=cfg.addressee,
             )
             draft = stages.link_facts(draft, factsheet, source)
-            if self.settings.use_vocabulary:  # before the Mediopunkt: it splits the terms too
+            if self.settings.pipeline.vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
             # P1 and P2 only; a baseline measures the prompt
             draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
@@ -446,7 +446,7 @@ class Orchestrator:
                 judge,
                 factsheet,
                 include_warnings=blocking == 0,
-                vocabulary=self.settings.use_vocabulary,
+                vocabulary=self.settings.pipeline.vocabulary,
             )
             if not request:
                 reason = "no problems left"
@@ -492,7 +492,7 @@ class Orchestrator:
                 judge,
                 factsheet,
                 facts_only=True,
-                limit=self.settings.max_missing_per_facts_round,
+                limit=self.settings.pipeline.missing_per_facts_round,
             )
             step = self._round(
                 run, job, source, factsheet, draft, rules, judge, request, facts_rounds,
@@ -513,19 +513,19 @@ class Orchestrator:
         else:
             if facts_rounds:
                 reason = f"stopped after {facts_rounds} facts rounds"
-        # The recover round (MAX_RECOVER_FACTS, off by default): the must-keep values
+        # The recover round (pipeline.recover_facts, off by default): the must-keep values
         # still missing in the best version, each asked for alone with its source
         # paragraph and its value named (stages.recover_fact, the review page's "Suggest
         # a sentence"); the sentences code accepts go after their blocks as one new
         # version, checked and judged. The choice below keeps it only if it is better.
         endpoint_down = run.round_failure == "endpoint"
-        if self.settings.max_recover_facts and cfg.max_repair_rounds and not endpoint_down:
+        if self.settings.pipeline.recover_facts and cfg.max_repair_rounds and not endpoint_down:
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
             latest = max(h[0].version for h in history)
             step = self._recover(run, job, source, factsheet, *base, version=latest + 1)
             if step is not None:
                 history.append(step)
-        # The polish round (MAX_POLISH_ROUNDS, 1 by default since 10 October 2026): the
+        # The polish round (pipeline.polish_rounds, 1 by default since 10 October 2026): the
         # facts and recover rounds add the source's sentences nearly verbatim,
         # and the loop above never sees them again. Up to that many repair rounds on the
         # best version, for its rule findings alone: the errors, or the warnings once no
@@ -534,8 +534,8 @@ class Orchestrator:
         # choice below keeps a polished version only if it loses no fact and adds no
         # blocking finding.
         polish_rounds = 0
-        if self.settings.max_polish_rounds and cfg.max_repair_rounds and not endpoint_down:
-            for number in range(1, self.settings.max_polish_rounds + 1):
+        if self.settings.pipeline.polish_rounds and cfg.max_repair_rounds and not endpoint_down:
+            for number in range(1, self.settings.pipeline.polish_rounds + 1):
                 base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
                 blocks = base[0].by_id()
                 errors = any(
@@ -562,7 +562,7 @@ class Orchestrator:
         # repair rounds stay on the facts. Its version is a new one after the latest;
         # the choice below keeps it only if it loses no fact and adds no blocking problem.
         vocabulary_rounds = 0
-        if self.settings.use_vocabulary and cfg.max_repair_rounds and not endpoint_down:
+        if self.settings.pipeline.vocabulary and cfg.max_repair_rounds and not endpoint_down:
             base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
             request = build_request(*base, factsheet, only=OFFICE_RULES)
             if request:
@@ -643,14 +643,14 @@ class Orchestrator:
         version: int,
     ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
         """The recover round: one call per missing must-keep value (FACT-01), the most
-        important kinds first, up to MAX_RECOVER_FACTS; each call sees the draft with the
+        important kinds first, up to pipeline.recover_facts; each call sees the draft with the
         sentences recovered before it. None when no sentence was accepted."""
         facts = {f.id: f for f in factsheet.facts}
         missing = {f.fact_id for f in rules.findings if f.rule_id == "FACT-01" and f.fact_id}
         wanted = sorted(
             (facts[i] for i in missing if i in facts),
             key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
-        )[: self.settings.max_recover_facts]
+        )[: self.settings.pipeline.recover_facts]
         if not wanted:
             return None
         self._stage(run, "recover")
@@ -713,7 +713,7 @@ class Orchestrator:
         """A round's new version after the model: code's edits, stored, checked and
         judged (again when facts were involved, else the judge's findings carried over)."""
         new_draft = stages.link_facts(new_draft, factsheet, source)
-        if self.settings.use_vocabulary:  # a repair can bring a new hard term
+        if self.settings.pipeline.vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
         # Before the check: one text for all.
         new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
@@ -825,7 +825,7 @@ class Orchestrator:
             blocking_findings=blocking,
             notes=list(run.notes),
             vocabulary=vocabulary_version(source.lang)
-            if self.settings.use_vocabulary and job.config.condition not in BASELINE_CONDITIONS
+            if self.settings.pipeline.vocabulary and job.config.condition not in BASELINE_CONDITIONS
             else None,
         )
         self.store.put_artifact(job.id, "summary", summary)
@@ -833,9 +833,9 @@ class Orchestrator:
     # -- helpers ----------------------------------------------------------------------
 
     def _understand_model(self, cfg: JobConfig) -> str | None:
-        """The Understand stage's model: the job's, else LLM_UNDERSTAND_NAME, else the
-        job's writer (None: LLM_NAME). The hybrid lets the 70B read and the 8B write."""
-        return cfg.understand_model or self.settings.llm_understand_name or cfg.writer_model
+        """The Understand stage's model: the job's, else llm.models.understand, else the
+        job's writer (None: llm.models.writer). The hybrid lets the 70B read and the 8B write."""
+        return cfg.understand_model or self.settings.llm.models.understand or cfg.writer_model
 
     def _maybe_stop(self, run: RunState, stage: str) -> None:
         if run.stop_after == stage:

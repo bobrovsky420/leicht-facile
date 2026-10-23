@@ -205,7 +205,7 @@ def test_every_bucket_once(tmp_path) -> None:
     assert "| k: written into a version not kept as final | 1 | 9 % |" in table
     assert (
         "| a: never asked for, behind the cap of missing facts per round (5 in a repair round, "
-        "MAX_MISSING_PER_FACTS_ROUND in a facts round) | 1 |" in table
+        "pipeline.missing_per_facts_round in a facts round) | 1 |" in table
     )
     assert (
         "Background facts whose value is not in the final text (bucket e, for reading): 1" in table

@@ -3,7 +3,7 @@
 Usage: uv run python scripts/image_spike.py [--scans data/examples/print]
                                                      [--max-side 1600] [--strips] [--model NAME]
                                                      [--only CAPTURE ...]
-Reads the endpoint from .env or the shell, sends every page of every capture in
+Reads the endpoint from the settings, sends every page of every capture in
 `<scans>/scans/` to the model and compares the transcription with the printed text.
 With `--strips` each page goes in horizontal strips at the scan's own resolution
 instead of whole and scaled (the server keeps at most 1400 x 1400 pixels of an image).
@@ -26,7 +26,7 @@ def main() -> int:
     parser.add_argument("--scans", type=Path, default=Path("data/examples/print"))
     parser.add_argument("--max-side", type=int, default=MAX_SIDE, help="pixels, long side")
     parser.add_argument("--strips", action="store_true", help="strips at the scan's resolution")
-    parser.add_argument("--model", help="transcription model (default: LLM_NAME)")
+    parser.add_argument("--model", help="transcription model (default: llm.models.writer)")
     parser.add_argument("--only", nargs="*", help="only these captures (file name stems)")
     parser.add_argument("--out", type=Path, help="default: eval/results/image_spike[_strips].json")
     args = parser.parse_args()

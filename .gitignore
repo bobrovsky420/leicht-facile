@@ -1,7 +1,7 @@
-# Secrets and local config
+# Keys and local settings (docs/configuration.md)
 .env
 .env.*
-!.env.example
+/leichtfacile.toml
 
 # Model weights and checkpoints — do not commit these
 *.bin

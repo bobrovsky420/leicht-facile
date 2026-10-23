@@ -1,6 +1,6 @@
 """SQLite cache of model responses, keyed by a hash of model, messages and parameters.
 
-Enabled with `LLM_CACHE=1`. It makes development and evaluation reruns cheap. The
+Enabled with `llm.cache`. It makes development and evaluation reruns cheap. The
 repository never ships a filled cache: a live run must work from the endpoint.
 """
 

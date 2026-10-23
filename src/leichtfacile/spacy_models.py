@@ -4,7 +4,7 @@ They are not on PyPI, so the package cannot depend on them. In a checkout `uv sy
 installs them as packages (the `models` dependency group in pyproject.toml). Otherwise
 `leichtfacile models`, which `leichtfacile setup` offers, downloads the pinned files
 from spaCy's releases on GitHub, checks their SHA-256 and unpacks the model folder into
-DATA_DIR/models/: no pip needed, which `uv tool` environments lack. Offline, the same
+data.dir/models/: no pip needed, which `uv tool` environments lack. Offline, the same
 files are carried over and unpacked with `leichtfacile models --from <folder>`.
 """
 
@@ -30,7 +30,7 @@ class SpacyModel:
 
     @property
     def folder(self) -> str:
-        """The model folder inside the wheel, and its name under DATA_DIR/models."""
+        """The model folder inside the wheel, and its name under data.dir/models."""
         return f"{self.name}-{self.version}"
 
     @property
@@ -68,7 +68,7 @@ class ModelMissing(RuntimeError):
 
 
 def models_dir() -> Path:
-    return paths().data_dir / "models"
+    return paths().dir / "models"
 
 
 def locate(lang: str, folder: Path | None = None) -> str | Path | None:
@@ -108,7 +108,7 @@ def install(
     say: Callable[[str], None] = print,
 ) -> list[Path]:
     """Download (or take from the folder `source`) each language's wheel, check its
-    SHA-256 and unpack its model folder into `folder` (DATA_DIR/models). Raises
+    SHA-256 and unpack its model folder into `folder` (data.dir/models). Raises
     ValueError on a wrong checksum or a wheel that is not the model's; a model already
     unpacked is replaced only once the new one is complete."""
     langs = list(langs)

@@ -24,7 +24,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
   <span class="spacer"></span>
   <span class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz" title="{{ t('js.endpoint.unknown') }}">
     <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') }}</span>
-    <code>{{ settings.llm_name }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
+    <code>{{ settings.llm.models.writer }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
   </span>
   {% set languages = ui_languages() %}
   {% if languages | length > 1 %}

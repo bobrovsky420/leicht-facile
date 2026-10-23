@@ -35,16 +35,16 @@ def create_app(
     settings = settings or get_settings()
     # One line per record, text or JSON, with the request and job ids (logs.py); no
     # excerpt of a document or an answer in an error's line (§10).
-    configure_logging(settings.log_level, settings.log_format)
+    configure_logging(settings.log.level, settings.log.format)
     llm = llm or LLMClient.from_settings(settings)
-    store = store or Store(settings.data_dir / DATABASE_NAME)
+    store = store or Store(settings.data.dir / DATABASE_NAME)
     orchestrator = Orchestrator(store, llm, settings)
     metrics = observability.Metrics()  # what this process counts for /metrics
     runner = JobRunner(
         orchestrator,
-        workers=settings.job_workers,
-        queue_limit=settings.job_queue_limit,
-        retention_days=settings.data_retention_days,
+        workers=settings.jobs.workers,
+        queue_limit=settings.jobs.queue_limit,
+        retention_days=settings.data.retention_days,
         on_finished=metrics.observe_job,
     )
 
@@ -64,7 +64,7 @@ def create_app(
     app.state.orchestrator = orchestrator
     app.state.runner = runner
     # How many submissions are read at a time (web/jobs.py).
-    app.state.ingest_slots = threading.BoundedSemaphore(settings.ingest_slots)
+    app.state.ingest_slots = threading.BoundedSemaphore(settings.jobs.ingest_slots)
     app.state.endpoint_check = health.EndpointCheck(llm)
     app.state.metrics = metrics
 

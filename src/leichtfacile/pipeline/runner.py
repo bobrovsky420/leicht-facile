@@ -1,13 +1,13 @@
 """Worker threads that run the queued jobs (docs/architecture.md §7).
 
 The jobs table is the queue: a worker takes the job that has waited longest with one
-guarded UPDATE (`Store.claim_next_queued`), so `JOB_WORKERS` threads share it without a
+guarded UPDATE (`Store.claim_next_queued`), so `jobs.workers` threads share it without a
 broker and nothing in memory is lost on a restart. A worker that finds nothing waits
 for a nudge from `submit` or one second, whichever comes first, so a job queued by
 another process is picked up too. Jobs left `running` by a process that stopped are
-queued again on start. A queue limit refuses submissions when `JOB_QUEUE_LIMIT` jobs
+queued again on start. A queue limit refuses submissions when `jobs.queue_limit` jobs
 wait; `cancel` stops a queued or a running job. A housekeeping thread deletes the jobs
-older than `DATA_RETENTION_DAYS` once an hour (lifecycle.py). `on_finished` hears every
+older than `data.retention_days` once an hour (lifecycle.py). `on_finished` hears every
 job's final status and how long the worker ran it (web/observability.py counts them
 for `/metrics`).
 """
@@ -29,7 +29,7 @@ PURGE_INTERVAL_S = 3600.0
 
 
 class QueueFull(RuntimeError):
-    """`JOB_QUEUE_LIMIT` jobs are waiting already."""
+    """`jobs.queue_limit` jobs are waiting already."""
 
 
 class JobRunner:

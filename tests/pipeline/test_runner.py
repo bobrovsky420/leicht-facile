@@ -53,10 +53,10 @@ def by_stage(request: httpx.Request) -> httpx.Response:
 
 
 def orchestrator(store, endpoint, sleeps, *, clock=None, **settings) -> Orchestrator:
-    settings.setdefault("use_vocabulary", False)
-    settings.setdefault("max_recover_facts", 0)
-    settings.setdefault("max_polish_rounds", 0)
-    cfg = make_settings(llm_max_retries=0, **settings)
+    settings.setdefault("pipeline__vocabulary", False)
+    settings.setdefault("pipeline__recover_facts", 0)
+    settings.setdefault("pipeline__polish_rounds", 0)
+    cfg = make_settings(llm__max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     kwargs = {"clock": clock} if clock else {}
     return Orchestrator(store, llm, cfg, **kwargs)
@@ -139,7 +139,7 @@ def test_a_running_job_stops_at_its_next_check_and_keeps_its_stages(
 def test_a_job_over_its_time_budget_is_stopped(store, endpoint, sleeps) -> None:
     now = [1000.0]
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    orch = orchestrator(store, endpoint, sleeps, clock=lambda: now[0], job_time_budget_s=60)
+    orch = orchestrator(store, endpoint, sleeps, clock=lambda: now[0], jobs__time_budget_s=60)
     job_id = new_job(store, condition="P1")
 
     def tick(request: httpx.Request) -> httpx.Response:
@@ -157,7 +157,7 @@ def test_a_job_over_its_time_budget_is_stopped(store, endpoint, sleeps) -> None:
 def test_without_a_budget_a_job_runs_as_long_as_it_takes(store, endpoint, sleeps) -> None:
     now = [0.0]
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    orch = orchestrator(store, endpoint, sleeps, clock=lambda: now[0], job_time_budget_s=0)
+    orch = orchestrator(store, endpoint, sleeps, clock=lambda: now[0], jobs__time_budget_s=0)
     job_id = new_job(store, condition="P1")
     now[0] += 1e9
     orch.run(job_id)
@@ -210,7 +210,7 @@ def test_two_workers_share_one_orchestrator_without_sharing_run_state(
         chat_response(fx.as_json(fx.WRITE)),
         error_response(500),  # the judge
     )
-    orch = orchestrator(store, endpoint, sleeps, llm_judge_name="swiss-ai/Apertus-v1.5-70B")
+    orch = orchestrator(store, endpoint, sleeps, llm__models__judge="swiss-ai/Apertus-v1.5-70B")
     first = new_job(store, condition="P2", max_repair_rounds=0)
     orch.run(first)
     notes = store.get_artifact(first, "summary", PipelineSummary).notes
@@ -238,8 +238,8 @@ def test_the_purge_deletes_old_jobs_with_their_cache_rows_and_keeps_the_recent_o
     store, endpoint, sleeps, tmp_path
 ) -> None:
     cache = ResponseCache(tmp_path / "cache.sqlite")
-    cfg = make_settings(llm_max_retries=0, use_vocabulary=False, max_recover_facts=0,
-                        max_polish_rounds=0)  # fmt: skip
+    cfg = make_settings(llm__max_retries=0, pipeline__vocabulary=False, pipeline__recover_facts=0,
+                        pipeline__polish_rounds=0)  # fmt: skip
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append, cache=cache)
     orch = Orchestrator(store, llm, cfg)
     endpoint.push(*(chat_response(a) for a in P1 * 2))

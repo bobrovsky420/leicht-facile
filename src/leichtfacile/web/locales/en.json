@@ -417,7 +417,7 @@
 
   "js.endpoint.listed": "Endpoint {url}: reachable, model listed.",
   "js.endpoint.unlisted": "Endpoint {url}: reachable, model not in the endpoint's list.",
-  "js.endpoint.unreachable": "Endpoint {url} not reachable ({error}). Check LLM_BASE_URL and LLM_API_KEY.",
+  "js.endpoint.unreachable": "Endpoint {url} not reachable ({error}). Check its address and key: leichtfacile config show.",
   "js.endpoint.no_answer": "no answer",
   "js.endpoint.unknown": "Endpoint status unknown.",
   "js.decided": "{decided} of {total} decided",

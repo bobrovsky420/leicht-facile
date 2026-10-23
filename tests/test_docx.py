@@ -221,7 +221,7 @@ Rechtsgrundlage ist Art. 5 des Einführungsgesetzes.
 def test_simplify_writes_the_word_export_next_to_the_others(
     tmp_path, endpoint, sleeps, monkeypatch
 ) -> None:
-    settings = make_settings(data_dir=tmp_path, llm_max_retries=0)
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0)
     monkeypatch.setattr("leichtfacile.config.get_settings", lambda: settings)
     monkeypatch.setattr(
         LLMClient,

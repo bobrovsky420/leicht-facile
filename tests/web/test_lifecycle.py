@@ -32,7 +32,7 @@ def make_env(tmp_path, endpoint: FakeEndpoint, sleeps):
     made: list[tuple[TestClient, Store]] = []
 
     def factory(cache: ResponseCache | None = None, **overrides):
-        settings = make_settings(data_dir=tmp_path, llm_max_retries=0, **overrides)
+        settings = make_settings(data__dir=tmp_path, llm__max_retries=0, **overrides)
         llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append,
                         cache=cache)  # fmt: skip
         store = Store(tmp_path / f"lifecycle-{len(made)}.sqlite")
@@ -126,7 +126,7 @@ def test_a_running_job_is_neither_deleted_nor_rerun(make_env, endpoint) -> None:
 
 
 def test_the_queue_limit_and_the_ingest_slots_answer_429(make_env, endpoint) -> None:
-    client, app, store = make_env(job_queue_limit=1, ingest_slots=1)
+    client, app, store = make_env(jobs__queue_limit=1, jobs__ingest_slots=1)
     in_call, release = held_call(endpoint)
     submit(client)  # runs, held in its first call
     assert in_call.wait(10)

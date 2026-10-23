@@ -56,12 +56,12 @@ def test_user_agent_identifies_the_app(endpoint, make_client):
     ],
 )
 def test_model_suffix_mode(make_client, requested, thinking, expected):
-    client = make_client(make_settings(llm_thinking_mode="model-suffix"))
+    client = make_client(make_settings(llm__thinking="model-suffix"))
     assert client.resolve_model(requested, thinking) == (expected, {})
 
 
 def test_chat_template_mode_sends_enable_thinking(endpoint, make_client):
-    client = make_client(make_settings(llm_thinking_mode="chat-template"))
+    client = make_client(make_settings(llm__thinking="chat-template"))
     endpoint.push(chat_response("a"), chat_response("b"))
     client.complete(MSG, thinking=True)
     client.complete(MSG, thinking=False)
@@ -73,9 +73,7 @@ def test_chat_template_mode_sends_enable_thinking(endpoint, make_client):
 
 def test_extra_body_is_sent_with_every_call(endpoint, make_client):
     client = make_client(
-        make_settings(
-            llm_thinking_mode="chat-template", llm_extra_body={"cache": {"no-cache": True}}
-        )
+        make_settings(llm__thinking="chat-template", llm__extra_body={"cache": {"no-cache": True}})
     )
     endpoint.push(chat_response("a"))
     client.complete(MSG, thinking=True)
@@ -85,7 +83,7 @@ def test_extra_body_is_sent_with_every_call(endpoint, make_client):
 
 
 def test_off_mode_sends_model_unchanged(endpoint, make_client):
-    client = make_client(make_settings(llm_thinking_mode="off"))
+    client = make_client(make_settings(llm__thinking="off"))
     endpoint.push(chat_response("a"))
     client.complete(MSG, thinking=True)
     body = endpoint.chat_bodies()[0]
@@ -137,7 +135,7 @@ def test_retries_on_connection_error(endpoint, make_client, sleeps):
 
 
 def test_gives_up_after_max_retries(endpoint, make_client, sleeps):
-    client = make_client(make_settings(llm_max_retries=2))
+    client = make_client(make_settings(llm__max_retries=2))
     endpoint.push(error_response(500), error_response(500), error_response(500))
     with pytest.raises(LLMError, match="after 3 attempts"):
         client.complete(MSG, stage="write")
@@ -189,25 +187,25 @@ def test_list_models(make_client):
 
 
 def test_judge_defaults_to_writer_model():
-    assert make_settings().judge_name == MODEL
+    assert make_settings().llm.judge_model == MODEL
     other = "swiss-ai/Apertus-v1.5-70B"
-    assert make_settings(llm_judge_name=other).judge_name == other
+    assert make_settings(llm__models__judge=other).llm.judge_model == other
 
 
 BIG = "swiss-ai/Apertus-v1.5-70B"
 
 
 def test_judge_is_the_70b_when_the_endpoint_serves_it():
-    # Only the three required variables set (a judge's machine): the measured setup.
+    # Only the three required settings set: the measured setup.
     settings = make_settings()
-    assert settings.larger_name == BIG
-    assert settings.judge_for([MODEL, BIG, BIG + "-thinking"]) == BIG
-    assert settings.judge_for([MODEL, MODEL + "-thinking"]) == MODEL  # one local model
-    assert make_settings(llm_judge_name=MODEL).judge_for([MODEL, BIG]) == MODEL  # as set
-    lower = make_settings(llm_name="swiss-ai/apertus-v1.5-8b")  # Public AI's spelling
-    assert lower.judge_for(["swiss-ai/apertus-v1.5-70b"]) == "swiss-ai/apertus-v1.5-70b"
+    assert settings.llm.larger_model == BIG
+    assert settings.llm.judge_for([MODEL, BIG, BIG + "-thinking"]) == BIG
+    assert settings.llm.judge_for([MODEL, MODEL + "-thinking"]) == MODEL  # one local model
+    assert make_settings(llm__models__judge=MODEL).llm.judge_for([MODEL, BIG]) == MODEL  # as set
+    lower = make_settings(llm__models__writer="swiss-ai/apertus-v1.5-8b")  # Public AI's spelling
+    assert lower.llm.judge_for(["swiss-ai/apertus-v1.5-70b"]) == "swiss-ai/apertus-v1.5-70b"
     for name in (BIG, "apertus-v1.5-8b-q4-llamacpp", "other-8b"):
-        assert make_settings(llm_name=name).larger_name is None
+        assert make_settings(llm__models__writer=name).llm.larger_model is None
 
 
 def test_client_looks_the_judge_up_once(endpoint, make_client):
@@ -218,8 +216,8 @@ def test_client_looks_the_judge_up_once(endpoint, make_client):
     assert sum(r.url.path.endswith("/models") for r in endpoint.requests) == 1
     # Set explicitly, or no 70B in the family: no lookup at all.
     endpoint.requests.clear()
-    assert make_client(make_settings(llm_judge_name=MODEL)).judge_model() == MODEL
-    assert make_client(make_settings(llm_name="local-q4")).judge_model() == "local-q4"
+    assert make_client(make_settings(llm__models__judge=MODEL)).judge_model() == MODEL
+    assert make_client(make_settings(llm__models__writer="local-q4")).judge_model() == "local-q4"
     assert not endpoint.requests
 
 
@@ -237,9 +235,9 @@ def test_judge_falls_back_to_the_writer_while_the_list_fails(endpoint, make_clie
 
 
 def test_understand_defaults_to_writer_model():
-    assert make_settings().understand_name == MODEL
+    assert make_settings().llm.understand_model == MODEL
     other = "swiss-ai/Apertus-v1.5-70B"
-    assert make_settings(llm_understand_name=other).understand_name == other
+    assert make_settings(llm__models__understand=other).llm.understand_model == other
 
 
 # -- streaming (the default outside the tests) ----------------------------------------
@@ -250,7 +248,7 @@ def test_streaming_collects_text_reasoning_and_usage(endpoint, make_client):
         sse_response("42", reasoning_content="17 plus 25 ergibt 42.", prompt_tokens=12,
                      completion_tokens=3)
     )  # fmt: skip
-    client = make_client(make_settings(llm_stream=True))
+    client = make_client(make_settings(llm__stream=True))
     result = client.complete(MSG, thinking=True, stage="judge")
 
     assert result.text == "42"
@@ -264,14 +262,14 @@ def test_streaming_collects_text_reasoning_and_usage(endpoint, make_client):
 
 def test_streaming_inline_reasoning_split_across_chunks(endpoint, make_client):
     endpoint.push(sse_response("<|inner_prefix|>Ich rechne.<|inner_suffix|>\n42", pieces=9))
-    result = make_client(make_settings(llm_stream=True)).complete(MSG, thinking=True)
+    result = make_client(make_settings(llm__stream=True)).complete(MSG, thinking=True)
     assert result.text == "42"
     assert result.reasoning == "Ich rechne."
 
 
 def test_streaming_truncation_is_flagged(endpoint, make_client):
     endpoint.push(sse_response("<|inner_prefix|>Ich rechne noch", finish_reason="length"))
-    result = make_client(make_settings(llm_stream=True)).complete(MSG, thinking=True)
+    result = make_client(make_settings(llm__stream=True)).complete(MSG, thinking=True)
     assert result.truncated
     assert result.text == ""
     assert result.reasoning == "Ich rechne noch"
@@ -279,28 +277,28 @@ def test_streaming_truncation_is_flagged(endpoint, make_client):
 
 def test_streaming_retries_a_gateway_timeout_before_the_first_chunk(endpoint, make_client, sleeps):
     endpoint.push(error_response(504), sse_response("ok"))
-    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    result = make_client(make_settings(llm__stream=True)).complete(MSG)
     assert result.text == "ok"
     assert len(sleeps) == 1
 
 
 def test_streaming_retries_a_stream_that_breaks(endpoint, make_client, sleeps):
     endpoint.push(broken_sse_response(), sse_response("ok"))
-    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    result = make_client(make_settings(llm__stream=True)).complete(MSG)
     assert result.text == "ok"
     assert len(sleeps) == 1
 
 
 def test_streaming_without_usage_counts_zero_tokens(endpoint, make_client):
     endpoint.push(sse_response("ok", usage=False))
-    result = make_client(make_settings(llm_stream=True)).complete(MSG)
+    result = make_client(make_settings(llm__stream=True)).complete(MSG)
     assert result.text == "ok"
     assert (result.usage.tokens_in, result.usage.tokens_out) == (0, 0)
 
 
 def test_streaming_results_are_cached(endpoint, make_client, tmp_path):
     cache = ResponseCache(tmp_path / "cache.sqlite")
-    client = make_client(make_settings(llm_stream=True), cache=cache)
+    client = make_client(make_settings(llm__stream=True), cache=cache)
     endpoint.push(sse_response("Antwort", reasoning_content="r"))
     first = client.complete(MSG)
     second = client.complete(MSG)

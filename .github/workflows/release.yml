@@ -52,9 +52,9 @@ jobs:
           uv venv smoke
           uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/*.whl
           smoke/bin/leichtfacile --version
-          DATA_DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile models
+          LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile models
           printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > text.txt
-          DATA_DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile check text.txt --lang de
+          LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile check text.txt --lang de
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}

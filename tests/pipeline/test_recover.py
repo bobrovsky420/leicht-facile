@@ -14,7 +14,7 @@ from tests.pipeline import fixtures as fx
 
 @pytest.fixture
 def llm(endpoint) -> LLMClient:
-    return LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    return LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
 
 
 def factsheet():

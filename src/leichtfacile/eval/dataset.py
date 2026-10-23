@@ -1,7 +1,7 @@
 """Reference pairs: the manifest (data/pairs/manifest.jsonl) and the local text cache.
 
 The repository holds only URLs and licence notes; the texts are fetched into
-DATA_DIR/cache/pairs/ (git-ignored) because the publishers do not allow reproduction
+data.dir/cache/pairs/ (git-ignored) because the publishers do not allow reproduction
 (docs/sources.md §4). Evaluation always reads the cached copy, not the live page.
 """
 
@@ -27,9 +27,9 @@ Side = Literal["standard", "easy"]
 
 
 def data_dir() -> Path:
-    """DATA_DIR from the config file, .env or the environment, without the model
-    settings (no key is needed for the dataset)."""
-    return paths().data_dir
+    """data.dir from the settings, without the endpoint (no key is needed for the
+    dataset)."""
+    return paths().dir
 
 
 def cache_dir() -> Path:

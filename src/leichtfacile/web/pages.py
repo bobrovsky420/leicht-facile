@@ -1,7 +1,7 @@
 """Server-rendered pages: drafts list, new draft, job progress, review, reader preview.
 
 Every page is rendered in the reviewer's interface language (`i18n.py`): the choice
-from the switcher in the header (a cookie), else `UI_LANG`, else the browser's.
+from the switcher in the header (a cookie), else `server.ui_lang`, else the browser's.
 The layout and its parts are specified in docs/ui-design.md."""
 
 from __future__ import annotations
@@ -92,7 +92,7 @@ def translator(request: Request) -> Translator:
     lang = pick_language(
         request.cookies.get(COOKIE),
         request.headers.get("accept-language"),
-        request.app.state.settings.ui_lang,
+        request.app.state.settings.server.ui_lang,
     )
     return Translator(lang)
 
@@ -139,7 +139,7 @@ def _example_languages(folder: Path) -> dict[str, str]:
 
 def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[str, str]]:
     """The example letters with their language, for the New draft page and the empty
-    list; `folder` is `Settings.examples_dir`, else EXAMPLES_DIR is read."""
+    list; `folder` is `settings.data.examples_dir`, else it is read from the settings."""
     folder = folder or examples_dir()
     langs = _example_languages(folder)
     out = []
@@ -151,7 +151,7 @@ def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[st
 
 
 def _example(request: Request, example_id: str) -> dict[str, str] | None:
-    folder = request.app.state.settings.examples_dir
+    folder = request.app.state.settings.data.examples_dir
     return next((e for e in example_sources(folder) if e["id"] == example_id), None)
 
 
@@ -209,7 +209,7 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         filters=filters,
         langs=store.langs(),
         # The empty state offers the example texts in the form.
-        examples=examples_for_page(t, settings.examples_dir) if not total else [],
+        examples=examples_for_page(t, settings.data.examples_dir) if not total else [],
         rule_count=rule_count(),
         section="drafts",
         section_root=True,
@@ -243,7 +243,7 @@ def _new(
         t=t,
         error=error,
         form=form,
-        examples=examples_for_page(t, request.app.state.settings.examples_dir),
+        examples=examples_for_page(t, request.app.state.settings.data.examples_dir),
         doc_langs=[lang for lang in LANGS if lang in written],
         coming_langs=[lang for lang in LANGS if lang not in written],
         pipelines=_pipelines(t),
@@ -273,7 +273,7 @@ def _refused(request: Request, exc: SubmissionError | QueueFull, form: dict) -> 
     """The New draft form again, with the submission and why it was refused."""
     t = translator(request)
     if isinstance(exc, QueueFull):
-        message = t("error.queue_full", n=request.app.state.settings.job_queue_limit)
+        message = t("error.queue_full", n=request.app.state.settings.jobs.queue_limit)
     else:
         message = exc.text(t)
     busy = isinstance(exc, QueueFull | ServerBusy)  # 429: try again, nothing is wrong

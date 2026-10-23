@@ -1,8 +1,8 @@
 # Continuous integration: lint, tests and a start of the service.
 #
 # No model endpoint is needed: the tests answer model calls from a fake endpoint, and
-# the serve job starts the app against an unreachable LLM_BASE_URL to show that the
-# service and its liveness check do not depend on the endpoint. Every action is pinned
+# the serve job starts the app against an unreachable endpoint (llm.url) to show that
+# the service and its liveness check do not depend on it. Every action is pinned
 # to a commit; the comment after the hash names the release.
 
 name: CI
@@ -64,10 +64,10 @@ jobs:
       - run: uv sync --frozen --no-dev
       - name: Start it with an unreachable endpoint and call /healthz and /readyz
         env:
-          LLM_BASE_URL: http://127.0.0.1:9/v1
-          LLM_API_KEY: none
-          LLM_NAME: any-model
-          DATA_DIR: ${{ runner.temp }}/data
+          LEICHTFACILE_LLM__URL: http://127.0.0.1:9/v1
+          LEICHTFACILE_LLM__API_KEY: none
+          LEICHTFACILE_LLM__MODELS__WRITER: any-model
+          LEICHTFACILE_DATA__DIR: ${{ runner.temp }}/data
         run: |
           .venv/bin/leichtfacile serve --no-browser > serve.log 2>&1 &
           for i in $(seq 1 45); do

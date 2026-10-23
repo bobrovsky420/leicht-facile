@@ -31,7 +31,7 @@ def make_app(tmp_path, endpoint: FakeEndpoint, sleeps):
     made: list[tuple[TestClient, Store]] = []
 
     def factory(**overrides) -> tuple[TestClient, object]:
-        settings = make_settings(data_dir=tmp_path, llm_max_retries=0, **overrides)
+        settings = make_settings(data__dir=tmp_path, llm__max_retries=0, **overrides)
         llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
         store = Store(tmp_path / f"observability-{len(made)}.sqlite")
         app = create_app(settings, llm, store)
@@ -95,12 +95,12 @@ def test_a_refusal_of_the_hardening_layer_carries_the_id_too(app_env) -> None:
 
 
 def test_the_handler_follows_the_settings_and_is_installed_once(make_app) -> None:
-    make_app(log_format="json", log_level="DEBUG")
+    make_app(log__format="json", log__level="DEBUG")
     handler = _log_handler()
     assert isinstance(handler.formatter, logs.JsonFormatter)
     assert logging.getLogger("leichtfacile").level == logging.DEBUG
     assert any(isinstance(f, RedactingFilter) for f in handler.filters), "the privacy net"
-    make_app(log_format="text", log_level="warning")
+    make_app(log__format="text", log__level="warning")
     handlers = [h for h in logging.getLogger().handlers if h.name == logs.HANDLER_NAME]
     assert len(handlers) == 1 and isinstance(handlers[0].formatter, logs.TextFormatter)
     assert logging.getLogger("leichtfacile").level == logging.WARNING
@@ -179,7 +179,7 @@ def test_metrics_report_the_jobs_the_workers_the_calls_and_the_requests(app_env)
 
 
 def test_metrics_stay_behind_the_login(make_app) -> None:
-    client, _ = make_app(auth_token="s3cret")
+    client, _ = make_app(auth__token="s3cret")
     assert client.get("/metrics").status_code == 401
     assert client.get("/healthz").status_code == 200, "the probes stay open"
     ok = client.get("/metrics", headers={"Authorization": "Bearer s3cret"})
@@ -204,7 +204,7 @@ def test_the_exposition_escapes_labels_and_renders_histograms() -> None:
     class _Runner:
         workers, busy = 2, 1
 
-    text = render(_Store(), _Runner(), metrics, make_settings(job_queue_limit=7))  # type: ignore[arg-type]
+    text = render(_Store(), _Runner(), metrics, make_settings(jobs__queue_limit=7))  # type: ignore[arg-type]
     assert "leichtfacile_queue_depth 2" in text and "leichtfacile_queue_limit 7" in text
     assert "leichtfacile_workers 2\n" in text and "leichtfacile_workers_busy 1" in text
     assert 'leichtfacile_llm_calls{stage="write",model="m\\"1",cached="true"} 3' in text

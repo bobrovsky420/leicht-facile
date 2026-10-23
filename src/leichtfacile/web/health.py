@@ -85,24 +85,24 @@ def readyz(request: Request) -> dict:
     settings = request.app.state.settings
     status: EndpointStatus = request.app.state.endpoint_check.status()
     llm: dict = {
-        "base_url": _host_only(settings.llm_base_url),
-        "model": settings.llm_name,
-        "judge_model": settings.judge_name,
+        "base_url": _host_only(settings.llm.url),
+        "model": settings.llm.models.writer,
+        "judge_model": settings.llm.judge_model,
         "reachable": status.reachable,
         "checked_at": status.checked_at.isoformat(timespec="seconds"),
     }
-    if settings.llm_understand_name:
-        llm["understand_model"] = settings.understand_name
+    if settings.llm.models.understand:
+        llm["understand_model"] = settings.llm.understand_model
     ready = status.reachable
     if status.reachable:
         listed = set(status.models)
-        judge = settings.judge_for(listed)
+        judge = settings.llm.judge_for(listed)
         llm["judge_model"] = judge
-        llm["model_listed"] = settings.llm_name in listed
+        llm["model_listed"] = settings.llm.models.writer in listed
         llm["judge_model_listed"] = judge in listed
         ready = llm["model_listed"] and llm["judge_model_listed"]
-        if settings.llm_understand_name:
-            llm["understand_model_listed"] = settings.understand_name in listed
+        if settings.llm.models.understand:
+            llm["understand_model_listed"] = settings.llm.understand_model in listed
             ready = ready and llm["understand_model_listed"]
     else:
         llm["error"] = status.error

@@ -1,4 +1,4 @@
-"""Fetch the reference pairs of data/pairs/manifest.jsonl into DATA_DIR/cache/pairs/.
+"""Fetch the reference pairs of data/pairs/manifest.jsonl into cache/pairs/ in data.dir.
 
 Same as `python -m leichtfacile eval fetch`; extra arguments are passed on, for example
 `uv run python scripts/fetch_pairs.py --ids zh-premium-reduction-de --refresh`.

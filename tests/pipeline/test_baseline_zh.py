@@ -165,7 +165,7 @@ def test_run_skips_pairs_without_zurichs_prompt(tmp_path, endpoint, sleeps) -> N
     french = Pair(
         id="syn-fr", lang="fr", url_standard="https://example.org/s", url_easy="https://example.org/e"
     )  # fmt: skip
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     path = run_condition(
         [french], "P0-ZH-complete", settings=settings, llm=llm, results_dir=tmp_path / "r"

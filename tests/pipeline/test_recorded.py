@@ -108,7 +108,7 @@ def test_a_cut_off_answer_is_reported_as_broken_not_read_as_a_fragment() -> None
 def test_a_cut_off_answer_is_never_used(endpoint, sleeps) -> None:
     raw = (FIXTURES / "letter_understand.txt").read_text(encoding="utf-8")
     endpoint.push(chat_response(raw[: len(raw) // 2], finish_reason="length"))
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     with pytest.raises(LLMOutputError, match="cut off"):
         complete_json(llm, [{"role": "user", "content": "x"}], UnderstandOut)
     assert len(endpoint.chat_bodies()) == 1  # no repair round for a cut-off answer

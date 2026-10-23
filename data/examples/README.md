@@ -17,7 +17,7 @@ drafts list while it is empty.
 
 | File | Content | Use |
 |------|---------|-----|
-| `praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | Smoke test (`make smoke`), tests, an example text in the New draft form |
+| `praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | The smoke run (`uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke`), tests, an example text in the New draft form |
 | `reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, an example text in the New draft form |
 | `entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Decision mode (docs/use-case-decisions.md), tests, an example text in the New draft form |
 
@@ -35,9 +35,9 @@ wording. The AHV number has a wrong check digit and the IBAN the check digits 00
 neither can belong to anyone. The people, the street, the bank and the doctor are
 invented.
 
-`EXAMPLES_DIR` points the app at another folder of letters instead, set in the config
-file, `.env` or the environment: `.txt` or `.md` files, each with an optional `.json`
-of job settings next to it. The default is the package's folder (`LETTERS_DIR` in
+`data.examples_dir` points the app at another folder of letters instead (`leichtfacile
+config set data.examples_dir <folder>`, [configuration.md](../../docs/configuration.md)):
+`.txt` or `.md` files, each with an optional `.json` of job settings next to it. The default is the package's folder (`LETTERS_DIR` in
 `src/leichtfacile/config.py`).
 
 ## Printed letters (image input)

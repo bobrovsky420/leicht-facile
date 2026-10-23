@@ -231,10 +231,10 @@ def render(store: Store, runner: JobRunner, metrics: Metrics, settings: Settings
     out.metric(
         "leichtfacile_queue_limit",
         "gauge",
-        "Waiting jobs beyond which a submission is refused (JOB_QUEUE_LIMIT).",
+        "Waiting jobs beyond which a submission is refused (jobs.queue_limit).",
     )
-    out.sample("leichtfacile_queue_limit", settings.job_queue_limit)
-    out.metric("leichtfacile_workers", "gauge", "Worker threads (JOB_WORKERS).")
+    out.sample("leichtfacile_queue_limit", settings.jobs.queue_limit)
+    out.metric("leichtfacile_workers", "gauge", "Worker threads (jobs.workers).")
     out.sample("leichtfacile_workers", runner.workers)
     out.metric("leichtfacile_workers_busy", "gauge", "Workers running a job now.")
     out.sample("leichtfacile_workers_busy", runner.busy)

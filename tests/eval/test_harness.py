@@ -39,7 +39,7 @@ def easy_doc() -> SourceDocument:
 
 @pytest.fixture
 def pair_env(tmp_path, monkeypatch):
-    monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("LEICHTFACILE_DATA__DIR", str(tmp_path / "data"))
     manifest = tmp_path / "manifest.jsonl"
     rows = [
         {"id": "syn-letter-de", "publisher": "Team", "canton": "ZH", "lang": "de", "level": "A2",
@@ -90,7 +90,7 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
         chat_response(fx.as_json(fx.REPAIR)),
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
     (row,) = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
@@ -132,7 +132,7 @@ def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sl
     pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
     results = tmp_path / "results"
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     reader = "swiss-ai/Apertus-v1.5-70B"
     path = run_condition(
@@ -141,9 +141,12 @@ def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sl
     assert path.name == "P1_swiss-ai-apertus-v1-5-8b_understand-swiss-ai-apertus-v1-5-70b.jsonl"
     (row,) = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     assert row["status"] == "needs_review", row.get("error")
-    assert row["writer"] == settings.llm_name and row["understand"] == reader
-    assert [b["model"] for b in endpoint.chat_bodies()] == [reader + "-thinking", settings.llm_name]
-    models = f"{settings.llm_name}, understand {reader}"
+    assert row["writer"] == settings.llm.models.writer and row["understand"] == reader
+    assert [b["model"] for b in endpoint.chat_bodies()] == [
+        reader + "-thinking",
+        settings.llm.models.writer,
+    ]
+    models = f"{settings.llm.models.writer}, understand {reader}"
     label = f"P1 no judge: fact sheet + draft + rule check ({models})"
     assert label in render_report(results, role="eval")
 
@@ -164,7 +167,7 @@ def test_a_failed_scoring_call_marks_the_pair_and_reruns_it(
 ) -> None:
     pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
     results = tmp_path / "results"
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
 
     # P0 needs a fact sheet for scoring; the model answers with a fragment, twice.
@@ -217,7 +220,7 @@ def test_report_has_one_section_per_language(tmp_path) -> None:
 @pytest.fixture
 def llm(endpoint: FakeEndpoint, sleeps) -> LLMClient:
     return LLMClient(
-        make_settings(llm_max_retries=0), http_client=endpoint.http_client(), sleep=sleeps.append
+        make_settings(llm__max_retries=0), http_client=endpoint.http_client(), sleep=sleeps.append
     )
 
 
@@ -231,7 +234,7 @@ def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
     results = tmp_path / "results"
     no_facts = {**fx.UNDERSTAND, "facts": []}
     endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(no_facts)))
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     path = run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)
     (row,) = _rows(path)
@@ -310,7 +313,7 @@ def test_rescore_scores_the_stored_jobs_again_under_both_selection_rules(
         chat_response(fx.as_json(fx.REPAIR)),
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
     (row,) = _rows(path)
@@ -348,7 +351,7 @@ def test_rescore_in_place_scores_a_baseline_again_without_sampling_it_again(
     pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
     results = tmp_path / "results"
     reference_rows(pairs, results)
-    settings = make_settings(llm_max_retries=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(chat_response(BASELINE_TEXT), chat_response(fx.as_json(fx.UNDERSTAND)))
     path = run_condition(pairs, "P0", settings=settings, llm=llm, results_dir=results)

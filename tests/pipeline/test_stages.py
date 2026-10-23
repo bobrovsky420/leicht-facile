@@ -530,7 +530,7 @@ def test_a_draft_that_copies_the_example_is_sent_back_once(endpoint, sleeps) -> 
     from leichtfacile.pipeline.stages import write
     from tests.conftest import chat_response, make_settings
 
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     endpoint.push(chat_response(fx.as_json(COPIED_WRITE)), chat_response(fx.as_json(fx.WRITE)))
     draft, results = write(llm, fx.letter(), fs, level="A2")
@@ -550,7 +550,7 @@ def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, s
     from leichtfacile.schemas import Block, Draft
     from tests.conftest import chat_response, make_settings
 
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
         Block(id="b001", kind="sentence", text="Sie können das Amt anrufen.",
@@ -607,7 +607,7 @@ def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps
         "Annoncez votre chien."
     ]
 
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     paraphrased = {
         **fx.WRITE,
@@ -654,7 +654,7 @@ def test_understand_keeps_only_hard_terms_of_the_source(endpoint, sleeps) -> Non
         {"term": "Einwohnerkontrolle", "explanation": "Das Amt der Gemeinde.",
          "segment_ids": ["s0002"]},
     ]}  # fmt: skip
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     endpoint.push(chat_response(fx.as_json(copied)))
     fs, _ = understand(llm, source, level="A2")
     assert fs.hard_terms == []
@@ -676,7 +676,7 @@ def test_a_write_answer_cut_off_is_written_again_as_two_halves(
     from tests.conftest import chat_response, make_settings
 
     monkeypatch.setattr(stages, "MIN_SECTION_SEGMENTS", 2)
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     cut = fx.as_json(fx.WRITE)[:80]  # the start of an answer that hit max_tokens
     endpoint.push(
@@ -715,7 +715,7 @@ def test_the_repair_record_keeps_the_answer_and_what_code_dropped(endpoint, slee
     from leichtfacile.schemas import Block, Draft
     from tests.conftest import chat_response, make_settings
 
-    llm = LLMClient(make_settings(llm_max_retries=0), http_client=endpoint.http_client())
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
         Block(id="b001", kind="sentence", text="Sie können das Amt anrufen.",
