@@ -1,7 +1,10 @@
-# Release: a wheel on a GitHub release for every version tag (v0.1.0, ...).
+# Release: for every version tag (v0.1.0, ...) the wheel goes to a GitHub release and
+# to PyPI.
 #
-# The wheel installs with uv or pip without a checkout: the spaCy models are direct
-# references in its metadata (pyproject.toml). The tag must match the version in
+# PyPI takes it by trusted publishing: pypi.org trusts this workflow (the project's
+# publisher settings name the repository and release.yml), so no token is stored. The
+# spaCy models are not in the wheel's dependencies (PyPI refuses URLs);
+# `leichtfacile models` downloads them. The tag must match the version in
 # pyproject.toml; tests/test_release.py keeps that version, the package's
 # __version__, publiccode.yml and the install commands (docs/quickstart.md) in step.
 # Every action is pinned to a commit; the comment after the hash names the release.
@@ -21,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write  # trusted publishing to PyPI
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -39,19 +43,23 @@ jobs:
           uv run pytest -q tests/test_release.py
       - name: Build the wheel
         run: uv build --wheel --out-dir dist
-      # A clean environment outside the checkout: the rule checker loads the spaCy
-      # models, so a missing package or model fails here, not on a user's machine.
+      # A clean environment outside the checkout: the models come as a user gets them
+      # (`leichtfacile models`), and the rule checker loads them, so a missing package or
+      # model fails here, not on a user's machine.
       - name: Install it in a clean environment and run the checker
         working-directory: ${{ runner.temp }}
         run: |
           uv venv smoke
           uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/*.whl
           smoke/bin/leichtfacile --version
+          DATA_DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile models
           printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > text.txt
-          smoke/bin/leichtfacile check text.txt --lang de
+          DATA_DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile check text.txt --lang de
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.whl \
             --title "Leicht·Facile ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
+      - name: Publish to PyPI
+        run: uv publish --trusted-publishing always dist/*.whl

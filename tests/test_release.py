@@ -31,5 +31,28 @@ def test_publiccode_has_the_project_version() -> None:
 
 def test_the_install_commands_name_the_wheel_of_this_version() -> None:
     text = (ROOT / "docs/quickstart.md").read_text(encoding="utf-8")
-    urls = re.findall(r"https://github\.com/\S+?\.whl", text)
+    # this project's wheels; the spaCy models' wheels have their own pinned versions
+    urls = re.findall(r"https://github\.com/bobrovsky420/\S+?\.whl", text)
     assert urls and set(urls) == {WHEEL_URL}
+
+
+def test_no_dependency_is_given_by_url() -> None:
+    """PyPI refuses a package whose dependencies name a URL: the spaCy models stay in the
+    `models` group (spacy_models.py downloads them for an installed package)."""
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert not [d for d in project["dependencies"] if "@" in d or "://" in d]
+
+
+def test_the_readme_on_pypi_has_no_relative_link() -> None:
+    """pypi.org shows the README without the repository: the build hook's substitutions
+    (pyproject.toml) make every image and link absolute."""
+    hook = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["tool"]["hatch"][
+        "metadata"
+    ]["hooks"]["fancy-pypi-readme"]
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    for sub in hook["substitutions"]:
+        text = re.sub(sub["pattern"], sub["replacement"], text)
+    assert re.findall(r"\]\((?!https://)[^)]*\)", text) == []
+    assert (
+        "](https://raw.githubusercontent.com/bobrovsky420/leicht-facile/main/docs/images/" in text
+    )

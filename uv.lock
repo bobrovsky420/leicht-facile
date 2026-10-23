@@ -885,12 +885,10 @@ wheels = [
 
 [[package]]
 name = "leichtfacile"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
-    { name = "de-core-news-md" },
     { name = "fastapi" },
-    { name = "fr-core-news-md" },
     { name = "httpx" },
     { name = "jinja2" },
     { name = "openai" },
@@ -912,12 +910,14 @@ dev = [
     { name = "pyyaml" },
     { name = "ruff" },
 ]
+models = [
+    { name = "de-core-news-md" },
+    { name = "fr-core-news-md" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "de-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" },
     { name = "fastapi", specifier = ">=0.142" },
-    { name = "fr-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "openai", specifier = ">=3.0" },
@@ -938,6 +938,10 @@ dev = [
     { name = "pytest", specifier = ">=8.4" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "ruff", specifier = ">=0.13" },
+]
+models = [
+    { name = "de-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" },
+    { name = "fr-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" },
 ]
 
 [[package]]

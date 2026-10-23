@@ -1,14 +1,30 @@
 [project]
 name = "leichtfacile"
-version = "0.6.0"
+version = "0.7.0"
 description = "Drafts easy-language versions of Swiss official texts with a large language model."
-readme = "README.md"
+# README.md with absolute links for pypi.org (the hook below)
+dynamic = ["readme"]
 license = "Apache-2.0"
 authors = [
     { name = "Alexander Bobrovsky", email = "bobrovsky@seznam.cz" },
     { name = "Ivan Kuzmych", email = "i.kuzmych@hotmail.com" },
 ]
+keywords = ["easy language", "Leichte Sprache", "FALC", "plain language", "LLM", "Apertus"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: French",
+    "Natural Language :: German",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing :: Linguistic",
+]
 requires-python = ">=3.12"
+# No spaCy model here: they are not on PyPI, and PyPI refuses dependencies given by URL.
+# `leichtfacile models` downloads them (spacy_models.py); a checkout gets them from the
+# `models` group below.
 dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
@@ -17,10 +33,6 @@ dependencies = [
     "openai>=3.0",
     "httpx>=0.28",
     "spacy>=3.8.16,<3.9",
-    # The spaCy models are not on PyPI. As direct references (not [tool.uv.sources]) the
-    # URLs end up in the wheel's metadata, so the release wheel installs with uv or pip.
-    "de-core-news-md @ https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl",
-    "fr-core-news-md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl",
     "trafilatura>=2.3",
     "pdfplumber>=0.11.10",
     "pyphen>=0.18",
@@ -28,6 +40,12 @@ dependencies = [
     "python-multipart>=0.0.32",
     "wordfreq>=3.1.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/bobrovsky420/leicht-facile"
+Documentation = "https://github.com/bobrovsky420/leicht-facile/blob/main/docs/quickstart.md"
+Source = "https://github.com/bobrovsky420/leicht-facile"
+Issues = "https://github.com/bobrovsky420/leicht-facile/issues"
 
 [project.scripts]
 leichtfacile = "leichtfacile.cli:main"
@@ -39,16 +57,41 @@ dev = [
     "pyyaml>=6.0.3",
     "ruff>=0.13",
 ]
+# The versions spacy_models.MODELS pins, with the same SHA-256 in uv.lock.
+models = [
+    "de-core-news-md @ https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl",
+    "fr-core-news-md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl",
+]
+
+[tool.uv]
+default-groups = ["dev", "models"]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata]
-allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/leichtfacile"]
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+# pypi.org shows the README without the repository, so its relative images and links
+# become absolute there; README.md itself keeps relative links.
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '!\[([^\]]*)\]\((?!https?://)([^)]+)\)'
+replacement = '![\1](https://raw.githubusercontent.com/bobrovsky420/leicht-facile/main/\2)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#)([^)]+)\)'
+replacement = '](https://github.com/bobrovsky420/leicht-facile/blob/main/\1)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\(#'
+replacement = '](https://github.com/bobrovsky420/leicht-facile#'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

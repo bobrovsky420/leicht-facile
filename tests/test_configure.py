@@ -99,7 +99,8 @@ def test_values_with_spaces_quotes_and_json_read_back_unchanged(config) -> None:
 
 
 def test_the_command_line_writes_the_file(config) -> None:
-    argv = ["setup", "--base-url", "http://llm.test/v1", "--api-key", "k", "--model", "m"]
+    argv = ["setup", "--base-url", "http://llm.test/v1", "--api-key", "k", "--model", "m",
+            "--no-models"]  # fmt: skip
     assert main(argv) == 0
     assert written(config).llm_name == "m"
 

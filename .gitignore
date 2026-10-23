@@ -35,6 +35,7 @@ data/cache/
 data/*.sqlite
 data/*.sqlite-*
 data/*.db
+data/models/
 out/
 .pytest_cache/
 .ruff_cache/

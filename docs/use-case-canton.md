@@ -24,8 +24,9 @@ important was lost or invented along the way.
 ## 2. Setup, done once by IT
 
 IT installs Leicht·Facile, a Python package, on a server in the canton's own
-infrastructure: the release wheel with `uv tool install` or pip, then
-`leichtfacile setup` once for the model endpoint and `leichtfacile serve` to start it
+infrastructure: `pip install leichtfacile` (or `uv tool install`), then
+`leichtfacile setup` once for the model endpoint and the language models, and
+`leichtfacile serve` to start it
 ([quickstart.md](quickstart.md)). The app needs exactly one outbound connection: an
 OpenAI-compatible model endpoint. For letters to named persons that is Apertus, the
 recommended model for texts under official secrecy

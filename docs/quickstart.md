@@ -12,11 +12,11 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 
 | Way | Commands | Needs |
 |-----|----------|-------|
-| [1. Install and run](#1-install-and-run) | `uv tool install <wheel URL>`, `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+, an endpoint |
+| [1. Install and run](#1-install-and-run) | `uv tool install leichtfacile`, `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+, an endpoint |
 | [2. From a checkout (development)](#2-from-a-checkout-development) | `uv sync`, `uv run leichtfacile serve` | git, uv |
 | [3. Command line only](#3-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1 or 2 |
 | [4. On a server](#4-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 1, a login or a reverse proxy |
-| [5. Offline install](#5-offline-install-air-gapped) | `pip wheel` on a connected machine, `pip install --no-index` on the target | a connected machine of the same kind |
+| [5. Offline install](#5-offline-install-air-gapped) | `pip wheel` and `pip download` on a connected machine; `pip install --no-index` and `leichtfacile models --from` on the target | a connected machine of the same kind |
 
 The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
 whether the model endpoint answers and lists the configured models. The interface is in
@@ -40,7 +40,8 @@ models (`GET /models`) and asks for the model and an optional judge model.
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
 
 Flags answer the questions in advance: `--preset`, `--base-url`, `--api-key`, `--model`,
-`--judge`, and `--force` to replace an existing config file. With the address, the key
+`--judge`, `--force` to replace an existing config file, and `--no-models` to leave the
+spaCy models for later (`leichtfacile models`). With the address, the key
 and the model given, setup asks nothing, so it runs from a script. `--api-key` ends up in
 the shell history; leave it out to be asked.
 
@@ -64,7 +65,8 @@ Each source overrides the one before:
 The config file is the path in `LEICHTFACILE_CONFIG` when that is set in the
 environment, else as below. It is a plain `KEY=value` file, readable by its owner only
 where the system supports it (the key is in it); edit it or run `leichtfacile setup`
-again. The data (the database `leichtfacile.sqlite` and the caches) lives in `DATA_DIR`:
+again. The data (the database `leichtfacile.sqlite`, the caches and the spaCy models in
+`models/`) lives in `DATA_DIR`:
 
 | System | Config file | `DATA_DIR` by default |
 |--------|-------------|-----------------------|
@@ -99,24 +101,32 @@ writer's model, as on a server with one model. `/readyz` names the judge model i
 
 ## 1. Install and run
 
-Every release publishes a wheel on the
-[releases page](https://github.com/bobrovsky420/leicht-facile/releases). It installs
-without a checkout and brings the spaCy models with it (direct references in its
-metadata). Needs Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) or pip.
+Leicht·Facile is on [PyPI](https://pypi.org/project/leichtfacile/) from version 0.7.0
+on. Needs Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) or pip.
 
 ```bash
 # as a command on the PATH (uv picks or installs a suitable Python)
-uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
+uv tool install leichtfacile
 
 # or into a virtual environment of your own
-pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
+pip install leichtfacile
 ```
 
+Every release's wheel is also on the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.0/leichtfacile-0.7.0-py3-none-any.whl`.
+
 ```bash
-leichtfacile setup        # the endpoint, the key and the model
+leichtfacile setup        # the endpoint, the key and the model; then the language models
 leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 ```
 
+- `setup` ends by offering the spaCy models the rule checker parses German and French
+  with: about 90 MB from spaCy's releases on GitHub, checked against pinned SHA-256
+  hashes and unpacked into `DATA_DIR/models` (they are not on PyPI, so the package
+  cannot bring them). `leichtfacile models` gets them at any time; `setup --no-models`
+  skips them. Without them `serve`, `check` and `simplify` stop with a hint instead of
+  checking less.
 - `serve` opens the default browser once `/healthz` answers, but only when the app runs on
   this machine (`--host` 127.0.0.1, localhost or ::1) and, on Linux, only with a desktop
   (`DISPLAY` or `WAYLAND_DISPLAY`). `--no-browser` leaves it closed.
@@ -125,7 +135,8 @@ leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 - Ctrl+C stops the server; the jobs stay in `DATA_DIR`.
 - `leichtfacile --help` lists the commands, `leichtfacile <command> --help` their options;
   `python -m leichtfacile` does the same as `leichtfacile`.
-- `uv tool uninstall leichtfacile` removes the program; the config file and the data stay.
+- `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
+  the models) stay.
 
 ## 2. From a checkout (development)
 
@@ -213,10 +224,12 @@ both logins. On Linux with systemd, with a dedicated user, the program in
 ```bash
 sudo useradd --system --home-dir /var/lib/leichtfacile --shell /usr/sbin/nologin leichtfacile
 sudo python3 -m venv /opt/leichtfacile
-sudo /opt/leichtfacile/bin/pip install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl
+sudo /opt/leichtfacile/bin/pip install leichtfacile
 sudo mkdir -p /etc/leichtfacile
-sudo env LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env /opt/leichtfacile/bin/leichtfacile setup
+sudo env LEICHTFACILE_CONFIG=/etc/leichtfacile/config.env /opt/leichtfacile/bin/leichtfacile setup --no-models
 sudo chown leichtfacile /etc/leichtfacile/config.env
+sudo install -d -o leichtfacile /var/lib/leichtfacile
+sudo -u leichtfacile env DATA_DIR=/var/lib/leichtfacile /opt/leichtfacile/bin/leichtfacile models
 ```
 
 `/etc/systemd/system/leichtfacile.service`:
@@ -246,7 +259,9 @@ journalctl -u leichtfacile -f              # the log
 curl http://127.0.0.1:8000/readyz          # "ok" once the endpoint answers
 ```
 
-- `StateDirectory` creates `/var/lib/leichtfacile` for the service's user.
+- `StateDirectory` keeps `/var/lib/leichtfacile` for the service's user; the models are
+  in its `models/` folder, so `leichtfacile models` runs as that user with that
+  `DATA_DIR`.
 - The app reads the config file itself through `LEICHTFACILE_CONFIG`; `Environment=` lines
   or an `EnvironmentFile=` override it.
 - For the direct way, add `--host 0.0.0.0` to `ExecStart` and `AUTH_TOKEN=<secret>` to the
@@ -258,24 +273,28 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the endpoint answers
 ## 5. Offline install (air-gapped)
 
 On a connected machine with the same operating system, CPU architecture and Python
-version as the target, collect the wheel and every dependency in one folder:
+version as the target, collect the app with every dependency, and the two spaCy
+models, in one folder:
 
 ```bash
-pip wheel https://github.com/bobrovsky420/leicht-facile/releases/download/v0.6.0/leichtfacile-0.6.0-py3-none-any.whl -w wheelhouse
+pip wheel leichtfacile -w wheelhouse
+pip download --no-deps -d wheelhouse \
+  https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl \
+  https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl
 ```
 
-`pip wheel` downloads the wheels, the spaCy models included, and builds one for any
-dependency published only as source. Carry the folder over and install on the target:
+`pip wheel` downloads the wheels and builds one for any dependency published only as
+source. Carry the folder over and install on the target:
 
 ```bash
 python3 -m venv /opt/leichtfacile
-/opt/leichtfacile/bin/pip install --no-index --no-deps wheelhouse/*.whl
-/opt/leichtfacile/bin/pip check            # every dependency is there
+/opt/leichtfacile/bin/pip install --no-index --find-links wheelhouse leichtfacile
+/opt/leichtfacile/bin/leichtfacile models --from wheelhouse
 ```
 
-`--no-deps` is needed: the wheel names the spaCy models by their download URLs, and pip
-would try to fetch them even with `--no-index --find-links wheelhouse`. In PowerShell,
-pass the files as `(Get-ChildItem wheelhouse\*.whl).FullName`.
+`models --from` checks the two models' SHA-256 as the download does and unpacks them
+into `DATA_DIR/models`; on a server, run it as the service's user with its `DATA_DIR`
+(way 4).
 
 The model server runs inside the network too, with its weights carried over the same way
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
@@ -372,6 +391,7 @@ static files need no login. Details:
 | Message or symptom | Fix |
 |--------------------|-----|
 | `Not set: LLM_BASE_URL, ... Run leichtfacile setup, ...` | run `leichtfacile setup`, or set them in the config file, in `.env` or in the environment |
+| `Missing the spaCy models ...: run leichtfacile models` | `leichtfacile models` (about 90 MB from GitHub), offline `leichtfacile models --from <folder>` (way 5) |
 | `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
 | setup says `Nothing changed (... exists; --force replaces it)` | `leichtfacile setup --force`, or edit the config file |
 | setup says `The endpoint's model list could not be read` | the address or the key is wrong, or the server is not running; setup still asks for the model, and `leichtfacile check-llm` checks again later |

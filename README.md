@@ -118,13 +118,14 @@ the Public AI gateway, a model server of your own (vLLM, llama.cpp, Ollama) or a
 provider's API.
 
 ```bash
-uv tool install <wheel URL>  # the current release's URL is in docs/quickstart.md
-leichtfacile setup           # asks for the endpoint, the key and the model
-leichtfacile serve           # starts the app and opens http://127.0.0.1:8000
+uv tool install leichtfacile  # or: pip install leichtfacile
+leichtfacile setup            # the endpoint, the key and the model; then the language models
+leichtfacile serve            # starts the app and opens http://127.0.0.1:8000
 ```
 
-`setup` writes the user's config file; `.env` in the current folder and the environment
-override it. A checkout for development, the command line alone, a server for an
+`setup` writes the user's config file (`.env` in the current folder and the environment
+override it) and offers the spaCy models for German and French, about 90 MB from
+GitHub (`leichtfacile models` gets them later). A checkout for development, the command line alone, a server for an
 organisation, an offline install, running a model yourself, reaching the app from
 other machines and what to do when it does not start: [quickstart.md](docs/quickstart.md).
 
@@ -171,7 +172,7 @@ without storing it.
 | Where the model runs | How |
 |----------------------|-----|
 | a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point `LLM_BASE_URL` at it |
-| b) Air-gapped | As (a), and the app installed offline from a folder of wheels collected on a connected machine ([quickstart.md](docs/quickstart.md)). The spaCy models and the UI assets come with it: no CDN, no telemetry, no installs at runtime |
+| b) Air-gapped | As (a), and the app installed offline from a folder of wheels collected on a connected machine, the spaCy models unpacked from the same folder ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point `LLM_BASE_URL` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
 
 Documents and review records stay in a SQLite database in a folder the organisation
