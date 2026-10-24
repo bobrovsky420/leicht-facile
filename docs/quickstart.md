@@ -12,11 +12,18 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 
 | Way | Commands | Needs |
 |-----|----------|-------|
-| [1. Install and run](#1-install-and-run) | `uv tool install leichtfacile`, `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+, an endpoint |
-| [2. From a checkout (development)](#2-from-a-checkout-development) | `uv sync`, `uv run leichtfacile serve` | git, uv |
-| [3. Command line only](#3-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1 or 2 |
-| [4. On a server](#4-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 1, a login or a reverse proxy |
-| [5. Offline install](#5-offline-install-air-gapped) | `pip wheel` and `pip download` on a connected machine; `pip install --no-index` and `leichtfacile models --from` on the target | a connected machine of the same kind |
+| [1. Run with uvx](#1-run-with-uvx-no-install) | `uvx leichtfacile setup`, `uvx leichtfacile serve` | uv, an endpoint |
+| [2. Clone and run](#2-clone-and-run-development) | `git clone`, `uv run leichtfacile setup`, `uv run leichtfacile serve` | git, uv |
+| [3. Install the command](#3-install-the-command) | `uv tool install leichtfacile` (or `pip install`), `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+ |
+| [4. Command line only](#4-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1, 2 or 3 |
+| [5. On a server](#5-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 3, a login or a reverse proxy |
+| [6. Offline install](#6-offline-install-air-gapped) | `pip wheel` and `pip download` on a connected machine; `pip install --no-index` and `leichtfacile models --from` on the target | a connected machine of the same kind |
+
+Every way needs the same two things before `serve`: an endpoint that is ready (an
+address, a model and a key: [The model endpoint](#the-model-endpoint)) and the spaCy
+models for German and French (`setup` offers them, `leichtfacile models` gets them, a
+checkout has them from `uv.lock`). The examples below write `leichtfacile`; with way 1
+it is `uvx leichtfacile`, with way 2 `uv run leichtfacile`.
 
 The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
 whether the model endpoint answers and lists the configured models. The interface is in
@@ -25,23 +32,39 @@ example letters shipped with the package as one-click fills.
 
 ## The model endpoint
 
-The app needs one thing it has no default for: the model endpoint, with its address, its
-key and the model that reads, writes and repairs. `leichtfacile setup` asks which
-endpoint to use, its address, a name for it and the API key (hidden input), lists the
-endpoint's models (`GET /models`) and asks for the model and an optional judge model. It
-saves the endpoint as `[endpoints.<name>]` in the user's config file, its key in the
-`.env` next to that file, and uses it. Run it again to save another endpoint;
-`leichtfacile endpoint use <name>` switches between them.
+The app needs a model endpoint that is ready: its address, its key and the model that
+reads, writes and repairs. The presets below are endpoints already; each lacks only what
+the program cannot know, mostly the key. There are three ways to make one ready:
+
+- **The key alone.** With a preset's key variable set, in the environment or in a `.env`
+  in the current folder (`CSCS_API_KEY=...`, `PUBLICAI_API_KEY=...`), the preset is ready
+  without any setup. When exactly one endpoint is ready, the app uses it.
+- **`leichtfacile setup <preset>`**, for example `setup cscs`: asks for the key (hidden
+  input) and saves it in the `.env` next to the user's config file. A preset used as it
+  is needs no entry in the config file.
+- **`leichtfacile setup`** without a name: asks which endpoint to use, offering the
+  presets and any other, then its address, a name and the key, lists the endpoint's
+  models (`GET /models`) and asks for the model. It saves what differs from the preset as
+  `[endpoints.<name>]` in the user's config file.
+
+`setup` uses the endpoint it set up. `leichtfacile endpoint list` shows every endpoint,
+whether it is ready (else what it lacks) and the one in use;
+`leichtfacile endpoint use <name>` switches, and `--endpoint <name>` picks one for a
+single `serve`, `simplify` or `check-llm`. With several ready, the New draft form offers
+them for each draft.
 
 | Preset | Endpoint | Notes |
 |--------|----------|-------|
-| `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key. Thinking models are separate names ending in `-thinking` |
-| `publicai` | Apertus on the Public AI gateway | Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The preset turns the gateway's response cache off, which ignores the thinking switch |
-| `local` | A server of your own: llama.cpp (port 8080), Ollama (port 11434), vLLM | Takes any key; [Running a model yourself](#running-a-model-yourself) |
-| `openai`, `mistral` | OpenAI, Mistral AI | Check where the provider processes the text before sending anything confidential |
+| `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key (`CSCS_API_KEY`). Thinking models are separate names ending in `-thinking` |
+| `apertus` | Apertus on the Public AI gateway | Needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The preset turns the gateway's response cache off, which ignores the thinking switch |
+| `local` | llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server (`--base-url`) | Takes any key; switches thinking through the chat template (llama.cpp with `--jinja`) and allows 30 minutes per call; needs the model the server runs: `setup local` lists them and asks (`--model <name>` gives it); [Running a model yourself](#running-a-model-yourself) |
+| `ollama` | Ollama on this machine (port 11434) | Takes any key; `setup ollama` lists the models `ollama list` shows and asks which one. Thinking stays off |
+| `vllm` | vLLM (port 8000), mostly a GPU machine of the organisation | `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |
+| `openai`, `mistral` | OpenAI, Mistral AI | Need the key (`OPENAI_API_KEY`, `MISTRAL_API_KEY`) and a model. Check where the provider processes the text before sending anything confidential |
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
 
-Flags answer the questions in advance: `--preset`, `--name`, `--base-url`, `--api-key`,
+Flags answer the questions in advance: `--preset` (the preset a differently named
+endpoint starts from), `--name`, `--base-url`, `--api-key`,
 `--api-key-env` (a variable that holds the key), `--model`, `--judge`, `--force` to
 update an endpoint saved already, and `--no-models` to leave the spaCy models for later
 (`leichtfacile models`). With the address, the key and the model given or known from the
@@ -49,7 +72,8 @@ preset, setup asks nothing, so it runs from a script. `--api-key` ends up in the
 history; leave it out to be asked.
 
 ```bash
-leichtfacile setup --preset cscs     # asks for the key; the rest comes from the preset
+leichtfacile setup cscs              # asks for the key; the rest comes from the preset
+leichtfacile endpoint list           # every endpoint, ready or what it lacks, the one in use
 leichtfacile check-llm               # lists the endpoint's models and makes one short call
 leichtfacile config show             # every setting, its value and where it comes from
 ```
@@ -86,7 +110,7 @@ way:
 - `chat-template`: the request switches it through the chat template (vLLM, llama.cpp).
 
 It applies to the stages in `thinking_stages` (default `["understand", "judge"]`). The
-`cscs` and `publicai` presets set the mode; for a server of your own, set it on its
+`cscs` and `apertus` presets set the mode; for a server of your own, set it on its
 endpoint: `leichtfacile config set endpoints.<name>.thinking chat-template`.
 `leichtfacile check-llm --thinking` makes its test call with thinking and says whether
 reasoning came back.
@@ -97,28 +121,31 @@ The judge grades the drafts. Its model is `models.judge` when set; else the 70B 
 Apertus 8B writer when the endpoint lists it (the setup the evaluation measured); else
 the writer's model, as on a server with one model. `/readyz` names the judge model in use.
 
-## 1. Install and run
+## 1. Run with uvx (no install)
 
 Leicht·Facile is on [PyPI](https://pypi.org/project/leichtfacile/) from version 0.7.0
-on. Needs Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) or pip.
+on. With [uv](https://docs.astral.sh/uv/), `uvx` runs it from there without installing
+anything; uv picks or downloads a suitable Python (3.12 or newer).
 
 ```bash
-# as a command on the PATH (uv picks or installs a suitable Python)
-uv tool install leichtfacile
-
-# or into a virtual environment of your own
-pip install leichtfacile
+uvx leichtfacile setup        # the endpoint and its key; then the language models
+uvx leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 ```
 
-Every release's wheel is also on the
-[releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.0/leichtfacile-0.7.0-py3-none-any.whl`.
+With a preset's key in a `.env` in the current folder (or in the environment), setup is
+not needed:
 
 ```bash
-leichtfacile setup        # the endpoint, the key and the model; then the language models
-leichtfacile serve        # http://127.0.0.1:8000, opens the browser
+echo "PUBLICAI_API_KEY=<your key>" > .env
+uvx leichtfacile models       # once: the language models
+uvx leichtfacile serve
 ```
 
+- `uvx` (short for `uv tool run`) keeps the release in uv's cache, so later calls start
+  at once. `uvx leichtfacile@latest serve` checks for a newer release;
+  `uvx leichtfacile@0.7.0 serve` runs that version.
+- The config file, the keys and the data live in the user's folders
+  ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
 - `setup` ends by offering the spaCy models the rule checker parses German and French
   with: about 90 MB from spaCy's releases on GitHub, checked against pinned SHA-256
   hashes and unpacked into `models/` in `data.dir` (they are not on PyPI, so the package
@@ -132,29 +159,29 @@ leichtfacile serve        # http://127.0.0.1:8000, opens the browser
   `--host` publishes the app beyond this machine and needs a login
   ([Reaching the app from other machines](#reaching-the-app-from-other-machines)).
 - Ctrl+C stops the server; the jobs stay in `data.dir`.
-- `leichtfacile --help` lists the commands, `leichtfacile <command> --help` their options;
-  `python -m leichtfacile` does the same as `leichtfacile`.
-- `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
-  the models) stay.
+- `leichtfacile --help` lists the commands, `leichtfacile <command> --help` their options.
 
-## 2. From a checkout (development)
+## 2. Clone and run (development)
 
-Needs git and uv. `uv sync` installs the Python version in `.python-version` (3.14; 3.12
-or newer works), the dependencies and the spaCy models from `uv.lock`.
+Needs git and uv. The first `uv run` installs the Python version in `.python-version`
+(3.14; 3.12 or newer works), the dependencies and the spaCy models from `uv.lock` into
+the checkout's `.venv`; every later one keeps it in step with `uv.lock`.
 
 ```bash
 git clone https://github.com/bobrovsky420/leicht-facile.git
 cd leicht-facile
-uv sync                         # once, and after every dependency change
-uv run leichtfacile setup       # or a leichtfacile.toml in the checkout, see below
+uv run leichtfacile setup       # or the key alone in the checkout's .env, see below
 uv run leichtfacile serve
 ```
 
-- A `leichtfacile.toml` in the checkout (git ignores it) overrides the user's config file
-  there, for example to try another endpoint. `[data] dir = "data"` in it keeps the
+- A `.env` in the checkout (git ignores it) with a preset's key makes that preset ready
+  without setup: `CSCS_API_KEY=...` or `PUBLICAI_API_KEY=...`.
+- A `leichtfacile.toml` in the checkout (git ignores it too) overrides the user's config
+  file there, for example to try another endpoint. `[data] dir = "data"` in it keeps the
   database and the caches in the repository's `data/`, where git ignores them (the
-  evaluation's page cache lives in `data/cache/`). The keys go into the checkout's
-  `.env` ([configuration.md](configuration.md#in-a-checkout)).
+  evaluation's page cache lives in `data/cache/`)
+  ([configuration.md](configuration.md#in-a-checkout)).
+- `uv sync` does the install step alone, for example after `git pull`.
 - With live reload while editing code (`--no-access-log`: the app writes its own access
   line, with the request id and without the query string):
 
@@ -199,10 +226,38 @@ uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 ```
 
-## 3. Command line only
+## 3. Install the command
 
-The pipeline, the rule checker and the ingest step also run without the web UI, after way 1
-(or with `uv run` in a checkout):
+For a `leichtfacile` command on the PATH, or a virtual environment of your own. Needs
+Python 3.12 or newer and [uv](https://docs.astral.sh/uv/) or pip.
+
+```bash
+# as a command on the PATH (uv picks or installs a suitable Python)
+uv tool install leichtfacile
+
+# or into a virtual environment of your own
+pip install leichtfacile
+```
+
+Every release's wheel is also on the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.0/leichtfacile-0.7.0-py3-none-any.whl`.
+
+```bash
+leichtfacile setup        # the endpoint and its key; then the language models
+leichtfacile serve        # http://127.0.0.1:8000, opens the browser
+```
+
+- Everything said under way 1 holds, without the `uvx` in front.
+- `python -m leichtfacile` does the same as `leichtfacile`.
+- `uv tool upgrade leichtfacile` (or `pip install -U leichtfacile`) gets a newer release.
+- `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
+  the models) stay.
+
+## 4. Command line only
+
+The pipeline, the rule checker and the ingest step also run without the web UI, with any of
+ways 1 to 3:
 
 ```bash
 leichtfacile simplify letter.pdf --lang de --level A2 --out out    # the whole pipeline
@@ -226,9 +281,9 @@ leichtfacile check-llm                                             # lists the m
     --notice "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
   ```
 
-## 4. On a server
+## 5. On a server
 
-Install as in way 1 (or way 5 without internet) and run the app as a service of the
+Install as in way 3 (or way 6 without internet) and run the app as a service of the
 system, in one of two ways:
 
 - behind a reverse proxy (recommended): `leichtfacile serve --no-browser` on 127.0.0.1;
@@ -292,7 +347,7 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the endpoint answers
   JSON object per line for a log collector, and `jobs.workers` runs jobs side by side when
   the endpoint serves parallel requests ([configuration.md](configuration.md#reference)).
 
-## 5. Offline install (air-gapped)
+## 6. Offline install (air-gapped)
 
 On a connected machine with the same operating system, CPU architecture and Python
 version as the target, collect the app with every dependency, and the two spaCy
@@ -316,16 +371,18 @@ python3 -m venv /opt/leichtfacile
 
 `models --from` checks the two models' SHA-256 as the download does and unpacks them
 into `models/` in `data.dir`; on a server, run it as the service's user with its config
-file (way 4).
+file (way 5).
 
 The model server runs inside the network too, with its weights carried over the same way
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
-it with `leichtfacile setup --preset local` and run it as in way 4.
+it with `leichtfacile setup local` and run it as in way 5.
 
 ## Running a model yourself
 
-Running a model is outside the app: start a model server and save it as an endpoint
-(`leichtfacile setup --preset local`). Two setups are known to work.
+Running a model is outside the app: start a model server and set it up as an endpoint
+with its preset, `leichtfacile setup local` (llama.cpp), `ollama` or `vllm`, which knows
+the server's port and thinking switch and asks for the model from the server's list. Two
+setups are known to work.
 
 ### Apertus 1.5 8B on vLLM, one 24 GB GPU
 
@@ -335,16 +392,15 @@ shows the commands used, the memory and the timings. On a 24 GB card the server 
 `--kv-cache-dtype=fp8` and `--max-num-seqs=16` next to `--max-model-len=32768`: the stages
 ask for up to 16,000 output tokens on top of the prompt. The weights are gated: accept
 their terms on Hugging Face once and give the server a token (`HF_TOKEN`). The app's
-endpoint, in the config file:
+endpoint:
 
-```toml
-[endpoints.vllm]
-url = "http://<model server>:8000/v1"
-api_key = "local"                  # any value, unless the server was started with a key
-thinking = "chat-template"
-models = { writer = "swiss-ai/Apertus-v1.5-8B" }
+```bash
+leichtfacile setup vllm --base-url http://<model server>:8000/v1 --model swiss-ai/Apertus-v1.5-8B
 ```
 
+- The preset brings `thinking = "chat-template"` and the key `local` (any value, unless
+  the server was started with a key); the command saves the address and the model as
+  `[endpoints.vllm]`.
 - The judge is then the 8B too, the only model the server lists.
 - vLLM serves parallel requests, so `[jobs] workers = 2` or more runs jobs side by side.
 - On the L4 one letter took 63 minutes with the default thinking stages and 22 minutes
@@ -370,16 +426,20 @@ machine only; `--host 0.0.0.0` opens it to an app on another machine, and to any
 unless it is started with `--api-key`. Then:
 
 ```bash
-leichtfacile setup --preset local --name laptop --model apertus-v1.5-8b-q4-llamacpp
-leichtfacile config set endpoints.laptop.thinking chat-template
-leichtfacile config set endpoints.laptop.timeout_s 1800    # thinking takes minutes on a small GPU
+leichtfacile setup local --name laptop --model apertus-v1.5-8b-q4-llamacpp
 ```
+
+The `local` preset switches thinking through the chat template (`--jinja`) and allows 30
+minutes per call, since a thinking call takes minutes on a small GPU;
+`leichtfacile config set endpoints.laptop.thinking_stages '["understand"]'` keeps the
+judge from thinking too.
 
 ### Other models
 
-Ollama (`http://127.0.0.1:11434/v1`, the model names `ollama list` shows) or any other
-OpenAI-compatible server works the same way. Thinking stays off unless the server
-switches it through the chat template. The reported numbers hold for Apertus 1.5 only.
+Ollama: `leichtfacile setup ollama` lists the models `ollama list` shows and asks which
+one. Any other OpenAI-compatible server: `leichtfacile setup` with its address, or
+`setup local --base-url <address>`. Thinking stays off unless the server switches it
+through the chat template. The reported numbers hold for Apertus 1.5 only.
 
 ## Reaching the app from other machines
 
@@ -410,14 +470,14 @@ static files need no login. Details:
 
 | Message or symptom | Fix |
 |--------------------|-----|
-| `No model endpoint is set up: run leichtfacile setup` | run `leichtfacile setup` |
+| `No model endpoint is ready: give a preset its key with leichtfacile setup <name>, ...`, followed by what each endpoint lacks | `leichtfacile setup <preset>` (for example `setup cscs`), the preset's key in a `.env` in the current folder, or `leichtfacile setup` for another endpoint |
 | `Settings are missing: - llm.api_key: the variable CSCS_API_KEY ... is not set` | put the key into the `.env` next to the config file (or the current folder's), or set the variable; `leichtfacile setup --force` asks for it again |
 | `The settings are not valid: - server.prot (...): Extra inputs are not permitted` | a misspelt key or a wrong value; the message names the file or the variable it came from |
-| `Several endpoints are saved (...) and llm.endpoint picks none` | `leichtfacile endpoint use <name>` |
-| `Missing the spaCy models ...: run leichtfacile models` | `leichtfacile models` (about 90 MB from GitHub), offline `leichtfacile models --from <folder>` (way 5) |
+| `Several endpoints are ready (...) and llm.endpoint picks none` | `leichtfacile endpoint use <name>`, or `--endpoint <name>` for one run |
+| `Missing the spaCy models ...: run leichtfacile models` | `leichtfacile models` (about 90 MB from GitHub), offline `leichtfacile models --from <folder>` (way 6) |
 | `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
 | setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |
-| setup says `The endpoint's model list could not be read` | the address or the key is wrong, or the server is not running; setup still asks for the model, and `leichtfacile check-llm` checks again later |
+| setup says `The endpoint's model list could not be read` | the address or the key is wrong, or the server is not running; setup goes on, and `leichtfacile check-llm` checks again later |
 | settings seem to be ignored | `leichtfacile config show` names the source of each setting: a `leichtfacile.toml` in the current folder, a `LEICHTFACILE_` variable or a flag wins over the config file |
 | `server.host = '0.0.0.0' publishes the app beyond this machine` | set `auth.token` (or `auth.token_env`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1 |
 | `auth.proxy_header needs auth.proxy_from` | set the proxy's addresses or networks |

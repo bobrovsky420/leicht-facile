@@ -26,7 +26,8 @@
   </div>
   <div class="strip">
     <span>{% if job.config.lang %}{{ t.get('lang.' ~ job.config.lang, job.config.lang) }} · {% endif %}{{ t('level.' ~ job.config.level) }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
-    <span>{{ t('progress.writer') }} <code>{{ job.config.writer_model or settings.llm.models.writer }}</code></span>
+    {% if job.config.endpoint %}<span>{{ t('site.endpoint') }} <code>{{ job.config.endpoint }}</code></span>{% endif %}
+    <span>{{ t('progress.writer') }} <code>{{ job.config.writer_model or job_llm.models.writer }}</code></span>
     {% if job.config.judge_model %}<span>{{ t('progress.judge') }} <code>{{ job.config.judge_model }}</code></span>{% endif %}
   </div>
 </section>

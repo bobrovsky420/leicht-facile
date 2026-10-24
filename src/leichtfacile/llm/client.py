@@ -159,6 +159,11 @@ class LLMClient:
             kwargs["cache"] = ResponseCache(settings.data.dir / "llm_cache.sqlite")
         return cls(settings, **kwargs)
 
+    @property
+    def cache(self) -> ResponseCache | None:
+        """The response cache, shared with the clients of the other endpoints."""
+        return self._cache
+
     # -- model resolution -------------------------------------------------------------
 
     def resolve_model(self, model: str | None, thinking: bool) -> tuple[str, dict[str, Any]]:

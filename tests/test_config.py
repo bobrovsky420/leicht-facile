@@ -25,6 +25,7 @@ from leichtfacile.config import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+PRESET_NAMES = ["cscs", "apertus", "local", "ollama", "vllm", "openai", "mistral"]
 
 
 @pytest.fixture
@@ -98,6 +99,30 @@ def test_a_preset_fills_the_endpoint_and_the_key_comes_from_env_files(home, monk
     assert load().settings.llm.api_key.get_secret_value() == "from-shell"
 
 
+def test_every_preset_is_a_valid_endpoint_with_a_label() -> None:
+    assert list(config.PRESETS) == PRESET_NAMES
+    for name, preset in config.PRESETS.items():
+        assert preset.label and "preset" not in preset.values
+        config.Endpoint.model_validate(preset.values)  # no unknown key, no wrong value
+        # A server of one's own names its model at setup: with one, the preset would be
+        # ready while nothing listens at its address.
+        assert ("models" in preset.values) == (name in ("cscs", "apertus"))
+
+
+def test_the_presets_file_holds_one_endpoint_table_per_preset(tmp_path) -> None:
+    path = write(tmp_path / "presets.toml", '[c]\nlabel = "C"\n\n[b]\nlabel = "B"\n'
+                                            'url = "https://b.example/v1"\n')  # fmt: skip
+    presets = config.read_presets(path)
+    assert list(presets) == ["c", "b"]  # the file's order
+    assert presets["b"] == config.Preset({"label": "B", "url": "https://b.example/v1"})
+    assert presets["b"].label == "B"
+    for text in ('[d]\nurl = "x"\n', '[d]\nlabel = ""\n', '[d]\nlabel = "D"\npreset = "c"\n'):
+        with pytest.raises(ConfigError, match=r"presets\.toml: \[d\] needs a label"):
+            config.read_presets(write(path, text))
+    with pytest.raises(ConfigError, match="a preset is a table"):
+        config.read_presets(write(path, 'label = "top level"\n'))
+
+
 def test_dot_env_holds_keys_and_nothing_else(home) -> None:
     write(home, LOCAL)
     write(Path(".env"), "LEICHTFACILE_SERVER__PORT=9999\n")
@@ -119,14 +144,82 @@ def test_the_endpoint_in_use(home, monkeypatch) -> None:
     use_overrides({"llm.endpoint": "cscs"})  # --endpoint
     assert load().settings.llm.url == "https://api.inference.cscs.ch/v1"
     use_overrides({"llm.endpoint": "gone"})
-    with pytest.raises(ConfigError, match=r"no \[endpoints.gone\]; saved: cscs, laptop"):
+    with pytest.raises(ConfigError, match="no such endpoint; known: cscs, apertus, .*, laptop"):
         load()
     use_overrides({})
     write(home, LOCAL.replace('endpoint = "laptop"', "") + '\n[endpoints.cscs]\napi_key = "k"\n')
-    with pytest.raises(ConfigError, match="llm.endpoint picks none"):
+    with pytest.raises(ConfigError, match=r"ready \(cscs, laptop\) and llm.endpoint picks none"):
         load()
+    lenient = load(strict=False)  # `config show`: no endpoint in use, the reason a problem
+    assert lenient.settings.llm.url == "" and "picks none" in lenient.problems[0]
     write(home, LOCAL.replace('endpoint = "laptop"', ""))
-    assert load().settings.llm.endpoint == "laptop"  # the only one saved
+    assert load().settings.llm.endpoint == "laptop"  # the only one that is ready
+
+
+def test_a_preset_is_an_endpoint_without_a_saved_table(home) -> None:
+    write(home, '[llm]\nendpoint = "cscs"\n')
+    write(home.parent / ".env", "CSCS_API_KEY=k\n")
+    loaded = load()
+    llm = loaded.settings.llm
+    assert (llm.endpoint, llm.preset, llm.url) == (
+        "cscs",
+        "cscs",
+        "https://api.inference.cscs.ch/v1",
+    )
+    assert (llm.models.writer, llm.models.judge, llm.thinking) == (
+        "swiss-ai/Apertus-v1.5-8B", "swiss-ai/Apertus-v1.5-70B", "model-suffix",
+    )  # fmt: skip
+    assert llm.title == "Apertus on the CSCS inference API"
+    assert loaded.flat["llm.url"].source == "preset cscs"
+    assert loaded.flat["llm.preset"].source == "the preset named cscs"
+
+
+def test_a_saved_table_of_a_presets_name_extends_the_preset(home, monkeypatch) -> None:
+    write(home, '[endpoints.cscs]\nlabel = "CSCS, the 70B"\n'
+                'models = { writer = "swiss-ai/Apertus-v1.5-70B" }\n')  # fmt: skip
+    monkeypatch.setenv("CSCS_API_KEY", "k")
+    llm = load().settings.llm
+    assert (llm.endpoint, llm.url) == ("cscs", "https://api.inference.cscs.ch/v1")
+    assert (llm.models.writer, llm.models.judge) == (
+        "swiss-ai/Apertus-v1.5-70B", "swiss-ai/Apertus-v1.5-70B",
+    )  # fmt: skip
+    assert llm.title == "CSCS, the 70B"
+    assert llm.model_dump()["label"] == "CSCS, the 70B"
+
+
+def test_the_only_ready_endpoint_is_in_use(home, monkeypatch) -> None:
+    monkeypatch.setenv("PUBLICAI_API_KEY", "p")  # a key in the shell is the signal
+    loaded = load()
+    assert loaded.settings.llm.endpoint == "apertus"
+    assert loaded.flat["llm.endpoint"].source == "the only endpoint that is ready"
+    monkeypatch.setenv("CSCS_API_KEY", "c")
+    with pytest.raises(ConfigError, match=r"Several endpoints are ready \(cscs, apertus\)"):
+        load()
+    write(home, '[llm]\nendpoint = "cscs"\n')
+    assert load().settings.llm.endpoint == "cscs"
+    assert load(endpoint="apertus").settings.llm.url == "https://api.publicai.co/v1"
+    with pytest.raises(ConfigError, match="no such endpoint"):
+        load(endpoint="nope")
+
+
+def test_available_lists_every_endpoint_with_what_it_lacks(home, monkeypatch) -> None:
+    write(home, LOCAL)
+    found = {item.name: item for item in config.available()}
+    assert list(found) == [*PRESET_NAMES, "laptop"]
+    assert found["cscs"].missing == ("the variable CSCS_API_KEY is not set",)
+    assert found["cscs"].label == "Apertus on the CSCS inference API"
+    assert found["local"].missing == (
+        "no model yet (`leichtfacile setup local` lists the endpoint's)",
+    )
+    assert found["openai"].missing == (
+        "no model yet (`leichtfacile setup openai` lists the endpoint's)",
+        "the variable OPENAI_API_KEY is not set",
+    )
+    assert found["laptop"].ready and found["laptop"].label == "laptop"
+    assert (found["laptop"].writer, found["laptop"].judge) == ("apertus-q4", None)
+    monkeypatch.setenv("CSCS_API_KEY", "k")
+    cscs = next(item for item in config.available() if item.name == "cscs")
+    assert cscs.ready and cscs.judge == "swiss-ai/Apertus-v1.5-70B"
 
 
 def test_the_later_source_decides_between_a_key_and_its_variable(home, monkeypatch) -> None:
@@ -142,9 +235,11 @@ def test_the_later_source_decides_between_a_key_and_its_variable(home, monkeypat
 
 
 def test_missing_settings_say_what_and_where(home) -> None:
-    with pytest.raises(ConfigError, match="No model endpoint is set up") as nothing:
+    with pytest.raises(ConfigError, match="No model endpoint is ready") as nothing:
         load()
     assert "leichtfacile setup" in str(nothing.value) and str(home) in str(nothing.value)
+    assert "\n  cscs: the variable CSCS_API_KEY is not set\n" in str(nothing.value)
+    assert "\n  local: no model yet (`leichtfacile setup local` lists" in str(nothing.value)
     write(home, '[endpoints.cscs]\npreset = "cscs"\n')
     with pytest.raises(ConfigError, match="CSCS_API_KEY") as unset:
         load()

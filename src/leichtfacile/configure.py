@@ -74,20 +74,15 @@ def run_setup(
     models: Callable[[str, str], list[str]] = list_models,
     say: Callable[[str], None] = print,
 ) -> int:
-    """Ask for what the arguments leave open, save the endpoint in the config file and
-    use it. Nothing is asked when the address, the key and the model are given (or come
-    from the preset). 0 when it is saved."""
+    """Ask for what the preset and the arguments leave open: for a preset with its models,
+    the key alone, and nothing at all when the key's variable is set. What differs from
+    the preset is saved as `[endpoints.<name>]`, the key in the .env next to the config
+    file, and the endpoint is used. 0 when it is saved."""
     path = config.config_file()
     doc = read_document(path)
-    values = PRESETS[preset].values if preset else {}
-    known: dict[str, str] = values.get("models", {})
-    scripted = bool(
-        (base_url or values.get("url"))
-        and (api_key or api_key_env or values.get("api_key"))
-        and (model or known.get("writer"))
-    )
-
-    if preset is None and not scripted:
+    if preset is None and name in PRESETS:
+        preset = name  # `leichtfacile setup cscs`
+    if preset is None and not (name or base_url):
         choices = [*PRESETS, "other"]
         say("Which model endpoint should Leicht·Facile use?")
         for i, key in enumerate(choices, 1):
@@ -97,15 +92,22 @@ def run_setup(
         while not (answer.isdigit() and 1 <= int(answer) <= len(choices)):
             answer = ask(f"A number from 1 to {len(choices)}: ").strip()
         preset = None if choices[int(answer) - 1] == "other" else choices[int(answer) - 1]
-        values = PRESETS[preset].values if preset else {}
-        known = values.get("models", {})
+    values = PRESETS[preset].values if preset else {}
+    known: dict[str, str] = values.get("models", {})
+    # Nothing is asked when the address, the key and the model are given or known: the
+    # key counts as known when its variable is set.
+    variable = api_key_env or values.get("api_key_env") or _variable_for(name or preset or "")
+    scripted = bool(
+        (base_url or values.get("url"))
+        and (api_key or api_key_env or values.get("api_key") or config.secret_value(variable))
+        and (model or known.get("writer"))
+    )
 
     url = base_url or values.get("url", "")
-    if not scripted and not base_url:
-        url = _required(ask, "Address of the endpoint", url)
-
+    if not url:
+        url = _required(ask, "Address of the endpoint", "")
     default_name = preset or _name_for(url)
-    if not (name or scripted):
+    if not (name or preset or scripted):
         name = ask(f"Name for this endpoint (Enter: {default_name}): ").strip()
     name = name or default_name
     while not ENDPOINT_NAME.fullmatch(name):
@@ -121,49 +123,44 @@ def run_setup(
     # The key: named by a variable, stored in the .env next to the config file, or the
     # preset's own (a server of one's own takes any key).
     variable = api_key_env or values.get("api_key_env") or _variable_for(name)
-    store = api_key
     found = config.secret_value(variable)
-    if not (api_key or api_key_env or scripted):
-        default = values.get("api_key")
-        hint = (f" (Enter: {default})" if default
-                else f" (Enter: keep the one in {variable})" if found else "")  # fmt: skip
+    store = api_key
+    if not (api_key or api_key_env or values.get("api_key") or (scripted and found)):
+        hint = f" (Enter: keep the one in {variable})" if found else ""
         store = ask_secret(f"API key{hint}: ").strip()
-        while not (store or default or found):
+        while not (store or found):
             store = ask_secret("API key (required): ").strip()
     named = bool(store or api_key_env or (found and not values.get("api_key")))
     key = store or (found[0] if found and named else values.get("api_key", ""))
 
+    # The model: the preset's, or asked with the endpoint's list; a key just entered is
+    # tried on the list as well, so a wrong one shows now and not at the first draft.
     listed: list[str] = []
-    if not scripted:
+    model = model or known.get("writer", "")
+    if store or not model:
         try:
             listed = models(url, key)
-        except Exception as exc:  # the address or the key may be wrong: ask anyway
+        except Exception as exc:  # the address or the key may be wrong: go on anyway
             say(f"The endpoint's model list could not be read ({type(exc).__name__}).")
-    if not model and not scripted:
-        if listed:
-            say("The endpoint lists these models:")
-            for listed_name in listed[:40]:
-                say(f"  - {listed_name}")
-            if len(listed) > 40:
-                say(f"  ... and {len(listed) - 40} more")
-        only = listed[0] if len(listed) == 1 else ""
-        model = _required(ask, "Model", known.get("writer") or only)
-        if listed and model not in listed:
-            say(f"Note: {model} is not in the endpoint's list.")
-    model = model or known.get("writer", "")
-    if judge is None:
-        judge = known.get("judge") or ""
-        if not scripted:
-            automatic = judge or config.LLM(models=config.Models(writer=model)).judge_for(listed)
-            judge = ask(f"Judge model (Enter: {automatic}): ").strip() or judge
+        else:
+            say(f"The endpoint lists {len(listed)} models.")
+    if not model:
+        for listed_name in listed[:40]:
+            say(f"  - {listed_name}")
+        if len(listed) > 40:
+            say(f"  ... and {len(listed) - 40} more")
+        model = _required(ask, "Model", listed[0] if len(listed) == 1 else "")
+    if listed and model not in listed:
+        say(f"Note: {model} is not in the endpoint's list.")
+    judge = judge or known.get("judge")
 
+    # Only what differs from the preset goes into the file: a preset used as it is needs
+    # no [endpoints.<name>] table at all.
     table = endpoints.get(name)
-    if table is None:
+    fresh = table is None
+    if fresh:
         table = tomlkit.table()
-        if "endpoints" not in doc:
-            doc["endpoints"] = tomlkit.table(is_super_table=True)
-        doc["endpoints"][name] = table
-    _put(table, "preset", preset)
+    _put(table, "preset", preset if preset and preset != name else None)
     _put(table, "url", url if url != values.get("url") else None)
     if named:
         table.pop("api_key", None)
@@ -173,6 +170,14 @@ def run_setup(
     _put(chosen, "writer", model if model != known.get("writer") else None)
     _put(chosen, "judge", judge if judge and judge != known.get("judge") else None)
     _put(table, "models", chosen or None)
+    if len(table) and fresh:
+        if "endpoints" not in doc:
+            doc["endpoints"] = tomlkit.table(is_super_table=True)
+        doc["endpoints"][name] = table
+    elif not len(table) and not fresh:
+        del doc["endpoints"][name]
+        if not len(doc["endpoints"]):
+            del doc["endpoints"]
 
     active = (doc.get("llm") or {}).get("endpoint")
     use = True
@@ -186,7 +191,7 @@ def run_setup(
     if store:
         save_secret(secrets, variable, store)
     write_document(path, doc)
-    say(f"Saved the endpoint {name} to {path}{' (in use)' if use else ''}.")
+    say(f"{name} is set up{' and in use' if use else ''} ({path}).")
     if store:
         say(f"Its key is in {secrets} as {variable}.")
     elif named:
@@ -239,27 +244,27 @@ def _put(table: MutableMapping[str, Any], key: str, value: Any) -> None:
 
 
 def list_endpoints(*, say: Callable[[str], None] = print) -> int:
-    flat = config.collect()
-    names = sorted({key.split(".")[1] for key in flat if key.startswith("endpoints.")})
-    if not names:
-        say("No endpoint is saved: run `leichtfacile setup`.")
-        return 0
-    chosen = flat.get("llm.endpoint")
-    active = chosen.value if chosen else names[0] if len(names) == 1 else None
-    rows = []
-    for name in names:
-        prefix = f"endpoints.{name}."
-        own = {k.removeprefix(prefix): v.value for k, v in flat.items() if k.startswith(prefix)}
-        preset = PRESETS.get(own.get("preset", ""), config.Preset(""))
-        defaults = config.flatten(preset.values, "")
-        url = own.get("url") or getattr(defaults.get("url"), "value", "")
-        writer = own.get("models.writer") or getattr(defaults.get("models.writer"), "value", "")
-        rows.append(("*" if name == active else " ", name, url, writer))
-    names, urls = (max(len(row[i]) for row in rows) for i in (1, 2))
-    for mark, name, url, writer in rows:
-        say(f"{mark} {name:<{names}}  {url:<{urls}}  {writer}".rstrip())
-    if chosen and active:
-        say(f"In use: {active} ({_label(chosen.source)}).")
+    """Every endpoint, the presets and the saved ones: its label, its writer model and
+    whether it is ready (else what it lacks); the one in use marked `*`."""
+    loaded = config.load(strict=False)
+    active = loaded.settings.llm.endpoint
+    rows = [
+        (
+            "*" if item.name == active else " ",
+            item.name,
+            item.label,
+            item.writer or "-",
+            "ready" if item.ready else "; ".join(item.missing),
+        )
+        for item in config.available()
+    ]
+    widths = [max(len(row[i]) for row in rows) for i in (1, 2, 3)]
+    for mark, name, label, writer, status in rows:
+        say(f"{mark} {name:<{widths[0]}}  {label:<{widths[1]}}  {writer:<{widths[2]}}  {status}")
+    if active:
+        say(f"In use: {active} ({_label(loaded.flat['llm.endpoint'].source)}).")
+    else:
+        say("No endpoint is in use: `leichtfacile endpoint use <name>`.")
     return 0
 
 
@@ -274,25 +279,31 @@ def use_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -
 
 
 def remove_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
+    """Remove a saved endpoint, or the saved settings that extend a preset (the preset
+    stays). One that was in use leaves the choice to the only ready endpoint or to
+    `endpoint use`."""
     doc = read_document(path)
     endpoints = doc.get("endpoints")
     if not isinstance(endpoints, MutableMapping) or name not in endpoints:
-        say(f"No endpoint {name} in {path}.")
+        if name in PRESETS:
+            say(f"{name} is a preset that ships with the app; nothing to remove in {path}.")
+        else:
+            say(f"No endpoint {name} in {path}.")
         return 1
-    rest = [other for other in endpoints if other != name]
+    del endpoints[name]
+    if not len(endpoints):
+        del doc["endpoints"]
     llm = doc.get("llm")
     if isinstance(llm, MutableMapping) and llm.get("endpoint") == name:
-        if len(rest) > 1:
-            say(f"{name} is in use: switch first, `leichtfacile endpoint use <name>`.")
-            return 1
         del llm["endpoint"]
-        if rest:
-            say(f"In use now: {rest[0]}, the only one left.")
-    del endpoints[name]
-    if not rest:
-        del doc["endpoints"]
     save(path, doc)
-    say(f"Removed the endpoint {name} from {path}.")
+    what = "the saved settings of the preset" if name in PRESETS else "the endpoint"
+    say(f"Removed {what} {name} from {path}.")
+    now = config.load(strict=False).settings.llm.endpoint
+    if now:
+        say(f"In use now: {now}.")
+    else:
+        say("No endpoint is in use now: `leichtfacile endpoint use <name>`.")
     return 0
 
 

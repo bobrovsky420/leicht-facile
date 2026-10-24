@@ -16,11 +16,11 @@ import logging
 import threading
 import time
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from leichtfacile import logs
-from leichtfacile.config import Settings
+from leichtfacile.config import LLM, Settings
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
@@ -115,6 +115,7 @@ class RunState:
     notes: list[str] = field(default_factory=list)  # stages that failed and were skipped
     round_failure: str | None = None  # "endpoint" or "output" after a failed round
     limit: RunLimit = field(default_factory=RunLimit)
+    llm: LLMClient = None  # type: ignore[assignment]  # the job's endpoint, set by run()
 
     @property
     def stop(self) -> threading.Event:
@@ -240,16 +241,46 @@ class Orchestrator:
         llm: LLMClient,
         settings: Settings,
         *,
+        clients: Mapping[str, LLMClient] | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.store = store
-        self.llm = llm
+        self.llm = llm  # the endpoint in use
+        # The other endpoints a draft may pick in the New draft form, by name
+        # (docs/configuration.md); each client carries the settings of its endpoint.
+        self.clients: dict[str, LLMClient] = dict(clients or {})
         self.settings = settings
         self._clock = clock
         self._runs: dict[str, RunState] = {}  # the jobs running now, by id
         self._runs_lock = threading.Lock()
 
     # -- public -----------------------------------------------------------------------
+
+    def client_for(self, job: Job) -> LLMClient:
+        """The client of the job's endpoint: the one in use unless the job picked another.
+        PipelineError when that one is no longer offered (its key went)."""
+        name = job.config.endpoint
+        if not name or name == self.settings.llm.endpoint:
+            return self.llm
+        try:
+            return self.clients[name]
+        except KeyError:
+            raise PipelineError(f"the endpoint {name} is not available any more") from None
+
+    def llm_for(self, job: Job) -> LLM:
+        """The `[llm]` settings the job runs with; the endpoint in use when the job's is
+        not available any more (a page can always be shown)."""
+        try:
+            return self.client_for(job).settings.llm
+        except PipelineError:
+            return self.settings.llm
+
+    def endpoints(self) -> list[tuple[str, LLM]]:
+        """The endpoints a draft may pick, the one in use first: name and settings."""
+        return [
+            (self.settings.llm.endpoint or "", self.settings.llm),
+            *((name, client.settings.llm) for name, client in self.clients.items()),
+        ]
 
     def run(self, job_id: str, *, stop_after: str | None = None) -> None:
         """Run or resume a job. stop_after: understand, write, check or judge."""
@@ -258,6 +289,12 @@ class Orchestrator:
         job = self.store.get_job(job_id)
         if job is None:
             raise PipelineError(f"unknown job {job_id}")
+        try:
+            llm = self.client_for(job)
+        except PipelineError as exc:  # recorded like any other failure of the job
+            log.info("job %s failed: %s", job_id, exc)
+            self._set(job_id, status="failed", error=str(exc))
+            return
         budget = self.settings.jobs.time_budget_s
         run = RunState(
             job_id,
@@ -267,6 +304,7 @@ class Orchestrator:
                 stop=threading.Event(),
                 clock=self._clock,
             ),
+            llm=llm,
         )
         with self._runs_lock:
             self._runs[job_id] = run
@@ -276,8 +314,8 @@ class Orchestrator:
             # after some calls has them in the usage too. The limit ends a stopped job's
             # calls early (llm/client.py).
             with (
-                self.llm.recording(lambda usage: self.store.add_usage(job_id, usage)),
-                self.llm.limited(run.limit),
+                llm.recording(lambda usage: self.store.add_usage(job_id, usage)),
+                llm.limited(run.limit),
             ):
                 self._run(run, job)
         finally:
@@ -364,11 +402,11 @@ class Orchestrator:
             self._stage(run, "baseline")
             if job.config.condition == "P0":
                 draft, _ = stages.baseline(
-                    self.llm, source, level=job.config.level, model=job.config.writer_model
+                    run.llm, source, level=job.config.level, model=job.config.writer_model
                 )
             else:  # the Canton of Zurich's prompt, complete or condensed
                 draft, _, notes = stages.baseline_zh(
-                    self.llm,
+                    run.llm,
                     source,
                     level=job.config.level,
                     variant=stages.zh_variant(job.config.condition),
@@ -387,10 +425,10 @@ class Orchestrator:
         if factsheet is None:
             self._stage(run, "understand")
             factsheet, _ = stages.understand(
-                self.llm,
+                run.llm,
                 source,
                 level=cfg.level,
-                model=self._understand_model(cfg),
+                model=self._understand_model(run, cfg),
                 mode=cfg.mode,
                 addressee=cfg.addressee,
             )
@@ -406,7 +444,7 @@ class Orchestrator:
         if draft is None:
             self._stage(run, "write")
             draft, _ = stages.write(
-                self.llm,
+                run.llm,
                 source,
                 factsheet,
                 level=cfg.level,
@@ -613,7 +651,7 @@ class Orchestrator:
         run.round_failure = None
         try:
             new_draft, _, record = stages.repair(
-                self.llm,
+                run.llm,
                 source,
                 factsheet,
                 draft,
@@ -664,7 +702,7 @@ class Orchestrator:
         for fact in wanted:
             try:
                 rec, _ = stages.recover_fact(
-                    self.llm, source, factsheet, current, fact.id, model=job.config.writer_model
+                    run.llm, source, factsheet, current, fact.id, model=job.config.writer_model
                 )
             except LLMInterrupted:
                 raise  # a stopped job ends here, whatever came back so far
@@ -756,10 +794,10 @@ class Orchestrator:
         if existing:
             return existing
         self._stage(run, "judge")
-        model = job.config.judge_model or self.llm.judge_model()
+        model = job.config.judge_model or run.llm.judge_model()
         try:
             report, _ = stages.judge(
-                self.llm,
+                run.llm,
                 source,
                 factsheet,
                 draft,
@@ -803,8 +841,8 @@ class Orchestrator:
             if history
             else [blocking_count(r, None) for r in rules]
         )
-        writer = self.llm.resolve_model(job.config.writer_model, False)[0]
-        reader = self.llm.resolve_model(self._understand_model(job.config), False)[0]
+        writer = run.llm.resolve_model(job.config.writer_model, False)[0]
+        reader = run.llm.resolve_model(self._understand_model(run, job.config), False)[0]
         summary = PipelineSummary(
             condition=job.config.condition,
             mode=job.config.mode,
@@ -814,11 +852,12 @@ class Orchestrator:
             vocabulary_rounds=vocabulary_rounds,
             polish_rounds=polish_rounds,
             stop_reason=reason,
+            endpoint=job.config.endpoint or run.llm.settings.llm.endpoint,
             writer_model=writer,
             understand_model=reader
             if job.config.condition not in BASELINE_CONDITIONS and reader != writer
             else None,
-            judge_model=(job.config.judge_model or self.llm.judge_model())
+            judge_model=(job.config.judge_model or run.llm.judge_model())
             if job.config.condition == "P2" and job.config.use_judge
             else None,
             prompt_versions=prompt_versions(source.lang),
@@ -832,10 +871,11 @@ class Orchestrator:
 
     # -- helpers ----------------------------------------------------------------------
 
-    def _understand_model(self, cfg: JobConfig) -> str | None:
-        """The Understand stage's model: the job's, else llm.models.understand, else the
-        job's writer (None: llm.models.writer). The hybrid lets the 70B read and the 8B write."""
-        return cfg.understand_model or self.settings.llm.models.understand or cfg.writer_model
+    def _understand_model(self, run: RunState, cfg: JobConfig) -> str | None:
+        """The Understand stage's model: the job's, else its endpoint's
+        llm.models.understand, else the job's writer (None: llm.models.writer). The hybrid
+        lets the 70B read and the 8B write."""
+        return cfg.understand_model or run.llm.settings.llm.models.understand or cfg.writer_model
 
     def _maybe_stop(self, run: RunState, stage: str) -> None:
         if run.stop_after == stage:

@@ -31,6 +31,9 @@ def _no_user_config(monkeypatch, tmp_path_factory):
     for name in list(os.environ):
         if name.upper().startswith(config.ENV_PREFIX) and "__" in name:
             monkeypatch.delenv(name)
+    for preset in config.PRESETS.values():  # a key in the shell would make a preset ready
+        if variable := preset.values.get("api_key_env"):
+            monkeypatch.delenv(variable, raising=False)
     config.use_overrides({})
     yield
     config.use_overrides({})  # the command line's, from a test that runs `main`

@@ -25,6 +25,7 @@ from leichtfacile.configure import (
 )
 
 LISTED = ["swiss-ai/Apertus-v1.5-70B", "swiss-ai/Apertus-v1.5-8B"]
+OTHER = str(len(config.PRESETS) + 1)  # the menu's "Another OpenAI-compatible endpoint"
 
 
 @pytest.fixture
@@ -56,22 +57,43 @@ def toml(path: Path) -> dict:
 
 def test_the_cscs_preset_needs_only_the_key(home) -> None:
     said: list[str] = []
-    # endpoint 1, address, name, model and judge as offered
-    code = run_setup(ask=answers("1", "", "", "", ""), ask_secret=answers("secret-key"),
+    # endpoint 1 in the menu, then the key: no address, name, model or judge question
+    code = run_setup(ask=answers("1"), ask_secret=answers("secret-key"),
                      models=lambda url, key: LISTED, say=said.append)  # fmt: skip
     assert code == 0
-    assert toml(home) == {"endpoints": {"cscs": {"preset": "cscs"}}, "llm": {"endpoint": "cscs"}}
+    assert toml(home) == {"llm": {"endpoint": "cscs"}}  # the preset as it is: no table
     assert (home.parent / ".env").read_text(encoding="utf-8").endswith("CSCS_API_KEY=secret-key\n")
     llm = load().settings.llm
     assert llm.url == "https://api.inference.cscs.ch/v1" and llm.thinking == "model-suffix"
     assert [llm.models.writer, llm.models.judge] == LISTED[::-1]
     assert llm.api_key.get_secret_value() == "secret-key"
     assert "secret-key" not in "\n".join(said) and "secret-key" not in home.read_text("utf-8")
+    assert "The endpoint lists 2 models." in said  # the key was tried
+
+
+def test_a_preset_whose_key_is_set_asks_nothing(home, monkeypatch) -> None:
+    monkeypatch.setenv("CSCS_API_KEY", "from-shell")
+    said: list[str] = []
+    assert run_setup(name="cscs", ask=never, ask_secret=never, say=said.append) == 0
+    assert toml(home) == {"llm": {"endpoint": "cscs"}} and not (home.parent / ".env").exists()
+    assert "Its key comes from the variable CSCS_API_KEY." in said
+    # What differs from the preset goes into a table of the preset's name, nothing else.
+    code = run_setup(name="cscs", model="swiss-ai/Apertus-v1.5-70B", force=True, ask=never,
+                     ask_secret=never, say=said.append)  # fmt: skip
+    assert code == 0
+    assert toml(home) == {
+        "endpoints": {"cscs": {"models": {"writer": "swiss-ai/Apertus-v1.5-70B"}}},
+        "llm": {"endpoint": "cscs"},
+    }
+    assert load().settings.llm.url == "https://api.inference.cscs.ch/v1"
+    # Back to the preset as it is: the table goes.
+    assert run_setup(name="cscs", force=True, ask=never, ask_secret=never, say=said.append) == 0
+    assert toml(home) == {"llm": {"endpoint": "cscs"}}
 
 
 def test_another_endpoint_offers_its_own_model_list(home) -> None:
     said: list[str] = []
-    code = run_setup(ask=answers("6", "https://llm.example/v1", "", "model-b", ""),
+    code = run_setup(ask=answers(OTHER, "https://llm.example/v1", "", "model-b"),
                      ask_secret=answers("k"), models=lambda url, key: ["model-a", "model-b"],
                      say=said.append)  # fmt: skip
     assert code == 0 and "  - model-a" in said
@@ -89,7 +111,7 @@ def test_a_model_list_that_cannot_be_read_still_asks_for_the_model(home) -> None
         raise OSError("refused")
 
     said: list[str] = []
-    code = run_setup(ask=answers("6", "http://10.1.2.3:9/v1", "gpu", "", "my-model", ""),
+    code = run_setup(ask=answers(OTHER, "http://10.1.2.3:9/v1", "gpu", "", "my-model"),
                      ask_secret=answers("k"), models=unreachable, say=said.append)  # fmt: skip
     assert code == 0 and any("could not be read" in line for line in said)
     assert load().settings.llm.models.writer == "my-model"  # asked again after the empty answer
@@ -118,7 +140,7 @@ def test_given_values_ask_nothing_and_update_only_with_force(home) -> None:
 
 def test_keys_with_spaces_quotes_and_dollars_read_back_unchanged(home) -> None:
     key = "a b#c'd\"e\\f$g"
-    code = run_setup(preset="publicai", api_key=key, ask=never, say=lambda line: None)
+    code = run_setup(preset="apertus", api_key=key, ask=never, say=lambda line: None)
     assert code == 0
     llm = load().settings.llm
     assert llm.api_key.get_secret_value() == key
@@ -128,20 +150,30 @@ def test_keys_with_spaces_quotes_and_dollars_read_back_unchanged(home) -> None:
 def test_saved_endpoints_are_listed_switched_and_removed(home) -> None:
     quiet = {"ask_secret": never, "say": lambda line: None}
     assert run_setup(preset="cscs", api_key="k", ask=never, **quiet) == 0
-    # Interactive: keep cscs in use.
-    assert run_setup(preset="local", ask=answers("", "", "apertus-q4", "", "n"),
-                     ask_secret=answers(""), models=lambda url, key: [],
-                     say=lambda line: None) == 0  # fmt: skip
+    # Interactive: a server of one's own asks for the model alone; keep cscs in use.
+    assert run_setup(preset="local", ask=answers("apertus-q4", "n"), ask_secret=never,
+                     models=lambda url, key: [], say=lambda line: None) == 0  # fmt: skip
     said: list[str] = []
     list_endpoints(say=said.append)
-    assert said[0].startswith("* cscs") and said[1].startswith("  local")
+    rows = {line[2:].split()[0]: line for line in said if line[:1] in "* "}
+    assert list(rows) == list(config.PRESETS)
+    assert rows["cscs"].startswith("* cscs ") and rows["cscs"].endswith("  ready")
+    assert rows["local"].startswith("  local ") and rows["local"].endswith("  ready")
+    assert "  apertus-q4 " in rows["local"]
+    assert rows["apertus"].endswith("  the variable PUBLICAI_API_KEY is not set")
+    assert said[-1].startswith("In use: cscs (")
     assert use_endpoint("local", path=home, say=said.append) == 0
     assert load().settings.llm.endpoint == "local"
-    with pytest.raises(ConfigError, match=r"no \[endpoints.nowhere\]"):
+    assert use_endpoint("apertus", path=home, say=said.append) == 0  # a bare preset
+    with pytest.raises(ConfigError, match="no such endpoint"):
         use_endpoint("nowhere", path=home, say=said.append)
+    assert remove_endpoint("apertus", path=home, say=said.append) == 1
+    assert said[-1].startswith("apertus is a preset that ships with the app")
+    assert use_endpoint("local", path=home, say=said.append) == 0
     assert remove_endpoint("local", path=home, say=said.append) == 0
-    assert "In use now: cscs, the only one left." in said
-    assert load().settings.llm.endpoint == "cscs"
+    assert said[-2].startswith("Removed the saved settings of the preset local")
+    assert said[-1] == "In use now: cscs."  # the only one that is ready
+    assert load().settings.llm.endpoint == "cscs" and "endpoints" not in toml(home)
 
 
 def test_config_set_checks_before_it_writes(home) -> None:
@@ -221,7 +253,7 @@ def test_missing_settings_name_themselves_and_the_setup(home, capsys) -> None:
         get_settings.cache_clear()
     assert stop.value.code == 2
     error = capsys.readouterr().err
-    assert "No model endpoint is set up" in error and "leichtfacile setup" in error
+    assert "No model endpoint is ready" in error and "leichtfacile setup" in error
     assert str(home) in error
 
 

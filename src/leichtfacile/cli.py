@@ -42,8 +42,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    setup = sub.add_parser("setup", help="save a model endpoint in the config file and use it")
-    setup.add_argument("--preset", choices=list(PRESETS), help="a known endpoint")
+    setup = sub.add_parser("setup", help="set up a model endpoint and use it")
+    setup.add_argument(
+        "endpoint",
+        nargs="?",
+        help=f"a preset ({', '.join(PRESETS)}) or a name for another endpoint",
+    )
+    setup.add_argument(
+        "--preset", choices=list(PRESETS), help="the preset the endpoint starts from"
+    )
     setup.add_argument("--name", help="the endpoint's name in the file (default: the preset's)")
     setup.add_argument("--base-url", help="the endpoint's address (OpenAI-compatible)")
     setup.add_argument(
@@ -163,18 +170,32 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def with_endpoint(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--endpoint", help="a saved endpoint for this run (default: llm.endpoint)")
+    parser.add_argument(
+        "--endpoint",
+        help="an endpoint for this run, a preset or a saved one (default: llm.endpoint)",
+    )
 
 
 def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     if args.command == "setup":
+        from leichtfacile.config import secret_value
+
+        # `setup cscs` names a preset, `setup gpu --base-url ...` a new endpoint.
+        preset = args.preset or (args.endpoint if args.endpoint in PRESETS else None)
+        name = args.name or (None if args.endpoint in PRESETS else args.endpoint)
         try:
             code = configure.run_setup(
-                preset=args.preset, name=args.name, base_url=args.base_url, api_key=args.api_key,
-                api_key_env=args.api_key_env, model=args.model, judge=args.judge, force=args.force,
+                preset=preset, name=name, base_url=args.base_url, api_key=args.api_key,
+                api_key_env=args.api_key_env, model=args.model, judge=args.judge,
+                force=args.force,
             )  # fmt: skip
             if code == 0 and not args.no_models:
-                scripted = bool(args.api_key or args.api_key_env or args.preset == "local")
+                # Without a question asked so far, the models are not asked about either.
+                variable = PRESETS[preset].values.get("api_key_env") if preset else None
+                scripted = bool(
+                    args.api_key or args.api_key_env or preset == "local"
+                    or (variable and secret_value(variable))
+                )  # fmt: skip
                 code = offer_models(ask=None if scripted else input)
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.", file=sys.stderr)
@@ -483,6 +504,7 @@ def _simplify(args: argparse.Namespace) -> int:
         lang=source.lang,
         level=args.level,
         condition=args.condition,
+        endpoint=args.endpoint,  # --endpoint: the job's record says where it ran
         writer_model=args.writer,
         understand_model=args.understand,
         judge_model=args.judge,

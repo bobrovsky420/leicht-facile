@@ -215,6 +215,21 @@
     reveal();
     noticePlaceholder();
 
+    // The endpoint picked for this draft: the model placeholders follow its models.
+    const endpointSelect = $("#endpoint");
+    const modelPlaceholders = () => {
+      const option = endpointSelect && endpointSelect.options[endpointSelect.selectedIndex];
+      if (!option) return;
+      [["writer_model", "writer"], ["understand_model", "understand"], ["judge_model", "judge"]].forEach(
+        ([id, key]) => {
+          const input = $(`#${id}`);
+          if (input) input.placeholder = option.dataset[key] || "";
+        },
+      );
+    };
+    if (endpointSelect) endpointSelect.addEventListener("change", modelPlaceholders);
+    modelPlaceholders();
+
     let examples = [];
     try {
       examples = JSON.parse($("#example-texts").textContent);

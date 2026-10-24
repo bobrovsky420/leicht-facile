@@ -480,3 +480,41 @@ def test_format_duration() -> None:
     assert format_duration(4.4) == "4 s"
     assert format_duration(65) == "1 min 05 s"
     assert format_duration(3600 * 2 + 60 * 7) == "2 h 07 min"
+
+
+def test_the_form_offers_the_ready_endpoints_for_one_draft(tmp_path, endpoint, sleeps) -> None:
+    settings = make_settings(data__dir=tmp_path, llm__endpoint="main", llm__max_retries=0)
+    other = make_settings(
+        llm__endpoint="other",
+        llm__label="The other one",
+        llm__url="http://other.test/v1",
+        llm__models__writer="other-model",
+        llm__max_retries=0,
+    )
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    clients = {"other": LLMClient(other, http_client=FakeEndpoint().http_client())}
+    store = Store(tmp_path / "ui.sqlite")
+    with TestClient(create_app(settings, llm, store, clients=clients)) as client:
+        page = client.get("/new").text
+        assert '<select id="endpoint" name="endpoint">' in page
+        assert '<option value="main" selected data-writer="swiss-ai/Apertus-v1.5-8B"' in page
+        assert '<option value="other" data-writer="other-model"' in page
+        assert ">The other one</option>" in page
+        response = client.post(
+            "/jobs",
+            data={"text": LETTER, "condition": "P0", "endpoint": "other"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+        job_id = response.headers["location"].rsplit("/", 1)[-1]
+        assert client.get(f"/api/jobs/{job_id}").json()["config"]["endpoint"] == "other"
+        strip = client.get(f"/jobs/{job_id}").text
+        assert "<code>other</code>" in strip and "<code>other-model</code>" in strip
+        refused = client.post("/jobs", data={"text": LETTER, "endpoint": "nope"})
+        assert refused.status_code == 400 and "nope" in refused.text and "offered" in refused.text
+    store.close()
+    # The endpoint in use alone leaves no choice, so the form has no select.
+    store = Store(tmp_path / "one.sqlite")
+    with TestClient(create_app(settings, llm, store, clients={})) as client:
+        assert 'name="endpoint"' not in client.get("/new").text
+    store.close()

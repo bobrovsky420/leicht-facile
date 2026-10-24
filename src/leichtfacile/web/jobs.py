@@ -10,7 +10,7 @@ the other requests, the probes included, keep their threads (audit V4).
 from __future__ import annotations
 
 import threading
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from urllib.parse import urlsplit
@@ -91,6 +91,7 @@ class Submission:
     lang: str | None = None  # None or "auto": detect
     level: str = "A2"
     condition: str = "P2"
+    endpoint: str | None = None  # the endpoint for this job; None or "": the one in use
     writer_model: str | None = None
     understand_model: str | None = None
     judge_model: str | None = None
@@ -148,10 +149,16 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
 
 
 def create_job(
-    store: Store, settings: Settings, sub: Submission, slots: threading.Semaphore | None = None
+    store: Store,
+    settings: Settings,
+    sub: Submission,
+    slots: threading.Semaphore | None = None,
+    *,
+    endpoints: Collection[str] = (),
 ) -> Job:
     """The job for a submission, queued and with its source stored. `slots` limits how
-    many submissions are read at once (`ingest_slot`)."""
+    many submissions are read at once (`ingest_slot`); `endpoints` are the other
+    endpoints a submission may pick (the one in use always may)."""
     if sub.level not in LEVELS:
         raise SubmissionError("unknown_level", level=sub.level)
     condition = canonical_condition(sub.condition)
@@ -159,6 +166,9 @@ def create_job(
         raise SubmissionError("unknown_condition", condition=sub.condition)
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
+    endpoint = (sub.endpoint or "").strip() or None
+    if endpoint is not None and endpoint != settings.llm.endpoint and endpoint not in endpoints:
+        raise SubmissionError("unknown_endpoint", name=endpoint)
     # server.allow_private_urls: an intranet that needs internal pages
     with ingest_slot(slots):
         source = ingest_submission(sub, allow_private_urls=settings.server.allow_private_urls)
@@ -175,6 +185,7 @@ def create_job(
         lang=source.lang,
         level=sub.level,  # type: ignore[arg-type]
         condition=condition,  # type: ignore[arg-type]
+        endpoint=endpoint,
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,

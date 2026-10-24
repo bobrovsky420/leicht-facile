@@ -1,15 +1,13 @@
 # Configuration
 
-Leicht·Facile keeps its settings in one TOML file with a section per topic and any number
-of saved model endpoints. `leichtfacile setup` writes it, `leichtfacile config` shows and
+Leicht·Facile keeps its settings in one TOML file with a section per topic. The known
+model endpoints come with the app as presets, so the file names the one in use and holds
+what differs from it. `leichtfacile setup` writes it, `leichtfacile config` shows and
 changes it, and every setting has a default except the model endpoint.
 
 ```toml
 [llm]
-endpoint = "cscs"                     # the saved endpoint in use
-
-[endpoints.cscs]
-preset = "cscs"                       # address, thinking, models: from the preset
+endpoint = "cscs"                     # the endpoint in use: a preset or a saved one
 
 [endpoints.laptop]
 url = "http://127.0.0.1:8080/v1"
@@ -35,7 +33,7 @@ The key of the `cscs` endpoint is not in the file: the preset names the variable
 Each source overrides the one before:
 
 1. the defaults ([Reference](#reference));
-2. the preset a saved endpoint starts from ([Presets](#presets));
+2. the preset an endpoint starts from ([Presets](#presets));
 3. the user's config file, written by `leichtfacile setup` and `leichtfacile config set`;
 4. `leichtfacile.toml` in the current folder: a checkout's or a project's own settings;
 5. environment variables `LEICHTFACILE_<SECTION>__<KEY>` ([Environment
@@ -61,28 +59,61 @@ A key the app does not know is an error, so a misspelt key never goes unnoticed.
 Any OpenAI-compatible endpoint works: a cloud API, a gateway or a model server the
 organisation runs. The app itself never runs a model.
 
-- `[endpoints.<name>]` saves one endpoint: its address (`url`), its key, its models and
-  how it switches thinking. Names are lowercase letters, digits, `-` and `_`.
-- `[llm]` is the endpoint in use. `llm.endpoint` picks a saved one (with only one saved,
-  that one), and every other key in `[llm]` overrides the saved endpoint's, whichever
-  it is: `[llm] cache = true` caches the answers of every endpoint.
-- `leichtfacile setup` saves an endpoint and uses it, `leichtfacile endpoint use <name>`
-  switches, and `--endpoint <name>` picks one for a single run of `serve`, `simplify`,
-  `check-llm` or `eval run`.
+- The presets ([Presets](#presets)) are endpoints as they come: `cscs` and `apertus` need
+  nothing but their key. `[endpoints.<name>]` saves another endpoint, or what differs from
+  the preset of the same name: its address (`url`), its key, its models, how it switches
+  thinking, a `label` for the New draft form. Names are lowercase letters, digits, `-`
+  and `_`.
+- An endpoint is ready when it has an address, a writer model and a key (given, or its
+  variable set). `leichtfacile endpoint list` shows every endpoint and what it lacks.
+- `[llm]` is the endpoint in use. `llm.endpoint` names a preset or a saved endpoint;
+  without it, the only ready endpoint is in use, so one key in the environment is enough
+  (two ready and none named: `leichtfacile endpoint use <name>`). Every other key in
+  `[llm]` overrides the endpoint's, whichever it is: `[llm] cache = true` caches the
+  answers of every endpoint.
+- `leichtfacile setup <name>` gives a preset its key and uses it, `leichtfacile endpoint
+  use <name>` switches, and `--endpoint <name>` picks one for a single run of `serve`,
+  `simplify`, `check-llm` or `eval run`.
+- The New draft form offers every ready endpoint for one draft when there are at least
+  two: the job records its choice and runs on that endpoint, and the one in use stays.
 
 ### Presets
 
-A preset holds what is known about an endpoint. A saved endpoint names it with
-`preset = "<name>"` and overrides only what differs. The presets live in the program,
-so an upgrade fixes a known endpoint for every user.
+A preset holds what is known about an endpoint and is an endpoint itself. A saved
+`[endpoints.<name>]` of the preset's name extends it and holds only what differs; one of
+another name names it with `preset = "<name>"`. The presets ship with the package, so an
+upgrade fixes a known endpoint for every user.
+
+The presets are the tables of `src/leichtfacile/presets.toml`, one per preset and named
+after it, in the order `leichtfacile setup` offers them. A table takes the keys of an
+`[endpoints.<name>]` table, `label` among them (the name in setup's list and in the New
+draft form). A new table is a new preset; `tests/test_config.py` checks every table's
+keys and values.
+
+```toml
+# src/leichtfacile/presets.toml
+[cscs]
+label = "Apertus on the CSCS inference API"
+url = "https://api.inference.cscs.ch/v1"
+api_key_env = "CSCS_API_KEY"
+models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
+thinking = "model-suffix"
+```
 
 | Preset | Endpoint | What it sets |
 |--------|----------|--------------|
 | `cscs` | Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers | the address, the key from `CSCS_API_KEY`, the 8B writing and the 70B judging, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`) |
-| `publicai` | Apertus on the Public AI gateway, for public documents only | the address, the key from `PUBLICAI_API_KEY`, the 8B and the 70B in the gateway's spelling, `thinking = "chat-template"`, and `extra_body` turning the gateway's response cache off |
-| `local` | A server of your own: llama.cpp (port 8080), Ollama (port 11434), vLLM | `http://127.0.0.1:8080/v1` and the key `local` (such a server takes any key) |
+| `apertus` | Apertus on the Public AI gateway, for public documents only | the address, the key from `PUBLICAI_API_KEY`, the 8B and the 70B in the gateway's spelling, `thinking = "chat-template"`, and `extra_body` turning the gateway's response cache off |
+| `local` | llama.cpp (llama-server) on this machine, or another OpenAI-compatible server (`--base-url`) | `http://127.0.0.1:8080/v1`, the key `local` (such a server takes any key), `thinking = "chat-template"` (llama.cpp with `--jinja`) and 30 minutes per call (a thinking call on a small GPU takes minutes) |
+| `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking stays off, since the gateway ignores the switch |
+| `vllm` | vLLM, mostly a GPU machine of the organisation (`--base-url http://<server>:8000/v1`) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"` |
 | `openai` | OpenAI | the address and the key from `OPENAI_API_KEY` |
 | `mistral` | Mistral AI | the address and the key from `MISTRAL_API_KEY` |
+
+The three servers of one's own have no model in the preset, since each server names its
+own: `leichtfacile setup local` (or `ollama`, `vllm`) lists the server's models and asks
+which one; `--model <name>` gives it. A preset with a model would count as ready while
+nothing listens at its address.
 
 Notes on the endpoints:
 
@@ -156,10 +187,10 @@ the preset's variable (`CSCS_API_KEY`) or `<NAME>_API_KEY` for an endpoint witho
 
 | Command | Does |
 |---------|------|
-| `leichtfacile setup` | asks for an endpoint (a preset, the address, a name, the key, the model, the judge), saves it as `[endpoints.<name>]` and uses it; an endpoint saved already is updated, its other keys kept |
-| `leichtfacile endpoint list` | the saved endpoints with their address and writer model, the one in use marked `*` |
-| `leichtfacile endpoint use <name>` | uses that endpoint from now on |
-| `leichtfacile endpoint remove <name>` | removes a saved endpoint |
+| `leichtfacile setup [name]` | gives a preset (`cscs`, `apertus`, ...) its key and uses it, asking nothing when the key's variable is set; without a name offers the presets and `other`; for another endpoint asks the address, a name, the key and the model (from the endpoint's list); saves what differs from a preset as `[endpoints.<name>]`; an endpoint saved already is updated with `--force`, its other keys kept |
+| `leichtfacile endpoint list` | every endpoint, preset or saved, with its label, its writer model and whether it is ready (else what it lacks), the one in use marked `*` |
+| `leichtfacile endpoint use <name>` | uses that endpoint, a preset or a saved one, from now on |
+| `leichtfacile endpoint remove <name>` | removes a saved endpoint, or the saved settings that extend a preset (the preset stays) |
 | `leichtfacile config show` | every setting, its value and its source; keys masked; what keeps the endpoint from working |
 | `leichtfacile config show --defaults` | every setting with its default and meaning, as a config file to copy from |
 | `leichtfacile config set <key> <value>` | sets a key (`server.port 8001`, `llm.cache true`, `endpoints.laptop.timeout_s 1800`) |
@@ -169,12 +200,14 @@ the preset's variable (`CSCS_API_KEY`) or `<NAME>_API_KEY` for an endpoint witho
 
 `setup` takes its answers as flags too: `--preset`, `--name`, `--base-url`, `--api-key`,
 `--api-key-env`, `--model`, `--judge`, `--force` (update an endpoint saved already) and
-`--no-models` (leave the spaCy models for later). With the address, the key and the model
-given or known from the preset, it asks nothing, so it runs from a script:
+`--no-models` (leave the spaCy models for later). It asks only for what the preset and the
+flags leave open, and nothing at all when the key's variable is set, so it runs from a
+script:
 
 ```bash
-leichtfacile setup --preset cscs                 # asks for the key, the model and the judge
-leichtfacile setup --preset local --model apertus-v1.5-8b-q4-llamacpp --name laptop
+leichtfacile setup cscs                           # asks for the key; the rest is the preset's
+leichtfacile setup cscs --model swiss-ai/Apertus-v1.5-70B   # the preset with another writer
+leichtfacile setup local --model apertus-v1.5-8b-q4-llamacpp --name laptop
 leichtfacile check-llm                            # lists the endpoint's models, one short call
 ```
 
@@ -190,7 +223,7 @@ unchanged. The file keeps its comments and order. `--local` makes `endpoint use`
 `LEICHTFACILE_<SECTION>__<KEY>`, the parts joined by two underscores, sets any key:
 
 ```bash
-LEICHTFACILE_LLM__ENDPOINT=publicai
+LEICHTFACILE_LLM__ENDPOINT=apertus
 LEICHTFACILE_SERVER__PORT=8001
 LEICHTFACILE_LLM__MODELS__WRITER=swiss-ai/Apertus-v1.5-70B
 LEICHTFACILE_ENDPOINTS__CI__URL=http://127.0.0.1:9/v1
@@ -213,12 +246,6 @@ caches, and the cached answers for the evaluation:
 [llm]
 endpoint = "cscs"
 cache = true
-
-[endpoints.cscs]
-preset = "cscs"
-
-[endpoints.publicai]
-preset = "publicai"
 
 [data]
 dir = "data"
@@ -247,7 +274,8 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `endpoint` |  | The saved endpoint in use ([endpoints.&lt;name>]). Default: the only one saved. |
-| `preset` |  | A known endpoint whose settings this one starts from: cscs, publicai, local, openai, mistral. |
+| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral. Default: the preset of the endpoint's own name, if there is one. |
+| `label` |  | What the New draft form calls the endpoint. Default: the preset's label, else the endpoint's name. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
 | `api_key` |  | The key, written into the file. A server of your own takes any key. |
 | `api_key_env` |  | Or the variable that holds the key: from the environment, else from .env in the current folder, else from .env next to the config file. |

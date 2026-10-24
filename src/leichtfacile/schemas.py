@@ -421,6 +421,7 @@ class PipelineSummary(Artifact):
     rounds: int = 0
     facts_rounds: int = 0  # rounds that asked for missing facts only, after the loop
     stop_reason: str = ""
+    endpoint: str | None = None  # the endpoint the job ran on; None: one without a name
     writer_model: str = ""
     understand_model: str | None = None  # only when it differs from the writer
     judge_model: str | None = None
@@ -446,6 +447,7 @@ class JobConfig(Artifact):
     lang: Lang | None = None  # None: detect from the source
     level: Level = "A2"
     condition: Condition = "P2"
+    endpoint: str | None = None  # the endpoint picked for this job; None: the one in use
     writer_model: str | None = None  # None: llm.models.writer
     understand_model: str | None = None  # None: llm.models.understand, else the writer
     judge_model: str | None = None  # None: llm.models.judge

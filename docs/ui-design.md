@@ -315,6 +315,10 @@ them into local time and "Today" or "Yesterday".
     (from `STEPS_BY_CONDITION`). All three sequences are rendered and CSS shows the
     checked one's (`:has()`), so it works without JavaScript.
   - Title (optional).
+  - Model endpoint, a select, only when at least two endpoints are ready (built 24
+    October 2026): the one in use first and selected, each option the endpoint's label,
+    the hint "For this draft only; the endpoint in use stays". The script lets the Models
+    placeholders below follow the choice.
   - Models, a closed `<details>`: Writer, Reader (fact sheet), Judge, with the
     configured names as placeholders and the existing hint.
   - The decision mode's fields (§5.7).
@@ -329,8 +333,8 @@ them into local time and "Today" or "Yesterday".
   "Delete draft" while the job is queued or running: the job ends at its next stage
   or streamed chunk and keeps what it has; a stopped or failed job shows "Delete
   draft", which asks first). Summary strip:
-  language, level, pipeline; the writer and judge model names (`JobConfig`, else the
-  settings).
+  language, level, pipeline; the endpoint when the job picked one; the writer and judge
+  model names (`JobConfig`, else the job's endpoint).
 - Left, the card "Pipeline" (380 px) with "Stage 4 of 6" in its header. One row per
   stage:
   - the state icon: done, a green check; running, an accent spinner; waiting, a grey
@@ -708,6 +712,8 @@ new.condition.P0.desc     One prompt, for comparison
 new.default               Default
 new.stages                Stages that run
 new.models_defaults       configured defaults
+new.endpoint              Model endpoint
+new.endpoint.hint         For this draft only; the endpoint in use stays.
 new.create                Create draft
 new.cancel                Cancel
 

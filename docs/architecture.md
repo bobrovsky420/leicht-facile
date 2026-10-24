@@ -671,14 +671,16 @@ ReviewState
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
 PipelineSummary
-  condition, mode, final_version, rounds, facts_rounds, stop_reason, writer_model,
+  condition, mode, final_version, rounds, facts_rounds, stop_reason, endpoint? (the
+  endpoint the job ran on), writer_model,
   understand_model? (only when another model read the source), judge_model?,
   prompt_versions {stage: hash}, blocking_findings[] (per draft version),
   vocabulary? (hash of the vocabulary file the job used), vocabulary_rounds (0|1)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
-  config: {lang, level, condition (P0|P1|P2), writer_model, understand_model,
+  config: {lang, level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
+           writer_model, understand_model,
            judge_model, use_judge, max_repair_rounds, max_facts_rounds,
            mode (standard|decision), addressee?, notice?}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
@@ -707,9 +709,10 @@ writers wait for each other (5 s) instead of failing midway.
 
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
-- **Configuration** from the settings' `[llm]` section, the saved endpoint in use (the
-  config files, the environment, the command line; §10): `llm.url`, `llm.api_key` (or
-  `llm.api_key_env`, the variable that holds it), `llm.models.writer`; plus
+- **Configuration** from the settings' `[llm]` section, the endpoint in use: a preset or
+  a saved endpoint (the config files, the environment, the command line; §10).
+  `llm.url`, `llm.api_key` (or `llm.api_key_env`, the variable that holds it),
+  `llm.models.writer`; plus
   `llm.models.judge` (default: the 70B of the writer's family when the endpoint lists
   it, looked up once per process, else `llm.models.writer`), `llm.models.understand`
   (default `llm.models.writer`) and `llm.thinking` = `off` (the default, since each
@@ -719,11 +722,17 @@ writers wait for each other (5 s) instead of failing midway.
   (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`).
   The mode is set per endpoint, by its preset or in its `[endpoints.<name>]` section.
   Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, and `llm.extra_body`
-  (fields sent with every request, for gateway switches).
-- **Endpoint profiles** (`leichtfacile setup` has the presets `cscs`, `publicai`,
-  `local` for a server of one's own, `openai` and `mistral`, in `config.PRESETS` and
-  [configuration.md](configuration.md), and takes any other endpoint; the two
-  Apertus presets set the thinking mode too):
+  (fields sent with every request, for gateway switches). The web app holds one client
+  per ready endpoint: a draft may pick another one in the New draft form
+  (`JobConfig.endpoint`), the orchestrator runs it on that endpoint's client
+  (`Orchestrator.client_for`, the settings of that endpoint with it), and the summary
+  records the endpoint's name.
+- **Endpoint profiles** (the presets `cscs`, `apertus`, `local`, `ollama` and `vllm` for
+  a server of one's own, `openai` and `mistral`, one table each in
+  `src/leichtfacile/presets.toml`, are
+  endpoints as they come, complete but for the key
+  ([configuration.md](configuration.md#presets)); `leichtfacile setup` gives one its key
+  or takes any other endpoint; the two Apertus presets set the thinking mode too):
   1. CSCS inference API, on which the reported numbers were measured
      (`thinking = "model-suffix"`);
   2. a vLLM server the organisation runs, for on-premise and air-gapped deployments
@@ -823,7 +832,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready endpoint for this job), `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
@@ -900,8 +909,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   type (standard text or decision letter), which reveals the addressee and the
   authority's notice, prefilled per document language from `pipeline/labels.py`
   (without JavaScript the two fields stay in view, and an empty notice gets the
-  language's default on the server); title, optional model overrides. `POST /jobs`
-  answers 400 with the form and the error.
+  language's default on the server); title; the model endpoint for this draft, a select
+  shown when at least two endpoints are ready (the one in use selected, the job records
+  the choice, `JobConfig.endpoint`); optional model overrides. `POST /jobs` answers 400
+  with the form and the error.
 - **Check my text** (`/check`, since 8 October 2026): the deterministic checker on a
   text the writer pasted, as the CLI `check` runs it (one block per sentence, the rules
   of the document's language at the chosen level, German and French), in
@@ -1010,8 +1021,8 @@ They and `eval run` take `--endpoint <name>`, a saved endpoint for one run.
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Asks for the endpoint (presets `cscs`, `publicai`, `local`, `openai`, `mistral`, or another), its address, a name and its key (not echoed), lists the endpoint's models (`GET /models`), asks for the model and an optional judge, and saves the endpoint as `[endpoints.<name>]` in the user's config file and uses it (`configure.py`, §10); with the address, the key and the model given or known from the preset it asks nothing; `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
-| `leichtfacile endpoint list\|use <name>\|remove <name>` | The saved endpoints, the one in use marked; use another from now on; remove one (`configure.py`) |
+| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile endpoint list\|use <name>\|remove <name>` | Every endpoint, preset or saved, with its label, its writer model and what it lacks, the one in use marked; use another from now on; remove a saved one or the saved settings of a preset (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
 | `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10) |
@@ -1180,17 +1191,22 @@ Italian ships. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).
 
 The settings are one TOML file with a section per topic and any number of saved model
-endpoints ([configuration.md](configuration.md)). `leichtfacile setup` (`configure.py`)
-asks for the endpoint, with the presets `cscs`, `publicai`, `local`, `openai` and
-`mistral` (`config.PRESETS`) or another, then for its address, a name and its key
-(not echoed), lists the endpoint's models (`GET /models`), asks for the model and an
-optional judge, and saves the endpoint as `[endpoints.<name>]` in the user's config
-file and uses it; an endpoint saved with a preset gets the preset's further settings,
-such as the thinking mode of the two Apertus presets (§6). With the address,
-the key and the model given or known from the preset it asks nothing; `--preset`,
-`--name`, `--api-key-env`, `--judge` and `--force` (update an endpoint saved already)
-complete the flags. `leichtfacile endpoint` lists, switches and removes the saved
-endpoints, `leichtfacile config` shows and changes every setting (§7). The settings
+endpoints ([configuration.md](configuration.md)). The known endpoints come with the app
+as presets (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`; one table
+each in `src/leichtfacile/presets.toml`), complete but for the key (a server of one's
+own: but for the model, which the server names); the endpoint in use resolves
+from its preset, the saved `[endpoints.<name>]` table that extends it (the table of the
+preset's name, or one naming it with `preset`) and `[llm]`'s own keys. `leichtfacile
+setup <name>` (`configure.py`) asks for a preset's key (not echoed), stores it in the
+`.env` next to the config file and sets `llm.endpoint`; with the key's variable set it
+asks nothing. Without a name it offers the presets and any other endpoint, for which it
+asks the address, a name, the key and the model (from `GET /models`); what differs from
+a preset is saved as `[endpoints.<name>]`. `--preset`, `--name`, `--base-url`,
+`--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` (update an endpoint
+saved already) answer the questions in advance. An endpoint is ready when it has an
+address, a writer model and a key; without `llm.endpoint` the only ready one is in use.
+`leichtfacile endpoint` lists every endpoint with what it lacks, switches and removes,
+`leichtfacile config` shows and changes every setting (§7). The settings
 come from the defaults, the endpoint's preset, the user's config file,
 `leichtfacile.toml` in the current folder, the variables `LEICHTFACILE_<SECTION>__<KEY>`
 and the command line (`--endpoint`, `serve --host` and `--port`), each overriding the
@@ -1240,8 +1256,8 @@ the app.
 
 | Architecture | Where the model runs and how Leicht·Facile meets it |
 |--------------|-----------------------------------------------------|
-| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup --preset local`, or the server's address. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
-| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies are collected with `pip wheel`, the two spaCy model wheels with `pip download`, on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs the app and `leichtfacile models --from <folder>` checks and unpacks the models ([quickstart.md](quickstart.md) way 5 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
+| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
+| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies are collected with `pip wheel`, the two spaCy model wheels with `pip download`, on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs the app and `leichtfacile models --from <folder>` checks and unpacks the models ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
 | c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
@@ -1454,6 +1470,7 @@ src/leichtfacile/
   lifecycle.py              the counts on the job row, deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
+  presets.toml              the known endpoints, one table each (cscs, apertus, local, ollama, vllm, openai, mistral)
   llm/                      client.py, json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,

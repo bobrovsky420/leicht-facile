@@ -296,6 +296,7 @@
           <dl class="runinfo">
             <dt>{{ t('review.run.cost') }}</dt><dd>{{ t('review.cost', tokens=number(v.tokens_in + v.tokens_out, ui_lang), time=duration(v.seconds)) }}</dd>
           {% if v.summary %}
+            {% if v.summary.endpoint %}<dt>{{ t('site.endpoint') }}</dt><dd>{{ v.summary.endpoint }}</dd>{% endif %}
             <dt>{{ t('progress.writer') }}</dt><dd>{{ v.summary.writer_model }}</dd>
             {% if v.summary.understand_model %}<dt>{{ t('index.models.understand') }}</dt><dd>{{ v.summary.understand_model }}</dd>{% endif %}
             {% if v.summary.judge_model %}<dt>{{ t('progress.judge') }}</dt><dd>{{ v.summary.judge_model }}</dd>{% endif %}

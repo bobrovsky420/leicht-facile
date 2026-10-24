@@ -124,6 +124,18 @@
           <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
         </div>
 
+        {% if endpoints %}
+        {# A choice of model endpoints: for this draft alone, the one in use stays. The
+           script lets the model placeholders below follow the choice. #}
+        <div>
+          <label class="label" for="endpoint">{{ t('new.endpoint') }}</label>
+          <select id="endpoint" name="endpoint">
+            {% for e in endpoints %}<option value="{{ e.name }}"{% if (form.endpoint or endpoints[0].name) == e.name %} selected{% endif %} data-writer="{{ e.writer }}" data-understand="{{ e.understand }}" data-judge="{{ e.judge }}">{{ e.label }}</option>{% endfor %}
+          </select>
+          <p class="hint">{{ t('new.endpoint.hint') }}</p>
+        </div>
+        {% endif %}
+
         <details class="models"{% if form.writer_model or form.understand_model or form.judge_model %} open{% endif %}>
           <summary>{{ icons.icon('chevron-right', 12) }}{{ t('index.models') }} <span class="muted" style="font-weight: 400">{{ t('new.models_defaults') }}</span></summary>
           <div class="fields">

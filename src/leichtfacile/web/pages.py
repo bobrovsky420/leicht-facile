@@ -247,6 +247,7 @@ def _new(
         doc_langs=[lang for lang in LANGS if lang in written],
         coming_langs=[lang for lang in LANGS if lang not in written],
         pipelines=_pipelines(t),
+        endpoints=_endpoint_options(request.app.state),
         max_chars=MAX_TEXT_CHARS,
         chars=len(form.get("text") or ""),
         # Decision mode: the authority's notice, prefilled per document language.
@@ -260,6 +261,22 @@ def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
     """The form for a new draft; `?example=<id>` fills in one of the example letters."""
     found = _example(request, example) if example else None
     return _new(request, form=_example_form(found) if found else {})
+
+
+def _endpoint_options(state) -> list[dict[str, str]]:
+    """The endpoints a draft may pick, the one in use first, with the model names the
+    form shows as placeholders; empty when there is no choice (the select stays away)."""
+    found = [
+        {
+            "name": name,
+            "label": llm.title,
+            "writer": llm.models.writer,
+            "understand": llm.understand_model,
+            "judge": llm.judge_model,
+        }
+        for name, llm in state.orchestrator.endpoints()
+    ]
+    return found if len(found) > 1 else []
 
 
 def _example_form(example: dict[str, str]) -> dict[str, str]:
@@ -382,6 +399,7 @@ async def submit(
     lang: Annotated[str | None, Form()] = None,
     level: Annotated[str, Form()] = "A2",
     condition: Annotated[str, Form()] = "P2",
+    endpoint: Annotated[str | None, Form()] = None,
     title: Annotated[str | None, Form()] = None,
     writer_model: Annotated[str | None, Form()] = None,
     understand_model: Annotated[str | None, Form()] = None,
@@ -399,6 +417,7 @@ async def submit(
         lang=lang,
         level=level,
         condition=condition,
+        endpoint=endpoint,
         writer_model=(writer_model or "").strip() or None,
         understand_model=(understand_model or "").strip() or None,
         judge_model=(judge_model or "").strip() or None,
@@ -411,7 +430,12 @@ async def submit(
     try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
         state.runner.ensure_room()
         job = await run_in_threadpool(
-            create_job, state.store, state.settings, sub, state.ingest_slots
+            create_job,
+            state.store,
+            state.settings,
+            sub,
+            state.ingest_slots,
+            endpoints=state.orchestrator.clients,
         )
     except (SubmissionError, QueueFull) as exc:
         form = {
@@ -420,6 +444,7 @@ async def submit(
             "lang": lang,
             "level": level,
             "condition": condition,
+            "endpoint": endpoint or "",
             "title": title or "",
             "writer_model": writer_model or "",
             "understand_model": understand_model or "",
@@ -456,6 +481,7 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
         request,
         "job.html",
         job=job,
+        job_llm=state.orchestrator.llm_for(job),
         p=progress,
         t=t,
         title=title,

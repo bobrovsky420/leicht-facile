@@ -1,0 +1,70 @@
+# The known model endpoints (docs/configuration.md, "Presets"): one table per preset, in
+# the order `leichtfacile setup` offers them. A table takes the keys of an
+# [endpoints.<name>] table, `label` among them; the settings check it like any other
+# source. A new table is a new preset.
+#
+# A server of one's own has no model here, since each server names its own:
+# `leichtfacile setup <preset>` lists the server's models and asks which one. A preset
+# with a model would count as ready while nothing listens at its address.
+
+# Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers.
+# Thinking models are separate model names ending in "-thinking". CSCS closes about one
+# long thinking stream in four midway (6 October 2026); the default retries
+# (llm.max_retries) make a hard failure rare.
+[cscs]
+label = "Apertus on the CSCS inference API"
+url = "https://api.inference.cscs.ch/v1"
+api_key_env = "CSCS_API_KEY"
+models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
+thinking = "model-suffix"
+
+# Apertus on the Public AI gateway, for public documents only: run by Metagov Inc. (US
+# nonprofit), requests go to compute partners. The 8B (Juelich, vLLM) thinks when asked
+# through the chat template; the 70B (Infomaniak) ignores the switch. The gateway caches
+# answers without regard to the switch, so extra_body turns its cache off. Its
+# "-thinking" names serve the older Apertus 1 without thinking. Checked on 6 October 2026.
+[apertus]
+label = "Apertus on the Public AI gateway (public documents only)"
+url = "https://api.publicai.co/v1"
+api_key_env = "PUBLICAI_API_KEY"
+models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
+thinking = "chat-template"
+extra_body = { cache = { no-cache = true } }
+
+# llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server
+# (`--base-url`). Such a server takes any key. With `--jinja` llama.cpp switches thinking
+# through the chat template; on a small GPU a thinking call takes minutes, so one call
+# may take 30 minutes (docs/quickstart.md, "Running a model yourself").
+[local]
+label = "llama.cpp or another server of your own (port 8080)"
+url = "http://127.0.0.1:8080/v1"
+api_key = "local"
+thinking = "chat-template"
+timeout_s = 1800
+
+# Ollama on this machine (port 11434): the models `ollama list` shows. Ollama ignores
+# the key and the chat-template switch, so thinking stays off.
+[ollama]
+label = "Ollama on this machine (port 11434)"
+url = "http://127.0.0.1:11434/v1"
+api_key = "ollama"
+
+# vLLM (port 8000, the app's port too: on one machine start one of them elsewhere),
+# mostly on a GPU machine of the organisation (`--base-url http://<server>:8000/v1`);
+# the Swiss AI team's image serves swiss-ai/Apertus-v1.5-8B and switches thinking
+# through the chat template (docs/architecture.md §10).
+[vllm]
+label = "vLLM, a server of the organisation (port 8000)"
+url = "http://127.0.0.1:8000/v1"
+api_key = "local"
+thinking = "chat-template"
+
+[openai]
+label = "OpenAI"
+url = "https://api.openai.com/v1"
+api_key_env = "OPENAI_API_KEY"
+
+[mistral]
+label = "Mistral AI"
+url = "https://api.mistral.ai/v1"
+api_key_env = "MISTRAL_API_KEY"

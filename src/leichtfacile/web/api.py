@@ -89,6 +89,7 @@ async def post_job(
     lang: Annotated[str | None, Form()] = None,
     level: Annotated[str, Form()] = "A2",
     condition: Annotated[str, Form()] = "P2",
+    endpoint: Annotated[str | None, Form()] = None,
     writer_model: Annotated[str | None, Form()] = None,
     understand_model: Annotated[str | None, Form()] = None,
     judge_model: Annotated[str | None, Form()] = None,
@@ -98,8 +99,9 @@ async def post_job(
     notice: Annotated[str | None, Form()] = None,
 ) -> dict:
     """Create a job from pasted text, a URL or an uploaded file (multipart form).
-    `mode` is `standard` or `decision` (docs/use-case-decisions.md); `addressee` and
-    `notice` belong to the decision mode."""
+    `endpoint` runs this job on another ready endpoint (docs/configuration.md); `mode`
+    is `standard` or `decision` (docs/use-case-decisions.md); `addressee` and `notice`
+    belong to the decision mode."""
     data = await file.read() if file is not None and file.filename else None
     sub = Submission(
         text=text,
@@ -109,6 +111,7 @@ async def post_job(
         lang=lang,
         level=level,
         condition=condition,
+        endpoint=endpoint,
         writer_model=writer_model,
         understand_model=understand_model,
         judge_model=judge_model,
@@ -121,7 +124,12 @@ async def post_job(
     try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
         state.runner.ensure_room()
         job = await run_in_threadpool(
-            create_job, state.store, state.settings, sub, state.ingest_slots
+            create_job,
+            state.store,
+            state.settings,
+            sub,
+            state.ingest_slots,
+            endpoints=state.orchestrator.clients,
         )
     except QueueFull as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
@@ -270,9 +278,13 @@ def recover(request: Request, job_id: str, fact_id: str, version: int | None = N
     if fact_id not in factsheet.fact_ids():
         raise HTTPException(404, f"no fact {fact_id}")
     try:
-        with state.llm.recording(lambda usage: store.add_usage(job_id, usage)):
+        llm = state.orchestrator.client_for(job)  # the job's endpoint, as the pipeline's
+    except PipelineError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    try:
+        with llm.recording(lambda usage: store.add_usage(job_id, usage)):
             rec, results = stages.recover_fact(
-                state.llm, source, factsheet, draft, fact_id, model=job.config.writer_model
+                llm, source, factsheet, draft, fact_id, model=job.config.writer_model
             )
     except PromptNotAvailable as exc:
         raise HTTPException(400, str(exc)) from exc

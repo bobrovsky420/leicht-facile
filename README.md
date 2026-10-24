@@ -108,24 +108,38 @@ basis, the sources and the use cases:
 
 ## Quick start
 
-Requirements: Python 3.12 or newer with [uv](https://docs.astral.sh/uv/) (or pip), and
-an OpenAI-compatible model endpoint with its key: Apertus on the CSCS inference API or
-the Public AI gateway, a model server of your own (vLLM, llama.cpp, Ollama) or a
-provider's API.
+Requirements: [uv](https://docs.astral.sh/uv/) (it brings Python 3.12 or newer when
+needed), and an OpenAI-compatible model endpoint with its key: Apertus on the CSCS
+inference API or the Public AI gateway, a model server of your own (vLLM, llama.cpp,
+Ollama) or a provider's API.
+
+Run it straight from PyPI, without installing anything:
 
 ```bash
-uv tool install leichtfacile  # or: pip install leichtfacile
-leichtfacile setup            # the endpoint, the key and the model; then the language models
-leichtfacile serve            # starts the app and opens http://127.0.0.1:8000
+uvx leichtfacile setup        # the endpoint and its key; then the language models
+uvx leichtfacile serve        # starts the app and opens http://127.0.0.1:8000
 ```
 
-`setup` saves the endpoint in the user's config file, a TOML file with a section per
-topic, and offers the spaCy models for German and French, about 90 MB from GitHub
-(`leichtfacile models` gets them later). `leichtfacile config show` lists every setting
-and where it comes from; [configuration.md](docs/configuration.md) explains them. A
-checkout for development, the command line alone, a server for an organisation, an
-offline install, running a model yourself, reaching the app from other machines and
-what to do when it does not start: [quickstart.md](docs/quickstart.md).
+Or clone the repository and run it from the checkout:
+
+```bash
+git clone https://github.com/bobrovsky420/leicht-facile.git
+cd leicht-facile
+uv run leichtfacile setup     # the first uv run installs the app and the language models
+uv run leichtfacile serve
+```
+
+`setup` lists the presets (`cscs` and `apertus` for Apertus, `local` for llama.cpp,
+`ollama`, `vllm`, `openai`, `mistral`) and any other endpoint; `setup cscs` asks for the
+CSCS key alone, `setup ollama` for the model alone. It ends by
+offering the spaCy models for German and French, about 90 MB from GitHub (`leichtfacile
+models` gets them later; a checkout has them from `uv.lock`). With a preset's key in the
+environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), the app needs no setup:
+`leichtfacile models` once (not in a checkout), then `serve`. `leichtfacile config show` lists every setting and where it comes from;
+[configuration.md](docs/configuration.md) explains them. Installing the command, the
+command line alone, a server for an organisation, an offline install, running a model
+yourself, reaching the app from other machines and what to do when it does not start:
+[quickstart.md](docs/quickstart.md).
 
 Model tiers with Apertus: by default the 8B reads, writes and repairs, and the 70B
 judges (when the endpoint serves it; otherwise the writer judges).

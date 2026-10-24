@@ -125,6 +125,8 @@
   "index.models.judge": "Prüfmodell",
   "index.models.hint": "Leer lassen für die eingestellten Modelle. Jeder Modellname, den der Endpunkt anbietet, funktioniert.",
   "index.endpoint": "Endpunkt:",
+  "new.endpoint": "Modell-Endpunkt",
+  "new.endpoint.hint": "Nur für diesen Entwurf; der eingestellte Endpunkt bleibt.",
 
   "jobs.document": "Dokument",
   "jobs.status": "Status",
@@ -411,6 +413,7 @@
   "error.no_text": "Im Dokument wurde kein Text gefunden.",
   "error.unsupported_lang": "Das Dokument ist auf {lang}. Diese Version schreibt {langs}.",
   "error.unknown_mode": "Unbekannter Modus '{mode}'; verwenden Sie standard oder decision.",
+  "error.unknown_endpoint": "Der Modell-Endpunkt '{name}' wird nicht angeboten.",
   "error.queue_full.one": "Die Warteschlange ist voll: {n} Entwurf wartet. Versuchen Sie es in ein paar Minuten noch einmal.",
   "error.queue_full.other": "Die Warteschlange ist voll: {n} Entwürfe warten. Versuchen Sie es in ein paar Minuten noch einmal.",
   "error.busy": "Der Server liest gerade andere Dokumente. Versuchen Sie es gleich noch einmal.",

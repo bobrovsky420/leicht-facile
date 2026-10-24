@@ -657,3 +657,38 @@ def test_without_max_polish_rounds_there_is_no_polish_round(store, endpoint, sle
     assert "polish 1" not in [u.stage for u in job.usage]
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.final_version == 2 and summary.polish_rounds == 0
+
+
+def test_a_job_runs_on_the_endpoint_it_picked(store, endpoint, sleeps) -> None:
+    other = FakeEndpoint(models=["other-model"])
+    other.push(chat_response(fx.BASELINE_TEXT))
+    settings = make_settings(llm__endpoint="main", llm__max_retries=0)
+    other_settings = make_settings(
+        llm__endpoint="other",
+        llm__url="http://other.test/v1",
+        llm__models__writer="other-model",
+        llm__thinking="off",
+        llm__max_retries=0,
+    )
+    orch = Orchestrator(
+        store,
+        LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append),
+        settings,
+        clients={"other": LLMClient(other_settings, http_client=other.http_client())},
+    )
+    job_id = new_job(store, condition="P0", endpoint="other")
+    orch.run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review" and endpoint.chat_bodies() == []
+    assert other.chat_bodies()[0]["model"] == "other-model"
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert (summary.endpoint, summary.writer_model) == ("other", "other-model")
+    assert orch.llm_for(job).models.writer == "other-model"
+    # The endpoint in use, by its name or by default; one that went away fails the job.
+    assert orch.client_for(store.get_job(new_job(store, endpoint="main"))) is orch.llm
+    assert orch.client_for(store.get_job(new_job(store))) is orch.llm
+    gone = new_job(store, condition="P0", endpoint="gone")
+    orch.run(gone)
+    job = store.get_job(gone)
+    assert job.status == "failed" and "endpoint gone is not available" in job.error
+    assert orch.llm_for(job) is settings.llm

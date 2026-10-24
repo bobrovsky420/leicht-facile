@@ -125,6 +125,8 @@
   "index.models.judge": "Judge",
   "index.models.hint": "Leave empty for the configured models. Any model name the endpoint lists works.",
   "index.endpoint": "Endpoint:",
+  "new.endpoint": "Model endpoint",
+  "new.endpoint.hint": "For this draft only; the endpoint in use stays.",
 
   "jobs.document": "Document",
   "jobs.status": "Status",
@@ -411,6 +413,7 @@
   "error.no_text": "No text was found in the document.",
   "error.unsupported_lang": "The document is in {lang}. This version writes {langs}.",
   "error.unknown_mode": "Unknown mode '{mode}'; use standard or decision.",
+  "error.unknown_endpoint": "No model endpoint '{name}' is offered.",
   "error.queue_full.one": "The queue is full: {n} draft is waiting. Try again in a few minutes.",
   "error.queue_full.other": "The queue is full: {n} drafts are waiting. Try again in a few minutes.",
   "error.busy": "The server is reading other documents right now. Try again in a moment.",

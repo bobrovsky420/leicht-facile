@@ -13,7 +13,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from leichtfacile import __version__
+from leichtfacile import __version__, config
 from leichtfacile.config import Settings, get_settings
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.logs import configure_logging
@@ -31,14 +31,20 @@ def create_app(
     settings: Settings | None = None,
     llm: LLMClient | None = None,
     store: Store | None = None,
+    clients: dict[str, LLMClient] | None = None,
 ) -> FastAPI:
+    """The application on the endpoint in use (`llm`) and the other ready endpoints
+    (`clients`, by name), which a draft may pick in the New draft form; both default to
+    the settings'."""
     settings = settings or get_settings()
     # One line per record, text or JSON, with the request and job ids (logs.py); no
     # excerpt of a document or an answer in an error's line (§10).
     configure_logging(settings.log.level, settings.log.format)
     llm = llm or LLMClient.from_settings(settings)
+    if clients is None:
+        clients = other_clients(settings, llm)
     store = store or Store(settings.data.dir / DATABASE_NAME)
-    orchestrator = Orchestrator(store, llm, settings)
+    orchestrator = Orchestrator(store, llm, settings, clients=clients)
     metrics = observability.Metrics()  # what this process counts for /metrics
     runner = JobRunner(
         orchestrator,
@@ -78,3 +84,15 @@ def create_app(
     app.include_router(health.router)
     app.include_router(observability.router)
     return app
+
+
+def other_clients(settings: Settings, llm: LLMClient) -> dict[str, LLMClient]:
+    """A client for every other endpoint that is ready (docs/configuration.md), sharing
+    the response cache of the endpoint in use when its own settings cache too."""
+    clients = {}
+    for item in config.available():
+        if item.ready and item.name != settings.llm.endpoint:
+            other = config.load(endpoint=item.name).settings
+            cache = {"cache": llm.cache} if other.llm.cache and llm.cache else {}
+            clients[item.name] = LLMClient.from_settings(other, **cache)
+    return clients
