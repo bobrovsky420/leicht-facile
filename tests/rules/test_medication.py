@@ -6,8 +6,8 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.pipeline.models import FactOut
-from leichtfacile.pipeline.orchestrator import repairable
 from leichtfacile.pipeline.prompts import level_name, render
+from leichtfacile.pipeline.rounds import repairable
 from leichtfacile.pipeline.stages import complete_factsheet, mode_context
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.medication import (
@@ -172,7 +172,7 @@ def test_a_dose_and_scheme_apart_from_the_name_are_an_error() -> None:
     (found,) = findings(result, "FACT-09")
     assert found.severity == "error"
     assert (found.block_id, found.fact_id, found.segment_ids) == ("b001", "f01", ["s0001"])
-    assert found.message_params == {"name": "Dafalgan", "values": "500 mg, 1-0-1, 5 Tage"}
+    assert found.params == {"name": "Dafalgan", "values": "500 mg, 1-0-1, 5 Tage"}
     assert repairable(found)
 
 
@@ -185,7 +185,7 @@ def test_the_block_with_most_values_is_named_and_only_the_rest_reported() -> Non
         factsheet=FACTS,
     )
     (found,) = findings(result, "FACT-09")
-    assert found.block_id == "b001" and found.message_params["values"] == "5 Tage"
+    assert found.block_id == "b001" and found.params["values"] == "5 Tage"
 
 
 def test_a_value_or_a_name_the_draft_lacks_is_not_fact_09() -> None:
@@ -237,7 +237,9 @@ def test_french_doses_and_durations() -> None:
 
 
 def test_a_finding_on_another_rule_is_not_made_repairable() -> None:
-    other = Finding(block_id="b001", rule_id="FACT-02", severity="error", message="x")
+    other = Finding(
+        block_id="b001", rule_id="FACT-02", severity="error", key="legacy", params={"text": "x"}
+    )
     assert not repairable(other)
 
 

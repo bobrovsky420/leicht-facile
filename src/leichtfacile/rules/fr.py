@@ -19,25 +19,16 @@ from collections.abc import Iterator
 
 from spacy.tokens import Span, Token
 
-from leichtfacile.rules.base import BlockInfo, Context, Hit, rule, sev
-from leichtfacile.rules.de import ACCEPTED_PHONE_RE
+from leichtfacile.rules.base import BlockInfo, Context, Hit, rule
 from leichtfacile.rules.lexicon import MEDIOPUNKT, is_known, zipf
 from leichtfacile.rules.messages import hit
 from leichtfacile.rules.recipes import recipe_fr
 from leichtfacile.rules.values import (
     DASHES,
-    DATE_ISO_RE,
-    DATE_NUM_RE,
-    DATE_SLASH_RE,
     EMAIL_RE,
-    PHONE_RE,
     URL_RE,
-    canonical_date,
-    canonical_phone,
-    format_date,
-    format_phone,
-    format_thousands,
     mask,
+    mask_numbers,
 )
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 
@@ -385,45 +376,15 @@ def _words_before(t: Token, n: int) -> str:
 # -- sentence structure ------------------------------------------------------------
 
 
-LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error (as in German)
-
-
 @rule(
-    "LEN-01-FR",
+    "LEN-02",
     lang=FR,
-    title="At most N words per sentence",
-    severity=sev("error"),
-    scope="sentence",
-    guide="Écris des phrases courtes : au plus {max_words} mots par phrase.",
-    kinds=SENTENCE_KINDS,
-)
-def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
-    n = word_count(sent)
-    limit = ctx.params.max_words
-    if n > limit:
-        yield hit(
-            "LEN-01-FR",
-            words=n,
-            limit=limit,
-            level=ctx.level,
-            evidence=sent.text,
-            severity="error" if n > limit + LEN_TOLERANCE else "warn",
-        )
-
-
-@rule(
-    "LEN-02-FR",
-    lang=FR,
-    title="One clause per sentence; no subordinate clauses",
-    severity=sev("error", "warn"),
-    scope="sentence",
     guide={
         "A2": "Une seule information par phrase. Pas de subordonnée : pas de phrase avec "
         "parce que, que, si, quand, pour que, pour + verbe ou une relative avec qui, que, "
         "dont, où. Écris plutôt 2 phrases courtes.",
         "B1": "Au plus une subordonnée par phrase. Écris plutôt 2 phrases courtes.",
     },
-    kinds=SENTENCE_KINDS,
 )
 def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     limit = ctx.params.max_clauses
@@ -437,7 +398,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     # The suggestion is the rewrite recipe for the conjunction (rules/recipes.py).
     if openers:
         yield hit(
-            "LEN-02-FR.sub",
+            "LEN-02.sub",
             opener=openers[0],
             clauses=clauses,
             limit=limit,
@@ -448,7 +409,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
         )
     else:
         yield hit(
-            "LEN-02-FR.main",
+            "LEN-02.main",
             clauses=clauses,
             limit=limit,
             level=ctx.level,
@@ -516,13 +477,9 @@ def _comma_list(sent: Span) -> str | None:
 
 
 @rule(
-    "LEN-03-FR",
+    "LEN-03",
     lang=FR,
-    title="Enumerations of three or more items become a list",
-    severity=sev("warn"),
-    scope="sentence",
     guide="Tu cites 3 choses ou plus ? Fais une liste.",
-    kinds=("sentence",),
 )
 def len_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
@@ -531,36 +488,33 @@ def len_03(sent: Span, ctx: Context) -> Iterator[Hit]:
         items = [i for i in _conjuncts(t) if i.pos_ in ("NOUN", "PROPN", "VERB", "ADJ")]
         if len(items) >= 3:
             yield hit(
-                "LEN-03-FR",
+                "LEN-03",
                 items=len(items),
                 evidence=", ".join(i.text for i in sorted(items, key=lambda i: i.i)),
             )
             return
     listed = _comma_list(sent)
     if listed:
-        yield hit("LEN-03-FR.commas", evidence=listed)
+        yield hit("LEN-03.commas", evidence=listed)
 
 
 # -- grammar ------------------------------------------------------------------------
 
 
 @rule(
-    "GRAM-01-FR",
+    "GRAM-01",
     lang=FR,
-    title="No passive",
-    severity=sev("error", "warn"),
-    scope="sentence",
     guide="Pas de voix passive. Dis qui fait quoi. Pas : Le formulaire est contrôlé par "
     "l'office. Mais : L'office contrôle le formulaire.",
 )
 def gram_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     for evidence, strong in passive_constructions(sent):
         if strong:
-            yield hit("GRAM-01-FR", found=evidence, evidence=evidence)
+            yield hit("GRAM-01", found=evidence, evidence=evidence)
         else:
             # "est envoyé" may be an action or a state: a warning at most.
             yield hit(
-                "GRAM-01-FR.state",
+                "GRAM-01.state",
                 found=evidence,
                 evidence=evidence,
                 severity="warn" if ctx.level == "A2" else "info",
@@ -626,23 +580,20 @@ def subjunctives(sent: Span) -> list[tuple[Token, str]]:
 
 
 @rule(
-    "GRAM-03-FR",
+    "GRAM-03",
     lang=FR,
-    title="No subjunctive or conditional",
-    severity=sev("warn"),
-    scope="sentence",
     guide="Pas de subjonctif et pas de conditionnel (pas : il faudrait, vous pourriez, pour "
     "que vous puissiez). Écris directement : vous devez, vous pouvez.",
 )
 def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     for verb, reason in subjunctives(sent):
         if reason == "subjunctive form":
-            yield hit("GRAM-03-FR", found=verb.text, evidence=verb.text)
+            yield hit("GRAM-03", mood="Subjonctif", found=verb.text, evidence=verb.text)
         else:
-            yield hit("GRAM-03-FR.after", reason=reason, found=verb.text, evidence=verb.text)
+            yield hit("GRAM-03.after", reason=reason, found=verb.text, evidence=verb.text)
     for t in sent:
         if verb_tense(t) == "conditional":
-            yield hit("GRAM-03-FR.conditional", found=t.text, evidence=t.text)
+            yield hit("GRAM-03.conditional", found=t.text, evidence=t.text)
 
 
 _ALLER = {("1", "Sing"): "vais", ("2", "Sing"): "vas", ("3", "Sing"): "va",
@@ -650,12 +601,8 @@ _ALLER = {("1", "Sing"): "vais", ("2", "Sing"): "vas", ("3", "Sing"): "va",
 
 
 @rule(
-    "GRAM-04-FR",
+    "GRAM-04",
     lang=FR,
-    title="Present and passé composé; no passé simple, no futur simple where aller + "
-    "infinitive works",
-    severity=sev("warn"),
-    scope="sentence",
     guide="Écris au présent. Pour le passé, prends le passé composé : vous avez reçu une "
     "lettre. Pour le futur, prends aller + verbe : vous allez recevoir une lettre.",
 )
@@ -668,9 +615,9 @@ def gram_04(sent: Span, ctx: Context) -> Iterator[Hit]:
             suggestion = None
             if aller and not t.dep_.startswith("aux"):
                 suggestion = f"{aller} {t.lemma_.lower()}"
-            yield hit("GRAM-04-FR", found=t.text, evidence=t.text, suggestion=suggestion)
+            yield hit("GRAM-04.future", found=t.text, evidence=t.text, suggestion=suggestion)
         elif is_passe_simple(t):
-            yield hit("GRAM-04-FR.passe_simple", found=t.text, evidence=t.text)
+            yield hit("GRAM-04.passe_simple", found=t.text, evidence=t.text)
 
 
 NOMINAL_SUFFIXES = ("tion", "tions", "sion", "sions", "ment", "ments", "age", "ages", "ance",
@@ -724,11 +671,8 @@ def _compound_part(t: Token) -> bool:
 
 
 @rule(
-    "GRAM-05-FR",
+    "GRAM-05",
     lang=FR,
-    title="No nominalisations",
-    severity=sev("warn"),
-    scope="sentence",
     guide="Des verbes plutôt que des noms. Pas : Le dépôt de la demande s'effectue en ligne. "
     "Mais : Vous faites la demande sur internet.",
 )
@@ -742,9 +686,9 @@ def gram_05(sent: Span, ctx: Context) -> Iterator[Hit]:
         if max(zipf(word, FR), zipf(t.lemma_.lower(), FR)) >= EVERYDAY_ZIPF:
             continue  # information, demande, paiement: everyday words
         if nominal_context(t) and not _compound_part(t):
-            yield hit("GRAM-05-FR", found=t.text, evidence=t.text)
+            yield hit("GRAM-05", found=t.text, evidence=t.text)
         else:
-            yield hit("GRAM-05-FR.abstract", found=t.text, evidence=t.text, severity="info")
+            yield hit("GRAM-05.abstract", found=t.text, evidence=t.text, severity="info")
 
 
 _PRONOUNS = {
@@ -773,11 +717,8 @@ def _antecedents(pronoun: Token, ctx: Context) -> set[str]:
 
 
 @rule(
-    "GRAM-06-FR",
+    "GRAM-06",
     lang=FR,
-    title="Pronouns only with an unambiguous reference",
-    severity=sev("info"),
-    scope="sentence",
     guide="Utilise il, elle ou celui-ci seulement si on sait clairement de qui ou de quoi "
     "tu parles. Sinon, répète le nom.",
 )
@@ -787,18 +728,15 @@ def gram_06(sent: Span, ctx: Context) -> Iterator[Hit]:
             continue
         found = _antecedents(t, ctx)
         if not found:
-            yield hit("GRAM-06-FR", found=t.text, evidence=t.text)
+            yield hit("GRAM-06", found=t.text, evidence=t.text)
         elif len(found) > 1 and _PRONOUNS[t.lower_.lstrip("-")][1] == "Sing":
             options = ", ".join(sorted(found)[:3])
-            yield hit("GRAM-06-FR.ambiguous", found=t.text, options=options, evidence=t.text)
+            yield hit("GRAM-06.ambiguous", found=t.text, options=options, evidence=t.text)
 
 
 @rule(
-    "GRAM-07-FR",
+    "GRAM-07",
     lang=FR,
-    title="No reported speech",
-    severity=sev("info"),
-    scope="sentence",
     guide="Pas de discours rapporté. Dis qui dit quoi.",
 )
 def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -808,7 +746,7 @@ def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
             word == "après" and t.i > sent.start and _norm(t.doc[t.i - 1].text) == "d'"
         ):
             label = "selon" if word == "selon" else "d'après"
-            yield hit("GRAM-07-FR", found=label, evidence=label)
+            yield hit("GRAM-07", found=label, evidence=label)
 
 
 IMPERSONAL_RE = re.compile(
@@ -825,19 +763,16 @@ IMPERSONAL_SOFT_RE = re.compile(
 
 
 @rule(
-    "GRAM-08-FR",
+    "GRAM-09",
     lang=FR,
-    title="No impersonal il convient de, il y a lieu de",
-    severity=sev("warn"),
-    scope="block",
     guide="Pas de tournures impersonnelles comme il convient de ou il y a lieu de. Dis "
     "qui doit faire quoi : vous devez.",
 )
 def gram_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in IMPERSONAL_RE.finditer(block.text):
-        yield hit("GRAM-08-FR", found=m.group(0), evidence=m.group(0))
+        yield hit("GRAM-09", found=m.group(0), evidence=m.group(0))
     for m in IMPERSONAL_SOFT_RE.finditer(block.text):
-        yield hit("GRAM-08-FR.soft", found=m.group(0), evidence=m.group(0), severity="info")
+        yield hit("GRAM-09.soft", found=m.group(0), evidence=m.group(0), severity="info")
 
 
 # -- negation -----------------------------------------------------------------------
@@ -919,11 +854,8 @@ def _negation_text(unit: list[Token], part: list[Token]) -> str:
 
 
 @rule(
-    "NEG-01-FR",
+    "NEG-01",
     lang=FR,
-    title="No double negation",
-    severity=sev("error"),
-    scope="sentence",
     guide="Pas de double négation (pas : ce n'est pas impossible).",
 )
 def neg_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -931,15 +863,12 @@ def neg_01(sent: Span, ctx: Context) -> Iterator[Hit]:
         units = _negation_units(part)
         if len(units) >= 2:
             text = " ... ".join(_negation_text(u, part) for u in units)
-            yield hit("NEG-01-FR", found=text, evidence=text)
+            yield hit("NEG-01", found=text, evidence=text)
 
 
 @rule(
-    "NEG-02-FR",
+    "NEG-02",
     lang=FR,
-    title="Prefer positive formulation",
-    severity=sev("info"),
-    scope="sentence",
     guide="Écris de façon positive quand c'est possible : vous pouvez ... plutôt que vous "
     "ne pouvez pas ...",
 )
@@ -947,31 +876,34 @@ def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     found = [(u, p) for p in _negation_parts(sent) for u in _negation_units(p)]
     if len(found) == 1:
         text = _negation_text(*found[0])
-        yield hit("NEG-02-FR", found=text, evidence=text)
+        yield hit("NEG-02", found=text, evidence=text)
 
 
 # -- words --------------------------------------------------------------------------
 
-MAX_WORD_LETTERS = 12  # LEX-01-FR, both levels (docs/rules.md)
+MAX_WORD_LETTERS = 12  # LEX-01, both levels (docs/rules.md)
 
 
 @rule(
-    "LEX-01-FR",
+    "LEX-01",
     lang=FR,
-    title="No long words",
-    severity=sev("info"),
-    scope="sentence",
     guide="Évite les mots longs. Prends le mot court et connu.",
 )
 def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
-    # The office words (émolument, moyennant) are LEX-07-FR's, from the vocabulary.
+    # The office words (émolument, moyennant) are LEX-07's, from the vocabulary.
     for t in sent:
         if t.like_url or t.like_email or ctx.in_glossary(t.text):
             continue
         for part in re.split(_APOS + "|-", t.text):
             letters = sum(ch.isalpha() for ch in part)
             if letters > MAX_WORD_LETTERS:
-                yield hit("LEX-01-FR", found=t.text, letters=letters, evidence=t.text)
+                yield hit(  # a note only (docs/rules.md): French has no long compounds
+                    "LEX-01.no_compound",
+                    found=t.text,
+                    letters=letters,
+                    evidence=t.text,
+                    severity="info",
+                )
                 break
 
 
@@ -1012,11 +944,8 @@ def _masked_links(text: str) -> str:
 
 
 @rule(
-    "LEX-02-FR",
+    "LEX-02",
     lang=FR,
-    title="No abbreviations except common ones",
-    severity=sev("warn"),
-    scope="block",
     guide="Pas d'abréviations (pas : p. ex., etc., art.). Tu peux écrire CHF, AVS, AI et "
     "CFF. Explique les autres abréviations.",
 )
@@ -1027,9 +956,14 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for regex in (ABBREVIATION_RE, MONTH_ABBREVIATION_RE):
         for m in regex.finditer(text):
             found = m.group(0).strip()
-            yield hit("LEX-02-FR", found=found, evidence=found, suggestion=easy_for(FR, found))
+            yield hit("LEX-02", found=found, evidence=found, suggestion=easy_for(FR, found))
     for m in WEEKDAY_RANGE_RE.finditer(text):
-        yield hit("LEX-02-FR.weekdays", found=m.group(0), evidence=m.group(0))
+        yield hit(
+            "LEX-02.weekdays",
+            found=m.group(0),
+            expected="du lundi au vendredi",
+            evidence=m.group(0),
+        )
     for m in ACRONYM_RE.finditer(text):
         acronym = m.group(0)
         if acronym[-1] == "s" and acronym[:-1].isupper():
@@ -1043,19 +977,16 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         ):
             continue
         if acronym in ctx.introduced or ctx.in_glossary(acronym):
-            yield hit("LEX-02-FR.explained", found=acronym, evidence=acronym, severity="info")
+            yield hit("LEX-02.explained", found=acronym, evidence=acronym, severity="info")
             continue
         yield hit(
-            "LEX-02-FR.acronym", found=acronym, evidence=acronym, suggestion=easy_for(FR, acronym)
+            "LEX-02.acronym", found=acronym, evidence=acronym, suggestion=easy_for(FR, acronym)
         )
 
 
 @rule(
-    "LEX-03-FR",
+    "LEX-03",
     lang=FR,
-    title="No foreign words, anglicisms, jargon",
-    severity=sev("info"),
-    scope="sentence",
     guide="Prends des mots simples et connus. Pas de mots étrangers et pas de mots "
     "techniques. Si un mot difficile est nécessaire, explique-le dans le lexique.",
 )
@@ -1065,45 +996,22 @@ def lex_03(sent: Span, ctx: Context) -> Iterator[Hit]:
     )
     for t in sent:
         if t.pos_ not in ("NOUN", "VERB", "ADJ", "ADV") or t.idx in office:
-            continue  # an office word: LEX-07-FR names the everyday word
+            continue  # an office word: LEX-07 names the everyday word
         parts = [p for p in re.split(_APOS + "|-", t.text) if p]
         if not parts or not all(p.isalpha() for p in parts) or len(t.text) < 4:
             continue
         if t.text.isupper():
-            continue  # abbreviations are LEX-02-FR
+            continue  # abbreviations are LEX-02
         if ctx.in_glossary(t.text):
             continue
         if max(zipf(t.lower_, FR), zipf(t.lemma_.lower(), FR)) >= 2.5:
             continue
         if len(parts) > 1 and all(zipf(p.lower(), FR) >= 3.0 for p in parts):
             continue  # pare-brise
-        yield hit("LEX-03-FR", found=t.text, evidence=t.text)
+        yield hit("LEX-03", found=t.text, evidence=t.text)
 
 
-RARE_PUNCTUATION_RE = re.compile(r"[;()\[\]{}&]")
 SLASH_RE = re.compile(r"(?<=[" + _LETTER + r"])\s?/\s?(?=[" + _LETTER + r"])")
-
-
-@rule(
-    "LEX-04-FR",
-    lang=FR,
-    title="Rare punctuation",
-    severity=sev("warn"),
-    scope="block",
-    guide="Pas de signes rares : pas de point-virgule, pas de parenthèses, pas de & et pas "
-    "de / entre les mots.",
-)
-def lex_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    text = _masked_links(block.text)
-    seen = set()
-    for m in RARE_PUNCTUATION_RE.finditer(text):
-        char = {")": "(", "]": "[", "}": "{"}.get(m.group(0), m.group(0))
-        if char not in seen:
-            seen.add(char)
-            yield hit("LEX-04-FR", found=m.group(0), evidence=m.group(0))
-    for m in SLASH_RE.finditer(text):
-        word = block.text[max(0, m.start() - 12) : m.end() + 12].strip()
-        yield hit("LEX-04-FR.slash", evidence=word)
 
 
 _FEMININE = "(?:e|ne|le|te|se|re|euse|rice|ice|ève|ive|ère|fe|che)"
@@ -1125,17 +1033,14 @@ INCLUSIVE_RE = re.compile(
 
 
 @rule(
-    "LEX-05-FR",
+    "LEX-05",
     lang=FR,
-    title="Inclusive forms without typographic devices",
-    severity=sev("info"),
-    scope="block",
     guide="Pas d'écriture inclusive avec des points ou des parenthèses (employé·e·s). Écris "
     "les deux formes : les employées et les employés.",
 )
 def lex_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in INCLUSIVE_RE.finditer(_masked_links(block.text)):
-        yield hit("LEX-05-FR", found=m.group(0), evidence=m.group(0))
+        yield hit("LEX-05.inclusive", found=m.group(0), evidence=m.group(0))
 
 
 _ROLE_NOUNS = (
@@ -1152,41 +1057,7 @@ ROLE_NOUN_RE = re.compile(
     + r"\b",
     re.IGNORECASE,
 )
-ROLE_NOUN_WORD_RE = re.compile(r"\b" + _ROLE_NOUNS + r"\b", re.IGNORECASE)  # LEX-07-FR
-
-
-@rule(
-    "LEX-06-FR",
-    lang=FR,
-    title="Direct address with vous",
-    severity=sev("info"),
-    scope="block",
-    guide="Parle directement à la lectrice ou au lecteur avec vous.",
-)
-def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    for m in ROLE_NOUN_RE.finditer(block.text):
-        # A text that never says vous gets the reminder with the finding.
-        yield hit(
-            "LEX-06-FR" if ctx.addresses_reader else "LEX-06-FR.no_address",
-            found=m.group(0),
-            evidence=m.group(0),
-        )
-
-
-@rule(
-    "LEX-07-FR",
-    lang=FR,
-    title="Everyday words instead of office words",
-    severity=sev("warn", "info"),
-    scope="sentence",
-    guide="Prends les mots de tous les jours, pas les mots de l'administration (pas : "
-    "émolument, moyennant, le cas échéant, dûment).",
-)
-def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
-    # Words of rules/data/vocabulary_fr.toml; the role nouns are LEX-06-FR's (vous).
-    for m in office_words(find_terms(FR, sent), exclude=ROLE_NOUN_WORD_RE):
-        easy = m.entry.easy or ""
-        yield hit("LEX-07-FR", found=m.text, easy=easy, evidence=m.text, suggestion=easy)
+ROLE_NOUN_WORD_RE = re.compile(r"\b" + _ROLE_NOUNS + r"\b", re.IGNORECASE)  # LEX-07
 
 
 # -- numbers, dates, times, amounts -----------------------------------------------
@@ -1204,11 +1075,8 @@ _ORDINAL_DIGITS = {"deux": 2, "trois": 3, "quatr": 4, "cinqu": 5, "six": 6, "sep
 
 
 @rule(
-    "NUM-01-FR",
+    "NUM-01",
     lang=FR,
-    title="Numbers as digits, except un/une",
-    severity=sev("warn"),
-    scope="sentence",
     guide="Écris les nombres en chiffres : 2, 3, 12. Seuls un et une s'écrivent en lettres.",
 )
 def num_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -1216,67 +1084,31 @@ def num_01(sent: Span, ctx: Context) -> Iterator[Hit]:
         lower = t.lower_
         if lower in CARDINAL_WORDS and t.pos_ == "NUM":
             if lower == "cent" and t.i > sent.start and t.doc[t.i - 1].lower_ == "pour":
-                continue  # "pour cent" is NUM-06-FR
+                continue  # "pour cent" is NUM-06
             yield hit(
-                "NUM-01-FR",
+                "NUM-01",
                 found=t.text,
                 evidence=t.text,
                 suggestion=str(CARDINAL_WORDS[lower]),
             )
         elif m := ORDINAL_RE.match(lower):
             yield hit(
-                "NUM-01-FR.ordinal",
+                "NUM-01.ordinal",
                 found=t.text,
                 evidence=t.text,
                 suggestion=f"{_ORDINAL_DIGITS[m.group(1)]}e",
             )
         elif "-" in lower and all(p in CARDINAL_WORDS or p == "et" for p in lower.split("-")):
-            yield hit("NUM-01-FR.compound", found=t.text, evidence=t.text)
+            yield hit("NUM-01.compound", found=t.text, evidence=t.text)
 
 
-_IDENTIFIER_BEFORE = re.compile(
+IDENTIFIER_BEFORE_RE = re.compile(
     r"(?:n" + _DEGREE + r"|n" + _ORDINAL_O + r"|no\.?|numéro|formulaire|art\.?|article|al\.?|"
     r"alinéa|ch\.?|chiffre|case postale|CP|NPA|code postal|bureau|salle|ligne|bus|tram|"
     r"compte|IBAN|dossier|référence|réf\.?|CH-)\s?$",
     re.IGNORECASE,
 )
-_CURRENCY_NEAR = re.compile(r"CHF|Fr\.|francs?|centimes?", re.IGNORECASE)
-BIG_NUMBER_RE = re.compile(
-    r"(?<![\d'.,:/+" + chr(0x2019) + r"])\d{4,}(?![\d'" + chr(0x2019) + r"])"
-)
-
-
-def _masked_numbers_text(text: str) -> str:
-    spans = [m.span() for r in (URL_RE, EMAIL_RE, PHONE_RE) for m in r.finditer(text)]
-    spans += [m.span() for r in (DATE_ISO_RE, DATE_NUM_RE, DATE_SLASH_RE) for m in r.finditer(text)]
-    spans += [m.span() for m in re.finditer(r"\bCH\d{2}(?:\s?[\dA-Z]{4}){4,7}", text)]  # IBAN
-    return mask(text, spans)
-
-
-@rule(
-    "NUM-02-FR",
-    lang=FR,
-    title="Thousands separator with a space: 1 500",
-    severity=sev("warn"),
-    scope="block",
-    guide="Les grands nombres s'écrivent avec une espace : 1 500 francs, 500 000.",
-)
-def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    text = _masked_numbers_text(block.text)
-    for m in BIG_NUMBER_RE.finditer(text):
-        digits = m.group(0)
-        before, after = text[max(0, m.start() - 14) : m.start()], text[m.end() : m.end() + 12]
-        if _IDENTIFIER_BEFORE.search(before):
-            continue
-        currency = bool(_CURRENCY_NEAR.search(before[-6:]) or _CURRENCY_NEAR.search(after[:10]))
-        if len(digits) == 4 and not currency:
-            continue  # years, postal codes and form numbers have 4 digits
-        yield hit(
-            "NUM-02-FR",
-            found=digits,
-            evidence=digits,
-            suggestion=format_thousands(digits, FR),
-        )
+CURRENCY_NEAR_RE = re.compile(r"CHF|Fr\.|francs?|centimes?", re.IGNORECASE)
 
 
 # "au 15.09", "dès le 1.3": a day and a month without a year or a final dot. The
@@ -1285,40 +1117,6 @@ DATE_SHORT_RE = re.compile(
     r"(?<![\w.])(?:au|le|du|dès|jusqu" + _APOS + r"au)\s(\d{1,2})\.(\d{1,2})(?![\d.,])",
     re.IGNORECASE,
 )
-
-
-@rule(
-    "NUM-03-FR",
-    lang=FR,
-    title="Date 4 février 2020",
-    severity=sev("warn"),
-    scope="block",
-    guide="Une date s'écrit ainsi : 4 février 2026.",
-)
-def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    text = mask(block.text, [m.span() for r in (URL_RE, PHONE_RE) for m in r.finditer(block.text)])
-    for m in DATE_SHORT_RE.finditer(text):
-        canonical = canonical_date(int(m.group(1)), int(m.group(2)), None)
-        if canonical is not None:
-            found = m.group(0).split()[-1]
-            yield hit(
-                "NUM-03-FR", found=found, evidence=found, suggestion=format_date(canonical, FR)
-            )
-    for regex, order in ((DATE_ISO_RE, "ymd"), (DATE_NUM_RE, "dmy"), (DATE_SLASH_RE, "dmy")):
-        for m in regex.finditer(text):
-            if order == "ymd":
-                y, mo, d = m.group(1), m.group(2), m.group(3)
-            else:
-                d, mo, y = m.group(1), m.group(2), m.group(3)
-            canonical = canonical_date(int(d), int(mo), int(y) if y else None)
-            if canonical is None:
-                continue
-            yield hit(
-                "NUM-03-FR",
-                found=m.group(0).strip(),
-                evidence=m.group(0).strip(),
-                suggestion=format_date(canonical, FR),
-            )
 
 
 _TIME = r"\d{1,2}(?:\s?h(?:\s?\d{2})?|[.:]\d{2})"
@@ -1346,15 +1144,12 @@ def _parse_time(text: str) -> tuple[int, str | None] | None:
 
 
 @rule(
-    "NUM-04-FR",
+    "NUM-04",
     lang=FR,
-    title="Time 9 h 00, ranges de 9 h 00 à 12 h 00",
-    severity=sev("warn"),
-    scope="block",
     guide="Une heure s'écrit ainsi : 9 h 00 ou 9 h 30. Une période ainsi : de 9 h 00 à 12 h 00.",
 )
 def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    text = _masked_numbers_text(block.text)
+    text = mask_numbers(block.text)
     spans: list[tuple[int, int]] = []
     for m in TIME_RANGE_RE.finditer(text):
         first = _parse_time(m.group(1) or m.group(3))
@@ -1362,11 +1157,13 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         if first is None or second is None:
             continue
         spans.append(m.span())
+        expected = f"de {_time_text(*first)} à {_time_text(*second)}"
         yield hit(
-            "NUM-04-FR.range",
+            "NUM-04.range",
             found=m.group(0).strip(),
+            expected=expected,
             evidence=m.group(0).strip(),
-            suggestion=f"de {_time_text(*first)} à {_time_text(*second)}",
+            suggestion=expected,
         )
     text = mask(text, spans)
     for regex in (TIME_COLON_RE, TIME_TIGHT_RE, TIME_DOT_RE):
@@ -1377,7 +1174,7 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             found.append(m.span())
             expected = _time_text(m.group(1), m.group(2))
             yield hit(
-                "NUM-04-FR",
+                "NUM-04",
                 found=m.group(0).strip(),
                 expected=expected,
                 evidence=m.group(0).strip(),
@@ -1393,81 +1190,12 @@ DURATION_RE = re.compile(
 )
 
 
-@rule(
-    "NUM-05-FR",
-    lang=FR,
-    title="Durations in words and digits: 1 heure et 30 minutes",
-    severity=sev("info"),
-    scope="block",
-    guide="Une durée s'écrit ainsi : 1 heure et 30 minutes.",
-)
-def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    for m in DURATION_RE.finditer(block.text):
-        yield hit("NUM-05-FR", found=m.group(0), evidence=m.group(0))
-
-
-@rule(
-    "NUM-06-FR",
-    lang=FR,
-    title="Percent written out",
-    severity=sev("warn"),
-    scope="block",
-    guide="Écris pour cent en lettres : 10 pour cent.",
-)
-def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    for m in re.finditer(r"(\d+(?:[.,]\d+)?)?\s?%", block.text):
-        number = m.group(1)
-        yield hit(
-            "NUM-06-FR",
-            evidence=m.group(0).strip(),
-            suggestion=f"{number} pour cent" if number else "pour cent",
-        )
-
-
 _AMOUNT = r"\d{1,3}(?:[" + _GROUP_SEPARATORS + r"]\d{3})+|\d+"
 AMOUNT_STYLE_RE = re.compile(
     r"(?:CHF|Fr\.)\s?(" + _AMOUNT + r")[.,](?:00|[" + DASHES + r"]{1,2})"
     r"|(" + _AMOUNT + r")[.,](?:00|[" + DASHES + r"]{1,2})\s?(?:CHF|Fr\.|francs?)"
     r"|(" + _AMOUNT + r")(?:[.,]\d{2})?\s?CHF\b"
 )
-
-
-@rule(
-    "NUM-07-FR",
-    lang=FR,
-    title="Amounts 500 francs or CHF 500",
-    severity=sev("info"),
-    scope="block",
-    guide="Les montants s'écrivent ainsi : 500 francs ou CHF 500.",
-)
-def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    for m in AMOUNT_STYLE_RE.finditer(block.text):
-        number = re.sub(r"\D", "", next(g for g in m.groups() if g))
-        amount = f"{format_thousands(number, FR) if len(number) > 3 else number} francs"
-        yield hit(
-            "NUM-07-FR",
-            found=m.group(0),
-            expected=amount,
-            evidence=m.group(0),
-            suggestion=amount,
-        )
-
-
-@rule(
-    "NUM-08-FR",
-    lang=FR,
-    title="Phone numbers spaced: 022 123 45 67",
-    severity=sev("warn"),
-    scope="block",
-    guide="Les numéros de téléphone s'écrivent avec des espaces : 022 123 45 67.",
-)
-def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
-    for m in PHONE_RE.finditer(block.text):
-        number = m.group(0)
-        if ACCEPTED_PHONE_RE.fullmatch(number):
-            continue
-        spaced = format_phone(canonical_phone(number))
-        yield hit("NUM-08-FR", found=number, expected=spaced, evidence=number, suggestion=spaced)
 
 
 # -- Swiss usage --------------------------------------------------------------------
@@ -1484,14 +1212,11 @@ FRANCE_NUMERAL_RE = re.compile(
 
 
 @rule(
-    "CH-03-FR",
+    "CH-03",
     lang=FR,
-    title="Swiss numerals septante, huitante or octante, nonante when numbers are written out",
-    severity=sev("info"),
-    scope="block",
     guide="Si un nombre s'écrit en lettres, prends les mots suisses : septante, nonante.",
 )
 def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in FRANCE_NUMERAL_RE.finditer(block.text):
         swiss = _FRANCE_TENS[m.group(1).lower()] + _AFTER_TEN[m.group(2).lower()]
-        yield hit("CH-03-FR", found=m.group(0), swiss=swiss, evidence=m.group(0), suggestion=swiss)
+        yield hit("CH-03", found=m.group(0), swiss=swiss, evidence=m.group(0), suggestion=swiss)

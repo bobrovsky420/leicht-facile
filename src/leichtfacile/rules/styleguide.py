@@ -49,9 +49,7 @@ def style_guide(lang: str, level: str) -> str:
         lines += [f"- {text.format(**params)}" for text in _FIXED[lang]]
         return "\n".join(lines)
     for spec in RULES.values():
-        if spec.lang != lang:
-            continue
-        text = spec.guide_for(level)
+        text = spec.guide_for(lang, level)
         if text:
             lines.append(f"- {text}")
     return "\n".join(lines)

@@ -120,9 +120,9 @@ def _job_or_404(request: Request, job_id: str):
 
 @cache
 def rule_count() -> int:
-    """Rules code checks, counted once across the language variants (the judge's rules
-    are declared without a check function and are not counted)."""
-    return len({rule_id.removesuffix("-FR") for rule_id, spec in RULES.items() if spec.check})
+    """Rules code checks (the judge's rules are declared without a check and are not
+    counted)."""
+    return sum(1 for spec in RULES.values() if spec.checks)
 
 
 @lru_cache(maxsize=4)

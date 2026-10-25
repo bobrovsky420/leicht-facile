@@ -10,6 +10,7 @@ import pytest
 from leichtfacile.ingest import ingest_text
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet, protected_segments
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.schemas import (
     Block,
     CoreAnswer,
@@ -190,11 +191,11 @@ def test_fact_08_names_a_dropped_item_with_its_fact_id() -> None:
     d = draft(doc, "Vertretungsbeistandschaft errichtet", "innert 30 Tagen")  # item 2 dropped
     (finding,) = fact_08(check_draft(d, source=doc, factsheet=fs, mode="decision"))
     assert finding.severity == "error" and finding.block_id is None
-    assert finding.message == (
+    assert render_finding(finding) == (
         "Item 2 of the operative part is in no block: "
         "Die Gebühr von Fr. 450.00 wird Lea Muster auferlegt."
     )
-    assert finding.message_key == "FACT-08" and finding.message_params["item"] == 2
+    assert finding.key == "FACT-08" and finding.params["item"] == 2
     part = next(f for f in fs.facts if f.text.startswith("Die Gebühr von Fr. 450.00"))
     assert finding.fact_id == part.id
     assert finding.segment_ids == [seg(doc, "Fr. 450.00")]
@@ -209,8 +210,10 @@ def test_fact_08_flags_an_omitted_appeal_and_is_silent_when_everything_is_cited(
         omissions=[Omission(what="Rechtsmittel", why="zu lang", segment_ids=[appeal])],
     )  # fmt: skip
     (finding,) = fact_08(check_draft(omitted, source=doc, factsheet=fs, mode="decision"))
-    assert finding.message_key == "FACT-08.appeal_omitted"
-    assert finding.message.startswith("The appeal instructions are listed as omitted: Gegen diesen")
+    assert finding.key == "FACT-08.appeal_omitted"
+    assert render_finding(finding).startswith(
+        "The appeal instructions are listed as omitted: Gegen diesen"
+    )
     complete = draft(doc, "Vertretungsbeistandschaft errichtet", "Fr. 450.00", "innert 30 Tagen")
     assert fact_08(check_draft(complete, source=doc, factsheet=fs, mode="decision")) == []
 
@@ -288,7 +291,7 @@ def test_fact_07_wants_the_notice_first_and_last_and_exempts_it_from_the_layout_
     (last,) = checker.check_export(
         [NOTICE, "", "Sie bekommen eine Beiständin."], "A2", notice=NOTICE
     )
-    assert last.message_key == "FACT-07.last" and last.evidence == "Sie bekommen eine Beiständin."
+    assert last.key == "FACT-07.last" and last.evidence == "Sie bekommen eine Beiständin."
     assert checker.check_export(layout_lines(blocks), "A2") == []  # a standard job: no notice
 
 

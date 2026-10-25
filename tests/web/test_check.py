@@ -49,4 +49,4 @@ def test_the_check_page_speaks_german_and_checks_french(app_env) -> None:
         },
     )
     assert french.status_code == 200
-    assert "GRAM-01-FR" in french.text and "Französisch" in french.text
+    assert "GRAM-01" in french.text and "Französisch" in french.text

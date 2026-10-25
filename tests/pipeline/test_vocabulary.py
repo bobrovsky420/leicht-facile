@@ -9,7 +9,8 @@ import pytest
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.models import RepairOut
-from leichtfacile.pipeline.orchestrator import Orchestrator, build_request
+from leichtfacile.pipeline.orchestrator import Orchestrator
+from leichtfacile.pipeline.rounds import build_request
 from leichtfacile.pipeline.stages import RepairRequest, apply_repairs
 from leichtfacile.rules.glossary import MAX_ADDED, fill_glossary, unexplained_terms
 from leichtfacile.rules.vocabulary import OFFICE_RULES, load_vocabulary
@@ -27,7 +28,7 @@ from leichtfacile.schemas import (
 from leichtfacile.store import Store
 from tests.conftest import chat_response, make_settings
 from tests.pipeline import fixtures as fx
-from tests.pipeline.test_orchestrator import new_job
+from tests.pipeline.test_orchestrator import new_job, options
 
 
 @pytest.fixture
@@ -102,7 +103,8 @@ def test_office_words_go_to_the_repair_round_only_with_the_vocabulary() -> None:
         block_id="b001",
         rule_id="LEX-07",
         severity="warn",
-        message="Office word 'innert': simpler is innerhalb von.",
+        key="legacy",
+        params={"text": "Office word 'innert': simpler is innerhalb von."},
         suggestion="innerhalb von",
     )
     rules = RuleFindings(draft_version=1, level="A2", findings=[finding])
@@ -116,10 +118,10 @@ def test_office_words_go_to_the_repair_round_only_with_the_vocabulary() -> None:
 
 @pytest.mark.parametrize("on", [True, False])
 def test_a_job_uses_the_vocabulary_unless_it_is_switched_off(store, endpoint, sleeps, on) -> None:
-    settings = make_settings(llm__max_retries=0, pipeline__vocabulary=on, pipeline__polish_rounds=0)
+    settings = make_settings(llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P1")
+    job_id = new_job(store, condition="P1", rounds=options(vocabulary=on))
     Orchestrator(store, llm, settings).run(job_id)
     assert store.get_job(job_id).status == "needs_review", store.get_job(job_id).error
     factsheet = store.get_artifact(job_id, "factsheet", FactSheet)
@@ -159,11 +161,12 @@ VOCABULARY_ANSWER = {
 def test_the_vocabulary_round_asks_for_the_office_words_alone() -> None:
     draft = _draft("Sie zahlen innert 30 Tagen.", "Das kostet 20 Franken.")
     findings = [
-        Finding(block_id="b001", rule_id="LEX-07", severity="warn", message="Office word 'innert'.",
-                suggestion="innerhalb von"),
-        Finding(block_id="b002", rule_id="GRAM-01", severity="error", message="Passive voice."),
-        Finding(block_id=None, rule_id="FACT-01", severity="error", message="Fact f01 is missing.",
-                fact_id="f01"),
+        Finding(block_id="b001", rule_id="LEX-07", severity="warn", key="legacy",
+                params={"text": "Office word 'innert'."}, suggestion="innerhalb von"),
+        Finding(block_id="b002", rule_id="GRAM-01", severity="error", key="legacy",
+                params={"text": "Passive voice."}),
+        Finding(block_id=None, rule_id="FACT-01", severity="error", key="legacy",
+                params={"text": "Fact f01 is missing."}, fact_id="f01"),
     ]  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=findings)
     request = build_request(draft, rules, None, FactSheet(doc_id="d"), only=OFFICE_RULES)
@@ -186,26 +189,23 @@ def test_a_round_from_an_earlier_version_gets_the_next_free_number() -> None:
 def test_the_vocabulary_round_rewrites_the_office_words_of_the_best_version(
     store, endpoint, sleeps, on
 ) -> None:
-    settings = make_settings(
-        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0, pipeline__vocabulary=on,
-        pipeline__polish_rounds=0,
-    )  # fmt: skip
+    settings = make_settings(llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     answers = [fx.UNDERSTAND, fx.WRITE, fx.JUDGE_FIRST, REPAIR_OFFICE, fx.JUDGE_SECOND]
     endpoint.push(*(chat_response(fx.as_json(a)) for a in answers))
     if on:
         endpoint.push(chat_response(fx.as_json(VOCABULARY_ANSWER)))
-    job_id = new_job(store, condition="P2")
+    job_id = new_job(store, condition="P2", rounds=options(vocabulary=on))
     Orchestrator(store, llm, settings).run(job_id)
     assert store.get_job(job_id).status == "needs_review", store.get_job(job_id).error
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     v2 = store.get_artifact(job_id, "draft", Draft, version=2)
     assert "gemäss" in v2.by_id()["b002"].text  # the repair round left an office word
     if not on:
-        assert summary.final_version == 2 and summary.vocabulary_rounds == 0
+        assert summary.final_version == 2 and summary.rounds_of("vocabulary") == 0
         assert len(endpoint.chat_bodies()) == 5
         return
-    assert summary.final_version == 3 and summary.vocabulary_rounds == 1
+    assert summary.final_version == 3 and summary.rounds_of("vocabulary") == 1
     v3 = store.get_artifact(job_id, "draft", Draft, version=3)
     assert v3.parent_version == 2 and v3.origin == "repair"
     assert v3.by_id()["b002"].text == "Schicken Sie das Gesuch nach dem Merkblatt an die Gemeinde."

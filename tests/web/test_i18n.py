@@ -12,9 +12,10 @@ from fastapi.testclient import TestClient
 
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.rules import RULES
-from leichtfacile.rules.messages import MESSAGES
+from leichtfacile.rules.messages import MESSAGES, render_finding
 from leichtfacile.schemas import (
     LANGS,
+    STOP_REASONS,
     Block,
     Condition,
     Draft,
@@ -22,6 +23,8 @@ from leichtfacile.schemas import (
     FactStatus,
     Finding,
     JobStatus,
+    PipelineSummary,
+    RoundRecord,
     RuleFindings,
 )
 from leichtfacile.store import Store
@@ -31,7 +34,6 @@ from leichtfacile.web.jobs import Submission, SubmissionError, create_job
 from leichtfacile.web.views import (
     CORE_KEYS,
     STEP_WHO,
-    STOP_KEYS,
     finding_text,
     progress_view,
     review_view,
@@ -103,8 +105,11 @@ def test_keys_built_from_data_exist() -> None:
         + [f"core.{k}" for k in CORE_KEYS]
         + [f"step.{k}.{part}" for k in STEP_WHO for part in ("title", "desc")]
         + [f"who.{w}" for w in set(STEP_WHO.values())]
-        + list(STOP_KEYS.values())
-        + ["stop.max_rounds.one", "stop.max_rounds.other"]
+        + [
+            f"stop.{code}{form}"
+            for code in STOP_REASONS
+            for form in ((".one", ".other") if code.startswith("max_") else ("",))
+        ]
         # the workbench (docs/ui-design.md): states, severities, decisions, rule titles
         + [f"progress.state.{s}" for s in ("pending", "running", "done", "skipped", "failed")]
         + [f"sev.{s}" for s in ("error", "warn", "info")]
@@ -119,15 +124,15 @@ def test_keys_built_from_data_exist() -> None:
     assert not [k for k in built if k not in english]
 
 
-def test_rule_titles_follow_the_full_rule_id() -> None:
-    """GRAM-08 (separable verbs) and GRAM-08-FR (impersonal phrases) are different rules
-    that share a number: each has its own title in every catalog."""
+def test_rule_titles_are_one_per_rule() -> None:
+    """A rule has one id whatever the language (rules/catalog.py): GRAM-08 (separable
+    verbs, German) and GRAM-09 (impersonal phrases, French) each have their own title."""
     de, fr = Translator("de"), Translator("fr")
     assert "Trennbare" in rule_title(de, "GRAM-08")
-    assert "unpersönlich" in rule_title(de, "GRAM-08-FR")
-    assert "impersonnelles" in rule_title(fr, "GRAM-08-FR")
-    assert rule_title(fr, "LEX-06-FR").endswith("vous")
-    assert rule_title(de, "LEN-01-FR") == rule_title(de, "LEN-01")  # the same rule in French
+    assert "unpersönlich" in rule_title(de, "GRAM-09")
+    assert "impersonnelles" in rule_title(fr, "GRAM-09")
+    assert rule_title(fr, "LEX-06").endswith("vous")
+    assert rule_title(de, "LEN-01") == "Höchstens N Wörter pro Satz"
 
 
 def test_translator_plurals_placeholders_and_fallback() -> None:
@@ -138,8 +143,16 @@ def test_translator_plurals_placeholders_and_fallback() -> None:
     assert de("no.such.key") == "no.such.key"
     assert de.get("kind.unknown", "unknown") == "unknown"
     assert Translator("xx").lang == "en"
-    assert stop_reason(de, "stopped after 3 repair rounds") == "nach 3 Überarbeitungsrunden beendet"
-    assert stop_reason(de, "something new") == "something new"
+    three = [
+        RoundRecord(kind="repair", number=n, parent_version=n, version=n + 1) for n in (1, 2, 3)
+    ]
+    summary = PipelineSummary(
+        condition="P2", final_version=4, rounds=three, stop_reason="max_rounds"
+    )
+    assert stop_reason(de, summary) == "nach 3 Überarbeitungsrunden beendet"
+    assert stop_reason(de, summary.model_copy(update={"stop_reason": "no_blocking"})) == de(
+        "stop.no_blocking"
+    )
     assert de.js()["decided"] == "{decided} von {total} entschieden"
     assert de.js()["status.done"] == "Erledigt"
 
@@ -234,36 +247,25 @@ def test_rule_findings_follow_the_interface_language(tmp_path) -> None:
         block_id="b001",
         rule_id="LEN-01",
         severity="warn",
-        message="The sentence has 14 words; the limit for A2 is 12.",
-        message_key="LEN-01",
-        message_params={"words": 14, "limit": 12, "level": "A2"},
+        key="LEN-01",
+        params={"words": 14, "limit": 12, "level": "A2"},
     )
     assert finding_text(de, finding) == "Der Satz hat 14 Wörter; die Grenze für A2 ist 12."
-    assert finding_text(en, finding) == finding.message
+    assert finding_text(en, finding) == "The sentence has 14 words; the limit for A2 is 12."
+    assert finding_text(en, finding) == render_finding(finding)
     few = Finding(
-        block_id=None,
-        rule_id="LAY-03",
-        severity="info",
-        message="1 heading for 12 blocks: add headings, ideally as the reader's questions.",
-        message_key="LAY-03.few",
-        message_params={"n": 1, "blocks": 12},
-    )
+        block_id=None, rule_id="LAY-03", severity="info", key="LAY-03.few",
+        params={"n": 1, "blocks": 12},
+    )  # fmt: skip
     assert finding_text(de, few).startswith("1 Überschrift für 12 Blöcke")
-    assert finding_text(en, few) == few.message
-    # Findings stored before the keys existed: the English text is read back, if it fits.
-    old = Finding(
-        block_id="b001",
-        rule_id="LEN-02",
-        severity="error",
-        message="Subordinate clause ('die'): 3 clauses in one sentence. At most 1 for A2: "
-        "one statement per sentence.",
-    )
-    assert finding_text(de, old) == (
-        "Nebensatz ('die'): 3 Teilsätze in einem Satz. Höchstens 1 für A2: eine Aussage pro Satz."
-    )
-    legacy = Finding(block_id="b001", rule_id="LEN-01", severity="warn", message="legacy text")
+    assert finding_text(en, few).startswith("1 heading for 12 blocks")
+    # A finding stored before the keys existed keeps its English text (store.py).
+    legacy = Finding(
+        block_id="b001", rule_id="LEN-01", severity="warn", key="legacy",
+        params={"text": "legacy text"},
+    )  # fmt: skip
     assert finding_text(de, legacy) == "legacy text"
-    assert finding_text(de, legacy.model_copy(update={"message_key": "LEN-99"})) == "legacy text"
+    assert finding_text(de, legacy.model_copy(update={"key": "LEN-99"})) == "finding.LEN-99"
 
     # The review page builds its issues from the stored findings, in the reviewer's language.
     settings = make_settings(data__dir=tmp_path)
@@ -278,5 +280,5 @@ def test_rule_findings_follow_the_interface_language(tmp_path) -> None:
     view = review_view(store, job, t=de)
     assert view.rows[0].issues[0].message == "Der Satz hat 14 Wörter; die Grenze für A2 ist 12."
     assert view.doc_issues[0].message.startswith("1 Überschrift für 12 Blöcke")
-    assert review_view(store, job).rows[0].issues[0].message == finding.message
+    assert review_view(store, job).rows[0].issues[0].message == render_finding(finding)
     store.close()

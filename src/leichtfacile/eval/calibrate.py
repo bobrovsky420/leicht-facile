@@ -11,6 +11,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.schemas import Block, Draft, Level, SourceDocument
 
 _KIND = {"heading": "heading", "list_item": "list_item"}
@@ -68,7 +69,7 @@ def calibrate(
             stats.documents.add(name)
             result.severities[f.severity] += 1
             if len(stats.examples) < examples:
-                stats.examples.append((name, texts.get(f.block_id, ""), f.message))
+                stats.examples.append((name, texts.get(f.block_id, ""), render_finding(f)))
     return result
 
 

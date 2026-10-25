@@ -11,6 +11,7 @@ from leichtfacile.schemas import Draft, FactSheet, JobConfig, PipelineSummary
 from leichtfacile.store import Store
 from tests.conftest import MODEL, chat_response, make_settings
 from tests.pipeline import fixtures as fx
+from tests.pipeline.test_orchestrator import options
 
 RUNAWAY = "<|inner_prefix|>Ich denke nach, und nach, und nach"  # cut off while reasoning
 
@@ -23,16 +24,13 @@ def store(tmp_path) -> Store:
 
 
 def orchestrator(store, endpoint, sleeps, **settings) -> Orchestrator:
-    settings.setdefault("pipeline__vocabulary", False)  # its own tests: test_vocabulary.py
-    settings.setdefault("pipeline__recover_facts", 0)  # its own tests: test_recover.py
-    settings.setdefault("pipeline__polish_rounds", 0)  # its own tests: test_orchestrator.py
     cfg = make_settings(llm__max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, cfg)
 
 
-def new_job(store: Store, **config) -> str:
-    job = store.create_job(JobConfig(**config), title="Brief")
+def new_job(store: Store, *, rounds=None, **config) -> str:
+    job = store.create_job(JobConfig(pipeline=rounds or options(), **config), title="Brief")
     store.put_artifact(job.id, "source", fx.letter())
     return job.id
 
@@ -136,7 +134,7 @@ def test_a_failing_judge_leaves_a_reviewable_draft(store, endpoint, sleeps) -> N
         chat_response("wieder kein JSON"),  # judge: invalid twice
         chat_response(fx.as_json(fx.REPAIR)),  # the rule findings still get repaired
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=1))
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
@@ -154,13 +152,13 @@ def test_a_failing_repair_keeps_the_drafts(store, endpoint, sleeps) -> None:
         chat_response("immer noch kaputt"),  # repair: invalid twice
     )
     # No facts round either: the job is configured without them here.
-    job_id = new_job(store, condition="P2", max_facts_rounds=0)
+    job_id = new_job(store, condition="P2", rounds=options(facts_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.stop_reason == "a repair round failed"
-    assert summary.final_version == 1 and summary.rounds == 0
+    assert summary.stop_reason == "round_failed"
+    assert summary.final_version == 1 and summary.rounds_of("repair") == 0
     assert store.get_artifact(job_id, "draft", Draft, version=1) is not None
 
 
@@ -175,8 +173,8 @@ def test_a_failing_recover_round_keeps_the_drafts(store, endpoint, sleeps) -> No
         chat_response("immer noch kaputt"),  # repair: invalid twice
         RuntimeError("boom"),  # the recover call
     )
-    job_id = new_job(store, condition="P2", max_facts_rounds=0)
-    orchestrator(store, endpoint, sleeps, pipeline__recover_facts=3).run(job_id)
+    job_id = new_job(store, condition="P2", rounds=options(facts_rounds=0, recover_facts=3))
+    orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
     summary = store.get_artifact(job_id, "summary", PipelineSummary)

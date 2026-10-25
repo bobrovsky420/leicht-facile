@@ -21,6 +21,7 @@ from leichtfacile.schemas import Draft, FactSheet, JobConfig, PipelineSummary
 from leichtfacile.store import Store
 from tests.conftest import chat_response, error_response, make_settings
 from tests.pipeline import fixtures as fx
+from tests.pipeline.test_orchestrator import options
 
 
 @pytest.fixture
@@ -53,17 +54,14 @@ def by_stage(request: httpx.Request) -> httpx.Response:
 
 
 def orchestrator(store, endpoint, sleeps, *, clock=None, **settings) -> Orchestrator:
-    settings.setdefault("pipeline__vocabulary", False)
-    settings.setdefault("pipeline__recover_facts", 0)
-    settings.setdefault("pipeline__polish_rounds", 0)
     cfg = make_settings(llm__max_retries=0, **settings)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append)
     kwargs = {"clock": clock} if clock else {}
     return Orchestrator(store, llm, cfg, **kwargs)
 
 
-def new_job(store: Store, **config) -> str:
-    job = store.create_job(JobConfig(**config), title="Brief")
+def new_job(store: Store, *, rounds=None, **config) -> str:
+    job = store.create_job(JobConfig(pipeline=rounds or options(), **config), title="Brief")
     store.put_artifact(job.id, "source", fx.letter())
     return job.id
 
@@ -211,7 +209,7 @@ def test_two_workers_share_one_orchestrator_without_sharing_run_state(
         error_response(500),  # the judge
     )
     orch = orchestrator(store, endpoint, sleeps, llm__models__judge="swiss-ai/Apertus-v1.5-70B")
-    first = new_job(store, condition="P2", max_repair_rounds=0)
+    first = new_job(store, condition="P2", rounds=options(repair_rounds=0))
     orch.run(first)
     notes = store.get_artifact(first, "summary", PipelineSummary).notes
     assert notes and notes[0].startswith("judge on draft 1 failed")
@@ -238,8 +236,7 @@ def test_the_purge_deletes_old_jobs_with_their_cache_rows_and_keeps_the_recent_o
     store, endpoint, sleeps, tmp_path
 ) -> None:
     cache = ResponseCache(tmp_path / "cache.sqlite")
-    cfg = make_settings(llm__max_retries=0, pipeline__vocabulary=False, pipeline__recover_facts=0,
-                        pipeline__polish_rounds=0)  # fmt: skip
+    cfg = make_settings(llm__max_retries=0)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append, cache=cache)
     orch = Orchestrator(store, llm, cfg)
     endpoint.push(*(chat_response(a) for a in P1 * 2))

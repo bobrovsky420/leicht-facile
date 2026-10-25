@@ -445,6 +445,21 @@ def canonical_number(integer: str, decimals: str | None = None) -> str | None:
     return text.rstrip("0").rstrip(".") if "." in text else text
 
 
+def mask_links(text: str) -> str:
+    """The text with its web and e-mail addresses masked (the rules on words skip them)."""
+    text = mask(text, [m.span() for m in URL_RE.finditer(text)])
+    return mask(text, [m.span() for m in EMAIL_RE.finditer(text)])
+
+
+def mask_numbers(text: str) -> str:
+    """The text with its addresses, phone numbers, dates and IBANs masked, for the rules
+    on the plain numbers that remain."""
+    spans = [m.span() for r in (URL_RE, EMAIL_RE, PHONE_RE) for m in r.finditer(text)]
+    spans += [m.span() for r in (DATE_ISO_RE, DATE_NUM_RE, DATE_SLASH_RE) for m in r.finditer(text)]
+    spans += [m.span() for m in re.finditer(r"\bCH\d{2}(?:\s?[\dA-Z]{4}){4,7}", text)]  # IBAN
+    return mask(text, spans)
+
+
 def canonical_phone(text: str) -> str:
     stripped = text.strip()
     digits = re.sub(r"\D", "", stripped.replace("(0)", ""))

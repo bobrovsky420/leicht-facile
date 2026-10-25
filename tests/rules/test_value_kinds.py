@@ -9,6 +9,7 @@ import pytest
 
 from leichtfacile.pipeline.stages import complete_factsheet, link_facts
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.rules.values import (
     Value,
     extract_values,
@@ -396,7 +397,7 @@ def test_a_changed_or_dropped_value_is_a_fact_01_error_with_the_exact_string(
     ]
     assert len(findings) == 1
     assert findings[0].severity == "error" and findings[0].suggestion == expected
-    assert expected in findings[0].message
+    assert expected in render_finding(findings[0])
 
 
 def test_an_invented_period_number_or_address_is_a_fact_06_error() -> None:
@@ -407,7 +408,7 @@ def test_an_invented_period_number_or_address_is_a_fact_06_error() -> None:
         "Oder an: Bahnhofstrasse 1, 8001 Zürich.",
     )
     findings = {
-        f.message_key: f
+        f.key: f
         for f in check_draft(d, source=SOURCE, factsheet=FACTS).findings
         if f.rule_id == "FACT-06"
     }
@@ -417,7 +418,7 @@ def test_an_invented_period_number_or_address_is_a_fact_06_error() -> None:
     assert findings["FACT-06.period"].suggestion is None  # never the only period
     assert findings["FACT-06.identifier"].suggestion is None  # the source has two
     assert findings["FACT-06.address"].suggestion == ADDRESS
-    assert "Bahnhofstrasse 1, 8001 Zürich" in findings["FACT-06.address"].message
+    assert "Bahnhofstrasse 1, 8001 Zürich" in render_finding(findings["FACT-06.address"])
 
 
 def test_the_sample_letter_carries_its_periods_once() -> None:
@@ -516,7 +517,7 @@ def test_an_invented_dose_or_scheme_is_a_fact_06_error() -> None:
               segment_ids=["s0001"]),
     ])  # fmt: skip
     found = {
-        f.message_key for f in check_draft(d, source=source, factsheet=facts).findings
+        f.key for f in check_draft(d, source=source, factsheet=facts).findings
         if f.rule_id == "FACT-06"
     }  # fmt: skip
     assert found == {"FACT-06.quantity", "FACT-06.schedule"}

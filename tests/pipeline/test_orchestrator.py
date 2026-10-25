@@ -5,12 +5,14 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.llm.client import LLMClient
-from leichtfacile.pipeline.orchestrator import Orchestrator, blocking_count
+from leichtfacile.pipeline.orchestrator import Orchestrator
+from leichtfacile.pipeline.rounds import blocking_count
 from leichtfacile.schemas import (
     Draft,
     FactSheet,
     JobConfig,
     JudgeReport,
+    PipelineOptions,
     PipelineSummary,
     RuleFindings,
 )
@@ -27,21 +29,22 @@ def store(tmp_path) -> Store:
 
 
 def orchestrator(store: Store, endpoint: FakeEndpoint, sleeps: list[float]) -> Orchestrator:
-    # Without the vocabulary and the recover round: the answers below end before them.
-    # Both have their own tests (test_vocabulary.py, and the recover tests below).
-    settings = make_settings(
-        llm__models__judge="swiss-ai/Apertus-v1.5-70B",
-        llm__max_retries=0,
-        pipeline__vocabulary=False,
-        pipeline__recover_facts=0,
-        pipeline__polish_rounds=0,
-    )
+    settings = make_settings(llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0)
     llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     return Orchestrator(store, llm, settings)
 
 
-def new_job(store: Store, **config) -> str:
-    job = store.create_job(JobConfig(**config), title="Brief")
+def options(**overrides) -> PipelineOptions:
+    """The rounds of a test job: without the vocabulary, the recover round and the polish
+    round unless a test asks for them, since each has tests of its own and the answers
+    queued below end before them."""
+    return PipelineOptions(
+        **{"vocabulary": False, "recover_facts": 0, "polish_rounds": 0, **overrides}
+    )
+
+
+def new_job(store: Store, *, rounds: PipelineOptions | None = None, **config) -> str:
+    job = store.create_job(JobConfig(pipeline=rounds or options(), **config), title="Brief")
     store.put_artifact(job.id, "source", fx.letter())
     return job.id
 
@@ -83,8 +86,8 @@ def test_c2_runs_understand_write_judge_and_repair(store, endpoint, sleeps) -> N
     assert blocking_count(rules_v2, judge_v2) == 0
 
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.final_version == 2 and summary.rounds == 1
-    assert summary.stop_reason == "no blocking problems left"
+    assert summary.final_version == 2 and summary.rounds_of("repair") == 1
+    assert summary.stop_reason == "no_blocking"
     assert summary.prompt_versions["write"] != "none"
 
     # The model ran with the settings of each stage.
@@ -162,7 +165,7 @@ def test_invalid_json_gets_one_repair_round(store, endpoint, sleeps) -> None:
 
 def test_no_judge_and_no_repair_switches(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P2", use_judge=False, max_repair_rounds=0)
+    job_id = new_job(store, condition="P2", use_judge=False, rounds=options(repair_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert store.get_job(job_id).status == "needs_review"
     names = store.artifact_names(job_id)
@@ -181,7 +184,7 @@ def test_rerun_from_write_deletes_later_artifacts(store, endpoint, sleeps) -> No
 
 
 def test_repair_rounds_focus_on_blocking_problems_first() -> None:
-    from leichtfacile.pipeline.orchestrator import build_request
+    from leichtfacile.pipeline.rounds import build_request
     from leichtfacile.schemas import Block, Draft, Finding, RuleFindings
 
     draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
@@ -189,8 +192,10 @@ def test_repair_rounds_focus_on_blocking_problems_first() -> None:
         Block(id="b002", kind="sentence", text="Die Prämienverbilligung hilft."),
     ])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id="b001", rule_id="GRAM-01", severity="error", message="passive"),
-        Finding(block_id="b002", rule_id="LEX-01", severity="warn", message="long word"),
+        Finding(block_id="b001", rule_id="GRAM-01", severity="error", key="legacy",
+                params={"text": "passive"}),
+        Finding(block_id="b002", rule_id="LEX-01", severity="warn", key="legacy",
+                params={"text": "long word"}),
     ])  # fmt: skip
     from leichtfacile.pipeline.models import UnderstandOut
     from leichtfacile.pipeline.stages import to_factsheet
@@ -203,17 +208,18 @@ def test_repair_rounds_focus_on_blocking_problems_first() -> None:
 
 
 def test_a_foreign_value_blocks_the_draft_and_goes_to_repair_with_the_suggestion() -> None:
-    from leichtfacile.pipeline.orchestrator import build_request
+    from leichtfacile.pipeline.rounds import build_request
     from leichtfacile.schemas import Block, Draft, FactSheet, Finding, RuleFindings
 
     draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
         Block(id="b001", kind="sentence", text="Rufen Sie an: 031 987 65 43."),
     ])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id="b001", rule_id="FACT-06", severity="error",
-                message="The phone number 031 987 65 43 is not in the source.",
+        Finding(block_id="b001", rule_id="FACT-06", severity="error", key="legacy",
+                params={"text": "The phone number 031 987 65 43 is not in the source."},
                 suggestion="044 123 45 67"),
-        Finding(block_id="b001", rule_id="FACT-03", severity="error", message="no provenance"),
+        Finding(block_id="b001", rule_id="FACT-03", severity="error", key="legacy",
+                params={"text": "no provenance"}),
     ])  # fmt: skip
     assert blocking_count(rules, None) == 1  # FACT-03 is for the reviewer
     request = build_request(draft, rules, None, FactSheet(doc_id="d", facts=[]),
@@ -223,7 +229,7 @@ def test_a_foreign_value_blocks_the_draft_and_goes_to_repair_with_the_suggestion
 
 
 def test_missing_facts_come_in_small_batches_most_important_first() -> None:
-    from leichtfacile.pipeline.orchestrator import MAX_MISSING_PER_ROUND, build_request
+    from leichtfacile.pipeline.rounds import MAX_MISSING_PER_ROUND, build_request
     from leichtfacile.schemas import Block, Draft, Fact, FactSheet, Finding, RuleFindings
 
     kinds = ["other", "contact", "amount", "deadline", "other", "amount", "condition", "other"]
@@ -234,7 +240,8 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
     draft = Draft(doc_id="d", lang="de", level="A2",
                   blocks=[Block(id="b001", kind="sentence", text="Hallo.")])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id=f.id)
+        Finding(block_id=None, rule_id="FACT-01", severity="error", key="legacy",
+                params={"text": "x"}, fact_id=f.id)
         for f in fs.facts
     ])  # fmt: skip
     request = build_request(draft, rules, None, fs)
@@ -247,7 +254,7 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
 
 def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
     from leichtfacile.pipeline.models import UnderstandOut
-    from leichtfacile.pipeline.orchestrator import build_request
+    from leichtfacile.pipeline.rounds import build_request
     from leichtfacile.pipeline.stages import to_factsheet
     from leichtfacile.schemas import (
         Block,
@@ -265,8 +272,8 @@ def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
         Block(id="b002", kind="sentence", text="Payez le 31.03.2027."),
     ])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id="b002", rule_id="NUM-03-FR", severity="warn", message="numeric date",
-                suggestion="31 mars 2027"),
+        Finding(block_id="b002", rule_id="NUM-03", severity="warn", key="legacy",
+                params={"text": "numeric date"}, suggestion="31 mars 2027"),
     ])  # fmt: skip
     judge = JudgeReport(
         draft_version=1,
@@ -312,7 +319,7 @@ def test_a_facts_round_asks_for_the_missing_facts_alone(store, endpoint, sleeps)
         chat_response(fx.as_json(added)),  # facts 1
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=3, max_facts_rounds=2)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=3, facts_rounds=2))
     orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
@@ -320,8 +327,8 @@ def test_a_facts_round_asks_for_the_missing_facts_alone(store, endpoint, sleeps)
         "understand", "write", "judge", "repair", "judge", "repair", "judge",
     ]  # fmt: skip
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.rounds == 1 and summary.facts_rounds == 1
-    assert summary.stop_reason == "no missing facts left"
+    assert summary.rounds_of("repair") == 1 and summary.rounds_of("facts") == 1
+    assert summary.stop_reason == "no_missing_facts"
     assert summary.final_version == 3
     facts_prompt = endpoint.chat_bodies()[5]["messages"][0]["content"]
     assert "Die fehlenden Tatsachen" in facts_prompt
@@ -355,23 +362,23 @@ def test_facts_rounds_stop_without_progress_and_are_off_with_the_repair(
         chat_response(fx.as_json({"repairs": [], "additions": []})),  # facts 1: nothing added
         chat_response(fx.as_json(judge_after)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=2)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=1, facts_rounds=2))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.rounds == 1 and summary.facts_rounds == 1
-    assert summary.stop_reason == "a facts round brought no progress"
+    assert summary.rounds_of("repair") == 1 and summary.rounds_of("facts") == 1
+    assert summary.stop_reason == "facts_no_progress"
     assert len(store.get_job(job_id).usage) == 7
 
     # Without repair rounds there are no facts rounds either.
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P2", use_judge=False, max_repair_rounds=0)
+    job_id = new_job(store, condition="P2", use_judge=False, rounds=options(repair_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
-    assert store.get_artifact(job_id, "summary", PipelineSummary).facts_rounds == 0
+    assert store.get_artifact(job_id, "summary", PipelineSummary).rounds_of("facts") == 0
 
 
 def test_a_facts_only_request_flags_no_block() -> None:
     from leichtfacile.pipeline.models import UnderstandOut
-    from leichtfacile.pipeline.orchestrator import build_request, missing_count
+    from leichtfacile.pipeline.rounds import build_request, missing_count
     from leichtfacile.pipeline.stages import to_factsheet
     from leichtfacile.schemas import Block, Draft, Finding, RuleFindings
     from tests.pipeline.fixtures import UNDERSTAND
@@ -381,8 +388,10 @@ def test_a_facts_only_request_flags_no_block() -> None:
         Block(id="b001", kind="sentence", text="Das Formular wird geprüft."),
     ])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id="b001", rule_id="GRAM-01", severity="error", message="passive"),
-        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id="f02"),
+        Finding(block_id="b001", rule_id="GRAM-01", severity="error", key="legacy",
+                params={"text": "passive"}),
+        Finding(block_id=None, rule_id="FACT-01", severity="error", key="legacy",
+                params={"text": "x"}, fact_id="f02"),
     ])  # fmt: skip
     assert missing_count(rules) == 1
     request = build_request(draft, rules, None, fs, facts_only=True)
@@ -406,7 +415,7 @@ def test_the_summary_and_the_judge_carry_the_mode(store, endpoint, sleeps) -> No
         chat_response(fx.as_json(fx.WRITE)),
         chat_response(fx.as_json(judge)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=0)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
     report = store.get_artifact(job_id, "judge", JudgeReport, version=1)
     assert report.semantic_findings == [
@@ -424,7 +433,7 @@ def test_the_final_version_is_the_one_with_the_fewest_missing_facts(
     """A facts round adds the number; the judge then flags more of the new version than
     before. Facts come first: the version with the number is final (bucket k of the
     diagnosis, docs/prompts.md)."""
-    from leichtfacile.pipeline.orchestrator import version_key
+    from leichtfacile.pipeline.rounds import version_key
 
     no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
                  "additions": []}  # fmt: skip
@@ -447,10 +456,10 @@ def test_the_final_version_is_the_one_with_the_fewest_missing_facts(
         chat_response(fx.as_json(added)),  # facts 1
         chat_response(fx.as_json(noisy)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=1, facts_rounds=1))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.stop_reason == "no missing facts left"
+    assert summary.stop_reason == "no_missing_facts"
     rules = {v: store.get_artifact(job_id, "rules", RuleFindings, version=v) for v in (2, 3)}
     judges = {v: store.get_artifact(job_id, "judge", JudgeReport, version=v) for v in (2, 3)}
     assert blocking_count(rules[3], judges[3]) > blocking_count(rules[2], judges[2])
@@ -471,11 +480,11 @@ def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoi
         }]})),  # facts 1 still runs: a smaller prompt, a new try
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )  # fmt: skip
-    job_id = new_job(store, condition="P2", max_repair_rounds=2)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.rounds == 0 and summary.facts_rounds == 1
-    assert summary.stop_reason == "no missing facts left" and summary.final_version == 2
+    assert summary.rounds_of("repair") == 0 and summary.rounds_of("facts") == 1
+    assert summary.stop_reason == "no_missing_facts" and summary.final_version == 2
     assert any(n.startswith("repair round 1 failed") for n in summary.notes)
 
     # When the endpoint itself failed, the drafts so far stand: no facts round.
@@ -485,17 +494,17 @@ def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoi
         chat_response(fx.as_json(fx.JUDGE_FIRST)),
         error_response(500),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=2)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.stop_reason == "a repair round failed" and summary.facts_rounds == 0
+    assert summary.stop_reason == "round_failed" and summary.rounds_of("facts") == 0
     assert len(endpoint.queue) == 0
 
 
 def test_a_dropped_part_of_a_decision_blocks_and_is_asked_for_first() -> None:
     # FACT-08 (rules/decision.py) names the part's fact; the request puts it before any
     # missing value, and it counts like a missing value in the version choice.
-    from leichtfacile.pipeline.orchestrator import build_request, missing_count
+    from leichtfacile.pipeline.rounds import build_request, missing_count
     from leichtfacile.schemas import Block, Draft, Fact, FactSheet, Finding, RuleFindings
 
     fs = FactSheet(doc_id="d", facts=[
@@ -506,9 +515,10 @@ def test_a_dropped_part_of_a_decision_blocks_and_is_asked_for_first() -> None:
     draft = Draft(doc_id="d", lang="de", level="A2",
                   blocks=[Block(id="b001", kind="sentence", text="Hallo.")])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[
-        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id="f01"),
-        Finding(block_id=None, rule_id="FACT-08", severity="error", message="y", fact_id="f02",
-                segment_ids=["s0009"]),
+        Finding(block_id=None, rule_id="FACT-01", severity="error", key="legacy",
+                params={"text": "x"}, fact_id="f01"),
+        Finding(block_id=None, rule_id="FACT-08", severity="error", key="legacy",
+                params={"text": "y"}, fact_id="f02", segment_ids=["s0009"]),
     ])  # fmt: skip
     assert blocking_count(rules, None) == 2 and missing_count(rules) == 2
     request = build_request(draft, rules, None, fs)
@@ -522,12 +532,6 @@ def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
     """pipeline.recover_facts: after the facts rounds, the value still missing is asked for
     alone with its source paragraph; its sentence goes after its block as a new version,
     judged, and the final version when it has fewer values missing."""
-    settings = make_settings(
-        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0,
-        pipeline__vocabulary=False,
-        pipeline__recover_facts=3, pipeline__polish_rounds=0,
-    )  # fmt: skip
-    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
                  "additions": []}  # fmt: skip
     judge_missing = {"fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}]}
@@ -544,8 +548,9 @@ def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
         chat_response(fx.as_json({"after": "b004", "texts": ["Die Nummer ist 044 123 45 67."]})),
         chat_response(fx.as_json(judge_present)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
-    Orchestrator(store, llm, settings).run(job_id)
+    rounds = options(repair_rounds=1, facts_rounds=1, recover_facts=3)
+    job_id = new_job(store, condition="P2", rounds=rounds)
+    orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
     assert len(job.usage) == 9 and [u.stage for u in job.usage][7] == "recover"
@@ -553,7 +558,7 @@ def test_the_recover_round_asks_for_a_missing_value_with_its_paragraph(
     assert "Im Text fehlt dieser Wert: 044 123 45 67" in recover_prompt
     assert "Gebühr" not in recover_prompt  # another paragraph
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.final_version == 4 and summary.stop_reason == "a facts round brought no progress"
+    assert summary.final_version == 4 and summary.stop_reason == "facts_no_progress"
     final = store.get_artifact(job_id, "draft", Draft, version=4)
     added = final.by_id()["b004.1"]
     assert added.text == "Die Nummer ist 044 123 45 67." and added.fact_ids == ["f03"]
@@ -576,7 +581,7 @@ def test_without_max_recover_facts_there_is_no_recover_round(store, endpoint, sl
         chat_response(fx.as_json({"repairs": [], "additions": []})),
         chat_response(fx.as_json(judge_missing)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=1)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=1, facts_rounds=1))
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert len(store.get_job(job_id).usage) == 7 and not endpoint.queue
     assert "recover" not in [u.stage for u in store.get_job(job_id).usage]
@@ -606,12 +611,6 @@ def test_the_polish_round_repairs_the_rule_errors_the_loop_left(store, endpoint,
     """pipeline.polish_rounds: after the facts and recover rounds, the best version's rule
     errors go to one more repair round, without facts and without the judge's problems;
     its version is the final one when it loses no fact and adds no blocking finding."""
-    settings = make_settings(
-        llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0,
-        pipeline__vocabulary=False,
-        pipeline__recover_facts=0, pipeline__polish_rounds=1,
-    )  # fmt: skip
-    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
     endpoint.push(
         chat_response(fx.as_json(fx.UNDERSTAND)),
         chat_response(fx.as_json(fx.WRITE)),
@@ -620,8 +619,9 @@ def test_the_polish_round_repairs_the_rule_errors_the_loop_left(store, endpoint,
         chat_response(fx.as_json(fx.JUDGE_SECOND)),  # no fact problem left: the loop stops
         chat_response(fx.as_json(POLISH)),  # polish 1: the sentence shortened
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=0)
-    Orchestrator(store, llm, settings).run(job_id)
+    rounds = options(repair_rounds=1, facts_rounds=0, polish_rounds=1)
+    job_id = new_job(store, condition="P2", rounds=rounds)
+    orchestrator(store, endpoint, sleeps).run(job_id)
     job = store.get_job(job_id)
     assert job.status == "needs_review", job.error
     assert len(job.usage) == 6 and not endpoint.queue  # the sixth call: the polish round
@@ -631,8 +631,8 @@ def test_the_polish_round_repairs_the_rule_errors_the_loop_left(store, endpoint,
     assert record["kind"] == "polish" and record["parent_version"] == 2
     assert record["requested_blocks"] == ["b002.1"] and record["requested_facts"] == []
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.final_version == 3 and summary.polish_rounds == 1
-    assert summary.rounds == 1 and summary.stop_reason == "stopped after 1 repair rounds"
+    assert summary.final_version == 3 and summary.rounds_of("polish") == 1
+    assert summary.rounds_of("repair") == 1 and summary.stop_reason == "max_rounds"
     before = store.get_artifact(job_id, "rules", RuleFindings, version=2)
     after = store.get_artifact(job_id, "rules", RuleFindings, version=3)
     assert [f.rule_id for f in before.findings if f.severity == "error"] == ["LEN-01"]
@@ -650,13 +650,13 @@ def test_without_max_polish_rounds_there_is_no_polish_round(store, endpoint, sle
         chat_response(fx.as_json(REPAIR_LONG)),
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )
-    job_id = new_job(store, condition="P2", max_repair_rounds=1, max_facts_rounds=0)
-    orchestrator(store, endpoint, sleeps).run(job_id)  # pipeline__polish_rounds=0 in the helper
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=1, facts_rounds=0))
+    orchestrator(store, endpoint, sleeps).run(job_id)  # no polish round in `options()`
     job = store.get_job(job_id)
     assert job.status == "needs_review" and not endpoint.queue
     assert "polish 1" not in [u.stage for u in job.usage]
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
-    assert summary.final_version == 2 and summary.polish_rounds == 0
+    assert summary.final_version == 2 and summary.rounds_of("polish") == 0
 
 
 def test_a_job_runs_on_the_endpoint_it_picked(store, endpoint, sleeps) -> None:

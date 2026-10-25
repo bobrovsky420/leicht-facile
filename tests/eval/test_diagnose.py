@@ -28,6 +28,7 @@ from leichtfacile.schemas import (
     JudgeReport,
     PipelineSummary,
     RepairRecord,
+    RoundRecord,
     RuleFindings,
     Segment,
     SourceDocument,
@@ -59,16 +60,30 @@ def _draft(version: int, *texts: str) -> Draft:
 
 def _rules(version: int, *missing: str) -> RuleFindings:
     findings = [
-        Finding(block_id=None, rule_id="FACT-01", severity="error", message="x", fact_id=f)
+        Finding(
+            block_id=None,
+            rule_id="FACT-01",
+            severity="error",
+            key="legacy",
+            params={"text": "x"},
+            fact_id=f,
+        )
         for f in missing
     ]
     return RuleFindings(draft_version=version, level="A2", findings=findings)
 
 
 def _summary(final: int, rounds: int, reason: str, facts_rounds: int = 0) -> PipelineSummary:
-    return PipelineSummary(condition="P2", final_version=final, rounds=rounds,
-                           facts_rounds=facts_rounds, stop_reason=reason, writer_model="w",
-                           blocking_findings=[])  # fmt: skip
+    """A summary with `rounds` repair rounds and `facts_rounds` facts rounds, the versions
+    numbered from 2."""
+    kinds = ["repair"] * rounds + ["facts"] * facts_rounds
+    records = [
+        RoundRecord(kind=kind, number=kinds[:i].count(kind) + 1, parent_version=i + 1,
+                    version=i + 2)
+        for i, kind in enumerate(kinds)
+    ]  # fmt: skip
+    return PipelineSummary(condition="P2", final_version=final, rounds=records,
+                           stop_reason=reason, writer_model="w", blocking_findings=[])  # fmt: skip
 
 
 def _results(tmp_path: Path) -> Path:
@@ -95,7 +110,7 @@ def _results(tmp_path: Path) -> Path:
     store.put_artifact(a, "rules", _rules(1, *[f.id for f in facts_a if f.id != "f07"]), 1)
     store.put_artifact(a, "draft", _draft(2, "Bis 31. März 2026.", "Das kostet 20 Franken."), 2)
     store.put_artifact(a, "rules", _rules(2, "f03", "f04", "f05", "f06", "f07"), 2)
-    store.put_artifact(a, "summary", _summary(2, 1, "a repair round brought no progress"))
+    store.put_artifact(a, "summary", _summary(2, 1, "no_progress"))
 
     # Job B, with records: dropped by code, a rejected form, not written, lost later.
     facts_b = [
@@ -128,13 +143,13 @@ def _results(tmp_path: Path) -> Path:
     store.put_artifact(b, "judge", JudgeReport(draft_version=3, model="j", fact_checks=[
         FactCheck(fact_id="f01", status="present"), FactCheck(fact_id="f06", status="missing"),
     ]), 3)  # fmt: skip
-    store.put_artifact(b, "summary", _summary(3, 1, "a facts round brought no progress", 1))
+    store.put_artifact(b, "summary", _summary(3, 1, "facts_no_progress", 1))
 
     # Job C: no repair round ran at all.
     c = job("pair-c", FactSheet(doc_id="d", facts=[_fact("f01", "deadline", "2026-03-31")]))
     store.put_artifact(c, "draft", _draft(1, "Hallo."), 1)
     store.put_artifact(c, "rules", _rules(1, "f01"), 1)
-    store.put_artifact(c, "summary", _summary(1, 0, "a repair round failed"))
+    store.put_artifact(c, "summary", _summary(1, 0, "round_failed"))
 
     # Job D: two rounds ran, but v1 stayed final (fewest blocking findings). f01 was
     # written into v3, f02 was asked in the facts round and not written.
@@ -154,7 +169,7 @@ def _results(tmp_path: Path) -> Path:
         additions=[AnsweredAddition(after="b002", texts=["Bis 31. März 2026."],
                                     fact_ids=["f01"])],
     ), 3)  # fmt: skip
-    store.put_artifact(d, "summary", _summary(1, 1, "a facts round brought no progress", 1))
+    store.put_artifact(d, "summary", _summary(1, 1, "facts_no_progress", 1))
     store.close()
     (tmp_path / "P2_w.jsonl").write_text(
         "".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8"
@@ -190,14 +205,14 @@ def test_every_bucket_once(tmp_path) -> None:
 
     c = jobs["pair-c"]
     (only,) = c.missing
-    assert only.bucket == "a" and only.reason == "no repair round ran (a repair round failed)"
+    assert only.bucket == "a" and only.reason == "no repair round ran (round_failed)"
 
     d = jobs["pair-d"]
     by_id = {m.fact_id: m for m in d.missing}
     assert by_id["f01"].bucket == "k"
-    assert by_id["f01"].reason == "in v3, but v1 of 3 is final (a facts round brought no progress)"
+    assert by_id["f01"].reason == "in v3, but v1 of 3 is final (facts_no_progress)"
     assert by_id["f02"].bucket == "d" and by_id["f02"].asked_in == [3]
-    assert by_id["f02"].reason.endswith("(v1 of 3 is final: a facts round brought no progress)")
+    assert by_id["f02"].reason.endswith("(v1 of 3 is final: facts_no_progress)")
 
     table = bucket_table(list(jobs.values()))
     assert "4 jobs, 14 checkable must-keep facts, 11 missing" in table

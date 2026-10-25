@@ -63,31 +63,31 @@ HARD_SENTENCES_FR = {
     "FR-1": (
         "Le droit à la réduction individuelle des primes est reconnu aux personnes dont le "
         "revenu déterminant n'excède pas les limites fixées par le Conseil d'État.",
-        {"GRAM-01-FR"},
+        {"GRAM-01"},
     ),
     "FR-2": (
         "La demande doit être déposée, dûment remplie et signée, au plus tard le 31.03.2027, "
         "faute de quoi le droit s'éteint.",
-        {"GRAM-01-FR", "NUM-03-FR"},
+        {"GRAM-01", "NUM-03"},
     ),
     "FR-4": (
         "Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais "
         "ne pourront être remboursés.",
-        {"GRAM-08-FR", "GRAM-03-FR"},
+        {"GRAM-09", "GRAM-03"},
     ),
     "FR-5": (
         "Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous "
         "saurions gré de bien vouloir prendre contact avec nos services.",
-        {"GRAM-03-FR"},
+        {"GRAM-03"},
     ),
     "FR-6": (
         "Le/la requérant·e transmet les pièces justificatives à l'office compétent, lequel les "
         "examine et, le cas échéant, les fait suivre.",
-        {"LEX-05-FR"},
+        {"LEX-05"},
     ),
     "FR-7": (
         "Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-.",
-        {"NUM-03-FR", "NUM-07-FR", "LEX-07-FR"},
+        {"NUM-03", "NUM-07", "LEX-07"},
     ),
 }
 CASES = [("de", key, *value) for key, value in HARD_SENTENCES.items()]

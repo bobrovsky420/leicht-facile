@@ -63,6 +63,28 @@ BASELINE_CONDITIONS: frozenset[str] = frozenset({"P0"}) | ZH_CONDITIONS
 LANGS: tuple[Lang, ...] = ("de", "fr", "it")
 LEVELS: tuple[Level, ...] = ("A2", "B1")
 SEVERITY_RANK: dict[str, int] = {"error": 0, "warn": 1, "info": 2}
+# The rounds after the first draft, in the order the plan runs them (pipeline/rounds.py):
+# repair (the loop on the findings), facts (the missing must-keep values alone), recover
+# (each missing value with its source paragraph), polish (the rule findings of the best
+# version) and vocabulary (the office words of the best version).
+RoundKind = Literal["repair", "facts", "recover", "polish", "vocabulary"]
+ROUND_KINDS: tuple[str, ...] = get_args(RoundKind)
+# Why the repair and facts rounds ended; the interface translates the code (`stop.<code>`).
+# max_rounds and max_facts_rounds carry the count of rounds of their kind.
+StopReason = Literal[
+    "baseline",
+    "p1",
+    "no_problems",
+    "no_blocking",
+    "round_failed",
+    "no_progress",
+    "max_rounds",
+    "no_missing_facts",
+    "facts_round_failed",
+    "facts_no_progress",
+    "max_facts_rounds",
+]
+STOP_REASONS: tuple[str, ...] = get_args(StopReason)
 
 
 def utcnow() -> datetime:
@@ -255,9 +277,10 @@ class Finding(Artifact):
     block_id: str | None  # None: the finding concerns the whole document
     rule_id: str
     severity: Severity
-    message: str  # English (rules/messages.py); the UI translates by key and params
-    message_key: str | None = None  # the template's key; None in older artifacts
-    message_params: dict[str, str | int | float] = Field(default_factory=dict)
+    # The message as a template key and its values (rules/messages.py): English through
+    # `messages.render`, the interface languages through the catalogs (`finding.<key>`).
+    key: str
+    params: dict[str, str | int | float] = Field(default_factory=dict)
     evidence: str = ""
     suggestion: str | None = None
     fact_id: str | None = None  # FACT-01, FACT-02, FACT-05: the fact concerned
@@ -369,11 +392,7 @@ class RepairRecord(Artifact):
 
     draft_version: int  # the version the round produced
     parent_version: int
-    # facts: a round that asks for facts only; vocabulary: the last round, for the
-    # office words of the best version (LEX-07); recover: the missing values asked for
-    # one by one with their source paragraphs (pipeline.recover_facts); polish: the rule
-    # findings of the best version after the recover round (pipeline.polish_rounds)
-    kind: Literal["repair", "facts", "vocabulary", "recover", "polish"] = "repair"
+    kind: RoundKind = "repair"
     requested_blocks: list[str] = Field(default_factory=list)  # blocks with problems
     requested_facts: list[str] = Field(default_factory=list)  # missing facts asked for
     repairs: list[AnsweredRepair] = Field(default_factory=list)
@@ -405,6 +424,72 @@ class ReviewState(Artifact):
         return {d.block_id: d for d in self.decisions}
 
 
+# -- the rounds after the first draft -------------------------------------------------
+
+
+class PipelineOptions(Artifact):
+    """The rounds after the first draft (docs/architecture.md §4.6)."""
+
+    repair_rounds: int = Field(
+        3, ge=0, le=10, description="Repair rounds on the rule findings and the judge's; 0: none."
+    )
+    facts_rounds: int = Field(
+        1,
+        ge=0,
+        le=5,
+        description="Rounds that ask only for the must-keep facts still missing after the "
+        "repair rounds; 0: none.",
+    )
+    # 10 since the dev rerun of 7 October 2026 (docs/prompts.md): fact coverage 79 against
+    # 75 percent with 5, no invented value, fewer judge findings.
+    missing_per_facts_round: int = Field(
+        10,
+        ge=1,
+        le=20,
+        description="Missing facts one such round asks for (a repair round asks for 5).",
+    )
+    # On since 9 October 2026: German fact coverage on the dev pairs rose from 78 to 96
+    # percent, no invented value added (docs/prompts.md).
+    recover_facts: int = Field(
+        10,
+        ge=0,
+        le=20,
+        description="Must-keep values still missing then, asked for one by one with their "
+        "source paragraph, as one new version; 0: none.",
+    )
+    # The facts and recover rounds add the source's sentences nearly verbatim, and the
+    # loop never sees them again (10 October 2026; measured in docs/prompts.md).
+    polish_rounds: int = Field(
+        1,
+        ge=0,
+        le=3,
+        description="Repair rounds on the best version's rule findings alone, at the end; 0: none.",
+    )
+    # The writer itself gets no list of office words: such a list made the 8B write more
+    # of them (docs/prompts.md).
+    vocabulary: bool = Field(
+        True,
+        description="The vocabulary of hard words in the pipeline; false only to measure "
+        "what it brings.",
+    )
+
+
+class RoundRecord(Artifact):
+    """One round after the first draft (pipeline/rounds.py): the version it started from,
+    the version it produced, and the blocking findings and missing must-keep values
+    before and after it. The counts are None in records rebuilt for jobs stored before
+    the records existed (25 October 2026)."""
+
+    kind: RoundKind
+    number: int  # 1-based among the rounds of its kind
+    parent_version: int
+    version: int
+    blocking_before: int | None = None
+    blocking_after: int | None = None
+    missing_before: int | None = None
+    missing_after: int | None = None
+
+
 # -- pipeline summary -----------------------------------------------------------------
 
 
@@ -414,9 +499,8 @@ class PipelineSummary(Artifact):
     condition: Condition
     mode: JobMode = "standard"
     final_version: int
-    rounds: int = 0
-    facts_rounds: int = 0  # rounds that asked for missing facts only, after the loop
-    stop_reason: str = ""
+    rounds: list[RoundRecord] = Field(default_factory=list)  # every round that made a version
+    stop_reason: StopReason = "no_problems"  # why the repair and facts rounds ended
     endpoint: str | None = None  # the endpoint the job ran on; None: one without a name
     writer_model: str = ""
     understand_model: str | None = None  # only when it differs from the writer
@@ -426,8 +510,10 @@ class PipelineSummary(Artifact):
     notes: list[str] = Field(default_factory=list)  # stages that failed and were skipped
     # The version of the vocabulary the job used (rules/vocabulary.py); None: not used.
     vocabulary: str | None = None
-    vocabulary_rounds: int = 0  # the last round, for the office words (0 or 1)
-    polish_rounds: int = 0  # rounds for the rule findings after the recover round
+
+    def rounds_of(self, kind: str) -> int:
+        """How many rounds of a kind made a version."""
+        return sum(1 for r in self.rounds if r.kind == kind)
 
 
 # -- jobs --------------------------------------------------------------------------
@@ -442,10 +528,9 @@ class JobConfig(Artifact):
     understand_model: str | None = None  # None: llm.models.understand, else the writer
     judge_model: str | None = None  # None: llm.models.judge
     use_judge: bool = True  # P2 only: False repairs on rule findings alone
-    max_repair_rounds: int = Field(default=3, ge=0, le=10)  # 0: no repair
-    # Rounds that ask for the missing facts alone once the loop above has stopped with
-    # must-keep values still missing (P2 only; 0: none).
-    max_facts_rounds: int = Field(default=1, ge=0, le=5)
+    # The rounds after the first draft (P2 only): the [pipeline] settings when the job was
+    # created, so a settings change never alters a stored job.
+    pipeline: PipelineOptions = Field(default_factory=PipelineOptions)
     mode: JobMode = "standard"
     addressee: str | None = None  # decision mode: the person the letter speaks to
     notice: str | None = None  # decision mode: the authority's fixed notice in the export

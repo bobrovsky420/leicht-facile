@@ -20,6 +20,7 @@ from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.prompts import has_prompt
+from leichtfacile.pipeline.rounds import blocking_count, version_key
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     ZH_CONDITIONS,
@@ -127,8 +128,7 @@ def run_condition(
             writer_model=writer,
             understand_model=understand,
             judge_model=judge,
-            max_repair_rounds=settings.pipeline.repair_rounds,
-            max_facts_rounds=settings.pipeline.facts_rounds,
+            pipeline=settings.pipeline,
         )
         job = store.create_job(config, title=pair.id)
         store.put_artifact(job.id, "source", standard)
@@ -186,7 +186,7 @@ def _score(
     ]
     row = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
     if summary:
-        row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
+        row.update(rounds=summary.rounds_of("repair"), stop_reason=summary.stop_reason)
         if summary.vocabulary:
             row["vocabulary"] = summary.vocabulary
     return row
@@ -238,8 +238,6 @@ def _best_version(
     (the pipeline's rule since 8 October 2026: fewest missing must-keep values, then
     fewest blocking findings, then the latest) or `blocking` (the rule before: fewest
     blocking findings, then the latest)."""
-    from leichtfacile.pipeline.orchestrator import blocking_count, version_key
-
     best: tuple | None = None
     for version in versions:
         rules = store.get_artifact(job_id, "rules", RuleFindings, version=version)
@@ -322,7 +320,7 @@ def rescore(
             }
             new_row.update(score_output(job, draft, standard, easy, factsheet, judge_report, edits))
             if summary:
-                new_row.update(rounds=summary.rounds, stop_reason=summary.stop_reason)
+                new_row.update(rounds=summary.rounds_of("repair"), stop_reason=summary.stop_reason)
                 if summary.vocabulary:
                     new_row["vocabulary"] = summary.vocabulary
             if in_place:

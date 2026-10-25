@@ -205,7 +205,6 @@
   "stop.baseline": "baseline",
   "stop.p1": "P1: no judge",
   "stop.no_problems": "no problems left",
-  "stop.only_warnings": "only warnings left",
   "stop.no_blocking": "no blocking problems left",
   "stop.round_failed": "a repair round failed",
   "stop.no_progress": "a repair round brought no progress",

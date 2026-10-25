@@ -156,8 +156,10 @@ other document gets the standard prompt word for word.
 
 ## French (FR-CH, FALC)
 
-The same families as German, checked on the parse of `fr_core_news_md` in
-`rules/fr.py`; every French rule id ends in `-FR`. The parser's tense and mood features
+The same rules as German, under the same ids (`rules/catalog.py` declares each rule
+once): ten checks serve both languages with the language's words and patterns in a
+table (`rules/shared.py`), the others are French checks of their own in `rules/fr.py`,
+on the parse of `fr_core_news_md`; GRAM-09 is French only. The parser's tense and mood features
 are not reliable for French verbs (it reads `recevrez` as a present and `recevez` as a
 future), so the future, the conditional and the passé simple are recognised from the
 verb's ending and its lemma (`recev-r-ez`, `pour-r-iez`), and the subjunctive from the
@@ -172,34 +174,34 @@ parser cannot tell an inverted subject from an object.
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| LEN-01-FR | At most N words per sentence (N from level, French limits) | words without punctuation; an elided word counts with the next one (`l'argent`), a hyphenated pronoun with its verb (`appelez-nous`), a run of numbers as one word | warn up to 3 words over, error beyond |
-| LEN-02-FR | One clause per sentence; no subordinate clauses | per colon-separated part: the main predicate, coordinated predicates with their own subject, finite subordinate clauses (`advcl`, `ccomp`, `acl:relcl`: `parce que`, `que`, `si`, `quand`, `qui`, `dont`, `où`) and adverbial infinitives (`pour`, `afin de`, `sans`, `avant de`, `après`); `est-ce que` only marks a question. The suggestion is the rewrite recipe for the opener (`rules/recipes.py`, since 7 October 2026): `parce que`, `puisque`, `comme` two sentences with `C'est pourquoi`; `pour que`, `afin que`, `pour`, `afin de` the aim first, then `Pour cela`; `bien que`, `même si` `Mais`; `si` a question and an answer with `Alors`, never `peut-être`; `lorsque`, `quand`, `dès que`, `avant de`, `après` two sentences in the order of time with `Ensuite`; `qui`, `dont`, `où` two sentences with the noun repeated; `que` the noun repeated or a colon after a verb; anything else two short sentences. The recipes are still to be read against the 5 official French pages | warn for one clause too many, error for two or more |
-| LEN-03-FR | Enumerations of three or more items become a list | a coordination chain (`conj`) of three or more nouns, verbs or adjectives, or noun phrases separated by commas and a final `et` or `ou` | warn |
-| GRAM-01-FR | No passive | `être` (`aux:pass`) + past participle. With an agent `par`, in a compound tense (`a été envoyé`), after a modal verb or `aller` (`doit être envoyé`) or in the future (`sera envoyé`) it is a passive; a plain present (`est envoyé`) may describe a state and is a warning (A2) or a note (B1); stative participles in the plain present (`fermé`, `ouvert`, `assuré`, `inscrit`, `interdit`, ...) are not flagged | error (A2) / warn (B1) |
-| GRAM-03-FR | No subjunctive or conditional | a conditional ending on the future stem (`pourriez`, `faudrait`, `aimerions`); a subjunctive after a conjunction (`pour que`, `afin que`, `bien que`, `avant que`, `sans que`, `à condition que`, `à ce que`, ...) or a governing verb or adjective (`il faut que`, `il est important que`), or a form that is always subjunctive (`puisse`, `fasse`, `soit`) | warn |
-| GRAM-04-FR | Present and passé composé; no passé simple, no futur simple where `aller` + infinitive works | a future ending on the future stem (`recevrez`, `sera`, `enverrons`; the suggestion is `allez recevoir`); a passé simple: a finite past tense with a passé simple ending, a subject and no auxiliary; the singular of second-group -ir verbs and of -ire verbs (`il agit`, `je finis`, `il dit`) is the same in the present and counts as present | warn |
-| GRAM-05-FR | No nominalisations | a noun ending in `-tion`, `-sion`, `-ment`, `-age`, `-ance`, `-ence`, `-ité`, `-ure`, `-isme` that is not an everyday word (Zipf frequency below 4.0; stop list: `votation`, `ambulance`, ...) and not in the glossary. Warning in nominal style (with a light verb such as `effectuer`, `procéder` or `intervenir`, after `lors de`, `en vue de` or `dans le cadre de`, or with a `de` attribute: `le versement de la prestation`), otherwise a note | warn / info |
-| GRAM-06-FR | Pronouns only with an unambiguous reference | `il`, `elle`, `ils`, `elles`, the object `le` or `la`, `celui-ci` ... with no noun of matching gender and number in the same or the previous block, or with several; the impersonal `il` (`il faut`) is skipped | info (judge confirms: SEM-03) |
-| GRAM-07-FR | No reported speech | `selon`, `d'après` | info |
-| GRAM-08-FR | No impersonal `il convient de`, `il y a lieu de` | phrase list: `il convient`, `il y a lieu`, `il incombe`, `il appartient`, `il importe`, `il est loisible`, `opportun`, `souhaitable`, `recommandé`, `requis`; `il est nécessaire`, `obligatoire`, `possible`, `important`, `interdit` ... + `de` or `que` is a note | warn |
-| NEG-01-FR | No double negation | per clause part (commas, colons, `et`, `ou`, `mais`, `car` and the opener of a subordinate clause separate parts): the words that form one negation with `ne` (`pas`, `jamais`, `rien`, `plus`, `personne`, `aucun`, `ni`, ...) count as one negation together; `sans` (when `ne` is present), `non` (not in `non plus`) and an adjective with a negative prefix (`impossible`, `inutile`, `illégal`, ...) each add one; two negations in one part | error |
-| NEG-02-FR | Prefer positive formulation | one negation in a sentence | info |
-| LEX-01-FR | No long words | a word or part (at hyphens and apostrophes) longer than 12 letters, not in the glossary; the administrative words it also flagged until 7 October 2026 are LEX-07-FR's now | info |
-| LEX-02-FR | No abbreviations except common ones | dotted abbreviations (`p. ex.`, `etc.`, `cf.`, `env.`, `c.-à-d.`, `art. 5`, `al. 2`, `no 3`, `tél.`, `Mme`, ...), abbreviated weekday ranges (`lu-ve`) and months, capital clusters and mixed-case law abbreviations (`LAVS`, `LAMal`); allowlist: `CHF`, `AVS`, `AI`, `CFF`, `PDF`, `WC`, `SMS`, `TV`, `ID`, `OK`; known words in an all-capital heading are no abbreviations; an abbreviation explained in the text or the glossary is only `info`; the suggestion is the full word from the vocabulary (`p. ex.`: `par exemple`) | warn |
-| LEX-03-FR | No foreign words, anglicisms, jargon | a content word with a Zipf frequency below 2.5 (wordfreq, French), unless it is a hyphenated word of common parts (`pare-brise`), in the glossary, or an office word LEX-07-FR names the everyday word for | info |
-| LEX-04-FR | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded) | warn |
-| LEX-05-FR | Inclusive forms without typographic devices | `·e·s`, `.e.s` and `(e)s` forms (`employé·e·s`, `citoyen(ne)`) | info |
-| LEX-06-FR | Direct address with `vous` | role nouns for the reader with an article (`le requérant`, `l'assuré`, `les bénéficiaires`, `le contribuable`, `la personne concernée`, ...) | info |
-| LEX-07-FR | Everyday words instead of office words | a `replace` word of the vocabulary (`émolument`, `moyennant`, `le cas échéant`, `s'acquitter de` also as `vous vous acquittez de`, `dans le cadre de` also as `dans le cadre du`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02-FR), not the role nouns (LEX-06-FR) | warn / info |
-| NUM-01-FR | Numbers as digits, except `un`/`une` | cardinal number words (`deux` ... `seize`, `vingt` ... `nonante`, `cent`, `mille`, also hyphenated) and ordinals from `deuxième` on; `premier`, the adjective `neuf` and `pour cent` are not flagged | warn |
-| NUM-02-FR | Thousands separator with a space: `1 500` | 5+ digits without a separator; 4 digits only next to a currency; phone numbers, dates, IBANs, postal codes and numbers after `no`, `art.`, `formulaire`, ... are skipped; `1'500` is accepted | warn |
-| NUM-03-FR | Date `4 février 2020` | numeric dates (`31.03.2026`, ISO and slash dates), also a day and month without year after `au`, `le`, `du`, `dès` (`au 15.09`); the suggestion is the written-out date (`1er mars 2026`) | warn |
-| NUM-04-FR | Time `9 h 00`, ranges `de 9 h 00 à 12 h 00` | colon times (`09:00`), dot times (`9.30 h`), ranges with a dash (`8h-12h`); `9h` and `16h30` without spaces are a note, as the Geneva pages write them | warn |
-| NUM-05-FR | Durations in words and digits: `1 heure et 30 minutes` | `1,5 h`, `1½ heure`, `90 min` | info |
-| NUM-06-FR | Percent written out | `%` → `pour cent` | warn |
-| NUM-07-FR | Amounts `500 francs` or `CHF 500` | `CHF 500.00`, `500.-`, `500,00 CHF`, `500 CHF` | info |
-| NUM-08-FR | Phone numbers spaced: `022 123 45 67` | as NUM-08, including the accepted `+41 22 123 45 67` | warn |
-| CH-03-FR | Swiss numerals `septante`, `huitante` or `octante`, `nonante` when numbers are written out | `soixante-dix` to `soixante-dix-neuf`, `quatre-vingt-dix` to `quatre-vingt-dix-neuf` | info |
+| LEN-01 | At most N words per sentence (N from level, French limits) | words without punctuation; an elided word counts with the next one (`l'argent`), a hyphenated pronoun with its verb (`appelez-nous`), a run of numbers as one word | warn up to 3 words over, error beyond |
+| LEN-02 | One clause per sentence; no subordinate clauses | per colon-separated part: the main predicate, coordinated predicates with their own subject, finite subordinate clauses (`advcl`, `ccomp`, `acl:relcl`: `parce que`, `que`, `si`, `quand`, `qui`, `dont`, `où`) and adverbial infinitives (`pour`, `afin de`, `sans`, `avant de`, `après`); `est-ce que` only marks a question. The suggestion is the rewrite recipe for the opener (`rules/recipes.py`, since 7 October 2026): `parce que`, `puisque`, `comme` two sentences with `C'est pourquoi`; `pour que`, `afin que`, `pour`, `afin de` the aim first, then `Pour cela`; `bien que`, `même si` `Mais`; `si` a question and an answer with `Alors`, never `peut-être`; `lorsque`, `quand`, `dès que`, `avant de`, `après` two sentences in the order of time with `Ensuite`; `qui`, `dont`, `où` two sentences with the noun repeated; `que` the noun repeated or a colon after a verb; anything else two short sentences. The recipes are still to be read against the 5 official French pages | warn for one clause too many, error for two or more |
+| LEN-03 | Enumerations of three or more items become a list | a coordination chain (`conj`) of three or more nouns, verbs or adjectives, or noun phrases separated by commas and a final `et` or `ou` | warn |
+| GRAM-01 | No passive | `être` (`aux:pass`) + past participle. With an agent `par`, in a compound tense (`a été envoyé`), after a modal verb or `aller` (`doit être envoyé`) or in the future (`sera envoyé`) it is a passive; a plain present (`est envoyé`) may describe a state and is a warning (A2) or a note (B1); stative participles in the plain present (`fermé`, `ouvert`, `assuré`, `inscrit`, `interdit`, ...) are not flagged | error (A2) / warn (B1) |
+| GRAM-03 | No subjunctive or conditional | a conditional ending on the future stem (`pourriez`, `faudrait`, `aimerions`); a subjunctive after a conjunction (`pour que`, `afin que`, `bien que`, `avant que`, `sans que`, `à condition que`, `à ce que`, ...) or a governing verb or adjective (`il faut que`, `il est important que`), or a form that is always subjunctive (`puisse`, `fasse`, `soit`) | warn |
+| GRAM-04 | Present and passé composé; no passé simple, no futur simple where `aller` + infinitive works | a future ending on the future stem (`recevrez`, `sera`, `enverrons`; the suggestion is `allez recevoir`); a passé simple: a finite past tense with a passé simple ending, a subject and no auxiliary; the singular of second-group -ir verbs and of -ire verbs (`il agit`, `je finis`, `il dit`) is the same in the present and counts as present | warn |
+| GRAM-05 | No nominalisations | a noun ending in `-tion`, `-sion`, `-ment`, `-age`, `-ance`, `-ence`, `-ité`, `-ure`, `-isme` that is not an everyday word (Zipf frequency below 4.0; stop list: `votation`, `ambulance`, ...) and not in the glossary. Warning in nominal style (with a light verb such as `effectuer`, `procéder` or `intervenir`, after `lors de`, `en vue de` or `dans le cadre de`, or with a `de` attribute: `le versement de la prestation`), otherwise a note | warn / info |
+| GRAM-06 | Pronouns only with an unambiguous reference | `il`, `elle`, `ils`, `elles`, the object `le` or `la`, `celui-ci` ... with no noun of matching gender and number in the same or the previous block, or with several; the impersonal `il` (`il faut`) is skipped | info (judge confirms: SEM-03) |
+| GRAM-07 | No reported speech | `selon`, `d'après` | info |
+| GRAM-09 | No impersonal `il convient de`, `il y a lieu de` | phrase list: `il convient`, `il y a lieu`, `il incombe`, `il appartient`, `il importe`, `il est loisible`, `opportun`, `souhaitable`, `recommandé`, `requis`; `il est nécessaire`, `obligatoire`, `possible`, `important`, `interdit` ... + `de` or `que` is a note | warn |
+| NEG-01 | No double negation | per clause part (commas, colons, `et`, `ou`, `mais`, `car` and the opener of a subordinate clause separate parts): the words that form one negation with `ne` (`pas`, `jamais`, `rien`, `plus`, `personne`, `aucun`, `ni`, ...) count as one negation together; `sans` (when `ne` is present), `non` (not in `non plus`) and an adjective with a negative prefix (`impossible`, `inutile`, `illégal`, ...) each add one; two negations in one part | error |
+| NEG-02 | Prefer positive formulation | one negation in a sentence | info |
+| LEX-01 | No long words | a word or part (at hyphens and apostrophes) longer than 12 letters, not in the glossary; the administrative words it also flagged until 7 October 2026 are LEX-07's now | info |
+| LEX-02 | No abbreviations except common ones | dotted abbreviations (`p. ex.`, `etc.`, `cf.`, `env.`, `c.-à-d.`, `art. 5`, `al. 2`, `no 3`, `tél.`, `Mme`, ...), abbreviated weekday ranges (`lu-ve`) and months, capital clusters and mixed-case law abbreviations (`LAVS`, `LAMal`); allowlist: `CHF`, `AVS`, `AI`, `CFF`, `PDF`, `WC`, `SMS`, `TV`, `ID`, `OK`; known words in an all-capital heading are no abbreviations; an abbreviation explained in the text or the glossary is only `info`; the suggestion is the full word from the vocabulary (`p. ex.`: `par exemple`) | warn |
+| LEX-03 | No foreign words, anglicisms, jargon | a content word with a Zipf frequency below 2.5 (wordfreq, French), unless it is a hyphenated word of common parts (`pare-brise`), in the glossary, or an office word LEX-07 names the everyday word for | info |
+| LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded) | warn |
+| LEX-05 | Inclusive forms without typographic devices | `·e·s`, `.e.s` and `(e)s` forms (`employé·e·s`, `citoyen(ne)`) | info |
+| LEX-06 | Direct address with `vous` | role nouns for the reader with an article (`le requérant`, `l'assuré`, `les bénéficiaires`, `le contribuable`, `la personne concernée`, ...) | info |
+| LEX-07 | Everyday words instead of office words | a `replace` word of the vocabulary (`émolument`, `moyennant`, `le cas échéant`, `s'acquitter de` also as `vous vous acquittez de`, `dans le cadre de` also as `dans le cadre du`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02), not the role nouns (LEX-06) | warn / info |
+| NUM-01 | Numbers as digits, except `un`/`une` | cardinal number words (`deux` ... `seize`, `vingt` ... `nonante`, `cent`, `mille`, also hyphenated) and ordinals from `deuxième` on; `premier`, the adjective `neuf` and `pour cent` are not flagged | warn |
+| NUM-02 | Thousands separator with a space: `1 500` | 5+ digits without a separator; 4 digits only next to a currency; phone numbers, dates, IBANs, postal codes and numbers after `no`, `art.`, `formulaire`, ... are skipped; `1'500` is accepted | warn |
+| NUM-03 | Date `4 février 2020` | numeric dates (`31.03.2026`, ISO and slash dates), also a day and month without year after `au`, `le`, `du`, `dès` (`au 15.09`); the suggestion is the written-out date (`1er mars 2026`) | warn |
+| NUM-04 | Time `9 h 00`, ranges `de 9 h 00 à 12 h 00` | colon times (`09:00`), dot times (`9.30 h`), ranges with a dash (`8h-12h`); `9h` and `16h30` without spaces are a note, as the Geneva pages write them | warn |
+| NUM-05 | Durations in words and digits: `1 heure et 30 minutes` | `1,5 h`, `1½ heure`, `90 min` | info |
+| NUM-06 | Percent written out | `%` → `pour cent` | warn |
+| NUM-07 | Amounts `500 francs` or `CHF 500` | `CHF 500.00`, `500.-`, `500,00 CHF`, `500 CHF` | info |
+| NUM-08 | Phone numbers spaced: `022 123 45 67` | as NUM-08, including the accepted `+41 22 123 45 67` | warn |
+| CH-03 | Swiss numerals `septante`, `huitante` or `octante`, `nonante` when numbers are written out | `soixante-dix` to `soixante-dix-neuf`, `quatre-vingt-dix` to `quatre-vingt-dix-neuf` | info |
 
 Readability: Kandel-Moles (French adaptation of Flesch), syllables via `pyphen`
 (`fr`); reported, with no target yet. Rule source for the writer prompt: Inclusion
@@ -273,7 +275,7 @@ Size on 7 October: German 260 replace (13 of them context-dependent) and 197 exp
 (7), French 225 (24) and 190 (10). Sources:
 
 - the hard words of the standard pages in the pairs (`data/pairs/`), the explanations
-  official easy pages give for the same terms, and the rule lists above (LEX-01-FR,
+  official easy pages give for the same terms, and the rule lists above (LEX-01,
   LEX-02);
 - TERMDAT, the federal terminology database, queried as Linked Data (SPARQL endpoint
   `https://ld.admin.ch/query`, graph `https://lindas.admin.ch/fch/termdat`, about
@@ -321,9 +323,9 @@ to measure it; docs/architecture.md §4.2, §4.3, §4.6):
    rarest first, marked on the review page (`rules/glossary.py`). "Hard" means an
    abbreviation, a phrase or a word below Zipf 5.2: `loi` and `demande` stay out,
    `Verfügung` and `décision` stay in;
-4. the checker: LEX-07 and LEX-07-FR flag the office words left in a draft, with the
-   everyday word as the suggestion; LEX-02 and LEX-02-FR suggest the full word of an
-   abbreviation; LEX-03 leaves the office words to LEX-07. Without the vocabulary their
+4. the checker: LEX-07 flags the office words left in a draft, with the everyday word
+   as the suggestion; LEX-02 suggests the full word of an abbreviation; LEX-03 leaves
+   the office words to LEX-07. Without the vocabulary their
    findings are computed but not sent to repair;
 5. the vocabulary round: a last repair round for the
    office words still in the best version, the flagged sentences alone with their
@@ -333,7 +335,7 @@ to measure it; docs/architecture.md §4.2, §4.3, §4.6):
 
 **Calibration** (7 October 2026): LEX-07 fires 1.2 times per 100 blocks on the 30
 official German easy-language pages and 20.5 times on their standard originals;
-LEX-07-FR 0.7 and 19.6 on the 5 French pairs. The first version fired 3.1 times on the
+LEX-07 0.7 and 19.6 on the 5 French pairs. The first version fired 3.1 times on the
 easy German pages. The words the official writers keep on purpose became explain
 entries (`Behörde`, `Merkblatt`) or context-dependent (`Unterlagen`, `obligatorisch`,
 `Dienststelle` in names of offices, `Beeinträchtigung` as the respectful word,
@@ -435,10 +437,10 @@ the 5 official French easy-language pages of the manifest, 544 blocks, level A2.
 | First version of the checker | 5.3 | 27.6 | 21.9 |
 | After calibration | 2.2 | 20.0 | 23.5 |
 
-The remaining errors are genuine deviations: passives (GRAM-01-FR, 1.1 per 100 blocks,
+The remaining errors are genuine deviations: passives (GRAM-01, 1.1 per 100 blocks,
 for example "ont été relus par des relecteurs"), sentences of more than 18 words
-(LEN-01-FR, 0.9; two of them are lines where the page joins a label and a phone
-number) and one nested clause. The 9.6 warnings per 100 blocks of LEN-02-FR are mostly
+(LEN-01, 0.9; two of them are lines where the page joins a label and a phone
+number) and one nested clause. The 9.6 warnings per 100 blocks of LEN-02 are mostly
 relative clauses with `qui` and `pour` + infinitive, which the professional French
 texts use freely; for A2 they stay warnings.
 
@@ -447,20 +449,20 @@ What the calibration changed, and why:
 - The sentence limits. French needs about a quarter more words than German for the
   same content: on the official pages the mean sentence has 7.3 words in French and
   5.9 in German, and 95 percent of the sentences have at most 15 words in French and
-  11 in German. With the German limit of 12, LEN-01-FR caused 21 of the 29 errors.
+  11 in German. With the German limit of 12, LEN-01 caused 21 of the 29 errors.
   The French limits are 15 words (A2) and 18 (B1).
 - `est-ce que` marks a question, not a subordinate clause; the parser reads it as a
   relative clause.
-- NEG-01-FR also separates clause parts at the opener of a subordinate clause: "Je ne
+- NEG-01 also separates clause parts at the opener of a subordinate clause: "Je ne
   dois pas écrire ... si ce n'est pas demandé" has two negations in two clauses.
-- GRAM-04-FR: a passé simple needs a subject and no auxiliary. The parser tags the
+- GRAM-04: a passé simple needs a subject and no auxiliary. The parser tags the
   participles in "un acte interdit par la loi" and "il est interdit" as finite verbs.
-- GRAM-01-FR: `interdit`, `permis`, `autorisé` and `obligé` after `être` describe a
+- GRAM-01: `interdit`, `permis`, `autorisé` and `obligé` after `être` describe a
   state, like `fermé` and `assuré`.
-- LEX-02-FR: known words in an all-capital heading ("ÉLECTION DU PROCUREUR GÉNÉRAL")
+- LEX-02: known words in an all-capital heading ("ÉLECTION DU PROCUREUR GÉNÉRAL")
   are no abbreviations.
-- GRAM-05-FR: `votation` is everyday Swiss French, `ambulance` a concrete thing.
-- NUM-04-FR: `8h` and `16h30`, as the Geneva pages write them, are a note.
+- GRAM-05: `votation` is everyday Swiss French, `ambulance` a concrete thing.
+- NUM-04: `8h` and `16h30`, as the Geneva pages write them, are a note.
 
 ### The value kinds of 7 October on the official texts
 

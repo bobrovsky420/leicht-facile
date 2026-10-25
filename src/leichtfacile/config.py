@@ -51,6 +51,8 @@ from pydantic import (
 )
 from pydantic.fields import FieldInfo
 
+from leichtfacile.schemas import PipelineOptions
+
 ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
 AuthMode = Literal["none", "token", "proxy"]
@@ -292,51 +294,9 @@ def listed(model: str, models: Iterable[str]) -> bool:
     return model in names or (":" in model and model.rpartition(":")[0] in names)
 
 
-class Pipeline(Section):
-    """The rounds after the first draft (docs/architecture.md §4.6)."""
-
-    repair_rounds: int = Field(
-        3, ge=0, le=10, description="Repair rounds on the rule findings and the judge's; 0: none."
-    )
-    facts_rounds: int = Field(
-        1,
-        ge=0,
-        le=5,
-        description="Rounds that ask only for the must-keep facts still missing after the "
-        "repair rounds; 0: none.",
-    )
-    # 10 since the dev rerun of 7 October 2026 (docs/prompts.md): fact coverage 79 against
-    # 75 percent with 5, no invented value, fewer judge findings.
-    missing_per_facts_round: int = Field(
-        10,
-        ge=1,
-        le=20,
-        description="Missing facts one such round asks for (a repair round asks for 5).",
-    )
-    # On since 9 October 2026: German fact coverage on the dev pairs rose from 78 to 96
-    # percent, no invented value added (docs/prompts.md).
-    recover_facts: int = Field(
-        10,
-        ge=0,
-        le=20,
-        description="Must-keep values still missing then, asked for one by one with their "
-        "source paragraph, as one new version; 0: none.",
-    )
-    # The facts and recover rounds add the source's sentences nearly verbatim, and the
-    # loop never sees them again (10 October 2026; measured in docs/prompts.md).
-    polish_rounds: int = Field(
-        1,
-        ge=0,
-        le=3,
-        description="Repair rounds on the best version's rule findings alone, at the end; 0: none.",
-    )
-    # The writer itself gets no list of office words: such a list made the 8B write more
-    # of them (docs/prompts.md).
-    vocabulary: bool = Field(
-        True,
-        description="The vocabulary of hard words in the pipeline; false only to measure "
-        "what it brings.",
-    )
+# The [pipeline] section is the model a job carries along (schemas.PipelineOptions), so
+# the settings and the stored jobs describe the rounds with one set of fields.
+Pipeline = PipelineOptions
 
 
 class Jobs(Section):

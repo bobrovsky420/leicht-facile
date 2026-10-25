@@ -4,7 +4,6 @@ Texts come from the interface catalogs (`i18n.py`) through the translator `t`.""
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -15,10 +14,10 @@ from leichtfacile.lifecycle import job_counts
 from leichtfacile.rules.base import RULES
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
-from leichtfacile.rules.messages import recover
 from leichtfacile.rules.recipes import RECIPE_RULES
 from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import (
+    ROUND_KINDS,
     SEVERITY_RANK,
     Block,
     CoreAnswer,
@@ -41,30 +40,16 @@ from leichtfacile.store import Store
 from leichtfacile.web.i18n import ENGLISH, Translator
 
 CORE_KEYS = ("what", "must_do", "deadline", "cost", "contact")
-
-# The pipeline's stop reasons (orchestrator.py) and their catalog keys.
-STOP_KEYS = {
-    "baseline": "stop.baseline",
-    "P1": "stop.p1",
-    "no problems left": "stop.no_problems",
-    "only warnings left": "stop.only_warnings",
-    "no blocking problems left": "stop.no_blocking",
-    "a repair round failed": "stop.round_failed",
-    "a repair round brought no progress": "stop.no_progress",
-    "no missing facts left": "stop.no_missing_facts",
-    "a facts round failed": "stop.facts_round_failed",
-    "a facts round brought no progress": "stop.facts_no_progress",
-}
+# The stop reasons that name a count of rounds (schemas.StopReason).
+_COUNTED_STOPS = {"max_rounds": "repair", "max_facts_rounds": "facts"}
 
 
-def stop_reason(t: Translator, reason: str) -> str:
-    rounds = re.fullmatch(r"stopped after (\d+) repair rounds", reason)
-    if rounds:
-        return t("stop.max_rounds", n=int(rounds.group(1)))
-    facts = re.fullmatch(r"stopped after (\d+) facts rounds", reason)
-    if facts:
-        return t("stop.max_facts_rounds", n=int(facts.group(1)))
-    return t(STOP_KEYS[reason]) if reason in STOP_KEYS else reason
+def stop_reason(t: Translator, summary: PipelineSummary) -> str:
+    """Why the rounds ended, in the interface language (`stop.<code>`)."""
+    code = summary.stop_reason
+    if code in _COUNTED_STOPS:
+        return t(f"stop.{code}", n=summary.rounds_of(_COUNTED_STOPS[code]))
+    return t(f"stop.{code}")
 
 
 # -- the review page ------------------------------------------------------------------
@@ -274,24 +259,11 @@ class ReviewView:
 
 def finding_text(t: Translator, finding: Finding) -> str:
     """A rule finding's message in the interface language: the catalog text for
-    `finding.<message_key>`, filled with the finding's values. A finding stored before
-    the keys existed gets key and values read off its English text; the stored text
-    stands in when that fails or the catalogs have no text for the key."""
-    key, params = finding.message_key, dict(finding.message_params)
-    if not key:
-        recovered = recover(finding.rule_id, finding.message)
-        if recovered is None:
-            return finding.message
-        key, params = recovered
+    `finding.<key>`, filled with the finding's values (English when the language has
+    no text for the key)."""
+    params = dict(finding.params)
     n = params.pop("n", None)  # a count picks the .one or .other variant
-    count = int(n) if n is not None else None
-    key = f"finding.{key}"
-    if not t.has(key, count):
-        return finding.message
-    try:
-        return t(key, n=count, **params)
-    except (KeyError, IndexError):  # the template and the stored values drifted apart
-        return finding.message
+    return t(f"finding.{finding.key}", n=int(n) if n is not None else None, **params)
 
 
 def review_view(
@@ -548,7 +520,7 @@ def progress_view(
 
     stage = job.stage or ""
     stage_key = stage.split(" ")[0]
-    if stage_key in ("facts", "vocabulary", "recover", "polish"):  # kinds of repair round
+    if stage_key in ROUND_KINDS:  # every kind of round shows as the repair step
         stage_key = "repair"
     in_loop = len(drafts) > 1 or stage_key == "repair"
     if job.status in ("needs_review", "done"):
@@ -591,7 +563,7 @@ def progress_view(
     by_stage: dict[str, StageUsage] = {}
     for u in job.usage:
         key = u.stage.split(" ")[0]
-        key = "repair" if key in ("facts", "vocabulary", "recover", "polish") else key
+        key = "repair" if key in ROUND_KINDS else key
         row = by_stage.setdefault(key, StageUsage(key))
         row.calls += 1
         row.cached += int(u.cached)
@@ -666,17 +638,16 @@ def _add_detail(
             else:
                 step.detail = t("detail.checking_repair")
         elif summary and step.state == "done":
-            if summary.rounds == 0:
+            repairs = summary.rounds_of("repair")
+            if repairs == 0:
                 step.state = "skipped"
-                step.detail = t("detail.not_needed", reason=stop_reason(t, summary.stop_reason))
+                step.detail = t("detail.not_needed", reason=stop_reason(t, summary))
             else:
-                step.detail = t(
-                    "detail.rounds", n=summary.rounds, reason=stop_reason(t, summary.stop_reason)
-                )
-                if summary.facts_rounds:
-                    step.detail += t("detail.facts_rounds", n=summary.facts_rounds)
-                if summary.polish_rounds:
-                    step.detail += t("detail.polish_rounds", n=summary.polish_rounds)
+                step.detail = t("detail.rounds", n=repairs, reason=stop_reason(t, summary))
+                if facts := summary.rounds_of("facts"):
+                    step.detail += t("detail.facts_rounds", n=facts)
+                if polish := summary.rounds_of("polish"):
+                    step.detail += t("detail.polish_rounds", n=polish)
                 per_version = ", ".join(
                     f"v{v}: {b}" for v, b in zip(drafts, summary.blocking_findings, strict=False)
                 )

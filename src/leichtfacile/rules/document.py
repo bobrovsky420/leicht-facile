@@ -473,14 +473,12 @@ def read_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
 
 declare(
     "READ-02",
-    lang=None,
     title="Average and maximum sentence length",
     severity=sev("info"),
     scope="document",
 )
 declare(
     "READ-03",
-    lang=None,
     title="Share of sentences with passive, genitive, subordinate clause",
     severity=sev("info"),
     scope="document",
@@ -502,4 +500,4 @@ JUDGE_RULES = {
     "SEM-10": "Period without its start",
 }
 for _rule_id, _title in JUDGE_RULES.items():
-    declare(_rule_id, lang=None, title=_title, severity=sev("warn"), scope="judge")
+    declare(_rule_id, title=_title, severity=sev("warn"), scope="judge")

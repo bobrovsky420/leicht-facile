@@ -2,8 +2,8 @@
 
 Conditions (§9): P0 and the P0-ZH pair are single-prompt baselines (one sentence, or the
 Canton of Zurich's prompt); P1 is understand, write and the rule check; P2 adds the judge
-and the repair loop. Every stage stores its result before the
-next starts, so a failed job resumes from the last good stage.
+and the rounds of pipeline/rounds.py. Every stage stores its result before the next
+starts, so a failed job resumes from the last good stage.
 
 One orchestrator serves every worker thread. What belongs to one run (the notes, the
 last round's failure, the stage to stop after, the time budget and the stop signal)
@@ -15,7 +15,6 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from collections import defaultdict
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
@@ -24,9 +23,18 @@ from leichtfacile.config import LLM, Settings
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
-from leichtfacile.pipeline import render, stages
-from leichtfacile.pipeline.labels import label
+from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.prompts import prompt_versions
+from leichtfacile.pipeline.rounds import (
+    MISSING_PRIORITY,
+    MISSING_RULES,
+    Step,
+    best,
+    blocking_count,
+    missing_count,
+    plan,
+    request_for,
+)
 from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet
@@ -34,53 +42,28 @@ from leichtfacile.rules.glossary import fill_glossary
 from leichtfacile.rules.medication import medication_names
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.rules.swiss import apply_ss
-from leichtfacile.rules.vocabulary import OFFICE_RULES, vocabulary_version
+from leichtfacile.rules.vocabulary import vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     AnsweredAddition,
     Draft,
     DroppedText,
     FactSheet,
-    Finding,
     Job,
     JobConfig,
     JudgeReport,
     PipelineSummary,
     RepairRecord,
+    RoundRecord,
     RuleFindings,
     SourceDocument,
+    StopReason,
 )
 from leichtfacile.store import Store
 
 log = logging.getLogger(__name__)
 
-# Rule families whose findings the model can fix by rewriting a block. A value the
-# source does not contain (FACT-06) is fixed the same way, and a medication written
-# apart from its dose (FACT-09) on the block that names it; a missing fact value
-# (FACT-01) gets new sentences. Provenance and bookkeeping findings (FACT-02 to
-# FACT-05) and layout go to the reviewer instead.
-REPAIRABLE = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
-REPAIRABLE_RULES = ("FACT-06", "FACT-09")
-# Findings that name a fact the draft lacks: a missing must-keep value, and in decision
-# mode a dropped part of the operative part or the appeal instructions (rules/decision.py).
-MISSING_RULES = ("FACT-01", "FACT-08")
 STAGE_ORDER = ("understand", "write", "check", "judge", "repair", "review")
-MAX_MISSING_PER_ROUND = 5
-MISSING_PRIORITY = {
-    kind: rank
-    for rank, kind in enumerate(
-        (
-            "medication",
-            "deadline",
-            "amount",
-            "obligation",
-            "condition",
-            "right",
-            "contact",
-            "procedure",
-        )
-    )
-}
 ARTIFACTS_FROM = {
     "understand": ["factsheet", "draft", "rules", "judge", "repair", "summary", "review"],
     "write": ["draft", "rules", "judge", "repair", "summary", "review"],
@@ -121,117 +104,6 @@ class RunState:
     def stop(self) -> threading.Event:
         assert self.limit.stop is not None
         return self.limit.stop
-
-
-def repairable(finding: Finding) -> bool:
-    """Whether a repair round can fix the finding by rewriting its block."""
-    return finding.rule_id.split("-")[0] in REPAIRABLE or finding.rule_id in REPAIRABLE_RULES
-
-
-def missing_count(rules: RuleFindings) -> int:
-    """Must-keep values the draft still lacks (FACT-01), and in decision mode the parts
-    of the decision it dropped (FACT-08): the measure of a facts round."""
-    return sum(1 for f in rules.findings if f.rule_id in MISSING_RULES)
-
-
-def version_key(rules: RuleFindings, judge: JudgeReport | None) -> tuple[int, int]:
-    """The order of the draft versions, best first: the fewest must-keep values
-    missing, then the fewest blocking findings. Facts come first because a reviewer can
-    reject an unsupported sentence or mend a long one with a click, but cannot conjure
-    a missing deadline; before 8 October 2026 the blocking count alone decided, and the
-    dev rerun of 7 October showed it discarding versions a facts round had just filled
-    (docs/prompts.md, "Fact-retention diagnosis", bucket k)."""
-    return (missing_count(rules), blocking_count(rules, judge))
-
-
-def blocking_count(rules: RuleFindings, judge: JudgeReport | None) -> int:
-    """Findings that should not survive into the draft the reviewer gets."""
-    count = sum(
-        1
-        for f in rules.findings
-        if f.severity == "error" and (repairable(f) or f.rule_id in MISSING_RULES)
-    )
-    if judge:
-        count += sum(1 for c in judge.fact_checks if c.status != "present")
-        count += len(judge.unsupported)
-    return count
-
-
-def build_request(
-    draft: Draft,
-    rules: RuleFindings,
-    judge: JudgeReport | None,
-    factsheet: FactSheet,
-    *,
-    include_warnings: bool = True,
-    facts_only: bool = False,
-    limit: int = MAX_MISSING_PER_ROUND,
-    vocabulary: bool = True,
-    only: tuple[str, ...] = (),
-) -> RepairRequest:
-    """What a repair round should fix. Without warnings, the round concentrates on what
-    blocks the draft: rule errors, missing fact values and the judge's problems. A small
-    model asked to fix everything at once tends to fix nothing (docs/prompts.md). A
-    facts-only round asks for the missing facts alone and flags no block. Without
-    `vocabulary` the office words of LEX-07 are left to the reviewer. With `only`, the
-    round asks for the findings of these rules alone, no fact and no judge's problem:
-    the vocabulary round."""
-    severities = ("error", "warn") if include_warnings else ("error",)
-    lang = draft.lang
-    blocks = draft.by_id()
-    if only:
-        flagged: dict[str, list[str]] = defaultdict(list)
-        for f in rules.findings:
-            if f.rule_id in only and f.block_id in blocks and f.severity in ("error", "warn"):
-                flagged[f.block_id].append(render.finding_line(f, lang))
-        return RepairRequest(dict(flagged), [])
-    facts = {f.id: f for f in factsheet.facts}
-    problems: dict[str, list[str]] = defaultdict(list)
-    missing: set[str] = set()
-    dropped: set[str] = set()  # parts of a decision (FACT-08): first in the list
-    for f in rules.findings:
-        if not vocabulary and f.rule_id in OFFICE_RULES:
-            continue
-        if f.block_id in blocks and f.severity in severities and repairable(f):
-            problems[f.block_id].append(render.finding_line(f, lang))
-        elif f.rule_id in MISSING_RULES and f.fact_id:
-            missing.add(f.fact_id)
-            if f.rule_id == "FACT-08":
-                dropped.add(f.fact_id)
-    if judge:
-        for u in judge.unsupported:
-            problems[u.block_id].append(
-                f"  - SEM-06: {label(lang, 'unsupported')} {u.note}".rstrip()
-            )
-        for s in judge.semantic_findings:
-            block = blocks.get(s.block_id)
-            if block is not None and block.kind == "heading":
-                continue  # a repair turns a question heading into a statement
-            problems[s.block_id].append(f"  - {s.rule_id}: {s.note}".rstrip())
-        for c in judge.fact_checks:
-            fact = facts.get(c.fact_id)
-            if fact is None:
-                continue
-            if c.status == "distorted":
-                for block_id in c.block_ids:
-                    wrong = label(lang, "distorted", fact_id=c.fact_id, note=c.note, fact=fact.text)
-                    problems[block_id].append(f"  - {wrong}")
-            elif c.status == "missing" and fact.must_keep:
-                missing.add(c.fact_id)
-    # A few missing facts per round, the most important kinds first (a dropped part of a
-    # decision before any value): a small model adds some of a long list and drops the
-    # rest; the next round takes the next ones.
-    ordered_missing = sorted(
-        (f for f in factsheet.facts if f.id in missing),
-        key=lambda f: (
-            f.id not in dropped,
-            MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)),
-            f.id,
-        ),
-    )[:limit]
-    if facts_only:
-        return RepairRequest({}, ordered_missing)
-    return RepairRequest({k: v for k, v in problems.items() if k in blocks}, ordered_missing)
 
 
 class Orchestrator:
@@ -415,9 +287,7 @@ class Orchestrator:
                 run.notes.extend(notes)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         rules = self._check(run, job, draft, source, None)
-        self._summary(
-            run, job, source, draft, rules=[rules], judge=None, rounds=0, reason="baseline"
-        )
+        self._summary(run, job, source, [(draft, rules, None)], reason="baseline")
 
     def _run_pipeline(self, run: RunState, job: Job, source: SourceDocument) -> None:
         cfg = job.config
@@ -435,7 +305,7 @@ class Orchestrator:
             factsheet = stages.complete_factsheet(factsheet, source)
             if cfg.mode == "decision":
                 factsheet = protect_factsheet(factsheet, source)
-            if self.settings.pipeline.vocabulary:
+            if cfg.pipeline.vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)
         self._maybe_stop(run, "understand")
@@ -453,7 +323,7 @@ class Orchestrator:
                 addressee=cfg.addressee,
             )
             draft = stages.link_facts(draft, factsheet, source)
-            if self.settings.pipeline.vocabulary:  # before the Mediopunkt: it splits the terms too
+            if cfg.pipeline.vocabulary:  # before the Mediopunkt: it splits the terms too
                 draft, _ = fill_glossary(draft)
             # P1 and P2 only; a baseline measures the prompt
             draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
@@ -463,170 +333,93 @@ class Orchestrator:
         rules = self._check(run, job, draft, source, factsheet)
         self._maybe_stop(run, "check")
         if cfg.condition == "P1":
-            self._summary(run, job, source, draft, rules=[rules], judge=None, rounds=0, reason="P1")
+            self._summary(run, job, source, [(draft, rules, None)], reason="p1")
             return
 
         judge = self._judge(run, job, source, factsheet, draft) if cfg.use_judge else None
         self._maybe_stop(run, "judge")
-        history = [(draft, rules, judge)]
-        reason = "no problems left"
-        rounds = 0
-        polished = False  # warnings get one round, once nothing blocking is left
-        for rounds in range(1, cfg.max_repair_rounds + 1):  # noqa: B007
-            blocking = blocking_count(rules, judge)
-            if blocking == 0 and polished:
-                reason = "only warnings left"
-                rounds -= 1
+        history, records, reason = self._rounds(run, job, source, factsheet, (draft, rules, judge))
+        self._summary(run, job, source, history, rounds=records, reason=reason)
+
+    # -- the rounds after the first draft (pipeline/rounds.py) ----------------------------
+
+    def _rounds(
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        first: Step,
+    ) -> tuple[list[Step], list[RoundRecord], StopReason]:
+        """The plan, kind by kind: every version made, one record per round, and why
+        the repair and facts rounds ended. A round that fails leaves the versions so
+        far standing; after a round the endpoint failed, nothing more runs."""
+        options = job.config.pipeline
+        history = [first]
+        records: list[RoundRecord] = []
+        reason: StopReason = "no_problems"
+        for spec in plan(options):
+            if spec.kind != "repair" and run.round_failure == "endpoint":
                 break
-            request = build_request(
-                draft,
-                rules,
-                judge,
-                factsheet,
-                include_warnings=blocking == 0,
-                vocabulary=self.settings.pipeline.vocabulary,
-            )
-            if not request:
-                reason = "no problems left"
-                rounds -= 1
-                break
-            polished = polished or blocking == 0
-            step = self._round(run, job, source, factsheet, draft, rules, judge, request, rounds)
-            if step is None:
-                # The drafts so far stay valid; the reviewer gets the best of them.
-                reason = "a repair round failed"
-                rounds -= 1
-                break
-            history.append(step)
-            progress = blocking_count(step[1], step[2]) < blocking
-            draft, rules, judge = step
-            if blocking_count(rules, judge) == 0:
-                reason = "no blocking problems left"
-                break
-            if not progress:
-                reason = "a repair round brought no progress"
-                break
-        else:
-            reason = f"stopped after {cfg.max_repair_rounds} repair rounds"
-        # Facts-only rounds: the loop above stops when a round brings no progress on the
-        # whole, which on the dev pairs left must-keep values missing in nearly every
-        # job (docs/prompts.md). These rounds ask for the missing facts alone and are
-        # measured by them: they go on while a round adds a fact, up to the limit.
-        facts_rounds = 0
-        # Not without repair (max_repair_rounds 0), and not after a round the endpoint
-        # failed: then the drafts so far stand. After an answer the code could not use
-        # (no valid JSON twice) the facts round still runs: a smaller prompt, a new try.
-        limit = cfg.max_facts_rounds if cfg.max_repair_rounds else 0
-        if reason == "a repair round failed" and run.round_failure == "endpoint":
-            limit = 0
-        for facts_rounds in range(1, limit + 1):  # noqa: B007
-            missing = missing_count(rules)
-            if missing == 0:
-                facts_rounds -= 1
-                break
-            request = build_request(
-                draft,
-                rules,
-                judge,
-                factsheet,
-                facts_only=True,
-                limit=self.settings.pipeline.missing_per_facts_round,
-            )
-            step = self._round(
-                run, job, source, factsheet, draft, rules, judge, request, facts_rounds,
-                kind="facts",
-            )  # fmt: skip
-            if step is None:
-                reason = "a facts round failed"
-                facts_rounds -= 1
-                break
-            history.append(step)
-            draft, rules, judge = step
-            if missing_count(rules) == 0:
-                reason = "no missing facts left"
-                break
-            if missing_count(rules) >= missing:
-                reason = "a facts round brought no progress"
-                break
-        else:
-            if facts_rounds:
-                reason = f"stopped after {facts_rounds} facts rounds"
-        # The recover round (pipeline.recover_facts, off by default): the must-keep values
-        # still missing in the best version, each asked for alone with its source
-        # paragraph and its value named (stages.recover_fact, the review page's "Suggest
-        # a sentence"); the sentences code accepts go after their blocks as one new
-        # version, checked and judged. The choice below keeps it only if it is better.
-        endpoint_down = run.round_failure == "endpoint"
-        if self.settings.pipeline.recover_facts and cfg.max_repair_rounds and not endpoint_down:
-            base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-            latest = max(h[0].version for h in history)
-            step = self._recover(run, job, source, factsheet, *base, version=latest + 1)
-            if step is not None:
-                history.append(step)
-        # The polish round (pipeline.polish_rounds, 1 by default since 10 October 2026): the
-        # facts and recover rounds add the source's sentences nearly verbatim,
-        # and the loop above never sees them again. Up to that many repair rounds on the
-        # best version, for its rule findings alone: the errors, or the warnings once no
-        # error is left; no fact and no judge's problem, so the round cannot fall into
-        # the loop's no-progress spiral. Office words stay with the vocabulary round. The
-        # choice below keeps a polished version only if it loses no fact and adds no
-        # blocking finding.
-        polish_rounds = 0
-        if self.settings.pipeline.polish_rounds and cfg.max_repair_rounds and not endpoint_down:
-            for number in range(1, self.settings.pipeline.polish_rounds + 1):
-                base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-                blocks = base[0].by_id()
-                errors = any(
-                    f.severity == "error" and f.block_id in blocks and repairable(f)
-                    for f in base[1].findings
-                )
-                request = build_request(
-                    base[0], base[1], None, factsheet,
-                    include_warnings=not errors, limit=0, vocabulary=False,
-                )  # fmt: skip
-                if not request:
+            for number in range(1, spec.limit + 1):
+                base = best(history) if spec.from_best else history[-1]
+                draft, rules, judge = base
+                before = (blocking_count(rules, judge), missing_count(rules))
+                if spec.measure == "missing" and before[1] == 0:
                     break
-                latest = max(h[0].version for h in history)
-                step = self._round(
-                    run, job, source, factsheet, *base, request, number, kind="polish",
-                    version=latest + 1,
-                )  # fmt: skip
+                version = max(h[0].version for h in history) + 1
+                if spec.kind == "recover":
+                    step = self._recover(run, job, source, factsheet, *base, version=version)
+                else:
+                    request = request_for(spec, draft, rules, judge, factsheet, options)
+                    if not request:
+                        if spec.kind == "repair":
+                            reason = "no_problems"
+                        break
+                    step = self._round(
+                        run, job, source, factsheet, *base, request, number,
+                        kind=spec.kind, version=version,
+                    )  # fmt: skip
                 if step is None:
+                    if spec.kind == "repair":
+                        reason = "round_failed"
+                    elif spec.kind == "facts":
+                        reason = "facts_round_failed"
                     break
                 history.append(step)
-                polish_rounds = number
-        # The vocabulary round: the office words still in the best version, each sentence
-        # rewritten with its everyday word (LEX-07), after everything else, so that the
-        # repair rounds stay on the facts. Its version is a new one after the latest;
-        # the choice below keeps it only if it loses no fact and adds no blocking problem.
-        vocabulary_rounds = 0
-        if self.settings.pipeline.vocabulary and cfg.max_repair_rounds and not endpoint_down:
-            base = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-            request = build_request(*base, factsheet, only=OFFICE_RULES)
-            if request:
-                latest = max(h[0].version for h in history)
-                step = self._round(
-                    run, job, source, factsheet, *base, request, 1, kind="vocabulary",
-                    version=latest + 1,
-                )  # fmt: skip
-                if step is not None:
-                    history.append(step)
-                    vocabulary_rounds = 1
-        best = min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
-        self._summary(
-            run,
-            job,
-            source,
-            best[0],
-            rules=[h[1] for h in history],
-            judge=judge,
-            rounds=max(rounds, 0),
-            facts_rounds=max(facts_rounds, 0),
-            reason=reason,
-            history=history,
-            vocabulary_rounds=vocabulary_rounds,
-            polish_rounds=polish_rounds,
-        )
+                after = (blocking_count(step[1], step[2]), missing_count(step[1]))
+                records.append(
+                    RoundRecord(
+                        kind=spec.kind,
+                        number=number,
+                        parent_version=draft.version,
+                        version=step[0].version,
+                        blocking_before=before[0],
+                        blocking_after=after[0],
+                        missing_before=before[1],
+                        missing_after=after[1],
+                    )
+                )
+                if spec.measure == "blocking":
+                    if after[0] == 0:
+                        reason = "no_blocking"
+                        break
+                    if after[0] >= before[0]:
+                        reason = "no_progress"
+                        break
+                elif spec.measure == "missing":
+                    if after[1] == 0:
+                        reason = "no_missing_facts"
+                        break
+                    if after[1] >= before[1]:
+                        reason = "facts_no_progress"
+                        break
+            else:  # every round of the kind ran
+                if spec.kind == "repair":
+                    reason = "max_rounds"
+                elif spec.kind == "facts" and spec.limit:
+                    reason = "max_facts_rounds"
+        return history, records, reason
 
     def _round(
         self,
@@ -640,12 +433,11 @@ class Orchestrator:
         request: RepairRequest,
         number: int,
         *,
-        kind: str = "repair",
-        version: int | None = None,
-    ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
-        """One repair round: the new version, checked and judged; None when the model
-        call failed (the job goes on with the versions it has). `version`: the new
-        version's number when it is not the next after `draft`."""
+        kind: str,
+        version: int,
+    ) -> Step | None:
+        """One round through the repair prompt: the new version, checked and judged; None
+        when the model call failed (the job goes on with the versions it has)."""
         cfg = job.config
         self._stage(run, f"{kind} {number}")
         run.round_failure = None
@@ -679,16 +471,16 @@ class Orchestrator:
         judge: JudgeReport | None,
         *,
         version: int,
-    ) -> tuple[Draft, RuleFindings, JudgeReport | None] | None:
+    ) -> Step | None:
         """The recover round: one call per missing must-keep value (FACT-01), the most
-        important kinds first, up to pipeline.recover_facts; each call sees the draft with the
-        sentences recovered before it. None when no sentence was accepted."""
+        important kinds first, up to pipeline.recover_facts; each call sees the draft with
+        the sentences recovered before it. None when no sentence was accepted."""
         facts = {f.id: f for f in factsheet.facts}
         missing = {f.fact_id for f in rules.findings if f.rule_id == "FACT-01" and f.fact_id}
         wanted = sorted(
             (facts[i] for i in missing if i in facts),
             key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
-        )[: self.settings.pipeline.recover_facts]
+        )[: job.config.pipeline.recover_facts]
         if not wanted:
             return None
         self._stage(run, "recover")
@@ -747,11 +539,11 @@ class Orchestrator:
         judge: JudgeReport | None,
         new_draft: Draft,
         record: RepairRecord,
-    ) -> tuple[Draft, RuleFindings, JudgeReport | None]:
+    ) -> Step:
         """A round's new version after the model: code's edits, stored, checked and
         judged (again when facts were involved, else the judge's findings carried over)."""
         new_draft = stages.link_facts(new_draft, factsheet, source)
-        if self.settings.pipeline.vocabulary:  # a repair can bring a new hard term
+        if job.config.pipeline.vocabulary:  # a repair can bring a new hard term
             new_draft, _ = fill_glossary(new_draft)
         # Before the check: one text for all.
         new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
@@ -825,46 +617,35 @@ class Orchestrator:
         run: RunState,
         job: Job,
         source: SourceDocument,
-        final: Draft,
+        history: list[Step],
         *,
-        rules: list[RuleFindings],
-        judge: JudgeReport | None,
-        rounds: int,
-        reason: str,
-        history: list | None = None,
-        facts_rounds: int = 0,
-        vocabulary_rounds: int = 0,
-        polish_rounds: int = 0,
+        reason: StopReason,
+        rounds: list[RoundRecord] | None = None,
     ) -> None:
-        blocking = (
-            [blocking_count(h[1], h[2]) for h in history]
-            if history
-            else [blocking_count(r, None) for r in rules]
-        )
-        writer = run.llm.resolve_model(job.config.writer_model, False)[0]
-        reader = run.llm.resolve_model(self._understand_model(run, job.config), False)[0]
+        """The summary of the run: the best version is final (`best`), one record per
+        round, the blocking findings of every version."""
+        cfg = job.config
+        final = best(history)[0]
+        writer = run.llm.resolve_model(cfg.writer_model, False)[0]
+        reader = run.llm.resolve_model(self._understand_model(run, cfg), False)[0]
+        pipeline = cfg.condition not in BASELINE_CONDITIONS
         summary = PipelineSummary(
-            condition=job.config.condition,
-            mode=job.config.mode,
+            condition=cfg.condition,
+            mode=cfg.mode,
             final_version=final.version,
-            rounds=rounds,
-            facts_rounds=facts_rounds,
-            vocabulary_rounds=vocabulary_rounds,
-            polish_rounds=polish_rounds,
+            rounds=rounds or [],
             stop_reason=reason,
-            endpoint=job.config.endpoint or run.llm.settings.llm.endpoint,
+            endpoint=cfg.endpoint or run.llm.settings.llm.endpoint,
             writer_model=writer,
-            understand_model=reader
-            if job.config.condition not in BASELINE_CONDITIONS and reader != writer
-            else None,
-            judge_model=(job.config.judge_model or run.llm.judge_model())
-            if job.config.condition == "P2" and job.config.use_judge
+            understand_model=reader if pipeline and reader != writer else None,
+            judge_model=(cfg.judge_model or run.llm.judge_model())
+            if cfg.condition == "P2" and cfg.use_judge
             else None,
             prompt_versions=prompt_versions(source.lang),
-            blocking_findings=blocking,
+            blocking_findings=[blocking_count(h[1], h[2]) for h in history],
             notes=list(run.notes),
             vocabulary=vocabulary_version(source.lang)
-            if self.settings.pipeline.vocabulary and job.config.condition not in BASELINE_CONDITIONS
+            if pipeline and cfg.pipeline.vocabulary
             else None,
         )
         self.store.put_artifact(job.id, "summary", summary)

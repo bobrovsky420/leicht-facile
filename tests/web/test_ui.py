@@ -286,9 +286,14 @@ def reviewable_job(store, settings):
     store.put_artifact(job.id, "draft", draft, 1)
 
     def finding(block_id, rule_id, severity, **extra) -> Finding:
-        message = f"{rule_id} message"
+        text = {"text": f"{rule_id} message"}  # an ad-hoc English text, as a stored one
         return Finding(
-            block_id=block_id, rule_id=rule_id, severity=severity, message=message, **extra
+            block_id=block_id,
+            rule_id=rule_id,
+            severity=severity,
+            key="legacy",
+            params=text,
+            **extra,
         )
 
     findings = [

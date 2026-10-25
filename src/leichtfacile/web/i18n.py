@@ -11,8 +11,9 @@ The rule checker's findings are translated as well: `rules/messages.py` holds th
 English templates, the English catalog takes them over under `finding.<key>`, and the
 other catalogs translate them (`finding.LEN-01`, `finding.LEN-02.sub`, ...).
 
-A key with a count has the variants `<key>.one` and `<key>.other`, chosen by
-`PLURAL_ONE`. Keys under `js.` (and the job statuses) are sent to the browser for
+A key with a count has the variants `<key>.one` and `<key>.other`, chosen by the
+language's plural rule (`rules/messages.plural_form`, the one rule for the findings and
+the interface). Keys under `js.` (and the job statuses) are sent to the browser for
 `app.js`, which picks the plural variant with `Intl.PluralRules`.
 
 The interface language is the reviewer's, independent of the document's language:
@@ -25,13 +26,11 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from leichtfacile.rules.messages import MESSAGES
+from leichtfacile.rules.messages import MESSAGES, plural_form
 
 LOCALES_DIR = Path(__file__).parent / "locales"
 DEFAULT_LANG = "en"
 COOKIE = "ui_lang"
-# The counts that take the singular form; CLDR's "one" category for integers.
-PLURAL_ONE: dict[str, frozenset[int]] = {"fr": frozenset({0, 1})}
 
 
 @lru_cache(maxsize=1)
@@ -52,7 +51,7 @@ def finding_texts() -> dict[str, str]:
 
 def rule_texts() -> dict[str, str]:
     """The rules' titles (the "Rule" column of docs/rules.md) as catalog entries
-    `rule.<ID>`, one per rule id: GRAM-08 and GRAM-08-FR are different rules."""
+    `rule.<ID>`, one per rule."""
     from leichtfacile.rules import RULES  # importing the package registers every rule
 
     return {f"rule.{rule_id}": spec.title for rule_id, spec in RULES.items()}
@@ -117,8 +116,7 @@ class Translator:
         the key itself."""
         if n is None:
             return key
-        form = "one" if n in PLURAL_ONE.get(self.lang, frozenset({1})) else "other"
-        return f"{key}.{form}"
+        return f"{key}.{plural_form(self.lang, n)}"
 
     def has(self, key: str, n: int | None = None) -> bool:
         """Whether a text exists for the key, in this language or in English."""

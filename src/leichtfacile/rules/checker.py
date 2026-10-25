@@ -100,13 +100,13 @@ class RuleChecker:
         block_rules = list(rules_for(self.lang, "block"))
         for index, info in enumerate(infos):
             ctx.block_index = index
-            for spec in block_rules:
+            for spec, check in block_rules:
                 if info.kind in spec.kinds:
-                    findings += self._findings(spec.id, spec.check(info, ctx), ctx, info.id)
+                    findings += self._findings(spec.id, check(info, ctx), ctx, info.id)
             for sent in info.sentences:
-                for spec in sentence_rules:
+                for spec, check in sentence_rules:
                     if info.kind in spec.kinds:
-                        findings += self._findings(spec.id, spec.check(sent, ctx), ctx, info.id)
+                        findings += self._findings(spec.id, check(sent, ctx), ctx, info.id)
 
         doc = DocInput(
             draft=draft,
@@ -116,8 +116,8 @@ class RuleChecker:
             mode=mode,
         )
         for scope in ("document", "factsheet"):
-            for spec in rules_for(self.lang, scope):
-                findings += self._findings(spec.id, spec.check(doc, ctx), ctx, None)
+            for spec, check in rules_for(self.lang, scope):
+                findings += self._findings(spec.id, check(doc, ctx), ctx, None)
 
         metrics = self.metrics(infos, draft, factsheet, source)
         return RuleFindings(
@@ -133,8 +133,8 @@ class RuleChecker:
         """`notice`: the fixed text a decision's export begins and ends with (FACT-07)."""
         ctx = Context(lang=self.lang, params=params_for(self.lang, level), notice=notice)
         findings: list[Finding] = []
-        for spec in rules_for(self.lang, "export"):
-            findings += self._findings(spec.id, spec.check(lines, ctx), ctx, None)
+        for spec, check in rules_for(self.lang, "export"):
+            findings += self._findings(spec.id, check(lines, ctx), ctx, None)
         return findings
 
     def _findings(
@@ -146,9 +146,8 @@ class RuleChecker:
                 block_id=hit.block_id or block_id,
                 rule_id=rule_id,
                 severity=hit.severity or spec.severity_for(ctx.level),
-                message=hit.message,
-                message_key=hit.key,
-                message_params=dict(hit.params),
+                key=hit.key,
+                params=dict(hit.params),
                 evidence=hit.evidence,
                 suggestion=hit.suggestion,
                 fact_id=hit.fact_id,
@@ -205,7 +204,7 @@ def _dedupe(findings: list[Finding]) -> list[Finding]:
     seen: set[tuple] = set()
     out = []
     for f in findings:
-        key = (f.block_id, f.rule_id, f.message, f.evidence)
+        key = (f.block_id, f.rule_id, f.key, tuple(sorted(f.params.items())), f.evidence)
         if key not in seen:
             seen.add(key)
             out.append(f)

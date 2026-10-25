@@ -43,7 +43,7 @@
       {% for row in v.version_rows %}
       <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}>v{{ row.version }}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}{% if row.blocking is not none %} <span class="vcount{% if row.blocking == 0 %} zero{% endif %}">{{ t('review.blocking_n', count=row.blocking) }}</span>{% endif %}</a>
       {% endfor %}
-      {% if v.summary %}<span class="muted" title="{{ t('review.rounds', n=v.summary.rounds, reason=stop_reason(t, v.summary.stop_reason)) }}">{{ t('review.rounds_short', n=v.summary.rounds) }}</span>{% endif %}
+      {% if v.summary %}<span class="muted" title="{{ t('review.rounds', n=v.summary.rounds_of('repair'), reason=stop_reason(t, v.summary)) }}">{{ t('review.rounds_short', n=v.summary.rounds_of('repair')) }}</span>{% endif %}
       {% if v.code_splits %}<span class="muted" title="{{ t('review.code_splits_title') }}">{{ t('review.code_splits', n=v.code_splits) }}</span>{% endif %}
     </nav>
     <span class="grow"></span>

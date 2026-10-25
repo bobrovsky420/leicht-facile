@@ -1,4 +1,4 @@
-"""Clause recipes (rules/recipes.py): every conjunction LEN-02 and LEN-02-FR find gets
+"""Clause recipes (rules/recipes.py): every conjunction LEN-02 and LEN-02 find gets
 the rewrite recipe for its kind as the finding's suggestion, and the review page never
 offers a recipe as a replacement."""
 
@@ -43,13 +43,13 @@ def _finding(lang: str, text: str, rule_id: str):
 @pytest.mark.parametrize(("text", "opener", "marker"), GERMAN, ids=[g[1] for g in GERMAN])
 def test_each_german_conjunction_yields_its_recipe(text: str, opener: str, marker: str) -> None:
     finding = _finding("de", text, "LEN-02")
-    assert finding.message_params["opener"] == opener
+    assert finding.params["opener"] == opener
     assert finding.suggestion and marker in finding.suggestion
 
 
 def test_several_main_clauses_get_the_two_sentences_recipe() -> None:
     finding = _finding("de", "Sie gehen zum Amt und Sie zeigen Ihren Ausweis.", "LEN-02")
-    assert finding.message_key == "LEN-02.main"
+    assert finding.key == "LEN-02.main"
     assert finding.suggestion == recipe_de(None) == "Mach 2 Sätze: eine Aussage pro Satz."
 
 
@@ -75,14 +75,14 @@ FRENCH = [
 
 @pytest.mark.parametrize(("text", "opener", "marker"), FRENCH, ids=[f[1] for f in FRENCH])
 def test_each_french_conjunction_yields_its_recipe(text: str, opener: str, marker: str) -> None:
-    finding = _finding("fr", text, "LEN-02-FR")
-    assert finding.message_params["opener"] == opener
+    finding = _finding("fr", text, "LEN-02")
+    assert finding.params["opener"] == opener
     assert finding.suggestion and marker in finding.suggestion
 
 
 def test_french_main_clauses_and_unknown_openers_get_the_two_sentences_recipe() -> None:
-    finding = _finding("fr", "Vous allez au bureau et vous montrez votre passeport.", "LEN-02-FR")
-    assert finding.message_key == "LEN-02-FR.main"
+    finding = _finding("fr", "Vous allez au bureau et vous montrez votre passeport.", "LEN-02")
+    assert finding.key == "LEN-02.main"
     assert finding.suggestion == recipe_fr(None)
     assert recipe_fr("sans") == recipe_fr(None)
 
@@ -103,7 +103,7 @@ def test_the_review_page_does_not_offer_a_recipe_as_a_replacement(tmp_path) -> N
     from leichtfacile.store import Store
     from leichtfacile.web.views import review_view
 
-    assert {"LEN-02", "LEN-02-FR"} == RECIPE_RULES
+    assert {"LEN-02"} == RECIPE_RULES
     from tests.pipeline import fixtures as fx
 
     store = Store(tmp_path / "r.sqlite")

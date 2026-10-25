@@ -45,11 +45,7 @@ from pathlib import Path
 from typing import Any
 
 from leichtfacile.eval.labels import completed_rows
-from leichtfacile.pipeline.orchestrator import (
-    MAX_MISSING_PER_ROUND,
-    blocking_count,
-    build_request,
-)
+from leichtfacile.pipeline.rounds import MAX_MISSING_PER_ROUND, blocking_count, build_request
 from leichtfacile.rules.document import fact_coverage
 from leichtfacile.rules.values import (
     MONTH_NAMES,
@@ -343,8 +339,8 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
         setup=setup,
         final_version=final,
         versions=versions,
-        rounds=summary.rounds,
-        facts_rounds=summary.facts_rounds,
+        rounds=summary.rounds_of("repair"),
+        facts_rounds=summary.rounds_of("facts"),
         stop_reason=summary.stop_reason,
         recorded=all(records.get(v) is not None for v in into_final),
         checkable=len(coverage[final].checkable),

@@ -7,6 +7,7 @@ import re
 from collections.abc import Iterable
 
 from leichtfacile.pipeline.labels import label
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.schemas import Draft, FactSheet, Finding, Segment, SourceDocument
 
 # The templates put the document between these tags and say that what stands inside
@@ -107,7 +108,7 @@ def glossary_text(draft: Draft) -> str:
 
 def finding_line(f: Finding, lang: str = "de") -> str:
     """One problem line of a repair round, with the checker's suggestion if any."""
-    line = f"  - {f.rule_id}: {f.message}"
+    line = f"  - {f.rule_id}: {render_finding(f)}"
     if f.suggestion:
         line += " " + label(lang, "suggestion", text=f.suggestion)
     return line

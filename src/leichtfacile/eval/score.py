@@ -122,7 +122,7 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
         "errors_per_100": round(100 * severity["error"] / blocks, 2),
         "warnings_per_100": round(100 * severity["warn"] / blocks, 2),
         "by_family_per_100": {k: round(100 * v / blocks, 2) for k, v in sorted(by_family.items())},
-        # office words left (LEX-07, LEX-07-FR, any level), comparable with the reference
+        # office words left (LEX-07, any level), comparable with the reference
         "office_words_per_100": round(
             100 * sum(1 for f in checked.findings if f.rule_id in OFFICE_RULES) / blocks, 2
         ),

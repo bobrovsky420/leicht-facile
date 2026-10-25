@@ -15,7 +15,7 @@ French "ai" is never the AI. A phrase of the [not_in] table hides a term inside 
 
 The pipeline uses the lists in four places (docs/architecture.md §4): the fact sheet
 gets the checked explanations, code adds missing glossary entries (rules/glossary.py),
-rule LEX-07 / LEX-07-FR flags the office words left in a draft, and the vocabulary round
+rule LEX-07 flags the office words left in a draft, and the vocabulary round
 rewrites them. The writer gets no list of office words: on the CSCS dev run of 7 October
 2026 such a list made the 8B write more of them (docs/prompts.md).
 """
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 Kind = Literal["replace", "explain"]
 KINDS: tuple[Kind, ...] = ("replace", "explain")
 CONTEXT = "context"  # the group of words with a second, everyday sense
-OFFICE_RULES = ("LEX-07", "LEX-07-FR")  # the rules that flag the office words
+OFFICE_RULES = ("LEX-07",)  # the rule that flags the office words, in every language
 ABBREVIATIONS = "abbreviations"
 # An explanation is added by code only for a term an everyday reader may not know: an
 # abbreviation, a phrase, or a word below the everyday words loi (5.4) and demande (5.5)
@@ -370,7 +370,7 @@ def find_terms(lang: str, doc: Doc | Span) -> list[Match]:
 def office_words(
     matches: Iterable[Match], *, exclude: re.Pattern[str] | None = None
 ) -> Iterator[Match]:
-    """The office words among the matches, for rules LEX-07 and LEX-07-FR: replace
+    """The office words among the matches, for rule LEX-07: replace
     entries with an everyday word; not the context-dependent ones, not abbreviations
     (LEX-02), not a part of a hyphenated word (Abklärungs-Stelle, often a name) and not
     what `exclude` matches (the role nouns of LEX-06)."""

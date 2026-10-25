@@ -1,10 +1,13 @@
 """Rule registry, level thresholds and the context every check receives.
 
 Each rule of docs/rules.md is registered here once, with its id, severity per level,
-scope and the instruction for the writer prompt. The checker runs the registered
-check functions, and the style guide in the writer prompt is generated from the same
-registry, so prompt and checker cannot drift apart. A test keeps the registry and
-docs/rules.md in sync.
+scope and the instruction for the writer prompt. A rule of the language families is
+declared in `catalog.py` and gets its checks from the language modules (`de.py`,
+`fr.py`) or from `shared.py`, which holds the checks both languages share; a rule that
+applies to every language (facts, layout, readability) declares itself with its check.
+The checker runs the check a rule has for the document's language, and the style guide
+in the writer prompt is generated from the same registry, so prompt and checker cannot
+drift apart. A test keeps the registry and docs/rules.md in sync.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ if TYPE_CHECKING:
     from spacy.tokens import Span
 
 Scope = Literal["sentence", "block", "document", "factsheet", "export", "judge"]
+EVERY_LANGUAGE = "*"  # the key of a check that serves every language
 
 
 @dataclass(frozen=True)
@@ -59,15 +63,14 @@ class Hit:
     """One occurrence found by a check, built by `messages.hit()`; the checker turns it
     into a Finding."""
 
-    message: str  # English, from the template `key` in messages.py
+    key: str  # the message template in messages.py
+    params: dict[str, str | int | float] = field(default_factory=dict)  # its placeholders
     evidence: str = ""
     suggestion: str | None = None
     severity: Severity | None = None  # overrides the rule's severity for this level
     fact_id: str | None = None
     segment_ids: tuple[str, ...] = ()
     block_id: str | None = None  # document-scope checks name the block, if any
-    key: str | None = None  # the message template; the UI translates by it
-    params: dict[str, str | int | float] = field(default_factory=dict)  # its placeholders
 
 
 @dataclass
@@ -105,7 +108,7 @@ class Context:
 
 
 def _glossary_key(word: str) -> str:
-    return word.replace("\u00b7", "").replace("-", "").strip().lower()
+    return word.replace("·", "").replace("-", "").strip().lower()
 
 
 def glossary_keys(terms: Iterable[str]) -> set[str]:
@@ -119,31 +122,41 @@ def glossary_keys(terms: Iterable[str]) -> set[str]:
 
 
 CheckFn = Callable[..., Iterable[Hit]]
+Guide = str | dict[str, str]  # one instruction for every level, or one per level
 
 
-@dataclass(frozen=True)
+@dataclass
 class RuleSpec:
     id: str
-    lang: str | None  # None: applies to every language
-    title: str  # the "Rule" column of docs/rules.md
+    title: str  # the "Rule" column of docs/rules.md, in English
     severity: dict[str, Severity]  # per level
     scope: Scope
-    # Instruction for the writer prompt in the rule's language, one text for all levels
-    # or one per level; {max_words} and the other LevelParams fields are filled in.
-    guide: str | dict[str, str] | None = None
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading")  # block kinds checked
-    check: CheckFn | None = None
+    # The checks by language, or one under EVERY_LANGUAGE; a rule the judge decides or a
+    # metric reports has none.
+    checks: dict[str, CheckFn] = field(default_factory=dict)
+    # The instruction for the writer prompt, by language; {max_words} and the other
+    # LevelParams fields are filled in.
+    guides: dict[str, Guide] = field(default_factory=dict)
+
+    @property
+    def langs(self) -> tuple[str, ...]:
+        """The languages with a check of their own; empty for a check that serves every
+        language, and for a rule without a check."""
+        return tuple(lang for lang in self.checks if lang != EVERY_LANGUAGE)
+
+    def check_for(self, lang: str) -> CheckFn | None:
+        return self.checks.get(lang) or self.checks.get(EVERY_LANGUAGE)
 
     def severity_for(self, level: str) -> Severity:
         return self.severity[level]
 
-    def guide_for(self, level: str) -> str | None:
-        if self.guide is None:
-            return None
-        text = self.guide.get(level) if isinstance(self.guide, dict) else self.guide
+    def guide_for(self, lang: str, level: str) -> str | None:
+        guide = self.guides.get(lang)
+        text = guide.get(level) if isinstance(guide, dict) else guide
         if text is None:
             return None
-        return text.format(**params_for(self.lang, level).__dict__)
+        return text.format(**params_for(lang, level).__dict__)
 
 
 RULES: dict[str, RuleSpec] = {}
@@ -153,43 +166,69 @@ def sev(a2: Severity, b1: Severity | None = None) -> dict[str, Severity]:
     return {"A2": a2, "B1": b1 or a2}
 
 
-def rule(
+def declare(
     rule_id: str,
     *,
-    lang: str | None,
     title: str,
     severity: dict[str, Severity],
     scope: Scope,
-    guide: str | dict[str, str] | None = None,
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading"),
+) -> RuleSpec:
+    """Register a rule: the language rules in catalog.py, the judge's and the metrics'
+    rules where they are listed. The checks attach with `rule`."""
+    if rule_id in RULES:
+        raise ValueError(f"rule {rule_id} declared twice")
+    RULES[rule_id] = RuleSpec(rule_id, title, severity, scope, kinds)
+    return RULES[rule_id]
+
+
+def rule(
+    rule_id: str,
+    *,
+    lang: str | tuple[str, ...] | None,
+    title: str | None = None,
+    severity: dict[str, Severity] | None = None,
+    scope: Scope | None = None,
+    guide: Guide | dict[str, Guide] | None = None,
+    kinds: tuple[str, ...] | None = None,
 ) -> Callable[[CheckFn], CheckFn]:
-    """Register a check function under a rule id."""
+    """Attach a check function to a rule for one language, for several (`lang` a
+    tuple, with the guide by language) or for every language (None). A rule not
+    declared yet is declared here with `title`, `severity` and `scope`; a declared one
+    takes no second declaration."""
+    langs = (lang,) if isinstance(lang, str) or lang is None else tuple(lang)
 
     def decorator(fn: CheckFn) -> CheckFn:
-        if rule_id in RULES:
-            raise ValueError(f"rule {rule_id} registered twice")
-        RULES[rule_id] = RuleSpec(rule_id, lang, title, severity, scope, guide, kinds, fn)
+        spec = RULES.get(rule_id)
+        if spec is None:
+            if title is None or severity is None or scope is None:
+                raise ValueError(f"rule {rule_id} is not declared (rules/catalog.py)")
+            spec = declare(
+                rule_id,
+                title=title,
+                severity=severity,
+                scope=scope,
+                kinds=kinds or ("sentence", "list_item", "heading"),
+            )
+        elif title is not None or severity is not None or scope is not None or kinds:
+            raise ValueError(f"rule {rule_id} is declared already: attach the check alone")
+        for code in langs:
+            key = code or EVERY_LANGUAGE
+            if key in spec.checks:
+                raise ValueError(f"rule {rule_id}: a check for {key} is registered twice")
+            spec.checks[key] = fn
+            if guide is not None and code is not None:
+                spec.guides[code] = guide[code] if len(langs) > 1 else guide  # type: ignore[index,assignment]
         return fn
 
     return decorator
 
 
-def declare(
-    rule_id: str,
-    *,
-    lang: str | None,
-    title: str,
-    severity: dict[str, Severity],
-    scope: Scope,
-    guide: str | dict[str, str] | None = None,
-) -> None:
-    """Register a rule without a check function (judge rules, metric-only rules)."""
-    if rule_id in RULES:
-        raise ValueError(f"rule {rule_id} registered twice")
-    RULES[rule_id] = RuleSpec(rule_id, lang, title, severity, scope, guide)
-
-
-def rules_for(lang: str, scope: Scope) -> Iterator[RuleSpec]:
+def rules_for(lang: str, scope: Scope) -> Iterator[tuple[RuleSpec, CheckFn]]:
+    """The rules of a scope with the check they have for the language."""
     for spec in RULES.values():
-        if spec.scope == scope and spec.check and spec.lang in (None, lang):
-            yield spec
+        if spec.scope != scope:
+            continue
+        check = spec.check_for(lang)
+        if check is not None:
+            yield spec, check

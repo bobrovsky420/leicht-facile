@@ -25,7 +25,7 @@ def test_every_documented_rule_is_registered() -> None:
 
 def checked_rules(lang: str) -> int:
     """Rules code checks for a language (the judge's rules have no check function)."""
-    return sum(1 for spec in RULES.values() if spec.check and spec.lang in (None, lang))
+    return sum(1 for spec in RULES.values() if spec.check_for(lang))
 
 
 def test_the_readme_states_the_rule_counts() -> None:
@@ -46,8 +46,8 @@ def test_style_guide_follows_the_level() -> None:
     assert "höchstens 12 Wörter" in a2 and "höchstens 15 Wörter" in b1
     assert "Keine Nebensätze" in a2 and "Höchstens ein Nebensatz" in b1
     assert "Medio·punkt" in a2
-    # every German rule with a guide text appears in the A2 guide
-    guided = [r for r in RULES.values() if r.lang == "de" and r.guide_for("A2")]
+    # every rule with a German guide text appears in the A2 guide
+    guided = [r for r in RULES.values() if r.guide_for("de", "A2")]
     assert len(a2.splitlines()) == len(guided) + 1
 
 
@@ -55,7 +55,7 @@ def test_french_guide_follows_the_registry_and_the_french_limits() -> None:
     a2, b1 = style_guide("fr", "A2"), style_guide("fr", "B1")
     assert "au plus 15 mots" in a2 and "au plus 18 mots" in b1
     assert "Pas de subordonnée" in a2 and "Au plus une subordonnée" in b1
-    guided = [r for r in RULES.values() if r.lang == "fr" and r.guide_for("A2")]
+    guided = [r for r in RULES.values() if r.guide_for("fr", "A2")]
     assert len(a2.splitlines()) == len(guided) + 1
 
 

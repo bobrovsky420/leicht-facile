@@ -335,10 +335,10 @@ def test_a_french_letter_runs_through_the_french_prompts_and_rules(app_env) -> N
 
     rules = client.get(f"/api/jobs/{job_id}/artifacts/rules").json()
     found = {(f["rule_id"], f.get("fact_id")) for f in rules["findings"]}
-    assert ("GRAM-01-FR", None) in found  # "est contrôlé par la commune"
+    assert ("GRAM-01", None) in found  # "est contrôlé par la commune"
     assert ("FACT-01", "f02") in found  # the deadline is missing
     missing = next(f for f in rules["findings"] if f["rule_id"] == "FACT-01")
-    assert "30 avril 2026" in missing["message"]
+    assert missing["key"] == "FACT-01" and missing["params"]["expected"] == "30 avril 2026"
     assert rules["metrics"]["readability_formula"] == "kandel-moles"
 
     md = client.get(f"/api/jobs/{job_id}/export?format=md").text

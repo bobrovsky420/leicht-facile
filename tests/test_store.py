@@ -13,8 +13,10 @@ from leichtfacile.schemas import (
     Draft,
     JobConfig,
     JobCounts,
+    PipelineOptions,
     PipelineSummary,
     ReviewState,
+    RuleFindings,
 )
 from leichtfacile.store import SCHEMA_VERSION, Store
 
@@ -93,18 +95,43 @@ def test_old_names_and_fields_are_rewritten_on_open(tmp_path) -> None:
         '[{"block_id": "b001", "decision": "approved", "at": "2026-10-05T10:00:00+00:00"},'
         ' {"block_id": "b002", "decision": "rejected", "at": "2026-10-05T11:00:00+00:00"}]'
     )
+    summary = (
+        '{"condition": "C2", "final_version": 3, "rounds": 1, "facts_rounds": 1, '
+        '"vocabulary_rounds": 0, "polish_rounds": 0, "stop_reason": "no missing facts left"}'
+    )
     with sqlite3.connect(path) as db:  # as the versions of early October stored them
         db.execute(
             "UPDATE jobs SET config = json_set(config, '$.live', json('false'), "
-            "'$.condition', 'C2')"
+            "'$.condition', 'C2', '$.max_repair_rounds', 1, '$.max_facts_rounds', 2)"
         )
         db.execute(
             "INSERT INTO artifacts VALUES (?, 'summary', 0, ?, '2026-10-05T12:00:00+00:00')",
-            (job.id, '{"condition": "C2", "final_version": 1}'),
+            (job.id, summary),
         )
+        for version, kind in ((2, "repair"), (3, "facts")):
+            db.execute(
+                "INSERT INTO artifacts VALUES (?, 'repair', ?, ?, '2026-10-05T12:00:00+00:00')",
+                (job.id, version, f'{{"draft_version": {version}, "parent_version": '
+                                  f'{version - 1}, "kind": "{kind}"}}'),
+            )  # fmt: skip
         db.execute(
             "INSERT INTO artifacts VALUES (?, 'review', 0, ?, '2026-10-05T12:00:00+00:00')",
             (job.id, '{"draft_version": 1, "decisions": ' + decisions + "}"),
+        )
+        findings = (  # the English text alone; key and values; two French rule ids
+            '[{"block_id": "b001", "rule_id": "LEN-01", "severity": "warn", '
+            '"message": "The sentence has 14 words; the limit for A2 is 12."}, '
+            '{"block_id": "b001", "rule_id": "LEX-01", "severity": "warn", "message": "x", '
+            '"message_key": "LEX-01", "message_params": {"found": "Krankenkasse", '
+            '"letters": 12, "limit": 13}}, '
+            '{"block_id": "b001", "rule_id": "GRAM-08-FR", "severity": "warn", "message": "x", '
+            '"message_key": "GRAM-08-FR.soft", "message_params": {"found": "il est possible"}}, '
+            '{"block_id": "b001", "rule_id": "LEX-04-FR", "severity": "warn", "message": "x", '
+            '"message_key": "LEX-04-FR.slash", "message_params": {}}]'
+        )
+        db.execute(
+            "INSERT INTO artifacts VALUES (?, 'rules', 1, ?, '2026-10-05T12:00:00+00:00')",
+            (job.id, '{"draft_version": 1, "level": "A2", "findings": ' + findings + "}"),
         )
         db.execute("PRAGMA user_version = 1")
     store.close()
@@ -112,10 +139,25 @@ def test_old_names_and_fields_are_rewritten_on_open(tmp_path) -> None:
     for _ in range(2):  # opening again changes nothing
         store = Store(path)
         assert store.schema_version == SCHEMA_VERSION
-        assert store.get_job(job.id).config == JobConfig(level="B1", condition="P2")
-        assert store.get_artifact(job.id, "summary", PipelineSummary).condition == "P2"
+        rounds = PipelineOptions(repair_rounds=1, facts_rounds=2)
+        expected = JobConfig(level="B1", condition="P2", pipeline=rounds)
+        assert store.get_job(job.id).config == expected
+        migrated = store.get_artifact(job.id, "summary", PipelineSummary)
+        assert migrated.condition == "P2" and migrated.stop_reason == "no_missing_facts"
+        assert [(r.kind, r.number, r.parent_version, r.version) for r in migrated.rounds] == [
+            ("repair", 1, 1, 2),
+            ("facts", 1, 2, 3),
+        ]
+        assert migrated.rounds_of("repair") == 1 and migrated.rounds_of("facts") == 1
         review = store.get_artifact(job.id, "review", ReviewState)
         assert review.saved_at == datetime(2026, 10, 5, 11, tzinfo=UTC)
+        rules = store.get_artifact(job.id, "rules", RuleFindings, version=1)
+        assert [(f.rule_id, f.key, f.params) for f in rules.findings] == [
+            ("LEN-01", "legacy", {"text": "The sentence has 14 words; the limit for A2 is 12."}),
+            ("LEX-01", "LEX-01", {"found": "Krankenkasse", "letters": 12, "limit": 13}),
+            ("GRAM-09", "GRAM-09.soft", {"found": "il est possible"}),
+            ("LEX-04", "LEX-04.slash", {"first": "et", "second": "ou"}),
+        ]
         store.close()
 
 

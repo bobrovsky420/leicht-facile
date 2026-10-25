@@ -1,4 +1,4 @@
-"""Rewrite recipes for sentences with a subordinate clause (LEN-02, LEN-02-FR).
+"""Rewrite recipes for sentences with a subordinate clause (LEN-02).
 
 The finding's suggestion names the easy-language pattern for the conjunction found, in
 the document's language, so that the repair round and the reviewer know what to do
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from spacy.tokens import Token
 
 # Rules whose suggestion is a recipe, not a text that replaces the evidence.
-RECIPE_RULES = frozenset({"LEN-02", "LEN-02-FR"})
+RECIPE_RULES = frozenset({"LEN-02"})
 
 _DE = {
     "reason": "Mach 2 Sätze: zuerst der Grund, dann die Folge mit Deshalb. "
@@ -109,7 +109,7 @@ _FR_OPENERS = {
 
 
 def recipe_fr(opener: str | None, text: str = "") -> str:
-    """The recipe for the French opener a LEN-02-FR finding names (`parce que`, `si`,
+    """The recipe for the French opener a LEN-02 finding names in French (`parce que`, `si`,
     `qui`, `pour`); "même si" is read off the sentence, since the parser gives `si`."""
     if opener is None:
         return _FR["two"]

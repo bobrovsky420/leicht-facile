@@ -9,6 +9,7 @@ import re
 import pytest
 
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.rules.vocabulary import easy_for, load_vocabulary, matcher, office_words
 from leichtfacile.schemas import Block, Draft, GlossaryEntry
 
@@ -60,7 +61,7 @@ def test_explanations_pass_the_checker(lang: str) -> None:
         glossary=[GlossaryEntry(term=e.term, explanation=e.explanation) for e in explain],
     )
     findings = [
-        f"{owner.get(f.block_id, '-')}: {f.rule_id} {f.message}"
+        f"{owner.get(f.block_id, '-')}: {f.rule_id} {render_finding(f)}"
         for f in check_draft(draft).findings
         if f.severity != "info" and f.rule_id not in SKIP_RULES
     ]

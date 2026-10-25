@@ -53,10 +53,12 @@ def test_rule_stays_silent(lang: str, rule_id: str, case: dict) -> None:
 @pytest.mark.parametrize("lang", LANGS)
 def test_every_sentence_and_block_rule_has_golden_cases(lang: str) -> None:
     golden = GOLDEN[lang]
-    checked = {r.id for r in RULES.values() if r.lang == lang and r.scope in ("sentence", "block")}
+    checked = {
+        r.id for r in RULES.values() if lang in r.checks and r.scope in ("sentence", "block")
+    }
     missing = checked - set(golden)
     assert not missing, f"rules without golden sentences: {sorted(missing)}"
     for rule_id, groups in golden.items():
-        assert RULES[rule_id].lang == lang, f"{rule_id} is not a {lang} rule"
+        assert lang in RULES[rule_id].checks, f"{rule_id} has no {lang} check"
         assert len(groups.get("positive", [])) >= 2, f"{rule_id}: fewer than 2 positives"
         assert groups.get("negative"), f"{rule_id}: no negatives"

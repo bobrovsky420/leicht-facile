@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import queue
+import re
 import sqlite3
 import threading
 import uuid
@@ -132,6 +133,167 @@ def _rewrite_early_october(conn: sqlite3.Connection) -> None:
     _rewrite_json(conn, "artifacts", "data", _early_review, "WHERE name = 'review'")
 
 
+# The stop reasons as the summaries stored them until 25 October 2026, and their codes.
+_OLD_STOP_REASONS = {
+    "baseline": "baseline",
+    "P1": "p1",
+    "no problems left": "no_problems",
+    "only warnings left": "no_blocking",
+    "no blocking problems left": "no_blocking",
+    "a repair round failed": "round_failed",
+    "a repair round brought no progress": "no_progress",
+    "no missing facts left": "no_missing_facts",
+    "a facts round failed": "facts_round_failed",
+    "a facts round brought no progress": "facts_no_progress",
+}
+
+
+def _stop_code(text: str) -> str:
+    if text in _OLD_STOP_REASONS:
+        return _OLD_STOP_REASONS[text]
+    if text.startswith("stopped after"):
+        return "max_facts_rounds" if "facts" in text else "max_rounds"
+    return "no_problems"
+
+
+def _round_limits(config: dict[str, Any]) -> dict[str, Any]:
+    """A job's two round limits become its pipeline options (schemas.PipelineOptions);
+    the options the job had no field for take their defaults."""
+    if "max_repair_rounds" in config or "max_facts_rounds" in config:
+        config["pipeline"] = {
+            "repair_rounds": config.pop("max_repair_rounds", 3),
+            "facts_rounds": config.pop("max_facts_rounds", 1),
+        }
+    return config
+
+
+def _rewrite_round_records(conn: sqlite3.Connection) -> None:
+    """25 October 2026: the summary's four round counters become one record per round,
+    rebuilt from the job's repair records (from its draft versions for the jobs of the
+    first days, which have none), and its stop reason becomes a code."""
+    _rewrite_json(conn, "jobs", "config", _round_limits)
+    summaries = conn.execute(
+        "SELECT rowid, job_id, data FROM artifacts WHERE name = 'summary'"
+    ).fetchall()
+    for row in summaries:
+        data = json.loads(row["data"])
+        if not isinstance(data.get("rounds"), int):
+            continue  # stored with records already
+        records = conn.execute(
+            "SELECT version, data FROM artifacts WHERE job_id = ? AND name = 'repair' "
+            "ORDER BY version",
+            (row["job_id"],),
+        ).fetchall()
+        rounds: list[dict[str, Any]] = []
+        if records:
+            counts: dict[str, int] = {}
+            for record in records:
+                kind = json.loads(record["data"]).get("kind", "repair")
+                counts[kind] = counts.get(kind, 0) + 1
+                parent = json.loads(record["data"]).get("parent_version", record["version"] - 1)
+                rounds.append(
+                    {
+                        "kind": kind,
+                        "number": counts[kind],
+                        "parent_version": parent,
+                        "version": record["version"],
+                    }
+                )
+        else:
+            versions = conn.execute(
+                "SELECT version FROM artifacts WHERE job_id = ? AND name = 'draft' AND version > 1 "
+                "ORDER BY version",
+                (row["job_id"],),
+            ).fetchall()
+            rounds = [
+                {"kind": "repair", "number": n, "parent_version": v["version"] - 1,
+                 "version": v["version"]}
+                for n, v in enumerate(versions, 1)
+            ]  # fmt: skip
+        data["rounds"] = rounds
+        for key in ("facts_rounds", "vocabulary_rounds", "polish_rounds"):
+            data.pop(key, None)
+        data["stop_reason"] = _stop_code(str(data.get("stop_reason", "")))
+        conn.execute(
+            "UPDATE artifacts SET data = ? WHERE rowid = ?",
+            (json.dumps(data, ensure_ascii=False), row["rowid"]),
+        )
+
+
+def _finding_keys(rules: dict[str, Any]) -> dict[str, Any]:
+    """25 October 2026: a finding carries its message as key and values only. One stored
+    with the English text alone (before 12 October) keeps that text as the value of the
+    `legacy` template."""
+    findings = []
+    for finding in rules.get("findings") or []:
+        if "key" in finding:
+            findings.append(finding)
+            continue
+        text = finding.pop("message", "")
+        key = finding.pop("message_key", None)
+        params = finding.pop("message_params", None) or {}
+        if not key:
+            key, params = "legacy", {"text": text}
+        findings.append({**finding, "key": key, "params": params})
+    return {**rules, "findings": findings}
+
+
+def _rewrite_finding_keys(conn: sqlite3.Connection) -> None:
+    _rewrite_json(conn, "artifacts", "data", _finding_keys, "WHERE name = 'rules'")
+
+
+# 25 October 2026: a rule has one id whatever the language (rules/catalog.py). The
+# French ids lost their -FR suffix, GRAM-08-FR became GRAM-09, four French keys became
+# sub-keys of the shared template, and the templates whose text differed between the
+# languages took the difference as a value.
+_FR_KEYS = {
+    "LEX-01-FR": "LEX-01.no_compound",
+    "LEX-05-FR": "LEX-05.inclusive",
+    "GRAM-04-FR": "GRAM-04.future",
+}
+_TOOK_VALUES: dict[str, dict[str, dict[str, str]]] = {  # key -> language -> the values
+    "GRAM-03": {"de": {"mood": "Konjunktiv"}, "fr": {"mood": "Subjonctif"}},
+    "LEX-02.weekdays": {
+        "de": {"expected": "Montag bis Freitag"},
+        "fr": {"expected": "du lundi au vendredi"},
+    },
+    "LEX-04.slash": {
+        "de": {"first": "und", "second": "oder"},
+        "fr": {"first": "et", "second": "ou"},
+    },
+    "LEX-06": {"de": {"address": "Sie"}, "fr": {"address": "vous"}},
+    "LEX-06.no_address": {"de": {"address": "Sie"}, "fr": {"address": "vous"}},
+    "NUM-06": {"de": {"expected": "Prozent"}, "fr": {"expected": "pour cent"}},
+}
+_TOOK_SUGGESTION = {"NUM-02", "NUM-04.range"}  # expected: what the check suggested
+
+
+def _neutral_finding(finding: dict[str, Any]) -> dict[str, Any]:
+    rule_id, key = str(finding.get("rule_id", "")), str(finding.get("key", ""))
+    lang = "fr" if rule_id.endswith("-FR") else "de"
+    if rule_id.endswith("-FR"):
+        finding["rule_id"] = "GRAM-09" if rule_id == "GRAM-08-FR" else rule_id[:-3]
+    if key in _FR_KEYS:
+        key = _FR_KEYS[key]
+    else:
+        key = re.sub(r"^GRAM-08-FR", "GRAM-09", key)
+        key = re.sub(r"^([A-Z]+-\d{2})-FR", r"\1", key)
+    params = dict(finding.get("params") or {})
+    for name, value in _TOOK_VALUES.get(key, {}).get(lang, {}).items():
+        params.setdefault(name, value)
+    if key in _TOOK_SUGGESTION and "expected" not in params and finding.get("suggestion"):
+        params["expected"] = finding["suggestion"]
+    return {**finding, "key": key, "params": params}
+
+
+def _neutral_rule_ids(rules: dict[str, Any]) -> dict[str, Any]:
+    return {**rules, "findings": [_neutral_finding(f) for f in rules.get("findings") or []]}
+
+
+def _rewrite_rule_ids(conn: sqlite3.Connection) -> None:
+    _rewrite_json(conn, "artifacts", "data", _neutral_rule_ids, "WHERE name = 'rules'")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -143,6 +305,9 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
         "CREATE INDEX IF NOT EXISTS jobs_status ON jobs(status, updated_at)",
     ),
     (_rewrite_early_october,),  # 2 (25 October 2026): old names and fields rewritten
+    (_rewrite_round_records,),  # 3 (25 October 2026): one record per round, stop codes
+    (_rewrite_finding_keys,),  # 4 (25 October 2026): findings as key and values
+    (_rewrite_rule_ids,),  # 5 (25 October 2026): one rule id whatever the language
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.

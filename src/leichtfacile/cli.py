@@ -446,6 +446,7 @@ def _check(args: argparse.Namespace) -> int:
     from leichtfacile.eval.calibrate import source_as_draft
     from leichtfacile.ingest.errors import IngestError
     from leichtfacile.rules import check_draft
+    from leichtfacile.rules.messages import render_finding
 
     models_or_exit()
     try:
@@ -461,7 +462,7 @@ def _check(args: argparse.Namespace) -> int:
     blocks = {b.id: b for b in draft.blocks}
     for f in result.findings:
         where = f"{f.block_id} " if f.block_id else ""
-        print(f"{f.severity:5} {f.rule_id:8} {where}{f.message}")
+        print(f"{f.severity:5} {f.rule_id:8} {where}{render_finding(f)}")
         if f.block_id:
             print(f"      | {blocks[f.block_id].text[:110]}")
         if f.suggestion:
@@ -499,6 +500,9 @@ def _simplify(args: argparse.Namespace) -> int:
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
     store = Store(settings.data.dir / "leichtfacile.sqlite")
+    rounds = settings.pipeline
+    if args.no_repair:  # no repair rounds, and so none of the rounds after them
+        rounds = rounds.model_copy(update={"repair_rounds": 0, "facts_rounds": 0})
     config = JobConfig(
         lang=source.lang,
         level=args.level,
@@ -508,8 +512,7 @@ def _simplify(args: argparse.Namespace) -> int:
         understand_model=args.understand,
         judge_model=args.judge,
         use_judge=not args.no_judge,
-        max_repair_rounds=0 if args.no_repair else settings.pipeline.repair_rounds,
-        max_facts_rounds=0 if args.no_repair else settings.pipeline.facts_rounds,
+        pipeline=rounds,
         mode=args.mode,
         addressee=args.addressee,
         notice=args.notice,

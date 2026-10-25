@@ -188,8 +188,7 @@ def create_job(
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
-        max_repair_rounds=settings.pipeline.repair_rounds,
-        max_facts_rounds=settings.pipeline.facts_rounds,
+        pipeline=settings.pipeline,
         mode=sub.mode,  # type: ignore[arg-type]
         addressee=(sub.addressee or "").strip() or None,
         notice=notice,

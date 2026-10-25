@@ -317,7 +317,7 @@ score, share of passive sentences, …). The full catalogue is in
 - numbers as digits, Swiss formats for dates, times, amounts, phone numbers;
 - `ß`, `« »`, `%`, `&`, brackets, semicolons, abbreviations not on the allowlist;
 - long compounds without Mediopunkt;
-- office words with an everyday equivalent from the vocabulary (LEX-07, LEX-07-FR:
+- office words with an everyday equivalent from the vocabulary (LEX-07:
   `innert`, `reichen ... ein`, `moyennant`; a warning at A2, a note at B1), with the
   everyday word as the suggestion; abbreviations get their full word the same way (LEX-02);
 - **fact coverage**: every `must_keep` fact with a normalised value must appear in the
@@ -357,11 +357,16 @@ score, share of passive sentences, …). The full catalogue is in
   kept in one block with its dose, scheme and duration (FACT-09, `rules/medication.py`)
   ([rules.md](rules.md#fact-checks-for-the-further-use-cases)).
 
-Each rule is registered in code once (`rules/base.py`), with its id, severity per level
-and the instruction for the writer prompt; the style guide is rendered from that
-registry, and a test keeps the registry and [rules.md](rules.md) in sync. German has
-31 rules of its own (`rules/de.py`) and French 28 (`rules/fr.py`, ids ending in `-FR`),
-both calibrated on the official easy-language pages; 12 rules for facts, layout and
+Each rule is declared in code once (`rules/catalog.py`, the registry of
+`rules/base.py`), with one id, title, severity per level and scope whatever the
+language; the language modules attach their checks and the instruction for the writer
+prompt, and the style guide is rendered from the registry, so prompt and checker never
+disagree; a test keeps the registry and [rules.md](rules.md) in sync. Of the 33 rules
+of the language families, 32 have a German check and 28 a French one: 10 share one
+check with the language's words and patterns in a table (`rules/shared.py`), the others
+have a check per language (`rules/de.py`, `rules/fr.py`), both calibrated on the
+official easy-language pages; GRAM-09 (impersonal phrases) is French only, ORD-01,
+GRAM-02, GRAM-08, CH-01 and CH-02 are German only. 13 rules for facts, layout and
 readability apply to every language. Italian texts get only those until their rule set
 ships.
 
@@ -437,8 +442,30 @@ Then:
   findings for the blocks the repair did not touch are carried over;
 - the loop stops when no blocking finding remains (rule errors, missing fact values,
   facts the judge found missing or distorted, invented statements), when a round brings
-  no progress, when only warnings are left after the first round, or after
-  `pipeline.repair_rounds` (3).
+  no progress, or after `pipeline.repair_rounds` (3).
+
+**The plan** (`pipeline/rounds.py`, since 25 October 2026). The repair loop and the
+rounds that follow it run as one plan: every round starts from a version, asks the
+model, and ends as above. The kinds differ only in what they ask for, which version
+they start from, what measures their progress and how often they run:
+
+| Kind | Starts from | Asks for | Goes on while | Rounds at most |
+|------|-------------|----------|---------------|----------------|
+| repair | the latest version | the rule errors, the missing values and the judge's problems; the warnings when nothing blocks | the blocking findings fall | `pipeline.repair_rounds` (3) |
+| facts | the latest | the missing must-keep values alone (FACT-01, FACT-08) | the missing values fall | `pipeline.facts_rounds` (1) |
+| recover | the best | each missing value, with its source paragraph (§4.7) | - | once, for `pipeline.recover_facts` (10) values |
+| polish | the best | the rule errors, else the warnings; no fact, no judge's problem | - | `pipeline.polish_rounds` (1) |
+| vocabulary | the best | the office words (LEX-07) | - | once, with `pipeline.vocabulary` |
+
+The kinds after the repair rounds need repair rounds, and nothing runs after a round
+the endpoint failed; after an answer the code could not use, the plan goes on (a
+smaller prompt, a new try). The job carries the options it was created with
+(`JobConfig.pipeline`), so a settings change never alters a stored job. The summary
+records every round that made a version (`RoundRecord`: kind, number, the version it
+started from and the one it made, the blocking findings and the missing values before
+and after) and why the repair and facts rounds ended, as a code the interface
+translates (`stop_reason`: `no_blocking`, `no_progress`, `max_rounds`,
+`no_missing_facts`, ...).
 
 When the loop has stopped and must-keep values are still missing (FACT-01), up to
 `pipeline.facts_rounds` (1) more rounds ask for the missing facts alone, no block flagged,
@@ -448,9 +475,7 @@ They are measured by the FACT-01 count, not by the whole: the loop above stops o
 progress" when a round adds facts and the judge finds as many new problems, which on
 the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round
 goes on while it adds a fact and stops when none is missing, when it adds none, or at
-the limit; none runs without repair rounds or after a round the endpoint failed (after
-an answer the code could not use, it still runs: a smaller prompt, a new try). Since
-7 October 2026.
+the limit. Since 7 October 2026.
 
 **The recover round** (since 9 October 2026, on by default: `pipeline.recover_facts = 10`;
 0 turns it off). The must-keep values still missing (FACT-01) in the
@@ -463,9 +488,8 @@ to, as new blocks carrying the fact
 (`stages.add_sentences`), in one new version with the next free number and the best
 version as its parent; code's edits, the rule check and the judge follow as after a
 round, and its repair record has the kind `recover`. A fact without a suggestion, or
-with one FACT-01 does not accept, is left out with a note in the summary. Not without
-repair rounds and not after a round the endpoint failed; it runs before the vocabulary
-round, so office words in its sentences go there too. An error of any other kind in a
+with one FACT-01 does not accept, is left out with a note in the summary. It runs before
+the vocabulary round, so office words in its sentences go there too. An error of any other kind in a
 call ends the round with a note, never the job. On the dev pairs it raised German fact
 coverage from 78 to 96 percent (docs/prompts.md, "The recover round on the dev pairs").
 
@@ -480,22 +504,20 @@ no-progress stop, and no office word, which stays with the vocabulary round. Its
 version takes the next free number with the best version as its parent and is checked
 and judged as after a round (the judge runs again when its last report had problems,
 else its findings carry over); the choice below keeps it only when it loses no
-must-keep value and adds no blocking finding. Not without repair rounds, not after a
-round the endpoint failed. On the 12 dev pairs (docs/prompts.md, "The polish
+must-keep value and adds no blocking finding. On the 12 dev pairs (docs/prompts.md, "The polish
 round on the dev pairs"): German rule errors 1.9 to 1.3 per 100 blocks, warnings 38 to
 34, facts unchanged, no must-keep value lost, about 17 percent more tokens; the final
 draft descends from the polished version in 8 of 12 jobs.
 
 **The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
-rounds, the office words still in the best version (LEX-07, LEX-07-FR) go to one more
+rounds, the office words still in the best version (LEX-07) go to one more
 round through the repair prompt: the flagged sentences alone, each with its everyday
 word as the suggestion, no fact and no judge's problem. Before it, office words reach a
 round only as warnings, in the loop's warnings round that many jobs never get to, so the repair
 rounds stay on what blocks a draft. The round starts from the best version, so its new
 version takes the next free number and names that version as its parent. The choice
 below keeps it only when it loses no must-keep value and adds no blocking finding; at a
-tie the later version wins, so a round that only replaces office words is kept. Not with
-`pipeline.vocabulary = false`, not without repair rounds, not after a round the endpoint failed. On
+tie the later version wins, so a round that only replaces office words is kept. On
 the 12 dev pairs (docs/prompts.md, "The vocabulary round") it ran in 11 jobs and was
 kept in 8: office words in the final drafts from 42 to 19, no fact lost, about 11 s more
 per job.
@@ -646,7 +668,9 @@ Draft  (one per version)
 
 RuleFindings  (one per draft version)
   draft_version, level
-  findings[]: {block_id?, rule_id, severity, message, message_key?, message_params, evidence, suggestion?, fact_id?, segment_ids[]}
+  findings[]: {block_id?, rule_id, severity, key, params, evidence, suggestion?, fact_id?, segment_ids[]}
+              key and params name the message (rules/messages.py); the text is rendered
+              where it is shown, in English or the interface language
   metrics: {blocks, sentences, words, avg_words, max_words, pct_passive, pct_genitive,
             pct_subordinate, readability, readability_formula, facts_total, facts_found,
             fact_coverage}
@@ -671,17 +695,22 @@ ReviewState
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
 
 PipelineSummary
-  condition, mode, final_version, rounds, facts_rounds, stop_reason, endpoint? (the
-  endpoint the job ran on), writer_model,
-  understand_model? (only when another model read the source), judge_model?,
-  prompt_versions {stage: hash}, blocking_findings[] (per draft version),
-  vocabulary? (hash of the vocabulary file the job used), vocabulary_rounds (0|1)
+  condition, mode, final_version, stop_reason (a code: no_blocking, no_progress,
+  max_rounds, no_missing_facts, ...), endpoint? (the endpoint the job ran on),
+  writer_model, understand_model? (only when another model read the source),
+  judge_model?, prompt_versions {stage: hash}, blocking_findings[] (per draft version),
+  vocabulary? (hash of the vocabulary file the job used)
+  rounds[]: {kind (repair|facts|recover|polish|vocabulary), number, parent_version,
+             version, blocking_before, blocking_after, missing_before, missing_after}
+            one per round that made a version (pipeline/rounds.py, §4.6)
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
   config: {lang, level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
-           writer_model, understand_model,
-           judge_model, use_judge, max_repair_rounds, max_facts_rounds,
+           writer_model, understand_model, judge_model, use_judge,
+           pipeline (the [pipeline] settings when the job was created: repair_rounds,
+                     facts_rounds, missing_per_facts_round, recover_facts, polish_rounds,
+                     vocabulary),
            mode (standard|decision), addressee?, notice?}
   usage[]: {stage, model, tokens_in, tokens_out, latency_ms, cached}
   error?    a stopped job carries "cancelled", one over its budget names the budget
@@ -700,9 +729,10 @@ prompts with it); the response cache is a second file (`llm_cache.sqlite`). Stan
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
 tables, then one group per later change (`store.py`, `_MIGRATIONS`), of statements or of
 rewrites of the stored JSON; a database made by an older version gets the groups it lacks
-when it is opened. The second group rewrites what the first weeks stored differently (the
-conditions C0 to C2, the retired `live` field, a review without its stamp), so the models
-read one shape and carry no fallbacks for old data. The jobs
+when it is opened. The later groups rewrite what the first weeks stored differently (the
+conditions C0 to C2, the retired `live` field, a review without its stamp, the summary's
+round counters, a finding's English text), so the models read one shape and carry no
+fallbacks for old data. The jobs
 table is also the work queue (§7). The connections are a small pool (8): an operation
 takes one and gives it back, the database runs in WAL mode, so the web handlers read
 while a worker writes, and a write transaction begins with `BEGIN IMMEDIATE`, so two
@@ -1009,15 +1039,16 @@ DE / FR switcher in the header (`/ui/{code}`, stored in a cookie for a year), el
 `server.ui_lang`, else the browser's `Accept-Language`, else English. Adding Italian means
 adding `it.json`, as French was added: the switcher, the language choice and the
 tests pick it up, and a test fails until the catalog has every English key with the
-same placeholders. The rule checker's findings follow the switch too: a check reports
-the key of its message and the values for its placeholders (`rules/messages.py` holds
-the English templates; `message_key` and `message_params` travel with the Finding),
-the English catalog takes the templates over as `finding.<key>`, and the other
-catalogs translate them. A finding from an artifact written before the keys existed
-gets key and values read back off its English text with the rule's templates, and
-keeps the stored text when none fits. The rules' titles, which head the grouped
-findings, join the English catalog the same way as `rule.<ID>` (the base id without
-`-DE` or `-FR`). Model output (the judge's notes) is not translated: it stays in the
+same placeholders. The rule checker's findings follow the switch too: a finding is the
+key of its message and the values for its placeholders, nothing else (`rules/messages.py`
+holds the English templates and renders the English text for the CLI, the evaluation
+and the repair prompt), the English catalog takes the templates over as
+`finding.<key>`, and the other catalogs translate them. A finding stored before the
+keys existed (October 2026) keeps its English text as the value of the `legacy`
+template, rewritten when the store is opened (§5). The plural rule of a language (one
+for 1; in French for 0 and 1) is decided once, for the findings and the interface
+alike. The rules' titles, which head the grouped findings, join the English catalog
+the same way as `rule.<ID>`. Model output (the judge's notes) is not translated: it stays in the
 language it was produced in.
 
 ### CLI
@@ -1492,7 +1523,8 @@ src/leichtfacile/
                             de/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                   fetch.py (the safe URL download), html.py, pdf.py, text.py, segment.py,
                             normalize.py, detect.py, errors.py
-  pipeline/                 models.py, prompts.py, render.py, stages.py, orchestrator.py, runner.py
+  pipeline/                 models.py, prompts.py, render.py, stages.py, rounds.py (the plan of
+                            the rounds after the first draft), orchestrator.py, runner.py
   rules/                    base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
                             lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
                             vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),

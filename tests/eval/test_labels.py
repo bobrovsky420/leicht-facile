@@ -49,7 +49,7 @@ def _results_dir(tmp_path):
     ], unsupported=[Unsupported(block_id="b004", note="Kein Hund im Original.")])  # fmt: skip
     store.put_artifact(job.id, "judge", judge, 1)
     store.put_artifact(job.id, "summary", PipelineSummary(
-        condition="P2", final_version=1, rounds=0, stop_reason="test", writer_model="w",
+        condition="P2", final_version=1, stop_reason="no_problems", writer_model="w",
         judge_model="judge", prompt_versions={}, blocking_findings=[2], notes=[],
     ))  # fmt: skip
     store.close()

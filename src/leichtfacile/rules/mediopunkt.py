@@ -40,7 +40,7 @@ from leichtfacile.schemas import CodeEdit, Draft
 RULE_ID = "LEX-01"
 GLOSSARY = "glossary"  # the block_id of an edit to a glossary term
 NOUN_TAGS = frozenset({"NOUN", "PROPN"})
-LANGS = ("de",)  # French has no long compounds (LEX-01-FR stays a note)
+LANGS = ("de",)  # French has no long compounds (LEX-01 is a note in French)
 
 
 def apply_mediopunkt(draft: Draft, keep: Iterable[str] = ()) -> tuple[Draft, list[CodeEdit]]:

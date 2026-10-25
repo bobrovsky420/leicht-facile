@@ -70,9 +70,9 @@ at the top are the most interesting: the code checker cannot see them, only the 
 | permis d'établissement, impôt à la source | Institutions the reader must already know | SEM-04 |
 | réduction individuelle des primes (RIP), subside | Abbreviation, rare word | LEX-02 |
 | voies de droit, délai de recours | Legal jargon | SEM-04 |
-| ayant droit, requérant·e | Legal role words, inclusive typography | LEX-05-FR |
-| émolument, moyennant, nonobstant | Old bureaucratic vocabulary | LEX-07-FR |
-| le cas échéant, dûment, en vertu de | Fixed administrative phrases | LEX-07-FR |
+| ayant droit, requérant·e | Legal role words, inclusive typography | LEX-05 |
+| émolument, moyennant, nonobstant | Old bureaucratic vocabulary | LEX-07 |
+| le cas échéant, dûment, en vertu de | Fixed administrative phrases | LEX-07 |
 
 ## 3. Sentences
 
@@ -100,13 +100,13 @@ Illustrative A2 rewrite of DE-4:
 
 | ID | Sentence | Why it is hard | Rules |
 |----|----------|----------------|-------|
-| FR-1 | Le droit à la réduction individuelle des primes est reconnu aux personnes dont le revenu déterminant n'excède pas les limites fixées par le Conseil d'État. | Passive, `dont`, negation, jargon | GRAM-01-FR, SEM-04 |
-| FR-2 | La demande doit être déposée, dûment remplie et signée, au plus tard le 31.03.2027, faute de quoi le droit s'éteint. | Passive, inserted phrase, numeric date, `faute de quoi` | GRAM-01-FR, NUM-03-FR |
+| FR-1 | Le droit à la réduction individuelle des primes est reconnu aux personnes dont le revenu déterminant n'excède pas les limites fixées par le Conseil d'État. | Passive, `dont`, negation, jargon | GRAM-01, SEM-04 |
+| FR-2 | La demande doit être déposée, dûment remplie et signée, au plus tard le 31.03.2027, faute de quoi le droit s'éteint. | Passive, inserted phrase, numeric date, `faute de quoi` | GRAM-01, NUM-03 |
 | FR-3 | La présente décision peut faire l'objet d'une réclamation écrite et motivée dans les 30 jours dès sa notification. | Nominal style, Swiss `dès`, false friend | SEM-02, SEM-05 |
-| FR-4 | Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais ne pourront être remboursés. | Impersonal start, conditional passé, `ne` without `pas` | GRAM-08-FR, GRAM-03-FR |
-| FR-5 | Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous saurions gré de bien vouloir prendre contact avec nos services. | Courtesy formulas hide the instruction ("call us") | GRAM-03-FR, SEM-01 |
-| FR-6 | Le/la requérant·e transmet les pièces justificatives à l'office compétent, lequel les examine et, le cas échéant, les fait suivre. | Inclusive typography, `lequel`, unclear `les` | LEX-05-FR, SEM-03 |
-| FR-7 | Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03-FR, NUM-07-FR, LEX-07-FR |
+| FR-4 | Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais ne pourront être remboursés. | Impersonal start, conditional passé, `ne` without `pas` | GRAM-09, GRAM-03 |
+| FR-5 | Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous saurions gré de bien vouloir prendre contact avec nos services. | Courtesy formulas hide the instruction ("call us") | GRAM-03, SEM-01 |
+| FR-6 | Le/la requérant·e transmet les pièces justificatives à l'office compétent, lequel les examine et, le cas échéant, les fait suivre. | Inclusive typography, `lequel`, unclear `les` | LEX-05, SEM-03 |
+| FR-7 | Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03, NUM-07, LEX-07 |
 
 Illustrative FALC rewrite of FR-4:
 

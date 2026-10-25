@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from leichtfacile.rules import check_draft
+from leichtfacile.rules.messages import render_finding
 from leichtfacile.schemas import (
     Block,
     Draft,
@@ -88,7 +89,7 @@ def test_changed_deadline_is_an_error() -> None:
     errors = [f for f in result.findings if f.rule_id == "FACT-01"]
     assert len(errors) == 1
     assert errors[0].fact_id == "f01" and errors[0].severity == "error"
-    assert "31. März 2026" in errors[0].message
+    assert "31. März 2026" in render_finding(errors[0])
     assert result.metrics.fact_coverage == round(2 / 3, 3)
 
 
@@ -145,7 +146,7 @@ def test_fact_sheet_value_not_in_source() -> None:
         }
     )  # fmt: skip
     result = check_draft(draft(*GOOD), source=SOURCE, factsheet=wrong)
-    messages = [f.message for f in result.findings if f.rule_id == "FACT-05"]
+    messages = [render_finding(f) for f in result.findings if f.rule_id == "FACT-05"]
     assert any("f05" in m and "not in the source" in m for m in messages)
     assert any("f06" in m and "unknown source sentences" in m for m in messages)
 
@@ -160,7 +161,7 @@ def test_value_not_in_the_source_is_an_error_with_the_source_value_suggested() -
     result = check_draft(draft(*GOOD, leaked), source=SOURCE, factsheet=FACTS)
     (finding,) = [f for f in result.findings if f.rule_id == "FACT-06"]
     assert finding.block_id == "b005" and finding.severity == "error"
-    assert "phone number 031 987 65 43 is not in the source" in finding.message
+    assert "phone number 031 987 65 43 is not in the source" in render_finding(finding)
     assert finding.evidence == "031 987 65 43"
     assert finding.suggestion == "044 123 45 67"  # the source's only phone number
 

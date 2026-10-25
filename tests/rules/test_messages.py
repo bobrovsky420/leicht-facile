@@ -8,14 +8,25 @@ import string
 from collections.abc import Iterator
 from pathlib import Path
 
+import pytest
+
 import leichtfacile.rules as rules_package
 from leichtfacile.rules import RULES, get_checker
-from leichtfacile.rules.messages import MESSAGES, hit, recover
+from leichtfacile.rules.messages import (
+    MESSAGES,
+    hit,
+    plural_form,
+    render,
+    render_finding,
+    variant,
+)
 from leichtfacile.rules.values import HARD_KINDS
 from leichtfacile.schemas import Block, Draft
 
 RULES_DIR = Path(rules_package.__file__).parent
-MODULES = ("de.py", "fr.py", "document.py", "decision.py", "medication.py", "layout.py")
+MODULES = (
+    "de.py", "fr.py", "shared.py", "document.py", "decision.py", "medication.py", "layout.py",
+)  # fmt: skip
 # Keyword arguments of hit() that are fields of the Hit, not placeholders.
 HIT_FIELDS = {"evidence", "suggestion", "severity", "fact_id", "segment_ids", "block_id"}
 
@@ -76,9 +87,9 @@ def test_every_template_is_used_and_belongs_to_a_rule() -> None:
     for _, keys, params in _calls():
         for key in keys:
             used |= set(_templates(key, params))
-    assert set(MESSAGES) == used
+    assert set(MESSAGES) == used | {"legacy"}  # legacy: findings stored before the keys
     for key in MESSAGES:
-        assert key.split(".")[0] in RULES, key
+        assert key == "legacy" or key.split(".")[0] in RULES, key
     assert {f"FACT-06.{kind}" for kind in HARD_KINDS} <= set(MESSAGES)
 
 
@@ -87,15 +98,25 @@ def test_templates_use_plain_hyphens() -> None:
         assert chr(0x2013) not in text and chr(0x2014) not in text, key
 
 
-def test_hit_formats_the_english_text_and_keeps_key_and_values() -> None:
+def test_hit_keeps_key_and_values_and_render_gives_the_english_text() -> None:
     h = hit("LEN-01", words=23, limit=12, level="A2", evidence="x", severity="warn")
-    assert h.message == "The sentence has 23 words; the limit for A2 is 12."
     assert (h.key, h.params) == ("LEN-01", {"words": 23, "limit": 12, "level": "A2"})
+    assert render(h.key, h.params) == "The sentence has 23 words; the limit for A2 is 12."
     assert (h.evidence, h.severity) == ("x", "warn")
     one, none = hit("LAY-03.few", n=1, blocks=12), hit("LAY-03.few", n=0, blocks=12)
-    assert one.message.startswith("1 heading for 12 blocks")
-    assert none.message.startswith("0 headings for 12 blocks")
+    assert render(one.key, one.params).startswith("1 heading for 12 blocks")
+    assert render(none.key, none.params).startswith("0 headings for 12 blocks")
     assert one.key == none.key == "LAY-03.few"
+    assert render("legacy", {"text": "an older checker's text"}) == "an older checker's text"
+    with pytest.raises(KeyError):
+        hit("LEN-99", words=1)  # no such template: a slip in a check
+
+
+def test_plural_forms_follow_the_language() -> None:
+    assert [plural_form("en", n) for n in (0, 1, 2)] == ["other", "one", "other"]
+    assert [plural_form("de", n) for n in (0, 1, 2)] == ["other", "one", "other"]
+    assert [plural_form("fr", n) for n in (0, 1, 2)] == ["one", "one", "other"]
+    assert plural_form("fr", "1") == "one" and plural_form("xx", "x") == "other"
 
 
 def test_findings_carry_key_and_values() -> None:
@@ -114,33 +135,7 @@ def test_findings_carry_key_and_values() -> None:
     findings = get_checker("de").check(draft).findings
     by_rule = {f.rule_id: f for f in findings}
     f = by_rule["LEN-02"]
-    assert f.message_key == "LEN-02.sub"
-    assert f.message_params == {"opener": "weil", "clauses": 3, "limit": 1, "level": "A2"}
-    assert f.message == MESSAGES["LEN-02.sub"].format(**f.message_params)
-    assert all(f.message_key is not None for f in findings)
-
-
-def test_recover_reads_key_and_values_off_an_old_english_message() -> None:
-    old = (
-        "Subordinate clause ('die'): 3 clauses in one sentence. "
-        "At most 1 for A2: one statement per sentence."
-    )
-    values = {"opener": "die", "clauses": "3", "limit": "1", "level": "A2"}
-    assert recover("LEN-02", old) == ("LEN-02.sub", values)
-    assert recover("LEN-02-FR", old) == ("LEN-02-FR.sub", values)  # the rule picks the key
-    few = "1 heading for 12 blocks: add headings, ideally as the reader's questions."
-    assert recover("LAY-03", few) == ("LAY-03.few", {"n": 1, "blocks": "12"})
-    assert recover("LEN-01", "Some text an older checker wrote.") is None
-    assert recover("LEN-01", old) is None
-
-
-def test_every_template_round_trips_through_recover() -> None:
-    for key, template in MESSAGES.items():
-        names = sorted(_fields(template))
-        values: dict[str, str | int] = {name: f"v{i}" for i, name in enumerate(names)}
-        expected_key = key
-        if key.endswith((".one", ".other")):
-            expected_key, form = key.rsplit(".", 1)
-            values["n"] = 1 if form == "one" else 2
-        recovered = recover(key.split(".")[0], template.format(**values))
-        assert recovered == (expected_key, values), key
+    assert f.key == "LEN-02.sub"
+    assert f.params == {"opener": "weil", "clauses": 3, "limit": 1, "level": "A2"}
+    assert render_finding(f) == MESSAGES["LEN-02.sub"].format(**f.params)
+    assert all(f.key in MESSAGES or variant(f.key, f.params) in MESSAGES for f in findings)
