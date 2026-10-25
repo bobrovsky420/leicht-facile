@@ -42,8 +42,10 @@ api_key = "local"
 thinking = "chat-template"
 timeout_s = 1800
 
-# Ollama on this machine (port 11434): the models `ollama list` shows. Ollama ignores
-# the key and the chat-template switch, so thinking stays off.
+# Ollama on this machine (port 11434): the models `ollama list` shows. Ollama ignores the
+# key and the chat-template switch; a thinking model (Qwen) takes
+# `thinking = "reasoning-effort"` on the saved endpoint, which the preset does not set,
+# since a model without thinking may refuse the field.
 [ollama]
 label = "Ollama on this machine (port 11434)"
 url = "http://127.0.0.1:11434/v1"

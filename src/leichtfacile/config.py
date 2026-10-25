@@ -51,7 +51,7 @@ from pydantic import (
 )
 from pydantic.fields import FieldInfo
 
-ThinkingMode = Literal["model-suffix", "chat-template", "off"]
+ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
 AuthMode = Literal["none", "token", "proxy"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -176,7 +176,9 @@ class Endpoint(Section):
     thinking: ThinkingMode = Field(
         "off",
         description="How the endpoint switches thinking: model-suffix (a separate model "
-        "named <model>-thinking, Apertus on CSCS), chat-template (vLLM, llama.cpp) or off.",
+        "named <model>-thinking, Apertus on CSCS), chat-template (vLLM, llama.cpp), "
+        "reasoning-effort (the OpenAI field, none for the stages that do not think; a "
+        "thinking model on Ollama) or off.",
     )
     thinking_suffix: str = Field("-thinking", description="The thinking models' suffix.")
     # Writing without thinking was faster and closer to easy language in the first tests

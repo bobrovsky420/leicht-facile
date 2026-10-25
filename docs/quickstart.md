@@ -58,7 +58,7 @@ them for each draft.
 | `cscs` | Apertus on the CSCS inference API, Lugano | The endpoint of the reported numbers; needs a CSCS key (`CSCS_API_KEY`). Thinking models are separate names ending in `-thinking` |
 | `apertus` | Apertus on the Public AI gateway | Needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The preset turns the gateway's response cache off, which ignores the thinking switch |
 | `local` | llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server (`--base-url`) | Takes any key; switches thinking through the chat template (llama.cpp with `--jinja`) and allows 30 minutes per call; needs the model the server runs: `setup local` lists them and asks (`--model <name>` gives it); [Running a model yourself](#running-a-model-yourself) |
-| `ollama` | Ollama on this machine (port 11434) | Takes any key; `setup ollama` lists the models `ollama list` shows and asks which one. Thinking stays off |
+| `ollama` | Ollama on this machine (port 11434) | Takes any key; `setup ollama` lists the models `ollama list` shows and asks which one. For a thinking model such as Qwen: `config set endpoints.ollama.thinking reasoning-effort` |
 | `vllm` | vLLM (port 8000), mostly a GPU machine of the organisation | `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |
 | `openai`, `mistral` | OpenAI, Mistral AI | Need the key (`OPENAI_API_KEY`, `MISTRAL_API_KEY`) and a model. Check where the provider processes the text before sending anything confidential |
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
@@ -107,7 +107,9 @@ way:
 
 - `model-suffix`: the thinking model is a separate model named `<model>-thinking`
   (Apertus on CSCS);
-- `chat-template`: the request switches it through the chat template (vLLM, llama.cpp).
+- `chat-template`: the request switches it through the chat template (vLLM, llama.cpp);
+- `reasoning-effort`: the request says `reasoning_effort = "none"` for the stages that do
+  not think (a thinking model such as Qwen on Ollama).
 
 It applies to the stages in `thinking_stages` (default `["understand", "judge"]`). The
 `cscs` and `apertus` presets set the mode; for a server of your own, set it on its

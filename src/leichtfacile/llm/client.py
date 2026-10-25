@@ -179,6 +179,11 @@ class LLMClient:
             return name, {}
         if mode == "chat-template":
             return name, {"chat_template_kwargs": {"enable_thinking": thinking}}
+        if mode == "reasoning-effort":
+            # A thinking model on Ollama thinks unless the request says `none`; the
+            # server's /v1 endpoint ignores `think: false` and `/no_think` (its issue
+            # 17969, September 2026). The stages that think leave the model's default.
+            return name, {} if thinking else {"reasoning_effort": "none"}
         return name, {}
 
     # -- calls ------------------------------------------------------------------------

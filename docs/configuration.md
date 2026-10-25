@@ -105,7 +105,7 @@ thinking = "model-suffix"
 | `cscs` | Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers | the address, the key from `CSCS_API_KEY`, the 8B writing and the 70B judging, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`) |
 | `apertus` | Apertus on the Public AI gateway, for public documents only | the address, the key from `PUBLICAI_API_KEY`, the 8B and the 70B in the gateway's spelling, `thinking = "chat-template"`, and `extra_body` turning the gateway's response cache off |
 | `local` | llama.cpp (llama-server) on this machine, or another OpenAI-compatible server (`--base-url`) | `http://127.0.0.1:8080/v1`, the key `local` (such a server takes any key), `thinking = "chat-template"` (llama.cpp with `--jinja`) and 30 minutes per call (a thinking call on a small GPU takes minutes) |
-| `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking stays off, since the gateway ignores the switch |
+| `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking off, since Ollama ignores the chat-template switch: a thinking model such as Qwen takes `thinking = "reasoning-effort"` on the saved endpoint |
 | `vllm` | vLLM, mostly a GPU machine of the organisation (`--base-url http://<server>:8000/v1`) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"` |
 | `openai` | OpenAI | the address and the key from `OPENAI_API_KEY` |
 | `mistral` | Mistral AI | the address and the key from `MISTRAL_API_KEY` |
@@ -157,7 +157,10 @@ way:
 
 - `model-suffix`: the thinking model is a separate model named `<model>-thinking`
   (Apertus on CSCS; `thinking_suffix` changes the ending);
-- `chat-template`: the request switches it through the chat template (vLLM, llama.cpp).
+- `chat-template`: the request switches it through the chat template (vLLM, llama.cpp);
+- `reasoning-effort`: the request sends the OpenAI field `reasoning_effort = "none"` for
+  the stages that do not think and leaves the model's default for the others: for a
+  thinking model such as Qwen on Ollama, whose `/v1` endpoint ignores the other switches.
 
 It applies to the stages in `thinking_stages` (default `["understand", "judge"]`).
 `leichtfacile check-llm --thinking` makes its test call with thinking and says whether
@@ -282,7 +285,7 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | `models.writer` |  | The model that reads, writes and repairs. Required. |
 | `models.understand` |  | The Understand stage's model, when it differs from the writer. |
 | `models.judge` |  | The judge's model. Default: the 70B of an Apertus 8B writer when the endpoint lists it, else the writer. |
-| `thinking` | `"off"` | How the endpoint switches thinking: model-suffix (a separate model named &lt;model>-thinking, Apertus on CSCS), chat-template (vLLM, llama.cpp) or off. |
+| `thinking` | `"off"` | How the endpoint switches thinking: model-suffix (a separate model named &lt;model>-thinking, Apertus on CSCS), chat-template (vLLM, llama.cpp), reasoning-effort (the OpenAI field, none for the stages that do not think; a thinking model on Ollama) or off. |
 | `thinking_suffix` | `"-thinking"` | The thinking models' suffix. |
 | `thinking_stages` | `["understand", "judge"]` | The stages that think, when thinking is on. |
 | `stream` | `true` | Streamed answers, so that a proxy cannot time out a long one; false only for a server that cannot stream. |

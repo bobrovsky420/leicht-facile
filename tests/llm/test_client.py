@@ -71,6 +71,16 @@ def test_chat_template_mode_sends_enable_thinking(endpoint, make_client):
     assert second["chat_template_kwargs"] == {"enable_thinking": False}
 
 
+def test_reasoning_effort_mode_turns_thinking_off_by_request(endpoint, make_client):
+    client = make_client(make_settings(llm__thinking="reasoning-effort"))
+    endpoint.push(chat_response("a"), chat_response("b"))
+    client.complete(MSG, thinking=True)
+    client.complete(MSG, thinking=False)
+    first, second = endpoint.chat_bodies()
+    assert first["model"] == MODEL and "reasoning_effort" not in first  # the model's default
+    assert second["reasoning_effort"] == "none"
+
+
 def test_extra_body_is_sent_with_every_call(endpoint, make_client):
     client = make_client(
         make_settings(llm__thinking="chat-template", llm__extra_body={"cache": {"no-cache": True}})

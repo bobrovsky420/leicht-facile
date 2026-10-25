@@ -719,8 +719,11 @@ writers wait for each other (5 s) instead of failing midway.
   endpoint switches thinking its own way: the model name goes out as it is, with no
   switch) | `model-suffix` (Apertus on CSCS exposes thinking as separate
   `…-thinking` model names; the suffix is `llm.thinking_suffix`) | `chat-template`
-  (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`).
-  The mode is set per endpoint, by its preset or in its `[endpoints.<name>]` section.
+  (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
+  `reasoning-effort` (a thinking model on Ollama, whose `/v1` endpoint ignores the other
+  switches: `reasoning_effort: "none"` for the stages that do not think, the model's
+  default for the others). The mode is set per endpoint, by its preset or in its
+  `[endpoints.<name>]` section.
   Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, and `llm.extra_body`
   (fields sent with every request, for gateway switches). The web app holds one client
   per ready endpoint: a draft may pick another one in the New draft form
