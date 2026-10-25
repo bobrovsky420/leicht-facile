@@ -11,32 +11,32 @@ from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
-from fastapi.concurrency import run_in_threadpool
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from leichtfacile import __version__
 from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
+from leichtfacile.export.layout import build_layout
 from leichtfacile.ingest.detect import detect_language
-from leichtfacile.lifecycle import remove_job
 from leichtfacile.pipeline.labels import label
-from leichtfacile.pipeline.orchestrator import JobBusy, PipelineError
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES
 from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
-from leichtfacile.web.api import BUSY, ReviewIn
+from leichtfacile.web import api
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import (
     MAX_TEXT_CHARS,
     ServerBusy,
     Submission,
     SubmissionError,
-    create_job,
+    start_job,
+    submission_form,
 )
 from leichtfacile.web.views import (
+    EXPORT_FORMATS,
     STEP_WHO,
     STEPS_BY_CONDITION,
     check_view,
@@ -56,6 +56,7 @@ TEMPLATES.env.globals.update(
     number=format_number,
     ui_languages=ui_languages,
     stop_reason=stop_reason,
+    export_formats=EXPORT_FORMATS,
 )
 
 router = APIRouter()
@@ -336,10 +337,9 @@ def check_text(
     """The deterministic checker on the pasted text, as the CLI `check` runs it: one
     block per sentence, the rules of the document's language at the chosen level.
     No job, no model call, nothing stored; the page answers with the findings."""
-    from leichtfacile.eval.calibrate import source_as_draft
     from leichtfacile.ingest import ingest_text
     from leichtfacile.ingest.errors import IngestError
-    from leichtfacile.rules import check_draft
+    from leichtfacile.rules import check_draft, source_as_draft
 
     t = translator(request)
     form = {"text": text, "lang": lang, "level": level}
@@ -386,70 +386,13 @@ def set_ui_language(lang: str, next: str = "/") -> RedirectResponse:
 
 
 @router.post("/jobs", response_class=HTMLResponse)
-async def submit(
-    request: Request,
-    text: Annotated[str | None, Form()] = None,
-    url: Annotated[str | None, Form()] = None,
-    file: Annotated[UploadFile | None, File()] = None,
-    lang: Annotated[str | None, Form()] = None,
-    level: Annotated[str, Form()] = "A2",
-    condition: Annotated[str, Form()] = "P2",
-    endpoint: Annotated[str | None, Form()] = None,
-    title: Annotated[str | None, Form()] = None,
-    writer_model: Annotated[str | None, Form()] = None,
-    understand_model: Annotated[str | None, Form()] = None,
-    judge_model: Annotated[str | None, Form()] = None,
-    mode: Annotated[str, Form()] = "standard",
-    addressee: Annotated[str | None, Form()] = None,
-    notice: Annotated[str | None, Form()] = None,
-):
-    data = await file.read() if file is not None and file.filename else None
-    sub = Submission(
-        text=text,
-        url=url,
-        file_name=file.filename if file else None,
-        file_data=data,
-        lang=lang,
-        level=level,
-        condition=condition,
-        endpoint=endpoint,
-        writer_model=(writer_model or "").strip() or None,
-        understand_model=(understand_model or "").strip() or None,
-        judge_model=(judge_model or "").strip() or None,
-        title=title,
-        mode=mode,
-        addressee=addressee,
-        notice=notice,
-    )
-    state = request.app.state
-    try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
-        state.runner.ensure_room()
-        job = await run_in_threadpool(
-            create_job,
-            state.store,
-            state.settings,
-            sub,
-            state.ingest_slots,
-            endpoints=state.orchestrator.clients,
-        )
+async def submit(request: Request, sub: Annotated[Submission, Depends(submission_form)]):
+    """The New draft form: the API's submission (`web/jobs.py`), then the job page; a
+    refused submission renders the form again with the reason."""
+    try:
+        job = await start_job(request.app.state, sub)
     except (SubmissionError, QueueFull) as exc:
-        form = {
-            "text": text or "",
-            "url": url or "",
-            "lang": lang,
-            "level": level,
-            "condition": condition,
-            "endpoint": endpoint or "",
-            "title": title or "",
-            "writer_model": writer_model or "",
-            "understand_model": understand_model or "",
-            "judge_model": judge_model or "",
-            "mode": mode,
-            "addressee": addressee or "",
-            "notice": notice or "",
-        }
-        return _refused(request, exc, form)
-    state.runner.submit(job.id)
+        return _refused(request, exc, sub.form())
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)
 
 
@@ -520,11 +463,12 @@ def preview(request: Request, job_id: str, version: int | None = None) -> HTMLRe
     if draft is None:
         raise HTTPException(404, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    return _reader_page(to_html(draft, review, title=job.title, notice=job.config.notice))
+    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
+    return _reader_page(to_html(layout))
 
 
 @router.post("/jobs/{job_id}/preview", response_class=HTMLResponse)
-def preview_unsaved(request: Request, job_id: str, body: ReviewIn) -> HTMLResponse:
+def preview_unsaved(request: Request, job_id: str, body: api.ReviewIn) -> HTMLResponse:
     """The reader view of the decisions on screen, saved or not. Nothing is stored."""
     job = _job_or_404(request, job_id)
     draft = request.app.state.store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
@@ -537,34 +481,33 @@ def preview_unsaved(request: Request, job_id: str, body: ReviewIn) -> HTMLRespon
             decisions=[Decision(**d.model_dump()) for d in body.decisions],
             completed=body.completed,
         )
-    return _reader_page(to_html(draft, review, title=job.title, notice=job.config.notice))
+    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
+    return _reader_page(to_html(layout))
+
+
+# The forms of the job and review pages do what the API routes do (api.py), then go
+# back to the page: one handler per action, the page's answer a redirect.
 
 
 @router.post("/jobs/{job_id}/rerun")
 def rerun_page(request: Request, job_id: str, stage: Annotated[str, Form()] = "understand"):
-    state = request.app.state
-    _job_or_404(request, job_id)
-    try:
-        state.orchestrator.rerun(job_id, stage)
-    except JobBusy as exc:
-        raise HTTPException(409, BUSY) from exc
-    except PipelineError as exc:
-        raise HTTPException(400, str(exc)) from exc
-    state.runner.submit(job_id)
+    api.rerun(request, job_id, stage)
     return RedirectResponse(f"/jobs/{job_id}", status_code=303)
 
 
 @router.post("/jobs/{job_id}/cancel")
 def cancel_page(request: Request, job_id: str):
-    """The Stop button of the job page: the page then shows the stopped job."""
-    _job_or_404(request, job_id)
-    request.app.state.runner.cancel(job_id)  # None when it ended meanwhile: nothing to do
+    """The Stop button of the job page: the page then shows the stopped job; a job that
+    ended meanwhile is nothing to stop."""
+    try:
+        api.cancel(request, job_id)
+    except HTTPException as exc:
+        if exc.status_code != 409:
+            raise
     return RedirectResponse(f"/jobs/{job_id}", status_code=303)
 
 
 @router.post("/jobs/{job_id}/delete")
 def delete_page(request: Request, job_id: str):
-    state = request.app.state
-    if not remove_job(state.store, state.llm, job_id) and state.store.get_job(job_id):
-        raise HTTPException(409, BUSY)
+    api.delete(request, job_id)
     return RedirectResponse("/", status_code=303)

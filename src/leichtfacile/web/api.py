@@ -6,8 +6,7 @@ import json
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.concurrency import run_in_threadpool
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
@@ -15,6 +14,7 @@ from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.docx import DOCX_TYPE, to_docx
 from leichtfacile.export.html import to_html
+from leichtfacile.export.layout import build_layout
 from leichtfacile.export.markdown import to_markdown
 from leichtfacile.lifecycle import job_counts, remove_job
 from leichtfacile.llm.client import LLMError
@@ -32,7 +32,13 @@ from leichtfacile.schemas import (
     utcnow,
 )
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language
-from leichtfacile.web.jobs import ServerBusy, Submission, SubmissionError, create_job
+from leichtfacile.web.jobs import (
+    ServerBusy,
+    Submission,
+    SubmissionError,
+    start_job,
+    submission_form,
+)
 from leichtfacile.web.views import finding_text
 
 router = APIRouter(prefix="/api")
@@ -81,63 +87,17 @@ def _job_or_404(request: Request, job_id: str):
 
 
 @router.post("/jobs", status_code=201)
-async def post_job(
-    request: Request,
-    text: Annotated[str | None, Form()] = None,
-    url: Annotated[str | None, Form()] = None,
-    file: Annotated[UploadFile | None, File()] = None,
-    lang: Annotated[str | None, Form()] = None,
-    level: Annotated[str, Form()] = "A2",
-    condition: Annotated[str, Form()] = "P2",
-    endpoint: Annotated[str | None, Form()] = None,
-    writer_model: Annotated[str | None, Form()] = None,
-    understand_model: Annotated[str | None, Form()] = None,
-    judge_model: Annotated[str | None, Form()] = None,
-    title: Annotated[str | None, Form()] = None,
-    mode: Annotated[str, Form()] = "standard",
-    addressee: Annotated[str | None, Form()] = None,
-    notice: Annotated[str | None, Form()] = None,
-) -> dict:
-    """Create a job from pasted text, a URL or an uploaded file (multipart form).
-    `endpoint` runs this job on another ready endpoint (docs/configuration.md); `mode`
-    is `standard` or `decision` (docs/use-case-decisions.md); `addressee` and `notice`
-    belong to the decision mode."""
-    data = await file.read() if file is not None and file.filename else None
-    sub = Submission(
-        text=text,
-        url=url,
-        file_name=file.filename if file is not None else None,
-        file_data=data,
-        lang=lang,
-        level=level,
-        condition=condition,
-        endpoint=endpoint,
-        writer_model=writer_model,
-        understand_model=understand_model,
-        judge_model=judge_model,
-        title=title,
-        mode=mode,
-        addressee=addressee,
-        notice=notice,
-    )
-    state = _state(request)
-    try:  # fetch, parse and segment in the thread pool: a slow URL must not stop the server
-        state.runner.ensure_room()
-        job = await run_in_threadpool(
-            create_job,
-            state.store,
-            state.settings,
-            sub,
-            state.ingest_slots,
-            endpoints=state.orchestrator.clients,
-        )
+async def post_job(request: Request, sub: Annotated[Submission, Depends(submission_form)]) -> dict:
+    """Create a job from pasted text, a URL or an uploaded file (the multipart form of
+    `web/jobs.py: submission_form`, the New draft form's fields)."""
+    try:
+        job = await start_job(_state(request), sub)
     except QueueFull as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
     except ServerBusy as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "5"}) from exc
     except SubmissionError as exc:
         raise HTTPException(400, str(exc)) from exc
-    state.runner.submit(job.id)
     return {"id": job.id, "status": "queued", "links": _links(job.id)}
 
 
@@ -247,15 +207,12 @@ def export(
     if draft is None:
         raise HTTPException(409, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    notice = job.config.notice
+    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
     if format == "md":
-        body = to_markdown(draft, review, title=job.title, notice=notice)
-        return _download(body, "text/markdown", f"{job_id}.md")
+        return _download(to_markdown(layout), "text/markdown", f"{job_id}.md")
     if format == "docx":
-        docx = to_docx(draft, review, title=job.title, notice=notice, summary=summary)
-        return _download(docx, DOCX_TYPE, f"{job_id}.docx")
-    body = to_html(draft, review, title=job.title, notice=notice)
-    return _download(body, "text/html", f"{job_id}.html")
+        return _download(to_docx(layout, summary=summary), DOCX_TYPE, f"{job_id}.docx")
+    return _download(to_html(layout), "text/html", f"{job_id}.html")
 
 
 @router.post("/jobs/{job_id}/facts/{fact_id}/recover")

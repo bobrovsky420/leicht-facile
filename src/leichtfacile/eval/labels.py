@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from leichtfacile.eval.metrics import cohen_kappa
+from leichtfacile.eval.results import completed_rows, read_jsonl
 from leichtfacile.schemas import Draft, FactSheet, JudgeReport, PipelineSummary, SourceDocument
 from leichtfacile.store import Store
 
@@ -28,21 +29,6 @@ BLOCK_LABELS = ("supported", "unsupported")
 SHEETS = {"fact": "judge_facts", "block": "judge_blocks"}
 
 Item = tuple[dict[str, Any], dict[str, Any]]  # the sheet row and its key row
-
-
-def completed_rows(results_dir: Path, condition: str, role: str | None) -> list[dict[str, Any]]:
-    """The result rows of a condition's completed jobs (every writer setup), for a role."""
-    rows = []
-    for path in sorted(results_dir.glob(f"{condition}_*.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            row = json.loads(line)
-            if row.get("status") not in (None, "needs_review", "done"):
-                continue
-            if role in (None, "all") or row.get("role") == role:
-                rows.append(row)
-    return rows
 
 
 def _final(store: Store, job_id: str):
@@ -155,16 +141,10 @@ def key_path(sheet: Path) -> Path:
     return sheet.with_name(sheet.name.removesuffix(".jsonl") + ".key.jsonl")
 
 
-def _load(path: Path) -> list[dict[str, Any]]:
-    return [
-        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
-    ]
-
-
 def kappa_report(sheet: Path, key: Path | None = None) -> dict[str, Any]:
     """Agreement between the judge (key) and the labels filled into the sheet."""
-    rows = _load(sheet)
-    verdicts = {k["item_id"]: k["judge"] for k in _load(key or key_path(sheet))}
+    rows = read_jsonl(sheet)
+    verdicts = {k["item_id"]: k["judge"] for k in read_jsonl(key or key_path(sheet))}
     kind = rows[0]["kind"] if rows else "fact"
     allowed = FACT_LABELS if kind == "fact" else BLOCK_LABELS
     judge: list[str] = []

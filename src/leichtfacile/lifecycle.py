@@ -15,6 +15,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
+from leichtfacile.review import load_review, review_counts
 from leichtfacile.schemas import Job, JobCounts, SourceDocument
 from leichtfacile.store import Store
 
@@ -41,31 +42,18 @@ def source_counts(source: SourceDocument, counts: JobCounts | None = None) -> Jo
 
 def job_counts(store: Store, job: Job) -> JobCounts:
     """Every count for the job as it stands: the source line, the final version's
-    findings and facts, the review's progress. The review page's view model is the
-    one place that knows how findings and facts are counted, so it is used here, once
-    per job instead of once per row of the list (audit B3)."""
-    from leichtfacile.web.views import review_view  # the view model, not the web app
-
+    findings and facts, the review's progress. `review.py` is the one place that knows
+    how findings and facts are counted (the review page reads it too), so the counts
+    are computed once per job instead of once per row of the list (audit B3)."""
     counts = job.counts or JobCounts()
     if counts.source_type is None:
         source = store.get_artifact(job.id, "source", SourceDocument)
         if source is not None:
             counts = source_counts(source, counts)
-    view = review_view(store, job)
-    if view is None:
+    data = load_review(store, job)
+    if data is None:
         return counts.model_copy(update={"has_draft": False})
-    return counts.model_copy(
-        update={
-            "has_draft": True,
-            "errors": view.counts["error"],
-            "warnings": view.counts["warn"],
-            "facts_present": view.fact_counts["present"],
-            "facts_total": view.fact_counts["total"],
-            "blocks": view.items,
-            "decided": view.decided,
-            "complete": bool(view.review and view.review.completed),
-        }
-    )
+    return counts.model_copy(update={"has_draft": True, **review_counts(data)})
 
 
 # -- deletion and retention ------------------------------------------------------------

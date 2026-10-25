@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 from leichtfacile import __version__
-from leichtfacile.export import final_blocks, layout_lines
+from leichtfacile.export.layout import build_layout, plain_lines
 from leichtfacile.rules import get_checker
 from leichtfacile.schemas import Draft, Job, ReviewState, utcnow
 from leichtfacile.store import Store
@@ -28,9 +28,10 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
     if final_version is not None:
         draft = store.get_artifact(job.id, "draft", Draft, version=final_version)
         review = ReviewState.model_validate(review_json) if review_json else None
-        text = final_blocks(draft, review)
         notice = job.config.notice  # decision mode: the first and the last line
-        lines = layout_lines(text.blocks, notice=notice)
+        layout = build_layout(draft, review, notice=notice)
+        text = layout.final
+        lines = plain_lines(layout)  # the lines every export prints
         checker = get_checker(draft.lang)
         final = {
             "draft_version": final_version,

@@ -408,7 +408,8 @@ def test_a_fact_the_judge_misses_but_code_finds_is_doubted(env) -> None:
 def test_the_html_export_breaks_lines_its_column_can_hold_and_prints_on_a4() -> None:
     from html import unescape
 
-    from leichtfacile.export.html import HTML_LINE_CHARS, to_html
+    from leichtfacile.export.html import to_html
+    from leichtfacile.export.layout import LINE_CHARS, build_layout
 
     text = (
         "Die Sozial·versicherungs·stelle ist von Montag bis Freitag von 8.30 bis 11.30 Uhr "
@@ -416,18 +417,18 @@ def test_the_html_export_breaks_lines_its_column_can_hold_and_prints_on_a4() -> 
     )
     draft = Draft(doc_id="d", lang="de", level="A2",
                   blocks=[Block(id="b001", kind="sentence", text=text)])  # fmt: skip
-    page = to_html(draft)
+    page = to_html(build_layout(draft))
     paragraph = re.search(r"<p>(.*?)</p>", page, re.S).group(1)
     lines = [unescape(line.strip()) for line in paragraph.split("<br>")]
-    assert len(lines) > 1 and all(len(line) <= HTML_LINE_CHARS for line in lines)
+    assert len(lines) > 1 and all(len(line) <= LINE_CHARS for line in lines)
     assert " ".join(lines) == text
-    assert "max-width: 36em" in page  # wide enough for a line of HTML_LINE_CHARS
+    assert "max-width: 36em" in page  # wide enough for a line of LINE_CHARS
     assert "@page { size: A4" in page and "@media print" in page
 
     # A value never breaks across lines (here the break fell inside the phone number).
     call = "Für Fragen rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67 oder mailen."
     draft = draft.model_copy(update={"blocks": [Block(id="b001", kind="sentence", text=call)]})
-    paragraph = re.search(r"<p>(.*?)</p>", to_html(draft), re.S).group(1)
+    paragraph = re.search(r"<p>(.*?)</p>", to_html(build_layout(draft)), re.S).group(1)
     assert any("044 123 45 67" in line for line in paragraph.split("<br>"))
 
 

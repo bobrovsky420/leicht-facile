@@ -1,34 +1,23 @@
-"""Markdown export: headings as ##, one sentence per line, list items as -, glossary
-at the end. Lines inside a paragraph end with a backslash, the CommonMark hard line
-break, so every sentence keeps its own line when the Markdown is rendered."""
+"""Markdown export: the layout (export/layout.py) with headings as ##, list items as -,
+the glossary at the end. Lines inside a paragraph end with a backslash, the CommonMark
+hard line break, so every sentence keeps its own line when the Markdown is rendered.
+The no-break spaces inside values become plain spaces: Markdown is for editing, and a
+no-break space would be an invisible character in an editor."""
 
 from __future__ import annotations
 
-from leichtfacile.export import LABELS, final_blocks
-from leichtfacile.rules.layout import wrap_sentence
-from leichtfacile.schemas import Draft, ReviewState
+from leichtfacile.export.layout import Layout
 
 
-def to_markdown(
-    draft: Draft,
-    review: ReviewState | None = None,
-    *,
-    title: str | None = None,
-    width: int = 85,
-    notice: str | None = None,
-) -> str:
-    """`notice`: the authority's fixed text (decision mode), the first and the last
-    paragraph, as it is."""
-    labels = LABELS.get(draft.lang, LABELS["de"])
-    final = final_blocks(draft, review)
+def to_markdown(layout: Layout) -> str:
     out: list[str] = []
-    if title:
-        out += [f"# {title}", ""]
-    if not final.reviewed:
-        out += [f"> {labels['draft_note']}", ""]
-    if notice:
-        out += [notice, ""]
-    paragraph: list[str] = []
+    if layout.title:
+        out += [f"# {layout.title}", ""]
+    if layout.note:
+        out += [f"> {layout.note}", ""]
+    if layout.notice:
+        out += [layout.notice, ""]
+    paragraph: list[str] = []  # consecutive paragraphs form one Markdown paragraph
 
     def flush() -> None:
         if paragraph:
@@ -38,29 +27,28 @@ def to_markdown(
             paragraph.clear()
 
     previous = None
-    for b in final.blocks:
-        if b.kind == "heading":
+    for item in layout.items:
+        if item.kind == "heading":
             flush()
-            out += [f"## {b.text}", ""]
-        elif b.kind == "list_item":
+            out += [f"## {item.lines[0]}", ""]
+        elif item.kind == "list_item":
             if previous != "list_item":
                 flush()
-            wrapped = wrap_sentence(b.text, width - 2)
-            out.append(f"- {wrapped[0]}" + (" \\" if len(wrapped) > 1 else ""))
-            for i, line in enumerate(wrapped[1:], 1):
-                out.append(f"  {line}" + (" \\" if i < len(wrapped) - 1 else ""))
+            last = len(item.lines) - 1
+            for i, line in enumerate(item.lines):
+                out.append(("- " if i == 0 else "  ") + line + (" \\" if i < last else ""))
         else:
             if previous == "list_item":
                 out.append("")
-            paragraph += wrap_sentence(b.text, width)
-        previous = b.kind
+            paragraph += item.lines
+        previous = item.kind
     flush()
     if previous == "list_item":
         out.append("")
-    if final.glossary:
-        out += [f"## {labels['glossary']}", ""]
-        for g in final.glossary:
-            out += [f"**{g.term}**  ", *wrap_sentence(g.explanation, width), ""]
-    if notice:
-        out += [notice, ""]
-    return "\n".join(out).rstrip() + "\n"
+    if layout.glossary:
+        out += [f"## {layout.glossary_title}", ""]
+        for entry in layout.glossary:
+            out += [f"**{entry.term}**  ", *entry.lines, ""]
+    if layout.notice:
+        out += [layout.notice, ""]
+    return ("\n".join(out).rstrip() + "\n").replace("\xa0", " ")

@@ -10,25 +10,9 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
-from leichtfacile.rules import check_draft
+from leichtfacile.rules import check_draft, source_as_draft
 from leichtfacile.rules.messages import render_finding
-from leichtfacile.schemas import Block, Draft, Level, SourceDocument
-
-_KIND = {"heading": "heading", "list_item": "list_item"}
-
-
-def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
-    """Treat an existing text as a draft: one block per segment, with provenance."""
-    blocks = [
-        Block(
-            id=f"b{i:04d}",
-            kind=_KIND.get(seg.kind, "sentence"),  # type: ignore[arg-type]
-            text=seg.text,
-            segment_ids=[seg.id],
-        )
-        for i, seg in enumerate(doc.segments, 1)
-    ]
-    return Draft(doc_id=doc.id, lang=doc.lang, level=level, blocks=blocks, origin="review")
+from leichtfacile.schemas import Level, SourceDocument
 
 
 @dataclass

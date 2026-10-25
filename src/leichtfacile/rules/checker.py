@@ -35,6 +35,25 @@ from leichtfacile.schemas import (
     SourceDocument,
 )
 
+_SEGMENT_KINDS = {"heading": "heading", "list_item": "list_item"}
+
+
+def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
+    """A text as it stands, as a draft to check: one block per segment, with its
+    provenance. The `check` command, the Check page, the checker calibration and the
+    SOURCE and REF rows of the evaluation measure texts this way."""
+    blocks = [
+        Block(
+            id=f"b{i:04d}",
+            kind=_SEGMENT_KINDS.get(seg.kind, "sentence"),  # type: ignore[arg-type]
+            text=seg.text,
+            segment_ids=[seg.id],
+        )
+        for i, seg in enumerate(doc.segments, 1)
+    ]
+    return Draft(doc_id=doc.id, lang=doc.lang, level=level, blocks=blocks, origin="review")
+
+
 # The text talks to the reader: Sie (German), vous (French).
 _ADDRESS_RE = {
     "de": re.compile(r"\b(?:Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres)\b|(?<=[a-zäöü,] )Sie\b"),

@@ -1,6 +1,8 @@
 """View models for the pages: everything a template needs, computed once in Python.
 
-Texts come from the interface catalogs (`i18n.py`) through the translator `t`."""
+The review's substance (the issues per block, the fact checklist, the counts) comes
+from `leichtfacile.review`; this module adds the interface texts, which come from the
+catalogs (`i18n.py`) through the translator `t`, and the shapes the templates read."""
 
 from __future__ import annotations
 
@@ -11,11 +13,19 @@ from urllib.parse import urlsplit
 
 from leichtfacile.export import glossary_ids
 from leichtfacile.lifecycle import job_counts
+from leichtfacile.review import (
+    FactRow,
+    Issue,
+    block_issues,
+    decided_count,
+    fact_counts,
+    fact_rows,
+    load_review,
+    review_items,
+    severity_counts,
+)
 from leichtfacile.rules.base import RULES
-from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.mediopunkt import RULE_ID as MEDIOPUNKT_RULE
-from leichtfacile.rules.recipes import RECIPE_RULES
-from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import (
     ROUND_KINDS,
     SEVERITY_RANK,
@@ -24,7 +34,6 @@ from leichtfacile.schemas import (
     Decision,
     DocMetrics,
     Draft,
-    Fact,
     FactSheet,
     Finding,
     GlossaryEntry,
@@ -34,6 +43,7 @@ from leichtfacile.schemas import (
     PipelineSummary,
     ReviewState,
     RuleFindings,
+    Segment,
     SourceDocument,
 )
 from leichtfacile.store import Store
@@ -42,6 +52,15 @@ from leichtfacile.web.i18n import ENGLISH, Translator
 CORE_KEYS = ("what", "must_do", "deadline", "cost", "contact")
 # The stop reasons that name a count of rounds (schemas.StopReason).
 _COUNTED_STOPS = {"max_rounds": "repair", "max_facts_rounds": "facts"}
+# The export formats every menu offers, in this order; the audit bundle is the whole
+# job, so it carries no draft version. A label of None is the catalog text
+# review.export.json; the reader view's descriptions are reader.<fmt>.desc.
+EXPORT_FORMATS = (
+    {"fmt": "md", "label": "Markdown", "ext": ".md"},
+    {"fmt": "html", "label": "HTML", "ext": ".html"},
+    {"fmt": "docx", "label": "Word", "ext": ".docx"},
+    {"fmt": "json", "label": None, "ext": ".json"},
+)
 
 
 def stop_reason(t: Translator, summary: PipelineSummary) -> str:
@@ -53,28 +72,6 @@ def stop_reason(t: Translator, summary: PipelineSummary) -> str:
 
 
 # -- the review page ------------------------------------------------------------------
-
-
-@dataclass
-class Issue:
-    source: str  # "rule" or "judge"
-    rule_id: str
-    severity: str
-    message: str
-    suggestion: str | None = None
-    evidence: str = ""  # what the rule found, e.g. LEX-01's long word
-    fact_id: str | None = None  # FACT-01, FACT-02, FACT-05: the fact concerned
-    segment_ids: list[str] = field(default_factory=list)  # FACT-04: the sentences concerned
-    applicable: bool = False  # the suggestion can replace the evidence in the block's text
-
-    @property
-    def ref(self) -> str:
-        """What a document finding points at: a fact, or a sentence or range of sentences."""
-        if self.fact_id:
-            return self.fact_id
-        if len(self.segment_ids) > 1:
-            return f"{self.segment_ids[0]}-{self.segment_ids[-1]}"
-        return self.segment_ids[0] if self.segment_ids else ""
 
 
 @dataclass
@@ -98,28 +95,22 @@ class BlockRow:
         ranked = [i.severity for i in self.issues if i.severity != "info"]
         return min(ranked, key=SEVERITY_RANK.__getitem__) if ranked else None
 
-
-@dataclass
-class FactRow:
-    fact: Fact
-    expected: str | None  # the normalised value as easy language writes it
-    code_found: bool | None  # None: no value code can check
-    blocks: list[str]
-    judge_status: str | None
-    judge_note: str = ""
+    @property
+    def counted(self) -> int:
+        """The issues shown as a count next to the severity mark: errors and warnings."""
+        return sum(1 for i in self.issues if i.severity != "info")
 
     @property
-    def status(self) -> str:
-        # Code decides whether a value is there: the judge's "missing" on a fact whose
-        # value code finds is a doubt about the statement, shown in amber. The pipeline
-        # still counts it as blocking (docs/prompts.md, "Judge doubts on values").
-        if self.judge_status == "missing" and self.code_found:
-            return "doubted"
-        if self.judge_status in ("missing", "distorted") or self.code_found is False:
-            return self.judge_status if self.judge_status in ("missing", "distorted") else "missing"
-        if self.judge_status == "present" or self.code_found:
-            return "present"
-        return "unchecked"
+    def decided(self) -> str:
+        """The decision's code (approved, edited, rejected), "" while undecided."""
+        return self.decision.decision if self.decision else ""
+
+    @property
+    def text(self) -> str:
+        """The reviewer's text when the block was edited, else the draft's."""
+        if self.decision and self.decision.text:
+            return self.decision.text
+        return self.block.text
 
 
 @dataclass
@@ -129,6 +120,28 @@ class GlossaryRow:
     gid: str
     entry: GlossaryEntry
     decision: Decision | None = None
+
+    @property
+    def decided(self) -> str:
+        return self.decision.decision if self.decision else ""
+
+    @property
+    def text(self) -> str:
+        """The reviewer's explanation when the entry was edited, else the draft's."""
+        if self.decision and self.decision.text:
+            return self.decision.text
+        return self.entry.explanation
+
+
+@dataclass
+class SegmentRow:
+    """A source sentence in the source pane: used by a block, left out with a reason
+    (`note`), not explained, or a heading; `newpara` starts a new paragraph."""
+
+    segment: Segment
+    state: str  # heading, used, omitted, unused
+    note: str = ""
+    newpara: bool = False
 
 
 @dataclass
@@ -162,8 +175,13 @@ class ReviewView:
     judge: JudgeReport | None
     rules: RuleFindings | None
     review: ReviewState | None
-    used_segments: set[str]
-    omitted_segments: dict[str, str]
+    segments: list[SegmentRow]
+    segment_counts: dict[str, int]  # sentences, omitted, unused (headings not counted)
+    counts: dict[str, int]  # errors and warnings over the blocks and the document
+    fact_counts: dict[str, int]  # the must-keep facts by status, and their total
+    facts_text: str  # the fact counts as one sentence, for the stacked bar
+    items: int  # what the reviewer decides: the blocks and the glossary entries
+    decided: int
     tokens_in: int
     tokens_out: int
     seconds: float  # model time over all calls
@@ -179,18 +197,6 @@ class ReviewView:
         return sorted(self.facts, key=lambda f: (not f.fact.must_keep, rank.get(f.status, 4)))
 
     @property
-    def segment_counts(self) -> dict[str, int]:
-        """Source sentences without headings: all, left out with a reason, not explained."""
-        counts = {"sentences": 0, "omitted": 0, "unused": 0}
-        for seg in self.source.segments:
-            if seg.kind == "heading":
-                continue
-            counts["sentences"] += 1
-            if seg.id not in self.used_segments:
-                counts["omitted" if seg.id in self.omitted_segments else "unused"] += 1
-        return counts
-
-    @property
     def current_blocking(self) -> int | None:
         """Blocking problems left after the version on screen, when known."""
         return next((row.blocking for row in self.version_rows if row.current), None)
@@ -200,39 +206,17 @@ class ReviewView:
         return {f.fact.id: f for f in self.facts}
 
     @property
+    def undecided(self) -> int:
+        return self.items - self.decided
+
+    @property
     def decided_pct(self) -> int:
         return round(100 * self.decided / self.items) if self.items else 0
 
     @property
-    def items(self) -> int:
-        """What the reviewer decides: the blocks and the glossary entries."""
-        return len(self.rows) + len(self.glossary_rows)
-
-    @property
-    def counts(self) -> dict[str, int]:
-        out = {"error": 0, "warn": 0}
-        for row in self.rows:
-            for issue in row.issues:
-                if issue.severity in out:
-                    out[issue.severity] += 1
-        for issue in self.doc_issues:
-            if issue.severity in out:
-                out[issue.severity] += 1
-        return out
-
-    @property
-    def fact_counts(self) -> dict[str, int]:
-        out = {"present": 0, "missing": 0, "distorted": 0, "doubted": 0, "unchecked": 0, "total": 0}
-        for f in self.facts:
-            if f.fact.must_keep:
-                out[f.status] += 1
-                out["total"] += 1
-        return out
-
-    @property
-    def decided(self) -> int:
-        rows = [*self.rows, *self.glossary_rows]
-        return sum(1 for r in rows if r.decision is not None)
+    def blocking_facts(self) -> int:
+        """Must-keep facts missing or distorted: what blocks publication."""
+        return self.fact_counts["missing"] + self.fact_counts["distorted"]
 
     @property
     def blocks_with_issues(self) -> int:
@@ -266,138 +250,100 @@ def finding_text(t: Translator, finding: Finding) -> str:
     return t(f"finding.{finding.key}", n=int(n) if n is not None else None, **params)
 
 
+def issue_text(t: Translator, issue: Issue) -> str:
+    """An issue's message in the interface language: a rule finding's text, a judge
+    issue's catalog text with the note, or the judge's note as it stands."""
+    if issue.finding is not None:
+        return finding_text(t, issue.finding)
+    if issue.text_key:
+        return t(issue.text_key, note=issue.note, fact=issue.fact_id or "").strip()
+    return issue.note
+
+
+def _with_texts(t: Translator, issues: list[Issue]) -> list[Issue]:
+    for issue in issues:
+        issue.message = issue_text(t, issue)
+    return issues
+
+
 def review_view(
     store: Store, job: Job, version: int | None = None, t: Translator = ENGLISH
 ) -> ReviewView | None:
-    source = store.get_artifact(job.id, "source", SourceDocument)
-    versions = store.versions(job.id, "draft")
-    if source is None or not versions:
+    data = load_review(store, job, version)
+    if data is None:
         return None
-    summary = store.get_artifact(job.id, "summary", PipelineSummary)
-    final_version = summary.final_version if summary else versions[-1]
-    if version not in versions:
-        version = final_version if final_version in versions else versions[-1]
-    draft = store.get_artifact(job.id, "draft", Draft, version=version)
-    rules = store.get_artifact(job.id, "rules", RuleFindings, version=version)
-    judge = store.get_artifact(job.id, "judge", JudgeReport, version=version)
-    factsheet = store.get_artifact(job.id, "factsheet", FactSheet)
-    review = store.get_artifact(job.id, "review", ReviewState)
-    if review and review.draft_version != version:
-        review = None
+    draft, source = data.draft, data.source
+    by_block, doc_issues = block_issues(draft, data.rules, data.judge)
+    _with_texts(t, doc_issues)
+    decisions = data.decisions
+    rows = [BlockRow(b, _with_texts(t, by_block[b.id]), decisions.get(b.id)) for b in draft.blocks]
+    glossary_rows = [
+        GlossaryRow(gid, g, decisions.get(gid)) for gid, g in glossary_ids(draft).items()
+    ]
+    facts = fact_rows(draft, data.factsheet, data.judge, source) if data.factsheet else []
+    fc = fact_counts(facts)
+    facts_text = ""
+    if fc["total"]:
+        facts_text = t(
+            "review.facts_counts", present=fc["present"], distorted=fc["distorted"],
+            missing=fc["missing"],
+        )  # fmt: skip
+        if fc["doubted"]:
+            facts_text += " · " + t("review.facts_doubted", n=fc["doubted"])
 
-    rows = {b.id: BlockRow(b) for b in draft.blocks}
-    doc_issues: list[Issue] = []
-    for f in rules.findings if rules else []:
-        issue = Issue(
-            "rule",
-            f.rule_id,
-            f.severity,
-            finding_text(t, f),
-            f.suggestion,
-            evidence=f.evidence,
-            fact_id=f.fact_id,
-            segment_ids=list(f.segment_ids),
-        )
-        if f.block_id in rows:
-            rows[f.block_id].issues.append(issue)
-        else:
-            doc_issues.append(issue)
-    if judge:
-        for u in judge.unsupported:
-            if u.block_id in rows:
-                message = t("issue.unsupported", note=u.note).strip()
-                rows[u.block_id].issues.append(Issue("judge", "SEM-06", "error", message))
-        for s in judge.semantic_findings:
-            if s.block_id in rows:
-                rows[s.block_id].issues.append(Issue("judge", s.rule_id, "warn", s.note))
-        for c in judge.fact_checks:
-            if c.status == "distorted":
-                for block_id in c.block_ids:
-                    if block_id in rows:
-                        rows[block_id].issues.append(
-                            Issue(
-                                "judge",
-                                "SEM-07",
-                                "error",
-                                t("issue.distorted", fact=c.fact_id, note=c.note).strip(),
-                            )
-                        )
-    for row in rows.values():
-        row.issues.sort(key=lambda i: SEVERITY_RANK[i.severity])
-        for issue in row.issues:
-            # A recipe (LEN-02: "make two sentences ...") is advice, not a replacement.
-            issue.applicable = bool(
-                issue.suggestion
-                and issue.evidence
-                and issue.rule_id not in RECIPE_RULES
-                and issue.evidence != issue.suggestion
-                and issue.evidence in row.block.text
-            )
-    glossary_rows = {gid: GlossaryRow(gid, g) for gid, g in glossary_ids(draft).items()}
-    if review:
-        for d in review.decisions:
-            if d.block_id in rows:
-                rows[d.block_id].decision = d
-            elif d.block_id in glossary_rows:
-                glossary_rows[d.block_id].decision = d
-
-    fact_rows: list[FactRow] = []
-    core_rows: list[CoreRow] = []
-    if factsheet:
-        coverage = fact_coverage(draft, factsheet, draft.lang, source)
-        judged = {c.fact_id: c for c in judge.fact_checks} if judge else {}
-        for fact in factsheet.facts:
-            value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
-            check = judged.get(fact.id)
-            blocks = sorted(
-                set(coverage.found.get(fact.id, []))
-                | {b.id for b in draft.blocks if fact.id in b.fact_ids}
-                | set(check.block_ids if check else []),
-                key=[b.id for b in draft.blocks].index,
-            )
-            fact_rows.append(
-                FactRow(
-                    fact=fact,
-                    expected=display_value(value, draft.lang) if value else None,
-                    code_found=(fact.id in coverage.found) if value and fact.must_keep else None,
-                    blocks=blocks,
-                    judge_status=check.status if check else None,
-                    judge_note=check.note if check else "",
-                )
-            )
-        core_rows = core_questions(factsheet, t)
-    omitted = {}
+    omitted: dict[str, str] = {}
     for o in draft.omissions:
         for s in o.segment_ids:
             omitted[s] = f"{o.what}: {o.why}".strip(": ")
-    if factsheet:
-        for o in factsheet.omit_candidates:
+    if data.factsheet:
+        for o in data.factsheet.omit_candidates:
             for s in o.segment_ids:
                 omitted.setdefault(s, o.reason)
+    used = {s for b in draft.blocks for s in b.segment_ids}
+    segments: list[SegmentRow] = []
+    segment_counts = {"sentences": 0, "omitted": 0, "unused": 0}
+    para = None
+    for seg in source.segments:
+        newpara = para is not None and (seg.kind == "heading" or seg.para != para)
+        if seg.kind == "heading":
+            segments.append(SegmentRow(seg, "heading", newpara=newpara))
+        else:
+            state = "used" if seg.id in used else ("omitted" if seg.id in omitted else "unused")
+            segments.append(SegmentRow(seg, state, omitted.get(seg.id, ""), newpara))
+            segment_counts["sentences"] += 1
+            if state != "used":
+                segment_counts[state] += 1
+        para = seg.para
+
     usage = job.usage
     return ReviewView(
         job=job,
         source=source,
         draft=draft,
-        versions=versions,
-        final_version=final_version,
-        rows=list(rows.values()),
-        facts=fact_rows,
-        core=core_rows,
+        versions=data.versions,
+        final_version=data.final_version,
+        rows=rows,
+        facts=facts,
+        core=core_questions(data.factsheet, t) if data.factsheet else [],
         doc_issues=doc_issues,
-        factsheet=factsheet,
-        summary=summary,
-        judge=judge,
-        rules=rules,
-        review=review,
-        used_segments={s for b in draft.blocks for s in b.segment_ids},
-        omitted_segments=omitted,
+        factsheet=data.factsheet,
+        summary=data.summary,
+        judge=data.judge,
+        rules=data.rules,
+        review=data.review,
+        segments=segments,
+        segment_counts=segment_counts,
+        counts=severity_counts([i for row in rows for i in row.issues] + doc_issues),
+        fact_counts=fc,
+        facts_text=facts_text,
+        items=review_items(draft),
+        decided=decided_count(draft, data.review),
         tokens_in=sum(u.tokens_in for u in usage),
         tokens_out=sum(u.tokens_out for u in usage),
         seconds=sum(u.latency_ms for u in usage) / 1000,
         finding_groups=group_findings(doc_issues, t),
-        saved_at=review.saved_at if review else None,
-        glossary_rows=list(glossary_rows.values()),
+        saved_at=data.review.saved_at if data.review else None,
+        glossary_rows=glossary_rows,
     )
 
 
@@ -804,31 +750,14 @@ class CheckView:
 
 
 def check_view(draft: Draft, rules: RuleFindings, t: Translator = ENGLISH) -> CheckView:
-    rows = {b.id: BlockRow(b) for b in draft.blocks}
-    doc_issues: list[Issue] = []
-    for f in rules.findings:
-        issue = Issue(
-            "rule",
-            f.rule_id,
-            f.severity,
-            finding_text(t, f),
-            f.suggestion,
-            evidence=f.evidence,
-            fact_id=f.fact_id,
-            segment_ids=list(f.segment_ids),
-        )
-        if f.block_id in rows:
-            rows[f.block_id].issues.append(issue)
-        else:
-            doc_issues.append(issue)
-    for row in rows.values():
-        row.issues.sort(key=lambda i: SEVERITY_RANK[i.severity])
+    by_block, doc_issues = block_issues(draft, rules, None)
+    rows = [BlockRow(b, _with_texts(t, by_block[b.id])) for b in draft.blocks]
     counts = Counter(f.severity for f in rules.findings)
     return CheckView(
         draft.lang,
         draft.level,
-        list(rows.values()),
-        group_findings(doc_issues, t),
+        rows,
+        group_findings(_with_texts(t, doc_issues), t),
         rules.metrics,
         counts["error"],
         counts["warn"],

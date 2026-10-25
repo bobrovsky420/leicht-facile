@@ -254,7 +254,7 @@ The table is a real `<table>`; column widths at 1440 px:
 | Language (130) | "German · A2" | the source's `lang` or `config.lang`, `config.level` |
 | Pipeline (120) | "P2: full" | `condition.short.*` |
 | Status (180) | The badge. Second line: running: the stage and the time so far ("Judge, 1 min 04 s"); queued: "Waiting for the worker"; failed: the first 60 characters of the error, in red | `Job.status`, `Job.stage`, `Job.error` |
-| Checks (200) | Error icon and count, warning icon and count, "Facts 9/14"; "Not yet" before the first draft | the review page's numbers (`ReviewView.counts`, `fact_counts`) |
+| Checks (200) | Error icon and count, warning icon and count, "Facts 9/14"; "Not yet" before the first draft | the counts on the job row (`review.py`, written by `lifecycle.job_counts`) |
 | Review (150) | A 56 px meter and "4 of 21", with ", complete" once the review is complete; "Not yet" | decisions on the final version, its blocks, `ReviewState.completed` |
 | Created (150) | "Today", "Yesterday" or "05.10.2026", the time below; the full UTC time in `title` | `Job.created_at`; `app.js` makes the day relative, as today |
 | Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML, Word (since 11 October 2026) or audit bundle, Delete (asks first) | existing routes |
@@ -271,9 +271,9 @@ Empty states:
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
   status." with a "Clear filters" link to `/`.
 
-View model: `drafts_view(store, jobs, t) -> list[DraftRow]` in `views.py` (§14). For
-jobs in `needs_review` or `done` it calls `review_view` and keeps the counts; the
-others get status and note only. `DraftRow`: `job`, `title`, `language`, `doc_lang`,
+View model: `drafts_view(store, jobs, t) -> list[DraftRow]` in `views.py` (§14). It
+reads the counts on the job row (`lifecycle.job_counts`, computed by `review.py` from
+the artifacts); jobs without a draft get status and note only. `DraftRow`: `job`, `title`, `language`, `doc_lang`,
 `source_line`, `status_note`, `has_checks`, `errors`, `warnings`, `facts_present`,
 `facts_total`, `decided`, `blocks`, `complete` and `review_pct`. The template writes the creation date and time in UTC; `app.js` turns
 them into local time and "Today" or "Yesterday".
@@ -520,14 +520,19 @@ the four panels stack with their headings.
   (writer, reader and judge models, the notes, "Run again from" with its button, and
   "Delete draft", danger, asks first).
 
-View model (`views.py`): `Issue` gains `evidence`, `fact_id` and `segment_ids` (from
-the `Finding`; empty for the judge's issues), `applicable` (Apply is offered) and
-`ref` (the fact id or the sentence range a document finding points at); `ReviewView`
-gains `facts_sorted` (the order above), `finding_groups` (`FindingGroup(rule_id,
-title, worst, issues)`), `segment_counts` (sentences, left out, not explained),
-`saved_at` (the newest `Decision.at`, or None), `current_blocking` (the current
-version's blocking count, for the reader view's list), `facts_by_id` and
-`decided_pct`.
+View model (`views.py`, on `review.py`, which reads the issues per block, the fact
+checklist and the counts from the artifacts without interface text): `Issue` carries
+`evidence`, `fact_id` and `segment_ids` (from the `Finding`; empty for the judge's
+issues), `applicable` (Apply is offered) and `ref` (the fact id or the sentence range
+a document finding points at); `ReviewView` carries `facts_sorted` (the order above),
+`finding_groups` (`FindingGroup(rule_id, title, worst, issues)`), `segments` (each
+source sentence with its state, note and paragraph break) and `segment_counts`
+(sentences, left out, not explained), `saved_at` (when the review was saved, or None),
+`current_blocking` (the current version's blocking count, for the reader view's list),
+`facts_text` (the fact counts as one sentence), `blocking_facts`, `undecided`,
+`facts_by_id` and `decided_pct`; `BlockRow` and `GlossaryRow` carry `decided` (the
+decision's code) and `text` (the reviewer's text or the draft's). The template holds
+markup only.
 
 ### 5.6 Reader view and export (`review.html`)
 
@@ -633,7 +638,13 @@ New or changed:
 
 - `pages.py`: `GET /` with the parameters `status`, `q` and `lang` (§5.2); `GET /new`
   with `example` (§5.3); `POST /jobs` renders `new.html` on an error; `_render` adds
-  `review_count`.
+  `review_count`. Since 25 October 2026 the page's `POST /jobs`, rerun, stop and
+  delete share the API's submission reader and handlers (`web/jobs.py`, `api.py`) and
+  answer a redirect; the export menus (header, row menu, reader panel) come from one
+  list (`views.EXPORT_FORMATS`, the macro in `_menus.html`).
+- `review.py` (package root): the issues per block, the fact checklist and the counts
+  from the artifacts, shared by the view model and `lifecycle.job_counts`, so the
+  pipeline no longer imports the web package.
 - `views.py`: `DraftRow` and `drafts_view` (§5.2); `Step.usage` (§5.4); the new
   `Issue` fields, `facts_sorted`, `finding_groups`, the counts and `saved_at` (§5.5).
 - `store.py`: `count_jobs(status)`, one SQL count.

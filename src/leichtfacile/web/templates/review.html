@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
+{% import "_menus.html" as menus with context %}
 {% block title %}{{ t('review.title', title=title) }} - Leicht·Facile{% endblock %}
 {% block body_class %}fit-screen{% endblock %}
 {% block content %}
@@ -26,10 +27,7 @@
       <details class="menu">
         <summary class="btn">{{ t('review.export') }}{{ icons.icon('chevron-down', 14) }}</summary>
         <div class="menu-panel">
-          <a href="/api/jobs/{{ job.id }}/export?format=md&amp;version={{ v.draft.version }}">Markdown<span class="ext">.md</span></a>
-          <a href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}">HTML<span class="ext">.html</span></a>
-          <a href="/api/jobs/{{ job.id }}/export?format=docx&amp;version={{ v.draft.version }}">Word<span class="ext">.docx</span></a>
-          <a href="/api/jobs/{{ job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
+          {{ menus.export_links(job.id, v.draft.version) }}
         </div>
       </details>
       <span class="save-state{% if v.saved_at %} saved{% endif %}" id="save-status" role="status">{% if v.saved_at %}<time datetime="{{ v.saved_at.isoformat() }}" data-saved>{{ t('review.saved_at', time=v.saved_at.strftime('%H:%M') ~ ' UTC') }}</time>{% else %}{{ t('review.never_saved') }}{% endif %}</span>
@@ -65,22 +63,20 @@
         {% if sc.unused %}<span><span class="sw sw-unused"></span>{{ t('review.legend.unused_n', count=sc.unused) }}</span>{% endif %}
         {% if sc.omitted %}<span><span class="tag">{{ t('review.tag.left_out') }}</span>{{ sc.omitted }}</span>{% endif %}
       </div>
-      {% set ns = namespace(para=None) %}
-      {% for seg in v.source.segments %}
-        {% if seg.kind == "heading" %}
-        <p class="seg-row seg-heading{% if ns.para is not none %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}"><span class="sid">{{ seg.id }}</span><span class="seg-main"><span class="seg-text">{{ seg.text }}</span></span></p>
+      {% for row in v.segments %}
+        {% set seg = row.segment %}
+        {% if row.state == "heading" %}
+        <p class="seg-row seg-heading{% if row.newpara %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}"><span class="sid">{{ seg.id }}</span><span class="seg-main"><span class="seg-text">{{ seg.text }}</span></span></p>
         {% else %}
-        {% set state = "used" if seg.id in v.used_segments else ("omitted" if seg.id in v.omitted_segments else "unused") %}
-        <p class="seg-row {{ state }}{% if ns.para is not none and seg.para != ns.para %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}">
+        <p class="seg-row {{ row.state }}{% if row.newpara %} newpara{% endif %}" id="seg-{{ seg.id }}" data-seg="{{ seg.id }}">
           <span class="sid">{{ seg.id }}</span>
           <span class="seg-main">
             <span class="seg-text">{% if seg.kind == "list_item" %}&bull; {% endif %}{{ seg.text }}</span>
-            {% if state == "omitted" %}<span class="seg-note"><span class="tag" lang="{{ ui_lang }}">{{ t('review.tag.left_out') }}</span><span>{{ v.omitted_segments[seg.id] }}</span></span>
-            {% elif state == "unused" %}<span class="seg-note" lang="{{ ui_lang }}"><span class="tag tag-warn">{{ t('review.tag.unused') }}</span></span>{% endif %}
+            {% if row.state == "omitted" %}<span class="seg-note"><span class="tag" lang="{{ ui_lang }}">{{ t('review.tag.left_out') }}</span><span>{{ row.note }}</span></span>
+            {% elif row.state == "unused" %}<span class="seg-note" lang="{{ ui_lang }}"><span class="tag tag-warn">{{ t('review.tag.unused') }}</span></span>{% endif %}
           </span>
         </p>
         {% endif %}
-        {% set ns.para = seg.para %}
       {% endfor %}
     </div>
   </section>
@@ -93,7 +89,7 @@
       <div class="seg seg-sunken seg-sm js-only" role="group" aria-label="{{ t('review.filter') }}">
         <button type="button" class="seg-item filter active" data-filter="all" aria-pressed="true">{{ t('review.filter.all') }}<span class="n">{{ total }}</span></button>
         <button type="button" class="seg-item filter" data-filter="issues" aria-pressed="false">{{ t('review.filter.issues') }}<span class="n">{{ v.blocks_with_issues }}</span></button>
-        <button type="button" class="seg-item filter" data-filter="undecided" aria-pressed="false">{{ t('review.filter.undecided') }}<span class="n" id="undecided-n">{{ total - v.decided }}</span></button>
+        <button type="button" class="seg-item filter" data-filter="undecided" aria-pressed="false">{{ t('review.filter.undecided') }}<span class="n" id="undecided-n">{{ v.undecided }}</span></button>
       </div>
     </div>
     <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" data-saved-at="{{ v.saved_at.isoformat() if v.saved_at else '' }}" lang="{{ doc_lang }}">
@@ -102,21 +98,18 @@
     {% endif %}
     {% for row in v.rows %}
       {% set b = row.block %}
-      {% set d = row.decision.decision if row.decision else "" %}
-      {% set edited_text = row.decision.text if row.decision and row.decision.text else b.text %}
-      {% set counted = row.issues | rejectattr('severity', 'equalto', 'info') | list | length %}
-      <article class="block kind-{{ b.kind }}{% if row.worst %} sev-{{ row.worst }} has-issues{% endif %}{% if d %} decided {{ d }}{% endif %}" id="blk-{{ b.id }}"
+      <article class="block kind-{{ b.kind }}{% if row.worst %} sev-{{ row.worst }} has-issues{% endif %}{% if row.decided %} decided {{ row.decided }}{% endif %}" id="blk-{{ b.id }}"
                data-block="{{ b.id }}" data-segments="{{ b.segment_ids | join(' ') }}" data-facts="{{ b.fact_ids | join(' ') }}" tabindex="0">
         <span class="bid">{{ b.id }}</span>
-        <span class="block-sev" lang="{{ ui_lang }}">{% if row.worst %}{{ icons.sev(row.worst, t('count.findings', n=row.issues | length)) }}{% if counted %}<span class="n-{{ row.worst }}" aria-hidden="true">{{ counted }}</span>{% endif %}{% elif row.issues %}{{ icons.sev('info', t('count.findings', n=row.issues | length)) }}{% endif %}</span>
+        <span class="block-sev" lang="{{ ui_lang }}">{% if row.worst %}{{ icons.sev(row.worst, t('count.findings', n=row.issues | length)) }}{% if row.counted %}<span class="n-{{ row.worst }}" aria-hidden="true">{{ row.counted }}</span>{% endif %}{% elif row.issues %}{{ icons.sev('info', t('count.findings', n=row.issues | length)) }}{% endif %}</span>
         <div class="block-main">
-          <p class="block-text"><span class="orig-text">{{ b.text }}</span><span class="edited-text">{{ edited_text }}</span></p>
+          <p class="block-text"><span class="orig-text">{{ b.text }}</span><span class="edited-text">{{ row.text }}</span></p>
         </div>
         <span class="block-state" lang="{{ ui_lang }}">{{ icons.decision_states() }}</span>
         <div class="block-details" lang="{{ ui_lang }}">
           <div class="edit-area">
             <label class="label" for="t-{{ b.id }}">{{ t('review.edited_text') }}</label>
-            <textarea id="t-{{ b.id }}" name="t-{{ b.id }}" rows="2" lang="{{ doc_lang }}">{{ edited_text }}</textarea>
+            <textarea id="t-{{ b.id }}" name="t-{{ b.id }}" rows="2" lang="{{ doc_lang }}">{{ row.text }}</textarea>
           </div>
           {% if row.issues %}
           <div class="findings">
@@ -138,9 +131,9 @@
           <div class="carries"><span>{{ t('review.carries') }}</span>{% for fid in b.fact_ids %}{% set f = v.facts_by_id.get(fid) %}<span class="carry"><span class="id">{{ fid }}</span>{% if f %}<span class="text" lang="{{ doc_lang }}">{{ f.expected or (f.fact.text | truncate(34, True, '…', 0)) }}</span>{% endif %}</span>{% endfor %}</div>
           {% endif %}
           <div class="decision" role="radiogroup" aria-label="{{ t('review.decision_for', block=b.id) }}">
-            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ b.id }}" value="approved"{% if d == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
-            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ b.id }}" value="edited"{% if d == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
-            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ b.id }}" value="rejected"{% if d == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
+            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ b.id }}" value="approved"{% if row.decided == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
+            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ b.id }}" value="edited"{% if row.decided == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
+            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ b.id }}" value="rejected"{% if row.decided == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
             <button type="button" class="btn btn-quiet btn-sm js-only next-undecided">{{ t('review.next_undecided') }}<kbd aria-hidden="true">N</kbd></button>
           </div>
         </div>
@@ -149,26 +142,24 @@
     {% if v.glossary_rows %}
       <h3 class="draft-section" lang="{{ ui_lang }}">{{ t('review.glossary') }} <span class="hint">{{ t('review.glossary_review_hint') }}</span></h3>
       {% for g in v.glossary_rows %}
-      {% set d = g.decision.decision if g.decision else "" %}
-      {% set edited_text = g.decision.text if g.decision and g.decision.text else g.entry.explanation %}
-      <article class="block kind-glossary{% if d %} decided {{ d }}{% endif %}" id="blk-{{ g.gid }}"
+      <article class="block kind-glossary{% if g.decided %} decided {{ g.decided }}{% endif %}" id="blk-{{ g.gid }}"
                data-block="{{ g.gid }}" data-segments="" data-facts="" tabindex="0">
         <span class="bid">{{ g.gid }}</span>
         <span class="block-sev"></span>
         <div class="block-main">
-          <p class="block-text"><strong class="gloss-term">{{ g.entry.term }}</strong> <span class="orig-text">{{ g.entry.explanation }}</span><span class="edited-text">{{ edited_text }}</span></p>
+          <p class="block-text"><strong class="gloss-term">{{ g.entry.term }}</strong> <span class="orig-text">{{ g.entry.explanation }}</span><span class="edited-text">{{ g.text }}</span></p>
         </div>
         <span class="block-state" lang="{{ ui_lang }}">{{ icons.decision_states() }}</span>
         <div class="block-details" lang="{{ ui_lang }}">
           <div class="edit-area">
             <label class="label" for="t-{{ g.gid }}">{{ t('review.edited_explanation') }}</label>
-            <textarea id="t-{{ g.gid }}" name="t-{{ g.gid }}" rows="2" lang="{{ doc_lang }}">{{ edited_text }}</textarea>
+            <textarea id="t-{{ g.gid }}" name="t-{{ g.gid }}" rows="2" lang="{{ doc_lang }}">{{ g.text }}</textarea>
           </div>
           {% if g.entry.origin == 'vocabulary' %}<p class="hint">{{ t('review.glossary_vocabulary_title') }}</p>{% endif %}
           <div class="decision" role="radiogroup" aria-label="{{ t('review.decision_for', block=g.gid) }}">
-            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ g.gid }}" value="approved"{% if d == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
-            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ g.gid }}" value="edited"{% if d == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
-            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ g.gid }}" value="rejected"{% if d == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
+            <label class="opt-dec opt-approved"><input type="radio" name="d-{{ g.gid }}" value="approved"{% if g.decided == "approved" %} checked{% endif %}><span>{{ icons.icon('check', 14) }}{{ t('review.approve') }}<kbd aria-hidden="true">A</kbd></span></label>
+            <label class="opt-dec opt-edited"><input type="radio" name="d-{{ g.gid }}" value="edited"{% if g.decided == "edited" %} checked{% endif %}><span>{{ icons.icon('pencil', 14) }}{{ t('review.edit') }}<kbd aria-hidden="true">E</kbd></span></label>
+            <label class="opt-dec opt-rejected"><input type="radio" name="d-{{ g.gid }}" value="rejected"{% if g.decided == "rejected" %} checked{% endif %}><span>{{ icons.icon('x', 14) }}{{ t('review.reject') }}<kbd aria-hidden="true">R</kbd></span></label>
             <button type="button" class="btn btn-quiet btn-sm js-only next-undecided">{{ t('review.next_undecided') }}<kbd aria-hidden="true">N</kbd></button>
           </div>
         </div>
@@ -202,11 +193,10 @@
         <div class="facts-summary">
           <div class="fs-top"><strong>{{ t('review.facts_present', present=fc.present, total=fc.total) }}</strong><span>{{ t('review.facts_must') }}</span></div>
           {% if fc.total %}
-          {% set fc_text = t('review.facts_counts', present=fc.present, distorted=fc.distorted, missing=fc.missing) ~ ((' · ' ~ t('review.facts_doubted', n=fc.doubted)) if fc.doubted else '') %}
-          <div class="stackbar" role="img" aria-label="{{ fc_text }}">
+          <div class="stackbar" role="img" aria-label="{{ v.facts_text }}">
             {% if fc.present %}<span class="sb-present" style="flex: {{ fc.present }}"></span>{% endif %}{% if fc.distorted %}<span class="sb-distorted" style="flex: {{ fc.distorted }}"></span>{% endif %}{% if fc.missing %}<span class="sb-missing" style="flex: {{ fc.missing }}"></span>{% endif %}{% if fc.doubted %}<span class="sb-doubted" style="flex: {{ fc.doubted }}"></span>{% endif %}{% if fc.unchecked %}<span class="sb-unchecked" style="flex: {{ fc.unchecked }}"></span>{% endif %}
           </div>
-          <div class="fs-legend" aria-hidden="true">{{ fc_text }}</div>
+          <div class="fs-legend" aria-hidden="true">{{ v.facts_text }}</div>
           {% endif %}
           <p class="hint">{{ t('review.facts_hint') }}</p>
         </div>
@@ -328,12 +318,12 @@
   <aside class="reader-side" aria-label="{{ t('review.export') }}">
     <section>
       <h2>{{ t('review.export') }}</h2>
-      <p class="lead" id="reader-note">{{ t('review.reader.hint') }}</p>
+      <p class="lead">{{ t('review.reader.hint') }}</p>
       <fieldset>
         <legend>{{ t('reader.format') }}</legend>
         <div class="optlist">
-          {% for fmt, label, ext in (('md', 'Markdown', '.md'), ('html', 'HTML', '.html'), ('docx', 'Word', '.docx'), ('json', t('review.export.json'), '.json')) %}
-          <label class="opt"><input type="radio" name="export-format" value="{{ fmt }}" data-ext="{{ ext }}"{% if fmt == 'html' %} checked{% endif %}><span class="opt-text"><span class="opt-title">{{ label }} <span class="ext">{{ ext }}</span></span><span class="opt-desc">{{ t('reader.' ~ fmt ~ '.desc') }}</span></span></label>
+          {% for f in export_formats %}
+          <label class="opt"><input type="radio" name="export-format" value="{{ f.fmt }}" data-ext="{{ f.ext }}"{% if f.fmt == 'html' %} checked{% endif %}><span class="opt-text"><span class="opt-title">{{ f.label or t('review.export.json') }} <span class="ext">{{ f.ext }}</span></span><span class="opt-desc">{{ t('reader.' ~ f.fmt ~ '.desc') }}</span></span></label>
           {% endfor %}
         </div>
       </fieldset>
@@ -345,14 +335,14 @@
     <section>
       <h2>{{ t('reader.before') }}</h2>
       <ul class="checklist">
-        <li id="check-decided"{% if v.decided == total %} class="done"{% endif %}>
+        <li id="check-decided"{% if v.undecided == 0 %} class="done"{% endif %}>
           <span class="ck ck-ok">{{ icons.sev('present') }}</span><span class="ck ck-todo">{{ icons.sev('warn') }}</span>
           <span><strong id="check-decided-text">{{ t('js.reader_decided', decided=v.decided, total=total) }}</strong><span class="sub">{{ t('reader.decided_hint') }}</span></span>
         </li>
         {% if v.current_blocking is not none %}
         <li{% if v.current_blocking == 0 %} class="done"{% endif %}>
           <span class="ck ck-ok">{{ icons.sev('present') }}</span><span class="ck ck-todo">{{ icons.sev('error') }}</span>
-          <span><strong>{{ t('reader.blocking', n=v.current_blocking, version=v.draft.version) }}</strong>{% if fc.missing + fc.distorted %}<span class="sub">{{ t('reader.blocking_facts', n=fc.missing + fc.distorted) }}</span>{% endif %}</span>
+          <span><strong>{{ t('reader.blocking', n=v.current_blocking, version=v.draft.version) }}</strong>{% if v.blocking_facts %}<span class="sub">{{ t('reader.blocking_facts', n=v.blocking_facts) }}</span>{% endif %}</span>
         </li>
         {% endif %}
         <li id="check-complete"{% if v.review and v.review.completed %} class="done"{% endif %}>

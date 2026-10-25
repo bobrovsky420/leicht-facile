@@ -443,9 +443,8 @@ def _ingest(args: argparse.Namespace) -> int:
 
 
 def _check(args: argparse.Namespace) -> int:
-    from leichtfacile.eval.calibrate import source_as_draft
     from leichtfacile.ingest.errors import IngestError
-    from leichtfacile.rules import check_draft
+    from leichtfacile.rules import check_draft, source_as_draft
     from leichtfacile.rules.messages import render_finding
 
     models_or_exit()
@@ -485,6 +484,7 @@ def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.export.bundle import build_bundle
     from leichtfacile.export.docx import to_docx
     from leichtfacile.export.html import to_html
+    from leichtfacile.export.layout import build_layout
     from leichtfacile.export.markdown import to_markdown
     from leichtfacile.ingest.errors import IngestError
     from leichtfacile.llm.client import LLMClient
@@ -533,13 +533,10 @@ def _simplify(args: argparse.Namespace) -> int:
     version = summary.final_version if summary else None
     draft = store.get_artifact(job.id, "draft", Draft, version=version)
     if draft is not None:
-        notice = job.config.notice
-        markdown = to_markdown(draft, title=job.title, notice=notice)
-        (out / "draft.md").write_text(markdown, encoding="utf-8")
-        html = to_html(draft, title=job.title, notice=notice)
-        (out / "draft.html").write_text(html, encoding="utf-8")
-        docx = to_docx(draft, title=job.title, notice=notice, summary=summary)
-        (out / "draft.docx").write_bytes(docx)
+        layout = build_layout(draft, title=job.title, notice=job.config.notice)
+        (out / "draft.md").write_text(to_markdown(layout), encoding="utf-8")
+        (out / "draft.html").write_text(to_html(layout), encoding="utf-8")
+        (out / "draft.docx").write_bytes(to_docx(layout, summary=summary))
     tokens = sum(u.tokens_in + u.tokens_out for u in job.usage)
     print(
         f"job {job.id}: {job.status} ({job.stage}); {len(job.usage)} model calls, {tokens} tokens"

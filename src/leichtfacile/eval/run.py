@@ -15,10 +15,11 @@ from typing import Any
 
 from leichtfacile.config import Settings
 from leichtfacile.eval.dataset import Pair, load_pair
+from leichtfacile.eval.results import OK, completed, completed_rows, read_jsonl
 from leichtfacile.eval.score import score_output, score_reference, score_source
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline import stages
-from leichtfacile.pipeline.orchestrator import Orchestrator
+from leichtfacile.pipeline.orchestrator import Orchestrator, understand_model
 from leichtfacile.pipeline.prompts import has_prompt
 from leichtfacile.pipeline.rounds import blocking_count, version_key
 from leichtfacile.schemas import (
@@ -53,23 +54,14 @@ def results_file(
     return results_dir / f"{name}.jsonl"
 
 
-_OK = ("needs_review", "done")
-
-
-def _rows(path: Path) -> list[dict[str, Any]]:
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
-
-
 def _done(path: Path) -> set[str]:
     """Pairs with a usable result. Failed runs and failed scorings run again next time."""
-    return {r["pair_id"] for r in _rows(path) if r.get("status") in _OK}
+    return {r["pair_id"] for r in completed(read_jsonl(path))}
 
 
 def _write_row(path: Path, row: dict[str, Any]) -> None:
     """Add the row, replacing an earlier row of the same pair (a failed run)."""
-    rows = [r for r in _rows(path) if r["pair_id"] != row["pair_id"]] + [row]
+    rows = [r for r in read_jsonl(path) if r["pair_id"] != row["pair_id"]] + [row]
     path.write_text(
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
     )
@@ -108,7 +100,7 @@ def run_condition(
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
     writer_name = writer or settings.llm.models.writer
-    reader_name = understand or settings.llm.models.understand or writer_name
+    reader_name = understand_model(settings, understand=understand, writer=writer) or writer_name
     if condition in BASELINE_CONDITIONS or reader_name == writer_name:
         reader_name = None  # no Understand stage, or the writer reads too
     out = results_file(results_dir, condition, writer_name, reader_name)
@@ -135,6 +127,7 @@ def run_condition(
         orchestrator.run(job.id)
         job = store.get_job(job.id)
         row: dict[str, Any] = {
+            "setup": condition,
             "pair_id": pair.id,
             "role": pair.role,
             "lang": pair.lang,
@@ -143,7 +136,7 @@ def run_condition(
             "job_id": job.id,
             "status": job.status,
         }
-        if job.status not in _OK:
+        if job.status not in OK:
             row["error"] = job.error
         else:
             try:
@@ -272,8 +265,6 @@ def rescore(
     2026): a baseline whose prompt did not change is scored again against the newest
     P1 or P2 fact sheet of its pair, as `run` scores it, instead of being sampled
     again."""
-    from leichtfacile.eval.labels import completed_rows
-
     if select not in SELECTIONS:
         raise ValueError(f"unknown selection {select!r}; use one of {SELECTIONS}")
     if in_place:

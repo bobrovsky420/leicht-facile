@@ -127,7 +127,9 @@ def test_old_names_and_fields_are_rewritten_on_open(tmp_path) -> None:
             '{"block_id": "b001", "rule_id": "GRAM-08-FR", "severity": "warn", "message": "x", '
             '"message_key": "GRAM-08-FR.soft", "message_params": {"found": "il est possible"}}, '
             '{"block_id": "b001", "rule_id": "LEX-04-FR", "severity": "warn", "message": "x", '
-            '"message_key": "LEX-04-FR.slash", "message_params": {}}]'
+            '"message_key": "LEX-04-FR.slash", "message_params": {}}, '
+            '{"block_id": "b002", "rule_id": "LEN-02-FR", "severity": "warn", '
+            '"message": "Subordinate clause: 2 clauses in one sentence."}]'
         )
         db.execute(
             "INSERT INTO artifacts VALUES (?, 'rules', 1, ?, '2026-10-05T12:00:00+00:00')",
@@ -157,6 +159,8 @@ def test_old_names_and_fields_are_rewritten_on_open(tmp_path) -> None:
             ("LEX-01", "LEX-01", {"found": "Krankenkasse", "letters": 12, "limit": 13}),
             ("GRAM-09", "GRAM-09.soft", {"found": "il est possible"}),
             ("LEX-04", "LEX-04.slash", {"first": "et", "second": "ou"}),
+            # a French finding with the English text alone: only its id changes
+            ("LEN-02", "legacy", {"text": "Subordinate clause: 2 clauses in one sentence."}),
         ]
         store.close()
 

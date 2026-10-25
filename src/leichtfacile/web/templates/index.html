@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
+{% import "_menus.html" as menus with context %}
 {% block content %}
 <div class="page">
   <div class="pagetitle">
@@ -101,10 +102,7 @@
                   {% if r.has_checks %}
                   <a href="/jobs/{{ r.job.id }}/preview">{{ t('review.reader_view') }}</a>
                   <hr>
-                  <a href="/api/jobs/{{ r.job.id }}/export?format=md">Markdown<span class="ext">.md</span></a>
-                  <a href="/api/jobs/{{ r.job.id }}/export?format=html">HTML<span class="ext">.html</span></a>
-                  <a href="/api/jobs/{{ r.job.id }}/export?format=docx">Word<span class="ext">.docx</span></a>
-                  <a href="/api/jobs/{{ r.job.id }}/export?format=json">{{ t('review.export.json') }}<span class="ext">.json</span></a>
+                  {{ menus.export_links(r.job.id) }}
                   {% endif %}
                   <hr>
                   <form method="post" action="/jobs/{{ r.job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">

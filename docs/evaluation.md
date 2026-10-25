@@ -49,7 +49,7 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 | P2 (swiss-ai/Apertus-v1.5-8B) | 17 | 97 % | 99 % | 6 % |
 | P2 (swiss-ai/Apertus-v1.5-8B, understand swiss-ai/Apertus-v1.5-70B) | 17 | 96 % | 99 % | 4 % |
 
-Failed runs: 1 (zh-sebe-disability-de).
+Failed runs (not in the means): P2 (swiss-ai/Apertus-v1.5-70B): zh-sebe-disability-de.
 
 ## French
 

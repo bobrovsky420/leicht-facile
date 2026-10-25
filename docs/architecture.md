@@ -64,7 +64,7 @@ municipality, or an organisation such as Pro Infirmis' Büro für Leichte Sprach
    rule findings, and the model's change notes ("left out: appeal procedure, because …").
 4. Approve or edit each block, then export (Markdown, HTML, Word, JSON with provenance).
 5. Optionally, send the approved text to a target-group test. That step is outside
-   the tool but the export is formatted for it (one sentence per line, ≤ 85 characters).
+   the tool but the export is formatted for it (one sentence per line, at most 60 characters).
 
 Second user, partly planned ([use-case-decisions.md](use-case-decisions.md)): the case
 worker of a child and adult protection authority (KESB), or a court clerk, who drafted
@@ -158,7 +158,7 @@ a failure resumes from the last good stage.
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Endpoint check 4 (§12) passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike is `scripts/image_spike.py` (`eval/image_spike.py`): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Endpoint check 4 (§12) passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -595,15 +595,22 @@ fact"). The pipeline calls it as the recover round (§4.6).
 
 Export formats:
 
-- Markdown and HTML with one sentence per line, lines ≤ 85 characters, headings and
-  lists preserved;
+- One layout for every format (`export/layout.py`, since 25 October 2026): the review
+  decisions applied, every text cleaned (a line break in a reviewer's edit becomes a
+  space), the spaces inside a value turned into no-break spaces, and every block broken
+  at sense units into lines of at most 60 characters (`LINE_CHARS`, within LAY-02's
+  85; a list item's lines shorter by its bullet). The writers only serialise it, so
+  Markdown, HTML and Word print the same lines, and the audit bundle checks these very
+  lines, the blocks between the notices, with the layout rules and FACT-07
+  (`plain_lines`).
+- Markdown and HTML with one sentence per line, headings and lists preserved; the
+  Markdown writes plain spaces where the others keep a value together, since it is
+  meant for editing;
 - JSON bundle: source, fact sheet, final draft, findings, decisions - the audit trail;
 - Word (DOCX, `export/docx.py`, since 11 October 2026), for writers who work in Word:
-  the HTML export's text in its print layout (A4, 20 mm margins, Arial 14 points,
-  left-aligned, no hyphenation, no block split across pages, a heading kept with the
-  block after it). A block is one paragraph, its lines broken as in the HTML export (at
-  most 60 characters, `DOCX_LINE_CHARS`, never inside a value) and joined by line
-  breaks; Word opened the sample letters' drafts and a file with all their lines and
+  the layout in its print layout (A4, 20 mm margins, Arial 14 points, left-aligned, no
+  hyphenation, no block split across pages, a heading kept with the block after it). A
+  block is one paragraph, its lines the layout's, joined by line breaks; Word opened the sample letters' drafts and a file with all their lines and
   broke none of them again. Title, headings and list items carry Word's own styles
   (Heading 1 and 2, List Bullet), the glossary its terms in bold, a decision job the
   notice first and last; the language tag (de-CH, fr-CH, it-CH) gives the spell checker
@@ -717,9 +724,9 @@ Job
   counts?: {source_type, source_uri?, source_chars?, has_draft, errors, warnings,
             facts_present, facts_total, blocks, decided, complete}
             what the drafts list shows, written when the job is created (the source
-            line), when the pipeline ends and when a review is saved (lifecycle.py),
-            so the list opens no artifact; None in a job stored before 11 October
-            2026 until its first listing fills it
+            line), when the pipeline ends and when a review is saved (counted by
+            review.py, written by lifecycle.py), so the list opens no artifact; None
+            in a job stored before 11 October 2026 until its first listing fills it
 ```
 
 Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`,
@@ -900,8 +907,12 @@ job are refused with 409 (stop it first); a review save names the stored review 
 loaded (above); the shared spaCy pipelines take one text at a time. The UI polls the
 job page every 2 s for two minutes, then every 5 s.
 
-A submission is read (fetched, parsed, segmented) in the request's thread, so the
-submitter gets a 400 with the reason at once; at most `jobs.ingest_slots` (4) submissions
+The page's forms share the API's code (since 25 October 2026): one dependency reads
+the form fields into a `Submission` for `POST /jobs` and `POST /api/jobs` alike and
+one function stores and queues the job (`web/jobs.py`); the page's rerun, stop and
+delete call the API handlers and answer a redirect. A submission is read (fetched,
+parsed, segmented) in the request's thread, so the submitter gets a 400 with the
+reason at once; at most `jobs.ingest_slots` (4) submissions
 are read at a time, the next one is refused with 429 and asked to try again, so slow
 documents never fill the thread pool (`web/jobs.py`).
 
@@ -934,7 +945,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   review progress, the creation time, and a row menu (open, reader view, exports,
   delete, which asks first). Search, status filter with counts and language filter are
   GET parameters, so they work without JavaScript; at most 50 rows, newest first, with
-  the counts computed per request from `review_view`. An intro strip explains the four
+  the counts from the job row (`review.py` counts a draft's findings, facts and
+  decisions from its artifacts, without interface text; `lifecycle.py` writes them when
+  a job ends or a review is saved). An intro strip explains the four
   steps and can be hidden. With no jobs, the empty state offers the team-written sample
   letters shipped with the package (`src/leichtfacile/letters/`, or the folder
   `data.examples_dir` names) as one-click fills of the New draft form (buttons to
@@ -1016,10 +1029,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   with the export's print styles, unsaved decisions included; the frame's sandbox
   allows `print()` but no scripts), and a "Before publication" list (blocks decided,
   blocking problems in this version, review complete). The keys are off while it is
-  shown. The HTML export breaks lines at sense units at most 60 characters long
-  (`HTML_LINE_CHARS`, within LAY-02's 85) in a column of 36em, which holds such a line,
-  so the browser does not break it again, and never inside a value (no-break spaces in
-  a date, an amount or a phone number); printed, it sets 14 points on A4.
+  shown. The HTML export prints the layout's lines (at most 60 characters,
+  `export/layout.py`) in a column of 36em, which holds such a line, so the browser does
+  not break it again, and never inside a value (no-break spaces in a date, an amount or
+  a phone number); printed, it sets 14 points on A4.
 
 Type: IBM Plex Sans and Mono for the interface; the reader view uses Atkinson
 Hyperlegible Next, injected into the preview response only. The HTML export
@@ -1198,11 +1211,14 @@ the original `SARI.py`, checked bit for bit; its tokenizer drops the Mediopunkt,
 `Kranken·kasse` is the source's `Krankenkasse` and a split by code is not a deleted and
 an added word), judge statistics where a judge ran.
 Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
-protected pages); `python -m leichtfacile eval report` renders the tables
-([evaluation.md](evaluation.md)) from aggregates only, `eval compare` fills
-[model-comparison.md](model-comparison.md) (every run on every endpoint side by side,
-from the runs that document declares in a TOML block; `eval/compare.py`), and `eval
-numbers` prints the headline means
+protected pages). Every command reads them through `eval/results.py`: which rows
+count (a job that reached the review, or a reference row), the split, the condition
+names of early October, the mean of a measure and the silent losses of a row without
+a checklist are decided there once. `python -m leichtfacile eval report` renders the
+tables ([evaluation.md](evaluation.md)) from aggregates only; `eval compare` fills
+[model-comparison.md](model-comparison.md) with the same tables, one group per run
+instead of per setup, from the runs that document declares in a TOML block
+(`eval/compare.py`); and `eval numbers` prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the headline case they fall into (`decide_case`), with the headline
 sentence filled in, so that the README and the documentation carry the same numbers. Since 14
@@ -1512,7 +1528,9 @@ src/leichtfacile/
   schemas.py                artifacts (§5)
   store.py                  SQLite access
   examples.py               the sample letters and their job settings (New draft form, empty drafts list)
-  lifecycle.py              the counts on the job row, deletion with the cache rows, the purge, the log redaction
+  review.py                 the review of a draft from its artifacts: the issues per block, the fact checklist,
+                            the counts; no interface text, so the pipeline and the job row never need the web app
+  lifecycle.py              the counts on the job row (from review.py), deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
   presets.toml              the known endpoints, one table each (cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface, anthropic)
@@ -1534,11 +1552,13 @@ src/leichtfacile/
                             security.py (the hardening layer), health.py (the probes),
                             observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
-  export/                   markdown.py, html.py, docx.py, bundle.py
-  eval/                     dataset.py, calibrate.py, score.py (prices.toml), run.py, report.py, compare.py, metrics.py,
-                            labels.py, diagnose.py (why facts go missing), image_spike.py,
+  export/                   layout.py (the one layout every writer serialises), markdown.py, html.py,
+                            docx.py, bundle.py
+  eval/                     dataset.py, calibrate.py, score.py (prices.toml), run.py, results.py (the one reader
+                            of the result rows), report.py, compare.py, metrics.py,
+                            labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
-scripts/                    print_letters.py, image_spike.py
+scripts/                    print_letters.py
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters

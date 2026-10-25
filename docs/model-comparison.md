@@ -206,10 +206,14 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 91 % | 0 % | 0.0 | 17.5 | 6.5 | 59 | 47.4 | 2.2 | 0.0 | 68069 | 0.2386 | 73.3 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
 
-Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is the compounds split by code in the final version, per 100 blocks:
+Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
+
+Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is the compounds split by code in the final version, per 100 blocks (P1 and P2 only; the baselines and the reference measure the text as written):
 
 | Run | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | CH |
 |---|---|---|---|---|---|---|---|---|
+| Original (standard language) | 49.9 | 0.0 | 39.7 | 0.3 | 99.9 | - | 2.8 | 0.0 |
+| Official easy-language version | 10.1 | 0.0 | 6.0 | 0.0 | 12.9 | - | 0.2 | 0.0 |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 17.6 | 0.0 | 9.6 | 0.0 | 11.9 | 34.1 | 3.2 | 0.0 |
 | Apertus 1.5 70B everywhere (CSCS) | 7.0 | 0.0 | 4.4 | 0.0 | 7.3 | 29.2 | 1.3 | 0.0 |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 16.3 | 0.0 | 9.2 | 0.0 | 9.1 | 32.3 | 3.4 | 0.0 |
@@ -221,10 +225,12 @@ Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is 
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 8.0 | 0.0 | 2.2 | 0.0 | 5.5 | 2.6 | 0.4 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.8 | 0.0 | 4.6 | 0.1 | 9.1 | 16.5 | 4.1 | 0.0 |
 
-Fact-rich subset (pairs with at least 3 hard facts):
+Fact-rich subset (17 pairs with at least 3 hard facts):
 
 | Run | Pairs | Hard facts kept | Fact coverage | Judge: distorted |
 |---|---|---|---|---|
+| Original (standard language) | 17 | 100 % | - | - |
+| Official easy-language version | 17 | 61 % | - | - |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 17 | 97 % | 99 % | 6 % |
 | Apertus 1.5 70B everywhere (CSCS) | 16 | 96 % | 100 % | 3 % |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 17 | 96 % | 99 % | 4 % |
@@ -236,7 +242,7 @@ Fact-rich subset (pairs with at least 3 hard facts):
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 17 | 89 % | 100 % | 1 % |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 17 | 91 % | 100 % | 2 % |
 
-Failed pairs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
+Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
 ## French
 
@@ -257,10 +263,14 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 91 % | 0 % | 0.4 | 10.9 | 7.2 | 79 | 50.6 | 3.1 | 0.0 | 32037 | 0.1187 | 41.9 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
 
-Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is the compounds split by code in the final version, per 100 blocks:
+Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
+
+Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is the compounds split by code in the final version, per 100 blocks (P1 and P2 only; the baselines and the reference measure the text as written):
 
 | Run | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | CH |
 |---|---|---|---|---|---|---|---|---|
+| Original (standard language) | 53.7 | 0.0 | 24.5 | 0.0 | 39.5 | - | 4.5 | 0.0 |
+| Official easy-language version | 17.0 | 0.0 | 4.0 | 0.0 | 3.1 | - | 0.5 | 0.0 |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 14.4 | 0.0 | 4.7 | 0.0 | 7.5 | 0.0 | 2.7 | 0.0 |
 | Apertus 1.5 70B everywhere (CSCS) | 6.0 | 0.0 | 4.6 | 0.0 | 8.4 | 0.0 | 1.7 | 0.0 |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 17.0 | 0.0 | 7.8 | 0.0 | 22.4 | 0.0 | 7.2 | 0.0 |
@@ -272,10 +282,12 @@ Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is 
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 5.3 | 0.0 | 3.2 | 0.0 | 2.8 | 0.0 | 0.0 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.5 | 0.0 | 8.8 | 0.0 | 5.8 | 0.0 | 3.4 | 0.0 |
 
-Fact-rich subset (pairs with at least 3 hard facts):
+Fact-rich subset (3 pairs with at least 3 hard facts):
 
 | Run | Pairs | Hard facts kept | Fact coverage | Judge: distorted |
 |---|---|---|---|---|
+| Original (standard language) | 3 | 100 % | - | - |
+| Official easy-language version | 3 | 54 % | - | - |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 3 | 72 % | 100 % | 5 % |
 | Apertus 1.5 70B everywhere (CSCS) | 3 | 89 % | 100 % | 0 % |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 3 | 87 % | 95 % | 8 % |

@@ -44,7 +44,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
-from leichtfacile.eval.labels import completed_rows
+from leichtfacile.eval.results import completed_rows
 from leichtfacile.pipeline.rounds import MAX_MISSING_PER_ROUND, blocking_count, build_request
 from leichtfacile.rules.document import fact_coverage
 from leichtfacile.rules.values import (

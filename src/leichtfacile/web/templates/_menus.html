@@ -1,0 +1,8 @@
+{# The export menu's links, one per format (views.EXPORT_FORMATS), for the review page's
+   header and the drafts list's row menu. The audit bundle is the whole job, so it carries
+   no draft version. Import with: {% import "_menus.html" as menus with context %}. #}
+{% macro export_links(job_id, version=None) -%}
+{% for f in export_formats %}
+<a href="/api/jobs/{{ job_id }}/export?format={{ f.fmt }}{% if version and f.fmt != 'json' %}&amp;version={{ version }}{% endif %}">{{ f.label or t('review.export.json') }}<span class="ext">{{ f.ext }}</span></a>
+{% endfor %}
+{%- endmacro %}

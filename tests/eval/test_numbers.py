@@ -14,7 +14,7 @@ from leichtfacile.eval.numbers import (
     render_numbers,
     sentence,
 )
-from leichtfacile.eval.report import load_rows
+from leichtfacile.eval.results import load_rows
 
 
 def _write(folder: Path, name: str, rows: list[dict]) -> None:

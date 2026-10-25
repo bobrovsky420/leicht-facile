@@ -653,10 +653,9 @@ class Orchestrator:
     # -- helpers ----------------------------------------------------------------------
 
     def _understand_model(self, run: RunState, cfg: JobConfig) -> str | None:
-        """The Understand stage's model: the job's, else its endpoint's
-        llm.models.understand, else the job's writer (None: llm.models.writer). The hybrid
-        lets the 70B read and the 8B write."""
-        return cfg.understand_model or run.llm.settings.llm.models.understand or cfg.writer_model
+        return understand_model(
+            run.llm.settings, understand=cfg.understand_model, writer=cfg.writer_model
+        )
 
     def _maybe_stop(self, run: RunState, stage: str) -> None:
         if run.stop_after == stage:
@@ -670,6 +669,15 @@ class Orchestrator:
 
     def _set(self, job_id: str, **fields: object) -> None:
         self.store.update_job(job_id, **fields)
+
+
+def understand_model(
+    settings: Settings, *, understand: str | None, writer: str | None
+) -> str | None:
+    """The Understand stage's model: the job's, else the endpoint's `llm.models.understand`,
+    else the job's writer (None: `llm.models.writer`). The hybrid lets the 70B read and
+    the 8B write; the evaluation names its result files by this choice."""
+    return understand or settings.llm.models.understand or writer
 
 
 def _short(exc: Exception) -> str:

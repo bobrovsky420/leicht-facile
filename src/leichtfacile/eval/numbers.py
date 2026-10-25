@@ -15,16 +15,21 @@ import random
 from dataclasses import dataclass
 from math import comb
 from pathlib import Path
-from statistics import fmean, mean
+from statistics import fmean
 
-from leichtfacile.eval.report import LANGUAGES, ORDER, load_rows
-from leichtfacile.schemas import BASELINE_CONDITIONS
+from leichtfacile.eval.results import (
+    LANGUAGES,
+    NO_CHECKLIST,
+    OK,
+    ORDER,
+    Row,
+    group_key,
+    load_rows,
+    mean,
+    value,
+)
 
-OK_STATUS = (None, "needs_review", "done")
 SHOWN = ("REF", "P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2")
-# Rows without a fact checklist: every hard value they lose is a silent loss, so the
-# share follows from the hard facts kept when a row stored before the key has none.
-NO_CHECKLIST = frozenset({"SOURCE", "REF", *BASELINE_CONDITIONS})
 COVERAGE_GAP = 0.05  # case A allows P2 up to 5 points below P0-ZH on fact coverage
 FAILURE_LIMIT = 0.25  # case D: the final run fails on more than a quarter of the pairs
 RESAMPLES = 10_000  # bootstrap resamples of the pairs
@@ -106,49 +111,33 @@ class Pooled:
     invented: int  # values not in the source
 
 
-def _mean(rows: list[dict], key: str) -> float | None:
-    values = [r[key] for r in rows if r.get(key) is not None]
-    return mean(values) if values else None
-
-
-def _group_key(row: dict) -> str:
-    key = row.get("writer", "?")
-    if row.get("understand"):  # the hybrid: another model read the source
-        key += f", understand {row['understand']}"
-    return key
-
-
-def _headline_group(rows: list[dict]) -> tuple[str, list[dict]]:
+def _headline_group(rows: list[Row]) -> tuple[str, list[Row]]:
     """The rows of one writer: the plain setup (no other model as reader) with the
     most pairs; a hybrid or a 70B run next to it is reported by `eval report`, not
     here. Without a plain group, the largest group there is."""
-    groups: dict[str, list[dict]] = {}
+    groups: dict[str, list[Row]] = {}
     for r in rows:
-        groups.setdefault(_group_key(r), []).append(r)
+        groups.setdefault(group_key(r), []).append(r)
     plain = {k: v for k, v in groups.items() if "understand" not in k}
     pool = plain or groups
     return max(pool.items(), key=lambda kv: (len(kv[1]), kv[0]))
 
 
-def setup_numbers(setup: str, rows: list[dict]) -> SetupNumbers | None:
-    ok = [r for r in rows if r.get("setup") == setup and r.get("status") in OK_STATUS]
+def setup_numbers(setup: str, rows: list[Row]) -> SetupNumbers | None:
+    ok = [r for r in rows if r.get("setup") == setup and r.get("status") in OK]
     if not ok:
         return None
     writer, group = ("-", ok) if setup in ("SOURCE", "REF") else _headline_group(ok)
-    kept = _mean(group, "hard_fact_recall")
-    silent = _mean(group, "silent_loss_share")
-    if silent is None and setup in NO_CHECKLIST and kept is not None:
-        silent = 1 - kept
     return SetupNumbers(
         setup,
         writer,
         len({r["pair_id"] for r in group}),
-        _mean(group, "fact_coverage"),
-        kept,
-        silent,
-        _mean(group, "errors_per_100"),
-        _mean(group, "invented_values_per_100"),
-        _mean(group, "unsupported_per_100"),
+        mean(group, "fact_coverage"),
+        mean(group, "hard_fact_recall"),
+        mean(group, "silent_loss_share"),  # without a checklist: from the hard facts kept
+        mean(group, "errors_per_100"),
+        mean(group, "invented_values_per_100"),
+        mean(group, "unsupported_per_100"),
     )
 
 
@@ -195,7 +184,7 @@ def decide_case(
     return "A?", reasons
 
 
-def _split_rows(results_dir: Path, role: str, lang: str) -> list[dict]:
+def _split_rows(results_dir: Path, role: str, lang: str) -> list[Row]:
     return [
         r
         for r in load_rows(results_dir)
@@ -203,25 +192,17 @@ def _split_rows(results_dir: Path, role: str, lang: str) -> list[dict]:
     ]
 
 
-def _group_rows(rows: list[dict], setup: str, key: str | None = None) -> tuple[str, list[dict]]:
+def _group_rows(rows: list[Row], setup: str, key: str | None = None) -> tuple[str, list[Row]]:
     """The ok rows of one setup: the group `key` (writer, and reader if another), or the
     group `setup_numbers` uses when `key` is None."""
-    ok = [r for r in rows if r.get("setup") == setup and r.get("status") in OK_STATUS]
+    ok = [r for r in rows if r.get("setup") == setup and r.get("status") in OK]
     if not ok:
         return "-", []
     if setup in ("SOURCE", "REF"):
         return "-", ok
     if key is None:
         return _headline_group(ok)
-    return key, [r for r in ok if _group_key(r) == key]
-
-
-def _value(row: dict, key: str) -> float | None:
-    value = row.get(key)
-    if value is None and key == "silent_loss_share" and row.get("setup") in NO_CHECKLIST:
-        kept = row.get("hard_fact_recall")
-        value = None if kept is None else 1 - kept
-    return value
+    return key, [r for r in ok if group_key(r) == key]
 
 
 def bootstrap_interval(
@@ -251,7 +232,7 @@ def exact_interval(k: int, n: int) -> tuple[float, float]:
     return low, high
 
 
-def compare(rows: list[dict], a: tuple[str, str | None], b: tuple[str, str | None]) -> Comparison:
+def compare(rows: list[Row], a: tuple[str, str | None], b: tuple[str, str | None]) -> Comparison:
     """Setup a against setup b, paired over the pairs both have; each a (setup, group
     key) with the key None for the group the headline uses."""
     a_key, a_rows = _group_rows(rows, *a)
@@ -261,7 +242,7 @@ def compare(rows: list[dict], a: tuple[str, str | None], b: tuple[str, str | Non
     common = sorted(set(a_by) & set(b_by))
     diffs = []
     for key, label, scale, digits, higher in PAIRED:
-        values = [(_value(a_by[p], key), _value(b_by[p], key)) for p in common]
+        values = [(value(a_by[p], key), value(b_by[p], key)) for p in common]
         values = [(x, y) for x, y in values if x is not None and y is not None]
         if not values:
             continue
@@ -286,7 +267,7 @@ def _name(setup: str, key: str) -> str:
     return f"{setup} ({key.removeprefix('swiss-ai/')})"
 
 
-def pooled(rows: list[dict], setup: str, key: str | None = None) -> Pooled | None:
+def pooled(rows: list[Row], setup: str, key: str | None = None) -> Pooled | None:
     group_key, group = _group_rows(rows, setup, key)
     group = [r for r in group if r.get("hard_facts_total") is not None]
     if not group:
@@ -311,8 +292,8 @@ def headline(results_dir: Path, *, role: str = "eval", lang: str = "de") -> Head
     pairs = {r["pair_id"] for r in rows}
     setups = [s for s in (setup_numbers(name, rows) for name in SHOWN) if s is not None]
     p2_rows = [r for r in rows if r.get("setup") == "P2"]
-    failed_pairs = {r["pair_id"] for r in p2_rows if r.get("status") not in OK_STATUS}
-    ok_pairs = {r["pair_id"] for r in p2_rows if r.get("status") in OK_STATUS}
+    failed_pairs = {r["pair_id"] for r in p2_rows if r.get("status") not in OK}
+    ok_pairs = {r["pair_id"] for r in p2_rows if r.get("status") in OK}
     failed_share = len(failed_pairs - ok_pairs) / len(pairs) if pairs else 0.0
     by_name = {s.setup: s for s in setups}
     case, reasons = decide_case(by_name.get("P2"), by_name.get("P0-ZH-complete"), failed_share)
@@ -373,7 +354,7 @@ def sentence(h: Headline) -> str:
     )
 
 
-def comparisons(rows: list[dict]) -> list[Comparison]:
+def comparisons(rows: list[Row]) -> list[Comparison]:
     """P2 against the Zurich prompt (complete), and every other plain P2 writer (the 70B
     everywhere) against the P2 of the headline."""
     out = []
@@ -382,7 +363,7 @@ def comparisons(rows: list[dict]) -> list[Comparison]:
         return out
     if _group_rows(rows, "P0-ZH-complete")[1]:
         out.append(compare(rows, ("P2", None), ("P0-ZH-complete", None)))
-    keys = {_group_key(r) for r in rows if r.get("setup") == "P2" and not r.get("understand")}
+    keys = {group_key(r) for r in rows if r.get("setup") == "P2" and not r.get("understand")}
     for key in sorted(keys - {head_key}):
         if _group_rows(rows, "P2", key)[1]:
             out.append(compare(rows, ("P2", key), ("P2", head_key)))

@@ -1,4 +1,5 @@
-"""Turning a submitted document into a job: ingest, store, queue.
+"""Turning a submitted document into a job: the form fields read once for the page and
+the API (`submission_form`), the ingest, the store, the queue (`start_job`).
 
 The ingest (the fetch of a URL, the parse of a PDF, the segmentation) runs in the
 request's thread so that the submitter gets a 400 with the reason at once; at most
@@ -13,7 +14,11 @@ import threading
 from collections.abc import Collection, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from typing import Annotated, Any
 from urllib.parse import urlsplit
+
+from fastapi import File, Form, UploadFile
+from fastapi.concurrency import run_in_threadpool
 
 from leichtfacile.config import Settings
 from leichtfacile.ingest.errors import IngestError, PrivateAddressError, UnknownHostError
@@ -33,6 +38,11 @@ from leichtfacile.web.i18n import ENGLISH, Translator
 
 MAX_TEXT_CHARS = 200_000
 MAX_FILE_BYTES = 15_000_000
+# The fields of the New draft form, which the page shows again after a refusal.
+FORM_FIELDS = (
+    "text", "url", "lang", "level", "condition", "endpoint", "title", "writer_model",
+    "understand_model", "judge_model", "mode", "addressee", "notice",
+)  # fmt: skip
 
 
 class SubmissionError(ValueError):
@@ -98,6 +108,72 @@ class Submission:
     mode: str = "standard"  # or "decision" (docs/use-case-decisions.md)
     addressee: str | None = None
     notice: str | None = None
+
+    def form(self) -> dict[str, str]:
+        """The fields as the New draft form shows them again after a refusal."""
+        return {key: getattr(self, key) or "" for key in FORM_FIELDS}
+
+
+def _model(name: str | None) -> str | None:
+    return (name or "").strip() or None
+
+
+async def submission_form(
+    text: Annotated[str | None, Form()] = None,
+    url: Annotated[str | None, Form()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
+    lang: Annotated[str | None, Form()] = None,
+    level: Annotated[str, Form()] = "A2",
+    condition: Annotated[str, Form()] = "P2",
+    endpoint: Annotated[str | None, Form()] = None,
+    title: Annotated[str | None, Form()] = None,
+    writer_model: Annotated[str | None, Form()] = None,
+    understand_model: Annotated[str | None, Form()] = None,
+    judge_model: Annotated[str | None, Form()] = None,
+    mode: Annotated[str, Form()] = "standard",
+    addressee: Annotated[str | None, Form()] = None,
+    notice: Annotated[str | None, Form()] = None,
+) -> Submission:
+    """The multipart form of `POST /jobs` and `POST /api/jobs` as one submission; FastAPI
+    fills it for both routes (`Depends`). `endpoint` runs the job on another ready
+    endpoint (docs/configuration.md); `mode` is `standard` or `decision`
+    (docs/use-case-decisions.md); `addressee` and `notice` belong to the decision mode."""
+    data = await file.read() if file is not None and file.filename else None
+    return Submission(
+        text=text,
+        url=url,
+        file_name=file.filename if file is not None else None,
+        file_data=data,
+        lang=lang,
+        level=level,
+        condition=condition,
+        endpoint=endpoint,
+        writer_model=_model(writer_model),
+        understand_model=_model(understand_model),
+        judge_model=_model(judge_model),
+        title=title,
+        mode=mode,
+        addressee=addressee,
+        notice=notice,
+    )
+
+
+async def start_job(state: Any, sub: Submission) -> Job:
+    """The job for a submission, stored and queued. The ingest (the fetch of a URL, the
+    parse of a PDF, the segmentation) runs in the thread pool, so a slow URL never stops
+    the server. `QueueFull`, `ServerBusy` and `SubmissionError` say why a submission was
+    refused; the routes turn them into their answers."""
+    state.runner.ensure_room()
+    job = await run_in_threadpool(
+        create_job,
+        state.store,
+        state.settings,
+        sub,
+        state.ingest_slots,
+        endpoints=state.orchestrator.clients,
+    )
+    state.runner.submit(job.id)
+    return job
 
 
 def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> SourceDocument:

@@ -7,10 +7,11 @@ import json
 import pytest
 
 from leichtfacile.eval import dataset
-from leichtfacile.eval.calibrate import calibrate, render_calibration, source_as_draft
+from leichtfacile.eval.calibrate import calibrate, render_calibration
 from leichtfacile.eval.report import render_report
 from leichtfacile.eval.run import reference_rows, run_condition
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.rules import source_as_draft
 from leichtfacile.schemas import FactSheet, Segment, SourceDocument, SourceInfo
 from leichtfacile.store import Store
 from tests.conftest import FakeEndpoint, chat_response, make_settings

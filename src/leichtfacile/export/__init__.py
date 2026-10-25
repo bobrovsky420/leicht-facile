@@ -1,15 +1,14 @@
 """Export of the reviewed draft: Markdown, HTML, Word (DOCX) and the JSON audit bundle.
 
-Layout follows the easy-language rules checked by LAY-01 and LAY-02: one sentence per
-line, lines of at most 85 characters, broken at clause boundaries.
+The review decisions are applied here (`final_blocks`); `layout.py` builds the one
+layout every writer serialises (one sentence per line, lines of at most `LINE_CHARS`
+characters broken at clause boundaries, the layout rules LAY-01 and LAY-02).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from leichtfacile.rules.layout import wrap_sentence
-from leichtfacile.rules.values import extract_values
 from leichtfacile.schemas import Block, Draft, GlossaryEntry, ReviewState
 
 LABELS = {
@@ -85,40 +84,3 @@ def final_blocks(draft: Draft, review: ReviewState | None) -> FinalText:
         glossary=glossary,
         undecided_glossary=sum(1 for gid in glossary_ids(draft) if gid not in decisions),
     )
-
-
-def layout_lines(blocks: list[Block], width: int = 85, *, notice: str | None = None) -> list[str]:
-    """Plain text layout: the lines the layout rules check. With a `notice` (decision
-    mode: the authority's fixed text), it is the first and the last line, unwrapped;
-    FACT-07 checks it is there, and the layout rules leave it alone."""
-    lines: list[str] = [notice, ""] if notice else []
-    previous = None
-    for b in blocks:
-        if b.kind == "heading":
-            if lines:
-                lines.append("")
-            lines.append(b.text)
-        elif b.kind == "list_item":
-            wrapped = wrap_sentence(b.text, width - 2)
-            lines.append(f"- {wrapped[0]}")
-            lines += [f"  {line}" for line in wrapped[1:]]
-        else:
-            if previous == "list_item":
-                lines.append("")
-            lines += wrap_sentence(b.text, width)
-        previous = b.kind
-    if notice:
-        lines += ["", notice]
-    return lines
-
-
-def keep_values_together(text: str, lang: str) -> str:
-    """No line break inside a value: the spaces of a date, an amount, a phone number or
-    an address become no-break spaces ("044 123 45 67", "31. März 2027"), so neither
-    `wrap_sentence` nor the browser or Word splits it."""
-    chars = list(text)
-    for value in extract_values(text, lang):
-        for i in range(max(value.start, 0), value.end):
-            if chars[i] == " ":
-                chars[i] = "\xa0"
-    return "".join(chars)

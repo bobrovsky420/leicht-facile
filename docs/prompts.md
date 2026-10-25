@@ -678,8 +678,10 @@ run and as not written (d) in the fifth.
 
 ### Image input spike (CSCS, 8B, 7 October 2026): no-go at this setting
 
-`scripts/image_spike.py` on the two scanned letters of `data/examples/print/scans/`,
-long side 1,600 pixels, the 8B without thinking, temperature 0:
+`scripts/image_spike.py` (removed with the no-go on 25 October 2026, in the history up
+to commit b948426; docs/image-input.md) on the two scanned letters of
+`data/examples/print/scans/`, long side 1,600 pixels, the 8B without thinking,
+temperature 0:
 
 | Capture | Pages | Character error rate | Hard values found | Seconds |
 |---|---|---|---|---|

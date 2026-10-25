@@ -18,7 +18,7 @@ from leichtfacile.rules import (  # noqa: F401  (registers the rules, in this or
     shared,
 )
 from leichtfacile.rules.base import PARAMS, RULES, LevelParams, RuleSpec, params_for
-from leichtfacile.rules.checker import RuleChecker, check_draft, get_checker
+from leichtfacile.rules.checker import RuleChecker, check_draft, get_checker, source_as_draft
 from leichtfacile.rules.styleguide import style_guide
 
 __all__ = [
@@ -30,5 +30,6 @@ __all__ = [
     "check_draft",
     "get_checker",
     "params_for",
+    "source_as_draft",
     "style_guide",
 ]

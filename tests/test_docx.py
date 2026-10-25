@@ -10,7 +10,8 @@ from datetime import date
 from xml.etree import ElementTree
 
 from leichtfacile import __version__, cli
-from leichtfacile.export.docx import DOCX_LINE_CHARS, LIST_CHARS, footer_line, to_docx
+from leichtfacile.export.docx import footer_line, to_docx
+from leichtfacile.export.layout import LINE_CHARS, LIST_INDENT, build_layout
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.schemas import (
     Block,
@@ -46,6 +47,18 @@ def draft(lang: str = "de") -> Draft:
     )  # fmt: skip
 
 
+def docx(
+    draft: Draft,
+    review: ReviewState | None = None,
+    *,
+    title: str | None = None,
+    notice: str | None = None,
+    summary: PipelineSummary | None = None,
+) -> bytes:
+    layout = build_layout(draft, review, title=title, notice=notice)
+    return to_docx(layout, summary=summary, today=DAY)
+
+
 def parts(data: bytes) -> dict[str, ElementTree.Element]:
     """Every part of the package, parsed: a part that is not well-formed XML fails here."""
     with zipfile.ZipFile(io.BytesIO(data)) as package:
@@ -76,7 +89,7 @@ def style(styles: ElementTree.Element, style_id: str) -> ElementTree.Element:
 
 
 def test_the_package_has_its_parts_their_content_types_and_relationships() -> None:
-    package = parts(to_docx(draft(), title="Brief", today=DAY))
+    package = parts(docx(draft(), title="Brief"))
     assert set(package) == {
         "[Content_Types].xml", "_rels/.rels", "docProps/core.xml", "word/document.xml",
         "word/_rels/document.xml.rels", "word/styles.xml", "word/numbering.xml",
@@ -91,7 +104,7 @@ def test_the_package_has_its_parts_their_content_types_and_relationships() -> No
 
 
 def test_the_page_and_the_styles_are_the_reader_layout() -> None:
-    package = parts(to_docx(draft(), today=DAY))
+    package = parts(docx(draft()))
     styles = package["word/styles.xml"]
     defaults = styles.find(f"{W}docDefaults/{W}rPrDefault/{W}rPr")
     assert defaults.find(f"{W}rFonts").get(f"{W}ascii") == "Arial"
@@ -112,7 +125,7 @@ def test_the_page_and_the_styles_are_the_reader_layout() -> None:
 
 
 def test_each_block_is_a_paragraph_in_words_styles_with_the_glossary_last() -> None:
-    document = parts(to_docx(draft(), title="Brief", today=DAY))["word/document.xml"]
+    document = parts(docx(draft(), title="Brief"))["word/document.xml"]
     found = paragraphs(document)
     assert [s for s, _ in found] == [
         "Heading1", "DraftNote", "Heading2", None, None, "ListBullet", "ListBullet", None,
@@ -128,13 +141,13 @@ def test_each_block_is_a_paragraph_in_words_styles_with_the_glossary_last() -> N
 
 
 def test_lines_break_at_sense_units_within_the_page_and_never_inside_a_value() -> None:
-    found = paragraphs(parts(to_docx(draft(), today=DAY))["word/document.xml"])
+    found = paragraphs(parts(docx(draft()))["word/document.xml"])
     call = next(lines for _, lines in found if lines[0].startswith("Für Fragen"))
-    assert len(call) > 1 and all(len(line) <= DOCX_LINE_CHARS for line in call)
+    assert len(call) > 1 and all(len(line) <= LINE_CHARS for line in call)
     assert " ".join(call).replace("\xa0", " ") == CALL
     assert any("044\xa0123\xa045\xa067" in line for line in call)
     item = next(lines for s, lines in found if s == "ListBullet" and lines[0].startswith("eine"))
-    assert len(item) > 1 and all(len(line) <= DOCX_LINE_CHARS - LIST_CHARS for line in item)
+    assert len(item) > 1 and all(len(line) <= LINE_CHARS - LIST_INDENT for line in item)
     assert " ".join(item) == ITEM
 
 
@@ -148,7 +161,7 @@ def test_the_review_applies_and_a_decision_job_opens_and_ends_with_the_notice() 
             Decision(block_id="g01", decision="rejected"),
         ],
     )  # fmt: skip
-    data = to_docx(draft(), review, title="Entscheid", notice=NOTICE, today=DAY)
+    data = docx(draft(), review, title="Entscheid", notice=NOTICE)
     found = paragraphs(parts(data)["word/document.xml"])
     assert found[1] == ("Notice", [NOTICE]) and found[-1] == ("Notice", [NOTICE])
     assert [s for s, _ in found].count("Notice") == 2
@@ -157,7 +170,7 @@ def test_the_review_applies_and_a_decision_job_opens_and_ends_with_the_notice() 
     # The edit's line break is a space: in Word only `wrap_sentence` breaks lines.
     assert "Schicken Sie das Gesuch bis 31. März 2026 an die Gemeinde." in texts
     assert "Sie haben wenig Geld." not in texts and "Wörterbuch" not in texts
-    standard = paragraphs(parts(to_docx(draft(), review, today=DAY))["word/document.xml"])
+    standard = paragraphs(parts(docx(draft(), review))["word/document.xml"])
     assert "Notice" not in [s for s, _ in standard]
 
 
@@ -171,21 +184,22 @@ def test_the_footer_names_the_tool_draft_day_model_and_the_prompt_that_wrote_the
         f"Leicht·Facile {__version__} · Entwurf v2 · 11.10.2026 · swiss-ai/Apertus-v1.5-8B"
         " · Prompt a644e7997ea4"
     )
-    assert footer_line(draft(), summary, DAY) == line
+    layout = build_layout(draft())
+    assert footer_line(layout, summary, DAY) == line
     zurich = summary.model_copy(update={"condition": "P0-ZH-complete"})
-    assert footer_line(draft(), zurich, DAY).endswith(" · Prompt 2c2c2c2c2c2c")
+    assert footer_line(layout, zurich, DAY).endswith(" · Prompt 2c2c2c2c2c2c")
     single = summary.model_copy(update={"condition": "P0"})
-    assert footer_line(draft(), single, DAY).endswith(" · Prompt 0b0b0b0b0b0b")
+    assert footer_line(layout, single, DAY).endswith(" · Prompt 0b0b0b0b0b0b")
     unknown = summary.model_copy(update={"prompt_versions": {"write": "none"}})
-    assert footer_line(draft(), unknown, DAY).endswith("swiss-ai/Apertus-v1.5-8B")
+    assert footer_line(layout, unknown, DAY).endswith("swiss-ai/Apertus-v1.5-8B")
     before_the_pipeline = f"Leicht·Facile {__version__} · Brouillon v2 · 11.10.2026"
-    assert footer_line(draft("fr"), None, DAY) == before_the_pipeline
-    footer = parts(to_docx(draft(), summary=summary, today=DAY))["word/footer1.xml"]
+    assert footer_line(build_layout(draft("fr")), None, DAY) == before_the_pipeline
+    footer = parts(docx(draft(), summary=summary))["word/footer1.xml"]
     assert paragraphs(footer) == [("Footer", [line])]
 
 
 def test_a_french_draft_gets_french_labels_and_swiss_french_spelling() -> None:
-    package = parts(to_docx(draft("fr"), today=DAY))
+    package = parts(docx(draft("fr")))
     lang = package["word/styles.xml"].find(f"{W}docDefaults/{W}rPrDefault/{W}rPr/{W}lang")
     assert lang.get(f"{W}val") == "fr-CH"
     found = paragraphs(package["word/document.xml"])
@@ -197,12 +211,12 @@ def test_markup_is_escaped_control_characters_go_and_the_bytes_repeat() -> None:
     d = draft().model_copy(
         update={"blocks": [Block(id="b001", kind="sentence", text="A <b> & C\x0cD\x01E.")]}
     )
-    data = to_docx(d, title="<Brief> & Co", today=DAY)
+    data = docx(d, title="<Brief> & Co")
     package = parts(data)
     found = paragraphs(package["word/document.xml"])
     assert found[0] == ("Heading1", ["<Brief> & Co"]) and found[2] == (None, ["A <b> & C DE."])
     assert package["docProps/core.xml"].find(f"{DC}title").text == "<Brief> & Co"
-    assert to_docx(d, title="<Brief> & Co", today=DAY) == data
+    assert docx(d, title="<Brief> & Co") == data
 
 
 LETTER = """# Prämienverbilligung 2026

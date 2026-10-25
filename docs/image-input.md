@@ -57,13 +57,13 @@ the error is silent.
   French IBAN line.
 - **One prompt per language**, "transcribe the text word for word, change no number,
   date or name, one line per table row, answer `unlesbar`/`illisible` if the image
-  cannot be read" (`src/leichtfacile/eval/image_spike.py`), the image as a base64
+  cannot be read" (the spike module, see Files and sources), the image as a base64
   JPEG in an OpenAI-style `image_url` part, temperature 0, no thinking, the response
   cache off.
 - **Settings:** the whole page scaled to a long side of 1,600 pixels (7 October); the
   whole page at full size; the printed area only; the printed area cut at blank rows
-  into horizontal strips of under 1.9 million pixels each (`scripts/image_spike.py
-  --strips`, five calls per A4 page); the strips in grayscale with autocontrast; the
+  into horizontal strips of under 1.9 million pixels each (the script's `--strips`,
+  five calls per A4 page); the strips in grayscale with autocontrast; the
   strips upscaled 1.5 x; the 8B and the 70B.
 - **Measures:** the character error rate against the printed text (Levenshtein over
   whitespace-normalised text), the share of the printed text's hard values found in
@@ -200,8 +200,10 @@ thinking; the `-thinking` variants were not tried on images.
 
 ## Files and sources
 
-- Script: `scripts/image_spike.py` (`--strips`), module
-  `src/leichtfacile/eval/image_spike.py`, tests in `tests/eval/test_image_spike.py`.
+- Code: the spike's script, module and tests (`scripts/image_spike.py`,
+  `src/leichtfacile/eval/image_spike.py`, `tests/eval/test_image_spike.py`) were
+  removed on 25 October 2026 with the no-go, under the repository's rule for rejected
+  experiments; they are in the history up to commit b948426.
 - Inputs: `data/examples/print/` (the letters' text and PDFs) and
   `data/examples/print/scans/` (the scans).
 - Results with every transcription: `eval/results/image_spike*.json` (git-ignored,

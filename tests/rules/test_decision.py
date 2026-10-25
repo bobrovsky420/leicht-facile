@@ -275,28 +275,33 @@ NOTICE = "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend i
 
 
 def test_fact_07_wants_the_notice_first_and_last_and_exempts_it_from_the_layout_rules() -> None:
-    from leichtfacile.export import layout_lines
+    from leichtfacile.export.layout import build_layout, plain_lines
     from leichtfacile.rules import get_checker
 
-    blocks = [
-        Block(id="b001", kind="heading", text="Was hat die Behörde entschieden?"),
-        Block(id="b002", kind="sentence", text="Sie bekommen eine Beiständin."),
-    ]
+    d = Draft(
+        doc_id="decision", lang="de", level="A2",
+        blocks=[
+            Block(id="b001", kind="heading", text="Was hat die Behörde entschieden?"),
+            Block(id="b002", kind="sentence", text="Sie bekommen eine Beiständin."),
+        ],
+    )  # fmt: skip
     checker = get_checker("de")
-    lines = layout_lines(blocks, notice=NOTICE)
+    lines = plain_lines(build_layout(d, notice=NOTICE))
     assert lines[0] == NOTICE and lines[-1] == NOTICE and len(NOTICE) > 85
     assert checker.check_export(lines, "A2", notice=NOTICE) == []  # no FACT-07, no LAY-01/02
-    ids = [f.rule_id for f in checker.check_export(layout_lines(blocks), "A2", notice=NOTICE)]
+    without = plain_lines(build_layout(d))
+    ids = [f.rule_id for f in checker.check_export(without, "A2", notice=NOTICE)]
     assert ids == ["FACT-07", "FACT-07"]
     (last,) = checker.check_export(
         [NOTICE, "", "Sie bekommen eine Beiständin."], "A2", notice=NOTICE
     )
     assert last.key == "FACT-07.last" and last.evidence == "Sie bekommen eine Beiständin."
-    assert checker.check_export(layout_lines(blocks), "A2") == []  # a standard job: no notice
+    assert checker.check_export(without, "A2") == []  # a standard job: no notice
 
 
 def test_the_exporters_write_the_notice_as_the_first_and_last_paragraph() -> None:
     from leichtfacile.export.html import to_html
+    from leichtfacile.export.layout import build_layout
     from leichtfacile.export.markdown import to_markdown
     from leichtfacile.schemas import GlossaryEntry
 
@@ -305,14 +310,15 @@ def test_the_exporters_write_the_notice_as_the_first_and_last_paragraph() -> Non
         blocks=[Block(id="b001", kind="sentence", text="Sie bekommen eine Beiständin.")],
         glossary=[GlossaryEntry(term="Beiständin", explanation="Eine Person, die hilft.")],
     )  # fmt: skip
-    md = to_markdown(d, title="Entscheid", notice=NOTICE)
+    md = to_markdown(build_layout(d, title="Entscheid", notice=NOTICE))
     paragraphs = [p.strip() for p in md.split("\n\n") if p.strip()]
     assert paragraphs[0] == "# Entscheid" and paragraphs[2] == NOTICE and paragraphs[-1] == NOTICE
-    html = to_html(d, notice=NOTICE)
+    html = to_html(build_layout(d, notice=NOTICE))
     assert html.count(f'<p class="notice">{NOTICE}</p>') == 2
     assert (
         html.index('<p class="notice">')
         < html.index("Sie bekommen")
         < html.rindex('<p class="notice">')
     )
-    assert '<p class="notice">' not in to_html(d) and NOTICE not in to_markdown(d)
+    plain = build_layout(d)
+    assert '<p class="notice">' not in to_html(plain) and NOTICE not in to_markdown(plain)

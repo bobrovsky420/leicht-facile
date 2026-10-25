@@ -95,8 +95,10 @@ def _rewrite_json(
     matching `where`) and write back the documents it changed."""
     rows = conn.execute(f"SELECT rowid, {column} FROM {table} {where}").fetchall()
     for row in rows:
+        # Parsed twice: a transform that changes a nested value in place must still
+        # compare as a change.
         data = json.loads(row[column])
-        changed = transform(dict(data))
+        changed = transform(json.loads(row[column]))
         if changed != data:
             conn.execute(
                 f"UPDATE {table} SET {column} = ? WHERE rowid = ?",
@@ -272,7 +274,7 @@ def _neutral_finding(finding: dict[str, Any]) -> dict[str, Any]:
     rule_id, key = str(finding.get("rule_id", "")), str(finding.get("key", ""))
     lang = "fr" if rule_id.endswith("-FR") else "de"
     if rule_id.endswith("-FR"):
-        finding["rule_id"] = "GRAM-09" if rule_id == "GRAM-08-FR" else rule_id[:-3]
+        rule_id = "GRAM-09" if rule_id == "GRAM-08-FR" else rule_id[:-3]
     if key in _FR_KEYS:
         key = _FR_KEYS[key]
     else:
@@ -283,7 +285,7 @@ def _neutral_finding(finding: dict[str, Any]) -> dict[str, Any]:
         params.setdefault(name, value)
     if key in _TOOK_SUGGESTION and "expected" not in params and finding.get("suggestion"):
         params["expected"] = finding["suggestion"]
-    return {**finding, "key": key, "params": params}
+    return {**finding, "rule_id": rule_id, "key": key, "params": params}
 
 
 def _neutral_rule_ids(rules: dict[str, Any]) -> dict[str, Any]:

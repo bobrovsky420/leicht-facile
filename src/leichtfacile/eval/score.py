@@ -15,9 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from leichtfacile.eval.calibrate import source_as_draft
 from leichtfacile.eval.metrics import compression_ratio, sari_document
-from leichtfacile.rules import check_draft
+from leichtfacile.rules import check_draft, source_as_draft
 from leichtfacile.rules.document import fact_coverage, foreign_values
 from leichtfacile.rules.glossary import unexplained_terms
 from leichtfacile.rules.mediopunkt import GLOSSARY
@@ -90,9 +89,28 @@ def price(model: str) -> tuple[float, float] | None:
     return None
 
 
-def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
+@dataclass(frozen=True)
+class HardValues:
+    """The source's hard values against the output's, extracted once per output."""
+
+    keys: list[tuple]  # the source's hard values (rules/values.py `hard_values`)
+    found: list[tuple]  # those the output carries
+    lost: list[tuple]  # those it does not
+
+
+def hard_values_of(draft: Draft, standard: SourceDocument) -> HardValues:
+    keys = hard_values(standard.text(), standard.lang)
+    out_values = extract_values(draft.text(), draft.lang)
+    found = [key for key in keys if hard_value_found(key, out_values)]
+    return HardValues(keys, found, [key for key in keys if key not in found])
+
+
+def text_metrics(
+    draft: Draft, standard: SourceDocument, hard: HardValues | None = None
+) -> dict[str, Any]:
     """Model-free metrics of a text, comparable across conditions and the reference."""
     checked = check_draft(draft)
+    hard = hard or hard_values_of(draft, standard)
     blocks = max(1, len(draft.blocks))
     severity = Counter(f.severity for f in checked.findings)
     by_family: Counter = Counter()
@@ -100,13 +118,11 @@ def text_metrics(draft: Draft, standard: SourceDocument) -> dict[str, Any]:
         family = f.rule_id.split("-")[0]
         if family in LANGUAGE_FAMILIES and f.severity != "info":
             by_family[family] += 1
-    source_keys = hard_values(standard.text(), standard.lang)
-    out_values = extract_values(draft.text(), draft.lang)
-    found = sum(1 for key in source_keys if hard_value_found(key, out_values))
+    source_keys, found = hard.keys, len(hard.found)
     # Without a fact checklist and an omission log (the baselines, the official version)
     # every hard value the text lost is lost in silence; `silent_losses` below narrows
     # this for a pipeline job.
-    silent = len(source_keys) - found
+    silent = len(hard.lost)
     # Values the source does not contain, strictly against the source (the runtime
     # rule FACT-06 also accepts the fact sheet's values; here a value the fact sheet
     # invented counts too).
@@ -151,7 +167,12 @@ def score_source(standard: SourceDocument) -> dict[str, Any]:
 
 
 def silent_losses(
-    draft: Draft, standard: SourceDocument, factsheet: FactSheet | None, *, condition: str
+    draft: Draft,
+    standard: SourceDocument,
+    factsheet: FactSheet | None,
+    *,
+    condition: str,
+    hard: HardValues | None = None,
 ) -> dict[str, Any]:
     """Hard values of the source that the output lost without a trace: not in the text,
     and nowhere a reviewer would see them. For a pipeline job (P1, P2) a lost value is
@@ -163,9 +184,8 @@ def silent_losses(
     as long as the code completion of the fact sheet covers every hard value: a count
     above zero there names a value the completion missed."""
     lang = standard.lang
-    keys = hard_values(standard.text(), lang)
-    out_values = extract_values(draft.text(), draft.lang)
-    lost = [key for key in keys if not hard_value_found(key, out_values)]
+    hard = hard or hard_values_of(draft, standard)
+    keys, lost = hard.keys, hard.lost
     told: set[tuple[str, str]] = set()
     if factsheet is not None and condition not in BASELINE_CONDITIONS:
         fact_values = [
@@ -218,8 +238,9 @@ def score_output(
     code_edits: list[CodeEdit] | None = None,
 ) -> dict[str, Any]:
     """`code_edits`: the edits of every version up to `draft` (default: its own only)."""
-    row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard)}
-    row.update(silent_losses(draft, standard, factsheet, condition=job.config.condition))
+    hard = hard_values_of(draft, standard)
+    row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard, hard)}
+    row.update(silent_losses(draft, standard, factsheet, condition=job.config.condition, hard=hard))
     # Compounds split by code that stand in the final version (rules/mediopunkt.py, P1 and
     # P2 only): the deterministic share of the LEX improvement, reported next to the LEX
     # family.

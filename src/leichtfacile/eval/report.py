@@ -1,4 +1,6 @@
-"""Markdown tables for docs/evaluation.md, from the JSONL results in eval/results/.
+"""Markdown tables from result rows: docs/evaluation.md (`eval report`, one results
+folder, one group per setup and model) and the language sections of
+docs/model-comparison.md (`eval compare`, one group per run; eval/compare.py).
 
 Only aggregate numbers leave this module: no text from the protected reference pages
 and no model rewrite of them, so the tables can be committed and published.
@@ -6,123 +8,93 @@ and no model rewrite of them, so the tables can be committed and published.
 
 from __future__ import annotations
 
-import json
-from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
-from statistics import mean
-from typing import Any
+from statistics import mean as exact_mean
 
+from leichtfacile.eval.results import (
+    LABELS,
+    LANGUAGES,
+    OK,
+    ORDER,
+    Row,
+    completed,
+    fmt,
+    for_role,
+    group_key,
+    languages,
+    load_rows,
+    mean,
+)
 from leichtfacile.eval.score import LANGUAGE_FAMILIES
-from leichtfacile.schemas import canonical_condition
 
-ORDER = {
-    "SOURCE": 0,
-    "REF": 1,
-    "P0": 2,
-    "P0-ZH-complete": 3,
-    "P0-ZH-condensed": 4,
-    "P1": 5,
-    "P2": 6,
-}
-LANGUAGES = {"de": "German", "fr": "French", "it": "Italian"}
-LABELS = {
-    "SOURCE": "Original (standard language)",
-    "REF": "Official easy-language version",
-    "P0": "P0 baseline: one prompt",
-    "P0-ZH-complete": "P0-ZH complete: Zurich's prompt, keep everything",
-    "P0-ZH-condensed": "P0-ZH default: Zurich's prompt, essentials only",
-    "P1": "P1 no judge: fact sheet + draft + rule check",
-    "P2": "P2 full: pipeline with judge and repair",
-}
+RICH_FACTS = 3  # the fact-rich subset: pairs with at least this many hard facts
 
 
-def load_rows(results_dir: Path) -> list[dict[str, Any]]:
-    rows = []
-    for path in sorted(results_dir.glob("*.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                row = json.loads(line)
-                if "setup" in row:  # rows written before the P names
-                    row["setup"] = canonical_condition(row["setup"])
-                rows.append(row)
-    return rows
+@dataclass(frozen=True)
+class Group:
+    """One row of the tables: a setup and its models, or a run of the comparison."""
+
+    label: str  # the first table's row label
+    short: str  # the label of the tables after it
+    rows: list[Row]  # every row of the group, the failed ones included
 
 
-def _mean(rows: list[dict], key: str) -> float | None:
-    values = [r[key] for r in rows if r.get(key) is not None]
-    return mean(values) if values else None
-
-
-def _fmt(value: float | None, digits: int = 1, pct: bool = False) -> str:
-    if value is None:
-        return "-"
-    return f"{100 * value:.0f} %" if pct else f"{value:.{digits}f}"
-
-
-def _groups(rows: list[dict]) -> list[tuple[str, list[dict]]]:
-    groups: dict[str, list[dict]] = defaultdict(list)
+def groups_of(rows: list[Row]) -> list[Group]:
+    """One folder's rows as groups: the originals, the official versions, then each
+    setup with its models, in the order of the setups."""
+    groups: dict[str, list[Row]] = {}
     for r in rows:
-        if r.get("status") not in (None, "needs_review", "done"):
-            continue
-        if r["setup"] in ("SOURCE", "REF"):
-            key = r["setup"]
-        else:
-            models = r.get("writer", "?")
-            if r.get("understand"):  # the hybrid: another model read the source
-                models += f", understand {r['understand']}"
-            key = f"{r['setup']} ({models})"
-        groups[key].append(r)
-    return sorted(groups.items(), key=lambda kv: (ORDER.get(kv[0].split(" ")[0], 9), kv[0]))
+        reference = r["setup"] in ("SOURCE", "REF")
+        key = r["setup"] if reference else f"{r['setup']} ({group_key(r)})"
+        groups.setdefault(key, []).append(r)
+    out = []
+    order = lambda kv: (ORDER.get(kv[0].split(" ")[0], 9), kv[0])  # noqa: E731
+    for key, found in sorted(groups.items(), key=order):
+        label = LABELS.get(key.split(" ")[0], key)
+        if " (" in key:
+            label += " " + key[key.index("(") :]
+        out.append(Group(label, key, found))
+    return out
 
 
 def render_report(results_dir: Path, *, role: str | None = "eval", lang: str | None = None) -> str:
     """The tables, one section per language when the results cover several: numbers of
     different languages are not comparable (other rules, other readability formula)."""
-    rows = [r for r in load_rows(results_dir) if role in (None, "all") or r.get("role") == role]
+    rows = for_role(load_rows(results_dir), role)
     if lang:
         rows = [r for r in rows if r.get("lang", "de") == lang]
     if not rows:
         return "No results yet. Run `python -m leichtfacile eval reference` and `eval run` first."
-    langs = sorted({r.get("lang", "de") for r in rows}, key=lambda c: (c not in LANGUAGES, c))
+    langs = languages(rows)
     if len(langs) == 1:
-        return _render_rows(rows, role)
+        return render_tables(groups_of(rows), role=role or "all")
     sections = []
     for code in langs:
         part = [r for r in rows if r.get("lang", "de") == code]
-        sections.append(f"## {LANGUAGES.get(code, code)}\n\n" + _render_rows(part, role))
+        tables = render_tables(groups_of(part), role=role or "all")
+        sections.append(f"## {LANGUAGES.get(code, code)}\n\n{tables}")
     return "\n\n".join(sections)
 
 
-def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
-    failed = [r for r in rows if r.get("status") not in (None, "needs_review", "done")]
-    groups = _groups(rows)
+def render_tables(groups: list[Group], *, role: str, column: str = "Setup") -> str:
+    """The tables of one language: the measures per group, the rule findings by
+    family, the fact-rich subset, and the failed runs, which are in no mean. `column`
+    heads the groups' column."""
+    rows = [r for g in groups for r in g.rows]
+    ok = [(g, completed(g.rows)) for g in groups]
     out = [
-        f"Pairs: {len({r['pair_id'] for r in rows})} ({role or 'all'} split). "
+        f"Pairs: {len({r['pair_id'] for r in rows})} ({role} split). "
         "Means over pairs; a dash means not applicable.",
         "",
-        "| Setup | Pairs | Fact coverage | Hard facts kept | Silent losses "
+        f"| {column} | Pairs | Fact coverage | Hard facts kept | Silent losses "
         "| Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability "
         "| SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks "
         "| Tokens / page "
         "| USD / page | Seconds / page |",
         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
-    for name, group in groups:
-        label = LABELS.get(name.split(" ")[0], name)
-        if " (" in name:
-            label += " " + name[name.index("(") :]
-        out.append(
-            f"| {label} | {len(group)} | {_fmt(_mean(group, 'fact_coverage'), pct=True)} "
-            f"| {_fmt(_mean(group, 'hard_fact_recall'), pct=True)} "
-            f"| {_fmt(_mean(group, 'silent_loss_share'), pct=True)} "
-            f"| {_fmt(_mean(group, 'errors_per_100'))} | {_fmt(_mean(group, 'warnings_per_100'))} "
-            f"| {_fmt(_mean(group, 'avg_words'))} | {_fmt(_mean(group, 'readability'), 0)} "
-            f"| {_fmt(_mean(group, 'sari'))} | {_fmt(_mean(group, 'unsupported_per_100'))} "
-            f"| {_fmt(_mean(group, 'invented_values_per_100'))} "
-            f"| {_fmt(_mean(group, 'tokens_per_page'), 0)} "
-            f"| {_fmt(_mean(group, 'usd_per_page'), 4)} "
-            f"| {_fmt(_mean(group, 'latency_s_per_page'))} |"
-        )
+    out += [_metrics_row(g.label, found) for g, found in ok]
     out += [
         "",
         "Silent losses: the share of the source's hard values that the text lost without a "
@@ -138,39 +110,57 @@ def _render_rows(rows: list[dict[str, Any]], role: str | None) -> str:
     ]
     columns = [*LANGUAGE_FAMILIES]
     columns.insert(columns.index("LEX") + 1, "LEX by code")
-    out.append("| Setup | " + " | ".join(columns) + " |")
+    out.append(f"| {column} | " + " | ".join(columns) + " |")
     out.append("|---|" + "---|" * len(columns))
-    for name, group in groups:
+    for g, found in ok:
         cells = []
-        for column in columns:
-            if column == "LEX by code":
-                splits = [r["mediopunkt_per_100"] for r in group if "mediopunkt_per_100" in r]
-                cells.append(_fmt(mean(splits)) if splits else "-")
+        for family in columns:
+            if family == "LEX by code":
+                splits = [r for r in found if "mediopunkt_per_100" in r]
+                cells.append(fmt(mean(splits, "mediopunkt_per_100")))
                 continue
-            values = [r.get("by_family_per_100", {}).get(column, 0.0) for r in group]
-            cells.append(_fmt(mean(values)) if values else "-")
-        out.append(f"| {name} | " + " | ".join(cells) + " |")
-    rich = [r for r in rows if (r.get("hard_facts_total") or 0) >= 3]
+            values = [r.get("by_family_per_100", {}).get(family, 0.0) for r in found]
+            cells.append(fmt(exact_mean(values)) if values else "-")
+        out.append(f"| {g.short} | " + " | ".join(cells) + " |")
+    rich = [
+        (g, [r for r in found if (r.get("hard_facts_total") or 0) >= RICH_FACTS]) for g, found in ok
+    ]
+    rich = [(g, found) for g, found in rich if found]
     if rich:
+        pairs = {r["pair_id"] for _, found in rich for r in found}
         out += [
             "",
-            f"Fact-rich subset ({len({r['pair_id'] for r in rich})} pairs "
-            "with at least 3 hard facts):",
+            f"Fact-rich subset ({len(pairs)} pairs with at least {RICH_FACTS} hard facts):",
             "",
-        ]
-        out += [
-            "| Setup | Pairs | Hard facts kept | Fact coverage | Judge: distorted |",
+            f"| {column} | Pairs | Hard facts kept | Fact coverage | Judge: distorted |",
             "|---|---|---|---|---|",
         ]
-        for name, group in _groups(rich):
+        for g, found in rich:
             out.append(
-                f"| {name} | {len(group)} | {_fmt(_mean(group, 'hard_fact_recall'), pct=True)} "
-                f"| {_fmt(_mean(group, 'fact_coverage'), pct=True)} "
-                f"| {_fmt(_mean(group, 'judge_distorted'), pct=True)} |"
+                f"| {g.short} | {len(found)} | {fmt(mean(found, 'hard_fact_recall'), pct=True)} "
+                f"| {fmt(mean(found, 'fact_coverage'), pct=True)} "
+                f"| {fmt(mean(found, 'judge_distorted'), pct=True)} |"
             )
+    failed = []
+    for g in groups:
+        pairs = sorted({r["pair_id"] for r in g.rows if r.get("status") not in OK})
+        if pairs:
+            failed.append(f"{g.short}: {', '.join(pairs)}")
     if failed:
-        out += [
-            "",
-            f"Failed runs: {len(failed)} ({', '.join(sorted({r['pair_id'] for r in failed}))}).",
-        ]
+        out += ["", "Failed runs (not in the means): " + "; ".join(failed) + "."]
     return "\n".join(out)
+
+
+def _metrics_row(label: str, rows: list[Row]) -> str:
+    return (
+        f"| {label} | {len(rows)} | {fmt(mean(rows, 'fact_coverage'), pct=True)} "
+        f"| {fmt(mean(rows, 'hard_fact_recall'), pct=True)} "
+        f"| {fmt(mean(rows, 'silent_loss_share'), pct=True)} "
+        f"| {fmt(mean(rows, 'errors_per_100'))} | {fmt(mean(rows, 'warnings_per_100'))} "
+        f"| {fmt(mean(rows, 'avg_words'))} | {fmt(mean(rows, 'readability'), 0)} "
+        f"| {fmt(mean(rows, 'sari'))} | {fmt(mean(rows, 'unsupported_per_100'))} "
+        f"| {fmt(mean(rows, 'invented_values_per_100'))} "
+        f"| {fmt(mean(rows, 'tokens_per_page'), 0)} "
+        f"| {fmt(mean(rows, 'usd_per_page'), 4)} "
+        f"| {fmt(mean(rows, 'latency_s_per_page'))} |"
+    )

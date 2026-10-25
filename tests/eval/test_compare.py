@@ -92,7 +92,7 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
     assert "| Model M | 2 | 95 % | 75 % | - | 3.0 |" in text and "| 0.0200 |" in text
     assert "| Model M | 1.0 | 0.0 | 0.0 | 0.0 | 0.0 | 5.0 | 0.0 | 0.0 |" in text  # families
     assert "| Model M | 1 | 100 % | 100 % | 0 % |" in text  # the fact-rich subset: pair a
-    assert "Failed pairs (not in the means): Model M: c." in text
+    assert "Failed runs (not in the means): Model M: c." in text
 
     doc.write_text(DOC.replace("P2_m.jsonl", "gone.jsonl"), encoding="utf-8")
     with pytest.raises(compare.CompareError, match="no rows at"):
