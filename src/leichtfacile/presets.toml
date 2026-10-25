@@ -95,3 +95,18 @@ api_key_env = "GROQ_API_KEY"
 label = "Hugging Face Inference Providers (third-party clouds, public documents only)"
 url = "https://router.huggingface.co/v1"
 api_key_env = "HF_TOKEN"
+
+# Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only; US
+# cloud): public documents only. The 5.5 models refuse a temperature; the model list needs
+# the anthropic-version header. The endpoint ignores reasoning_effort and counts Claude's
+# adaptive thinking in max_tokens, so thinking is set on the saved endpoint through the
+# native field: `extra_body = { thinking = { type = "disabled" } }` for Haiku 5.5,
+# `{ type = "between_tools" }` for Sonnet 5.5; Opus 5.5 always thinks (effort through
+# `output_config = { effort = "low" }`). No model: `leichtfacile setup anthropic` lists
+# them. Checked 25 October 2026.
+[anthropic]
+label = "Anthropic's Claude (US cloud, public documents only)"
+url = "https://api.anthropic.com/v1"
+api_key_env = "ANTHROPIC_API_KEY"
+send_temperature = false
+headers = { anthropic-version = "2023-06-01" }

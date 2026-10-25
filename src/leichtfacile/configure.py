@@ -39,9 +39,9 @@ HEADER = (
 )
 
 
-def list_models(base_url: str, api_key: str) -> list[str]:
-    """The endpoint's model names (GET /models), with the client's User-Agent: some
-    gateways refuse requests without one."""
+def list_models(base_url: str, api_key: str, headers: dict[str, str] | None = None) -> list[str]:
+    """The endpoint's model names (GET /models), with the client's User-Agent (some
+    gateways refuse requests without one) and the endpoint's own headers."""
     import openai
 
     from leichtfacile.llm.client import USER_AGENT
@@ -51,7 +51,7 @@ def list_models(base_url: str, api_key: str) -> list[str]:
         api_key=api_key,
         timeout=15.0,
         max_retries=0,
-        default_headers={"User-Agent": USER_AGENT},
+        default_headers={"User-Agent": USER_AGENT, **(headers or {})},
     )
     return sorted(m.id for m in client.models.list())
 
@@ -139,7 +139,8 @@ def run_setup(
     model = model or known.get("writer", "")
     if store or not model:
         try:
-            listed = models(url, key)
+            extra = {"headers": values["headers"]} if values.get("headers") else {}
+            listed = models(url, key, **extra)
         except Exception as exc:  # the address or the key may be wrong: go on anyway
             say(f"The endpoint's model list could not be read ({type(exc).__name__}).")
         else:

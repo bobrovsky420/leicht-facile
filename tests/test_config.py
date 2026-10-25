@@ -27,6 +27,7 @@ from leichtfacile.config import (
 ROOT = Path(__file__).resolve().parents[1]
 PRESET_NAMES = [
     "cscs", "apertus", "local", "ollama", "vllm", "openai", "mistral", "groq", "huggingface",
+    "anthropic",
 ]  # fmt: skip
 
 

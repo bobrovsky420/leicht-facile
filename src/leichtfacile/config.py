@@ -216,10 +216,15 @@ class Endpoint(Section):
         default_factory=dict,
         description="Fields sent with every request, for a gateway's switches.",
     )
+    headers: dict[str, str] = Field(
+        default_factory=dict,
+        description="Headers sent with every request (anthropic-version for Anthropic's "
+        "OpenAI-compatible endpoint).",
+    )
 
     _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
 
-    @field_validator("extra_body", mode="before")
+    @field_validator("extra_body", "headers", mode="before")
     @classmethod
     def _json(cls, value: object) -> object:
         return json.loads(value) if isinstance(value, str) and value.strip() else value
@@ -710,7 +715,7 @@ def source_of(flat: Flat, key: str) -> str | None:
 
 
 # A key that takes a whole table, never merged key by key.
-_OPAQUE = {"extra_body"}
+_OPAQUE = {"extra_body", "headers"}
 # Folders a file may give relative to its own folder.
 _PATHS = ("data.dir", "data.examples_dir")
 # A secret is given or named; the later source's choice wins.

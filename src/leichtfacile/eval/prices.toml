@@ -93,3 +93,25 @@ output = 1.60
 match = ["gpt-4.1"]
 input = 2.00
 output = 8.00
+
+# Anthropic's list prices (platform.claude.com, 25 October 2026); Haiku 5.5 up to 100K
+# tokens of prompt.
+[[model]]
+match = ["claude-haiku-5-5"]
+input = 0.10
+output = 0.50
+
+[[model]]
+match = ["claude-sonnet-5-5"]
+input = 2.00
+output = 10.00
+
+[[model]]
+match = ["claude-opus-5-5"]
+input = 4.00
+output = 20.00
+
+[[model]]
+match = ["claude-fable-5-1"]
+input = 10.00
+output = 50.00

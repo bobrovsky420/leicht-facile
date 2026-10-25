@@ -134,6 +134,18 @@ thinking = "reasoning_effort none on every call"
 text = "United States (OpenAI)"
 prices = "OpenAI list prices"
 notes = "the newest cheap OpenAI model; on the long documents its Understand answer passed the 6,000-token budget, so those pairs ran with the 12,000 budget of the thinking stages (the model still reasons only when asked)"
+[[run]]
+label = "Claude Haiku 5.5, no thinking, judges itself (Anthropic)"
+results = "eval/results-anthropic-claude-haiku-5.5"
+file = "P2_claude-haiku-5-5.jsonl"
+date = 2026-10-25
+endpoint = "Anthropic's OpenAI-compatible endpoint"
+writer = "claude-haiku-5-5"
+judge = "claude-haiku-5-5 (itself)"
+thinking = "off, through the native thinking field (the endpoint ignores reasoning_effort; thinking tokens count in max_tokens and are not reported)"
+text = "United States (Anthropic)"
+prices = "Anthropic list prices"
+notes = "no temperature (refused by the 5.5 models); the smallest current Claude; with adaptive thinking on, Understand ran to 12,000 and Write to 8,000 tokens"
 ```
 <!-- runs:end -->
 
@@ -147,6 +159,7 @@ notes = "the newest cheap OpenAI model; on the long documents its Understand ans
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 2026-10-25 | Groq (region yul) through the Hugging Face Inference Providers router | openai/gpt-oss-20b | openai/gpt-oss-120b | gpt-oss always reasons; reasoning_effort low on every call | Canada or the United States (Groq) | Groq list prices, billed through Hugging Face | Groq's free tier refused the pipeline's requests (8,000 tokens per minute); one French pair passed on its third run | `eval/results-hf-gpt-oss/P2_openai-gpt-oss-20b-groq.jsonl` |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 2026-10-25 | OpenAI API | gpt-5.4-nano | gpt-5.4-nano (itself) | reasoning_effort none on every call | United States (OpenAI) | OpenAI list prices | the smallest current OpenAI model; max_completion_tokens, no temperature; on the long documents its Understand answer passed the 6,000-token budget, so those pairs ran with the 12,000 budget of the thinking stages (the model still reasons only when asked) | `eval/results-openai-gpt-5.4-nano/P2_gpt-5-4-nano.jsonl` |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 2026-10-25 | OpenAI API | gpt-5.6-luna | gpt-5.6-luna (itself) | reasoning_effort none on every call | United States (OpenAI) | OpenAI list prices | the newest cheap OpenAI model; on the long documents its Understand answer passed the 6,000-token budget, so those pairs ran with the 12,000 budget of the thinking stages (the model still reasons only when asked) | `eval/results-openai-gpt-5.6-luna/P2_gpt-5-6-luna.jsonl` |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-haiku-5-5 (itself) | off, through the native thinking field (the endpoint ignores reasoning_effort; thinking tokens count in max_tokens and are not reported) | United States (Anthropic) | Anthropic list prices | no temperature (refused by the 5.5 models); the smallest current Claude; with adaptive thinking on, Understand ran to 12,000 and Write to 8,000 tokens | `eval/results-anthropic-claude-haiku-5.5/P2_claude-haiku-5-5.jsonl` |
 
 ## German
 
@@ -163,6 +176,7 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 20 | 100 % | 94 % | 0 % | 1.7 | 31.9 | 6.9 | 46 | 40.8 | 0.7 | 0.0 | 20197 | 0.0051 | 11.5 |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 20 | 99 % | 93 % | 0 % | 0.7 | 34.3 | 7.3 | 48 | 41.6 | 2.1 | 0.0 | 38935 | 0.0185 | 86.6 |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 20 | 100 % | 90 % | 1 % | 0.4 | 21.0 | 6.7 | 44 | 44.4 | 3.1 | 0.0 | 38070 | 0.0167 | 84.0 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 92 % | 0 % | 0.9 | 29.9 | 6.9 | 57 | 44.1 | 8.6 | 0.3 | 46648 | 0.0085 | 33.3 |
 
 Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is the compounds split by code in the final version, per 100 blocks:
 
@@ -175,6 +189,7 @@ Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is 
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 10.1 | 0.0 | 7.2 | 0.0 | 8.7 | 43.6 | 1.4 | 0.0 |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 9.8 | 0.0 | 7.4 | 0.0 | 13.4 | 47.2 | 2.6 | 0.0 |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 4.2 | 0.0 | 5.4 | 0.0 | 9.3 | 19.9 | 0.5 | 0.0 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 11.7 | 0.0 | 4.3 | 0.2 | 7.8 | 15.6 | 4.1 | 0.0 |
 
 Fact-rich subset (pairs with at least 3 hard facts):
 
@@ -187,6 +202,7 @@ Fact-rich subset (pairs with at least 3 hard facts):
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 17 | 93 % | 100 % | 1 % |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 17 | 92 % | 99 % | 8 % |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 17 | 88 % | 100 % | 3 % |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 17 | 90 % | 100 % | 4 % |
 
 Failed pairs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
@@ -205,6 +221,7 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 3 | 100 % | 83 % | 0 % | 0.0 | 46.3 | 10.2 | 70 | 42.8 | 2.5 | 0.0 | 24993 | 0.0070 | 15.5 |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 3 | 100 % | 93 % | 0 % | 0.4 | 40.4 | 9.2 | 71 | 44.4 | 2.7 | 0.0 | 27641 | 0.0128 | 40.2 |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 3 | 100 % | 80 % | 0 % | 0.5 | 22.8 | 7.7 | 74 | 48.5 | 1.2 | 0.0 | 17570 | 0.0073 | 36.1 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.9 | 21.3 | 7.6 | 80 | 46.6 | 7.7 | 0.0 | 35250 | 0.0063 | 23.9 |
 
 Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is the compounds split by code in the final version, per 100 blocks:
 
@@ -217,6 +234,7 @@ Rule findings (errors and warnings) per 100 blocks, by family; "LEX by code" is 
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 17.9 | 0.0 | 12.3 | 0.0 | 12.1 | 0.0 | 4.0 | 0.0 |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 15.6 | 0.0 | 15.9 | 0.0 | 8.2 | 0.0 | 1.1 | 0.0 |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 9.8 | 0.0 | 5.5 | 0.0 | 5.5 | 0.0 | 2.5 | 0.0 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 8.5 | 0.0 | 6.5 | 0.0 | 4.0 | 0.0 | 3.3 | 0.0 |
 
 Fact-rich subset (pairs with at least 3 hard facts):
 
@@ -229,29 +247,37 @@ Fact-rich subset (pairs with at least 3 hard facts):
 | gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 3 | 83 % | 100 % | 0 % |
 | gpt-5.4-nano, no thinking, judges itself (OpenAI) | 3 | 93 % | 100 % | 2 % |
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 3 | 80 % | 100 % | 1 % |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 83 % | 100 % | 2 % |
 <!-- tables:end -->
 
 ## Reading, 25 October 2026
 
 - **Facts.** The Apertus runs keep 96 to 97 % of the hard values in German, gpt-oss 94 %,
-  gpt-5.4-nano 93 %, gpt-5.6-luna 90 %, Qwen 87 %; Qwen and luna each lost one value in
-  two hundred silently, nobody invented one. In French (3 pairs) nano and the 70B lead
-  (93 and 89 %), gpt-oss and luna follow (83 and 80 %), the 8B and Qwen keep 72 %.
-- **Rules.** The 70B, Qwen, luna and nano write the fewest rule errors (0.3 to 0.7 per 100
-  blocks), gpt-oss 1.7, the 8B 3.7. Luna has the fewest warnings of all (21.0) and the
-  fewest compounds that code had to split; gpt-oss and nano the most.
-- **Readability.** The 70B and Qwen read easiest (55 to 57 in German), the 8B 52, nano 48,
-  gpt-oss 46, luna 44: the OpenAI models and gpt-oss write short sentences with long words.
-  Luna scores highest on SARI (44.4), the closeness to the official versions.
-- **Speed and price.** gpt-oss on Groq: 11.5 s and USD 0.005 per page; CSCS: about 60 s
-  and USD 0.016 (8B) or 0.025 (70B) at Public AI's prices; the OpenAI small models: 85 s
-  and USD 0.017 to 0.019 per page, because they write twice the tokens of gpt-oss (38k per
-  page against 20k); the laptop: 588 s and no token price.
+  gpt-5.4-nano 93 %, Claude Haiku 5.5 92 %, gpt-5.6-luna 90 %, Qwen 87 %; Qwen and luna
+  each lost one value in two hundred silently. Claude is the only run whose drafts carry
+  values that are not in the source (0.3 per 100 blocks, two in the German set); nobody
+  else invented one. In French (3 pairs) nano and the 70B lead (93 and 89 %), gpt-oss and
+  Claude follow (83 %), luna 80 %, the 8B and Qwen keep 72 %.
+- **Rules.** The 70B, Qwen, luna, nano and Claude write the fewest rule errors (0.3 to 0.9
+  per 100 blocks), gpt-oss 1.7, the 8B 3.7. Luna has the fewest warnings (21.0); Claude the
+  fewest compounds that code had to split (15.6 per 100 blocks), gpt-oss and nano the most.
+- **Readability.** The 70B and Claude Haiku read easiest (57 in German), Qwen 55, the 8B
+  52, nano 48, gpt-oss 46, luna 44: the OpenAI models and gpt-oss write short sentences
+  with long words. Luna and Claude score highest on SARI (44), the closeness to the
+  official versions.
+- **Speed and price.** gpt-oss on Groq: 11.5 s and USD 0.005 per page; Claude Haiku: 33 s
+  and USD 0.009 (it reads the most tokens per page, 47k); CSCS: about 60 s and USD 0.016
+  (8B) or 0.025 (70B) at Public AI's prices; the OpenAI small models: 85 s and USD 0.017 to
+  0.019 per page (38k tokens per page); the laptop: 588 s and no token price.
 - **Output budgets.** The OpenAI small models answered Understand with 6 to 9 thousand
   tokens on the long documents, past the 6,000-token budget of a stage without thinking;
   those pairs ran with the thinking budget of 12,000 (the models reason only when asked, so
-  nothing else changed). Two Write answers passed 8,000 tokens as well and were retried.
+  nothing else changed). Claude Haiku's Write passed 8,000 tokens on three long documents
+  and was written in two halves, as the pipeline does.
 - **Thinking.** Only Apertus on CSCS thought where the pipeline asks for it. Qwen 3.5 9B
-  and gpt-oss-20b at Groq's default effort ran their reasoning to the budget's end, so
-  Qwen ran without thinking, gpt-oss at the lowest effort, and the OpenAI models with
-  `reasoning_effort: none`.
+  and gpt-oss-20b at Groq's default effort ran their reasoning to the budget's end, so Qwen
+  ran without thinking and gpt-oss at the lowest effort; the OpenAI models ran with
+  `reasoning_effort: none`; Claude Haiku with thinking switched off through the native
+  field, since Anthropic's OpenAI-compatible endpoint ignores `reasoning_effort` and counts
+  thinking tokens in the output budget (with adaptive thinking on, its Understand ran to
+  12,000 tokens).

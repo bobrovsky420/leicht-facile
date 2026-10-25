@@ -20,6 +20,7 @@ def test_prices_follow_the_model_name() -> None:
     assert score.price("gpt-5.4-nano") == (0.20, 1.25)  # before the "gpt-5.4" entry
     assert score.price("gpt-5.4") == (2.50, 15.00)
     assert score.price("gpt-5.6-luna") == (0.20, 1.20) and score.price("gpt-5-nano") == (0.05, 0.40)
+    assert score.price("claude-haiku-5-5") == (0.10, 0.50)
     for own in ("apertus-v1.5-8b-q4-llamacpp", "qwen3.5:9b", "local-model", "unknown"):
         assert score.price(own) is None
     for entry in score.PRICES:  # a match list, and both prices or none

@@ -137,7 +137,7 @@ uv run leichtfacile serve
 ```
 
 `setup` lists the presets (`cscs` and `apertus` for Apertus, `local` for llama.cpp,
-`ollama`, `vllm`, `openai`, `mistral`, `groq`, `huggingface`) and any other endpoint;
+`ollama`, `vllm`, `openai`, `mistral`, `groq`, `huggingface`, `anthropic`) and any other endpoint;
 `setup cscs` asks for the CSCS key alone, `setup ollama` for the model alone. It ends by
 offering the spaCy models for German and French, about 90 MB from GitHub (`leichtfacile
 models` gets them later; a checkout has them from `uv.lock`). With a preset's key in the

@@ -62,6 +62,7 @@ them for each draft.
 | `vllm` | vLLM (port 8000), mostly a GPU machine of the organisation | `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |
 | `openai`, `mistral` | OpenAI, Mistral AI | Need the key (`OPENAI_API_KEY`, `MISTRAL_API_KEY`) and a model. Check where the provider processes the text before sending anything confidential |
 | `groq`, `huggingface` | Groq; the Hugging Face Inference Providers router | Need the key (`GROQ_API_KEY`, `HF_TOKEN`) and a model from the list `setup` shows. US and third-party clouds: public documents only |
+| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint | Needs the key (`ANTHROPIC_API_KEY`) and a model (`claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, ...); no temperature; adaptive thinking counts in the output budget, so switch it off with `extra_body = { thinking = { type = "disabled" } }` (Haiku) or `between_tools` (Sonnet). US cloud: public documents only |
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
 
 Flags answer the questions in advance: `--preset` (the preset a differently named

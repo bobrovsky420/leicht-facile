@@ -149,7 +149,7 @@ class LLMClient:
             api_key=settings.llm.api_key.get_secret_value() if settings.llm.api_key else "none",
             timeout=settings.llm.timeout_s,
             max_retries=0,  # retries are handled here, with logging and Retry-After support
-            default_headers={"User-Agent": USER_AGENT},
+            default_headers={"User-Agent": USER_AGENT, **settings.llm.headers},
             http_client=http_client,
         )
 

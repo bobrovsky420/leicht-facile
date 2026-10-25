@@ -111,6 +111,7 @@ thinking = "model-suffix"
 | `mistral` | Mistral AI | the address and the key from `MISTRAL_API_KEY` |
 | `groq` | Groq, a US cloud with very fast inference; public documents only | the address and the key from `GROQ_API_KEY`; no model, since Groq's catalogue changes (several models are previews): `setup groq` lists it. thinking stays off: Qwen reasons on Groq only when asked with `reasoning_effort` low, medium or high, and the gpt-oss models refuse `none` |
 | `huggingface` | The Hugging Face Inference Providers router, which sends each request to a third-party provider; development and public documents only | the address and the token from `HF_TOKEN`; no model: Hugging Face ids with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`), `setup huggingface` lists them |
+| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only); public documents only | the address, the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature) and the header `anthropic-version` the model list needs; no model: `setup anthropic` lists them. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`; switch it off on the saved endpoint with the native field, `extra_body = { thinking = { type = "disabled" } }` on Haiku 5.5 or `{ type = "between_tools" }` on Sonnet 5.5 (Opus 5.5 always thinks) |
 
 The three servers of one's own have no model in the preset, since each server names its
 own: `leichtfacile setup local` (or `ollama`, `vllm`) lists the server's models and asks
@@ -279,7 +280,7 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `endpoint` |  | The saved endpoint in use ([endpoints.&lt;name>]). Default: the only one saved. |
-| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface. Default: the preset of the endpoint's own name, if there is one. |
+| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface, anthropic. Default: the preset of the endpoint's own name, if there is one. |
 | `label` |  | What the New draft form calls the endpoint. Default: the preset's label, else the endpoint's name. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
 | `api_key` |  | The key, written into the file. A server of your own takes any key. |
@@ -297,6 +298,7 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | `max_retries` | `8` | Retries of a failed call. |
 | `cache` | `false` | Keep the answers in data.dir and reuse them (development, evaluation). |
 | `extra_body` | `{}` | Fields sent with every request, for a gateway's switches. |
+| `headers` | `{}` | Headers sent with every request (anthropic-version for Anthropic's OpenAI-compatible endpoint). |
 
 ### `[pipeline]`
 

@@ -92,6 +92,15 @@ def test_the_output_budget_field_and_the_temperature_follow_the_endpoint(endpoin
     assert "max_tokens" not in body and "temperature" not in body
 
 
+def test_the_endpoints_headers_go_with_every_call(endpoint, make_client):
+    client = make_client(make_settings(llm__headers={"anthropic-version": "2023-06-01"}))
+    endpoint.push(chat_response("a"))
+    client.complete(MSG)
+    request = endpoint.requests[-1]
+    assert request.headers["anthropic-version"] == "2023-06-01"
+    assert request.headers["user-agent"].startswith("leicht-facile/")
+
+
 def test_extra_body_is_sent_with_every_call(endpoint, make_client):
     client = make_client(
         make_settings(llm__thinking="chat-template", llm__extra_body={"cache": {"no-cache": True}})
