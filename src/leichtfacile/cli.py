@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 
 from leichtfacile import __version__, configure
 from leichtfacile.config import PRESETS, ConfigError, use_overrides
-from leichtfacile.schemas import CONDITIONS, canonical_condition
+from leichtfacile.schemas import CONDITIONS
 
 if TYPE_CHECKING:
     from leichtfacile.config import Settings
@@ -124,9 +124,7 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument("input", help="file path or http(s) URL")
     simplify.add_argument("--lang", choices=["de", "fr", "it"])
     simplify.add_argument("--level", choices=["A2", "B1"], default="A2")
-    simplify.add_argument(
-        "--condition", type=canonical_condition, choices=list(CONDITIONS), default="P2"
-    )
+    simplify.add_argument("--condition", choices=list(CONDITIONS), default="P2")
     simplify.add_argument("--out", type=Path, default=Path("out"), help="output folder")
     simplify.add_argument("--writer", help="writer model (default: llm.models.writer)")
     simplify.add_argument(
@@ -427,7 +425,7 @@ def _ingest(args: argparse.Namespace) -> int:
 
     try:
         doc = load_source(args.input, args.lang, args.section)
-    except (IngestError, OSError) as exc:
+    except (IngestError, OSError, ValueError) as exc:  # ValueError: a blank --section
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
     if args.json:
@@ -452,7 +450,7 @@ def _check(args: argparse.Namespace) -> int:
     models_or_exit()
     try:
         doc = load_source(args.input, args.lang, args.section)
-    except (IngestError, OSError) as exc:
+    except (IngestError, OSError, ValueError) as exc:
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
     draft = source_as_draft(doc, args.level)

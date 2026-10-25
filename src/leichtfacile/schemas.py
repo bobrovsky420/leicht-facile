@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Literal, get_args
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 Lang = Literal["de", "fr", "it"]
 Level = Literal["A2", "B1"]
@@ -43,8 +43,9 @@ JOB_MODES: tuple[str, ...] = get_args(JobMode)
 # P as in pipeline: the letter C would read as a CEFR level next to A2 and B1.
 Condition = Literal["P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2"]
 CONDITIONS: tuple[str, ...] = get_args(Condition)
-# The conditions were called C0 to C2 until 6 October 2026; stored jobs, result rows
-# and old command lines still say so.
+# The conditions were called C0 to C2 until 6 October 2026. A store with the old names
+# is rewritten when it is opened (store.py); the evaluation's result rows written before
+# are read through `canonical_condition` (eval/report.py). The models take P names only.
 CONDITION_ALIASES: dict[str, str] = {f"C{c[1:]}": c for c in CONDITIONS}
 
 
@@ -396,17 +397,12 @@ class ReviewState(Artifact):
     decisions: list[Decision] = Field(default_factory=list)
     completed: bool = False
     # When the server stored this review. A save names the value it loaded, so two
-    # reviewers cannot overwrite each other without noticing (web/api.py). None in
-    # reviews stored before 11 October 2026.
+    # reviewers cannot overwrite each other without noticing (web/api.py). None only in
+    # a review that was never stored (the reader view of unsaved decisions).
     saved_at: datetime | None = None
 
     def by_block(self) -> dict[str, Decision]:
         return {d.block_id: d for d in self.decisions}
-
-    @property
-    def last_saved(self) -> datetime | None:
-        """`saved_at`, else the latest decision's time (older reviews)."""
-        return self.saved_at or max((d.at for d in self.decisions), default=None)
 
 
 # -- pipeline summary -----------------------------------------------------------------
@@ -433,12 +429,6 @@ class PipelineSummary(Artifact):
     vocabulary_rounds: int = 0  # the last round, for the office words (0 or 1)
     polish_rounds: int = 0  # rounds for the rule findings after the recover round
 
-    @field_validator("condition", mode="before")
-    @classmethod
-    def _old_condition_names(cls, value: object) -> object:
-        # Summaries stored before 6 October 2026 say C0 to C2 (the eval stores do).
-        return canonical_condition(value) if isinstance(value, str) else value
-
 
 # -- jobs --------------------------------------------------------------------------
 
@@ -459,20 +449,6 @@ class JobConfig(Artifact):
     mode: JobMode = "standard"
     addressee: str | None = None  # decision mode: the person the letter speaks to
     notice: str | None = None  # decision mode: the authority's fixed notice in the export
-
-    @field_validator("condition", mode="before")
-    @classmethod
-    def _old_condition_names(cls, value: object) -> object:
-        return canonical_condition(value) if isinstance(value, str) else value
-
-    @model_validator(mode="before")
-    @classmethod
-    def _retired_fields(cls, data: object) -> object:
-        # `live` (a run without recorded answers or cache) went with the prepared
-        # letters on 23 October 2026; jobs stored before and their bundles carry it.
-        if isinstance(data, dict) and "live" in data:
-            return {k: v for k, v in data.items() if k != "live"}
-        return data
 
 
 class UsageRecord(Artifact):

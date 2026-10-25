@@ -8,7 +8,14 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from leichtfacile.llm.client import Usage
-from leichtfacile.schemas import Block, Draft, JobConfig, JobCounts
+from leichtfacile.schemas import (
+    Block,
+    Draft,
+    JobConfig,
+    JobCounts,
+    PipelineSummary,
+    ReviewState,
+)
 from leichtfacile.store import SCHEMA_VERSION, Store
 
 
@@ -74,13 +81,42 @@ def test_an_older_database_gets_the_new_columns_on_open(tmp_path) -> None:
     assert Store(path).schema_version == SCHEMA_VERSION  # opening again changes nothing
 
 
-def test_a_job_stored_with_the_retired_live_field_still_loads(tmp_path) -> None:
-    store = Store(tmp_path / "s.sqlite")
+def test_old_names_and_fields_are_rewritten_on_open(tmp_path) -> None:
+    """The second migration rewrites what the first weeks stored differently: the
+    conditions C0 to C2 (P since 6 October 2026), the retired `live` field (gone since
+    23 October) and a review without its stamp (`saved_at` since 11 October). After it
+    the models need no fallback for them."""
+    path = tmp_path / "s.sqlite"
+    store = Store(path)
     job = store.create_job(JobConfig(level="B1"), title="Test")
-    with sqlite3.connect(store.path) as db:  # as version 0.6.0 stored every job
-        db.execute("UPDATE jobs SET config = json_set(config, '$.live', json('false'))")
-    assert store.get_job(job.id).config == JobConfig(level="B1")
+    decisions = (
+        '[{"block_id": "b001", "decision": "approved", "at": "2026-10-05T10:00:00+00:00"},'
+        ' {"block_id": "b002", "decision": "rejected", "at": "2026-10-05T11:00:00+00:00"}]'
+    )
+    with sqlite3.connect(path) as db:  # as the versions of early October stored them
+        db.execute(
+            "UPDATE jobs SET config = json_set(config, '$.live', json('false'), "
+            "'$.condition', 'C2')"
+        )
+        db.execute(
+            "INSERT INTO artifacts VALUES (?, 'summary', 0, ?, '2026-10-05T12:00:00+00:00')",
+            (job.id, '{"condition": "C2", "final_version": 1}'),
+        )
+        db.execute(
+            "INSERT INTO artifacts VALUES (?, 'review', 0, ?, '2026-10-05T12:00:00+00:00')",
+            (job.id, '{"draft_version": 1, "decisions": ' + decisions + "}"),
+        )
+        db.execute("PRAGMA user_version = 1")
     store.close()
+
+    for _ in range(2):  # opening again changes nothing
+        store = Store(path)
+        assert store.schema_version == SCHEMA_VERSION
+        assert store.get_job(job.id).config == JobConfig(level="B1", condition="P2")
+        assert store.get_artifact(job.id, "summary", PipelineSummary).condition == "P2"
+        review = store.get_artifact(job.id, "review", ReviewState)
+        assert review.saved_at == datetime(2026, 10, 5, 11, tzinfo=UTC)
+        store.close()
 
 
 def test_the_jobs_table_is_the_queue(tmp_path) -> None:

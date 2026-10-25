@@ -6,6 +6,7 @@ import logging
 import httpx
 import pytest
 
+from leichtfacile.cli import main
 from leichtfacile.ingest import (
     ExtractionError,
     SectionNotFoundError,
@@ -17,7 +18,6 @@ from leichtfacile.ingest import (
     ingest_url,
     select_section,
 )
-from leichtfacile.ingest.__main__ import main
 from tests.ingest import pdfs
 from tests.ingest.test_html import PAGE
 
@@ -194,10 +194,14 @@ def test_select_section():
 
 
 def test_command_line(tmp_path, capsys):
+    """`leichtfacile ingest`: the segments, and a message instead of a traceback for a
+    missing file or a blank section query."""
     path = tmp_path / "brief.md"
     path.write_text(TEXT, encoding="utf-8")
-    assert main([str(path), "--section", "Kontakt"]) == 0
+    assert main(["ingest", str(path), "--section", "Kontakt"]) == 0
     out = capsys.readouterr().out
-    assert "s0001 h2" in out
+    assert "s0001  ## Kontakt" in out
     assert "Rufen Sie uns an: 044 123 45 67." in out
-    assert main([str(tmp_path / "fehlt.pdf")]) == 1
+    assert main(["ingest", str(tmp_path / "fehlt.pdf")]) == 1
+    assert main(["ingest", str(path), "--section", "  "]) == 1
+    assert "cannot read" in capsys.readouterr().err

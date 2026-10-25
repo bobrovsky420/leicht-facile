@@ -328,7 +328,10 @@ def reviewable_job(store, settings):
             at=datetime(2026, 10, 7, 9, 30, tzinfo=UTC),
         ),
     ]
-    store.put_artifact(job.id, "review", ReviewState(draft_version=1, decisions=decisions))
+    review = ReviewState(
+        draft_version=1, decisions=decisions, saved_at=datetime(2026, 10, 7, 9, 30, tzinfo=UTC)
+    )
+    store.put_artifact(job.id, "review", review)
     return store.get_job(job.id)
 
 

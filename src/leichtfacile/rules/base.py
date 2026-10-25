@@ -27,7 +27,6 @@ class LevelParams:
 
     level: Level
     max_words: int  # LEN-01
-    optimum_words: int | None
     max_clauses: int  # LEN-02
     max_word_letters: int  # LEX-01 (German)
     max_line_chars: int  # LAY-02
@@ -36,15 +35,15 @@ class LevelParams:
 
 
 PARAMS: dict[str, LevelParams] = {
-    "A2": LevelParams("A2", 12, 8, 1, 13, 85, 70.0),
-    "B1": LevelParams("B1", 15, None, 2, 16, 85, 60.0),
+    "A2": LevelParams("A2", 12, 1, 13, 85, 70.0),
+    "B1": LevelParams("B1", 15, 2, 16, 85, 60.0),
 }
 # French needs about a quarter more words than German for the same content (articles,
 # prepositions): on the official easy-language pages the mean sentence has 7.3 words in
 # French and 5.9 in German (calibration, docs/rules.md). The French limits scale with it.
 LANG_PARAMS: dict[str, dict[str, LevelParams]] = {
     "fr": {
-        "A2": replace(PARAMS["A2"], max_words=15, optimum_words=10),
+        "A2": replace(PARAMS["A2"], max_words=15),
         "B1": replace(PARAMS["B1"], max_words=18),
     },
 }
@@ -132,7 +131,6 @@ class RuleSpec:
     # Instruction for the writer prompt in the rule's language, one text for all levels
     # or one per level; {max_words} and the other LevelParams fields are filled in.
     guide: str | dict[str, str] | None = None
-    guide_levels: tuple[str, ...] = ("A2", "B1")
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading")  # block kinds checked
     check: CheckFn | None = None
 
@@ -140,7 +138,7 @@ class RuleSpec:
         return self.severity[level]
 
     def guide_for(self, level: str) -> str | None:
-        if level not in self.guide_levels or self.guide is None:
+        if self.guide is None:
             return None
         text = self.guide.get(level) if isinstance(self.guide, dict) else self.guide
         if text is None:
@@ -163,7 +161,6 @@ def rule(
     severity: dict[str, Severity],
     scope: Scope,
     guide: str | dict[str, str] | None = None,
-    guide_levels: tuple[str, ...] = ("A2", "B1"),
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading"),
 ) -> Callable[[CheckFn], CheckFn]:
     """Register a check function under a rule id."""
@@ -171,9 +168,7 @@ def rule(
     def decorator(fn: CheckFn) -> CheckFn:
         if rule_id in RULES:
             raise ValueError(f"rule {rule_id} registered twice")
-        RULES[rule_id] = RuleSpec(
-            rule_id, lang, title, severity, scope, guide, guide_levels, kinds, fn
-        )
+        RULES[rule_id] = RuleSpec(rule_id, lang, title, severity, scope, guide, kinds, fn)
         return fn
 
     return decorator
@@ -187,12 +182,11 @@ def declare(
     severity: dict[str, Severity],
     scope: Scope,
     guide: str | dict[str, str] | None = None,
-    guide_levels: tuple[str, ...] = ("A2", "B1"),
 ) -> None:
     """Register a rule without a check function (judge rules, metric-only rules)."""
     if rule_id in RULES:
         raise ValueError(f"rule {rule_id} registered twice")
-    RULES[rule_id] = RuleSpec(rule_id, lang, title, severity, scope, guide, guide_levels)
+    RULES[rule_id] = RuleSpec(rule_id, lang, title, severity, scope, guide)
 
 
 def rules_for(lang: str, scope: Scope) -> Iterator[RuleSpec]:

@@ -52,13 +52,10 @@ def finding_texts() -> dict[str, str]:
 
 def rule_texts() -> dict[str, str]:
     """The rules' titles (the "Rule" column of docs/rules.md) as catalog entries
-    `rule.<ID>`, one per rule across its language variants."""
+    `rule.<ID>`, one per rule id: GRAM-08 and GRAM-08-FR are different rules."""
     from leichtfacile.rules import RULES  # importing the package registers every rule
 
-    out: dict[str, str] = {}
-    for rule_id, spec in RULES.items():
-        out.setdefault(f"rule.{rule_id.removesuffix('-DE').removesuffix('-FR')}", spec.title)
-    return out
+    return {f"rule.{rule_id}": spec.title for rule_id, spec in RULES.items()}
 
 
 def ui_languages() -> dict[str, str]:

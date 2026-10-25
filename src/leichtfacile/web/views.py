@@ -424,16 +424,15 @@ def review_view(
         tokens_out=sum(u.tokens_out for u in usage),
         seconds=sum(u.latency_ms for u in usage) / 1000,
         finding_groups=group_findings(doc_issues, t),
-        saved_at=review.last_saved if review else None,
+        saved_at=review.saved_at if review else None,
         glossary_rows=list(glossary_rows.values()),
     )
 
 
 def rule_title(t: Translator, rule_id: str) -> str:
     """A rule's title in the interface language (`rule.<ID>`), else the registry's."""
-    base = rule_id.removesuffix("-DE").removesuffix("-FR")
-    spec = RULES.get(rule_id) or RULES.get(base)
-    return t.get(f"rule.{base}", spec.title if spec else rule_id)
+    spec = RULES.get(rule_id)
+    return t.get(f"rule.{rule_id}", spec.title if spec else rule_id)
 
 
 def group_findings(issues: list[Issue], t: Translator = ENGLISH) -> list[FindingGroup]:

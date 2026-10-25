@@ -254,3 +254,8 @@ def test_decode_html():
     assert "Prämie" in decode_html("<p>Prämie</p>".encode()), "UTF-8 without declaration"
     assert decode_html(b"\xef\xbb\xbf<p>Pr\xc3\xa4mie</p>") == "<p>Prämie</p>"
     assert "Prämie" in decode_html("<p>Prämie</p>".encode("cp1252"), "windows-1252")
+
+
+def test_contact_facts_read_the_bracketed_zero_as_the_trunk_prefix():
+    # "+41 (0)44 123 45 67" and "044 123 45 67" are one number (rules/values.canonical_phone).
+    assert html._facts("Tel. +41 (0)44 123 45 67 oder 044 123 45 67") == {"0441234567"}

@@ -698,8 +698,11 @@ Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tabl
 the response cache's key when the cache is on, so that a deleted job takes its cached
 prompts with it); the response cache is a second file (`llm_cache.sqlite`). Standard
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
-tables, then one group of statements per later change (`store.py`, `_MIGRATIONS`); a
-database made by an older version gets the groups it lacks when it is opened. The jobs
+tables, then one group per later change (`store.py`, `_MIGRATIONS`), of statements or of
+rewrites of the stored JSON; a database made by an older version gets the groups it lacks
+when it is opened. The second group rewrites what the first weeks stored differently (the
+conditions C0 to C2, the retired `live` field, a review without its stamp), so the models
+read one shape and carry no fallbacks for old data. The jobs
 table is also the work queue (§7). The connections are a small pool (8): an operation
 takes one and gives it back, the database runs in WAL mode, so the web handlers read
 while a worker writes, and a write transaction begins with `BEGIN IMMEDIATE`, so two
@@ -1076,8 +1079,8 @@ word counts, `facts_estimate`, `licence_note` and `notes`. It holds 35 verified 
 30 German (20 `eval`, 10 `dev`) from Zürich, Bern, St. Gallen, Luzern, Basel-Stadt,
 Graubünden, Zug and three federal offices, and 5 French (3 `eval`, 2 `dev`). `dev`
 pairs are for prompt development and checker calibration; `eval` pairs are held out
-for the final numbers. `python -m leichtfacile eval fetch` (or
-`scripts/fetch_pairs.py`) downloads and caches the texts under `cache/pairs/` in `data.dir`
+for the final numbers. `python -m leichtfacile eval fetch` downloads and caches the
+texts under `cache/pairs/` in `data.dir`
 (with `data.dir = "data"` in a checkout, the git-ignored `data/cache/pairs/`). The publishers do not allow reproduction, so the manifest and the
 fetch command are the dataset.
 
@@ -1094,9 +1097,10 @@ use beyond evaluation.
 ### Conditions
 
 The codes are P0 to P2, P as in pipeline: next to the levels A2 and B1, the letter C
-would read as a CEFR level. They were C0 to C2 until 6 October 2026; stored jobs,
-result rows and command lines with the old names still work (`canonical_condition`
-in schemas.py maps them). On screen the code carries a short label, "P2: full".
+would read as a CEFR level. They were C0 to C2 until 6 October 2026; a store with the
+old names is rewritten when it is opened (§5), the evaluation reads old result rows with
+the current names (`canonical_condition` in schemas.py), and the command line takes the
+current names only. On screen the code carries a short label, "P2: full".
 
 | Code | Condition | Purpose |
 |------|-----------|---------|
@@ -1502,7 +1506,7 @@ src/leichtfacile/
   eval/                     dataset.py, calibrate.py, score.py (prices.toml), run.py, report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing), image_spike.py,
                             numbers.py (the headline numbers), cli.py
-scripts/                    fetch_pairs.py, print_letters.py, image_spike.py
+scripts/                    print_letters.py, image_spike.py
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters

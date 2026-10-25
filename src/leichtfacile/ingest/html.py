@@ -581,7 +581,9 @@ def _facts(text: str) -> set[str]:
     """Phone numbers (as national digits) and e-mail addresses (lower case) in a text."""
     facts = {address.lower().rstrip(".") for address in _EMAIL.findall(text)}
     for match in _PHONE.findall(text):
-        digits = re.sub(r"\D", "", match)
+        # The bracketed trunk prefix of "+41 (0)44 ..." is no digit of the number, as
+        # rules/values.canonical_phone reads it; with it, the same number counted twice.
+        digits = re.sub(r"\D", "", match.replace("(0)", ""))
         if digits.startswith("0041"):
             digits = "0" + digits[4:]
         elif digits.startswith("41") and len(digits) == 11:

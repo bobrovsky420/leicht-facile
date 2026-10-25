@@ -98,7 +98,8 @@ def translator(request: Request) -> Translator:
 
 
 def _render(request: Request, name: str, status_code: int = 200, **context) -> HTMLResponse:
-    t = context.setdefault("t", translator(request))
+    t = context.get("t") or translator(request)  # built once, not once per call
+    context["t"] = t
     # The switcher links back to this page; a page answering a POST goes to the start.
     here = request.url.path if request.method == "GET" else "/"
     if request.method == "GET" and request.url.query:
@@ -121,13 +122,7 @@ def _job_or_404(request: Request, job_id: str):
 def rule_count() -> int:
     """Rules code checks, counted once across the language variants (the judge's rules
     are declared without a check function and are not counted)."""
-    return len(
-        {
-            rule_id.removesuffix("-DE").removesuffix("-FR")
-            for rule_id, spec in RULES.items()
-            if spec.check
-        }
-    )
+    return len({rule_id.removesuffix("-FR") for rule_id, spec in RULES.items() if spec.check})
 
 
 @lru_cache(maxsize=4)

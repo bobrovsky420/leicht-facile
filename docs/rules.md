@@ -20,7 +20,7 @@ does not block; `info` is reported only.
 
 | Parameter | A2 (Leichte Sprache / FALC / lingua facile) | B1 (Einfache Sprache / langage clair) |
 |-----------|---------------------------------------------|-----------------------|
-| Max words per sentence | 12 (optimum 8); French 15 (optimum 10) | 15; French 18 |
+| Max words per sentence | 12; French 15 | 15; French 18 |
 | Clauses per sentence | 1 | 2 |
 | Passive | error | warn |
 | Genitive | warn | info |

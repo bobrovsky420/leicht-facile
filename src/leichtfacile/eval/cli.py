@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 from leichtfacile.eval.dataset import MANIFEST
-from leichtfacile.schemas import CONDITIONS, canonical_condition
+from leichtfacile.schemas import CONDITIONS
 
 
 def add_eval_parser(sub: argparse._SubParsersAction) -> None:
@@ -42,9 +42,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 
     run = evsub.add_parser("run", help="run a condition over the pairs (needs the endpoint)")
     common(run)
-    run.add_argument(
-        "--condition", type=canonical_condition, choices=list(CONDITIONS), required=True
-    )
+    run.add_argument("--condition", choices=list(CONDITIONS), required=True)
     run.add_argument("--writer", help="writer model (default: llm.models.writer)")
     run.add_argument(
         "--understand",
@@ -65,9 +63,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 
     smp = evsub.add_parser("sample", help="hand-labelling sheets for the judge (no model)")
     smp.add_argument("--results", type=Path, default=Path("eval/results"))
-    smp.add_argument(
-        "--condition", type=canonical_condition, default="P2", choices=["P0", "P1", "P2"]
-    )
+    smp.add_argument("--condition", default="P2", choices=["P0", "P1", "P2"])
     smp.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
     smp.add_argument("--facts", type=int, default=30, help="(fact, draft) items")
     smp.add_argument("--blocks", type=int, default=30, help="blocks, half of them flagged")
@@ -83,7 +79,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
         "diagnose", help="why must-keep facts are missing from the final drafts (no model)"
     )
     dia.add_argument("--results", type=Path, default=Path("eval/results"))
-    dia.add_argument("--condition", type=canonical_condition, default="P2", choices=["P1", "P2"])
+    dia.add_argument("--condition", default="P2", choices=["P1", "P2"])
     dia.add_argument("--role", default="dev", choices=["dev", "eval", "all"])
     dia.add_argument("--writer", help="only this writer model")
     dia.add_argument("--out", type=Path, help="write the full report (details) to this file")
@@ -95,9 +91,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     )
     res.add_argument("--manifest", type=Path, default=MANIFEST)
     res.add_argument("--results", type=Path, default=Path("eval/results"))
-    res.add_argument(
-        "--condition", type=canonical_condition, default="P2", choices=list(CONDITIONS)
-    )
+    res.add_argument("--condition", default="P2", choices=list(CONDITIONS))
     res.add_argument("--role", default="dev", choices=["dev", "eval", "all"])
     res.add_argument(
         "--in-place",

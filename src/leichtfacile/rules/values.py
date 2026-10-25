@@ -477,10 +477,15 @@ def format_date(canonical: str, lang: str = "de") -> str:
     return f"{out} {year}" if year else out
 
 
+# Service numbers have their own grouping (0800 123 456, 0848 35 45 55, 0900 ...). Not
+# every number starting with 08 or 09 is one: 081 is Graubünden, 091 Ticino.
+_SERVICE_PHONE_RE = re.compile(r"0(?:800|84\d|90\d)")
+
+
 def format_phone(canonical: str) -> str:
-    """0441234567 -> 044 123 45 67; service numbers 0800123456 -> 0800 123 456."""
+    """0441234567 -> 044 123 45 67; a service number 0800123456 -> 0800 123 456."""
     digits = re.sub(r"\D", "", canonical)
-    if len(digits) == 10 and digits[:2] in ("08", "09"):
+    if len(digits) == 10 and _SERVICE_PHONE_RE.match(digits):
         return f"{digits[:4]} {digits[4:7]} {digits[7:]}"
     if len(digits) == 10:
         return f"{digits[:3]} {digits[3:6]} {digits[6:8]} {digits[8:]}"

@@ -61,17 +61,16 @@ def test_conditions_and_variants() -> None:
     assert zh_variant("P0-ZH-condensed") == "condensed"
 
 
-def test_old_c_names_are_accepted_as_aliases() -> None:
-    """The conditions were C0 to C2 until 6 October 2026: stored jobs, result rows and
-    command lines with the old names still resolve."""
+def test_old_c_names_map_to_the_current_ones() -> None:
+    """The conditions were C0 to C2 until 6 October 2026. Result rows written before are
+    read with the current names (eval/report.py), and a store with the old names is
+    rewritten when it is opened (store.py); the models take the current names only."""
     assert canonical_condition("C2") == "P2"
     assert canonical_condition("C0-ZH-complete") == "P0-ZH-complete"
     assert canonical_condition("P1") == "P1"
     assert canonical_condition("other") == "other"
-    assert JobConfig(condition="C1").condition == "P1"  # type: ignore[arg-type]
-    assert JobConfig.model_validate({"condition": "C0"}).condition == "P0"
-    summary = PipelineSummary.model_validate({"condition": "C2", "final_version": 1})
-    assert summary.condition == "P2"  # a summary stored before the rename still loads
+    with pytest.raises(ValueError):
+        JobConfig(condition="C1")  # type: ignore[arg-type]
     with pytest.raises(ValueError):
         zh_variant("P0")
 

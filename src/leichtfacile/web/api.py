@@ -202,7 +202,7 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
             raise HTTPException(400, f"block {d.block_id}: an edit needs a text")
     if "saved_at" in body.model_fields_set:
         stored = store.get_artifact(job_id, "review", ReviewState)
-        current = stored.last_saved if stored else None
+        current = stored.saved_at if stored else None
         if current != body.saved_at:
             raise HTTPException(
                 409,

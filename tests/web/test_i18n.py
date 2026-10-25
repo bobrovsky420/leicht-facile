@@ -35,6 +35,7 @@ from leichtfacile.web.views import (
     finding_text,
     progress_view,
     review_view,
+    rule_title,
     stop_reason,
 )
 from tests.conftest import FakeEndpoint, make_settings
@@ -113,9 +114,20 @@ def test_keys_built_from_data_exist() -> None:
         + [f"new.level.{level}.desc" for level in ("A2", "B1")]
         + [f"new.condition.{c}.{part}" for c in ("P2", "P1", "P0") for part in ("title", "desc")]
         + [f"reader.{fmt}.desc" for fmt in ("md", "html", "docx", "json")]
-        + [f"rule.{rule_id.removesuffix('-DE').removesuffix('-FR')}" for rule_id in RULES]
+        + [f"rule.{rule_id}" for rule_id in RULES]
     )
     assert not [k for k in built if k not in english]
+
+
+def test_rule_titles_follow_the_full_rule_id() -> None:
+    """GRAM-08 (separable verbs) and GRAM-08-FR (impersonal phrases) are different rules
+    that share a number: each has its own title in every catalog."""
+    de, fr = Translator("de"), Translator("fr")
+    assert "Trennbare" in rule_title(de, "GRAM-08")
+    assert "unpersönlich" in rule_title(de, "GRAM-08-FR")
+    assert "impersonnelles" in rule_title(fr, "GRAM-08-FR")
+    assert rule_title(fr, "LEX-06-FR").endswith("vous")
+    assert rule_title(de, "LEN-01-FR") == rule_title(de, "LEN-01")  # the same rule in French
 
 
 def test_translator_plurals_placeholders_and_fallback() -> None:

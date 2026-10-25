@@ -37,6 +37,7 @@ from leichtfacile.rules.values import (
     canonical_date,
     canonical_phone,
     format_date,
+    format_phone,
     format_thousands,
     mask,
 )
@@ -1172,10 +1173,8 @@ TIME_RANGE_RE = re.compile(
     r"(?<![\d.:])(\d{1,2})(?:[.:](\d{2}))?\s?(?:Uhr\s?)?[" + DASHES + r"]\s?"
     r"(\d{1,2})(?:[.:](\d{2}))?(?:\s?Uhr)?(?![\d])"
 )
-TIME_BIS_ONE_UHR_RE = re.compile(r"(?<![\d.:])(\d{1,2})\.(\d{2})\s+bis\s+(\d{1,2})\.(\d{2})\s?Uhr")
 TIME_COLON_RE = re.compile(r"(?<![\d.:])(\d{1,2}):(\d{2})(?!\d)(?:\s?Uhr)?")
 TIME_H_RE = re.compile(r"(?<![\d.:])(\d{1,2})\s?h(?:\s?(\d{2}))?(?![\w])")
-TIME_BARE_UHR_RE = re.compile(r"(?<![\d.:])(\d{1,2})\s?Uhr")
 
 
 def _time_text(hour: str, minute: str | None) -> str:
@@ -1293,15 +1292,6 @@ ACCEPTED_PHONE_RE = re.compile(
 # A service number in either usual grouping (0800 123 456, 0848 35 45 55) is fine too.
 
 
-def format_phone(text: str) -> str:
-    digits = canonical_phone(text)
-    if len(digits) == 10 and digits[:4] in ("0800", "0840", "0842", "0844", "0848", "0900"):
-        return f"{digits[:4]} {digits[4:7]} {digits[7:]}"
-    if len(digits) == 10:
-        return f"{digits[:3]} {digits[3:6]} {digits[6:8]} {digits[8:]}"
-    return text
-
-
 @rule(
     "NUM-08",
     lang=DE,
@@ -1315,13 +1305,8 @@ def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         number = m.group(0)
         if ACCEPTED_PHONE_RE.fullmatch(number):
             continue
-        yield hit(
-            "NUM-08",
-            found=number,
-            expected=format_phone(number),
-            evidence=number,
-            suggestion=format_phone(number),
-        )
+        spaced = format_phone(canonical_phone(number))
+        yield hit("NUM-08", found=number, expected=spaced, evidence=number, suggestion=spaced)
 
 
 # -- Swiss spelling -----------------------------------------------------------------

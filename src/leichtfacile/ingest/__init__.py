@@ -31,19 +31,15 @@ import httpx
 from leichtfacile.ingest.detect import detect_language
 from leichtfacile.ingest.errors import (
     ExtractionError,
-    FetchError,
     IngestError,
-    NoTextLayerError,
-    PrivateAddressError,
     SectionNotFoundError,
-    UnknownHostError,
     UnsupportedSourceError,
 )
 from leichtfacile.ingest.fetch import FetchedResource, Resolver, fetch_url
 from leichtfacile.ingest.html import decode_bytes, decode_html, extract_html
 from leichtfacile.ingest.normalize import MEDIOPUNKT, normalize_text
 from leichtfacile.ingest.pdf import extract_pdf
-from leichtfacile.ingest.segment import Unit, build_segments, split_sentences
+from leichtfacile.ingest.segment import Unit, build_segments
 from leichtfacile.ingest.text import first_heading, parse_text
 from leichtfacile.schemas import LANGS, Lang, SourceDocument, SourceInfo
 
@@ -51,29 +47,19 @@ log = logging.getLogger(__name__)
 
 DEFAULT_LANG: Lang = "de"
 
+# The entry points and the errors callers handle; the other errors live in ingest/errors.py.
 __all__ = [
-    "DEFAULT_LANG",
     "ExtractionError",
-    "FetchError",
-    "FetchedResource",
     "IngestError",
-    "NoTextLayerError",
-    "PrivateAddressError",
     "SectionNotFoundError",
-    "Unit",
-    "UnknownHostError",
     "UnsupportedSourceError",
-    "build_segments",
-    "detect_language",
     "fetch_url",
     "ingest_file",
     "ingest_html",
     "ingest_pdf",
     "ingest_text",
     "ingest_url",
-    "normalize_text",
     "select_section",
-    "split_sentences",
 ]
 
 _TEXT_SUFFIXES = frozenset({".txt", ".text", ".md", ".markdown"})

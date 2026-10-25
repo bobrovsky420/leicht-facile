@@ -8,9 +8,10 @@ The jobs table is also the work queue: a worker claims the oldest queued job wit
 guarded UPDATE (`claim_next_queued`), and every change of status that must not race
 with the workers goes through `transition`, which names the statuses it may start from.
 
-The schema is versioned with `PRAGMA user_version`: the base tables, then one group of
-statements per later change (`_MIGRATIONS`); a database made by an older version gets
-the groups it lacks on open.
+The schema is versioned with `PRAGMA user_version`: the base tables, then one group per
+later change (`_MIGRATIONS`), of statements or of rewrites of the stored JSON; a database
+made by an older version gets the groups it lacks on open, so the models in schemas.py
+read one shape and carry no fallbacks for old data.
 
 The connections are a small pool (`POOL_SIZE`): an operation takes one and gives it
 back, so the web handlers read while a worker writes (WAL: readers never wait for a
@@ -27,16 +28,23 @@ import queue
 import sqlite3
 import threading
 import uuid
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
 from leichtfacile.llm.client import Usage
-from leichtfacile.schemas import Job, JobConfig, JobCounts, UsageRecord, utcnow
+from leichtfacile.schemas import (
+    Job,
+    JobConfig,
+    JobCounts,
+    UsageRecord,
+    canonical_condition,
+    utcnow,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -72,9 +80,61 @@ CREATE TABLE IF NOT EXISTS llm_calls (
 );
 CREATE INDEX IF NOT EXISTS llm_calls_job ON llm_calls(job_id);
 """
+Migration = str | Callable[[sqlite3.Connection], None]  # a statement, or a rewrite
+
+
+def _rewrite_json(
+    conn: sqlite3.Connection,
+    table: str,
+    column: str,
+    transform: Callable[[dict[str, Any]], dict[str, Any]],
+    where: str = "",
+) -> None:
+    """Apply `transform` to the JSON document in `column` of every row of `table` (those
+    matching `where`) and write back the documents it changed."""
+    rows = conn.execute(f"SELECT rowid, {column} FROM {table} {where}").fetchall()
+    for row in rows:
+        data = json.loads(row[column])
+        changed = transform(dict(data))
+        if changed != data:
+            conn.execute(
+                f"UPDATE {table} SET {column} = ? WHERE rowid = ?",
+                (json.dumps(changed, ensure_ascii=False), row["rowid"]),
+            )
+
+
+def _early_job_config(config: dict[str, Any]) -> dict[str, Any]:
+    config.pop("live", None)  # a run without recorded answers; went on 23 October 2026
+    if "condition" in config:
+        config["condition"] = canonical_condition(config["condition"])
+    return config
+
+
+def _early_summary(summary: dict[str, Any]) -> dict[str, Any]:
+    if "condition" in summary:
+        summary["condition"] = canonical_condition(summary["condition"])
+    return summary
+
+
+def _early_review(review: dict[str, Any]) -> dict[str, Any]:
+    # Before 11 October 2026 a review carried no `saved_at`: its latest decision stands in.
+    stamps = [d.get("at") for d in review.get("decisions") or [] if d.get("at")]
+    if not review.get("saved_at") and stamps:
+        review["saved_at"] = max(stamps)
+    return review
+
+
+def _rewrite_early_october(conn: sqlite3.Connection) -> None:
+    """What the first weeks stored differently: the conditions C0 to C2 (P0 to P2 since
+    6 October 2026), the retired `live` field and a review without its stamp."""
+    _rewrite_json(conn, "jobs", "config", _early_job_config)
+    _rewrite_json(conn, "artifacts", "data", _early_summary, "WHERE name = 'summary'")
+    _rewrite_json(conn, "artifacts", "data", _early_review, "WHERE name = 'review'")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
-_MIGRATIONS: tuple[tuple[str, ...], ...] = (
+_MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (  # 1 (11 October 2026): the counts for the drafts list on the job row, the cache
         # key of every model call so that a job's cache rows go with it, an index for
         # the queue and the list filters
@@ -82,6 +142,7 @@ _MIGRATIONS: tuple[tuple[str, ...], ...] = (
         "ALTER TABLE llm_calls ADD COLUMN cache_key TEXT",
         "CREATE INDEX IF NOT EXISTS jobs_status ON jobs(status, updated_at)",
     ),
+    (_rewrite_early_october,),  # 2 (25 October 2026): old names and fields rewritten
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.
@@ -394,20 +455,6 @@ class Store:
             out.setdefault(r["name"], []).append(r["version"])
         return out
 
-    def delete_artifacts_version(self, job_id: str, name: str, version: int) -> None:
-        with self._tx() as conn:
-            conn.execute(
-                "DELETE FROM artifacts WHERE job_id = ? AND name = ? AND version = ?",
-                (job_id, name, version),
-            )
-
-    def delete_artifacts(self, job_id: str, names: list[str]) -> None:
-        with self._tx() as conn:
-            conn.executemany(
-                "DELETE FROM artifacts WHERE job_id = ? AND name = ?",
-                [(job_id, n) for n in names],
-            )
-
     # -- usage ------------------------------------------------------------------------
 
     def add_usage(self, job_id: str, usage: Usage) -> None:
@@ -455,8 +502,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
     version = int(conn.execute("PRAGMA user_version").fetchone()[0])
     for number, group in enumerate(_MIGRATIONS, 1):
         if number > version:
-            for statement in group:
-                conn.execute(statement)
+            for step in group:
+                if callable(step):
+                    step(conn)
+                else:
+                    conn.execute(step)
     if version < SCHEMA_VERSION:
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 

@@ -20,7 +20,7 @@ from collections.abc import Iterator
 from spacy.tokens import Span, Token
 
 from leichtfacile.rules.base import BlockInfo, Context, Hit, rule, sev
-from leichtfacile.rules.de import ACCEPTED_PHONE_RE, format_phone
+from leichtfacile.rules.de import ACCEPTED_PHONE_RE
 from leichtfacile.rules.lexicon import MEDIOPUNKT, is_known, zipf
 from leichtfacile.rules.messages import hit
 from leichtfacile.rules.recipes import recipe_fr
@@ -33,7 +33,9 @@ from leichtfacile.rules.values import (
     PHONE_RE,
     URL_RE,
     canonical_date,
+    canonical_phone,
     format_date,
+    format_phone,
     format_thousands,
     mask,
 )
@@ -1464,13 +1466,8 @@ def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         number = m.group(0)
         if ACCEPTED_PHONE_RE.fullmatch(number):
             continue
-        yield hit(
-            "NUM-08-FR",
-            found=number,
-            expected=format_phone(number),
-            evidence=number,
-            suggestion=format_phone(number),
-        )
+        spaced = format_phone(canonical_phone(number))
+        yield hit("NUM-08-FR", found=number, expected=spaced, evidence=number, suggestion=spaced)
 
 
 # -- Swiss usage --------------------------------------------------------------------

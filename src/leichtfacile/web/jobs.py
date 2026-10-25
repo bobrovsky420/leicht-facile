@@ -27,7 +27,6 @@ from leichtfacile.schemas import (
     Job,
     JobConfig,
     SourceDocument,
-    canonical_condition,
 )
 from leichtfacile.store import Store
 from leichtfacile.web.i18n import ENGLISH, Translator
@@ -161,7 +160,7 @@ def create_job(
     endpoints a submission may pick (the one in use always may)."""
     if sub.level not in LEVELS:
         raise SubmissionError("unknown_level", level=sub.level)
-    condition = canonical_condition(sub.condition)
+    condition = sub.condition
     if condition not in ("P0", "P1", "P2"):
         raise SubmissionError("unknown_condition", condition=sub.condition)
     if sub.mode not in JOB_MODES:

@@ -7,6 +7,7 @@ from leichtfacile.rules.values import (
     extract_values,
     find_value,
     format_date,
+    format_phone,
     format_thousands,
     hard_values,
     matches,
@@ -124,3 +125,8 @@ def test_formatting() -> None:
     assert format_thousands("1500") == "1'500"
     assert format_thousands("500000") == "500'000"
     assert format_thousands("1500", "fr") == "1 500"
+    assert format_phone("0441234567") == "044 123 45 67"
+    assert format_phone("0800123456") == "0800 123 456"
+    # Regional codes starting with 08 or 09 are no service numbers (Graubünden, Ticino).
+    assert format_phone("0812345678") == "081 234 56 78"
+    assert format_phone("0912345678") == "091 234 56 78"
