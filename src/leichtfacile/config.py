@@ -216,6 +216,11 @@ class Endpoint(Section):
         default_factory=dict,
         description="Fields sent with every request, for a gateway's switches.",
     )
+    model_extra_body: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Fields sent with the requests to one model, by model name, over "
+        "extra_body (Claude models that take different thinking switches).",
+    )
     headers: dict[str, str] = Field(
         default_factory=dict,
         description="Headers sent with every request (anthropic-version for Anthropic's "
@@ -224,7 +229,7 @@ class Endpoint(Section):
 
     _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
 
-    @field_validator("extra_body", "headers", mode="before")
+    @field_validator("extra_body", "model_extra_body", "headers", mode="before")
     @classmethod
     def _json(cls, value: object) -> object:
         return json.loads(value) if isinstance(value, str) and value.strip() else value
@@ -715,7 +720,7 @@ def source_of(flat: Flat, key: str) -> str | None:
 
 
 # A key that takes a whole table, never merged key by key.
-_OPAQUE = {"extra_body", "headers"}
+_OPAQUE = {"extra_body", "model_extra_body", "headers"}
 # Folders a file may give relative to its own folder.
 _PATHS = ("data.dir", "data.examples_dir")
 # A secret is given or named; the later source's choice wins.

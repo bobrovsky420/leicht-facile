@@ -92,6 +92,21 @@ def test_the_output_budget_field_and_the_temperature_follow_the_endpoint(endpoin
     assert "max_tokens" not in body and "temperature" not in body
 
 
+def test_a_models_extra_body_goes_over_the_endpoints(endpoint, make_client):
+    client = make_client(
+        make_settings(
+            llm__extra_body={"thinking": {"type": "disabled"}, "cache": {"no-cache": True}},
+            llm__model_extra_body={"other": {"thinking": {"type": "between_tools"}}},
+        )
+    )
+    endpoint.push(chat_response("a"), chat_response("b"))
+    client.complete(MSG)
+    client.complete(MSG, model="other")
+    first, second = endpoint.chat_bodies()
+    assert first["thinking"] == {"type": "disabled"} and first["cache"] == {"no-cache": True}
+    assert second["thinking"] == {"type": "between_tools"} and second["cache"] == first["cache"]
+
+
 def test_the_endpoints_headers_go_with_every_call(endpoint, make_client):
     client = make_client(make_settings(llm__headers={"anthropic-version": "2023-06-01"}))
     endpoint.push(chat_response("a"))

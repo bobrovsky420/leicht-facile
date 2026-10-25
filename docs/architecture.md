@@ -724,8 +724,10 @@ writers wait for each other (5 s) instead of failing midway.
   switches: `reasoning_effort: "none"` for the stages that do not think, the model's
   default for the others). The mode is set per endpoint, by its preset or in its
   `[endpoints.<name>]` section.
-  Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, and `llm.extra_body`
-  (fields sent with every request, for gateway switches). The web app holds one client
+  Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, `llm.extra_body`
+  (fields sent with every request, for gateway switches) and `llm.model_extra_body`
+  (fields for one model's requests, over `extra_body`: Claude models that take
+  different thinking switches on one endpoint). The web app holds one client
   per ready endpoint: a draft may pick another one in the New draft form
   (`JobConfig.endpoint`), the orchestrator runs it on that endpoint's client
   (`Orchestrator.client_for`, the settings of that endpoint with it), and the summary

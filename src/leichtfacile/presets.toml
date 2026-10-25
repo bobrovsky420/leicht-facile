@@ -101,8 +101,9 @@ api_key_env = "HF_TOKEN"
 # the anthropic-version header. The endpoint ignores reasoning_effort and counts Claude's
 # adaptive thinking in max_tokens, so thinking is set on the saved endpoint through the
 # native field: `extra_body = { thinking = { type = "disabled" } }` for Haiku 5.5,
-# `{ type = "between_tools" }` for Sonnet 5.5; Opus 5.5 always thinks (effort through
-# `output_config = { effort = "low" }`). No model: `leichtfacile setup anthropic` lists
+# `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value; the
+# endpoint refuses `adaptive`), `model_extra_body` when both share an endpoint; Opus 5.5
+# always thinks (effort through `output_config = { effort = "low" }`). No model: `leichtfacile setup anthropic` lists
 # them. Checked 25 October 2026.
 [anthropic]
 label = "Anthropic's Claude (US cloud, public documents only)"

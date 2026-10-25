@@ -200,7 +200,8 @@ class LLMClient:
         response_format: dict[str, Any] | None = None,
     ) -> LLMResult:
         name, thinking_body = self.resolve_model(model, thinking)
-        extra_body = {**self.settings.llm.extra_body, **thinking_body}
+        llm = self.settings.llm
+        extra_body = {**llm.extra_body, **llm.model_extra_body.get(name, {}), **thinking_body}
         params: dict[str, Any] = {self.settings.llm.max_tokens_key: max_tokens}
         if self.settings.llm.send_temperature:
             params["temperature"] = temperature

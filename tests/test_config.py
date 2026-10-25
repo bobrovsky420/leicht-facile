@@ -281,6 +281,7 @@ def test_variables_carry_lists_tables_and_switches(home, monkeypatch) -> None:
     write(home, LOCAL)
     monkeypatch.setenv("LEICHTFACILE_LLM__THINKING_STAGES", "understand, write")
     monkeypatch.setenv("LEICHTFACILE_LLM__EXTRA_BODY", '{"cache": {"no-cache": true}}')
+    monkeypatch.setenv("LEICHTFACILE_LLM__MODEL_EXTRA_BODY", '{"m": {"thinking": {"type": "x"}}}')
     monkeypatch.setenv("LEICHTFACILE_LLM__CACHE", "1")
     monkeypatch.setenv("LEICHTFACILE_AUTH__PROXY_FROM", '["127.0.0.1", "10.0.0.0/8"]')
     monkeypatch.setenv("LEICHTFACILE_AUTH__PROXY_HEADER", "X-Forwarded-User")
@@ -288,6 +289,7 @@ def test_variables_carry_lists_tables_and_switches(home, monkeypatch) -> None:
     s = load().settings
     assert s.llm.thinking_stages == ["understand", "write"] and s.llm.cache is True
     assert s.llm.extra_body == {"cache": {"no-cache": True}}
+    assert s.llm.model_extra_body == {"m": {"thinking": {"type": "x"}}}
     assert s.auth.mode == "proxy" and len(s.auth.proxy_networks) == 2
     assert s.log.level == "INFO"
 
