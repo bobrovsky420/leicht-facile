@@ -81,6 +81,17 @@ def test_reasoning_effort_mode_turns_thinking_off_by_request(endpoint, make_clie
     assert second["reasoning_effort"] == "none"
 
 
+def test_the_output_budget_field_and_the_temperature_follow_the_endpoint(endpoint, make_client):
+    client = make_client(
+        make_settings(llm__max_tokens_key="max_completion_tokens", llm__send_temperature=False)
+    )
+    endpoint.push(chat_response("a"))
+    client.complete(MSG, temperature=0.2, max_tokens=500)
+    body = endpoint.chat_bodies()[0]
+    assert body["max_completion_tokens"] == 500  # OpenAI's GPT-5 models refuse max_tokens
+    assert "max_tokens" not in body and "temperature" not in body
+
+
 def test_extra_body_is_sent_with_every_call(endpoint, make_client):
     client = make_client(
         make_settings(llm__thinking="chat-template", llm__extra_body={"cache": {"no-cache": True}})

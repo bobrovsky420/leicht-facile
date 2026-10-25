@@ -9,7 +9,10 @@ cost of the model calls that produced the output.
 from __future__ import annotations
 
 import re
+import tomllib
 from collections import Counter
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from leichtfacile.eval.calibrate import source_as_draft
@@ -39,21 +42,51 @@ from leichtfacile.schemas import (
 )
 
 WORDS_PER_PAGE = 250
-# USD per million input and output tokens at Public AI list prices, checked
-# 5 October 2026 (docs/architecture.md §6). The CSCS endpoint of the reported runs
-# charged nothing; an on-premise deployment pays for hardware instead. Reported as an
-# order of magnitude.
-PRICES_USD_PER_MTOK = {"70b": (0.82, 2.92), "8b": (0.10, 0.20)}
+# USD per million input and output tokens by a part of the model's name, from prices.toml
+# next to this module: Apertus at Public AI's list prices (the CSCS endpoint of the
+# reported runs charged nothing), gpt-oss at Groq's; an entry without prices is a server
+# of one's own, which pays for hardware instead. Reported as an order of magnitude.
+PRICES_FILE = Path(__file__).with_name("prices.toml")
 LANGUAGE_FAMILIES = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
 
 
+@dataclass(frozen=True)
+class Price:
+    match: tuple[str, ...]  # lowercase parts of model names, any of them
+    input: float | None  # USD per million tokens; None: no price per token
+    output: float | None
+    note: str = ""
+
+
+def read_prices(path: Path) -> list[Price]:
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    prices = []
+    for entry in data.get("model", []):
+        match = entry["match"]
+        parts = (match,) if isinstance(match, str) else tuple(match)
+        prices.append(
+            Price(
+                tuple(part.lower() for part in parts),
+                entry.get("input"),
+                entry.get("output"),
+                entry.get("note", ""),
+            )
+        )
+    return prices
+
+
+PRICES = read_prices(PRICES_FILE)
+
+
 def price(model: str) -> tuple[float, float] | None:
+    """The prices of the first entry whose match is part of the model's name; None for a
+    model without a price per token (own hardware) or an unknown one."""
     name = model.lower()
-    if "llamacpp" in name or "local" in name:
-        return None  # own hardware: no price per token
-    for key, value in PRICES_USD_PER_MTOK.items():
-        if key in name:
-            return value
+    for entry in PRICES:
+        if any(part in name for part in entry.match):
+            if entry.input is None or entry.output is None:
+                return None
+            return entry.input, entry.output
     return None
 
 

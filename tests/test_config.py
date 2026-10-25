@@ -25,7 +25,9 @@ from leichtfacile.config import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-PRESET_NAMES = ["cscs", "apertus", "local", "ollama", "vllm", "openai", "mistral"]
+PRESET_NAMES = [
+    "cscs", "apertus", "local", "ollama", "vllm", "openai", "mistral", "groq", "huggingface",
+]  # fmt: skip
 
 
 @pytest.fixture
@@ -121,6 +123,16 @@ def test_the_presets_file_holds_one_endpoint_table_per_preset(tmp_path) -> None:
             config.read_presets(write(path, text))
     with pytest.raises(ConfigError, match="a preset is a table"):
         config.read_presets(write(path, 'label = "top level"\n'))
+
+
+def test_a_model_is_listed_with_or_without_its_provider_suffix() -> None:
+    models = ["Qwen/Qwen3.5-9B", "qwen3.5:9b", "swiss-ai/Apertus-v1.5-70B"]
+    assert config.listed("Qwen/Qwen3.5-9B", models)
+    assert config.listed("Qwen/Qwen3.5-9B:ovhcloud", models)  # the Hugging Face router
+    assert config.listed("qwen3.5:9b", models)  # an Ollama tag, listed as it is
+    assert not config.listed("qwen3.5:4b", models) and not config.listed("other", models)
+    llm = config.LLM(models=config.Models(writer="swiss-ai/Apertus-v1.5-8B:publicai"))
+    assert llm.judge_for(models) == "swiss-ai/Apertus-v1.5-70B:publicai"
 
 
 def test_dot_env_holds_keys_and_nothing_else(home) -> None:

@@ -61,6 +61,7 @@ them for each draft.
 | `ollama` | Ollama on this machine (port 11434) | Takes any key; `setup ollama` lists the models `ollama list` shows and asks which one. For a thinking model such as Qwen: `config set endpoints.ollama.thinking reasoning-effort` |
 | `vllm` | vLLM (port 8000), mostly a GPU machine of the organisation | `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |
 | `openai`, `mistral` | OpenAI, Mistral AI | Need the key (`OPENAI_API_KEY`, `MISTRAL_API_KEY`) and a model. Check where the provider processes the text before sending anything confidential |
+| `groq`, `huggingface` | Groq; the Hugging Face Inference Providers router | Need the key (`GROQ_API_KEY`, `HF_TOKEN`) and a model from the list `setup` shows. US and third-party clouds: public documents only |
 | `other` | Any OpenAI-compatible endpoint | For example a gateway of the organisation's own |
 
 Flags answer the questions in advance: `--preset` (the preset a differently named
@@ -223,6 +224,7 @@ uv run leichtfacile eval run --cache --condition P0-ZH-condensed --lang de --res
 uv run leichtfacile eval run --cache --condition P1 --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --results eval/results-cscs
 uv run leichtfacile eval report --results eval/results-cscs --out docs/evaluation.md
+uv run leichtfacile eval compare      # docs/model-comparison.md: every run side by side
 # the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
 uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs

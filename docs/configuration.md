@@ -107,8 +107,10 @@ thinking = "model-suffix"
 | `local` | llama.cpp (llama-server) on this machine, or another OpenAI-compatible server (`--base-url`) | `http://127.0.0.1:8080/v1`, the key `local` (such a server takes any key), `thinking = "chat-template"` (llama.cpp with `--jinja`) and 30 minutes per call (a thinking call on a small GPU takes minutes) |
 | `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking off, since Ollama ignores the chat-template switch: a thinking model such as Qwen takes `thinking = "reasoning-effort"` on the saved endpoint |
 | `vllm` | vLLM, mostly a GPU machine of the organisation (`--base-url http://<server>:8000/v1`) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"` |
-| `openai` | OpenAI | the address and the key from `OPENAI_API_KEY` |
+| `openai` | OpenAI; public documents only | the address, the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes `send_temperature = true` on the saved endpoint). Thinking is `reasoning_effort`: `thinking = "reasoning-effort"` on the saved endpoint, `thinking_stages = []` for none everywhere |
 | `mistral` | Mistral AI | the address and the key from `MISTRAL_API_KEY` |
+| `groq` | Groq, a US cloud with very fast inference; public documents only | the address and the key from `GROQ_API_KEY`; no model, since Groq's catalogue changes (several models are previews): `setup groq` lists it. thinking stays off: Qwen reasons on Groq only when asked with `reasoning_effort` low, medium or high, and the gpt-oss models refuse `none` |
+| `huggingface` | The Hugging Face Inference Providers router, which sends each request to a third-party provider; development and public documents only | the address and the token from `HF_TOKEN`; no model: Hugging Face ids with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`), `setup huggingface` lists them |
 
 The three servers of one's own have no model in the preset, since each server names its
 own: `leichtfacile setup local` (or `ollama`, `vllm`) lists the server's models and asks
@@ -129,9 +131,9 @@ Notes on the endpoints:
   them. Thinking comparisons need the CSCS endpoint.
 - A provider's cloud (OpenAI, Mistral AI, others): check where it processes the text
   before sending anything confidential. Thinking stays off.
-- The Hugging Face router (`https://router.huggingface.co/v1`, a key `hf_...`) serves the
-  older Apertus 1 (2509) through third-party providers outside Switzerland: for
-  development only, never for real documents, and its results are no Apertus 1.5
+- Groq and the Hugging Face router process the text in the United States or on
+  third-party clouds: development and public documents only. The Hugging Face router
+  served the older Apertus 1 (2509) when checked; results from either are no Apertus 1.5
   numbers.
 
 ### Models
@@ -277,7 +279,7 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `endpoint` |  | The saved endpoint in use ([endpoints.&lt;name>]). Default: the only one saved. |
-| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral. Default: the preset of the endpoint's own name, if there is one. |
+| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface. Default: the preset of the endpoint's own name, if there is one. |
 | `label` |  | What the New draft form calls the endpoint. Default: the preset's label, else the endpoint's name. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
 | `api_key` |  | The key, written into the file. A server of your own takes any key. |
@@ -289,6 +291,8 @@ A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
 | `thinking_suffix` | `"-thinking"` | The thinking models' suffix. |
 | `thinking_stages` | `["understand", "judge"]` | The stages that think, when thinking is on. |
 | `stream` | `true` | Streamed answers, so that a proxy cannot time out a long one; false only for a server that cannot stream. |
+| `max_tokens_key` | `"max_tokens"` | The request field for the output budget: max_tokens, or max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens). |
+| `send_temperature` | `true` | Send each stage's temperature; false for a model that takes only its default (OpenAI's GPT-5 models). |
 | `timeout_s` | `300.0` | Seconds one call may take. |
 | `max_retries` | `8` | Retries of a failed call. |
 | `cache` | `false` | Keep the answers in data.dir and reuse them (development, evaluation). |

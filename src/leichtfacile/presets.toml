@@ -61,12 +61,37 @@ url = "http://127.0.0.1:8000/v1"
 api_key = "local"
 thinking = "chat-template"
 
+# OpenAI's GPT-5 models (the current line: gpt-5.4-nano, gpt-5.6-luna, gpt-5.6-terra, ...)
+# refuse `max_tokens` and any temperature but their default; a GPT-4.1 model would take
+# `send_temperature = true` on the saved endpoint. Thinking is `reasoning_effort` (none,
+# low, medium, high, xhigh from 5.4 on): `thinking = "reasoning-effort"` on the saved
+# endpoint, with `thinking_stages = []` for none everywhere. Checked 25 October 2026.
 [openai]
-label = "OpenAI"
+label = "OpenAI (US cloud, public documents only)"
 url = "https://api.openai.com/v1"
 api_key_env = "OPENAI_API_KEY"
+max_tokens_key = "max_completion_tokens"
+send_temperature = false
 
 [mistral]
 label = "Mistral AI"
 url = "https://api.mistral.ai/v1"
 api_key_env = "MISTRAL_API_KEY"
+
+# Groq (US cloud, very fast inference): public documents only. The models come and go
+# (several are previews), so `leichtfacile setup groq` lists them instead of a default.
+# Thinking stays off: Qwen reasons on Groq only when asked with reasoning_effort low,
+# medium or high (checked 25 October 2026), and the gpt-oss models refuse "none".
+[groq]
+label = "Groq (US cloud, public documents only)"
+url = "https://api.groq.com/openai/v1"
+api_key_env = "GROQ_API_KEY"
+
+# The Hugging Face Inference Providers router sends each request to a third-party
+# provider, mostly outside Switzerland: development and public documents only. Models are
+# Hugging Face ids, with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`);
+# `leichtfacile setup huggingface` lists them. The token is the user's HF_TOKEN.
+[huggingface]
+label = "Hugging Face Inference Providers (third-party clouds, public documents only)"
+url = "https://router.huggingface.co/v1"
+api_key_env = "HF_TOKEN"

@@ -194,6 +194,17 @@ class Endpoint(Section):
         description="Streamed answers, so that a proxy cannot time out a long one; false "
         "only for a server that cannot stream.",
     )
+    # OpenAI's GPT-5 models refuse `max_tokens` and any temperature but their default.
+    max_tokens_key: Literal["max_tokens", "max_completion_tokens"] = Field(
+        "max_tokens",
+        description="The request field for the output budget: max_tokens, or "
+        "max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens).",
+    )
+    send_temperature: bool = Field(
+        True,
+        description="Send each stage's temperature; false for a model that takes only its "
+        "default (OpenAI's GPT-5 models).",
+    )
     timeout_s: float = Field(300.0, gt=0, description="Seconds one call may take.")
     # CSCS closes about one long thinking stream in four midway; 8 retries make a hard
     # failure rare (6 October 2026). The backoff stops growing at 30 seconds.
@@ -247,9 +258,11 @@ class LLM(Endpoint):
 
     @property
     def larger_model(self) -> str | None:
-        """The 70B of the writer's Apertus family, None for any other writer."""
-        larger = _APERTUS_8B.sub(r"\g<1>70\g<2>", self.models.writer)
-        return larger if larger != self.models.writer else None
+        """The 70B of the writer's Apertus family, None for any other writer; a provider
+        suffix (`:publicai` on the Hugging Face router) stays."""
+        name, colon, suffix = self.models.writer.partition(":")
+        larger = _APERTUS_8B.sub(r"\g<1>70\g<2>", name)
+        return larger + colon + suffix if larger != name else None
 
     def judge_for(self, models: Iterable[str]) -> str:
         """The judge's model: models.judge when set; else the 70B of the writer's family
@@ -258,7 +271,15 @@ class LLM(Endpoint):
         if self.models.judge:
             return self.models.judge
         larger = self.larger_model
-        return larger if larger and larger in set(models) else self.models.writer
+        return larger if larger and listed(larger, models) else self.models.writer
+
+
+def listed(model: str, models: Iterable[str]) -> bool:
+    """Whether an endpoint's model list has the model: by its name, or by its name without
+    a provider suffix (`Qwen/Qwen3.5-9B:ovhcloud` on the Hugging Face router, which lists
+    `Qwen/Qwen3.5-9B`); an Ollama name (`qwen3.5:9b`) is listed as it is."""
+    names = set(models)
+    return model in names or (":" in model and model.rpartition(":")[0] in names)
 
 
 class Pipeline(Section):

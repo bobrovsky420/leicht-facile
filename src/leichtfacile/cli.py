@@ -367,6 +367,7 @@ def open_when_ready(url: str, timeout_s: float = 60.0) -> None:
 
 
 def _check_llm(model: str | None, thinking: bool) -> int:
+    from leichtfacile.config import listed
     from leichtfacile.llm.client import LLMClient, LLMError
 
     settings = settings_or_exit()
@@ -380,7 +381,7 @@ def _check_llm(model: str | None, thinking: bool) -> int:
 
     try:
         models = client.list_models()
-        print(f"listed:    {len(models)} models; requested model listed: {name in models}")
+        print(f"listed:    {len(models)} models; requested model listed: {listed(name, models)}")
         for m in models:
             print(f"           - {m}")
     except Exception as exc:

@@ -731,7 +731,7 @@ writers wait for each other (5 s) instead of failing midway.
   (`Orchestrator.client_for`, the settings of that endpoint with it), and the summary
   records the endpoint's name.
 - **Endpoint profiles** (the presets `cscs`, `apertus`, `local`, `ollama` and `vllm` for
-  a server of one's own, `openai` and `mistral`, one table each in
+  a server of one's own, `openai`, `mistral`, `groq` and `huggingface`, one table each in
   `src/leichtfacile/presets.toml`, are
   endpoints as they come, complete but for the key
   ([configuration.md](configuration.md#presets)); `leichtfacile setup` gives one its key
@@ -1024,7 +1024,7 @@ They and `eval run` take `--endpoint <name>`, a saved endpoint for one run.
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`, `groq`, `huggingface`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
 | `leichtfacile endpoint list\|use <name>\|remove <name>` | Every endpoint, preset or saved, with its label, its writer model and what it lacks, the one in use marked; use another from now on; remove a saved one or the saved settings of a preset (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
@@ -1149,7 +1149,7 @@ day, against the 82 percent above.
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
-| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at Public AI list prices as an order of magnitude | Is it affordable at scale? |
+| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/eval/prices.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
 | Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
 
@@ -1162,7 +1162,10 @@ the original `SARI.py`, checked bit for bit; its tokenizer drops the Mediopunkt,
 an added word), judge statistics where a judge ran.
 Outputs land in `eval/results/*.jsonl` (git-ignored, they contain rewrites of
 protected pages); `python -m leichtfacile eval report` renders the tables
-([evaluation.md](evaluation.md)) from aggregates only, and `eval numbers` prints the headline means
+([evaluation.md](evaluation.md)) from aggregates only, `eval compare` fills
+[model-comparison.md](model-comparison.md) (every run on every endpoint side by side,
+from the runs that document declares in a TOML block; `eval/compare.py`), and `eval
+numbers` prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the headline case they fall into (`decide_case`), with the headline
 sentence filled in, so that the README and the documentation carry the same numbers. Since 14
@@ -1195,9 +1198,10 @@ a model itself: the endpoint is provided outside it (below).
 
 The settings are one TOML file with a section per topic and any number of saved model
 endpoints ([configuration.md](configuration.md)). The known endpoints come with the app
-as presets (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`; one table
-each in `src/leichtfacile/presets.toml`), complete but for the key (a server of one's
-own: but for the model, which the server names); the endpoint in use resolves
+as presets (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`, `groq`,
+`huggingface`; one table each in `src/leichtfacile/presets.toml`), complete but for the
+key (a server of one's own or a provider with a changing catalogue: but for the model
+too); the endpoint in use resolves
 from its preset, the saved `[endpoints.<name>]` table that extends it (the table of the
 preset's name, or one naming it with `preset`) and `[llm]`'s own keys. `leichtfacile
 setup <name>` (`configure.py`) asks for a preset's key (not echoed), stores it in the
@@ -1460,6 +1464,7 @@ docs/
   prompts.md                prompt design notes and change log
   image-input.md            what image input keeps and loses, by kind of value
   evaluation.md             the evaluation tables, written by `eval report`
+  model-comparison.md       every run on every endpoint side by side, tables written by `eval compare`
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
 src/leichtfacile/
@@ -1473,7 +1478,7 @@ src/leichtfacile/
   lifecycle.py              the counts on the job row, deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
-  presets.toml              the known endpoints, one table each (cscs, apertus, local, ollama, vllm, openai, mistral)
+  presets.toml              the known endpoints, one table each (cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface)
   llm/                      client.py, json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
@@ -1492,7 +1497,7 @@ src/leichtfacile/
                             observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
   export/                   markdown.py, html.py, docx.py, bundle.py
-  eval/                     dataset.py, calibrate.py, score.py, run.py, report.py, metrics.py,
+  eval/                     dataset.py, calibrate.py, score.py (prices.toml), run.py, report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing), image_spike.py,
                             numbers.py (the headline numbers), cli.py
 scripts/                    fetch_pairs.py, print_letters.py, image_spike.py

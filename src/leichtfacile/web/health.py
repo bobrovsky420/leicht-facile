@@ -25,6 +25,7 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Request
 
 from leichtfacile import __version__
+from leichtfacile.config import listed
 from leichtfacile.llm.client import LLMClient
 
 log = logging.getLogger(__name__)
@@ -95,14 +96,13 @@ def readyz(request: Request) -> dict:
         llm["understand_model"] = settings.llm.understand_model
     ready = status.reachable
     if status.reachable:
-        listed = set(status.models)
-        judge = settings.llm.judge_for(listed)
+        judge = settings.llm.judge_for(status.models)
         llm["judge_model"] = judge
-        llm["model_listed"] = settings.llm.models.writer in listed
-        llm["judge_model_listed"] = judge in listed
+        llm["model_listed"] = listed(settings.llm.models.writer, status.models)
+        llm["judge_model_listed"] = listed(judge, status.models)
         ready = llm["model_listed"] and llm["judge_model_listed"]
         if settings.llm.models.understand:
-            llm["understand_model_listed"] = settings.llm.understand_model in listed
+            llm["understand_model_listed"] = listed(settings.llm.understand_model, status.models)
             ready = ready and llm["understand_model_listed"]
     else:
         llm["error"] = status.error

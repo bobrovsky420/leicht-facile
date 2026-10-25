@@ -18,6 +18,13 @@ target group.
 > skills (Swiss Federal Statistical Office, PIAAC 2022/23). None of them should be excluded from the official
 > letters that decide their money, deadlines and rights.
 
+A sentence like this one from a letter, in "Amtssprache" and with three negations, loses
+them, although the reader has only one question: do I get my money back?
+
+| Before: the letter | After: easy language |
+|--------------------|----------------------|
+| *Es ist nicht unwesentlich, dass Kosten,<br>die nicht fristgerecht geltend gemacht werden,<br>nicht vergütet werden können.* | *Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst bekommen Sie kein Geld zurück.* |
+
 Two use cases: a canton's letters and web pages
 ([use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
@@ -130,8 +137,8 @@ uv run leichtfacile serve
 ```
 
 `setup` lists the presets (`cscs` and `apertus` for Apertus, `local` for llama.cpp,
-`ollama`, `vllm`, `openai`, `mistral`) and any other endpoint; `setup cscs` asks for the
-CSCS key alone, `setup ollama` for the model alone. It ends by
+`ollama`, `vllm`, `openai`, `mistral`, `groq`, `huggingface`) and any other endpoint;
+`setup cscs` asks for the CSCS key alone, `setup ollama` for the model alone. It ends by
 offering the spaCy models for German and French, about 90 MB from GitHub (`leichtfacile
 models` gets them later; a checkout has them from `uv.lock`). With a preset's key in the
 environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), the app needs no setup:
@@ -208,6 +215,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
 - [hard-texts.md](docs/hard-texts.md): hard words and sentences for tests
 - [evaluation.md](docs/evaluation.md): the evaluation tables, per language and setup
+- [model-comparison.md](docs/model-comparison.md): every evaluation run side by side, Apertus on CSCS, Qwen on a laptop, gpt-oss on Groq and the runs to come
 
 ## Licence
 

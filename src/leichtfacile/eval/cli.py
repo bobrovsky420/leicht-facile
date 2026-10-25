@@ -132,6 +132,13 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     num.add_argument("--lang", default="de", choices=["de", "fr", "it"])
     num.set_defaults(handler=_numbers)
 
+    cmp = evsub.add_parser(
+        "compare", help="fill docs/model-comparison.md from the runs it declares (no model)"
+    )
+    cmp.add_argument("--doc", type=Path, default=Path("docs/model-comparison.md"))
+    cmp.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
+    cmp.set_defaults(handler=_compare)
+
 
 def _pairs(args: argparse.Namespace):
     from leichtfacile.eval.dataset import load_manifest, select
@@ -271,6 +278,14 @@ def _numbers(args: argparse.Namespace) -> int:
     from leichtfacile.eval.numbers import render_numbers
 
     print(render_numbers(args.results, role=args.role, lang=args.lang))
+    return 0
+
+
+def _compare(args: argparse.Namespace) -> int:
+    from leichtfacile.eval.compare import update
+
+    runs = update(args.doc, role=args.role)
+    print(f"{args.doc}: the tables of {runs} runs written")
     return 0
 
 

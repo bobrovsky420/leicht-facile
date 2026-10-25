@@ -1,0 +1,95 @@
+# Prices for the evaluation's "USD per page": USD per million input and output tokens, by a
+# part of the model's name (any of `match`, case does not matter); the first entry that
+# matches counts. An entry without prices is a server of one's own, which pays for hardware
+# instead of tokens. Orders of magnitude (docs/evaluation.md, docs/model-comparison.md).
+
+[[model]]
+match = ["llamacpp", "local"]
+note = "a server of one's own: no price per token"
+
+# Apertus at Public AI's list prices, checked 5 October 2026 (docs/architecture.md §6); the
+# CSCS endpoint of the reported runs charged nothing.
+[[model]]
+match = ["apertus-v1.5-70b", "apertus-70b"]
+input = 0.82
+output = 2.92
+note = "Apertus 70B at Public AI, October 2026"
+
+[[model]]
+match = ["apertus-v1.5-8b", "apertus-8b"]
+input = 0.10
+output = 0.20
+note = "Apertus 8B at Public AI, October 2026"
+
+# OpenAI's open-weight models on Groq as the Hugging Face router bills them (its /v1/models
+# answer, 25 October 2026); Groq's own list is lower (0.075 / 0.30 and 0.15 / 0.60), other
+# providers on the router lower still (DeepInfra 0.03 / 0.14 and 0.037 / 0.17). The 120B
+# entry comes first: its name holds "20b".
+[[model]]
+match = ["gpt-oss-120b"]
+input = 0.15
+output = 0.75
+note = "gpt-oss-120b on Groq through the Hugging Face router, October 2026"
+
+[[model]]
+match = ["gpt-oss-20b"]
+input = 0.10
+output = 0.50
+note = "gpt-oss-20b on Groq through the Hugging Face router, October 2026"
+
+# OpenAI's list prices, standard tier (developers.openai.com/api/docs/pricing, 25 October
+# 2026); the more specific names come first, since "gpt-5.4" is part of "gpt-5.4-nano".
+[[model]]
+match = ["gpt-5.4-nano"]
+input = 0.20
+output = 1.25
+
+[[model]]
+match = ["gpt-5.4-mini"]
+input = 0.75
+output = 4.50
+
+[[model]]
+match = ["gpt-5.4"]
+input = 2.50
+output = 15.00
+
+[[model]]
+match = ["gpt-5.6-luna"]
+input = 0.20
+output = 1.20
+
+[[model]]
+match = ["gpt-5.6-terra"]
+input = 2.00
+output = 12.00
+
+[[model]]
+match = ["gpt-5.6-sol"]
+input = 4.00
+output = 20.00
+
+[[model]]
+match = ["gpt-5.5"]
+input = 5.00
+output = 30.00
+
+[[model]]
+match = ["gpt-5-nano"]
+input = 0.05
+output = 0.40
+
+[[model]]
+match = ["gpt-5-mini"]
+input = 0.25
+output = 2.00
+
+[[model]]
+match = ["gpt-4.1-mini"]
+input = 0.40
+output = 1.60
+
+[[model]]
+match = ["gpt-4.1"]
+input = 2.00
+output = 8.00
