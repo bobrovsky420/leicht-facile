@@ -26,8 +26,8 @@ from leichtfacile.config import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PRESET_NAMES = [
-    "cscs", "apertus", "anthropic", "openai", "local", "ollama", "vllm", "mistral", "groq",
-    "huggingface",
+    "cscs", "apertus", "anthropic", "openai", "gemini", "local", "ollama", "vllm", "mistral",
+    "groq", "huggingface",
 ]  # fmt: skip
 
 
@@ -113,7 +113,8 @@ def test_every_preset_is_a_valid_endpoint_with_a_label() -> None:
         for choice in preset.choices:  # the endpoint setup saves when it is picked
             keys = {key: value for key, value in choice.items() if key != "label"}
             config.Endpoint.model_validate({**preset.values, **keys})
-    assert [len(config.PRESETS[name].choices) for name in ("anthropic", "openai")] == [2, 3]
+    choices = [len(config.PRESETS[name].choices) for name in ("anthropic", "openai", "gemini")]
+    assert choices == [2, 3, 1]
 
 
 def test_the_presets_file_holds_one_endpoint_table_per_preset(tmp_path) -> None:

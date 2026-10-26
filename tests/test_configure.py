@@ -100,7 +100,7 @@ def test_the_menu_leaves_out_the_rarely_used_presets_which_setup_still_takes(
     assert run_setup(ask=answers("1"), ask_secret=answers("k"), models=lambda url, key: LISTED,
                      say=said.append) == 0  # fmt: skip
     menu = [line.split(". ", 1)[1] for line in said if re.match(r"  \d+\. ", line)]
-    offered = ("cscs", "apertus", "anthropic", "openai", "local", "ollama", "vllm")
+    offered = ("cscs", "apertus", "anthropic", "openai", "gemini", "local", "ollama", "vllm")
     assert menu == [*(config.PRESETS[name].label for name in offered),
                     "Another OpenAI-compatible endpoint"]  # fmt: skip
     # Named, a preset out of the menu is set up like any other.
@@ -160,6 +160,21 @@ def test_a_choice_saves_its_settings_and_another_model_drops_them(home, monkeypa
     assert run_setup(name="openai", model="gpt-5.4-nano", force=True, ask=never,
                      ask_secret=never, say=lambda line: None) == 0  # fmt: skip
     assert toml(home)["endpoints"]["openai"]["thinking_stages"] == ["understand"]
+
+
+def test_gemini_flash_thinks_at_its_lowest_level_and_takes_no_temperature(
+    home, monkeypatch
+) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    assert run_setup(name="gemini", ask=answers(""), ask_secret=answers("gk"),
+                     models=lambda url, key: ["gemini-3.8-flash"],
+                     say=lambda line: None) == 0  # fmt: skip
+    assert toml(home)["endpoints"] == {"gemini": {"models": {"writer": "gemini-3.8-flash"}}}
+    llm = load().settings.llm
+    assert (llm.models.writer, llm.judge_model) == ("gemini-3.8-flash", "gemini-3.8-flash")
+    # Gemini 3 cannot stop thinking: the preset asks for the lowest level, not for none.
+    assert llm.model_extra_body["gemini-3.8-flash"] == {"reasoning_effort": "low"}
+    assert (llm.thinking, llm.send_temperature) == ("off", False)
 
 
 def test_another_endpoint_offers_its_own_model_list(home) -> None:

@@ -46,9 +46,9 @@ the program cannot know, mostly the key. There are three ways to make one ready:
 - **`leichtfacile setup`** without a name: asks which endpoint to use, offering the
   presets (but the rarely used `mistral`, `groq` and `huggingface`, which take
   `setup <name>`) and any other, then its address, a name and the key, lists the endpoint's
-  models (`GET /models`) and asks for the model. For Anthropic and OpenAI it offers a few
-  models with the settings they need, and any other model the endpoint lists as the last
-  option. It saves what differs from the preset as `[endpoints.<name>]` in the user's
+  models (`GET /models`) and asks for the model. For Anthropic, OpenAI and Google Gemini it
+  offers a few models with the settings they need, and any other model the endpoint lists
+  as the last option. It saves what differs from the preset as `[endpoints.<name>]` in the user's
   config file.
 
 `setup` uses the endpoint it set up. `leichtfacile endpoint list` shows every endpoint,
@@ -63,6 +63,7 @@ them for each draft.
 | `apertus` | Apertus on the Public AI gateway | Needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The preset turns the gateway's response cache off, which ignores the thinking switch |
 | `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint | Needs the key (`ANTHROPIC_API_KEY`) and a model: setup offers Claude Haiku 5.5 and Sonnet 5.5, with their thinking switched off by the preset, or any model the endpoint lists. US cloud: public documents only |
 | `openai`, `mistral` | OpenAI, Mistral AI | Need the key (`OPENAI_API_KEY`, `MISTRAL_API_KEY`) and a model: for OpenAI setup offers GPT-5.6 Luna, GPT-5.6 Terra and GPT-5.4 Nano, with the settings they need, or any model the endpoint lists. Check where the provider processes the text before sending anything confidential. `mistral` is not in setup's list: `leichtfacile setup mistral` |
+| `gemini` | Google's Gemini through its OpenAI-compatible endpoint | Needs the key (`GEMINI_API_KEY`, from Google AI Studio) and a model: setup offers Gemini 3.8 Flash, which the preset asks for its lowest thinking level, or any model the endpoint lists. US cloud: public documents only. On the free tier Google uses the texts to improve its products: anything but test texts needs a paid account. Not run with the app yet |
 | `local` | llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server (`--base-url`) | Takes any key; switches thinking through the chat template (llama.cpp with `--jinja`) and allows 30 minutes per call; needs the model the server runs: `setup local` lists them and asks (`--model <name>` gives it); [Running a model yourself](#running-a-model-yourself) |
 | `ollama` | Ollama on this machine (port 11434) | Takes any key; `setup ollama` lists the models `ollama list` shows and asks which one. For a thinking model such as Qwen: `config set endpoints.ollama.thinking reasoning-effort` |
 | `vllm` | vLLM (port 8000), mostly a GPU machine of the organisation | `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |

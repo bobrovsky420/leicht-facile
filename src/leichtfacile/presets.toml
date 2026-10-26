@@ -100,6 +100,28 @@ models = { writer = "gpt-5.4-nano" }
 thinking = "reasoning-effort"
 thinking_stages = ["understand"]
 
+# Google's Gemini through its OpenAI-compatible endpoint (in beta; US cloud): public
+# documents only, and on the free tier Google uses the texts to improve its products.
+# Gemini 3 models always think: `reasoning_effort` none switches off only Gemini 2.5, and
+# Gemini 3.8 Flash takes low, medium (its default) or high (`minimal` is an error). The
+# thinking counts in max_tokens, so model_extra_body asks for the lowest level on every
+# call and the app's thinking switch stays off. Google advises against setting a
+# temperature on Gemini 3 (below its default of 1.0 it may loop). From Google's
+# documentation, 26 October 2026; not run yet, nor is the id form of the model list
+# (`gemini-...` or `models/gemini-...`) checked.
+[gemini]
+label = "Google's Gemini (US cloud, public documents only)"
+url = "https://generativelanguage.googleapis.com/v1beta/openai"
+api_key_env = "GEMINI_API_KEY"
+send_temperature = false
+
+[gemini.model_extra_body]
+"gemini-3.8-flash" = { reasoning_effort = "low" }
+
+[[gemini.choices]]
+label = "Gemini 3.8 Flash (fast, moderate cost)"
+models = { writer = "gemini-3.8-flash" }
+
 # llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server
 # (`--base-url`). Such a server takes any key. With `--jinja` llama.cpp switches thinking
 # through the chat template; on a small GPU a thinking call takes minutes, so one call

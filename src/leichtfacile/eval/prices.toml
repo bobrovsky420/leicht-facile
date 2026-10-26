@@ -115,3 +115,10 @@ output = 20.00
 match = ["claude-fable-5-1"]
 input = 10.00
 output = 50.00
+
+# Google's list prices, paid tier (ai.google.dev/gemini-api/docs/pricing, 26 October 2026),
+# thinking billed as output; until 31 December 2026, from 2027 twice as much (1.50 / 7.50).
+[[model]]
+match = ["gemini-3.8-flash"]
+input = 0.75
+output = 3.75
