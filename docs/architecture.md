@@ -1092,7 +1092,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
-| `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10) |
+| `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. The first start downloads the missing spaCy models (no question) and opens the browser on the model page while the preset in use lacks its key |
 | `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
@@ -1259,7 +1259,9 @@ them: `leichtfacile models` (`spacy_models.py`, offered at the end of `setup`)
 downloads the pinned wheels from spaCy's releases on GitHub, checks their SHA-256 and
 unpacks the model folders into `models/` in `data.dir`, which needs no pip; a checkout gets
 them as packages from the `models` dependency group. Without them the checker raises
-`ModelMissing`, and `serve`, `check` and `simplify` stop with a hint, instead of
+`ModelMissing`; `serve` downloads them on its first start (`cli.fetch_models`, a line
+on the terminal, no question), and `serve` when that fails, `check` and `simplify`
+stop with a hint, instead of
 checking German or French on a blank pipeline. The Italian model is added when
 Italian ships. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).

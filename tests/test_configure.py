@@ -324,6 +324,57 @@ def test_the_command_line(home, tmp_path, capsys) -> None:
     assert "server.port" in capsys.readouterr().err
 
 
+def test_serve_gets_the_language_models_on_the_first_start(home, capsys, monkeypatch) -> None:
+    """`uvx leichtfacile serve` on a fresh machine: the models are downloaded without a
+    question, then the app starts; when the download fails, the hint and no start."""
+    import uvicorn
+
+    from leichtfacile import spacy_models
+
+    started: list[dict] = []
+    installed: list[list[str]] = []
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: started.append(k))
+    missing = lambda folder=None: [] if installed else ["de", "fr"]  # noqa: E731
+    monkeypatch.setattr(spacy_models, "missing", missing)
+
+    def install(langs, source=None):
+        installed.append(list(langs))
+
+    monkeypatch.setattr(spacy_models, "install", install)
+    assert main(["serve", "--no-browser"]) == 0
+    assert installed == [["de", "fr"]] and len(started) == 1
+    assert "Getting the language models" in capsys.readouterr().out
+    assert not home.exists()  # nothing written: the default preset waits for its key
+
+    def refuse(langs, source=None):
+        raise OSError("no network")
+
+    monkeypatch.setattr(spacy_models, "install", refuse)
+    monkeypatch.setattr(spacy_models, "missing", lambda folder=None: ["de"])
+    with pytest.raises(SystemExit) as stop:
+        main(["serve", "--no-browser"])
+    assert stop.value.code == 2 and len(started) == 1
+    error = capsys.readouterr().err
+    assert "no network" in error and "run `leichtfacile models`" in error
+
+
+def test_serve_with_a_preset_named_stops_unless_it_is_ready(home, capsys, monkeypatch) -> None:
+    """`serve <preset>` picks the preset for this run, saves nothing and asks nothing:
+    one that is not ready, or unknown, ends with the reason before the server starts."""
+    import uvicorn
+
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: pytest.fail("the server started"))
+    with pytest.raises(SystemExit) as stop:
+        main(["serve", "claude-haiku-5-5", "--no-browser"])
+    assert stop.value.code == 2
+    error = capsys.readouterr().err
+    assert "The preset claude-haiku-5-5 is not ready" in error and "ANTHROPIC_API_KEY" in error
+    with pytest.raises(SystemExit):
+        main(["serve", "--preset", "nowhere", "--no-browser"])
+    assert "no such preset" in capsys.readouterr().err
+    assert not home.exists()  # nothing written
+
+
 def test_missing_settings_name_themselves_and_the_setup(home, capsys) -> None:
     get_settings.cache_clear()
     try:

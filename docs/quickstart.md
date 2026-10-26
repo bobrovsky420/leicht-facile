@@ -12,7 +12,7 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 
 | Way | Commands | Needs |
 |-----|----------|-------|
-| [1. Run with uvx](#1-run-with-uvx-no-install) | `uvx leichtfacile setup`, `uvx leichtfacile serve` | uv, a model's key |
+| [1. Run with uvx](#1-run-with-uvx-no-install) | `uvx leichtfacile serve` | uv, a model's key |
 | [2. Clone and run](#2-clone-and-run-development) | `git clone`, `uv run leichtfacile setup`, `uv run leichtfacile serve` | git, uv |
 | [3. Install the command](#3-install-the-command) | `uv tool install leichtfacile` (or `pip install`), `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+ |
 | [4. Command line only](#4-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1, 2 or 3 |
@@ -38,10 +38,11 @@ run, with its address and key) and the models that write, read and check. The pr
 below come with the app; each lacks only what the program cannot know, mostly the key.
 There are three ways to make one ready:
 
-- **The model page.** `leichtfacile serve` starts without a ready model; its page
-  **AI model** lists every preset with where the text goes, what a page costs and what
-  it lacks, takes the key, checks it and makes a test call. The preset of a fresh
-  install is `cscs-apertus`.
+- **The model page.** `leichtfacile serve` starts without a ready model (its first
+  start gets the language models) and opens the browser on its page **AI model**, which
+  lists every preset with where the text goes, what a page costs and what it lacks,
+  takes the key, checks it and makes a test call. The preset of a fresh install is
+  `cscs-apertus`.
 - **The key alone.** With a provider's key variable set, in the environment or in a
   `.env` in the current folder (`CSCS_API_KEY=...`, `PUBLICAI_API_KEY=...`), its presets
   are ready without any setup.
@@ -54,7 +55,11 @@ There are three ways to make one ready:
 `setup` uses the preset it set up. `leichtfacile preset list` shows every preset,
 whether it is ready (else what it lacks) and the one in use; `leichtfacile preset use
 <name>` switches, and `--preset <name>` picks one for a single `serve`, `simplify` or
-`check-llm`. With several ready, the New draft form offers them for each draft.
+`check-llm`. `serve <preset>` is the same for the app: `uvx leichtfacile serve
+claude-sonnet-5-5` runs that preset for one session, asks nothing and saves nothing,
+and stops with the reason when the preset is not ready (its key in the environment or
+a `.env` makes it ready). With several ready, the New draft form offers them for each
+draft.
 
 | Provider | Presets | Notes |
 |----------|---------|-------|
@@ -80,6 +85,7 @@ asked.
 
 ```bash
 leichtfacile setup cscs-apertus      # asks for the key; the rest is shipped
+leichtfacile serve claude-sonnet-5-5 # this preset for one run, nothing saved
 leichtfacile preset list             # every preset, ready or what it lacks, the one in use
 leichtfacile check-llm               # lists the provider's models and makes one short call
 leichtfacile config show             # every setting, its value and where it comes from
@@ -137,18 +143,18 @@ on. With [uv](https://docs.astral.sh/uv/), `uvx` runs it from there without inst
 anything; uv picks or downloads a suitable Python (3.12 or newer).
 
 ```bash
-uvx leichtfacile setup        # the model and its key; then the language models
-uvx leichtfacile serve        # http://127.0.0.1:8000, opens the browser
+uvx leichtfacile serve        # gets the language models, opens http://127.0.0.1:8000/model
 ```
 
-With a provider's key in a `.env` in the current folder (or in the environment), setup
-is not needed (the key makes its presets ready; the app starts without one too and its
-model page asks for it):
+The first start downloads the language models (90 MB) and opens the browser on the AI
+model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
+other. `uvx leichtfacile setup` asks the same on the command line. With a provider's key
+in a `.env` in the current folder (or in the environment), its presets are ready without
+either:
 
 ```bash
 echo "PUBLICAI_API_KEY=<your key>" > .env
-uvx leichtfacile models       # once: the language models
-uvx leichtfacile serve
+uvx leichtfacile serve publicai-apertus
 ```
 
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
@@ -156,12 +162,13 @@ uvx leichtfacile serve
   is quick. `uvx leichtfacile@0.7.1 serve` runs that version.
 - The config file, the keys and the data live in the user's folders
   ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
-- `setup` ends by offering the spaCy models the rule checker parses German and French
-  with: about 90 MB from spaCy's releases on GitHub, checked against pinned SHA-256
-  hashes and unpacked into `models/` in `data.dir` (they are not on PyPI, so the package
-  cannot bring them). `leichtfacile models` gets them at any time; `setup --no-models`
-  skips them. Without them `serve`, `check` and `simplify` stop with a hint instead of
-  checking less.
+- The spaCy models the rule checker parses German and French with are about 90 MB from
+  spaCy's releases on GitHub, checked against pinned SHA-256 hashes and unpacked into
+  `models/` in `data.dir` (they are not on PyPI, so the package cannot bring them).
+  `serve` downloads the missing ones on its first start, without asking; `setup` offers
+  them at its end (`setup --no-models` skips them); `leichtfacile models` gets them at
+  any time. Without them `check` and `simplify` stop with a hint instead of checking
+  less, and so does `serve` when the download fails (offline: way 6).
 - `serve` opens the default browser once `/healthz` answers, but only when the app runs on
   this machine (`--host` 127.0.0.1, localhost or ::1) and, on Linux, only with a desktop
   (`DISPLAY` or `WAYLAND_DISPLAY`). `--no-browser` leaves it closed.
@@ -255,8 +262,7 @@ Every release's wheel is also on the
 `uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.1/leichtfacile-0.7.1-py3-none-any.whl`.
 
 ```bash
-leichtfacile setup        # the model and its key; then the language models
-leichtfacile serve        # http://127.0.0.1:8000, opens the browser
+leichtfacile serve        # gets the language models, opens http://127.0.0.1:8000/model
 ```
 
 - Everything said under way 1 holds, without the `uvx` in front.
@@ -510,7 +516,7 @@ static files need no login. Details:
 | `The preset cscs-apertus is not ready: - llm.api_key: the variable CSCS_API_KEY ... is not set` (a command that calls the model) | `leichtfacile setup <preset>` (for example `setup cscs-apertus`), the key in a `.env` in the current folder, or another preset: `leichtfacile preset list`. `serve` starts anyway and its model page asks for the key |
 | `The settings are not valid: - server.prot (...): Extra inputs are not permitted` | a misspelt key or a wrong value; the message names the file or the variable it came from |
 | `llm.preset = '...': no such preset; known: ...` | a preset that is not shipped and not in the file: `leichtfacile preset list`, or `leichtfacile setup` for a new one |
-| `Missing the spaCy models ...: run leichtfacile models` | `leichtfacile models` (about 90 MB from GitHub), offline `leichtfacile models --from <folder>` (way 6) |
+| `The models could not be installed: ...` then `Missing the spaCy models ...: run leichtfacile models` | `serve` could not download the language models (no network): `leichtfacile models` once the network is back, offline `leichtfacile models --from <folder>` (way 6) |
 | `failed to hardlink file ... incompatible hardlinks. (os error 396)` from `uvx` or `uv tool install` (Windows) | uv links files from its cache, and Windows refuses another link to a file that already has one in a OneDrive folder (for example a checkout's `.venv` there). Add `--link-mode=copy` (`uvx --link-mode=copy leichtfacile setup`), or set it for good in PowerShell with `[Environment]::SetEnvironmentVariable('UV_LINK_MODE', 'copy', 'User')` and open a new terminal |
 | `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
 | setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |

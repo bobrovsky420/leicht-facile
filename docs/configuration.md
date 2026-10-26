@@ -38,7 +38,8 @@ Each source overrides the one before:
 4. `leichtfacile.toml` in the current folder: a checkout's or a project's own settings;
 5. environment variables `LEICHTFACILE_<SECTION>__<KEY>` ([Environment
    variables](#environment-variables));
-6. the command line: `--preset`, and `--host` and `--port` of `serve`.
+6. the command line: `--preset` (or `serve <preset>`), and `--host` and `--port` of
+   `serve`.
 
 `leichtfacile config show` lists every setting with its value and the source it came
 from, so a setting that seems ignored shows what overrides it.
@@ -93,8 +94,10 @@ letters, digits, `-` and `_`.
   `[llm]`, so every value has one place to come from.
 - The model page of the web app (`/model`, on the machine the app runs on) and
   `leichtfacile setup` pick a preset and take its key; `leichtfacile preset use <name>`
-  switches, and `--preset <name>` picks one for a single run of `serve`, `simplify`,
-  `check-llm` or `eval run`.
+  switches, and `--preset <name>` (for the app also `serve <preset>`) picks one for a
+  single run of `serve`, `simplify`, `check-llm` or `eval run`, nothing saved; a preset
+  named so must be ready, since the model page cannot change what the command line
+  picks, and `serve` stops with what it lacks.
 - The New draft form offers every ready preset for one draft when there are at least
   two: the job records its choice and runs on that preset, and the one in use stays.
   The app starts without a ready preset: the checker, the review pages and the exports

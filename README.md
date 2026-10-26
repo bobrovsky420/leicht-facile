@@ -123,17 +123,22 @@ needed), and an OpenAI-compatible model endpoint with its key: Apertus on the CS
 inference API or the Public AI gateway, a model server of your own (vLLM, llama.cpp,
 Ollama) or a provider's API.
 
-The shortest way, with a CSCS key, straight from PyPI without installing anything:
+The shortest way, straight from PyPI without installing anything:
 
 ```bash
-uvx leichtfacile setup cscs-apertus   # asks for the CSCS key, then gets the language models
-uvx leichtfacile serve                # starts the app and opens http://127.0.0.1:8000
+uvx leichtfacile serve        # gets the language models, starts the app, opens the browser
 ```
 
-Apertus 8B then writes and the 70B checks, on the CSCS inference API in Lugano: the
-setup of the reported numbers. For any other model, `uvx leichtfacile setup` without a
-name asks where it should run, or the app's **AI model** page does the same in the
-browser (`serve` starts without a key).
+The first start downloads the language models for the checker (90 MB) and opens the
+app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
+API in Lugano is pre-selected (the 8B writes, the 70B checks: the setup of the reported
+numbers), and the page takes the CSCS key, or any other model's. `uvx leichtfacile
+setup` does the same on the command line. With a provider's key in the environment or a
+`.env`, any preset runs for one session without setup, and nothing is saved:
+
+```bash
+uvx leichtfacile serve claude-sonnet-5-5   # stops with the reason when the preset is not ready
+```
 
 `uvx` checks PyPI at every start, so it runs the newest release, at the latest 10 minutes
 after it is out; an installed command or a checkout is updated by hand

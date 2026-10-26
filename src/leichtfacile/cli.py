@@ -95,6 +95,13 @@ def main(argv: list[str] | None = None) -> int:
     models.add_argument("--force", action="store_true", help="replace models already there")
 
     serve = sub.add_parser("serve", help="run the web application")
+    serve.add_argument(
+        "preset_name",
+        nargs="?",
+        metavar="preset",
+        help="a preset for this run, nothing saved (the same as --preset); it must be "
+        "ready, else serve stops with what it lacks",
+    )
     serve.add_argument("--host", help="the interface (default: server.host, 127.0.0.1)")
     serve.add_argument("--port", type=int, help="the port (default: server.port, 8000)")
     serve.add_argument("--no-browser", action="store_true", help="do not open the browser")
@@ -153,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.config:
         os.environ["LEICHTFACILE_CONFIG"] = str(args.config)
     use_overrides({
-        "llm.preset": getattr(args, "preset", None),
+        "llm.preset": getattr(args, "preset", None) or getattr(args, "preset_name", None),
         "llm.cache": True if getattr(args, "cache", False) else None,
         "server.host": getattr(args, "host", None),
         "server.port": getattr(args, "port", None),
@@ -208,7 +215,8 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         return _models(args.source, force=args.force)
     if args.command == "serve":
         # the app configures its logs (logs.py)
-        return _serve(browser=not args.no_browser)
+        named = bool(args.preset or args.preset_name)
+        return _serve(browser=not args.no_browser, strict=named)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     if args.command == "check-llm":
@@ -268,24 +276,49 @@ def _config(args: argparse.Namespace) -> int:
     return configure.edit(path)
 
 
-def _serve(*, browser: bool = True) -> int:
+def _serve(*, browser: bool = True, strict: bool = False) -> int:
     import uvicorn
 
     # An invalid setting stops here with a hint, not inside the server; so does a host
     # beyond this machine without a login (web/security.py). A preset without its key
-    # does not: the app starts and its model page asks for it.
-    settings = settings_or_exit(strict=False)
+    # does not: the app starts and its model page asks for it. A preset named on the
+    # command line (`serve <preset>`, for this run only) must be ready, since the page
+    # cannot change what the command line picks: nothing is asked, nothing is saved.
+    settings = settings_or_exit(strict=strict)
+    fetch_models()  # the first start gets the language models; nothing is asked
     models_or_exit()
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
+        from leichtfacile.config import load
+
         address = f"[{host}]" if ":" in host else host
-        open_when_ready(f"http://{address}:{port}/")
+        # A fresh start opens on the model page, which asks for the key.
+        page = "" if not load(strict=False).problems else "model"
+        open_when_ready(f"http://{address}:{port}/", page)
     # The app writes its own access line, with the request id and without the query
     # string (web/observability.py); uvicorn's would double it.
     uvicorn.run(
         "leichtfacile.web.app:create_app", factory=True, host=host, port=port, access_log=False
     )
     return 0
+
+
+def fetch_models() -> None:
+    """Download the missing spaCy models before the app starts (`uvx leichtfacile serve`
+    on a fresh machine), with a line on the terminal and no question, as `uvx` itself
+    downloads what it runs; when that fails (offline), `models_or_exit` says what to
+    do."""
+    from leichtfacile import spacy_models
+
+    langs = spacy_models.missing()
+    if not langs:
+        return
+    size = sum(spacy_models.MODELS[lang].size for lang in langs) / 1e6
+    print(f"Getting the language models for the checker ({size:.0f} MB from GitHub) ...")
+    try:
+        spacy_models.install(langs)
+    except (OSError, ValueError) as exc:
+        print(f"The models could not be installed: {exc}", file=sys.stderr)
 
 
 def models_or_exit() -> None:
@@ -344,9 +377,10 @@ def wants_browser(host: str) -> bool:
     return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
 
-def open_when_ready(url: str, timeout_s: float = 60.0) -> None:
-    """Open `url` in the default browser as soon as its /healthz answers, from a thread,
-    so that the server starts meanwhile; nothing happens if it never answers."""
+def open_when_ready(url: str, page: str = "", timeout_s: float = 60.0) -> None:
+    """Open `url` (its `page`) in the default browser as soon as its /healthz answers,
+    from a thread, so that the server starts meanwhile; nothing happens if it never
+    answers."""
     import threading
     import time
     import urllib.request
@@ -360,7 +394,7 @@ def open_when_ready(url: str, timeout_s: float = 60.0) -> None:
             except OSError:
                 time.sleep(0.5)
                 continue
-            webbrowser.open(url)
+            webbrowser.open(url + page)
             return
 
     threading.Thread(target=wait, name="open-browser", daemon=True).start()
