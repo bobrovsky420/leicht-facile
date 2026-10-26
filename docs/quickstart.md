@@ -23,7 +23,8 @@ Every way needs the same two things before `serve`: an endpoint that is ready (a
 address, a model and a key: [The model endpoint](#the-model-endpoint)) and the spaCy
 models for German and French (`setup` offers them, `leichtfacile models` gets them, a
 checkout has them from `uv.lock`). The examples below write `leichtfacile`; with way 1
-it is `uvx leichtfacile`, with way 2 `uv run leichtfacile`.
+it is `uvx leichtfacile`, with way 2 `uv run leichtfacile`. How each way gets a newer
+release: [Updates](#updates).
 
 The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
 whether the model endpoint answers and lists the configured models. The interface is in
@@ -148,9 +149,9 @@ uvx leichtfacile models       # once: the language models
 uvx leichtfacile serve
 ```
 
-- `uvx` (short for `uv tool run`) keeps the release in uv's cache, so later calls start
-  at once. `uvx leichtfacile@latest serve` checks for a newer release;
-  `uvx leichtfacile@0.7.1 serve` runs that version.
+- `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
+  ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
+  is quick. `uvx leichtfacile@0.7.1 serve` runs that version.
 - The config file, the keys and the data live in the user's folders
   ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
 - `setup` ends by offering the spaCy models the rule checker parses German and French
@@ -258,7 +259,8 @@ leichtfacile serve        # http://127.0.0.1:8000, opens the browser
 
 - Everything said under way 1 holds, without the `uvx` in front.
 - `python -m leichtfacile` does the same as `leichtfacile`.
-- `uv tool upgrade leichtfacile` (or `pip install -U leichtfacile`) gets a newer release.
+- `uv tool upgrade leichtfacile` (or `pip install -U leichtfacile`) gets a newer release;
+  nothing updates it by itself ([Updates](#updates)).
 - `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
   the models) stay.
 
@@ -384,6 +386,26 @@ file (way 5).
 The model server runs inside the network too, with its weights carried over the same way
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
 it with `leichtfacile setup local` and run it as in way 5.
+
+## Updates
+
+Only way 1 gets a newer release by itself; the others are updated by hand. An update
+keeps the config file, the keys and the data, and a newer release brings the database up
+to date on its first start. A running app stays on its version until it starts again.
+
+| Way | A newer release arrives | By hand |
+|-----|-------------------------|---------|
+| 1. `uvx leichtfacile` | at the next start: uvx checks PyPI each time and trusts its list for up to 10 minutes, so a release arrives at the latest 10 minutes after it is out | `uvx leichtfacile@latest serve` checks at once |
+| 2. A checkout | after a pull | `git pull`; the next `uv run` installs what changed |
+| 3. `uv tool install leichtfacile` | never by itself | `uv tool upgrade leichtfacile`. An install of one version (`leichtfacile==0.7.0`) or of a wheel's address stays on it even then: `uv tool install leichtfacile@latest` |
+| 3. `pip install leichtfacile` | never by itself | `pip install -U leichtfacile` |
+| 5. On a server | never by itself | `sudo /opt/leichtfacile/bin/pip install -U leichtfacile`, then `sudo systemctl restart leichtfacile` |
+| 6. Offline | never by itself | a new wheelhouse from a connected machine, then `/opt/leichtfacile/bin/pip install -U --no-index --find-links wheelhouse leichtfacile` |
+
+With the command installed (way 3), `uvx leichtfacile` runs the installed version, not
+the newest one; `uvx leichtfacile@latest` runs the newest and leaves the installed one as
+it is. `leichtfacile --version` shows the version in use, and each release on the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases) links its changes.
 
 ## Running a model yourself
 

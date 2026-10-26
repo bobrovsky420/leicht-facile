@@ -130,6 +130,10 @@ uvx leichtfacile setup        # the endpoint and its key; then the language mode
 uvx leichtfacile serve        # starts the app and opens http://127.0.0.1:8000
 ```
 
+`uvx` checks PyPI at every start, so it runs the newest release, at the latest 10 minutes
+after it is out; an installed command or a checkout is updated by hand
+([quickstart.md](docs/quickstart.md#updates)).
+
 On Windows, if `uvx` stops with `failed to hardlink file ... (os error 396)`, run
 `uvx --link-mode=copy leichtfacile setup`: uv links files from its cache, and Windows
 refuses another link to a file that already has one in a OneDrive folder
