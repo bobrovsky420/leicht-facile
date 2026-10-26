@@ -1255,16 +1255,18 @@ as presets (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`, `
 `huggingface`, `anthropic`; one table each in `src/leichtfacile/presets.toml`), complete but for the
 key (a server of one's own or a provider with a changing catalogue: but for the model
 too); the endpoint in use resolves
-from its preset, the saved `[endpoints.<name>]` table that extends it (the table of the
-preset's name, or one naming it with `preset`) and `[llm]`'s own keys. `leichtfacile
-setup <name>` (`configure.py`) asks for a preset's key (not echoed), stores it in the
+from its preset and the saved `[endpoints.<name>]` table that extends it (the table of
+the preset's name, or one naming it with `preset`); `[llm]` holds the choice
+(`llm.endpoint`) and the `cache` switch that applies to every endpoint, nothing else.
+`leichtfacile setup <name>` (`configure.py`) asks for a preset's key (not echoed), stores it in the
 `.env` next to the config file and sets `llm.endpoint`; with the key's variable set it
 asks nothing. Without a name it offers the presets and any other endpoint, for which it
 asks the address, a name, the key and the model (from `GET /models`); what differs from
 a preset is saved as `[endpoints.<name>]`. `--preset`, `--name`, `--base-url`,
 `--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` (update an endpoint
 saved already) answer the questions in advance. An endpoint is ready when it has an
-address, a writer model and a key; without `llm.endpoint` the only ready one is in use.
+address, a writer model and a key; without `llm.endpoint` the only saved endpoint is in
+use, and nothing is guessed from the keys in the shell (since 25 October 2026).
 `leichtfacile endpoint` lists every endpoint with what it lacks, switches and removes,
 `leichtfacile config` shows and changes every setting (§7). The settings
 come from the defaults, the endpoint's preset, the user's config file,

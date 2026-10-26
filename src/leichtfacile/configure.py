@@ -30,7 +30,7 @@ import tomlkit
 from pydantic import SecretStr
 
 from leichtfacile import config
-from leichtfacile.config import ENDPOINT_NAME, PRESETS, SECRETS, SECTIONS, ConfigError
+from leichtfacile.config import ENDPOINT_NAME, IN_USE, PRESETS, SECRETS, ConfigError
 
 _PLAIN = re.compile(r"[\w.:/@+=,{}\[\]-]*")
 HEADER = (
@@ -281,7 +281,7 @@ def use_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -
 
 def remove_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
     """Remove a saved endpoint, or the saved settings that extend a preset (the preset
-    stays). One that was in use leaves the choice to the only ready endpoint or to
+    stays). One that was in use leaves the choice to the only saved endpoint or to
     `endpoint use`."""
     doc = read_document(path)
     endpoints = doc.get("endpoints")
@@ -318,7 +318,7 @@ def show(*, say: Callable[[str], None] = print) -> int:
     say(f"this folder:  {config.PROJECT_FILE.resolve()}{_missing(config.PROJECT_FILE)}")
     say(f"keys (.env):  {', '.join(f'{p.resolve()}{_missing(p)}' for p in config.env_files())}")
     rows = []
-    for section, model in SECTIONS.items():
+    for section, model in IN_USE.items():
         for key, _ in config.fields(model):
             full = f"{section}.{key}"
             value = reduce(getattr, full.split("."), loaded.settings)

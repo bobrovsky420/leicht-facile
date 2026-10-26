@@ -142,13 +142,22 @@ def test_dot_env_holds_keys_and_nothing_else(home) -> None:
     assert load().settings.server.port == 8000
 
 
-def test_llm_overrides_the_endpoint_in_use_and_its_preset(home) -> None:
-    write(home, "[llm]\ntimeout_s = 1800\nmodels = { judge = \"j\" }\n\n"
-                "[endpoints.cscs]\npreset = \"cscs\"\napi_key = \"k\"\ntimeout_s = 600\n"
-                "thinking_stages = [\"understand\"]\n")  # fmt: skip
-    llm = load().settings.llm
-    assert (llm.timeout_s, llm.thinking_stages) == (1800, ["understand"])
-    assert (llm.models.writer, llm.models.judge) == ("swiss-ai/Apertus-v1.5-8B", "j")
+def test_llm_takes_the_choice_and_the_cache_switch_and_nothing_else(home, monkeypatch) -> None:
+    write(home, "[llm]\ncache = true\n\n[endpoints.cscs]\npreset = \"cscs\"\napi_key = \"k\"\n"
+                "timeout_s = 600\nthinking_stages = [\"understand\"]\n")  # fmt: skip
+    llm = load().settings.llm  # the only saved endpoint, its table over its preset
+    assert (llm.endpoint, llm.timeout_s, llm.thinking_stages) == ("cscs", 600, ["understand"])
+    assert (llm.models.writer, llm.models.judge, llm.cache) == (
+        "swiss-ai/Apertus-v1.5-8B", "swiss-ai/Apertus-v1.5-70B", True,
+    )  # fmt: skip
+    # An endpoint's key in [llm] has one place to go: the endpoint's table.
+    write(home, '[llm]\ntimeout_s = 1800\n\n[endpoints.cscs]\npreset = "cscs"\napi_key = "k"\n')
+    with pytest.raises(ConfigError, match=r"llm.timeout_s \(.*config.toml\): \[llm\] takes"):
+        load()
+    write(home, '[endpoints.cscs]\npreset = "cscs"\napi_key = "k"\n')
+    monkeypatch.setenv("LEICHTFACILE_LLM__MODELS__WRITER", "other")
+    with pytest.raises(ConfigError, match="LEICHTFACILE_ENDPOINTS__<NAME>__MODELS__WRITER"):
+        load()
 
 
 def test_the_endpoint_in_use(home, monkeypatch) -> None:
@@ -161,12 +170,14 @@ def test_the_endpoint_in_use(home, monkeypatch) -> None:
         load()
     use_overrides({})
     write(home, LOCAL.replace('endpoint = "laptop"', "") + '\n[endpoints.cscs]\napi_key = "k"\n')
-    with pytest.raises(ConfigError, match=r"ready \(cscs, laptop\) and llm.endpoint picks none"):
-        load()
+    with pytest.raises(ConfigError, match="No model endpoint is in use"):
+        load()  # two saved, none named: nothing is guessed
     lenient = load(strict=False)  # `config show`: no endpoint in use, the reason a problem
-    assert lenient.settings.llm.url == "" and "picks none" in lenient.problems[0]
+    assert lenient.settings.llm.url == "" and "is in use" in lenient.problems[0]
     write(home, LOCAL.replace('endpoint = "laptop"', ""))
-    assert load().settings.llm.endpoint == "laptop"  # the only one that is ready
+    loaded = load()
+    assert loaded.settings.llm.endpoint == "laptop"  # the only one saved
+    assert loaded.flat["llm.endpoint"].source == "the only saved endpoint"
 
 
 def test_a_preset_is_an_endpoint_without_a_saved_table(home) -> None:
@@ -200,16 +211,17 @@ def test_a_saved_table_of_a_presets_name_extends_the_preset(home, monkeypatch) -
     assert llm.model_dump()["label"] == "CSCS, the 70B"
 
 
-def test_the_only_ready_endpoint_is_in_use(home, monkeypatch) -> None:
-    monkeypatch.setenv("PUBLICAI_API_KEY", "p")  # a key in the shell is the signal
-    loaded = load()
-    assert loaded.settings.llm.endpoint == "apertus"
-    assert loaded.flat["llm.endpoint"].source == "the only endpoint that is ready"
-    monkeypatch.setenv("CSCS_API_KEY", "c")
-    with pytest.raises(ConfigError, match=r"Several endpoints are ready \(cscs, apertus\)"):
+def test_a_key_in_the_shell_picks_no_endpoint(home, monkeypatch) -> None:
+    monkeypatch.setenv("PUBLICAI_API_KEY", "p")  # apertus is ready, but nobody named it
+    with pytest.raises(ConfigError, match="No model endpoint is in use") as none:
         load()
+    assert "\n  apertus: ready\n" in str(none.value)
+    monkeypatch.setenv("CSCS_API_KEY", "c")
     write(home, '[llm]\nendpoint = "cscs"\n')
     assert load().settings.llm.endpoint == "cscs"
+    monkeypatch.setenv("LEICHTFACILE_LLM__ENDPOINT", "apertus")  # a variable names one too
+    assert load().settings.llm.url == "https://api.publicai.co/v1"
+    monkeypatch.delenv("LEICHTFACILE_LLM__ENDPOINT")
     assert load(endpoint="apertus").settings.llm.url == "https://api.publicai.co/v1"
     with pytest.raises(ConfigError, match="no such endpoint"):
         load(endpoint="nope")
@@ -240,15 +252,15 @@ def test_the_later_source_decides_between_a_key_and_its_variable(home, monkeypat
                 'models = { writer = "m" }\n')  # fmt: skip
     monkeypatch.setenv("MINE_KEY", "named")
     assert load().settings.llm.api_key.get_secret_value() == "named"  # not the preset's
-    monkeypatch.setenv("LEICHTFACILE_LLM__API_KEY", "given")
+    monkeypatch.setenv("LEICHTFACILE_ENDPOINTS__MINE__API_KEY", "given")
     assert load().settings.llm.api_key.get_secret_value() == "given"
-    write(home, '[llm]\napi_key = "a"\napi_key_env = "B"\n')
+    write(home, '[endpoints.mine]\napi_key = "a"\napi_key_env = "B"\n')
     with pytest.raises(ConfigError, match="keep one"):
         load()
 
 
 def test_missing_settings_say_what_and_where(home) -> None:
-    with pytest.raises(ConfigError, match="No model endpoint is ready") as nothing:
+    with pytest.raises(ConfigError, match="No model endpoint is in use") as nothing:
         load()
     assert "leichtfacile setup" in str(nothing.value) and str(home) in str(nothing.value)
     assert "\n  cscs: the variable CSCS_API_KEY is not set\n" in str(nothing.value)
@@ -277,21 +289,23 @@ def test_typos_and_wrong_values_name_their_source(home, monkeypatch) -> None:
         load()
 
 
-def test_variables_carry_lists_tables_and_switches(home, monkeypatch) -> None:
+def test_variables_carry_values_and_comma_lists_but_no_tables(home, monkeypatch) -> None:
     write(home, LOCAL)
-    monkeypatch.setenv("LEICHTFACILE_LLM__THINKING_STAGES", "understand, write")
-    monkeypatch.setenv("LEICHTFACILE_LLM__EXTRA_BODY", '{"cache": {"no-cache": true}}')
-    monkeypatch.setenv("LEICHTFACILE_LLM__MODEL_EXTRA_BODY", '{"m": {"thinking": {"type": "x"}}}')
+    monkeypatch.setenv("LEICHTFACILE_ENDPOINTS__LAPTOP__THINKING_STAGES", "understand, write")
     monkeypatch.setenv("LEICHTFACILE_LLM__CACHE", "1")
-    monkeypatch.setenv("LEICHTFACILE_AUTH__PROXY_FROM", '["127.0.0.1", "10.0.0.0/8"]')
+    monkeypatch.setenv("LEICHTFACILE_AUTH__PROXY_FROM", "127.0.0.1, 10.0.0.0/8")
     monkeypatch.setenv("LEICHTFACILE_AUTH__PROXY_HEADER", "X-Forwarded-User")
     monkeypatch.setenv("LEICHTFACILE_LOG__LEVEL", "")  # empty: not set
     s = load().settings
     assert s.llm.thinking_stages == ["understand", "write"] and s.llm.cache is True
-    assert s.llm.extra_body == {"cache": {"no-cache": True}}
-    assert s.llm.model_extra_body == {"m": {"thinking": {"type": "x"}}}
     assert s.auth.mode == "proxy" and len(s.auth.proxy_networks) == 2
     assert s.log.level == "INFO"
+    # A table is set in a file, never as JSON in a variable.
+    monkeypatch.setenv(
+        "LEICHTFACILE_ENDPOINTS__LAPTOP__EXTRA_BODY", '{"cache": {"no-cache": true}}'
+    )
+    with pytest.raises(ConfigError, match=r"endpoints.laptop.extra_body \(LEICHTFACILE_ENDPOINTS"):
+        load()
 
 
 def test_relative_folders_follow_their_file_and_need_no_endpoint(home) -> None:

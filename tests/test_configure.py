@@ -172,20 +172,26 @@ def test_saved_endpoints_are_listed_switched_and_removed(home) -> None:
     assert use_endpoint("local", path=home, say=said.append) == 0
     assert remove_endpoint("local", path=home, say=said.append) == 0
     assert said[-2].startswith("Removed the saved settings of the preset local")
-    assert said[-1] == "In use now: cscs."  # the only one that is ready
-    assert load().settings.llm.endpoint == "cscs" and "endpoints" not in toml(home)
+    # cscs is ready (its key is in .env), but nothing picks it: nothing is guessed.
+    assert said[-1] == "No endpoint is in use now: `leichtfacile endpoint use <name>`."
+    assert "endpoints" not in toml(home)
+    with pytest.raises(ConfigError, match="No model endpoint is in use"):
+        load()
 
 
 def test_config_set_checks_before_it_writes(home) -> None:
     said: list[str] = []
     set_value(home, "server.port", "8001", say=said.append)
-    set_value(home, "llm.thinking_stages", '["understand"]', say=said.append)
-    set_value(home, "llm.models.writer", "8", say=said.append)  # a name, not a number
-    assert toml(home) == {"server": {"port": 8001}, "llm": {
-        "thinking_stages": ["understand"], "models": {"writer": "8"}}}  # fmt: skip
+    set_value(home, "endpoints.gpu.thinking_stages", '["understand"]', say=said.append)
+    set_value(home, "endpoints.gpu.models.writer", "8", say=said.append)  # a name, not a number
+    set_value(home, "llm.cache", "true", say=said.append)
+    assert toml(home) == {"server": {"port": 8001}, "llm": {"cache": True}, "endpoints": {
+        "gpu": {"thinking_stages": ["understand"], "models": {"writer": "8"}}}}  # fmt: skip
     before = home.read_text(encoding="utf-8")
     with pytest.raises(ConfigError, match="server.prot"):
         set_value(home, "server.prot", "1", say=said.append)
+    with pytest.raises(ConfigError, match=r"llm.timeout_s .*\[llm\] takes endpoint and cache"):
+        set_value(home, "llm.timeout_s", "60", say=said.append)
     with pytest.raises(ConfigError, match="publishes the app"):
         set_value(home, "server.host", "0.0.0.0", say=said.append)
     assert home.read_text(encoding="utf-8") == before
@@ -253,7 +259,7 @@ def test_missing_settings_name_themselves_and_the_setup(home, capsys) -> None:
         get_settings.cache_clear()
     assert stop.value.code == 2
     error = capsys.readouterr().err
-    assert "No model endpoint is ready" in error and "leichtfacile setup" in error
+    assert "No model endpoint is in use" in error and "leichtfacile setup" in error
     assert str(home) in error
 
 

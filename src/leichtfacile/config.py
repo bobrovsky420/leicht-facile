@@ -13,14 +13,14 @@ Each source overrides the one before:
 5. environment variables `LEICHTFACILE_<SECTION>__<KEY>` (`LEICHTFACILE_SERVER__PORT`);
 6. the command line (`use_overrides`: `--endpoint`, `--host`, `--port`).
 
-`[llm]` is the endpoint in use: `llm.endpoint` names a preset or a saved
-`[endpoints.<name>]` (a saved table of a preset's name extends that preset), and every
-other key of `[llm]` overrides that endpoint's (and its preset's). Without
-`llm.endpoint`, the only endpoint that is ready (address, writer model and key) is in
-use. A secret is given in a file (`api_key`, `auth.token`) or named (`api_key_env`,
-`auth.token_env`): the named variable comes from the environment, else from `.env` in
-the current folder, else from `.env` next to the config file. A `.env` holds such
-secrets and nothing else.
+`[llm]` names the endpoint in use: `llm.endpoint` is a preset or a saved
+`[endpoints.<name>]` (a saved table of a preset's name extends that preset); without it,
+the only saved endpoint is in use. `[llm]` takes one more key, `cache`, which applies to
+every endpoint; an endpoint's own keys live in its table, never in `[llm]`, so a value
+has one place to come from. A secret is given in a file (`api_key`, `auth.token`) or
+named (`api_key_env`, `auth.token_env`): the named variable comes from the environment,
+else from `.env` in the current folder, else from `.env` next to the config file. A
+`.env` holds such secrets and nothing else.
 """
 
 from __future__ import annotations
@@ -231,11 +231,6 @@ class Endpoint(Section):
 
     _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
 
-    @field_validator("extra_body", "model_extra_body", "headers", mode="before")
-    @classmethod
-    def _json(cls, value: object) -> object:
-        return json.loads(value) if isinstance(value, str) and value.strip() else value
-
     @field_validator("preset")
     @classmethod
     def _known(cls, value: str | None) -> str | None:
@@ -244,13 +239,30 @@ class Endpoint(Section):
         return value
 
 
-class LLM(Endpoint):
-    """The endpoint in use: `endpoint` picks a saved one, and every other key set here
-    overrides that endpoint's."""
+class LLMChoice(Section):
+    """The endpoint in use, and the one switch that applies to every endpoint. An
+    endpoint's own keys live in its [endpoints.<name>] table."""
 
     endpoint: str | None = Field(
         None,
-        description="The saved endpoint in use ([endpoints.<name>]). Default: the only one saved.",
+        description="The endpoint in use: a preset or a saved [endpoints.<name>]. Default: "
+        "the only saved endpoint.",
+    )
+    cache: bool = Field(
+        False,
+        description="Keep the answers in data.dir and reuse them (development, evaluation), "
+        "whichever endpoint is in use.",
+    )
+
+
+class LLM(Endpoint):
+    """The endpoint in use with every key, as the settings resolve it: the preset, the
+    saved table that extends it, and [llm]'s cache switch."""
+
+    endpoint: str | None = Field(
+        None,
+        description="The endpoint in use: a preset or a saved [endpoints.<name>]. Default: "
+        "the only saved endpoint.",
     )
 
     @property
@@ -753,31 +765,17 @@ def _file_layer(path: Path, tree: Mapping[str, Any] | None = None) -> Flat:
 
 def _env_layer(environ: Mapping[str, str]) -> Flat:
     """LEICHTFACILE_<SECTION>__<KEY>, the parts joined by two underscores
-    (LEICHTFACILE_ENDPOINTS__LOCAL__URL); an empty variable sets nothing."""
+    (LEICHTFACILE_ENDPOINTS__LOCAL__URL): the text, which the settings convert ("8001",
+    "true", a comma-separated list); an empty variable sets nothing. A table (extra_body,
+    headers) is set in a file."""
     flat: Flat = {}
     for name, raw in environ.items():
         upper = name.upper()
         if not upper.startswith(ENV_PREFIX) or "__" not in upper or not raw.strip():
             continue
         key = upper.removeprefix(ENV_PREFIX).lower().replace("__", ".")
-        value = _env_value(raw)
-        if isinstance(value, dict) and value and key.rpartition(".")[2] not in _OPAQUE:
-            flat.update(flatten(value, name, key + "."))
-        else:
-            flat[key] = Setting(value, name)
+        flat[key] = Setting(raw, name)
     return flat
-
-
-def _env_value(raw: str) -> Any:
-    """JSON for a list or a table (`["understand"]`, `{"cache": ...}`), else the text,
-    which the settings convert ("8001", "true")."""
-    text = raw.strip()
-    if text.startswith(("[", "{")):
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            pass
-    return raw
 
 
 @dataclass(frozen=True)
@@ -801,7 +799,6 @@ def available(flat: Flat | None = None) -> list[Available]:
     """Every endpoint with what it lacks: for `leichtfacile endpoint list`, the New draft
     form and the message when none is ready."""
     flat = collect() if flat is None else flat
-    bare = _without_own_secrets(flat)
     found = []
     for name in endpoint_names(flat):
         layer = _endpoint_layer(flat, name)
@@ -812,7 +809,7 @@ def available(flat: Flat | None = None) -> list[Available]:
                 url=_text(layer, "url"),
                 writer=_text(layer, "models.writer"),
                 judge=_text(layer, "models.judge") or None,
-                missing=tuple(_missing(_endpoint_layer(bare, name), name)),
+                missing=tuple(_missing(layer, name)),
             )
         )
     return found
@@ -828,11 +825,24 @@ def _saved_names(flat: Flat) -> list[str]:
     return sorted({key.split(".")[1] for key in flat if key.startswith("endpoints.")})
 
 
+# What [llm] takes: the choice of endpoint, and the switch that applies to every endpoint.
+LLM_KEYS = ("llm.endpoint", "llm.cache")
+
+
 def _resolve_endpoint(flat: Flat, requested: str | None = None) -> tuple[Flat, str | None]:
-    """The endpoint in use as `llm.*` keys: `requested` (a draft that picked one), else
-    llm.endpoint, else the one given in [llm] itself, else the only one that is ready.
-    With the keys comes the reason when none is in use (two are ready and none is picked,
-    or none is ready), None otherwise."""
+    """The endpoint in use as `llm.*` keys: `requested` (--endpoint, or a draft that picked
+    one), else llm.endpoint, else the only saved endpoint. With the keys comes the reason
+    when none is in use, None otherwise. Nothing is guessed from what is ready: a key
+    left in the shell never picks a provider. A key of an endpoint in [llm] itself is an
+    error, since it belongs to the endpoint's table."""
+    for key, item in flat.items():
+        if key.startswith("llm.") and key not in LLM_KEYS:
+            variable = key.removeprefix("llm.").upper().replace(".", "__")
+            raise ConfigError(
+                f"{key} ({item.source}): [llm] takes endpoint and cache only; an endpoint's "
+                f"keys go into its [endpoints.<name>] table "
+                f"(LEICHTFACILE_ENDPOINTS__<NAME>__{variable} in the environment)"
+            )
     names = endpoint_names(flat)
     picked = Setting(requested, "requested") if requested else flat.get("llm.endpoint")
     why = None
@@ -843,31 +853,17 @@ def _resolve_endpoint(flat: Flat, requested: str | None = None) -> tuple[Flat, s
                 f"llm.endpoint = {name!r} ({picked.source}): no such endpoint; "
                 f"known: {', '.join(names)}"
             )
-    elif _set(flat, "llm.url") or "llm.preset" in flat:
-        name = None  # an endpoint given in [llm] itself (three variables in a container)
+    elif len(saved := _saved_names(flat)) == 1:
+        name = saved[0]  # its problems say what it lacks
+        picked = Setting(name, "the only saved endpoint")
     else:
-        # A key in [llm] itself belongs to the endpoint in use, not to every endpoint.
-        bare = _without_own_secrets(flat)
-        ready = [n for n in names if not _missing(_endpoint_layer(bare, n), n)]
-        saved = _saved_names(flat)
-        if len(ready) == 1:
-            name = ready[0]
-            picked = Setting(name, "the only endpoint that is ready")
-        elif len(ready) > 1:
-            name = None
-            why = (
-                f"Several endpoints are ready ({', '.join(ready)}) and llm.endpoint picks "
-                "none: `leichtfacile endpoint use <name>`."
-            )
-        elif len(saved) == 1:
-            name = saved[0]  # its problems say what it lacks
-            picked = Setting(name, "the only saved endpoint")
-        else:
-            name = None
-            why = _none_ready(flat)
+        name = None
+        why = _none_in_use(flat)
     resolved = _endpoint_layer(flat, name)
     if name is not None:
         resolved["endpoint"] = picked
+    if (cache := flat.get("llm.cache")) is not None:
+        resolved["cache"] = cache
     out = {key: item for key, item in flat.items() if not key.startswith("llm.")}
     out.update({f"llm.{key}": item for key, item in resolved.items()})
     return out, why
@@ -875,23 +871,17 @@ def _resolve_endpoint(flat: Flat, requested: str | None = None) -> tuple[Flat, s
 
 def _endpoint_layer(flat: Flat, name: str | None) -> Flat:
     """The keys of one endpoint as [llm] sees them: its preset's (the one it names, else
-    the preset of its own name), then its saved table's, then [llm]'s own."""
-    own = {k.removeprefix("llm."): v for k, v in flat.items() if k.startswith("llm.")}
-    own.pop("endpoint", None)
+    the preset of its own name), then its saved table's."""
     prefix = f"endpoints.{name}."
     saved = {k.removeprefix(prefix): v for k, v in flat.items() if name and k.startswith(prefix)}
-    named = own.get("preset") or saved.get("preset")
+    named = saved.get("preset")
     key = named.value if named is not None else name
     preset: Flat = {}
     if key in PRESETS:  # an unknown one fails validation
         preset = flatten(PRESETS[key].values, f"preset {key}")
         if named is None:
             preset["preset"] = Setting(key, f"the preset named {key}")
-    return _merge([preset, saved, own])
-
-
-def _without_own_secrets(flat: Flat) -> Flat:
-    return {k: v for k, v in flat.items() if k not in ("llm.api_key", "llm.api_key_env")}
+    return _merge([preset, saved])
 
 
 def _missing(layer: Flat, name: str) -> list[str]:
@@ -910,13 +900,13 @@ def _missing(layer: Flat, name: str) -> list[str]:
     return missing
 
 
-def _none_ready(flat: Flat) -> str:
+def _none_in_use(flat: Flat) -> str:
     lines = [
-        "No model endpoint is ready: give a preset what it lacks with `leichtfacile setup "
-        f"<name>`, or set up another endpoint with `leichtfacile setup` (settings: "
-        f"{config_file()})."
+        "No model endpoint is in use: `leichtfacile setup <name>` sets a preset up and uses "
+        "it, `leichtfacile endpoint use <name>` picks a saved one (settings: "
+        f"{config_file()}). The endpoints and what each lacks:"
     ]
-    lines.extend(f"  {item.name}: {'; '.join(item.missing)}" for item in available(flat))
+    lines.extend(f"  {item.name}: {'; '.join(item.missing) or 'ready'}" for item in available(flat))
     return "\n".join(lines)
 
 
@@ -945,10 +935,16 @@ def _resolve_secrets(flat: Flat) -> list[str]:
 
 # -- the reference (docs/configuration.md, `leichtfacile config show --defaults`) --------
 
+ENDPOINT_SECTION = "endpoints.<name>"
 SECTIONS: dict[str, type[Section]] = {
-    "llm": LLM, "pipeline": Pipeline, "jobs": Jobs, "server": Server, "auth": Auth,
-    "data": Data, "log": Log,
+    "llm": LLMChoice, ENDPOINT_SECTION: Endpoint, "pipeline": Pipeline, "jobs": Jobs,
+    "server": Server, "auth": Auth, "data": Data, "log": Log,
 }  # fmt: skip
+# What `config show` lists: the endpoint in use with every key, then the other sections.
+IN_USE: dict[str, type[Section]] = {
+    "llm": LLM,
+    **{k: v for k, v in SECTIONS.items() if k not in ("llm", ENDPOINT_SECTION)},
+}
 SECRETS = ("llm.api_key", "auth.token")
 
 
@@ -999,7 +995,8 @@ def reference_toml() -> str:
         "# Uncomment and change what you need; `leichtfacile config show` lists the values in use.",
     ]
     for section, model in SECTIONS.items():
-        lines += ["", f"[{section}]"]
+        # The endpoints' section stands for one table per saved endpoint.
+        lines += ["", f"[{section}]" if section != ENDPOINT_SECTION else f"# [{section}]"]
         lines += [f"# {line}" for line in textwrap.wrap(_summary(model), 86)]
         for key, info in fields(model):
             lines += [f"# {line}" for line in textwrap.wrap(info.description or "", 86)]
@@ -1010,12 +1007,6 @@ def reference_toml() -> str:
                 lines.append(f"# {key} =")
             else:
                 lines.append(f"# {key} = {default}")
-        if section == "llm":
-            lines += [
-                "",
-                "# [endpoints.<name>]",
-                "# A saved endpoint: the keys of [llm] but `endpoint`; llm.endpoint picks one.",
-            ]
     return "\n".join(lines) + "\n"
 
 
@@ -1024,11 +1015,6 @@ def reference_markdown() -> str:
     out: list[str] = []
     for section, model in SECTIONS.items():
         out += [f"### `[{section}]`", "", _summary(model), ""]
-        if section == "llm":
-            out += [
-                "A saved `[endpoints.<name>]` takes the same keys but `endpoint`.",
-                "",
-            ]
         out += ["| Key | Default | Meaning |", "|-----|---------|---------|"]
         for key, info in fields(model):
             default = default_text(info)

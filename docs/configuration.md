@@ -66,11 +66,13 @@ organisation runs. The app itself never runs a model.
   and `_`.
 - An endpoint is ready when it has an address, a writer model and a key (given, or its
   variable set). `leichtfacile endpoint list` shows every endpoint and what it lacks.
-- `[llm]` is the endpoint in use. `llm.endpoint` names a preset or a saved endpoint;
-  without it, the only ready endpoint is in use, so one key in the environment is enough
-  (two ready and none named: `leichtfacile endpoint use <name>`). Every other key in
-  `[llm]` overrides the endpoint's, whichever it is: `[llm] cache = true` caches the
-  answers of every endpoint.
+- `[llm]` names the endpoint in use: `llm.endpoint` is a preset or a saved endpoint;
+  without it, the only saved endpoint is in use, and with several saved and none named
+  the app asks for `leichtfacile endpoint use <name>`. Nothing is guessed from the keys
+  in the shell (since 25 October 2026: a forgotten key picked a cloud provider once).
+  `[llm]` takes one more key, `cache`, which applies to every endpoint; an endpoint's
+  own keys (address, models, thinking, timeouts) live in its table, never in `[llm]`,
+  so every value has one place to come from.
 - `leichtfacile setup <name>` gives a preset its key and uses it, `leichtfacile endpoint
   use <name>` switches, and `--endpoint <name>` picks one for a single run of `serve`,
   `simplify`, `check-llm` or `eval run`.
@@ -231,16 +233,17 @@ unchanged. The file keeps its comments and order. `--local` makes `endpoint use`
 ```bash
 LEICHTFACILE_LLM__ENDPOINT=apertus
 LEICHTFACILE_SERVER__PORT=8001
-LEICHTFACILE_LLM__MODELS__WRITER=swiss-ai/Apertus-v1.5-70B
-LEICHTFACILE_ENDPOINTS__CI__URL=http://127.0.0.1:9/v1
-LEICHTFACILE_LLM__THINKING_STAGES=understand,judge     # or JSON: ["understand", "judge"]
-LEICHTFACILE_LLM__EXTRA_BODY='{"cache": {"no-cache": true}}'
+LEICHTFACILE_ENDPOINTS__CSCS__MODELS__WRITER=swiss-ai/Apertus-v1.5-70B
+LEICHTFACILE_ENDPOINTS__CSCS__THINKING_STAGES=understand,judge
 ```
 
-A list is JSON or comma-separated, a table JSON; an empty variable sets nothing. In a
-container or a CI job, three variables make an endpoint without any file:
-`LEICHTFACILE_LLM__URL`, `LEICHTFACILE_LLM__API_KEY` and
-`LEICHTFACILE_LLM__MODELS__WRITER`.
+A value is text, which the setting converts; a list is comma-separated; an empty
+variable sets nothing. A table (`extra_body`, `model_extra_body`, `headers`) is set in a
+file, not in a variable. In a container or a CI job, four variables make an endpoint
+without any file: `LEICHTFACILE_LLM__ENDPOINT=ci` and the endpoint's
+`LEICHTFACILE_ENDPOINTS__CI__URL`, `LEICHTFACILE_ENDPOINTS__CI__API_KEY` and
+`LEICHTFACILE_ENDPOINTS__CI__MODELS__WRITER` (the first one may be left out when it is
+the only saved endpoint).
 
 ## In a checkout
 
@@ -273,13 +276,19 @@ config file.
 
 ### `[llm]`
 
-The endpoint in use: `endpoint` picks a saved one, and every other key set here overrides that endpoint's.
-
-A saved `[endpoints.<name>]` takes the same keys but `endpoint`.
+The endpoint in use, and the one switch that applies to every endpoint. An endpoint's own keys live in its [endpoints.<name>] table.
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `endpoint` |  | The saved endpoint in use ([endpoints.&lt;name>]). Default: the only one saved. |
+| `endpoint` |  | The endpoint in use: a preset or a saved [endpoints.&lt;name>]. Default: the only saved endpoint. |
+| `cache` | `false` | Keep the answers in data.dir and reuse them (development, evaluation), whichever endpoint is in use. |
+
+### `[endpoints.<name>]`
+
+A model endpoint (OpenAI-compatible). Thinking is off unless set, since each endpoint switches it its own way.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
 | `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface, anthropic. Default: the preset of the endpoint's own name, if there is one. |
 | `label` |  | What the New draft form calls the endpoint. Default: the preset's label, else the endpoint's name. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
