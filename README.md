@@ -130,6 +130,11 @@ uvx leichtfacile setup        # the endpoint and its key; then the language mode
 uvx leichtfacile serve        # starts the app and opens http://127.0.0.1:8000
 ```
 
+On Windows, if `uvx` stops with `failed to hardlink file ... (os error 396)`, run
+`uvx --link-mode=copy leichtfacile setup`: uv links files from its cache, and Windows
+refuses another link to a file that already has one in a OneDrive folder
+([quickstart.md](docs/quickstart.md#when-it-does-not-start)).
+
 Or clone the repository and run it from the checkout:
 
 ```bash
