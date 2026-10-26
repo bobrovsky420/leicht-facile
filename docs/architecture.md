@@ -772,8 +772,8 @@ writers wait for each other (5 s) instead of failing midway.
   (`JobConfig.endpoint`), the orchestrator runs it on that endpoint's client
   (`Orchestrator.client_for`, the settings of that endpoint with it), and the summary
   records the endpoint's name.
-- **Endpoint profiles** (the presets `cscs`, `apertus`, `local`, `ollama` and `vllm` for
-  a server of one's own, `openai`, `mistral`, `groq`, `huggingface` and `anthropic`, one table each in
+- **Endpoint profiles** (the presets `cscs`, `apertus`, `anthropic`, `openai`, `local`,
+  `ollama` and `vllm` for a server of one's own, `mistral`, `groq` and `huggingface`, one table each in
   `src/leichtfacile/presets.toml`, are
   endpoints as they come, complete but for the key
   ([configuration.md](configuration.md#presets)); `leichtfacile setup` gives one its key
@@ -1073,7 +1073,7 @@ They and `eval run` take `--endpoint <name>`, a saved endpoint for one run.
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`, `groq`, `huggingface`, `anthropic`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `anthropic`, `openai`, `local`, `ollama`, `vllm`, `mistral`, `groq`, `huggingface`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets (but `mistral`, `groq` and `huggingface`, set `in_menu = false`) and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
 | `leichtfacile endpoint list\|use <name>\|remove <name>` | Every endpoint, preset or saved, with its label, its writer model and what it lacks, the one in use marked; use another from now on; remove a saved one or the saved settings of a preset (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
@@ -1251,8 +1251,8 @@ a model itself: the endpoint is provided outside it (below).
 
 The settings are one TOML file with a section per topic and any number of saved model
 endpoints ([configuration.md](configuration.md)). The known endpoints come with the app
-as presets (`cscs`, `apertus`, `local`, `ollama`, `vllm`, `openai`, `mistral`, `groq`,
-`huggingface`, `anthropic`; one table each in `src/leichtfacile/presets.toml`), complete but for the
+as presets (`cscs`, `apertus`, `anthropic`, `openai`, `local`, `ollama`, `vllm`, `mistral`,
+`groq`, `huggingface`; one table each in `src/leichtfacile/presets.toml`), complete but for the
 key (a server of one's own or a provider with a changing catalogue: but for the model
 too); the endpoint in use resolves
 from its preset and the saved `[endpoints.<name>]` table that extends it (the table of
@@ -1535,7 +1535,7 @@ src/leichtfacile/
   lifecycle.py              the counts on the job row (from review.py), deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
-  presets.toml              the known endpoints, one table each (cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface, anthropic)
+  presets.toml              the known endpoints, one table each (cscs, apertus, anthropic, openai, local, ollama, vllm, mistral, groq, huggingface)
   llm/                      client.py, json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,

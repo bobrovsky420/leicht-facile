@@ -26,8 +26,8 @@ from leichtfacile.config import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PRESET_NAMES = [
-    "cscs", "apertus", "local", "ollama", "vllm", "openai", "mistral", "groq", "huggingface",
-    "anthropic",
+    "cscs", "apertus", "anthropic", "openai", "local", "ollama", "vllm", "mistral", "groq",
+    "huggingface",
 ]  # fmt: skip
 
 
@@ -113,15 +113,19 @@ def test_every_preset_is_a_valid_endpoint_with_a_label() -> None:
 
 
 def test_the_presets_file_holds_one_endpoint_table_per_preset(tmp_path) -> None:
-    path = write(tmp_path / "presets.toml", '[c]\nlabel = "C"\n\n[b]\nlabel = "B"\n'
+    path = write(tmp_path / "presets.toml", '[c]\nlabel = "C"\nin_menu = false\n\n'
+                                            '[b]\nlabel = "B"\n'
                                             'url = "https://b.example/v1"\n')  # fmt: skip
     presets = config.read_presets(path)
     assert list(presets) == ["c", "b"]  # the file's order
     assert presets["b"] == config.Preset({"label": "B", "url": "https://b.example/v1"})
-    assert presets["b"].label == "B"
+    assert presets["b"].label == "B" and presets["b"].in_menu
+    assert presets["c"] == config.Preset({"label": "C"}, in_menu=False)  # not an endpoint key
     for text in ('[d]\nurl = "x"\n', '[d]\nlabel = ""\n', '[d]\nlabel = "D"\npreset = "c"\n'):
         with pytest.raises(ConfigError, match=r"presets\.toml: \[d\] needs a label"):
             config.read_presets(write(path, text))
+    with pytest.raises(ConfigError, match=r"\[d\] in_menu is true or false"):
+        config.read_presets(write(path, '[d]\nlabel = "D"\nin_menu = "no"\n'))
     with pytest.raises(ConfigError, match="a preset is a table"):
         config.read_presets(write(path, 'label = "top level"\n'))
 

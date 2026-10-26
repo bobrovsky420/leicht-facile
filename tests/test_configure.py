@@ -4,6 +4,7 @@ change is written, and when the browser opens."""
 
 from __future__ import annotations
 
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -25,7 +26,8 @@ from leichtfacile.configure import (
 )
 
 LISTED = ["swiss-ai/Apertus-v1.5-70B", "swiss-ai/Apertus-v1.5-8B"]
-OTHER = str(len(config.PRESETS) + 1)  # the menu's "Another OpenAI-compatible endpoint"
+# the menu's "Another OpenAI-compatible endpoint", after the presets it offers
+OTHER = str(sum(preset.in_menu for preset in config.PRESETS.values()) + 1)
 
 
 @pytest.fixture
@@ -89,6 +91,26 @@ def test_a_preset_whose_key_is_set_asks_nothing(home, monkeypatch) -> None:
     # Back to the preset as it is: the table goes.
     assert run_setup(name="cscs", force=True, ask=never, ask_secret=never, say=said.append) == 0
     assert toml(home) == {"llm": {"endpoint": "cscs"}}
+
+
+def test_the_menu_leaves_out_the_rarely_used_presets_which_setup_still_takes(
+    home, monkeypatch
+) -> None:
+    said: list[str] = []
+    assert run_setup(ask=answers("1"), ask_secret=answers("k"), models=lambda url, key: LISTED,
+                     say=said.append) == 0  # fmt: skip
+    menu = [line.split(". ", 1)[1] for line in said if re.match(r"  \d+\. ", line)]
+    offered = ("cscs", "apertus", "anthropic", "openai", "local", "ollama", "vllm")
+    assert menu == [*(config.PRESETS[name].label for name in offered),
+                    "Another OpenAI-compatible endpoint"]  # fmt: skip
+    # Named, a preset out of the menu is set up like any other.
+    monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
+    code = run_setup(name="mistral", model="mistral-small-latest", ask=answers(""),
+                     ask_secret=answers("mk"), models=lambda url, key: [],
+                     say=said.append)  # fmt: skip
+    assert code == 0 and toml(home)["llm"] == {"endpoint": "mistral"}
+    llm = load().settings.llm
+    assert (llm.url, llm.models.writer) == ("https://api.mistral.ai/v1", "mistral-small-latest")
 
 
 def test_another_endpoint_offers_its_own_model_list(home) -> None:

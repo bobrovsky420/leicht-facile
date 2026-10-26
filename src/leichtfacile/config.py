@@ -86,6 +86,7 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class Preset:
     values: dict[str, Any]  # the keys of an endpoint, `label` among them
+    in_menu: bool = True  # in setup's list; `leichtfacile setup <name>` takes it either way
 
     @property
     def label(self) -> str:
@@ -95,7 +96,8 @@ class Preset:
 def read_presets(path: Path) -> dict[str, Preset]:
     """The presets of a file, in the file's order (setup's): one table per preset, named
     after it, with the keys of an `[endpoints.<name>]` table and a `label`; the settings
-    check the keys like any other source's."""
+    check the keys like any other source's. `in_menu = false` keeps one out of setup's
+    list."""
     try:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as exc:
@@ -109,7 +111,10 @@ def read_presets(path: Path) -> dict[str, Preset]:
             )
         if not (isinstance(table.get("label"), str) and table["label"]) or "preset" in table:
             raise ConfigError(f"{path}: [{name}] needs a label and takes no preset key")
-        presets[name] = Preset(table)
+        in_menu = table.pop("in_menu", True)
+        if not isinstance(in_menu, bool):
+            raise ConfigError(f"{path}: [{name}] in_menu is true or false")
+        presets[name] = Preset(table, in_menu)
     return presets
 
 

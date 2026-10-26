@@ -1,7 +1,8 @@
 # The known model endpoints (docs/configuration.md, "Presets"): one table per preset, in
 # the order `leichtfacile setup` offers them. A table takes the keys of an
 # [endpoints.<name>] table, `label` among them; the settings check it like any other
-# source. A new table is a new preset.
+# source. A new table is a new preset. `in_menu = false` leaves a rarely used preset out
+# of setup's list; `leichtfacile setup <name>` still sets it up.
 #
 # A server of one's own has no model here, since each server names its own:
 # `leichtfacile setup <preset>` lists the server's models and asks which one. A preset
@@ -30,6 +31,34 @@ api_key_env = "PUBLICAI_API_KEY"
 models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
 thinking = "chat-template"
 extra_body = { cache = { no-cache = true } }
+
+# Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only; US
+# cloud): public documents only. The 5.5 models refuse a temperature; the model list needs
+# the anthropic-version header. The endpoint ignores reasoning_effort and counts Claude's
+# adaptive thinking in max_tokens, so thinking is set on the saved endpoint through the
+# native field: `extra_body = { thinking = { type = "disabled" } }` for Haiku 5.5,
+# `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value; the
+# endpoint refuses `adaptive`), `model_extra_body` when both share an endpoint; Opus 5.5
+# always thinks (effort through `output_config = { effort = "low" }`). No model: `leichtfacile setup anthropic` lists
+# them. Checked 25 October 2026.
+[anthropic]
+label = "Anthropic's Claude (US cloud, public documents only)"
+url = "https://api.anthropic.com/v1"
+api_key_env = "ANTHROPIC_API_KEY"
+send_temperature = false
+headers = { anthropic-version = "2023-06-01" }
+
+# OpenAI's GPT-5 models (the current line: gpt-5.4-nano, gpt-5.6-luna, gpt-5.6-terra, ...)
+# refuse `max_tokens` and any temperature but their default; a GPT-4.1 model would take
+# `send_temperature = true` on the saved endpoint. Thinking is `reasoning_effort` (none,
+# low, medium, high, xhigh from 5.4 on): `thinking = "reasoning-effort"` on the saved
+# endpoint, with `thinking_stages = []` for none everywhere. Checked 25 October 2026.
+[openai]
+label = "OpenAI (US cloud, public documents only)"
+url = "https://api.openai.com/v1"
+api_key_env = "OPENAI_API_KEY"
+max_tokens_key = "max_completion_tokens"
+send_temperature = false
 
 # llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server
 # (`--base-url`). Such a server takes any key. With `--jinja` llama.cpp switches thinking
@@ -61,22 +90,11 @@ url = "http://127.0.0.1:8000/v1"
 api_key = "local"
 thinking = "chat-template"
 
-# OpenAI's GPT-5 models (the current line: gpt-5.4-nano, gpt-5.6-luna, gpt-5.6-terra, ...)
-# refuse `max_tokens` and any temperature but their default; a GPT-4.1 model would take
-# `send_temperature = true` on the saved endpoint. Thinking is `reasoning_effort` (none,
-# low, medium, high, xhigh from 5.4 on): `thinking = "reasoning-effort"` on the saved
-# endpoint, with `thinking_stages = []` for none everywhere. Checked 25 October 2026.
-[openai]
-label = "OpenAI (US cloud, public documents only)"
-url = "https://api.openai.com/v1"
-api_key_env = "OPENAI_API_KEY"
-max_tokens_key = "max_completion_tokens"
-send_temperature = false
-
 [mistral]
 label = "Mistral AI"
 url = "https://api.mistral.ai/v1"
 api_key_env = "MISTRAL_API_KEY"
+in_menu = false
 
 # Groq (US cloud, very fast inference): public documents only. The models come and go
 # (several are previews), so `leichtfacile setup groq` lists them instead of a default.
@@ -86,6 +104,7 @@ api_key_env = "MISTRAL_API_KEY"
 label = "Groq (US cloud, public documents only)"
 url = "https://api.groq.com/openai/v1"
 api_key_env = "GROQ_API_KEY"
+in_menu = false
 
 # The Hugging Face Inference Providers router sends each request to a third-party
 # provider, mostly outside Switzerland: development and public documents only. Models are
@@ -95,19 +114,4 @@ api_key_env = "GROQ_API_KEY"
 label = "Hugging Face Inference Providers (third-party clouds, public documents only)"
 url = "https://router.huggingface.co/v1"
 api_key_env = "HF_TOKEN"
-
-# Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only; US
-# cloud): public documents only. The 5.5 models refuse a temperature; the model list needs
-# the anthropic-version header. The endpoint ignores reasoning_effort and counts Claude's
-# adaptive thinking in max_tokens, so thinking is set on the saved endpoint through the
-# native field: `extra_body = { thinking = { type = "disabled" } }` for Haiku 5.5,
-# `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value; the
-# endpoint refuses `adaptive`), `model_extra_body` when both share an endpoint; Opus 5.5
-# always thinks (effort through `output_config = { effort = "low" }`). No model: `leichtfacile setup anthropic` lists
-# them. Checked 25 October 2026.
-[anthropic]
-label = "Anthropic's Claude (US cloud, public documents only)"
-url = "https://api.anthropic.com/v1"
-api_key_env = "ANTHROPIC_API_KEY"
-send_temperature = false
-headers = { anthropic-version = "2023-06-01" }
+in_menu = false

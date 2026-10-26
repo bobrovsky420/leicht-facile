@@ -90,7 +90,8 @@ The presets are the tables of `src/leichtfacile/presets.toml`, one per preset an
 after it, in the order `leichtfacile setup` offers them. A table takes the keys of an
 `[endpoints.<name>]` table, `label` among them (the name in setup's list and in the New
 draft form). A new table is a new preset; `tests/test_config.py` checks every table's
-keys and values.
+keys and values. `in_menu = false` keeps a rarely used preset (`mistral`, `groq`,
+`huggingface`) out of setup's list; `leichtfacile setup <name>` still sets it up.
 
 ```toml
 # src/leichtfacile/presets.toml
@@ -106,14 +107,14 @@ thinking = "model-suffix"
 |--------|----------|--------------|
 | `cscs` | Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers | the address, the key from `CSCS_API_KEY`, the 8B writing and the 70B judging, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`) |
 | `apertus` | Apertus on the Public AI gateway, for public documents only | the address, the key from `PUBLICAI_API_KEY`, the 8B and the 70B in the gateway's spelling, `thinking = "chat-template"`, and `extra_body` turning the gateway's response cache off |
+| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only); public documents only | the address, the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature) and the header `anthropic-version` the model list needs; no model: `setup anthropic` lists them. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`; switch it off on the saved endpoint with the native field, `extra_body = { thinking = { type = "disabled" } }` on Haiku 5.5 or `{ type = "between_tools" }` on Sonnet 5.5 (Opus 5.5 always thinks); when the two share an endpoint, `model_extra_body` gives one model its own switch |
+| `openai` | OpenAI; public documents only | the address, the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes `send_temperature = true` on the saved endpoint). Thinking is `reasoning_effort`: `thinking = "reasoning-effort"` on the saved endpoint, `thinking_stages = []` for none everywhere |
 | `local` | llama.cpp (llama-server) on this machine, or another OpenAI-compatible server (`--base-url`) | `http://127.0.0.1:8080/v1`, the key `local` (such a server takes any key), `thinking = "chat-template"` (llama.cpp with `--jinja`) and 30 minutes per call (a thinking call on a small GPU takes minutes) |
 | `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking off, since Ollama ignores the chat-template switch: a thinking model such as Qwen takes `thinking = "reasoning-effort"` on the saved endpoint |
 | `vllm` | vLLM, mostly a GPU machine of the organisation (`--base-url http://<server>:8000/v1`) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"` |
-| `openai` | OpenAI; public documents only | the address, the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes `send_temperature = true` on the saved endpoint). Thinking is `reasoning_effort`: `thinking = "reasoning-effort"` on the saved endpoint, `thinking_stages = []` for none everywhere |
 | `mistral` | Mistral AI | the address and the key from `MISTRAL_API_KEY` |
 | `groq` | Groq, a US cloud with very fast inference; public documents only | the address and the key from `GROQ_API_KEY`; no model, since Groq's catalogue changes (several models are previews): `setup groq` lists it. thinking stays off: Qwen reasons on Groq only when asked with `reasoning_effort` low, medium or high, and the gpt-oss models refuse `none` |
 | `huggingface` | The Hugging Face Inference Providers router, which sends each request to a third-party provider; development and public documents only | the address and the token from `HF_TOKEN`; no model: Hugging Face ids with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`), `setup huggingface` lists them |
-| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only); public documents only | the address, the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature) and the header `anthropic-version` the model list needs; no model: `setup anthropic` lists them. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`; switch it off on the saved endpoint with the native field, `extra_body = { thinking = { type = "disabled" } }` on Haiku 5.5 or `{ type = "between_tools" }` on Sonnet 5.5 (Opus 5.5 always thinks); when the two share an endpoint, `model_extra_body` gives one model its own switch |
 
 The three servers of one's own have no model in the preset, since each server names its
 own: `leichtfacile setup local` (or `ollama`, `vllm`) lists the server's models and asks
@@ -195,7 +196,7 @@ the preset's variable (`CSCS_API_KEY`) or `<NAME>_API_KEY` for an endpoint witho
 
 | Command | Does |
 |---------|------|
-| `leichtfacile setup [name]` | gives a preset (`cscs`, `apertus`, ...) its key and uses it, asking nothing when the key's variable is set; without a name offers the presets and `other`; for another endpoint asks the address, a name, the key and the model (from the endpoint's list); saves what differs from a preset as `[endpoints.<name>]`; an endpoint saved already is updated with `--force`, its other keys kept |
+| `leichtfacile setup [name]` | gives a preset (`cscs`, `apertus`, ...) its key and uses it, asking nothing when the key's variable is set; without a name offers the presets (but those with `in_menu = false`) and `other`; for another endpoint asks the address, a name, the key and the model (from the endpoint's list); saves what differs from a preset as `[endpoints.<name>]`; an endpoint saved already is updated with `--force`, its other keys kept |
 | `leichtfacile endpoint list` | every endpoint, preset or saved, with its label, its writer model and whether it is ready (else what it lacks), the one in use marked `*` |
 | `leichtfacile endpoint use <name>` | uses that endpoint, a preset or a saved one, from now on |
 | `leichtfacile endpoint remove <name>` | removes a saved endpoint, or the saved settings that extend a preset (the preset stays) |
@@ -289,7 +290,7 @@ A model endpoint (OpenAI-compatible). Thinking is off unless set, since each end
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, local, ollama, vllm, openai, mistral, groq, huggingface, anthropic. Default: the preset of the endpoint's own name, if there is one. |
+| `preset` |  | A known endpoint whose settings this one starts from: cscs, apertus, anthropic, openai, local, ollama, vllm, mistral, groq, huggingface. Default: the preset of the endpoint's own name, if there is one. |
 | `label` |  | What the New draft form calls the endpoint. Default: the preset's label, else the endpoint's name. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
 | `api_key` |  | The key, written into the file. A server of your own takes any key. |

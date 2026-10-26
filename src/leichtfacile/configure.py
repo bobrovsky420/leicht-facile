@@ -83,7 +83,7 @@ def run_setup(
     if preset is None and name in PRESETS:
         preset = name  # `leichtfacile setup cscs`
     if preset is None and not (name or base_url):
-        choices = [*PRESETS, "other"]
+        choices = [*(key for key, item in PRESETS.items() if item.in_menu), "other"]
         say("Which model endpoint should Leicht·Facile use?")
         for i, key in enumerate(choices, 1):
             label = PRESETS[key].label if key in PRESETS else "Another OpenAI-compatible endpoint"
