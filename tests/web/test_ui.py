@@ -82,7 +82,7 @@ def test_start_page_lists_the_drafts_and_starts_empty_with_the_examples(env) -> 
     assert "No drafts yet" in page.text
     assert 'href="/new?example=praemienverbilligung-brief"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
-    assert settings.llm.models.writer in page.text  # the endpoint indicator in the app bar
+    assert settings.llm.title in page.text  # the preset in use, in the app bar
 
     queued_job(store, settings, title="Brief")
     page = client.get("/")
@@ -491,10 +491,10 @@ def test_format_duration() -> None:
     assert format_duration(3600 * 2 + 60 * 7) == "2 h 07 min"
 
 
-def test_the_form_offers_the_ready_endpoints_for_one_draft(tmp_path, endpoint, sleeps) -> None:
-    settings = make_settings(data__dir=tmp_path, llm__endpoint="main", llm__max_retries=0)
+def test_the_form_offers_the_ready_presets_for_one_draft(tmp_path, endpoint, sleeps) -> None:
+    settings = make_settings(data__dir=tmp_path, llm__preset="main", llm__max_retries=0)
     other = make_settings(
-        llm__endpoint="other",
+        llm__preset="other",
         llm__label="The other one",
         llm__url="http://other.test/v1",
         llm__models__writer="other-model",
@@ -522,7 +522,7 @@ def test_the_form_offers_the_ready_endpoints_for_one_draft(tmp_path, endpoint, s
         refused = client.post("/jobs", data={"text": LETTER, "endpoint": "nope"})
         assert refused.status_code == 400 and "nope" in refused.text and "offered" in refused.text
     store.close()
-    # The endpoint in use alone leaves no choice, so the form has no select.
+    # The preset in use alone leaves no choice, so the form has no select.
     store = Store(tmp_path / "one.sqlite")
     with TestClient(create_app(settings, llm, store, clients={})) as client:
         assert 'name="endpoint"' not in client.get("/new").text

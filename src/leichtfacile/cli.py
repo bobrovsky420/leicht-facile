@@ -1,11 +1,11 @@
 """Command line: `leichtfacile <command>` (or `python -m leichtfacile <command>`).
 
-- `setup`      ask for a model endpoint, save it in the config file, get the models
-- `endpoint`   list the saved endpoints, pick the one in use, remove one
+- `setup`      ask for a provider, its key and a preset, save them, get the models
+- `preset`     list the presets, pick the one in use, remove one of your own
 - `config`     show the settings and their sources, set, unset or edit them
 - `models`     download (or unpack) the spaCy models for German and French
 - `serve`      run the web application and open it in the browser
-- `check-llm`  list the endpoint's models and make one short call
+- `check-llm`  list the provider's models and make one short call
 - `ingest`     print the segments of a file or URL
 - `check`      run the rule checker on an existing easy-language text
 - `simplify`   run the pipeline on a file or URL and write all artifacts to a folder
@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from leichtfacile import __version__, configure
-from leichtfacile.config import PRESETS, ConfigError, use_overrides
+from leichtfacile.config import PRESETS, PROVIDERS, ConfigError, use_overrides
 from leichtfacile.schemas import CONDITIONS
 
 if TYPE_CHECKING:
@@ -42,17 +42,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    setup = sub.add_parser("setup", help="set up a model endpoint and use it")
+    setup = sub.add_parser("setup", help="set up a model preset and use it")
     setup.add_argument(
-        "endpoint",
+        "target",
         nargs="?",
-        help=f"a preset ({', '.join(PRESETS)}) or a name for another endpoint",
+        help=f"a preset ({', '.join(list(PRESETS)[:3])}, ...: `leichtfacile preset list`), a "
+        f"provider ({', '.join(PROVIDERS)}) or a name for a server of your own",
     )
-    setup.add_argument(
-        "--preset", choices=list(PRESETS), help="the preset the endpoint starts from"
-    )
-    setup.add_argument("--name", help="the endpoint's name in the file (default: the preset's)")
-    setup.add_argument("--base-url", help="the endpoint's address (OpenAI-compatible)")
+    setup.add_argument("--name", help="the name of the preset saved for --model, or of the server")
+    setup.add_argument("--base-url", help="a server of your own: its address (OpenAI-compatible)")
     setup.add_argument(
         "--api-key",
         help="the key, saved in the .env next to the config file; it ends up in the shell "
@@ -61,15 +59,15 @@ def main(argv: list[str] | None = None) -> int:
     setup.add_argument("--api-key-env", help="the variable that holds the key (nothing saved)")
     setup.add_argument("--model", help="the model that reads, writes and repairs")
     setup.add_argument("--judge", help="the judge's model")
-    setup.add_argument("--force", action="store_true", help="update an endpoint saved already")
+    setup.add_argument("--force", action="store_true", help="update a preset saved already")
     setup.add_argument("--no-models", action="store_true", help="do not download the spaCy models")
 
-    endpoint = sub.add_parser("endpoint", help="list the saved endpoints, pick one, remove one")
-    endpoint_sub = endpoint.add_subparsers(dest="endpoint_command", required=True)
-    endpoint_sub.add_parser("list", help="the saved endpoints, the one in use marked")
-    endpoint_use = endpoint_sub.add_parser("use", help="use this endpoint from now on")
-    endpoint_remove = endpoint_sub.add_parser("remove", help="remove a saved endpoint")
-    for p in (endpoint_use, endpoint_remove):
+    preset = sub.add_parser("preset", help="list the presets, pick one, remove one of your own")
+    preset_sub = preset.add_subparsers(dest="preset_command", required=True)
+    preset_sub.add_parser("list", help="every preset, the one in use marked")
+    preset_use = preset_sub.add_parser("use", help="use this preset from now on")
+    preset_remove = preset_sub.add_parser("remove", help="remove a preset of your own")
+    for p in (preset_use, preset_remove):
         p.add_argument("name")
         p.add_argument("--local", action="store_true", help="in ./leichtfacile.toml")
 
@@ -79,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     show.add_argument(
         "--defaults", action="store_true", help="every setting with its default and meaning"
     )
-    with_endpoint(show)
+    with_preset(show)
     config_path = settings_sub.add_parser("path", help="print the config file's path")
     config_set = settings_sub.add_parser("set", help="set a setting (section.key value)")
     config_set.add_argument("key", help="section.key, as `config show` lists them")
@@ -100,12 +98,12 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument("--host", help="the interface (default: server.host, 127.0.0.1)")
     serve.add_argument("--port", type=int, help="the port (default: server.port, 8000)")
     serve.add_argument("--no-browser", action="store_true", help="do not open the browser")
-    with_endpoint(serve)
+    with_preset(serve)
 
     check_llm = sub.add_parser("check-llm", help="list models and make one short call")
     check_llm.add_argument("--model", help="model name (default: llm.models.writer)")
     check_llm.add_argument("--thinking", action="store_true", help="use thinking mode")
-    with_endpoint(check_llm)
+    with_preset(check_llm)
 
     ingest = sub.add_parser("ingest", help="print the segments of a file or URL")
     ingest.add_argument("input", help="file path or http(s) URL")
@@ -145,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument(
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )
-    with_endpoint(simplify)
+    with_preset(simplify)
 
     from leichtfacile.eval.cli import add_eval_parser
 
@@ -155,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.config:
         os.environ["LEICHTFACILE_CONFIG"] = str(args.config)
     use_overrides({
-        "llm.endpoint": getattr(args, "endpoint", None),
+        "llm.preset": getattr(args, "preset", None),
         "llm.cache": True if getattr(args, "cache", False) else None,
         "server.host": getattr(args, "host", None),
         "server.port": getattr(args, "port", None),
@@ -167,31 +165,34 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
 
-def with_endpoint(parser: argparse.ArgumentParser) -> None:
+def with_preset(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--endpoint",
-        help="an endpoint for this run, a preset or a saved one (default: llm.endpoint)",
+        "--preset", help="a preset for this run, shipped or your own (default: llm.preset)"
     )
 
 
 def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     if args.command == "setup":
-        from leichtfacile.config import secret_value
+        from leichtfacile.config import collect, preset_names, provider_table, secret_value
 
-        # `setup cscs` names a preset, `setup gpu --base-url ...` a new endpoint.
-        preset = args.preset or (args.endpoint if args.endpoint in PRESETS else None)
-        name = args.name or (None if args.endpoint in PRESETS else args.endpoint)
+        # `setup claude-haiku-5-5` names a preset, `setup ollama` a provider, `setup gpu
+        # --base-url ...` a server of one's own.
+        target = args.target
+        preset = target if target in preset_names(collect()) else None
+        provider = target if preset is None and target in PROVIDERS else None
+        name = args.name or (target if preset is None and provider is None else None)
         try:
             code = configure.run_setup(
-                preset=preset, name=name, base_url=args.base_url, api_key=args.api_key,
-                api_key_env=args.api_key_env, model=args.model, judge=args.judge,
-                force=args.force,
+                provider=provider, preset=preset, name=name, base_url=args.base_url,
+                api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
+                judge=args.judge, force=args.force,
             )  # fmt: skip
             if code == 0 and not args.no_models:
                 # Without a question asked so far, the models are not asked about either.
-                variable = PRESETS[preset].values.get("api_key_env") if preset else None
+                table = provider_table(collect(), provider) if provider else {}
+                variable = table.get("api_key_env")
                 scripted = bool(
-                    args.api_key or args.api_key_env or preset == "local"
+                    args.api_key or args.api_key_env or table.get("api_key")
                     or (variable and secret_value(variable))
                 )  # fmt: skip
                 code = offer_models(ask=None if scripted else input)
@@ -199,8 +200,8 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
             print("\nSetup cancelled.", file=sys.stderr)
             return 1
         return code
-    if args.command == "endpoint":
-        return _endpoint(args)
+    if args.command == "preset":
+        return _preset(args)
     if args.command == "config":
         return _config(args)
     if args.command == "models":
@@ -224,27 +225,27 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     return 2
 
 
-def settings_or_exit() -> Settings:
-    """The settings, or a short message instead of a traceback when they are
-    incomplete or invalid."""
-    from leichtfacile.config import get_settings
+def settings_or_exit(*, strict: bool = True) -> Settings:
+    """The settings, or a short message instead of a traceback when they are invalid,
+    or (`strict`, a command that calls the model) incomplete."""
+    from leichtfacile.config import get_settings, load
 
     try:
-        return get_settings()
+        return get_settings() if strict else load(strict=False).settings
     except ConfigError as exc:
         print(exc, file=sys.stderr)
         raise SystemExit(2) from None
 
 
-def _endpoint(args: argparse.Namespace) -> int:
+def _preset(args: argparse.Namespace) -> int:
     from leichtfacile.config import PROJECT_FILE, config_file
 
-    if args.endpoint_command == "list":
-        return configure.list_endpoints()
+    if args.preset_command == "list":
+        return configure.list_presets()
     path = PROJECT_FILE if args.local else config_file()
-    if args.endpoint_command == "use":
-        return configure.use_endpoint(args.name, path=path)
-    return configure.remove_endpoint(args.name, path=path)
+    if args.preset_command == "use":
+        return configure.use_preset(args.name, path=path)
+    return configure.remove_preset(args.name, path=path)
 
 
 def _config(args: argparse.Namespace) -> int:
@@ -270,9 +271,10 @@ def _config(args: argparse.Namespace) -> int:
 def _serve(*, browser: bool = True) -> int:
     import uvicorn
 
-    # A missing setting stops here with a hint, not inside the server; so does a host
-    # beyond this machine without a login (web/security.py).
-    settings = settings_or_exit()
+    # An invalid setting stops here with a hint, not inside the server; so does a host
+    # beyond this machine without a login (web/security.py). A preset without its key
+    # does not: the app starts and its model page asks for it.
+    settings = settings_or_exit(strict=False)
     models_or_exit()
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
@@ -371,10 +373,8 @@ def _check_llm(model: str | None, thinking: bool) -> int:
     settings = settings_or_exit()
     client = LLMClient(settings)
     name, extra = client.resolve_model(model, thinking)
-    print(
-        f"endpoint:  {settings.llm.url}"
-        + (f" ({settings.llm.endpoint})" if settings.llm.endpoint else "")
-    )
+    print(f"preset:    {settings.llm.preset} ({settings.llm.title})")
+    print(f"provider:  {settings.llm.url} ({settings.llm.provider})")
     print(f"model:     {name} {extra or ''}".rstrip())
 
     try:
@@ -507,7 +507,7 @@ def _simplify(args: argparse.Namespace) -> int:
         lang=source.lang,
         level=args.level,
         condition=args.condition,
-        endpoint=args.endpoint,  # --endpoint: the job's record says where it ran
+        endpoint=args.preset,  # --preset: the job's record says where it ran
         writer_model=args.writer,
         understand_model=args.understand,
         judge_model=args.judge,

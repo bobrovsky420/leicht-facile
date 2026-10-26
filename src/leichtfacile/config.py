@@ -1,30 +1,33 @@
-"""Settings: one TOML file with sections and saved model endpoints
-(docs/configuration.md).
+"""Settings: one TOML file with sections, and the providers and presets of the model
+endpoint (docs/configuration.md).
 
 Each source overrides the one before:
 
 1. the defaults below;
-2. the preset an endpoint starts from (`PRESETS`, the tables of `presets.toml`): what is
-   known about a public endpoint, shipped with the package so that an upgrade fixes it
-   for every user;
-3. the user's config file (`config_file`), written by `leichtfacile setup` and
-   `leichtfacile config set`;
+2. the shipped providers and presets (the tables of `presets.toml`): what is known
+   about the public endpoints and the models on them, shipped with the package so that
+   an upgrade fixes it for every user;
+3. the user's config file (`config_file`), written by `leichtfacile setup`, the model
+   page of the web app and `leichtfacile config set`;
 4. `leichtfacile.toml` in the current folder, a checkout's own settings;
 5. environment variables `LEICHTFACILE_<SECTION>__<KEY>` (`LEICHTFACILE_SERVER__PORT`);
-6. the command line (`use_overrides`: `--endpoint`, `--host`, `--port`).
+6. the command line (`use_overrides`: `--preset`, `--host`, `--port`).
 
-`[llm]` names the endpoint in use: `llm.endpoint` is a preset or a saved
-`[endpoints.<name>]` (a saved table of a preset's name extends that preset); without it,
-the only saved endpoint is in use. `[llm]` takes one more key, `cache`, which applies to
-every endpoint; an endpoint's own keys live in its table, never in `[llm]`, so a value
-has one place to come from. A secret is given in a file (`api_key`, `auth.token`) or
-named (`api_key_env`, `auth.token_env`): the named variable comes from the environment,
-else from `.env` in the current folder, else from `.env` next to the config file. A
-`.env` holds such secrets and nothing else.
+A provider (`[providers.<name>]`) is where models run and how to reach them; its
+`models` tables hold what one model there needs; a preset (`[presets.<name>]`) is what
+the user picks: a provider and the models that write, read and check. `[llm]` names the
+preset in use (`llm.preset`, the shipped default without it) and holds the two switches
+that apply to every preset, `cache` and `offer`; a request's settings come from the
+provider, the table of the model called, the preset, and the user's tables of the same
+names, in that order (`preset_layer`). A secret is given in a file (`api_key`,
+`auth.token`) or named (`api_key_env`, `auth.token_env`): the named variable comes from
+the environment, else from `.env` in the current folder, else from `.env` next to the
+config file. A `.env` holds such secrets and nothing else.
 """
 
 from __future__ import annotations
 
+import fnmatch
 import ipaddress
 import json
 import os
@@ -55,6 +58,8 @@ from leichtfacile.schemas import PipelineOptions
 
 ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
+Location = Literal["ch", "eu", "us", "world", "local"]
+Documents = Literal["any", "public"]
 AuthMode = Literal["none", "token", "proxy"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 LogFormat = Literal["text", "json"]
@@ -70,70 +75,21 @@ LETTERS_DIR = Path(__file__).parent / "letters"
 # The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
 # 70B judges by default when the endpoint serves it.
 _APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
-# Endpoint names are TOML keys and parts of variable names.
-ENDPOINT_NAME = re.compile(r"[a-z0-9][a-z0-9_-]*")
-
-
-# The known endpoints, one table each, shipped with the package so that an upgrade fixes
-# a preset for every user.
+# Provider and preset names are TOML keys and parts of variable names.
+NAME = re.compile(r"[a-z0-9][a-z0-9_-]*")
+# The known providers and presets, shipped with the package so that an upgrade fixes
+# them for every user.
 PRESETS_FILE = Path(__file__).parent / "presets.toml"
+# A page of 250 words through the full pipeline: the order of magnitude of the runs in
+# docs/model-comparison.md (30 to 47 thousand tokens, the judge's calls about 40 % of
+# them), for the cost per page the interface shows next to a preset.
+PAGE_TOKENS_IN = 30_000
+PAGE_TOKENS_OUT = 8_000
+JUDGE_SHARE = 0.4
 
 
 class ConfigError(ValueError):
     """Settings that cannot be used. The message names each setting and its source."""
-
-
-@dataclass(frozen=True)
-class Preset:
-    values: dict[str, Any]  # the keys of an endpoint, `label` among them
-    in_menu: bool = True  # in setup's list; `leichtfacile setup <name>` takes it either way
-    # The models setup offers, each a label and the endpoint keys it sets; its last option
-    # is any model the endpoint lists.
-    choices: tuple[dict[str, Any], ...] = ()
-
-    @property
-    def label(self) -> str:
-        return str(self.values["label"])
-
-
-def read_presets(path: Path) -> dict[str, Preset]:
-    """The presets of a file, in the file's order (setup's): one table per preset, named
-    after it, with the keys of an `[endpoints.<name>]` table and a `label`; the settings
-    check the keys like any other source's. `in_menu = false` keeps one out of setup's
-    list; `[[<name>.choices]]` are the models setup offers, each with a label and
-    `models.writer`."""
-    try:
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-    except tomllib.TOMLDecodeError as exc:
-        raise ConfigError(f"{path}: {exc}") from None
-    presets = {}
-    for name, table in data.items():
-        if not ENDPOINT_NAME.fullmatch(name) or not isinstance(table, dict):
-            raise ConfigError(
-                f"{path}: {name!r}: a preset is a table named with lowercase letters, "
-                "digits, - and _"
-            )
-        if not (isinstance(table.get("label"), str) and table["label"]) or "preset" in table:
-            raise ConfigError(f"{path}: [{name}] needs a label and takes no preset key")
-        in_menu = table.pop("in_menu", True)
-        if not isinstance(in_menu, bool):
-            raise ConfigError(f"{path}: [{name}] in_menu is true or false")
-        choices = table.pop("choices", [])
-        if not (isinstance(choices, list) and all(map(_is_choice, choices))):
-            raise ConfigError(f"{path}: [[{name}.choices]] needs a label and models.writer")
-        presets[name] = Preset(table, in_menu, tuple(choices))
-    return presets
-
-
-def _is_choice(choice: object) -> bool:
-    if not isinstance(choice, dict) or not isinstance(models := choice.get("models"), dict):
-        return False
-    return all(
-        isinstance(text, str) and text for text in (choice.get("label"), models.get("writer"))
-    )
-
-
-PRESETS: dict[str, Preset] = read_presets(PRESETS_FILE)
 
 
 def _shown(text: str) -> dict[str, str]:
@@ -164,40 +120,18 @@ class Models(Section):
     judge: str | None = Field(
         None,
         description="The judge's model. Default: the 70B of an Apertus 8B writer when the "
-        "endpoint lists it, else the writer.",
+        "provider lists it, else the writer.",
     )
 
 
-class Endpoint(Section):
-    """A model endpoint (OpenAI-compatible). Thinking is off unless set, since each
-    endpoint switches it its own way."""
+class ModelSettings(Section):
+    """What the calls to a model take and cost. Set on a provider for all its models, in
+    a provider's models table for one model (or a pattern), or on a preset; thinking is
+    off unless set, since each provider switches it its own way."""
 
-    preset: str | None = Field(
-        None,
-        description="A known endpoint whose settings this one starts from: "
-        + ", ".join(PRESETS)
-        + ". Default: the preset of the endpoint's own name, if there is one.",
-    )
-    label: str | None = Field(
-        None,
-        description="What the New draft form calls the endpoint. Default: the preset's "
-        "label, else the endpoint's name.",
-    )
-    url: str = Field(
-        "", description="The endpoint's address, for most servers ending in /v1. Required."
-    )
-    api_key: SecretStr | None = Field(
-        None, description="The key, written into the file. A server of your own takes any key."
-    )
-    api_key_env: str | None = Field(
-        None,
-        description="Or the variable that holds the key: from the environment, else from "
-        ".env in the current folder, else from .env next to the config file.",
-    )
-    models: Models = Field(default_factory=Models)
     thinking: ThinkingMode = Field(
         "off",
-        description="How the endpoint switches thinking: model-suffix (a separate model "
+        description="How the provider switches thinking: model-suffix (a separate model "
         "named <model>-thinking, Apertus on CSCS), chat-template (vLLM, llama.cpp), "
         "reasoning-effort (the OpenAI field, none for the stages that do not think; a "
         "thinking model on Ollama) or off.",
@@ -225,23 +159,55 @@ class Endpoint(Section):
     send_temperature: bool = Field(
         True,
         description="Send each stage's temperature; false for a model that takes only its "
-        "default (OpenAI's GPT-5 models).",
+        "default (OpenAI's GPT-5 models, Gemini 3).",
     )
     timeout_s: float = Field(300.0, gt=0, description="Seconds one call may take.")
     # CSCS closes about one long thinking stream in four midway; 8 retries make a hard
     # failure rare (6 October 2026). The backoff stops growing at 30 seconds.
     max_retries: int = Field(8, ge=0, description="Retries of a failed call.")
-    cache: bool = Field(
-        False, description="Keep the answers in data.dir and reuse them (development, evaluation)."
-    )
     extra_body: dict[str, Any] = Field(
         default_factory=dict,
-        description="Fields sent with every request, for a gateway's switches.",
+        description="Fields sent with every request: a gateway's switches, a model's "
+        "thinking switch.",
     )
-    model_extra_body: dict[str, dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Fields sent with the requests to one model, by model name, over "
-        "extra_body (Claude models that take different thinking switches).",
+    input_usd: float | None = Field(
+        None, ge=0, description="USD per million input tokens, for the cost per page."
+    )
+    output_usd: float | None = Field(None, ge=0, description="USD per million output tokens.")
+
+    _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
+
+
+MODEL_KEYS = frozenset(ModelSettings.model_fields)
+
+
+class Connection(ModelSettings):
+    """What reaches a provider: the address, the key and the headers, and what the
+    interface says about it."""
+
+    label: str | None = Field(None, description="The name the interface shows.")
+    url: str = Field(
+        "", description="The endpoint's address, for most servers ending in /v1. Required."
+    )
+    api_key: SecretStr | None = Field(
+        None, description="The key, written into the file. A server of your own takes any key."
+    )
+    api_key_env: str | None = Field(
+        None,
+        description="Or the variable that holds the key: from the environment, else from "
+        ".env in the current folder, else from .env next to the config file.",
+    )
+    key_url: str | None = Field(
+        None, description="Where a key comes from, linked by the interface."
+    )
+    location: Location = Field(
+        "world",
+        description="Where the text is processed: ch, eu, us, world (several countries) "
+        "or local (this machine or the organisation's network).",
+    )
+    documents: Documents = Field(
+        "any",
+        description="Which documents may go there: any, or public (no personal data).",
     )
     headers: dict[str, str] = Field(
         default_factory=dict,
@@ -249,46 +215,140 @@ class Endpoint(Section):
         "OpenAI-compatible endpoint).",
     )
 
-    _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
 
-    @field_validator("preset")
-    @classmethod
-    def _known(cls, value: str | None) -> str | None:
-        if value is not None and value not in PRESETS:
-            raise ValueError(f"no preset {value!r}; known: {', '.join(PRESETS)}")
-        return value
+class Provider(Connection):
+    """Where models run and how to reach them. Its request settings apply to every
+    model there unless a models table or the preset says otherwise."""
+
+    discover: bool = Field(
+        False,
+        description="Offer every model the server lists as a preset (a server of one's "
+        "own, which names its own models).",
+    )
+    models: dict[str, ModelSettings] = Field(
+        default_factory=dict,
+        description='What one model there needs, by its name or a pattern ("gpt-5*"): '
+        "[providers.<name>.models.<model>] tables.",
+    )
+
+
+class Preset(ModelSettings):
+    """A provider with the models that write, read and check: what the user picks. Any
+    request setting here overrides the provider's and the model's."""
+
+    provider: str | None = Field(
+        None,
+        description="The provider the preset runs on. Required for a preset of your own; "
+        "a table named like a shipped preset extends it.",
+    )
+    label: str | None = Field(
+        None, description="The name the interface shows. Default: the preset's name."
+    )
+    models: Models = Field(default_factory=Models)
+
+
+@dataclass(frozen=True)
+class Catalog:
+    """The shipped providers and presets as the file holds them, and the default preset."""
+
+    providers: dict[str, dict[str, Any]]
+    presets: dict[str, dict[str, Any]]
+    default: str
+
+
+def read_catalog(path: Path) -> Catalog:
+    """The providers and presets of a file, each in the file's order (the interface's
+    and setup's): the tables of `[providers.<name>]` and `[presets.<name>]`, checked like
+    the user's own; every provider has a label and an address, every preset names a known
+    provider and its writer, and `default` names a preset."""
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        raise ConfigError(f"{path}: {exc}") from None
+    providers = _tables(path, data, "providers", Provider)
+    presets = _tables(path, data, "presets", Preset)
+    for name, table in providers.items():
+        if not (table.get("label") and table.get("url")):
+            raise ConfigError(f"{path}: [providers.{name}] needs a label and a url")
+    for name, table in presets.items():
+        if table.get("provider") not in providers:
+            raise ConfigError(f"{path}: [presets.{name}] names no known provider")
+        if not (table.get("label") and table.get("models", {}).get("writer")):
+            raise ConfigError(f"{path}: [presets.{name}] needs a label and models.writer")
+    default = data.get("default")
+    if default not in presets:
+        raise ConfigError(f"{path}: default names no preset of the file")
+    return Catalog(providers, presets, str(default))
+
+
+def _tables(path: Path, data: dict, section: str, model: type[Section]) -> dict[str, dict]:
+    found = data.get(section, {})
+    if not isinstance(found, dict):
+        raise ConfigError(f"{path}: [{section}] holds one table per {section[:-1]}")
+    for name, table in found.items():
+        if not NAME.fullmatch(name) or not isinstance(table, dict):
+            raise ConfigError(
+                f"{path}: {section}.{name!r}: a {section[:-1]} is a table named with "
+                "lowercase letters, digits, - and _"
+            )
+        try:
+            model.model_validate(table)
+        except ValidationError as exc:
+            raise ConfigError(f"{path}: [{section}.{name}]: {exc.errors()[0]['msg']}") from None
+    return found
+
+
+SHIPPED = read_catalog(PRESETS_FILE)
+PROVIDERS: dict[str, dict[str, Any]] = SHIPPED.providers
+PRESETS: dict[str, dict[str, Any]] = SHIPPED.presets
+DEFAULT_PRESET = SHIPPED.default
 
 
 class LLMChoice(Section):
-    """The endpoint in use, and the one switch that applies to every endpoint. An
-    endpoint's own keys live in its [endpoints.<name>] table."""
+    """The preset in use, and the two switches that apply to every preset. A provider's
+    keys live in its [providers.<name>] table, a preset's in its [presets.<name>] table."""
 
-    endpoint: str | None = Field(
+    preset: str | None = Field(
         None,
-        description="The endpoint in use: a preset or a saved [endpoints.<name>]. Default: "
-        "the only saved endpoint.",
+        description="The preset in use: a shipped one or one of your own. Default: "
+        f"{DEFAULT_PRESET}.",
     )
     cache: bool = Field(
         False,
         description="Keep the answers in data.dir and reuse them (development, evaluation), "
-        "whichever endpoint is in use.",
+        "whichever preset is in use.",
+    )
+    offer: list[str] = Field(
+        default_factory=list,
+        description="The presets the interface offers (an organisation's choice); empty: "
+        "every ready one.",
     )
 
+    _offer = field_validator("offer", mode="before")(_as_list)
 
-class LLM(Endpoint):
-    """The endpoint in use with every key, as the settings resolve it: the preset, the
-    saved table that extends it, and [llm]'s cache switch."""
 
-    endpoint: str | None = Field(
-        None,
-        description="The endpoint in use: a preset or a saved [endpoints.<name>]. Default: "
-        "the only saved endpoint.",
+class LLM(Connection):
+    """The preset in use with every key, as the settings resolve it: its provider's, the
+    provider's table of each model, the preset's, the user's tables of the same names,
+    and [llm]'s switches."""
+
+    preset: str | None = Field(None, description="The preset in use.")
+    provider: str | None = Field(None, description="Its provider.")
+    provider_label: str | None = Field(None, description="The provider's name in the interface.")
+    models: Models = Field(default_factory=Models)
+    model_settings: dict[str, ModelSettings] = Field(
+        default_factory=dict,
+        description="The provider's models tables, the preset's settings folded in.",
     )
+    cache: bool = Field(False, description="Keep the answers in data.dir and reuse them.")
+    offer: list[str] = Field(default_factory=list, description="The presets the interface offers.")
+
+    _offer = field_validator("offer", mode="before")(_as_list)
 
     @property
     def title(self) -> str:
-        """What the interface calls the endpoint: its label, else its name, else its host."""
-        return self.label or self.endpoint or urlsplit(self.url).hostname or self.url
+        """What the interface calls the preset: its label, else its name, else its host."""
+        return self.label or self.preset or urlsplit(self.url).hostname or self.url
 
     @property
     def understand_model(self) -> str:
@@ -296,7 +356,7 @@ class LLM(Endpoint):
 
     @property
     def judge_model(self) -> str:
-        """models.judge, else the writer's model. What the endpoint serves can change
+        """models.judge, else the writer's model. What the provider serves can change
         that default: `judge_for`."""
         return self.models.judge or self.models.writer
 
@@ -310,20 +370,83 @@ class LLM(Endpoint):
 
     def judge_for(self, models: Iterable[str]) -> str:
         """The judge's model: models.judge when set; else the 70B of the writer's family
-        when the endpoint lists it (the setup the evaluation measured); else the writer's
+        when the provider lists it (the setup the evaluation measured); else the writer's
         model (a local server with one model)."""
         if self.models.judge:
             return self.models.judge
         larger = self.larger_model
         return larger if larger and listed(larger, models) else self.models.writer
 
+    def model_table(self, name: str) -> dict[str, Any]:
+        """The keys set for a model in the provider's models tables: those of every
+        pattern that matches it, in the file's order, and the table named after it over
+        them (case does not matter: CSCS lists Apertus-v1.5-8B, Public AI apertus-v1.5-8b)."""
+        found: dict[str, Any] = {}
+        for key in matching_tables(name, self.model_settings):
+            table = self.model_settings[key]
+            found.update(table.model_dump(include=table.model_fields_set))
+        return found
+
+    def for_model(self, name: str) -> ModelSettings:
+        """The request settings of one model: the preset's over its table's over the
+        provider's."""
+        base = self.model_dump(include=MODEL_KEYS)
+        return ModelSettings.model_validate({**base, **self.model_table(name)})
+
+    def price(self, name: str) -> tuple[float, float] | None:
+        """USD per million input and output tokens of a model; None without a price
+        (a server of one's own, an unknown model)."""
+        settings = self.for_model(name)
+        if settings.input_usd is None or settings.output_usd is None:
+            return None
+        return settings.input_usd, settings.output_usd
+
+
+def matching_tables(name: str, tables: Iterable[str]) -> list[str]:
+    """The keys of a provider's models tables that match a model: the patterns, in
+    their order, then the one named after it (case does not matter)."""
+    lowered = name.lower()
+    patterns = [
+        k for k in tables if any(c in k for c in "*?[") and fnmatch.fnmatchcase(lowered, k.lower())
+    ]
+    return patterns + [k for k in tables if k.lower() == lowered]
+
 
 def listed(model: str, models: Iterable[str]) -> bool:
-    """Whether an endpoint's model list has the model: by its name, or by its name without
+    """Whether a provider's model list has the model: by its name, or by its name without
     a provider suffix (`Qwen/Qwen3.5-9B:ovhcloud` on the Hugging Face router, which lists
     `Qwen/Qwen3.5-9B`); an Ollama name (`qwen3.5:9b`) is listed as it is."""
     names = set(models)
     return model in names or (":" in model and model.rpartition(":")[0] in names)
+
+
+def cost_per_page(llm: LLM) -> float | None:
+    """USD for a page of 250 words through the full pipeline, an order of magnitude from
+    the writer's and the judge's prices; None when one of them has no price per token."""
+    writer = llm.price(llm.models.writer)
+    judge = llm.price(llm.judge_model)
+    if writer is None or judge is None:
+        return None
+
+    def cost(price: tuple[float, float]) -> float:
+        return (PAGE_TOKENS_IN * price[0] + PAGE_TOKENS_OUT * price[1]) / 1e6
+
+    return round((1 - JUDGE_SHARE) * cost(writer) + JUDGE_SHARE * cost(judge), 4)
+
+
+def model_price(name: str) -> tuple[float, float] | None:
+    """A model's prices by its name alone, from the shipped providers' tables (the
+    evaluation's rescoring, which runs without a preset): the first table that prices
+    it; none when a table of a server of one's own (`discover`) names it, since such a
+    build pays for hardware, not tokens."""
+    for provider in PROVIDERS.values():
+        if provider.get("discover") and matching_tables(name, provider.get("models", {})):
+            return None
+    for provider in PROVIDERS.values():
+        found = LLM(model_settings=provider.get("models", {})).price(name)
+        if found is not None:
+            return found
+    return None
 
 
 # The [pipeline] section is the model a job carries along (schemas.PipelineOptions), so
@@ -338,13 +461,13 @@ class Jobs(Section):
         1,
         ge=1,
         le=16,
-        description="Threads that run jobs; more than 1 needs an endpoint that serves "
+        description="Threads that run jobs; more than 1 needs a provider that serves "
         "parallel requests (vLLM does).",
     )
     queue_limit: int = Field(
         50, ge=1, description="Jobs that may wait; a submission beyond them is refused (429)."
     )
-    # One model call alone may take llm.timeout_s times the attempts.
+    # One model call alone may take timeout_s times the attempts.
     time_budget_s: float = Field(
         7200.0,
         ge=0,
@@ -494,7 +617,8 @@ class Log(Section):
 
 class Settings(Section):
     llm: LLM = Field(default_factory=LLM)
-    endpoints: dict[str, Endpoint] = Field(default_factory=dict)
+    providers: dict[str, Provider] = Field(default_factory=dict)  # the user's own tables
+    presets: dict[str, Preset] = Field(default_factory=dict)
     pipeline: Pipeline = Field(default_factory=Pipeline)
     jobs: Jobs = Field(default_factory=Jobs)
     server: Server = Field(default_factory=Server)
@@ -502,11 +626,11 @@ class Settings(Section):
     data: Data = Field(default_factory=Data)
     log: Log = Field(default_factory=Log)
 
-    @field_validator("endpoints")
+    @field_validator("providers", "presets")
     @classmethod
-    def _names(cls, value: dict[str, Endpoint]) -> dict[str, Endpoint]:
+    def _names(cls, value: dict[str, Any]) -> dict[str, Any]:
         for name in value:
-            if not ENDPOINT_NAME.fullmatch(name):
+            if not NAME.fullmatch(name):
                 raise ValueError(f"{name!r}: use lowercase letters, digits, - and _")
         return value
 
@@ -534,7 +658,8 @@ class Settings(Section):
 
 @dataclass(frozen=True)
 class Setting:
-    """A value and where it came from: a file, a variable, a preset, the command line."""
+    """A value and where it came from: a file, a variable, a provider, a preset, the
+    command line."""
 
     value: Any
     source: str
@@ -547,7 +672,7 @@ Flat = dict[str, Setting]  # dotted key ("server.port") -> value and source
 class Loaded:
     settings: Settings
     flat: Flat  # every key set somewhere, with its source
-    problems: list[str]  # what keeps the endpoint from working (load(strict=False))
+    problems: list[str]  # what keeps the preset from working (load(strict=False))
 
 
 def config_file() -> Path:
@@ -623,7 +748,7 @@ _overrides: dict[str, Any] = {}
 
 
 def use_overrides(values: Mapping[str, Any]) -> None:
-    """Settings from the command line (`--endpoint`, `--host`, `--port`), as dotted keys;
+    """Settings from the command line (`--preset`, `--host`, `--port`), as dotted keys;
     None leaves a key to the other sources."""
     _overrides.clear()
     _overrides.update({key: value for key, value in values.items() if value is not None})
@@ -631,8 +756,8 @@ def use_overrides(values: Mapping[str, Any]) -> None:
 
 
 def collect(replace: Mapping[Path, Mapping[str, Any]] | None = None) -> Flat:
-    """Every source but the defaults and the presets, merged; `replace` stands in for a
-    file's content (a change checked before it is written)."""
+    """Every source but the defaults and the shipped catalog, merged; `replace` stands in
+    for a file's content (a change checked before it is written)."""
     replace = replace or {}
     layers = [_file_layer(path, replace.get(path)) for path in setting_files()]
     layers.append(_env_layer(os.environ))
@@ -644,25 +769,30 @@ def load(
     *,
     strict: bool = True,
     replace: Mapping[Path, Mapping[str, Any]] | None = None,
-    endpoint: str | None = None,
+    preset: str | None = None,
 ) -> Loaded:
-    """The settings with the endpoint in use resolved: `endpoint` for this load (a draft
-    that picked one), else llm.endpoint, else the only ready one. `strict`: a ConfigError
-    when the endpoint is missing or incomplete; else its problems are returned."""
-    flat, none_in_use = _resolve_endpoint(collect(replace), endpoint)
-    if none_in_use:
-        if strict:
-            raise ConfigError(none_in_use)
-        problems = [none_in_use]
-    else:
-        problems = _resolve_secrets(flat)
-        for key in ("llm.url", "llm.models.writer"):
-            if not _set(flat, key):
-                problems.append(f"{key}: not set")
-        if "llm.api_key" not in flat and "llm.api_key_env" not in flat:
-            problems.append("llm.api_key: not set (or llm.api_key_env, the variable that holds it)")
-        if strict and problems:
-            raise ConfigError("\n".join(["Settings are missing:", *(f"- {p}" for p in problems)]))
+    """The settings with the preset in use resolved: `preset` for this load (a draft
+    that picked one), else llm.preset, else the shipped default. `strict`: a ConfigError
+    when the preset is incomplete (no key); else its problems are returned."""
+    flat = _resolve_llm(collect(replace), preset)
+    problems = _resolve_secrets(flat)
+    for key in ("llm.url", "llm.models.writer"):
+        if not _set(flat, key):
+            problems.append(f"{key}: not set")
+    if "llm.api_key" not in flat and "llm.api_key_env" not in flat:
+        problems.append("llm.api_key: not set (or llm.api_key_env, the variable that holds it)")
+    if strict and problems:
+        name = flat["llm.preset"].value
+        raise ConfigError(
+            "\n".join(
+                [
+                    f"The preset {name} is not ready:",
+                    *(f"- {p}" for p in problems),
+                    f"`leichtfacile setup {name}` asks for what it lacks; `leichtfacile preset "
+                    "list` shows every preset.",
+                ]
+            )
+        )
     try:
         settings = Settings.model_validate(_tree(flat))
     except ValidationError as exc:
@@ -681,7 +811,7 @@ _cached_settings = get_settings
 
 
 def paths() -> Data:
-    """[data] alone: the folders without the endpoint (no key is needed to read the
+    """[data] alone: the folders without the preset (no key is needed to read the
     examples or the dataset)."""
     flat = {key: item for key, item in collect().items() if key.startswith("data.")}
     try:
@@ -712,7 +842,9 @@ def source_of(flat: Flat, key: str) -> str | None:
 
 
 # A key that takes a whole table, never merged key by key.
-_OPAQUE = {"extra_body", "model_extra_body", "headers"}
+_OPAQUE = {"extra_body", "headers", "model_settings"}
+# A provider's models tables: one value per model, since model names hold dots.
+_MODEL_TABLES = re.compile(r"providers\.[^.]+\.models")
 # Folders a file may give relative to its own folder.
 _PATHS = ("data.dir", "data.examples_dir")
 # A secret is given or named; the later source's choice wins.
@@ -724,7 +856,12 @@ def flatten(tree: Mapping[str, Any], source: str, prefix: str = "") -> Flat:
     flat: Flat = {}
     for key, value in tree.items():
         path = f"{prefix}{key}"
-        if isinstance(value, Mapping) and value and key not in _OPAQUE:
+        if (
+            isinstance(value, Mapping)
+            and value
+            and key not in _OPAQUE
+            and not _MODEL_TABLES.fullmatch(path)
+        ):
             flat.update(flatten(value, source, path + "."))
         else:
             flat[path] = Setting(value, source)
@@ -756,6 +893,14 @@ def _merge(layers: Iterable[Flat]) -> Flat:
                 if partner in layer:
                     raise ConfigError(f"{key} and {partner} are both set ({item.source}): keep one")
                 merged.pop(partner, None)
+            earlier = merged.get(key)
+            if (
+                _MODEL_TABLES.fullmatch(key)
+                and earlier is not None
+                and isinstance(earlier.value, Mapping)
+                and isinstance(item.value, Mapping)
+            ):  # the models tables of a provider: a later source adds or replaces models
+                item = Setting({**earlier.value, **item.value}, item.source)
             merged[key] = item
     return merged
 
@@ -767,12 +912,13 @@ def _set(flat: Flat, key: str) -> bool:
 
 def _file_layer(path: Path, tree: Mapping[str, Any] | None = None) -> Flat:
     tree = read_file(path) if tree is None else tree
-    endpoints = tree.get("endpoints")
-    for name in endpoints if isinstance(endpoints, Mapping) else ():
-        if not ENDPOINT_NAME.fullmatch(name):
-            raise ConfigError(
-                f"{path}: endpoint {name!r}: use lowercase letters, digits, - and _ in names"
-            )
+    for section in ("providers", "presets"):
+        tables = tree.get(section)
+        for name in tables if isinstance(tables, Mapping) else ():
+            if not NAME.fullmatch(name):
+                raise ConfigError(
+                    f"{path}: {section}.{name!r}: use lowercase letters, digits, - and _ in names"
+                )
     flat = flatten(tree, str(path))
     for key in _PATHS:
         item = flat.get(key)
@@ -785,9 +931,9 @@ def _file_layer(path: Path, tree: Mapping[str, Any] | None = None) -> Flat:
 
 def _env_layer(environ: Mapping[str, str]) -> Flat:
     """LEICHTFACILE_<SECTION>__<KEY>, the parts joined by two underscores
-    (LEICHTFACILE_ENDPOINTS__LOCAL__URL): the text, which the settings convert ("8001",
+    (LEICHTFACILE_PROVIDERS__MINE__URL): the text, which the settings convert ("8001",
     "true", a comma-separated list); an empty variable sets nothing. A table (extra_body,
-    headers) is set in a file."""
+    headers, a models table) is set in a file."""
     flat: Flat = {}
     for name, raw in environ.items():
         upper = name.upper()
@@ -798,17 +944,27 @@ def _env_layer(environ: Mapping[str, str]) -> Flat:
     return flat
 
 
+# -- the presets as the interface and the commands list them -----------------------------
+
+
 @dataclass(frozen=True)
 class Available:
-    """An endpoint the settings offer: a preset, a saved one, or a preset extended by the
-    saved table of its name."""
+    """A preset the settings offer, shipped or the user's own, with what it lacks."""
 
     name: str
     label: str
+    provider: str
+    provider_label: str
+    location: str
+    documents: str
+    key_url: str | None
+    key_variable: str | None  # the provider's api_key_env: the model page asks for a key
     url: str
     writer: str
     judge: str | None
+    has_key: bool  # given, or its variable set
     missing: tuple[str, ...]  # what keeps it from working; empty: ready
+    cost_per_page: float | None  # USD, an order of magnitude; None without prices
 
     @property
     def ready(self) -> bool:
@@ -816,122 +972,162 @@ class Available:
 
 
 def available(flat: Flat | None = None) -> list[Available]:
-    """Every endpoint with what it lacks: for `leichtfacile endpoint list`, the New draft
-    form and the message when none is ready."""
+    """Every preset with what it lacks, in the catalog's order then the user's own: for
+    `leichtfacile preset list`, the model page and the New draft form. `llm.offer`
+    limits them to the presets an organisation wants shown."""
     flat = collect() if flat is None else flat
-    found = []
-    for name in endpoint_names(flat):
-        layer = _endpoint_layer(flat, name)
-        found.append(
-            Available(
-                name,
-                label=_text(layer, "label") or name,
-                url=_text(layer, "url"),
-                writer=_text(layer, "models.writer"),
-                judge=_text(layer, "models.judge") or None,
-                missing=tuple(_missing(layer, name)),
-            )
-        )
-    return found
-
-
-def endpoint_names(flat: Flat) -> list[str]:
-    """Every endpoint the settings offer: the presets, in setup's order, then the saved
-    [endpoints.<name>] tables of other names, by name."""
-    return [*PRESETS, *(name for name in _saved_names(flat) if name not in PRESETS)]
-
-
-def _saved_names(flat: Flat) -> list[str]:
-    return sorted({key.split(".")[1] for key in flat if key.startswith("endpoints.")})
-
-
-# What [llm] takes: the choice of endpoint, and the switch that applies to every endpoint.
-LLM_KEYS = ("llm.endpoint", "llm.cache")
-
-
-def _resolve_endpoint(flat: Flat, requested: str | None = None) -> tuple[Flat, str | None]:
-    """The endpoint in use as `llm.*` keys: `requested` (--endpoint, or a draft that picked
-    one), else llm.endpoint, else the only saved endpoint. With the keys comes the reason
-    when none is in use, None otherwise. Nothing is guessed from what is ready: a key
-    left in the shell never picks a provider. A key of an endpoint in [llm] itself is an
-    error, since it belongs to the endpoint's table."""
-    for key, item in flat.items():
-        if key.startswith("llm.") and key not in LLM_KEYS:
-            variable = key.removeprefix("llm.").upper().replace(".", "__")
+    names = preset_names(flat)
+    if (offer := flat.get("llm.offer")) is not None:
+        wanted = [str(name) for name in _as_list(offer.value) or []]
+        if unknown := [name for name in wanted if name not in names]:
             raise ConfigError(
-                f"{key} ({item.source}): [llm] takes endpoint and cache only; an endpoint's "
-                f"keys go into its [endpoints.<name>] table "
-                f"(LEICHTFACILE_ENDPOINTS__<NAME>__{variable} in the environment)"
-            )
-    names = endpoint_names(flat)
-    picked = Setting(requested, "requested") if requested else flat.get("llm.endpoint")
-    why = None
-    if picked is not None:
-        name: str | None = str(picked.value)
-        if name not in names:
-            raise ConfigError(
-                f"llm.endpoint = {name!r} ({picked.source}): no such endpoint; "
+                f"llm.offer ({offer.source}): no such preset {', '.join(unknown)}; "
                 f"known: {', '.join(names)}"
             )
-    elif len(saved := _saved_names(flat)) == 1:
-        name = saved[0]  # its problems say what it lacks
-        picked = Setting(name, "the only saved endpoint")
-    else:
-        name = None
-        why = _none_in_use(flat)
-    resolved = _endpoint_layer(flat, name)
-    if name is not None:
-        resolved["endpoint"] = picked
-    if (cache := flat.get("llm.cache")) is not None:
-        resolved["cache"] = cache
-    out = {key: item for key, item in flat.items() if not key.startswith("llm.")}
-    out.update({f"llm.{key}": item for key, item in resolved.items()})
-    return out, why
+        names = [name for name in names if name in wanted] if wanted else names
+    return [_available(flat, name) for name in names]
 
 
-def _endpoint_layer(flat: Flat, name: str | None) -> Flat:
-    """The keys of one endpoint as [llm] sees them: its preset's (the one it names, else
-    the preset of its own name), then its saved table's."""
-    prefix = f"endpoints.{name}."
-    saved = {k.removeprefix(prefix): v for k, v in flat.items() if name and k.startswith(prefix)}
-    named = saved.get("preset")
-    key = named.value if named is not None else name
-    preset: Flat = {}
-    if key in PRESETS:  # an unknown one fails validation
-        preset = flatten(PRESETS[key].values, f"preset {key}")
-        if named is None:
-            preset["preset"] = Setting(key, f"the preset named {key}")
-    return _merge([preset, saved])
-
-
-def _missing(layer: Flat, name: str) -> list[str]:
-    """What keeps an endpoint from working: no address, no writer model, no key."""
+def _available(flat: Flat, name: str) -> Available:
+    layer = preset_layer(flat, name)
+    try:
+        llm = LLM.model_validate(_tree({f"llm.{k}": v for k, v in layer.items()})["llm"])
+    except ValidationError as exc:
+        raise ConfigError(describe(exc, {f"llm.{k}": v for k, v in layer.items()})) from None
     missing = []
-    if not _set(layer, "url"):
+    if not llm.url:
         missing.append("url is not set")
-    if not _set(layer, "models.writer"):
-        missing.append(f"no model yet (`leichtfacile setup {name}` lists the endpoint's)")
-    if not _set(layer, "api_key"):
-        named = layer.get("api_key_env")
-        if named is None:
+    if not llm.models.writer:
+        missing.append("no model yet")
+    has_key = llm.api_key is not None
+    if not has_key:
+        if llm.api_key_env is None:
             missing.append("api_key is not set")
-        elif secret_value(str(named.value)) is None:
-            missing.append(f"the variable {named.value} is not set")
-    return missing
+        elif secret_value(llm.api_key_env) is None:
+            missing.append(f"the variable {llm.api_key_env} is not set")
+        else:
+            has_key = True
+    return Available(
+        name,
+        label=llm.label or name,
+        provider=llm.provider or "",
+        provider_label=llm.provider_label or llm.provider or "",
+        location=llm.location,
+        documents=llm.documents,
+        key_url=llm.key_url,
+        key_variable=llm.api_key_env,
+        url=llm.url,
+        writer=llm.models.writer,
+        judge=llm.models.judge,
+        has_key=has_key,
+        missing=tuple(missing),
+        cost_per_page=cost_per_page(llm),
+    )
 
 
-def _none_in_use(flat: Flat) -> str:
-    lines = [
-        "No model endpoint is in use: `leichtfacile setup <name>` sets a preset up and uses "
-        "it, `leichtfacile endpoint use <name>` picks a saved one (settings: "
-        f"{config_file()}). The endpoints and what each lacks:"
+def preset_names(flat: Flat) -> list[str]:
+    """Every preset the settings offer: the shipped ones in the catalog's order, then
+    the user's own, by name."""
+    return [*PRESETS, *(name for name in _user_names(flat, "presets") if name not in PRESETS)]
+
+
+def provider_names(flat: Flat) -> list[str]:
+    return [
+        *PROVIDERS,
+        *(name for name in _user_names(flat, "providers") if name not in PROVIDERS),
     ]
-    lines.extend(f"  {item.name}: {'; '.join(item.missing) or 'ready'}" for item in available(flat))
-    return "\n".join(lines)
 
 
-def _text(layer: Flat, key: str) -> str:
-    return str(layer[key].value) if _set(layer, key) else ""
+def _user_names(flat: Flat, section: str) -> list[str]:
+    prefix = f"{section}."
+    return sorted({key.split(".")[1] for key in flat if key.startswith(prefix)})
+
+
+# What [llm] takes: the choice of preset, and the switches that apply to every preset.
+LLM_KEYS = ("llm.preset", "llm.cache", "llm.offer")
+
+
+def _resolve_llm(flat: Flat, requested: str | None = None) -> Flat:
+    """The preset in use as `llm.*` keys: `requested` (--preset, or a draft that picked
+    one), else llm.preset, else the shipped default. A key of a provider or a preset in
+    [llm] itself is an error, since it belongs to that table."""
+    for key, item in flat.items():
+        if key.startswith("llm.") and key not in LLM_KEYS:
+            raise ConfigError(
+                f"{key} ({item.source}): [llm] takes preset, cache and offer only; a "
+                "provider's keys go into its [providers.<name>] table, a preset's into its "
+                "[presets.<name>] table (LEICHTFACILE_PRESETS__<NAME>__<KEY> in the environment)"
+            )
+    names = preset_names(flat)
+    picked = Setting(requested, "requested") if requested else flat.get("llm.preset")
+    if picked is None:
+        picked = Setting(DEFAULT_PRESET, "the shipped default")
+    name = str(picked.value)
+    if name not in names:
+        raise ConfigError(
+            f"llm.preset = {name!r} ({picked.source}): no such preset; known: {', '.join(names)}"
+        )
+    layer = preset_layer(flat, name)
+    layer["preset"] = picked
+    for key in ("cache", "offer"):
+        if (item := flat.get(f"llm.{key}")) is not None:
+            layer[key] = item
+    out = {key: item for key, item in flat.items() if not key.startswith("llm.")}
+    out.update({f"llm.{key}": item for key, item in layer.items()})
+    return out
+
+
+def preset_layer(flat: Flat, name: str) -> Flat:
+    """The keys of a preset as [llm] sees them: its provider's (shipped, then the user's
+    table), the preset's over them (the same way), and the provider's models tables
+    with the preset's request settings folded in, so that a model's calls take the
+    provider's settings, then its table's, then the preset's."""
+    preset = _layer(PRESETS, "presets", flat, name, f"preset {name}")
+    named = preset.pop("provider", None)
+    if named is None:
+        raise ConfigError(f"preset {name}: names no provider ([presets.{name}] provider = ...)")
+    provider_name = str(named.value)
+    if provider_name not in provider_names(flat):
+        raise ConfigError(
+            f"presets.{name}.provider = {provider_name!r} ({named.source}): no such provider; "
+            f"known: {', '.join(provider_names(flat))}"
+        )
+    provider = _layer(PROVIDERS, "providers", flat, provider_name, f"provider {provider_name}")
+    tables = provider.pop("models", None)
+    provider.pop("discover", None)
+    if (label := provider.pop("label", None)) is not None:
+        provider["provider_label"] = label
+    overrides = {key: item.value for key, item in preset.items() if key in MODEL_KEYS}
+    model_settings = {
+        model: {**table, **overrides}
+        for model, table in (tables.value if tables is not None else {}).items()
+    }
+    layer = _merge([provider, preset])
+    layer["provider"] = named
+    layer["model_settings"] = Setting(
+        model_settings, tables.source if tables is not None else f"provider {provider_name}"
+    )
+    return layer
+
+
+def provider_table(flat: Flat, name: str) -> dict[str, Any]:
+    """A provider's keys as a plain table, the shipped one and the user's merged (the
+    model page's discovery of a local server's models): ConfigError for an unknown one."""
+    if name not in provider_names(flat):
+        raise ConfigError(f"no provider {name!r}; known: {', '.join(provider_names(flat))}")
+    layer = _layer(PROVIDERS, "providers", flat, name, f"provider {name}")
+    return _tree({key: item for key, item in layer.items()})
+
+
+def _layer(
+    shipped: Mapping[str, Mapping[str, Any]], section: str, flat: Flat, name: str, source: str
+) -> Flat:
+    """One provider's or preset's keys: the shipped table, the user's over it."""
+    prefix = f"{section}.{name}."
+    base = flatten({section: {name: shipped.get(name, {})}}, source)
+    user = {key: item for key, item in flat.items() if key.startswith(prefix)}
+    merged = _merge([base, user])
+    return {k.removeprefix(prefix): item for k, item in merged.items() if k.startswith(prefix)}
 
 
 def _resolve_secrets(flat: Flat) -> list[str]:
@@ -955,22 +1151,26 @@ def _resolve_secrets(flat: Flat) -> list[str]:
 
 # -- the reference (docs/configuration.md, `leichtfacile config show --defaults`) --------
 
-ENDPOINT_SECTION = "endpoints.<name>"
+PROVIDER_SECTION = "providers.<name>"
+MODEL_SECTION = "providers.<name>.models.<model>"
+PRESET_SECTION = "presets.<name>"
 SECTIONS: dict[str, type[Section]] = {
-    "llm": LLMChoice, ENDPOINT_SECTION: Endpoint, "pipeline": Pipeline, "jobs": Jobs,
-    "server": Server, "auth": Auth, "data": Data, "log": Log,
+    "llm": LLMChoice, PROVIDER_SECTION: Provider, MODEL_SECTION: ModelSettings,
+    PRESET_SECTION: Preset, "pipeline": Pipeline, "jobs": Jobs, "server": Server,
+    "auth": Auth, "data": Data, "log": Log,
 }  # fmt: skip
-# What `config show` lists: the endpoint in use with every key, then the other sections.
+# What `config show` lists: the preset in use with every key, then the other sections.
 IN_USE: dict[str, type[Section]] = {
     "llm": LLM,
-    **{k: v for k, v in SECTIONS.items() if k not in ("llm", ENDPOINT_SECTION)},
+    **{k: v for k, v in SECTIONS.items() if "<" not in k and k != "llm"},
 }
 SECRETS = ("llm.api_key", "auth.token")
 
 
 def fields(model: type[BaseModel], prefix: str = "") -> Iterator[tuple[str, FieldInfo]]:
-    """Every setting of a section as (dotted key, field), `endpoint` first."""
-    items = sorted(model.model_fields.items(), key=lambda item: item[0] != "endpoint")
+    """Every setting of a section as (dotted key, field), `preset` and `provider` first."""
+    first = ("preset", "provider")
+    items = sorted(model.model_fields.items(), key=lambda item: item[0] not in first)
     for name, info in items:
         annotation = info.annotation
         if isinstance(annotation, type) and issubclass(annotation, BaseModel):
@@ -987,6 +1187,8 @@ def toml_value(value: Any) -> str:
         return str(value)
     if isinstance(value, Path):
         value = str(value)
+    if isinstance(value, BaseModel):
+        value = value.model_dump(include=value.model_fields_set)
     if isinstance(value, dict):
         inner = ", ".join(f"{json.dumps(k)} = {toml_value(v)}" for k, v in value.items())
         return "{" + (f" {inner} " if inner else "") + "}"
@@ -1015,8 +1217,8 @@ def reference_toml() -> str:
         "# Uncomment and change what you need; `leichtfacile config show` lists the values in use.",
     ]
     for section, model in SECTIONS.items():
-        # The endpoints' section stands for one table per saved endpoint.
-        lines += ["", f"[{section}]" if section != ENDPOINT_SECTION else f"# [{section}]"]
+        # A section with a placeholder stands for one table per provider or preset.
+        lines += ["", f"[{section}]" if "<" not in section else f"# [{section}]"]
         lines += [f"# {line}" for line in textwrap.wrap(_summary(model), 86)]
         for key, info in fields(model):
             lines += [f"# {line}" for line in textwrap.wrap(info.description or "", 86)]

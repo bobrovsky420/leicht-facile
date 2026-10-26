@@ -92,19 +92,32 @@ def test_the_output_budget_field_and_the_temperature_follow_the_endpoint(endpoin
     assert "max_tokens" not in body and "temperature" not in body
 
 
-def test_a_models_extra_body_goes_over_the_endpoints(endpoint, make_client):
+def test_a_models_table_sets_its_calls_over_the_providers_settings(endpoint, make_client):
+    """What a call takes follows the model called: the provider's settings, the table
+    of the model (by its name or a pattern) over them."""
     client = make_client(
         make_settings(
             llm__extra_body={"thinking": {"type": "disabled"}, "cache": {"no-cache": True}},
-            llm__model_extra_body={"other": {"thinking": {"type": "between_tools"}}},
+            llm__model_settings={
+                "other": {
+                    "extra_body": {"thinking": {"type": "between_tools"}},
+                    "send_temperature": False,
+                },
+                "gpt-5*": {"max_tokens_key": "max_completion_tokens"},
+            },
         )
     )
-    endpoint.push(chat_response("a"), chat_response("b"))
-    client.complete(MSG)
-    client.complete(MSG, model="other")
-    first, second = endpoint.chat_bodies()
+    endpoint.push(chat_response("a"), chat_response("b"), chat_response("c"))
+    client.complete(MSG, temperature=0.2, max_tokens=50)
+    client.complete(MSG, model="other", temperature=0.2, max_tokens=50)
+    client.complete(MSG, model="gpt-5.4-nano", temperature=0.2, max_tokens=50)
+    first, second, third = endpoint.chat_bodies()
     assert first["thinking"] == {"type": "disabled"} and first["cache"] == {"no-cache": True}
-    assert second["thinking"] == {"type": "between_tools"} and second["cache"] == first["cache"]
+    assert (first["temperature"], first["max_tokens"]) == (0.2, 50)
+    # The table's extra_body replaces the provider's as a whole; its other keys apply.
+    assert second["thinking"] == {"type": "between_tools"} and "cache" not in second
+    assert "temperature" not in second and second["max_tokens"] == 50
+    assert third["max_completion_tokens"] == 50 and "max_tokens" not in third  # the pattern
 
 
 def test_the_endpoints_headers_go_with_every_call(endpoint, make_client):

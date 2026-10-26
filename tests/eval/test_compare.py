@@ -1,5 +1,6 @@
-"""The prices by model name (eval/prices.toml) and `eval compare` (eval/compare.py): the
-runs a document declares, the tables from their results folders, the markers kept."""
+"""The prices by model name (the models tables of presets.toml) and `eval compare`
+(eval/compare.py): the runs a document declares, the tables from their results folders,
+the markers kept."""
 
 from __future__ import annotations
 
@@ -8,23 +9,26 @@ from pathlib import Path
 
 import pytest
 
+from leichtfacile import config
 from leichtfacile.eval import compare, score
 
 
 def test_prices_follow_the_model_name() -> None:
+    """From the providers' models tables of presets.toml, by the name alone."""
     assert score.price("swiss-ai/Apertus-v1.5-70B") == (0.82, 2.92)
     assert score.price("swiss-ai/apertus-v1.5-8b") == (0.10, 0.20)
     assert score.price("swiss-ai/Apertus-8B-Instruct-2509") == (0.10, 0.20)
     assert score.price("openai/gpt-oss-120b:groq") == (0.15, 0.75)
     assert score.price("openai/gpt-oss-20b") == (0.10, 0.50)
-    assert score.price("gpt-5.4-nano") == (0.20, 1.25)  # before the "gpt-5.4" entry
+    assert score.price("gpt-5.4-nano") == (0.20, 1.25)
     assert score.price("gpt-5.4") == (2.50, 15.00)
     assert score.price("gpt-5.6-luna") == (0.20, 1.20) and score.price("gpt-5-nano") == (0.05, 0.40)
     assert score.price("claude-haiku-5-5") == (0.10, 0.50)
     for own in ("apertus-v1.5-8b-q4-llamacpp", "qwen3.5:9b", "local-model", "unknown"):
         assert score.price(own) is None
-    for entry in score.PRICES:  # a match list, and both prices or none
-        assert entry.match and (entry.input is None) == (entry.output is None)
+    for provider in config.PROVIDERS.values():  # both prices or none
+        for table in provider.get("models", {}).values():
+            assert ("input_usd" in table) == ("output_usd" in table)
 
 
 def _row(**values) -> str:

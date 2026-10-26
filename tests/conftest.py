@@ -31,8 +31,8 @@ def _no_user_config(monkeypatch, tmp_path_factory):
     for name in list(os.environ):
         if name.upper().startswith(config.ENV_PREFIX) and "__" in name:
             monkeypatch.delenv(name)
-    for preset in config.PRESETS.values():  # a key in the shell would make a preset ready
-        if variable := preset.values.get("api_key_env"):
+    for provider in config.PROVIDERS.values():  # a key in the shell would make a preset ready
+        if variable := provider.get("api_key_env"):
             monkeypatch.delenv(variable, raising=False)
     config.use_overrides({})
     yield
@@ -48,6 +48,8 @@ def make_settings(**overrides: Any) -> Settings:
     by its path, with two underscores (`llm__max_retries=0`, `server__host="0.0.0.0"`)."""
     tree: dict[str, Any] = {
         "llm": {
+            "preset": "test",
+            "label": "Fake Apertus",
             "url": BASE_URL,
             "api_key": "test-key",
             "models": {"writer": MODEL},

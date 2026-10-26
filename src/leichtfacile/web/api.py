@@ -307,7 +307,7 @@ def cancel(request: Request, job_id: str) -> dict:
 def delete(request: Request, job_id: str) -> dict:
     _job_or_404(request, job_id)
     state = _state(request)
-    if not remove_job(state.store, state.llm, job_id):
+    if not remove_job(state.store, state.registry.llm, job_id):
         raise HTTPException(409, BUSY)
     return {"deleted": job_id}
 

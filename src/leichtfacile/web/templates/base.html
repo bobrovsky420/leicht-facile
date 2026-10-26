@@ -20,12 +20,14 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
     <a href="/"{% if section == 'drafts' %} aria-current="{{ 'page' if section_root else 'true' }}"{% endif %}>{{ t('site.drafts') }}{% if review_count %}<span class="count" title="{{ t('nav.review_count', n=review_count) }}"><span aria-hidden="true">{{ review_count }}</span><span class="visually-hidden">{{ t('nav.review_count', n=review_count) }}</span></span>{% endif %}</a>
     <a href="/new"{% if section == 'new' %} aria-current="page"{% endif %}>{{ t('site.new') }}</a>
     <a href="/check"{% if section == 'check' %} aria-current="page"{% endif %}>{{ t('site.check') }}</a>
+    {% if model_page %}<a href="/model"{% if section == 'model' %} aria-current="page"{% endif %}>{{ t('site.model') }}</a>{% endif %}
   </nav>
   <span class="spacer"></span>
-  <span class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz" title="{{ t('js.endpoint.unknown') }}">
+  {# The preset in use: the dot follows /readyz (app.js); the name links to the model page. #}
+  <{{ 'a href="/model"' if model_page else 'span' }} class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz" title="{{ t('js.endpoint.unknown') }}">
     <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') }}</span>
-    <code>{{ settings.llm.models.writer }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
-  </span>
+    <code>{{ settings.llm.title if model_ready else t('model.none') }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
+  </{{ 'a' if model_page else 'span' }}>
   {% set languages = ui_languages() %}
   {% if languages | length > 1 %}
   <nav class="ui-langs" aria-label="{{ t('site.ui_lang') }}">

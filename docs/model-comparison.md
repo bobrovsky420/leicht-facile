@@ -18,7 +18,8 @@ block and the prose are written by hand, the tables are not.
 - The judge columns (unsupported statements, distorted facts) do not: every run has its
   own judge, and a model judging its own drafts flags differently from a larger model
   judging another's.
-- USD per page follows the list prices in `src/leichtfacile/eval/prices.toml`: Apertus at
+- USD per page follows the prices in the providers' models tables of
+  `src/leichtfacile/presets.toml` (`input_usd`, `output_usd`): Apertus at
   Public AI's prices (the CSCS endpoint itself charged nothing), gpt-oss at Groq's. A
   model on one's own hardware has no price per token (a dash); the laptop run below cost
   some CHF 0.15 of electricity for its 23 pairs.
@@ -37,10 +38,10 @@ block and the prose are written by hand, the tables are not.
 
 Run the condition into a results folder of its own (`eval reference --role all --results
 eval/results-<name>` once, then `eval run --cache --condition P2 --results
-eval/results-<name> --endpoint <name>`), add a `[[run]]` table to the block below (`file`
+eval/results-<name> --preset <name>`), add a `[[run]]` table to the block below (`file`
 is the `P2_<writer>.jsonl` the run wrote; `date`, `endpoint`, `writer`, `judge`,
 `thinking`, `text`, `prices` and `notes` fill the runs table), and run
-`uv run leichtfacile eval compare`. A model without an entry in `prices.toml` shows no
+`uv run leichtfacile eval compare`. A model without a price in `presets.toml` shows no
 USD per page until it has one and the folder is scored again (`eval rescore --in-place`).
 
 <!-- runs:start -->
@@ -166,7 +167,7 @@ date = 2026-10-25
 endpoint = "Anthropic's OpenAI-compatible endpoint"
 writer = "claude-haiku-5-5"
 judge = "claude-sonnet-5-5"
-thinking = "off on both, through the native thinking field set per model (`model_extra_body`): `disabled` for Haiku, `between_tools` for Sonnet"
+thinking = "off on both, through the native thinking field set per model (the provider's models tables): `disabled` for Haiku, `between_tools` for Sonnet"
 text = "United States (Anthropic)"
 prices = "Anthropic list prices"
 notes = "the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid"
@@ -185,7 +186,7 @@ notes = "the writer's Understand and first Write calls are those of the Haiku ru
 | gpt-5.6-luna, no thinking, judges itself (OpenAI) | 2026-10-25 | OpenAI API | gpt-5.6-luna | gpt-5.6-luna (itself) | reasoning_effort none on every call | United States (OpenAI) | OpenAI list prices | the newest cheap OpenAI model; on the long documents its Understand answer passed the 6,000-token budget, so those pairs ran with the 12,000 budget of the thinking stages (the model still reasons only when asked) | `eval/results-openai-gpt-5.6-luna/P2_gpt-5-6-luna.jsonl` |
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-haiku-5-5 (itself) | off, through the native thinking field (the endpoint ignores reasoning_effort; thinking tokens count in max_tokens and are not reported) | United States (Anthropic) | Anthropic list prices | no temperature (refused by the 5.5 models); the smallest current Claude; with adaptive thinking on, Understand ran to 12,000 and Write to 8,000 tokens | `eval/results-anthropic-claude-haiku-5.5/P2_claude-haiku-5-5.jsonl` |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-sonnet-5-5 | claude-sonnet-5-5 (itself) | off, through the native thinking field: `between_tools`, the only value Sonnet 5.5 accepts there (the endpoint refuses `adaptive`, Sonnet `disabled`); with no tools in the pipeline it does not think | United States (Anthropic) | Anthropic list prices | no temperature; nine Write answers passed 8,000 tokens and were written in halves, the longest Understand answer reached 10,800; 275 calls, USD 14.7 paid | `eval/results-anthropic-claude-sonnet-5.5/P2_claude-sonnet-5-5.jsonl` |
-| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-sonnet-5-5 | off on both, through the native thinking field set per model (`model_extra_body`): `disabled` for Haiku, `between_tools` for Sonnet | United States (Anthropic) | Anthropic list prices | the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid | `eval/results-anthropic-haiku-sonnet-judge/P2_claude-haiku-5-5.jsonl` |
+| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-sonnet-5-5 | off on both, through the native thinking field set per model (the provider's models tables): `disabled` for Haiku, `between_tools` for Sonnet | United States (Anthropic) | Anthropic list prices | the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid | `eval/results-anthropic-haiku-sonnet-judge/P2_claude-haiku-5-5.jsonl` |
 
 ## German
 

@@ -2,10 +2,13 @@
 llama.cpp or Ollama server, a Swiss cloud or another provider.
 
 All of them speak the OpenAI chat-completions protocol, so the deployment target is a
-matter of configuration (`llm.url`, `llm.api_key`, `llm.models.writer`). This module adds
-what the pipeline needs on top of the SDK: thinking-mode handling, reasoning removal,
-streaming (so that a proxy in front of the endpoint cannot time out a long answer),
-retries with backoff, a usage record per call and an optional response cache.
+matter of configuration (`llm.url`, `llm.api_key`, `llm.models.writer`); what a call
+takes (the thinking switch, the temperature, the output budget's field, extra body
+fields, the timeout) follows the model called (`LLM.for_model`, docs/configuration.md).
+This module adds what the pipeline needs on top of the SDK: thinking-mode handling,
+reasoning removal, streaming (so that a proxy in front of the endpoint cannot time out a
+long answer), retries with backoff, a usage record per call and an optional response
+cache.
 
 Privacy: document text is never logged above DEBUG. Log lines carry model, stage,
 token counts and latency only.
@@ -27,7 +30,7 @@ import httpx
 import openai
 
 from leichtfacile import __version__
-from leichtfacile.config import Settings
+from leichtfacile.config import ModelSettings, Settings
 from leichtfacile.llm.cache import ResponseCache, cache_key
 from leichtfacile.llm.reasoning import split_reasoning
 
@@ -161,7 +164,7 @@ class LLMClient:
 
     @property
     def cache(self) -> ResponseCache | None:
-        """The response cache, shared with the clients of the other endpoints."""
+        """The response cache, shared with the clients of the other presets."""
         return self._cache
 
     # -- model resolution -------------------------------------------------------------
@@ -169,8 +172,9 @@ class LLMClient:
     def resolve_model(self, model: str | None, thinking: bool) -> tuple[str, dict[str, Any]]:
         """Return the model name to send and any extra request body for thinking mode."""
         name = model or self.settings.llm.models.writer
-        mode = self.settings.llm.thinking
-        suffix = self.settings.llm.thinking_suffix
+        settings = self.settings.llm.for_model(name)
+        mode = settings.thinking
+        suffix = settings.thinking_suffix
         if mode == "model-suffix":
             if thinking and not name.endswith(suffix):
                 name += suffix
@@ -200,10 +204,10 @@ class LLMClient:
         response_format: dict[str, Any] | None = None,
     ) -> LLMResult:
         name, thinking_body = self.resolve_model(model, thinking)
-        llm = self.settings.llm
-        extra_body = {**llm.extra_body, **llm.model_extra_body.get(name, {}), **thinking_body}
-        params: dict[str, Any] = {self.settings.llm.max_tokens_key: max_tokens}
-        if self.settings.llm.send_temperature:
+        settings = self.settings.llm.for_model(name)  # the provider's, the model's, the preset's
+        extra_body = {**settings.extra_body, **thinking_body}
+        params: dict[str, Any] = {settings.max_tokens_key: max_tokens}
+        if settings.send_temperature:
             params["temperature"] = temperature
         if response_format:
             params["response_format"] = response_format
@@ -223,7 +227,7 @@ class LLMClient:
             )
 
         started = time.perf_counter()
-        reply = self._create_with_retries(name, messages, params, stage)
+        reply = self._create_with_retries(name, messages, params, stage, settings)
         latency_ms = int((time.perf_counter() - started) * 1000)
 
         answer, inline_reasoning = split_reasoning(reply.content)
@@ -293,13 +297,18 @@ class LLMClient:
     # -- internals --------------------------------------------------------------------
 
     def _create_with_retries(
-        self, name: str, messages: list[Message], params: dict[str, Any], stage: str
+        self,
+        name: str,
+        messages: list[Message],
+        params: dict[str, Any],
+        stage: str,
+        settings: ModelSettings,
     ) -> _Reply:
-        attempts = self.settings.llm.max_retries + 1
+        attempts = settings.max_retries + 1
         for attempt in range(1, attempts + 1):
             check_limit()
             try:
-                return self._request(name, messages, params)
+                return self._request(name, messages, params, settings)
             except _RETRYABLE as exc:
                 self._retry_or_raise(exc, attempt, attempts, name, stage)
             except openai.APIStatusError as exc:
@@ -336,18 +345,22 @@ class LLMClient:
         )
         self._sleep(delay)
 
-    def _request(self, name: str, messages: list[Message], params: dict[str, Any]) -> _Reply:
-        """One request, streamed unless `llm.stream = false`.
+    def _request(
+        self, name: str, messages: list[Message], params: dict[str, Any], settings: ModelSettings
+    ) -> _Reply:
+        """One request, streamed unless `stream = false` for the model, within the
+        model's `timeout_s`.
 
         Streaming makes the endpoint send the answer as it is generated, so a proxy in
         front of it (Cloudflare in front of the Public AI gateway cuts a response after
         about 100 seconds) never waits for a long answer. The token counts come with the
         last chunk (`stream_options.include_usage`).
         """
-        if not self.settings.llm.stream:
+        if not settings.stream:
             response = self._client.chat.completions.create(
                 model=name,
                 messages=messages,  # type: ignore[arg-type]
+                timeout=settings.timeout_s,
                 **params,
             )
             choice = response.choices[0]
@@ -369,6 +382,7 @@ class LLMClient:
             messages=messages,  # type: ignore[arg-type]
             stream=True,
             stream_options={"include_usage": True},
+            timeout=settings.timeout_s,
             **params,
         )
         with stream:

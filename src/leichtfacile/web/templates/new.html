@@ -9,6 +9,9 @@
   {% if error %}
   <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>
   {% endif %}
+  {% if not model_ready and not endpoints %}
+  <div class="alert form-error" role="alert">{{ icons.sev('warn') }}<p>{{ t('model.none') }} {% if model_page %}<a href="/model">{{ t('model.choose') }}</a>{% endif %}</p></div>
+  {% endif %}
 
   <form method="post" action="/jobs" enctype="multipart/form-data" class="newgrid" id="new-job">
     <section class="card src" aria-labelledby="src-h">
@@ -130,9 +133,9 @@
         <div>
           <label class="label" for="endpoint">{{ t('new.endpoint') }}</label>
           <select id="endpoint" name="endpoint">
-            {% for e in endpoints %}<option value="{{ e.name }}"{% if (form.endpoint or endpoints[0].name) == e.name %} selected{% endif %} data-writer="{{ e.writer }}" data-understand="{{ e.understand }}" data-judge="{{ e.judge }}">{{ e.label }}</option>{% endfor %}
+            {% for e in endpoints %}<option value="{{ e.name }}"{% if (form.endpoint or endpoints[0].name) == e.name %} selected{% endif %} data-writer="{{ e.writer }}" data-understand="{{ e.understand }}" data-judge="{{ e.judge }}" data-documents="{{ e.documents }}">{{ e.label }}{% if e.provider %} ({{ e.provider }}){% endif %}</option>{% endfor %}
           </select>
-          <p class="hint">{{ t('new.endpoint.hint') }}</p>
+          <p class="hint">{{ t('new.endpoint.hint') }} <span id="endpoint-documents" class="js-only">{{ t('model.documents.public') }}</span></p>
         </div>
         {% endif %}
 
@@ -154,7 +157,7 @@
           <button type="submit" class="btn btn-primary btn-lg">{{ t('new.create') }}</button>
           <a class="btn btn-lg" href="/">{{ t('new.cancel') }}</a>
         </div>
-        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm.models.writer }}</code></span></p>
+        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm.title if model_ready else t('model.none') }}</code></span></p>
       </div>
     </section>
   </form>

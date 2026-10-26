@@ -40,7 +40,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
     ref.add_argument("--results", type=Path, default=Path("eval/results"))
     ref.set_defaults(handler=_reference)
 
-    run = evsub.add_parser("run", help="run a condition over the pairs (needs the endpoint)")
+    run = evsub.add_parser("run", help="run a condition over the pairs (needs the model)")
     common(run)
     run.add_argument("--condition", choices=list(CONDITIONS), required=True)
     run.add_argument("--writer", help="writer model (default: llm.models.writer)")
@@ -55,7 +55,7 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
         "--redo", action="store_true", help="run pairs again even when they have a result"
     )
     run.add_argument("--results", type=Path, default=Path("eval/results"))
-    run.add_argument("--endpoint", help="a saved endpoint for this run (default: llm.endpoint)")
+    run.add_argument("--preset", help="a preset for this run (default: llm.preset)")
     run.add_argument(
         "--cache", action="store_true", help="reuse cached answers (llm.cache), cheap reruns"
     )

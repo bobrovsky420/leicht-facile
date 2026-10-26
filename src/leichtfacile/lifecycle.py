@@ -59,20 +59,21 @@ def job_counts(store: Store, job: Job) -> JobCounts:
 # -- deletion and retention ------------------------------------------------------------
 
 
-def remove_job(store: Store, llm: LLMClient, job_id: str) -> bool:
+def remove_job(store: Store, llm: LLMClient | None, job_id: str) -> bool:
     """Delete the job with its artifacts and calls, and its prompts and answers from the
-    response cache (`llm.cache`), which carry the document. False when the job does
-    not exist or a worker is running it."""
+    response cache (`llm.cache`), which carry the document (`llm` None: no client in
+    use, so no cache to clean). False when the job does not exist or a worker is
+    running it."""
     keys = store.cache_keys(job_id)
     if not store.delete_job(job_id):
         return False
-    if keys:
+    if keys and llm is not None:
         llm.forget_keys(keys)
     return True
 
 
 def purge_expired(
-    store: Store, llm: LLMClient, days: int, *, now: datetime | None = None
+    store: Store, llm: LLMClient | None, days: int, *, now: datetime | None = None
 ) -> list[str]:
     """Delete every job not changed for `days` days (`data.retention_days`), with its
     artifacts, calls and cache rows; running jobs stay. 0 days

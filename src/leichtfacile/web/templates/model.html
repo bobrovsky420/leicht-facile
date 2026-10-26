@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons with context %}
+{% block title %}{{ t('site.model') }} - Leicht·Facile{% endblock %}
+{% block content %}
+<div class="page page-form page-model">
+  <h1 style="margin-bottom: 4px">{{ t('site.model') }}</h1>
+  <p class="lead" style="margin-bottom: 16px">{{ t('model.intro') }}</p>
+
+  {% if error %}
+  <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>
+  {% endif %}
+  {% if message %}
+  <div class="alert alert-ok" role="status">{{ icons.sev('present') }}<p>{{ message }}</p></div>
+  {% endif %}
+  {% if not editable %}
+  <p class="hint locked">{{ t('model.overridden', source=locked_by) if locked_by else t('model.readonly') }}</p>
+  {% endif %}
+
+  {# One form: the radio list, the key of the chosen preset's provider, the actions and
+     the fine-tune panel. Without JavaScript the key field of every provider is shown; with
+     the :has() selector the chosen one's alone (app.css). #}
+  <form method="post" action="/model" class="model-form" autocomplete="off">
+    {% for group in groups %}
+    <section class="card" aria-labelledby="g-{{ group.key }}">
+      <div class="card-head"><h2 id="g-{{ group.key }}">{{ group.title }}</h2></div>
+      <div class="optlist optlist-plain">
+        {% for e in group.entries %}
+        <div class="opt model-opt status-{{ e.status }}">
+          {% set id = 'p-' ~ group.key ~ '-' ~ loop.index %}
+          <input type="radio" id="{{ id }}" name="preset" value="{{ e.value }}"{% if e.selected %} checked{% endif %}{% if not e.selectable or not editable %} disabled{% endif %}>
+          <div class="opt-text">
+            <label class="opt-title" for="{{ id }}">{{ e.label }}{% if e.in_use %}<span class="tag">{{ t('model.in_use') }}</span>{% endif %}<span class="model-status"><span class="ep-dot" aria-hidden="true"></span>{{ e.status_text }}</span></label>
+            <span class="opt-desc">{{ e.provider_label }} · {{ e.desc }}</span>
+            {% if e.key and editable %}
+            <div class="key-field">
+              <label class="label" for="key-{{ id }}">{{ t('model.key', provider=e.provider_label) }}</label>
+              <input id="key-{{ id }}" name="api_key_{{ e.provider }}" type="password" autocomplete="off" spellcheck="false" placeholder="{{ t('model.key.placeholder') }}">
+              <span class="hint">{% if e.key.has_key %}{{ t('model.key.saved') }} {% endif %}{% if e.key.key_url %}<a href="{{ e.key.key_url }}" rel="noopener" target="_blank">{{ t('model.key.where') }}</a>{% endif %}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    {% if editable %}
+    <div class="actions model-actions">
+      <button type="submit" name="action" value="use" class="btn btn-primary btn-lg">{{ t('model.use') }}</button>
+      <button type="submit" name="action" value="check" class="btn btn-lg">{{ t('model.check') }}</button>
+      <button type="submit" name="action" value="test" class="btn btn-lg">{{ t('model.test') }}</button>
+    </div>
+
+    <details class="card finetune"{% if form.name or form.writer %} open{% endif %}>
+      <summary>{{ icons.icon('chevron-right', 12) }}{{ t('model.finetune') }}</summary>
+      <div class="card-body">
+        <p class="hint" style="margin-bottom: 12px">{{ t('model.finetune.intro') }}</p>
+        <div class="fields">
+          <div><label class="label" for="ft-name">{{ t('model.finetune.name') }}</label>
+            <input id="ft-name" name="name" type="text" value="{{ form.name or '' }}" pattern="[a-z0-9][a-z0-9_-]*" placeholder="{{ t('model.finetune.name.hint') }}"></div>
+          <div><label class="label" for="ft-writer">{{ t('model.finetune.writer') }}</label>
+            <input id="ft-writer" name="writer" type="text" value="{{ form.writer or '' }}"></div>
+          <div><label class="label" for="ft-understand">{{ t('model.finetune.understand') }}</label>
+            <input id="ft-understand" name="understand" type="text" value="{{ form.understand or '' }}"></div>
+          <div><label class="label" for="ft-judge">{{ t('model.finetune.judge') }}</label>
+            <input id="ft-judge" name="judge" type="text" value="{{ form.judge or '' }}"></div>
+          <p class="hint">{{ t('model.finetune.models.hint') }}</p>
+          <fieldset class="think">
+            <legend>{{ t('model.finetune.think') }}</legend>
+            {% for stage in think_stages %}
+            <label class="inline"><input type="checkbox" name="think_{{ stage }}" value="1"{% if form.get('think_' ~ stage) %} checked{% endif %}> {{ t('step.' ~ stage ~ '.title') }}</label>
+            {% endfor %}
+          </fieldset>
+          <div><label class="label" for="ft-timeout">{{ t('model.finetune.timeout') }}</label>
+            <input id="ft-timeout" name="timeout_s" type="number" min="1" step="1" value="{{ form.timeout_s or '' }}" style="max-width: 160px"></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button type="submit" name="action" value="save" class="btn btn-lg">{{ t('model.finetune.save') }}</button>
+      </div>
+    </details>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

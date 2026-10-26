@@ -205,13 +205,15 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
   a link to `/`. Main nav: **Drafts** (`/`) with a count badge of the jobs in
   `needs_review` (`aria-label` "3 drafts need review") and **New draft** (`/new`).
   The current section has a 2 px accent underline and `aria-current`.
-- Right: the endpoint indicator, a dot, "Endpoint" and the configured model name
-  (`settings.llm.models.writer`, mono 12). The dot is grey until `app.js` has the `/readyz`
-  answer: green when the endpoint is reachable and the model listed, amber when it
-  is reachable without the model, red when it is unreachable. The full sentence
-  (the existing `js.endpoint.*` texts) goes into the indicator's `title` and
-  `aria-label`. `app.js` keeps the answer for 5 minutes in `sessionStorage`, so
-  moving between pages does not call the endpoint's model list each time.
+- Right: the model indicator, a dot, "Model" and the preset in use (`settings.llm.title`,
+  mono 12; "No AI model is ready yet" while the preset lacks its key), a link to the
+  model page (§5.9). The dot is grey until `app.js` has the `/readyz` answer: green when
+  the provider is reachable and the model listed, amber when it is reachable without the
+  model, red when it is unreachable or the preset is not ready. The full sentence (the
+  `js.endpoint.*` texts) goes into the indicator's `title` and `aria-label`. `app.js`
+  keeps the answer for 5 minutes in `sessionStorage`, so moving between pages does not
+  call the provider's model list each time. The main nav has a fourth entry, **AI
+  model**, unless an organisation offers one preset alone (`llm.offer`).
 - The language switch (EN | DE, as today) and the API link.
 - First focusable element: a "Skip to content" link.
 - The tagline leaves the header (it opens the empty state, §5.2); the footer leaves
@@ -315,10 +317,12 @@ them into local time and "Today" or "Yesterday".
     (from `STEPS_BY_CONDITION`). All three sequences are rendered and CSS shows the
     checked one's (`:has()`), so it works without JavaScript.
   - Title (optional).
-  - Model endpoint, a select, only when at least two endpoints are ready (built 24
-    October 2026): the one in use first and selected, each option the endpoint's label,
-    the hint "For this draft only; the endpoint in use stays". The script lets the Models
-    placeholders below follow the choice.
+  - AI model, a select, only when at least two presets are ready (built 24 October
+    2026, presets since 26 October): the one in use first and selected, each option the
+    preset's label and its provider, the hint "For this draft only; the model in use
+    stays", with "public documents only" when the chosen preset takes no personal data.
+    The script lets the Models placeholders below follow the choice. Without a ready
+    preset the page opens with a banner that links to the model page.
   - Models, a closed `<details>`: Writer, Reader (fact sheet), Judge, with the
     configured names as placeholders and the existing hint.
   - The decision mode's fields (§5.7).
@@ -602,6 +606,42 @@ suggestion), then the document findings grouped by rule as on the review page. E
 No JavaScript is needed; the tokens and components are those of §3 and §4
 (`.check-block`, `.check-issues`).
 
+### 5.9 AI model (`/model`, `model.html`, built 26 October 2026)
+
+The page a non-technical user sets the model up on, without the command line
+(`web/model.py`, [configuration.md](configuration.md#the-model)). One form, plain POSTs
+with an `action` field, so it works without JavaScript:
+
+- Three cards, the presets in groups: **Switzerland** (`location = "ch"`), **This
+  computer** (`local`: the presets of local providers and, when a server answers, every
+  model it lists; a server that does not answer is one greyed row "not running"), and
+  **Clouds: public documents only** (the rest). Each row is a radio with the preset's
+  label, "in use" as a tag, a status with a dot (ready, needs a key, running, not
+  running, not ready with the reason) and a line with the provider, where the text goes,
+  which documents may go there and "about USD 0.02 per page" (from the writer's and the
+  judge's prices, an order of magnitude; "no price per token" for a server of one's
+  own). The shipped default is pre-selected on a fresh install.
+- Under a row whose provider takes a key: the key field (`api_key_<provider>`,
+  `type="password"`, never shown again; "A key is saved" when one is), with "Where do I
+  get a key?" linking the provider's page. CSS `:has()` shows the chosen row's field
+  alone; without it every field shows.
+- Three buttons: **Use this model** (saves the key into the `.env` next to the config
+  file and the choice into it, reloads the registry, redirects to `/model?saved=<name>`
+  with "<name> is in use."), **Check the key** (the provider's model list with the key
+  given or saved; says how many models it lists and whether the writer is among them, or
+  why it did not answer; saves nothing) and **Make a test call** (one short call on a
+  ready preset; the answer, the time and the token counts).
+- **Fine-tune**, a closed `<details>`: a preset of the user's own on the chosen
+  preset's provider: name, writer, reader and judge (text, the chosen model when
+  empty), the stages that think (checkboxes), seconds per call; "Save as my preset"
+  writes `[presets.<name>]` and uses it.
+- On a server published beyond the machine (every user shares one login) the page shows
+  the choice and nothing else; a source that wins over the config file
+  (`leichtfacile.toml`, a variable) says so and locks it too. With `llm.offer` naming one
+  preset the page is 404 and the nav has no link.
+- Texts under `model.*` (§8); the groups, locations, documents and statuses are built
+  from data (`test_keys_built_from_data_exist`).
+
 ## 6. Behaviour (`app.js`)
 
 Kept: the source tabs, filling an example, the endpoint check, relative times, the
@@ -663,7 +703,7 @@ New keys with their English text (German written during the redesign):
 
 ```text
 site.skip                 Skip to content
-site.endpoint             Endpoint
+site.endpoint             Model
 nav.review_count.one      {n} draft needs review
 nav.review_count.other    {n} drafts need review
 
@@ -723,8 +763,8 @@ new.condition.P0.desc     One prompt, for comparison
 new.default               Default
 new.stages                Stages that run
 new.models_defaults       configured defaults
-new.endpoint              Model endpoint
-new.endpoint.hint         For this draft only; the endpoint in use stays.
+new.endpoint              AI model
+new.endpoint.hint         For this draft only; the model in use stays.
 new.create                Create draft
 new.cancel                Cancel
 
@@ -894,6 +934,7 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
 | `web/templates/_icons.html` | New: icon macros |
 | `web/templates/index.html` | Rewritten: the drafts list |
 | `web/templates/new.html` | New: the form, moved from `index.html` |
+| `web/templates/model.html`, `web/model.py` | New (26 October 2026): the model page (§5.9) |
 | `web/templates/job.html`, `_progress.html` | Rewritten: header, stepper with usage, result cards |
 | `web/templates/review.html` | Rewritten: header, strip, panes, checks tabs, reader view with export panel |
 | `web/static/water.css` | Deleted |

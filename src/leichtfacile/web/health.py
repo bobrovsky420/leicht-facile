@@ -4,12 +4,13 @@
 browser opener of `leichtfacile serve` and a load balancer ask it every few seconds, and
 none of them should make the server call the paid model endpoint with the organisation's key.
 
-`GET /readyz` adds the model endpoint: reachable, and are the configured models
-listed. The endpoint is asked at most once per `READY_CACHE_S` seconds, whoever asks
-and however often (one lock, so concurrent callers wait for one answer instead of each
-making a call), and the answer carries booleans and the configured names, never the
-endpoint's catalogue. The service stays `200` while it runs, `status` says `ok` or
-`degraded`: the review pages, the exports and the checker work without the endpoint.
+`GET /readyz` adds the model: is the preset in use ready (its key present), is its
+provider reachable, and are the configured models listed. The provider is asked at most
+once per `READY_CACHE_S` seconds, whoever asks and however often (one lock, so
+concurrent callers wait for one answer instead of each making a call), and the answer
+carries booleans and the configured names, never the provider's catalogue. The service
+stays `200` while it runs, `status` says `ok` or `degraded`: the review pages, the
+exports and the checker work without the model.
 """
 
 from __future__ import annotations
@@ -27,10 +28,12 @@ from fastapi import APIRouter, Request
 from leichtfacile import __version__
 from leichtfacile.config import listed
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.llm.registry import Registry
 
 log = logging.getLogger(__name__)
 router = APIRouter()
 READY_CACHE_S = 30.0
+NOT_READY = "the preset is not ready (no key)"
 
 
 @dataclass(frozen=True)
@@ -42,32 +45,44 @@ class EndpointStatus:
 
 
 class EndpointCheck:
-    """`llm.list_models()` at most once per `ttl_s` seconds."""
+    """`list_models()` of the client in use at most once per `ttl_s` seconds, and anew
+    when the preset in use changed (the registry reloaded)."""
 
     def __init__(
         self,
-        llm: LLMClient,
+        source: Registry | LLMClient,
         ttl_s: float = READY_CACHE_S,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        self.llm = llm
+        self.source = source
         self.ttl_s = ttl_s
         self._clock = clock
         self._lock = threading.Lock()
         self._status: EndpointStatus | None = None
         self._at = -float("inf")
+        self._for: tuple[str, str] | None = None
 
     def status(self) -> EndpointStatus:
         with self._lock:
             now = self._clock()
-            if self._status is None or now - self._at >= self.ttl_s:
+            current = self._current()
+            if self._status is None or now - self._at >= self.ttl_s or current != self._for:
                 self._status = self._check()
                 self._at = now
+                self._for = current
             return self._status
 
+    def _current(self) -> tuple[str, str]:
+        if isinstance(self.source, Registry):
+            return (self.source.in_use, self.source.settings.llm.url)
+        return ("", self.source.settings.llm.url)
+
     def _check(self) -> EndpointStatus:
+        llm = self.source.llm if isinstance(self.source, Registry) else self.source
+        if llm is None:
+            return EndpointStatus(False, datetime.now(UTC), error=NOT_READY)
         try:
-            models = self.llm.list_models()
+            models = llm.list_models()
         except Exception as exc:  # any failure is reported, never raised
             log.warning("LLM endpoint check failed: %s", type(exc).__name__)
             return EndpointStatus(False, datetime.now(UTC), error=_error_text(exc))
@@ -82,10 +97,13 @@ def healthz() -> dict:
 
 @router.get("/readyz")
 def readyz(request: Request) -> dict:
-    """Readiness: liveness plus the cached check of the model endpoint."""
-    settings = request.app.state.settings
-    status: EndpointStatus = request.app.state.endpoint_check.status()
+    """Readiness: liveness plus the cached check of the model."""
+    state = request.app.state
+    settings = state.settings
+    status: EndpointStatus = state.endpoint_check.status()
     llm: dict = {
+        "preset": settings.llm.preset,
+        "ready": state.registry.is_ready(),
         "base_url": _host_only(settings.llm.url),
         "model": settings.llm.models.writer,
         "judge_model": settings.llm.judge_model,

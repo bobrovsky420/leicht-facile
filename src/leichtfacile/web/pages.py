@@ -108,6 +108,10 @@ def _render(request: Request, name: str, status_code: int = 200, **context) -> H
     state = request.app.state
     context.setdefault("settings", state.settings)
     context.setdefault("review_count", state.store.count_jobs("needs_review"))
+    # The app bar: the preset in use and whether it is ready; the link to the model
+    # page, unless an organisation offers one preset alone (web/model.py).
+    context.setdefault("model_ready", state.registry.is_ready())
+    context.setdefault("model_page", len(state.settings.llm.offer) != 1)
     context.update(ui_lang=t.lang, here=here)
     return TEMPLATES.TemplateResponse(request, name, context, status_code=status_code)
 
@@ -260,17 +264,20 @@ def new_draft(request: Request, example: str | None = None) -> HTMLResponse:
 
 
 def _endpoint_options(state) -> list[dict[str, str]]:
-    """The endpoints a draft may pick, the one in use first, with the model names the
-    form shows as placeholders; empty when there is no choice (the select stays away)."""
+    """The ready presets a draft may pick, the one in use first, with the model names
+    the form shows as placeholders; empty when there is no choice (the select stays
+    away)."""
     found = [
         {
             "name": name,
             "label": llm.title,
+            "provider": llm.provider_label or "",
+            "documents": llm.documents,
             "writer": llm.models.writer,
             "understand": llm.understand_model,
             "judge": llm.judge_model,
         }
-        for name, llm in state.orchestrator.endpoints()
+        for name, llm in state.registry.ready()
     ]
     return found if len(found) > 1 else []
 

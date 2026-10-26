@@ -10,6 +10,7 @@ from typing import get_args
 import pytest
 from fastapi.testclient import TestClient
 
+from leichtfacile.config import Documents, Location
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.rules import RULES
 from leichtfacile.rules.messages import MESSAGES, render_finding
@@ -119,6 +120,11 @@ def test_keys_built_from_data_exist() -> None:
         + [f"new.level.{level}.desc" for level in ("A2", "B1")]
         + [f"new.condition.{c}.{part}" for c in ("P2", "P1", "P0") for part in ("title", "desc")]
         + [f"reader.{fmt}.desc" for fmt in ("md", "html", "docx", "json")]
+        # the model page (web/model.py): groups, where the text goes, the status
+        + [f"model.group.{g}" for g in ("ch", "local", "cloud")]
+        + [f"model.location.{loc}" for loc in get_args(Location)]
+        + [f"model.documents.{d}" for d in get_args(Documents)]
+        + [f"model.status.{s}" for s in ("ready", "needs_key", "running", "not_running", "missing")]
         + [f"rule.{rule_id}" for rule_id in RULES]
     )
     assert not [k for k in built if k not in english]

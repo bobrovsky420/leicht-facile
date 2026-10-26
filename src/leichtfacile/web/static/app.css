@@ -699,3 +699,33 @@ li.linkable:hover, dd.linkable:hover, .omission.linkable:hover { color: var(--lf
   .run-line { align-items: flex-start; }
   .pane.checks .tabs { overflow-x: auto; }
 }
+
+/* -- The model page (docs/ui-design.md §5.9) ------------------------------------------ */
+.page-model { max-width: 880px; }
+.page-model .lead { color: var(--lf-text-2); font-size: 14px; line-height: 20px; }
+.page-model .card + .card, .page-model .card + .actions, .page-model .finetune { margin-top: 16px; }
+.optlist-plain { border: 0; border-radius: 0; }
+.model-opt { padding: 10px 16px; }
+.model-opt .opt-title { gap: 8px; flex-wrap: wrap; cursor: pointer; }
+.model-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 400; color: var(--lf-text-2); }
+.status-ready .model-status .ep-dot, .status-running .model-status .ep-dot { background: var(--lf-ok); }
+.status-needs_key .model-status .ep-dot { background: var(--lf-warn); }
+.status-missing .model-status .ep-dot, .status-not_running .model-status .ep-dot { background: var(--lf-error); }
+.model-opt input:disabled + .opt-text { color: var(--lf-muted); }
+.key-field { display: flex; flex-direction: column; gap: 4px; max-width: 480px; margin-top: 8px; }
+.key-field input { font: 400 13px/18px var(--lf-mono); }
+/* With :has() the key field of the chosen preset alone is shown; without it all of them. */
+.model-opt:not(:has(input:checked)) .key-field { display: none; }
+.model-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.locked { margin-bottom: 12px; }
+.alert-ok { border-color: var(--lf-ok-line); background: var(--lf-ok-weak); }
+details.finetune > summary { display: flex; align-items: center; gap: 6px; padding: 12px 16px; font-size: 15px; font-weight: 600; list-style: none; cursor: pointer; }
+details.finetune > summary::-webkit-details-marker { display: none; }
+details.finetune > summary .ico { transition: transform .15s; }
+details.finetune[open] > summary .ico { transform: rotate(90deg); }
+details.finetune[open] > summary { border-bottom: 1px solid var(--lf-border); }
+.finetune .fields { display: flex; flex-direction: column; gap: 10px; }
+.finetune .fields input[type=text] { font: 400 13px/18px var(--lf-mono); }
+.finetune .think { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 0; border: 0; }
+.finetune .think legend { padding: 0; margin-bottom: 6px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--lf-text-2); }
+.finetune .think .inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }

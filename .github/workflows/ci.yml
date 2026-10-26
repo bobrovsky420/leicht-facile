@@ -64,10 +64,12 @@ jobs:
       - run: uv sync --frozen --no-dev
       - name: Start it with an unreachable endpoint and call /healthz and /readyz
         env:
-          LEICHTFACILE_LLM__ENDPOINT: ci
-          LEICHTFACILE_ENDPOINTS__CI__URL: http://127.0.0.1:9/v1
-          LEICHTFACILE_ENDPOINTS__CI__API_KEY: none
-          LEICHTFACILE_ENDPOINTS__CI__MODELS__WRITER: any-model
+          # A provider and a preset of their own, without any file (docs/configuration.md).
+          LEICHTFACILE_LLM__PRESET: ci
+          LEICHTFACILE_PROVIDERS__CI__URL: http://127.0.0.1:9/v1
+          LEICHTFACILE_PROVIDERS__CI__API_KEY: none
+          LEICHTFACILE_PRESETS__CI__PROVIDER: ci
+          LEICHTFACILE_PRESETS__CI__MODELS__WRITER: any-model
           LEICHTFACILE_DATA__DIR: ${{ runner.temp }}/data
         run: |
           .venv/bin/leichtfacile serve --no-browser > serve.log 2>&1 &

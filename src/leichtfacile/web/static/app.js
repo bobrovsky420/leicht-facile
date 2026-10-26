@@ -70,7 +70,10 @@
       const llm = (data && data.llm) || {};
       let state = "unknown";
       let text = t("endpoint.unknown");
-      if (data && llm.reachable) {
+      if (data && llm.ready === false) {
+        state = "bad";
+        text = t("endpoint.not_ready");
+      } else if (data && llm.reachable) {
         state = llm.model_listed ? "ok" : "warn";
         text = t(llm.model_listed ? "endpoint.listed" : "endpoint.unlisted", { url: llm.base_url });
       } else if (data) {
@@ -215,11 +218,14 @@
     reveal();
     noticePlaceholder();
 
-    // The endpoint picked for this draft: the model placeholders follow its models.
+    // The preset picked for this draft: the model placeholders follow its models, and
+    // the note says when it takes public documents only.
     const endpointSelect = $("#endpoint");
     const modelPlaceholders = () => {
       const option = endpointSelect && endpointSelect.options[endpointSelect.selectedIndex];
       if (!option) return;
+      const note = $("#endpoint-documents");
+      if (note) note.hidden = option.dataset.documents !== "public";
       [["writer_model", "writer"], ["understand_model", "understand"], ["judge_model", "judge"]].forEach(
         ([id, key]) => {
           const input = $(`#${id}`);

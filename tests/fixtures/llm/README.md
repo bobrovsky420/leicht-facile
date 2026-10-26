@@ -14,5 +14,5 @@ checking code against real model behaviour; they are not evaluation results.
 | `letter_write.txt` | Answer of the write prompt (thinking off) |
 | `letter_meta.json` | Settings, tokens, latency and the prompt versions used |
 
-Re-record them with the endpoint in use (`llm.endpoint`,
+Re-record them with the endpoint in use (`llm.preset`,
 [configuration.md](../../../docs/configuration.md)) when the prompts change.

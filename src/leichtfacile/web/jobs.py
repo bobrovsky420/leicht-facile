@@ -100,7 +100,7 @@ class Submission:
     lang: str | None = None  # None or "auto": detect
     level: str = "A2"
     condition: str = "P2"
-    endpoint: str | None = None  # the endpoint for this job; None or "": the one in use
+    endpoint: str | None = None  # the preset for this job; None or "": the one in use
     writer_model: str | None = None
     understand_model: str | None = None
     judge_model: str | None = None
@@ -136,7 +136,7 @@ async def submission_form(
 ) -> Submission:
     """The multipart form of `POST /jobs` and `POST /api/jobs` as one submission; FastAPI
     fills it for both routes (`Depends`). `endpoint` runs the job on another ready
-    endpoint (docs/configuration.md); `mode` is `standard` or `decision`
+    preset (docs/configuration.md); `mode` is `standard` or `decision`
     (docs/use-case-decisions.md); `addressee` and `notice` belong to the decision mode."""
     data = await file.read() if file is not None and file.filename else None
     return Submission(
@@ -170,7 +170,7 @@ async def start_job(state: Any, sub: Submission) -> Job:
         state.settings,
         sub,
         state.ingest_slots,
-        endpoints=state.orchestrator.clients,
+        presets=[name for name, _ in state.registry.ready()],
     )
     state.runner.submit(job.id)
     return job
@@ -229,11 +229,12 @@ def create_job(
     sub: Submission,
     slots: threading.Semaphore | None = None,
     *,
-    endpoints: Collection[str] = (),
+    presets: Collection[str] | None = None,
 ) -> Job:
     """The job for a submission, queued and with its source stored. `slots` limits how
-    many submissions are read at once (`ingest_slot`); `endpoints` are the other
-    endpoints a submission may pick (the one in use always may)."""
+    many submissions are read at once (`ingest_slot`); `presets` are the ready presets
+    a submission may pick, the one in use among them when it is ready (None: no
+    check, a command's own client)."""
     if sub.level not in LEVELS:
         raise SubmissionError("unknown_level", level=sub.level)
     condition = sub.condition
@@ -242,7 +243,9 @@ def create_job(
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
     endpoint = (sub.endpoint or "").strip() or None
-    if endpoint is not None and endpoint != settings.llm.endpoint and endpoint not in endpoints:
+    if presets is not None and (endpoint or settings.llm.preset) not in presets:
+        if endpoint is None or endpoint == settings.llm.preset:
+            raise SubmissionError("no_model")  # the preset in use is not ready
         raise SubmissionError("unknown_endpoint", name=endpoint)
     # server.allow_private_urls: an intranet that needs internal pages
     with ingest_slot(slots):

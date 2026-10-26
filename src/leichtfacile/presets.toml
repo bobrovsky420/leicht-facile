@@ -1,179 +1,425 @@
-# The known model endpoints (docs/configuration.md, "Presets"): one table per preset, in
-# the order `leichtfacile setup` offers them. A table takes the keys of an
-# [endpoints.<name>] table, `label` among them; the settings check it like any other
-# source. A new table is a new preset. `in_menu = false` leaves a rarely used preset out
-# of setup's list; `leichtfacile setup <name>` still sets it up.
+# The known model providers and presets (docs/configuration.md, "Providers and presets").
 #
-# `[[<name>.choices]]` are the models setup offers for a preset, in this order: each a
-# `label` and the endpoint keys it sets, `models` among them (the judge is the writer
-# unless `models.judge` names another). Setup's last option is any model the endpoint
-# lists; a choice's writer given with `--model` brings the choice's keys too.
+# `[providers.<name>]`: where models run and how to reach them: the address, the key's
+# variable, headers, and the request settings every model there takes (thinking switch,
+# temperature, output budget field, extra body, timeout). `location` (ch, eu, us, world,
+# local) and `documents` (any, public) tell the interface what may be sent there;
+# `key_url` is where a key comes from; `discover = true` offers every model a local
+# server lists.
 #
-# A server of one's own has no model here, since each server names its own:
-# `leichtfacile setup <preset>` lists the server's models and asks which one. A preset
-# with a model would count as ready while nothing listens at its address.
+# `[providers.<name>.models.<model>]`: what one model needs over the provider's
+# settings, by its name or a pattern (`"gpt-5*"`); the table named after the model wins,
+# else the first pattern that matches. `input_usd` and `output_usd` are USD per million
+# tokens (the cost per page in the interface, the evaluation's "USD per page").
+#
+# `[presets.<name>]`: what the user picks: a provider, the models that write, read and
+# check (`models.judge` empty: the writer judges, or the 70B of an Apertus 8B when the
+# server lists it), a label, and any request setting as an override. A preset is named
+# after its models' versions and never changes meaning: a new model is a new preset. The
+# user's config file extends or adds providers and presets with tables of the same form.
+#
+# A request's settings come from the provider, then the table of the model called, then
+# the preset, then the user's tables of the same names. The interface and `leichtfacile
+# setup` list the presets in this file's order; `default` is the preset of a fresh install.
+
+default = "cscs-apertus"
+
+# -- Switzerland -------------------------------------------------------------------------
 
 # Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers.
 # Thinking models are separate model names ending in "-thinking". CSCS closes about one
 # long thinking stream in four midway (6 October 2026); the default retries
-# (llm.max_retries) make a hard failure rare.
-[cscs]
-label = "Apertus on the CSCS inference API"
+# (max_retries) make a hard failure rare.
+[providers.cscs]
+label = "CSCS inference API, Lugano"
 url = "https://api.inference.cscs.ch/v1"
 api_key_env = "CSCS_API_KEY"
-models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
+key_url = "https://portal.cscs.ch/"
+location = "ch"
+documents = "any"
 thinking = "model-suffix"
 
+[presets.cscs-apertus]
+provider = "cscs"
+label = "Apertus 8B, checked by Apertus 70B"
+models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
+
 # Apertus on the Public AI gateway, for public documents only: run by Metagov Inc. (US
-# nonprofit), requests go to compute partners. The 8B (Juelich, vLLM) thinks when asked
-# through the chat template; the 70B (Infomaniak) ignores the switch. The gateway caches
-# answers without regard to the switch, so extra_body turns its cache off. Its
-# "-thinking" names serve the older Apertus 1 without thinking. Checked on 6 October 2026.
-[apertus]
-label = "Apertus on the Public AI gateway (public documents only)"
+# nonprofit), requests go to compute partners (the 8B at Juelich, the 70B at Infomaniak).
+# The 8B (vLLM) thinks when asked through the chat template; the 70B ignores the switch.
+# The gateway caches answers without regard to the switch, so extra_body turns its cache
+# off. Its "-thinking" names serve the older Apertus 1 without thinking. Checked on
+# 6 October 2026.
+[providers.publicai]
+label = "Public AI gateway"
 url = "https://api.publicai.co/v1"
 api_key_env = "PUBLICAI_API_KEY"
-models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
+key_url = "https://platform.publicai.co/"
+location = "world"
+documents = "public"
 thinking = "chat-template"
 extra_body = { cache = { no-cache = true } }
 
-# Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only; US
-# cloud): public documents only. The 5.5 models refuse a temperature; the model list needs
-# the anthropic-version header. The endpoint ignores reasoning_effort and counts Claude's
-# adaptive thinking in max_tokens, so model_extra_body switches thinking off for each
-# model through the native field, with the value the model accepts: `disabled` for Haiku
-# 5.5, `between_tools` for Sonnet 5.5 (each refuses the other's; the endpoint refuses
-# `adaptive`, and with no tools in the pipeline Sonnet does not think). Opus 5.5 always
-# thinks (effort through `output_config = { effort = "low" }`). Checked 25 October 2026;
-# both choices ran so (docs/model-comparison.md).
-[anthropic]
-label = "Anthropic's Claude (US cloud, public documents only)"
+# Apertus at Public AI's list prices, by pattern: the evaluation prices every Apertus run
+# at them (`eval/score.py`), however a provider spells the name (CSCS charged nothing; the
+# Hugging Face router served Apertus 1, 2509); a quantised local build stays unpriced.
+[providers.publicai.models."*apertus-v1.5-8b*"]
+input_usd = 0.10
+output_usd = 0.20
+
+[providers.publicai.models."*apertus-8b*"]
+input_usd = 0.10
+output_usd = 0.20
+
+[providers.publicai.models."*apertus-v1.5-70b*"]
+input_usd = 0.82
+output_usd = 2.92
+
+[providers.publicai.models."*apertus-70b*"]
+input_usd = 0.82
+output_usd = 2.92
+
+[presets.publicai-apertus]
+provider = "publicai"
+label = "Apertus 8B, checked by Apertus 70B"
+models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
+
+# -- US clouds, public documents only ----------------------------------------------------
+
+# Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only). The
+# 5.5 models refuse a temperature; the model list needs the anthropic-version header. The
+# endpoint ignores reasoning_effort and counts Claude's adaptive thinking in max_tokens,
+# so each model's table switches thinking off through the native field, with the value
+# the model accepts: `disabled` for Haiku 5.5, `between_tools` for Sonnet 5.5 (each
+# refuses the other's; the endpoint refuses `adaptive`, and with no tools in the pipeline
+# Sonnet does not think). Opus 5.5 always thinks. Prices: Anthropic's list (25 October
+# 2026), Haiku up to 100K tokens of prompt. Both Haiku runs are in docs/model-comparison.md.
+[providers.anthropic]
+label = "Anthropic"
 url = "https://api.anthropic.com/v1"
 api_key_env = "ANTHROPIC_API_KEY"
+key_url = "https://platform.claude.com/settings/keys"
+location = "us"
+documents = "public"
 send_temperature = false
 headers = { anthropic-version = "2023-06-01" }
 
-[anthropic.model_extra_body]
-claude-haiku-5-5 = { thinking = { type = "disabled" } }
-claude-sonnet-5-5 = { thinking = { type = "between_tools" } }
+[providers.anthropic.models.claude-haiku-5-5]
+extra_body = { thinking = { type = "disabled" } }
+input_usd = 0.10
+output_usd = 0.50
 
-[[anthropic.choices]]
-label = "Claude Haiku 5.5 (fast, low cost)"
+[providers.anthropic.models.claude-sonnet-5-5]
+extra_body = { thinking = { type = "between_tools" } }
+input_usd = 2.00
+output_usd = 10.00
+
+[providers.anthropic.models.claude-opus-5-5]
+input_usd = 4.00
+output_usd = 20.00
+
+[providers.anthropic.models.claude-fable-5-1]
+input_usd = 10.00
+output_usd = 50.00
+
+[presets.claude-haiku-5-5]
+provider = "anthropic"
+label = "Claude Haiku 5.5"
 models = { writer = "claude-haiku-5-5" }
 
-[[anthropic.choices]]
-label = "Claude Sonnet 5.5 (larger, about 20 times the cost)"
+[presets.claude-haiku-5-5-sonnet]
+provider = "anthropic"
+label = "Claude Haiku 5.5, checked by Sonnet 5.5"
+models = { writer = "claude-haiku-5-5", judge = "claude-sonnet-5-5" }
+
+[presets.claude-sonnet-5-5]
+provider = "anthropic"
+label = "Claude Sonnet 5.5"
 models = { writer = "claude-sonnet-5-5" }
 
 # OpenAI's GPT-5 models (the current line: gpt-5.4-nano, gpt-5.6-luna, gpt-5.6-terra, ...)
-# refuse `max_tokens` and any temperature but their default; a GPT-4.1 model would take
-# `send_temperature = true` on the saved endpoint. Thinking is `reasoning_effort` (none,
-# low, medium, high, xhigh from 5.4 on): `thinking = "reasoning-effort"` on the saved
-# endpoint, with `thinking_stages = []` for none everywhere. Checked 25 October 2026.
-#
-# The choices send reasoning_effort none, but leave Understand a thinking stage for its
-# larger budget: on long German documents its answer passed the 6,000 tokens of a stage
-# that does not think (Luna and Nano, 25 October 2026). Without the field these models do
-# not reason either (checked on all three, 26 October 2026). Terra has not been evaluated.
-[openai]
-label = "OpenAI (US cloud, public documents only)"
+# refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes the
+# old fields. Thinking is `reasoning_effort` (none, low, medium, high, xhigh from 5.4 on):
+# the `gpt-5*` table sends none, but leaves Understand a thinking stage for its larger
+# budget: on long German documents its answer passed the 6,000 tokens of a stage that
+# does not think (Luna and Nano, 25 October 2026). Without the field these models do not
+# reason either (checked on all three, 26 October 2026). Terra has not been evaluated.
+# Prices: OpenAI's list, standard tier (25 October 2026).
+[providers.openai]
+label = "OpenAI"
 url = "https://api.openai.com/v1"
 api_key_env = "OPENAI_API_KEY"
+key_url = "https://platform.openai.com/api-keys"
+location = "us"
+documents = "public"
 max_tokens_key = "max_completion_tokens"
 send_temperature = false
 
-[[openai.choices]]
-label = "GPT-5.6 Luna (fast, low cost)"
+[providers.openai.models."gpt-5*"]
+thinking = "reasoning-effort"
+thinking_stages = ["understand"]
+
+[providers.openai.models."gpt-4*"]
+max_tokens_key = "max_tokens"
+send_temperature = true
+
+[providers.openai.models."gpt-5.6-luna"]
+input_usd = 0.20
+output_usd = 1.20
+
+[providers.openai.models."gpt-5.6-terra"]
+input_usd = 2.00
+output_usd = 12.00
+
+[providers.openai.models."gpt-5.4-nano"]
+input_usd = 0.20
+output_usd = 1.25
+
+# The rest of the line, for the evaluation's "USD per page" (not offered as presets).
+[providers.openai.models."gpt-5.4-mini"]
+input_usd = 0.75
+output_usd = 4.50
+
+[providers.openai.models."gpt-5.4"]
+input_usd = 2.50
+output_usd = 15.00
+
+[providers.openai.models."gpt-5.6-sol"]
+input_usd = 4.00
+output_usd = 20.00
+
+[providers.openai.models."gpt-5.5"]
+input_usd = 5.00
+output_usd = 30.00
+
+[providers.openai.models."gpt-5-nano"]
+input_usd = 0.05
+output_usd = 0.40
+
+[providers.openai.models."gpt-5-mini"]
+input_usd = 0.25
+output_usd = 2.00
+
+[providers.openai.models."gpt-4.1-mini"]
+input_usd = 0.40
+output_usd = 1.60
+
+[providers.openai.models."gpt-4.1"]
+input_usd = 2.00
+output_usd = 8.00
+
+[presets.gpt-5-6-luna]
+provider = "openai"
+label = "GPT-5.6 Luna"
 models = { writer = "gpt-5.6-luna" }
-thinking = "reasoning-effort"
-thinking_stages = ["understand"]
 
-[[openai.choices]]
-label = "GPT-5.6 Terra (larger, about 10 times the cost)"
+[presets.gpt-5-6-terra]
+provider = "openai"
+label = "GPT-5.6 Terra"
 models = { writer = "gpt-5.6-terra" }
-thinking = "reasoning-effort"
-thinking_stages = ["understand"]
 
-[[openai.choices]]
-label = "GPT-5.4 Nano (the smallest, low cost)"
+[presets.gpt-5-4-nano]
+provider = "openai"
+label = "GPT-5.4 Nano"
 models = { writer = "gpt-5.4-nano" }
-thinking = "reasoning-effort"
-thinking_stages = ["understand"]
 
-# Google's Gemini through its OpenAI-compatible endpoint (in beta; US cloud): public
-# documents only, and on the free tier Google uses the texts to improve its products.
-# Gemini 3 models always think: `reasoning_effort` none switches off only Gemini 2.5, and
-# Gemini 3.8 Flash takes low, medium (its default) or high (`minimal` is an error). The
-# thinking counts in max_tokens, so model_extra_body asks for the lowest level on every
-# call and the app's thinking switch stays off. Google advises against setting a
-# temperature on Gemini 3 (below its default of 1.0 it may loop). From Google's
-# documentation, 26 October 2026; not run yet, nor is the id form of the model list
-# (`gemini-...` or `models/gemini-...`) checked.
-[gemini]
-label = "Google's Gemini (US cloud, public documents only)"
+# Google's Gemini through its OpenAI-compatible endpoint (in beta). On the free tier
+# Google uses the texts to improve its products. Gemini 3 models always think:
+# `reasoning_effort` none switches off only Gemini 2.5, and Gemini 3.8 Flash takes low,
+# medium (its default) or high (`minimal` is an error). The thinking counts in
+# max_tokens, so the model's table asks for the lowest level on every call and the app's
+# thinking switch stays off. Google advises against setting a temperature on Gemini 3
+# (below its default of 1.0 it may loop). From Google's documentation, 26 October 2026;
+# not run yet, nor is the id form of the model list (`gemini-...` or `models/gemini-...`)
+# checked. Price: the paid tier until 31 December 2026, twice as much from 2027.
+[providers.gemini]
+label = "Google Gemini"
 url = "https://generativelanguage.googleapis.com/v1beta/openai"
 api_key_env = "GEMINI_API_KEY"
+key_url = "https://aistudio.google.com/apikey"
+location = "us"
+documents = "public"
 send_temperature = false
 
-[gemini.model_extra_body]
-"gemini-3.8-flash" = { reasoning_effort = "low" }
+[providers.gemini.models."gemini-3.8-flash"]
+extra_body = { reasoning_effort = "low" }
+input_usd = 0.75
+output_usd = 3.75
 
-[[gemini.choices]]
-label = "Gemini 3.8 Flash (fast, moderate cost)"
+[presets.gemini-3-8-flash]
+provider = "gemini"
+label = "Gemini 3.8 Flash"
 models = { writer = "gemini-3.8-flash" }
 
+# OpenRouter, a gateway to many providers (US company), with `data_collection = "deny"`
+# so that it routes to no provider that stores prompts; the models' own providers see the
+# text. Thinking is OpenRouter's `reasoning` field; GPT and Gemini also take
+# reasoning_effort. Ids and prices from its model list (26 October 2026; Gemini costs 10 %
+# more than at Google); not run with the app yet.
+[providers.openrouter]
+label = "OpenRouter"
+url = "https://openrouter.ai/api/v1"
+api_key_env = "OPENROUTER_API_KEY"
+key_url = "https://openrouter.ai/settings/keys"
+location = "world"
+documents = "public"
+extra_body = { provider = { data_collection = "deny" } }
+
+[providers.openrouter.models."anthropic/claude-haiku-5.5"]
+extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+send_temperature = false
+input_usd = 0.10
+output_usd = 0.50
+
+[providers.openrouter.models."anthropic/claude-sonnet-5.5"]
+extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+send_temperature = false
+input_usd = 2.00
+output_usd = 10.00
+
+[providers.openrouter.models."openai/gpt-5.6-luna"]
+extra_body = { provider = { data_collection = "deny" }, reasoning = { effort = "none" } }
+send_temperature = false
+input_usd = 0.20
+output_usd = 1.20
+
+[providers.openrouter.models."google/gemini-3.8-flash"]
+extra_body = { provider = { data_collection = "deny" }, reasoning = { effort = "low" } }
+send_temperature = false
+input_usd = 0.825
+output_usd = 4.125
+
+[providers.openrouter.models."qwen/qwen3.5-27b"]
+extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+input_usd = 0.27
+output_usd = 2.16
+
+[presets.openrouter-claude-haiku-5-5]
+provider = "openrouter"
+label = "Claude Haiku 5.5"
+models = { writer = "anthropic/claude-haiku-5.5" }
+
+[presets.openrouter-claude-haiku-5-5-sonnet]
+provider = "openrouter"
+label = "Claude Haiku 5.5, checked by Sonnet 5.5"
+models = { writer = "anthropic/claude-haiku-5.5", judge = "anthropic/claude-sonnet-5.5" }
+
+[presets.openrouter-gpt-5-6-luna]
+provider = "openrouter"
+label = "GPT-5.6 Luna"
+models = { writer = "openai/gpt-5.6-luna" }
+
+[presets.openrouter-gemini-3-8-flash]
+provider = "openrouter"
+label = "Gemini 3.8 Flash"
+models = { writer = "google/gemini-3.8-flash" }
+
+[presets.openrouter-qwen3-5-27b]
+provider = "openrouter"
+label = "Qwen 3.5 27B (open weights)"
+models = { writer = "qwen/qwen3.5-27b" }
+
+# -- servers of one's own: no preset, the server names its models -------------------------
+
 # llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server
-# (`--base-url`). Such a server takes any key. With `--jinja` llama.cpp switches thinking
-# through the chat template; on a small GPU a thinking call takes minutes, so one call
-# may take 30 minutes (docs/quickstart.md, "Running a model yourself").
-[local]
-label = "llama.cpp or another server of your own (port 8080)"
+# (`setup local --base-url`). Such a server takes any key. With `--jinja` llama.cpp
+# switches thinking through the chat template; on a small GPU a thinking call takes
+# minutes, so one call may take 30 minutes (docs/quickstart.md, "Running a model yourself").
+[providers.local]
+label = "llama.cpp on this computer (port 8080)"
 url = "http://127.0.0.1:8080/v1"
 api_key = "local"
+location = "local"
+documents = "any"
+discover = true
 thinking = "chat-template"
 timeout_s = 1800
 
+# A quantised build of one's own: no price per token, whatever its name holds (the
+# evaluation's "USD per page" stays empty, `config.model_price`).
+[providers.local.models."*llamacpp*"]
+
+[providers.local.models."*gguf*"]
+
 # Ollama on this machine (port 11434): the models `ollama list` shows. Ollama ignores the
-# key and the chat-template switch; a thinking model (Qwen) takes
-# `thinking = "reasoning-effort"` on the saved endpoint, which the preset does not set,
-# since a model without thinking may refuse the field.
-[ollama]
-label = "Ollama on this machine (port 11434)"
+# key and the chat-template switch; a thinking model (Qwen) thinks unless every call says
+# reasoning_effort none, which the `qwen3*` table does (its thinking ran away on Understand
+# and Judge, 24 October 2026); a model without thinking may refuse the field.
+[providers.ollama]
+label = "Ollama on this computer (port 11434)"
 url = "http://127.0.0.1:11434/v1"
 api_key = "ollama"
+location = "local"
+documents = "any"
+discover = true
+timeout_s = 1800
+
+[providers.ollama.models."qwen3*"]
+thinking = "reasoning-effort"
+thinking_stages = []
 
 # vLLM (port 8000, the app's port too: on one machine start one of them elsewhere),
-# mostly on a GPU machine of the organisation (`--base-url http://<server>:8000/v1`);
-# the Swiss AI team's image serves swiss-ai/Apertus-v1.5-8B and switches thinking
-# through the chat template (docs/architecture.md §10).
-[vllm]
+# mostly on a GPU machine of the organisation (`setup vllm --base-url
+# http://<server>:8000/v1`); the Swiss AI team's image serves swiss-ai/Apertus-v1.5-8B and
+# switches thinking through the chat template (docs/architecture.md §10).
+[providers.vllm]
 label = "vLLM, a server of the organisation (port 8000)"
 url = "http://127.0.0.1:8000/v1"
 api_key = "local"
+location = "local"
+documents = "any"
+discover = true
 thinking = "chat-template"
 
-[mistral]
+# -- other clouds: no preset, `leichtfacile setup <provider>` lists the models ---------------
+
+[providers.mistral]
 label = "Mistral AI"
 url = "https://api.mistral.ai/v1"
 api_key_env = "MISTRAL_API_KEY"
-in_menu = false
+key_url = "https://console.mistral.ai/api-keys"
+location = "eu"
+documents = "public"
 
-# Groq (US cloud, very fast inference): public documents only. The models come and go
-# (several are previews), so `leichtfacile setup groq` lists them instead of a default.
+# Groq (US cloud, very fast inference). The models come and go (several are previews).
 # Thinking stays off: Qwen reasons on Groq only when asked with reasoning_effort low,
-# medium or high (checked 25 October 2026), and the gpt-oss models refuse "none".
-[groq]
-label = "Groq (US cloud, public documents only)"
+# medium or high (checked 25 October 2026), and the gpt-oss models refuse "none". Prices:
+# as the Hugging Face router bills them (25 October 2026); Groq's own list is lower.
+[providers.groq]
+label = "Groq"
 url = "https://api.groq.com/openai/v1"
 api_key_env = "GROQ_API_KEY"
-in_menu = false
+key_url = "https://console.groq.com/keys"
+location = "us"
+documents = "public"
+
+[providers.groq.models."*gpt-oss-120b*"]
+input_usd = 0.15
+output_usd = 0.75
+
+[providers.groq.models."*gpt-oss-20b*"]
+input_usd = 0.10
+output_usd = 0.50
 
 # The Hugging Face Inference Providers router sends each request to a third-party
 # provider, mostly outside Switzerland: development and public documents only. Models are
-# Hugging Face ids, with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`);
-# `leichtfacile setup huggingface` lists them. The token is the user's HF_TOKEN.
-[huggingface]
-label = "Hugging Face Inference Providers (third-party clouds, public documents only)"
+# Hugging Face ids, with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`). The token
+# is the user's HF_TOKEN. reasoning_effort low keeps gpt-oss's reasoning from eating the
+# completion budget (a direct Groq call ran to 12,000 tokens on Understand).
+[providers.huggingface]
+label = "Hugging Face Inference Providers"
 url = "https://router.huggingface.co/v1"
 api_key_env = "HF_TOKEN"
-in_menu = false
+key_url = "https://huggingface.co/settings/tokens"
+location = "world"
+documents = "public"
+
+[providers.huggingface.models."*gpt-oss-120b*"]
+extra_body = { reasoning_effort = "low" }
+input_usd = 0.15
+output_usd = 0.75
+
+[providers.huggingface.models."*gpt-oss-20b*"]
+extra_body = { reasoning_effort = "low" }
+input_usd = 0.10
+output_usd = 0.50

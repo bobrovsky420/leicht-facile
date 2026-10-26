@@ -94,9 +94,11 @@ STAGES: dict[str, StageSettings] = {
 }
 
 
-def thinking_for(llm: LLMClient, stage: str) -> bool:
-    """Whether a stage uses the thinking model (llm.thinking_stages)."""
-    return stage in llm.settings.llm.thinking_stages
+def thinking_for(llm: LLMClient, stage: str, model: str | None = None) -> bool:
+    """Whether a stage thinks: the `thinking_stages` of the model it calls (the writer
+    unless named), as the provider, the model's table and the preset set them."""
+    settings = llm.settings.llm
+    return stage in settings.for_model(model or settings.models.writer).thinking_stages
 
 
 def mode_context(stage: str, mode: str = "standard", addressee: str | None = None) -> dict:
@@ -130,7 +132,7 @@ def _call(
     tokens before the answer, the stage is answered once more without thinking."""
     s = STAGES[stage]
     messages = [{"role": "user", "content": prompt}]
-    thinking = thinking_for(llm, stage)
+    thinking = thinking_for(llm, stage, model)
     try:
         return complete_json(
             llm,
@@ -1531,7 +1533,7 @@ def baseline(
 ) -> tuple[Draft, list[LLMResult]]:
     """What a single chatbot prompt gives: no fact sheet, no provenance, no checks."""
     s = STAGES["baseline"]
-    thinking = thinking_for(llm, "baseline")
+    thinking = thinking_for(llm, "baseline", model)
     prompt = render(
         source.lang, "baseline", level_name=level_name(source.lang, level), text=source.text()
     )
@@ -1591,7 +1593,7 @@ def baseline_zh(
     if variant not in ZH_VARIANTS:
         raise ValueError(f"unknown P0-ZH variant {variant!r}; use one of {ZH_VARIANTS}")
     s = STAGES["baseline"]
-    thinking = thinking_for(llm, "baseline")
+    thinking = thinking_for(llm, "baseline", model)
     context = {"variant": variant, "text": source.text()}
     messages = [
         {"role": part, "content": render(source.lang, "baseline_zh", part=part, **context)}

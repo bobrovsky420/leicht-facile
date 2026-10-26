@@ -126,7 +126,7 @@ Ollama) or a provider's API.
 Run it straight from PyPI, without installing anything:
 
 ```bash
-uvx leichtfacile setup        # the endpoint and its key; then the language models
+uvx leichtfacile setup        # the model and its key; then the language models
 uvx leichtfacile serve        # starts the app and opens http://127.0.0.1:8000
 ```
 
@@ -148,15 +148,17 @@ uv run leichtfacile setup     # the first uv run installs the app and the langua
 uv run leichtfacile serve
 ```
 
-`setup` lists the presets (`cscs` and `apertus` for Apertus, `anthropic`, `openai`,
-`gemini`, `local` for llama.cpp, `ollama`, `vllm`) and any other endpoint; the rarely used
-presets `mistral`, `groq` and `huggingface` are not in the list but take `setup <name>`;
-`setup cscs` asks for the CSCS key alone, `setup ollama` for the model alone, and
-`setup anthropic` (or `openai`, `gemini`) for the key and one of a few models it offers,
-any other model the provider lists being the last option. It ends by
-offering the spaCy models for German and French, about 90 MB from GitHub (`leichtfacile
-models` gets them later; a checkout has them from `uv.lock`). With a preset's key in the
-environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), the app needs no setup:
+`setup` asks where the model should run (CSCS, Public AI, Anthropic, OpenAI, Google,
+OpenRouter, a server of your own with llama.cpp, Ollama or vLLM, or another
+OpenAI-compatible server), for the key, and which of the provider's presets to use
+(`cscs-apertus`: Apertus 8B writes, the 70B checks; `claude-haiku-5-5-sonnet`: Haiku
+writes, Sonnet checks; ...), or any model the provider lists. The app's model page does
+the same in the browser: `serve` starts without a key, and the page lists every preset
+with where the text goes and what a page costs, takes the key and checks it. `setup`
+ends by offering the spaCy models for German and French, about 90 MB from GitHub
+(`leichtfacile models` gets them later; a checkout has them from `uv.lock`). With a
+provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), its
+presets are ready without setup:
 `leichtfacile models` once (not in a checkout), then `serve`. `leichtfacile config show` lists every setting and where it comes from;
 [configuration.md](docs/configuration.md) explains them. Installing the command, the
 command line alone, a server for an organisation, an offline install, running a model
@@ -164,7 +166,7 @@ yourself, reaching the app from other machines and what to do when it does not s
 [quickstart.md](docs/quickstart.md).
 
 Model tiers with Apertus: by default the 8B reads, writes and repairs, and the 70B
-judges (when the endpoint serves it; otherwise the writer judges).
+judges (when the provider serves it; otherwise the writer judges).
 `models = { writer = "swiss-ai/Apertus-v1.5-70B" }` runs every stage on the 70B;
 `models = { understand = "swiss-ai/Apertus-v1.5-70B" }` lets the 70B read (the fact
 sheet) and the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
@@ -217,8 +219,8 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 
 ## Documentation
 
-- [quickstart.md](docs/quickstart.md): installing and starting the app, the model endpoints, servers, offline installs, development
-- [configuration.md](docs/configuration.md): the settings, the saved endpoints and their keys, every setting with its default
+- [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
+- [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [rules.md](docs/rules.md): the rule catalogue the checker implements

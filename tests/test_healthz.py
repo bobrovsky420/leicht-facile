@@ -86,7 +86,7 @@ def test_readyz_asks_the_endpoint_at_most_once_per_interval():
     client = _app(endpoint)
     now = [1000.0]
     client.app.state.endpoint_check = EndpointCheck(
-        client.app.state.llm, ttl_s=30, clock=lambda: now[0]
+        client.app.state.registry, ttl_s=30, clock=lambda: now[0]
     )
     for _ in range(5):
         assert client.get("/readyz").json()["llm"]["reachable"] is True
@@ -113,7 +113,7 @@ def test_readyz_notices_the_endpoint_coming_back():
     client = _app(endpoint)
     now = [0.0]
     client.app.state.endpoint_check = EndpointCheck(
-        client.app.state.llm, ttl_s=30, clock=lambda: now[0]
+        client.app.state.registry, ttl_s=30, clock=lambda: now[0]
     )
     assert client.get("/readyz").json()["llm"]["reachable"] is False
     down[0] = False

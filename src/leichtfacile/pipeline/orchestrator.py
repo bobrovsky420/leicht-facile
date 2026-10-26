@@ -23,6 +23,7 @@ from leichtfacile.config import LLM, Settings
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
+from leichtfacile.llm.registry import Registry
 from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.rounds import (
@@ -110,49 +111,60 @@ class Orchestrator:
     def __init__(
         self,
         store: Store,
-        llm: LLMClient,
-        settings: Settings,
+        llm: LLMClient | Registry,
+        settings: Settings | None = None,
         *,
         clients: Mapping[str, LLMClient] | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
+        """On a registry of clients (the web app's, which follows the settings), or on
+        one client with its settings and the clients of the other presets a draft may
+        pick, by name (a command, the tests)."""
         self.store = store
-        self.llm = llm  # the endpoint in use
-        # The other endpoints a draft may pick in the New draft form, by name
-        # (docs/configuration.md); each client carries the settings of its endpoint.
-        self.clients: dict[str, LLMClient] = dict(clients or {})
-        self.settings = settings
+        if isinstance(llm, Registry):
+            self.registry = llm
+        else:
+            assert settings is not None
+            self.registry = Registry(settings, llm=llm, clients=clients)
         self._clock = clock
         self._runs: dict[str, RunState] = {}  # the jobs running now, by id
         self._runs_lock = threading.Lock()
 
     # -- public -----------------------------------------------------------------------
 
+    @property
+    def settings(self) -> Settings:
+        """The settings as they are now (the registry reloads them on a change)."""
+        return self.registry.settings
+
+    @property
+    def llm(self) -> LLMClient | None:
+        """The client of the preset in use; None while it is not ready."""
+        return self.registry.llm
+
     def client_for(self, job: Job) -> LLMClient:
-        """The client of the job's endpoint: the one in use unless the job picked another.
-        PipelineError when that one is no longer offered (its key went)."""
+        """The client of the job's preset: the one in use unless the job picked another.
+        PipelineError when it is not ready (no key) or no longer offered."""
         name = job.config.endpoint
-        if not name or name == self.settings.llm.endpoint:
-            return self.llm
         try:
-            return self.clients[name]
+            return self.registry.client_for(name)
         except KeyError:
-            raise PipelineError(f"the endpoint {name} is not available any more") from None
+            raise PipelineError(
+                f"the preset {name or self.registry.in_use} is not available (no key, or not "
+                "offered any more)"
+            ) from None
 
     def llm_for(self, job: Job) -> LLM:
-        """The `[llm]` settings the job runs with; the endpoint in use when the job's is
+        """The `[llm]` settings the job runs with; the preset in use when the job's is
         not available any more (a page can always be shown)."""
         try:
             return self.client_for(job).settings.llm
         except PipelineError:
             return self.settings.llm
 
-    def endpoints(self) -> list[tuple[str, LLM]]:
-        """The endpoints a draft may pick, the one in use first: name and settings."""
-        return [
-            (self.settings.llm.endpoint or "", self.settings.llm),
-            *((name, client.settings.llm) for name, client in self.clients.items()),
-        ]
+    def presets(self) -> list[tuple[str, LLM]]:
+        """The ready presets a draft may pick, the one in use first: name and settings."""
+        return self.registry.ready()
 
     def run(self, job_id: str, *, stop_after: str | None = None) -> None:
         """Run or resume a job. stop_after: understand, write, check or judge."""
@@ -635,7 +647,7 @@ class Orchestrator:
             final_version=final.version,
             rounds=rounds or [],
             stop_reason=reason,
-            endpoint=cfg.endpoint or run.llm.settings.llm.endpoint,
+            endpoint=cfg.endpoint or run.llm.settings.llm.preset,
             writer_model=writer,
             understand_model=reader if pipeline and reader != writer else None,
             judge_model=(cfg.judge_model or run.llm.judge_model())

@@ -662,9 +662,9 @@ def test_without_max_polish_rounds_there_is_no_polish_round(store, endpoint, sle
 def test_a_job_runs_on_the_endpoint_it_picked(store, endpoint, sleeps) -> None:
     other = FakeEndpoint(models=["other-model"])
     other.push(chat_response(fx.BASELINE_TEXT))
-    settings = make_settings(llm__endpoint="main", llm__max_retries=0)
+    settings = make_settings(llm__preset="main", llm__max_retries=0)
     other_settings = make_settings(
-        llm__endpoint="other",
+        llm__preset="other",
         llm__url="http://other.test/v1",
         llm__models__writer="other-model",
         llm__thinking="off",
@@ -690,5 +690,5 @@ def test_a_job_runs_on_the_endpoint_it_picked(store, endpoint, sleeps) -> None:
     gone = new_job(store, condition="P0", endpoint="gone")
     orch.run(gone)
     job = store.get_job(gone)
-    assert job.status == "failed" and "endpoint gone is not available" in job.error
+    assert job.status == "failed" and "preset gone is not available" in job.error
     assert orch.llm_for(job) is settings.llm

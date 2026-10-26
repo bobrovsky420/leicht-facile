@@ -398,7 +398,7 @@ via the segment ids). It answers only what code cannot:
    not become `können`, and a `wenn` never `vielleicht`).
 
 Model: `llm.models.judge` (default: the 70B of the writer's Apertus family when the
-endpoint lists it, else the writer's model, §6; on CSCS `swiss-ai/Apertus-v1.5-70B`,
+provider lists it, else the writer's model, §6; on CSCS `swiss-ai/Apertus-v1.5-70B`,
 thinking through its `-thinking` name), temperature
 0. The judge never rewrites; it only reports. Its reliability is measured, not
 assumed (§9).
@@ -752,35 +752,34 @@ midway.
 
 `leichtfacile/llm/client.py` wraps the `openai` Python SDK:
 
-- **Configuration** from the settings' `[llm]` section, the endpoint in use: a preset or
-  a saved endpoint (the config files, the environment, the command line; §10).
-  `llm.url`, `llm.api_key` (or `llm.api_key_env`, the variable that holds it),
-  `llm.models.writer`; plus
-  `llm.models.judge` (default: the 70B of the writer's family when the endpoint lists
+- **Configuration** from the settings' `[llm]` section, the preset in use, resolved
+  from its provider, the provider's table of each model and the preset's own keys (the
+  config files, the environment, the command line; §10). `llm.url`, `llm.api_key` (or
+  `llm.api_key_env`, the variable that holds it), `llm.models.writer`; plus
+  `llm.models.judge` (default: the 70B of the writer's family when the provider lists
   it, looked up once per process, else `llm.models.writer`), `llm.models.understand`
-  (default `llm.models.writer`) and `llm.thinking` = `off` (the default, since each
-  endpoint switches thinking its own way: the model name goes out as it is, with no
-  switch) | `model-suffix` (Apertus on CSCS exposes thinking as separate
-  `…-thinking` model names; the suffix is `llm.thinking_suffix`) | `chat-template`
-  (vLLM, llama.cpp: `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) |
-  `reasoning-effort` (a thinking model on Ollama, whose `/v1` endpoint ignores the other
-  switches: `reasoning_effort: "none"` for the stages that do not think, the model's
-  default for the others). The mode is set per endpoint, by its preset or in its
-  `[endpoints.<name>]` section.
-  Optional: `llm.timeout_s`, `llm.max_retries`, `llm.cache`, `llm.extra_body`
-  (fields sent with every request, for gateway switches) and `llm.model_extra_body`
-  (fields for one model's requests, over `extra_body`: Claude models that take
-  different thinking switches on one endpoint). The web app holds one client
-  per ready endpoint: a draft may pick another one in the New draft form
-  (`JobConfig.endpoint`), the orchestrator runs it on that endpoint's client
-  (`Orchestrator.client_for`, the settings of that endpoint with it), and the summary
-  records the endpoint's name.
-- **Endpoint profiles** (the presets `cscs`, `apertus`, `anthropic`, `openai`, `gemini`,
-  `local`, `ollama` and `vllm` for a server of one's own, `mistral`, `groq` and `huggingface`, one table each in
-  `src/leichtfacile/presets.toml`, are
-  endpoints as they come, complete but for the key
-  ([configuration.md](configuration.md#presets)); `leichtfacile setup` gives one its key
-  or takes any other endpoint; the two Apertus presets set the thinking mode too):
+  (default `llm.models.writer`). What a call takes follows the model called
+  (`LLM.for_model`): `thinking` = `off` (the default, since each provider switches
+  thinking its own way: the model name goes out as it is, with no switch) |
+  `model-suffix` (Apertus on CSCS exposes thinking as separate `…-thinking` model names;
+  the suffix is `thinking_suffix`) | `chat-template` (vLLM, llama.cpp:
+  `extra_body={"chat_template_kwargs": {"enable_thinking": true}}`) | `reasoning-effort`
+  (a thinking model on Ollama, whose `/v1` endpoint ignores the other switches:
+  `reasoning_effort: "none"` for the stages that do not think, the model's default for
+  the others); `send_temperature` and `max_tokens_key` (OpenAI's GPT-5 models refuse a
+  temperature and `max_tokens`); `extra_body` (fields sent with every request: a
+  gateway's switches, a model's thinking switch, such as the native field Claude's
+  models take); `timeout_s`, `max_retries`, `stream`. The web app holds a registry of
+  clients (`llm/registry.py`), one per ready preset, made on first use and made anew when
+  the model page changes the settings: a draft may pick another preset in the New draft
+  form (`JobConfig.endpoint`), the orchestrator runs it on that preset's client
+  (`Orchestrator.client_for`, the settings of that preset with it), and the summary
+  records the preset's name.
+- **Providers and presets** (`src/leichtfacile/presets.toml`, one table per provider,
+  per model table and per preset, [configuration.md](configuration.md#providers-and-presets);
+  the model page of the web app and `leichtfacile setup` pick a preset and take its
+  key, or take any other server; a preset is named after its models' versions and
+  never changes meaning). The Apertus providers:
   1. CSCS inference API, on which the reported numbers were measured
      (`thinking = "model-suffix"`);
   2. a vLLM server the organisation runs, for on-premise and air-gapped deployments
@@ -813,8 +812,9 @@ midway.
      Apertus 1.5, so its results are never reported as Apertus 1.5 numbers.
 
   All facts on third-party endpoints were checked on 5 October 2026.
-- **Thinking per stage.** `llm.thinking_stages` (default `["understand", "judge"]`) names
-  the stages that use the thinking model when `llm.thinking` is not `off`. When the reasoning of a thinking call runs
+- **Thinking per stage.** `thinking_stages` (default `["understand", "judge"]`, per
+  provider, model table or preset) names the stages that use the thinking model when
+  `thinking` is not `off`. When the reasoning of a thinking call runs
   out of tokens before the answer, the stage is answered once more without thinking;
   both calls are counted in the usage log.
 - **Graceful degradation.** A failing judge or repair round does not fail the job:
@@ -880,7 +880,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready endpoint for this job), `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
@@ -891,7 +891,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
 | `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
-| `GET /readyz` | Readiness: the model endpoint reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
+| `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
 
 Jobs run on `jobs.workers` worker threads (one by default: enough for a reviewer's
@@ -935,13 +935,14 @@ screens, texts, accessibility). Server-rendered Jinja2 pages, one `app.css`, one
 surfaces, one institutional blue for actions, selection and focus; red, amber and
 green only for status, always with a shape and a word or number. The model, code and
 the reviewer are told apart by a grey tag with a word and an icon ("Model", "Code",
-"You"), whatever model the endpoint serves. Every page can be
+"You"), whatever model the provider serves. Every page can be
 read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
-  need review, **New draft**, the endpoint indicator (the configured model; the dot
-  turns green, amber or red from `/readyz`, kept 5 minutes in `sessionStorage`), the
-  EN / DE / FR switch and the API link. A "Skip to content" link comes first.
+  need review, **New draft**, **Check my text**, **AI model**, the model indicator (the
+  preset in use, a link to the model page; the dot turns green, amber or red from
+  `/readyz`, kept 5 minutes in `sessionStorage`), the EN / DE / FR switch and the API
+  link. A "Skip to content" link comes first.
 - **Drafts** (`/`): the work queue as a table. Title and where the text came from,
   language and level, pipeline, status (the stage and time while running, the error
   when failed), the checks of the latest draft (errors, warnings, facts present), the
@@ -963,10 +964,20 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   type (standard text or decision letter), which reveals the addressee and the
   authority's notice, prefilled per document language from `pipeline/labels.py`
   (without JavaScript the two fields stay in view, and an empty notice gets the
-  language's default on the server); title; the model endpoint for this draft, a select
-  shown when at least two endpoints are ready (the one in use selected, the job records
+  language's default on the server); title; the AI model for this draft, a select
+  shown when at least two presets are ready (the one in use selected, the job records
   the choice, `JobConfig.endpoint`); optional model overrides. `POST /jobs` answers 400
-  with the form and the error.
+  with the form and the error, also when no preset is ready.
+- **AI model** (`/model`, since 26 October 2026, `web/model.py`): the presets in three
+  groups (Switzerland, this computer with the models a local server lists, clouds for
+  public documents only), each with its provider, where the text goes, the cost per
+  page and what it lacks; the key of the chosen preset's provider (into the `.env` next
+  to the config file, never shown again), a check of the key, a test call, and a
+  fine-tune panel that saves a preset of the user's own. Plain forms; the choice is
+  changed on the machine the app runs on only, and a source that wins over the config
+  file locks it; one offered preset (`llm.offer`) hides the page. The registry of
+  clients (`llm/registry.py`) reloads the settings when the page saves, so the next
+  draft runs on the new preset while a running job keeps its client.
 - **Check my text** (`/check`, since 8 October 2026): the deterministic checker on a
   text the writer pasted, as the CLI `check` runs it (one block per sentence, the rules
   of the document's language at the chosen level, German and French), in
@@ -1070,18 +1081,19 @@ language it was produced in.
 ### CLI
 
 The package installs the command `leichtfacile`; `python -m leichtfacile` runs the same
-commands. `serve`, `check-llm` and `simplify` need the model settings and, when one is
-missing, name it and `leichtfacile setup` in a short message (`cli.settings_or_exit`).
-They and `eval run` take `--endpoint <name>`, a saved endpoint for one run.
+commands. `check-llm` and `simplify` need a ready preset and, when its key is missing,
+name it and `leichtfacile setup` in a short message (`cli.settings_or_exit`); `serve`
+starts without one, and its model page asks for the key. They and `eval run` take
+`--preset <name>`, a preset for one run.
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--preset] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Gives a preset (`cscs`, `apertus`, `anthropic`, `openai`, `gemini`, `local`, `ollama`, `vllm`, `mistral`, `groq`, `huggingface`) its key (not echoed) or its model and uses it, asking nothing when the key's variable is set; without a name offers the presets (but `mistral`, `groq` and `huggingface`, set `in_menu = false`) and any other endpoint, for which it asks the address, a name, the key and the model (from `GET /models`); for a preset with choices (`anthropic`, `openai`, `gemini`: `[[<name>.choices]]` in `presets.toml`) it offers them first, each a model with the keys it needs, and any model the endpoint lists last; saves what differs from a preset as `[endpoints.<name>]` in the user's config file (`configure.py`, §10); `--force` updates an endpoint saved already. At the end it offers the spaCy models (`--no-models` skips them). |
-| `leichtfacile endpoint list\|use <name>\|remove <name>` | Every endpoint, preset or saved, with its label, its writer model and what it lacks, the one in use marked; use another from now on; remove a saved one or the saved settings of a preset (`configure.py`) |
+| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
 | `leichtfacile serve [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10) |
-| `leichtfacile check-llm [--thinking]` | List the endpoint's models and make one call |
+| `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
 | `leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
@@ -1202,7 +1214,7 @@ day, against the 82 percent above.
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
-| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/eval/prices.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
+| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/presets.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
 | Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
 
@@ -1252,31 +1264,35 @@ checking German or French on a blank pipeline. The Italian model is added when
 Italian ships. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).
 
-The settings are one TOML file with a section per topic and any number of saved model
-endpoints ([configuration.md](configuration.md)). The known endpoints come with the app
-as presets (`cscs`, `apertus`, `anthropic`, `openai`, `gemini`, `local`, `ollama`, `vllm`,
-`mistral`, `groq`, `huggingface`; one table each in `src/leichtfacile/presets.toml`), complete but for the
-key (a server of one's own or a provider with a changing catalogue: but for the model
-too); the endpoint in use resolves
-from its preset and the saved `[endpoints.<name>]` table that extends it (the table of
-the preset's name, or one naming it with `preset`); `[llm]` holds the choice
-(`llm.endpoint`) and the `cache` switch that applies to every endpoint, nothing else.
-`leichtfacile setup <name>` (`configure.py`) asks for a preset's key (not echoed), stores it in the
-`.env` next to the config file and sets `llm.endpoint`; with the key's variable set it
-asks nothing. Without a name it offers the presets and any other endpoint, for which it
-asks the address, a name, the key and the model (from `GET /models`); what differs from
-a preset is saved as `[endpoints.<name>]`. `--preset`, `--name`, `--base-url`,
-`--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` (update an endpoint
-saved already) answer the questions in advance. An endpoint is ready when it has an
-address, a writer model and a key; without `llm.endpoint` the only saved endpoint is in
-use, and nothing is guessed from the keys in the shell (since 25 October 2026).
-`leichtfacile endpoint` lists every endpoint with what it lacks, switches and removes,
-`leichtfacile config` shows and changes every setting (§7). The settings
-come from the defaults, the endpoint's preset, the user's config file,
+The settings are one TOML file with a section per topic, and the providers and presets
+of the model ([configuration.md](configuration.md)). The known providers (where models
+run and how to reach them, with a table per model for what it needs) and the presets on
+them (what the user picks: a provider and the models that write, read and check) come
+with the app, one table each in `src/leichtfacile/presets.toml`, complete but for the
+key; a server of one's own names its models, which the model page lists. The preset in
+use resolves from its provider, the provider's table of each model it calls, its own
+keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`,
+the shipped default `cscs-apertus` without it), the `cache` switch and `offer` (the
+presets an organisation shows), nothing else. The model page of the web app (`/model`,
+`web/model.py`) lists the presets by group with where the text goes, the cost per page
+and what each lacks, takes the key (into the `.env` next to the config file), checks it
+and makes a test call, offers a local server's models and saves a preset of the user's
+own from its fine-tune panel; it changes the settings on the machine the app runs on
+only, and a source that wins over the config file locks it. `leichtfacile setup <name>`
+(`configure.py`) does the same on the command line: asks for the provider (or takes a
+preset's or a provider's name), its key (not echoed; nothing with the key's variable
+set), then one of the provider's presets or any model it lists, saved as
+`[presets.<name>]`, a server of one's own as `[providers.<name>]` too; `--name`,
+`--base-url`, `--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` answer the
+questions in advance. A preset is ready when its provider has an address and a key and
+it names a writer; nothing is guessed from the keys in the shell (since 25 October
+2026). `leichtfacile preset` lists every preset with what it lacks, switches and
+removes, `leichtfacile config` shows and changes every setting (§7). The settings come
+from the defaults, the shipped providers and presets, the user's config file,
 `leichtfacile.toml` in the current folder, the variables `LEICHTFACILE_<SECTION>__<KEY>`
-and the command line (`--endpoint`, `serve --host` and `--port`), each overriding the
-one before (`config.load`, `config.get_settings`; `config.paths` reads `[data]` without
-the endpoint); `leichtfacile config show` names the source of each setting. The config
+and the command line (`--preset`, `serve --host` and `--port`), each overriding the one
+before (`config.load`, `config.get_settings`; `config.paths` reads `[data]` without the
+model); `leichtfacile config show` names the source of each setting. The config
 file is `LEICHTFACILE_CONFIG` (or `--config`) when that is set, else `config.toml` in
 the platform's folder for settings:
 `%APPDATA%\leichtfacile` (Windows),
@@ -1406,7 +1422,7 @@ at runtime.
   Writes (POST, PUT, PATCH, DELETE) are limited to `server.rate_limit_per_minute` (120) per
   client address and minute, 429 with `Retry-After` beyond; behind the trusted proxy
   the client is the address it forwards. In memory, per process.
-- `/healthz` answers from the process alone; `/readyz` asks the model endpoint at most
+- `/healthz` answers from the process alone; `/readyz` asks the model's provider at most
   once in 30 s, whoever asks, and answers booleans and the configured names, never the
   endpoint's catalogue, so a caller cannot make the server spend the key's quota or
   learn what the endpoint serves. `/metrics` (§7) says how much the service is used
@@ -1526,9 +1542,9 @@ docs/
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
 src/leichtfacile/
-  __main__.py, cli.py       setup, endpoint, config, serve, check-llm, ingest, check, simplify, eval
-  config.py                 the settings: defaults, presets, TOML files, LEICHTFACILE_ variables, keys from .env
-  configure.py              `leichtfacile setup`, `endpoint`, `config`: the endpoint questions, changes to the file
+  __main__.py, cli.py       setup, preset, config, serve, check-llm, ingest, check, simplify, eval
+  config.py                 the settings: defaults, providers and presets, TOML files, LEICHTFACILE_ variables, keys from .env
+  configure.py              `leichtfacile setup`, `preset`, `config`: the questions, changes to the file
   spacy_models.py           the pinned spaCy models: find, download, check, unpack
   schemas.py                artifacts (§5)
   store.py                  SQLite access
@@ -1538,8 +1554,8 @@ src/leichtfacile/
   lifecycle.py              the counts on the job row (from review.py), deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
-  presets.toml              the known endpoints, one table each (cscs, apertus, anthropic, openai, gemini, local, ollama, vllm, mistral, groq, huggingface)
-  llm/                      client.py, json_out.py, reasoning.py, cache.py
+  presets.toml              the known providers with their models tables and prices, and the presets on them
+  llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
                             included by the four standard templates when mode is "decision");
@@ -1553,13 +1569,13 @@ src/leichtfacile/
                             vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
-  web/                      app.py, api.py, pages.py, jobs.py, views.py, i18n.py,
+  web/                      app.py, api.py, pages.py, model.py (the model page), jobs.py, views.py, i18n.py,
                             security.py (the hardening layer), health.py (the probes),
                             observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
   export/                   layout.py (the one layout every writer serialises), markdown.py, html.py,
                             docx.py, bundle.py
-  eval/                     dataset.py, calibrate.py, score.py (prices.toml), run.py, results.py (the one reader
+  eval/                     dataset.py, calibrate.py, score.py (prices from presets.toml), run.py, results.py (the one reader
                             of the result rows), report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py

@@ -1,13 +1,14 @@
 """Changing the settings from the command line (docs/configuration.md):
 
-- `leichtfacile setup` asks for a model endpoint and saves it as `[endpoints.<name>]`,
-  its key in the `.env` next to the config file;
-- `leichtfacile endpoint list | use | remove` shows and switches the saved endpoints;
+- `leichtfacile setup` asks for a provider, its key and a preset, saves a preset of the
+  user's own as `[presets.<name>]` (and a server of their own as `[providers.<name>]`),
+  the key in the `.env` next to the config file, and uses the preset;
+- `leichtfacile preset list | use | remove` shows and switches the presets;
 - `leichtfacile config show | path | set | unset | edit` covers every other setting.
 
-Each change is checked together with every other source before it is written, and
-tomlkit keeps the file's comments and order. Any OpenAI-compatible endpoint works; a
-preset (config.PRESETS) fills in what is known about one.
+The model page of the web app writes through the same helpers (`save_preset`,
+`use_preset`, `save_secret`). Each change is checked together with every other source
+before it is written, and tomlkit keeps the file's comments and order.
 """
 
 from __future__ import annotations
@@ -30,18 +31,32 @@ import tomlkit
 from pydantic import SecretStr
 
 from leichtfacile import config
-from leichtfacile.config import ENDPOINT_NAME, IN_USE, PRESETS, SECRETS, ConfigError
+from leichtfacile.config import (
+    IN_USE,
+    NAME,
+    PRESETS,
+    SECRETS,
+    ConfigError,
+    preset_layer,
+    preset_names,
+    provider_names,
+    provider_table,
+)
 
 _PLAIN = re.compile(r"[\w.:/@+=,{}\[\]-]*")
 HEADER = (
     "# Leicht·Facile settings (docs/configuration.md). `leichtfacile config show --defaults`\n"
     "# prints every setting with its default and meaning.\n"
 )
+ANOTHER_SERVER = "Another OpenAI-compatible server"
+ANOTHER_MODEL = "Another model the provider lists"
 
 
-def list_models(base_url: str, api_key: str, headers: dict[str, str] | None = None) -> list[str]:
-    """The endpoint's model names (GET /models), with the client's User-Agent (some
-    gateways refuse requests without one) and the endpoint's own headers."""
+def list_models(
+    base_url: str, api_key: str, headers: dict[str, str] | None = None, timeout_s: float = 15.0
+) -> list[str]:
+    """The provider's model names (GET /models), with the client's User-Agent (some
+    gateways refuse requests without one) and the provider's own headers."""
     import openai
 
     from leichtfacile.llm.client import USER_AGENT
@@ -49,7 +64,7 @@ def list_models(base_url: str, api_key: str, headers: dict[str, str] | None = No
     client = openai.OpenAI(
         base_url=base_url,
         api_key=api_key,
-        timeout=15.0,
+        timeout=timeout_s,
         max_retries=0,
         default_headers={"User-Agent": USER_AGENT, **(headers or {})},
     )
@@ -61,6 +76,7 @@ def list_models(base_url: str, api_key: str, headers: dict[str, str] | None = No
 
 def run_setup(
     *,
+    provider: str | None = None,
     preset: str | None = None,
     name: str | None = None,
     base_url: str | None = None,
@@ -71,148 +87,145 @@ def run_setup(
     force: bool = False,
     ask: Callable[[str], str] = input,
     ask_secret: Callable[[str], str] = getpass.getpass,
-    models: Callable[[str, str], list[str]] = list_models,
+    models: Callable[..., list[str]] = list_models,
     say: Callable[[str], None] = print,
 ) -> int:
-    """Ask for what the preset and the arguments leave open: for a preset with its models,
-    the key alone, and nothing at all when the key's variable is set; for one with
-    choices, the key and a choice, the last one any model the endpoint lists. What differs from
-    the preset is saved as `[endpoints.<name>]`, the key in the .env next to the config
-    file, and the endpoint is used. 0 when it is saved."""
+    """Ask for what the arguments leave open: the provider (or a preset, which names
+    its provider), its key (nothing when the key's variable is set or the provider needs
+    none), and the preset: one of the provider's, or a model the provider lists, saved
+    as a preset of the user's own. A server of the user's own becomes a provider with
+    its address. The key goes into the .env next to the config file, the preset into
+    use. 0 when it is saved."""
     path = config.config_file()
     doc = read_document(path)
-    if preset is None and name in PRESETS:
-        preset = name  # `leichtfacile setup cscs`
-    if preset is None and not (name or base_url):
-        offered = [key for key, item in PRESETS.items() if item.in_menu]
-        labels = [*(PRESETS[key].label for key in offered), "Another OpenAI-compatible endpoint"]
-        index = _pick(ask, say, "Which model endpoint should Leicht·Facile use?", labels,
-                      "Endpoint")  # fmt: skip
-        preset = offered[index] if index < len(offered) else None
-    values = PRESETS[preset].values if preset else {}
-    known: dict[str, str] = values.get("models", {})
-    # Nothing is asked when the address, the key and the model are given or known: the
-    # key counts as known when its variable is set.
-    variable = api_key_env or values.get("api_key_env") or _variable_for(name or preset or "")
-    scripted = bool(
-        (base_url or values.get("url"))
-        and (api_key or api_key_env or values.get("api_key") or config.secret_value(variable))
-        and (model or known.get("writer"))
-    )
+    flat = config.collect()
 
-    url = base_url or values.get("url", "")
-    if not url:
-        url = _required(ask, "Address of the endpoint", "")
-    default_name = preset or _name_for(url)
-    if not (name or preset or scripted):
-        name = ask(f"Name for this endpoint (Enter: {default_name}): ").strip()
-    name = name or default_name
-    while not ENDPOINT_NAME.fullmatch(name):
-        if scripted:
-            raise ConfigError(f"endpoint name {name!r}: use lowercase letters, digits, - and _")
-        name = ask("Name for this endpoint (lowercase letters, digits, - and _): ").strip()
-    endpoints = doc.get("endpoints") or {}
-    exists = name in endpoints and not force
-    if exists and (scripted or not _yes(ask(f"Endpoint {name} exists. Update it? [y/N] "))):
-        say(f"Nothing changed ({name} exists in {path}; --force updates it).")
-        return 1
+    # The provider: from the preset, named, a new server (--base-url), or asked.
+    if preset is not None:
+        if preset not in preset_names(flat):
+            raise ConfigError(f"no preset {preset!r}; known: {', '.join(preset_names(flat))}")
+        provider = str(preset_layer(flat, preset)["provider"].value)
+    new_server = False
+    if provider is None and base_url is None:
+        offered = provider_names(flat)
+        labels = [*(_provider_label(flat, key) for key in offered), ANOTHER_SERVER]
+        index = _pick(ask, say, "Where should Leicht·Facile's model run?", labels, "Provider")
+        provider = offered[index] if index < len(offered) else None
+    if provider is None:
+        new_server = True
+        url = base_url or _required(ask, "Address of the server (OpenAI-compatible)", "")
+        provider = name or _ask_name(ask, f"Name for this server (Enter: {_name_for(url)}): ",
+                                     _name_for(url), scripted=bool(base_url and name))  # fmt: skip
+        table: dict[str, Any] = {"url": url}
+    else:
+        if provider not in provider_names(flat):
+            raise ConfigError(f"no provider {provider!r}; known: {', '.join(provider_names(flat))}")
+        table = provider_table(flat, provider)
+        url = base_url or str(table.get("url", ""))
+    label = table.get("label") or provider
+
+    # Nothing is asked when the provider, the key and the preset or model are given
+    # or known: the key counts as known when its variable is set.
+    variable = api_key_env or table.get("api_key_env") or _variable_for(provider)
+    found = config.secret_value(variable)
+    key_known = bool(api_key or api_key_env or table.get("api_key") or found)
+    scripted = bool((base_url or not new_server) and key_known and (preset or model))
 
     # The key: named by a variable, stored in the .env next to the config file, or the
-    # preset's own (a server of one's own takes any key).
-    variable = api_key_env or values.get("api_key_env") or _variable_for(name)
-    found = config.secret_value(variable)
+    # provider's own (a server of one's own takes any key).
     store = api_key
-    if not (api_key or api_key_env or values.get("api_key") or (scripted and found)):
+    if not (api_key or api_key_env or table.get("api_key") or (scripted and found)):
         hint = f" (Enter: keep the one in {variable})" if found else ""
-        store = ask_secret(f"API key{hint}: ").strip()
+        store = ask_secret(f"API key for {label}{hint}: ").strip()
         while not (store or found):
             store = ask_secret("API key (required): ").strip()
-    named = bool(store or api_key_env or (found and not values.get("api_key")))
-    key = store or (found[0] if found and named else values.get("api_key", ""))
+    named = bool(store or api_key_env or (found and not table.get("api_key")))
+    key = store or (found[0] if found and named else str(table.get("api_key", "")))
 
-    # The model: the preset's, one of its choices, or asked with the endpoint's list; a
-    # key just entered is tried on the list as well, so a wrong one shows now and not at
-    # the first draft.
-    choices = PRESETS[preset].choices if preset else ()
-    picked: dict[str, Any] | None = None
+    # The preset: given, one of the provider's, or a model the provider lists, saved
+    # as a preset of the user's own. A key just entered is tried on the list as well, so
+    # a wrong one shows now and not at the first draft.
     listed: list[str] = []
-    model = model or known.get("writer", "")
-    if store or not model:
+    if store or not (preset or model):
         try:
-            extra = {"headers": values["headers"]} if values.get("headers") else {}
-            listed = models(url, key, **extra)
+            listed = models(url, key, table.get("headers") or None)
         except Exception as exc:  # the address or the key may be wrong: go on anyway
-            say(f"The endpoint's model list could not be read ({type(exc).__name__}).")
+            say(f"The provider's model list could not be read ({type(exc).__name__}).")
         else:
-            say(f"The endpoint lists {len(listed)} models.")
-    if not model and choices:
-        labels = [*(choice["label"] for choice in choices), "Another model the endpoint lists"]
+            say(f"{label} lists {len(listed)} models.")
+    offered = [key for key in preset_names(flat)
+               if str(preset_layer(flat, key)["provider"].value) == provider]  # fmt: skip
+    if preset is None and model is None and offered:
+        labels = [*(_preset_label(flat, key) for key in offered), ANOTHER_MODEL]
         index = _pick(ask, say, "Which model should Leicht·Facile use?", labels, "Model")
-        if index < len(choices):
-            picked = choices[index]
-            model = picked["models"]["writer"]
-    if not model:
+        if index < len(offered):
+            preset = offered[index]
+    if preset is None and model is None:
         for listed_name in listed[:40]:
             say(f"  - {listed_name}")
         if len(listed) > 40:
             say(f"  ... and {len(listed) - 40} more")
         model = _required(ask, "Model", listed[0] if len(listed) == 1 else "")
-    if listed and model not in listed:
-        say(f"Note: {model} is not in the endpoint's list.")
-    # A choice's model, however given, comes with the choice's settings.
-    picked = picked or next((c for c in choices if c["models"]["writer"] == model), None)
-    judge = judge or (picked or {}).get("models", {}).get("judge") or known.get("judge")
+    if model and listed and model not in listed:
+        say(f"Note: {model} is not in the provider's list.")
 
-    # Only what differs from the preset goes into the file: a preset used as it is needs
-    # no [endpoints.<name>] table at all.
-    table = endpoints.get(name)
-    fresh = table is None
-    if fresh:
-        table = tomlkit.table()
-    _put(table, "preset", preset if preset and preset != name else None)
-    _put(table, "url", url if url != values.get("url") else None)
-    if named:
-        table.pop("api_key", None)
-        _put(table, "api_key_env", variable if variable != values.get("api_key_env") else None)
-    chosen = table.get("models")
-    chosen = chosen if isinstance(chosen, MutableMapping) else tomlkit.inline_table()
-    _put(chosen, "writer", model if model != known.get("writer") else None)
-    _put(chosen, "judge", judge if judge and judge != known.get("judge") else None)
-    _put(table, "models", chosen or None)
-    # The chosen settings replace those of any choice, so that no switch of an earlier
-    # one stays behind.
-    for key in sorted({key for choice in choices for key in choice} - {"label", "models"}):
-        _put(table, key, (picked or {}).get(key))
-    if len(table) and fresh:
-        if "endpoints" not in doc:
-            doc["endpoints"] = tomlkit.table(is_super_table=True)
-        doc["endpoints"][name] = table
-    elif not len(table) and not fresh:
-        del doc["endpoints"][name]
-        if not len(doc["endpoints"]):
-            del doc["endpoints"]
+    # A preset of the user's own for a model: named after the server, or the provider
+    # and the model. The provider's table and the preset's are updated with --force only.
+    written = []
+    if model:
+        preset = provider if new_server else name or _slug(provider, model)
+        exists = preset in (doc.get("presets") or {}) and not force
+        if exists and (scripted or not _yes(ask(f"Preset {preset} exists. Update it? [y/N] "))):
+            say(f"Nothing changed ({preset} exists in {path}; --force updates it).")
+            return 1
+        entry: dict[str, Any] = {"provider": provider, "models": {"writer": model}}
+        if judge:
+            entry["models"]["judge"] = judge
+        _put_table(doc, ["presets", preset], entry)
+        written.append(f"[presets.{preset}]")
+    if new_server:
+        entry = {"url": url}
+        if named:
+            entry["api_key_env"] = variable
+        _put_table(doc, ["providers", provider], entry)
+        written.append(f"[providers.{provider}]")
+    elif named and variable != table.get("api_key_env"):
+        set_key(doc, ["providers", provider, "api_key_env"], variable)
+        written.append(f"[providers.{provider}]")
+    assert preset is not None
 
-    active = (doc.get("llm") or {}).get("endpoint")
+    active = (doc.get("llm") or {}).get("preset")
     use = True
-    if active and active != name and not scripted:
-        use = not _no(ask(f"Use {name} from now on, instead of {active}? [Y/n] "))
+    if active and active != preset and not scripted:
+        use = not _no(ask(f"Use {preset} from now on, instead of {active}? [Y/n] "))
     if use:
-        set_key(doc, ["llm", "endpoint"], name)
+        set_key(doc, ["llm", "preset"], preset)
 
     check(path, doc)
     secrets = path.parent / ".env"
     if store:
         save_secret(secrets, variable, store)
     write_document(path, doc)
-    say(f"{name} is set up{' and in use' if use else ''} ({path}).")
+    what = f" ({', '.join(written)})" if written else ""
+    say(f"{preset} is set up{' and in use' if use else ''}{what}: {path}.")
     if store:
         say(f"Its key is in {secrets} as {variable}.")
     elif named:
         say(f"Its key comes from the variable {variable}.")
-    if use and (other := overridden("llm.endpoint", path)):
-        say(f"Note: {other} picks another endpoint and wins over the config file.")
+    if use and (other := overridden("llm.preset", path)):
+        say(f"Note: {other} picks another preset and wins over the config file.")
     say("Check it with `leichtfacile check-llm`; start the app with `leichtfacile serve`.")
     return 0
+
+
+def _provider_label(flat: config.Flat, name: str) -> str:
+    return str(provider_table(flat, name).get("label") or name)
+
+
+def _preset_label(flat: config.Flat, name: str) -> str:
+    layer = preset_layer(flat, name)
+    label = layer.get("label")
+    return str(label.value) if label is not None else name
 
 
 def _pick(
@@ -237,6 +250,15 @@ def _required(ask: Callable[[str], str], label: str, default: str) -> str:
     return value
 
 
+def _ask_name(ask: Callable[[str], str], prompt: str, default: str, *, scripted: bool) -> str:
+    name = default if scripted else (ask(prompt).strip() or default)
+    while not NAME.fullmatch(name):
+        if scripted:
+            raise ConfigError(f"name {name!r}: use lowercase letters, digits, - and _")
+        name = ask("Name (lowercase letters, digits, - and _): ").strip()
+    return name
+
+
 def _yes(answer: str) -> bool:
     return answer.strip().lower() in ("y", "yes")
 
@@ -246,12 +268,12 @@ def _no(answer: str) -> bool:
 
 
 def _variable_for(name: str) -> str:
-    """The variable a saved endpoint's key goes into: local-gpu -> LOCAL_GPU_API_KEY."""
+    """The variable a provider's key goes into: local-gpu -> LOCAL_GPU_API_KEY."""
     return f"{name.upper().replace('-', '_')}_API_KEY"
 
 
 def _name_for(url: str) -> str:
-    """A name from the endpoint's host: api.example.org/v1 -> example, 127.0.0.1 -> local."""
+    """A name from the server's host: api.example.org/v1 -> example, 127.0.0.1 -> local."""
     host = (urlsplit(url).hostname or "").lower()
     labels = [label for label in host.split(".") if label not in ("api", "www")]
     if not labels or host == "localhost" or host.replace(".", "").replace(":", "").isdigit():
@@ -259,78 +281,107 @@ def _name_for(url: str) -> str:
     return re.sub(r"[^a-z0-9_-]", "-", labels[0]).strip("-") or "default"
 
 
-def _put(table: MutableMapping[str, Any], key: str, value: Any) -> None:
-    """Set a key, or remove it for None."""
-    if value is None:
-        table.pop(key, None)
-    else:
-        table[key] = value
+def _slug(provider: str, model: str) -> str:
+    """A preset's name from its provider and model: ollama, qwen3.5:9b -> ollama-qwen3-5-9b."""
+    slug = re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-")
+    return f"{provider}-{slug}" if slug else provider
 
 
-# -- endpoint list | use | remove -------------------------------------------------------
+def _put_table(doc: MutableMapping[str, Any], parts: list[str], values: dict[str, Any]) -> None:
+    """Set the keys of a table (made when missing), its other keys kept."""
+    for key, value in values.items():
+        if isinstance(value, dict):
+            for inner, item in value.items():
+                set_key(doc, [*parts, key, inner], item)
+        else:
+            set_key(doc, [*parts, key], value)
 
 
-def list_endpoints(*, say: Callable[[str], None] = print) -> int:
-    """Every endpoint, the presets and the saved ones: its label, its writer model and
-    whether it is ready (else what it lacks); the one in use marked `*`."""
+# -- the helpers the model page and `preset` share -----------------------------------------
+
+
+def save_preset(
+    path: Path,
+    name: str,
+    table: dict[str, Any],
+    *,
+    use: bool = True,
+    say: Callable[[str], None] = print,
+) -> None:
+    """Write a preset of the user's own, `[presets.<name>]` with the given keys (its
+    provider, models, label, request settings), checked with every other source, and
+    use it."""
+    if not NAME.fullmatch(name):
+        raise ConfigError(f"preset name {name!r}: use lowercase letters, digits, - and _")
+    doc = read_document(path)
+    _put_table(doc, ["presets", name], table)
+    if use:
+        set_key(doc, ["llm", "preset"], name)
+    save(path, doc)
+    say(f"{name} is saved{' and in use' if use else ''} ({path}).")
+
+
+def use_preset(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
+    doc = read_document(path)
+    set_key(doc, ["llm", "preset"], name)
+    save(path, doc)
+    say(f"In use: {name} ({path}).")
+    if other := overridden("llm.preset", path):
+        say(f"Note: {other} picks another preset and wins over {path}.")
+    return 0
+
+
+# -- preset list | use | remove --------------------------------------------------------------
+
+
+def list_presets(*, say: Callable[[str], None] = print) -> int:
+    """Every preset, shipped or the user's own: its label, its provider, its writer
+    model and whether it is ready (else what it lacks); the one in use marked `*`."""
     loaded = config.load(strict=False)
-    active = loaded.settings.llm.endpoint
+    active = loaded.settings.llm.preset
     rows = [
         (
             "*" if item.name == active else " ",
             item.name,
             item.label,
+            item.provider_label,
             item.writer or "-",
             "ready" if item.ready else "; ".join(item.missing),
         )
         for item in config.available()
     ]
-    widths = [max(len(row[i]) for row in rows) for i in (1, 2, 3)]
-    for mark, name, label, writer, status in rows:
-        say(f"{mark} {name:<{widths[0]}}  {label:<{widths[1]}}  {writer:<{widths[2]}}  {status}")
-    if active:
-        say(f"In use: {active} ({_label(loaded.flat['llm.endpoint'].source)}).")
-    else:
-        say("No endpoint is in use: `leichtfacile endpoint use <name>`.")
+    widths = [max(len(row[i]) for row in rows) for i in (1, 2, 3, 4)]
+    for mark, name, label, provider, writer, status in rows:
+        say(
+            f"{mark} {name:<{widths[0]}}  {label:<{widths[1]}}  {provider:<{widths[2]}}  "
+            f"{writer:<{widths[3]}}  {status}"
+        )
+    say(f"In use: {active} ({_label(loaded.flat['llm.preset'].source)}).")
     return 0
 
 
-def use_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
+def remove_preset(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
+    """Remove a preset of the user's own, or the user's table that extends a shipped
+    preset (the shipped one stays). One that was in use leaves the choice to the
+    shipped default."""
     doc = read_document(path)
-    set_key(doc, ["llm", "endpoint"], name)
-    save(path, doc)
-    say(f"In use: {name} ({path}).")
-    if other := overridden("llm.endpoint", path):
-        say(f"Note: {other} picks another endpoint and wins over {path}.")
-    return 0
-
-
-def remove_endpoint(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
-    """Remove a saved endpoint, or the saved settings that extend a preset (the preset
-    stays). One that was in use leaves the choice to the only saved endpoint or to
-    `endpoint use`."""
-    doc = read_document(path)
-    endpoints = doc.get("endpoints")
-    if not isinstance(endpoints, MutableMapping) or name not in endpoints:
+    presets = doc.get("presets")
+    if not isinstance(presets, MutableMapping) or name not in presets:
         if name in PRESETS:
             say(f"{name} is a preset that ships with the app; nothing to remove in {path}.")
         else:
-            say(f"No endpoint {name} in {path}.")
+            say(f"No preset {name} in {path}.")
         return 1
-    del endpoints[name]
-    if not len(endpoints):
-        del doc["endpoints"]
+    del presets[name]
+    if not len(presets):
+        del doc["presets"]
     llm = doc.get("llm")
-    if isinstance(llm, MutableMapping) and llm.get("endpoint") == name:
-        del llm["endpoint"]
+    if isinstance(llm, MutableMapping) and llm.get("preset") == name and name not in PRESETS:
+        del llm["preset"]
     save(path, doc)
-    what = "the saved settings of the preset" if name in PRESETS else "the endpoint"
+    what = "the saved settings of the preset" if name in PRESETS else "the preset"
     say(f"Removed {what} {name} from {path}.")
-    now = config.load(strict=False).settings.llm.endpoint
-    if now:
-        say(f"In use now: {now}.")
-    else:
-        say("No endpoint is in use now: `leichtfacile endpoint use <name>`.")
+    say(f"In use now: {config.load(strict=False).settings.llm.preset}.")
     return 0
 
 
@@ -499,10 +550,10 @@ def set_key(doc: MutableMapping[str, Any], parts: list[str], value: Any) -> None
     for i, part in enumerate(parts[:-1]):
         child = node.get(part)
         if child is None:
-            if part == "models":
-                child = tomlkit.inline_table()
+            if part == "models" and parts[0] == "presets":
+                child = tomlkit.inline_table()  # models = { writer = ..., judge = ... }
             else:
-                child = tomlkit.table(is_super_table=(i == 0 and part == "endpoints"))
+                child = tomlkit.table(is_super_table=(i == 0 and part in ("providers", "presets")))
             node[part] = child
         elif not isinstance(child, MutableMapping):
             raise ConfigError(f"{'.'.join(parts[: i + 1])} is a value, not a table")
