@@ -15,10 +15,13 @@ read one shape and carry no fallbacks for old data.
 
 The connections are a small pool (`POOL_SIZE`): an operation takes one and gives it
 back, so the web handlers read while a worker writes (WAL: readers never wait for a
-writer) and two writers wait for each other within `BUSY_TIMEOUT_S` instead of
-failing (audit B4). A write transaction begins with `BEGIN IMMEDIATE`, which takes the
-write lock up front, so a writer waits its turn before its first statement rather
-than failing midway.
+writer). The store's own writers queue on a lock before they take a connection, since
+SQLite's busy timeout is no queue: a waiting writer polls with growing sleeps and can
+lose every poll to newer ones (a CI run lost one for 5 s, 26 October 2026). The busy
+timeout (`BUSY_TIMEOUT_S`) is left for the writers of another process, the command line
+while the app runs (audit B4). A write transaction begins with `BEGIN IMMEDIATE`, which
+takes the write lock up front, so a writer waits its turn before its first statement
+rather than failing midway.
 """
 
 from __future__ import annotations
@@ -314,7 +317,8 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.
 POOL_SIZE = 8
-BUSY_TIMEOUT_S = 5.0  # how long a writer waits for another writer's transaction
+BUSY_TIMEOUT_S = 5.0  # how long a writer waits for another process's transaction
+WRITE_WAIT_S = 30.0  # how long a writer waits for the store's other writers
 # The statuses a job can be in while no worker holds it. Only these may be deleted,
 # rerun or queued again; a running job is stopped first (`JobRunner.cancel`).
 IDLE_STATUSES: tuple[str, ...] = ("queued", "needs_review", "done", "failed")
@@ -328,6 +332,7 @@ class Store:
         self._size = max(1, pool_size)
         self._open = 0  # connections made, idle or in use
         self._open_lock = threading.Lock()
+        self._write_lock = threading.Lock()  # one write transaction at a time
         self._closed = False
         with self._tx() as conn:
             conn.executescript(_SCHEMA)
@@ -335,7 +340,8 @@ class Store:
 
     def _connect(self) -> sqlite3.Connection:
         # Explicit transactions (`_tx`); a connection moves between threads (the pool);
-        # WAL so that readers never wait for the writer; the busy timeout for writers.
+        # WAL so that readers never wait for the writer; the busy timeout for the writers
+        # of another process.
         conn = sqlite3.connect(
             self.path, check_same_thread=False, autocommit=True, timeout=BUSY_TIMEOUT_S
         )
@@ -380,15 +386,22 @@ class Store:
 
     @contextmanager
     def _tx(self) -> Iterator[sqlite3.Connection]:
-        """One write transaction, committed at the end, rolled back on an exception."""
-        with self._connection() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            try:
-                yield conn
-            except BaseException:
-                conn.execute("ROLLBACK")
-                raise
-            conn.execute("COMMIT")
+        """One write transaction, committed at the end, rolled back on an exception. The
+        writer's turn comes first and the connection second, so that no writer holds a
+        connection while it waits."""
+        if not self._write_lock.acquire(timeout=WRITE_WAIT_S):
+            raise sqlite3.OperationalError("no write turn became free")
+        try:
+            with self._connection() as conn:
+                conn.execute("BEGIN IMMEDIATE")
+                try:
+                    yield conn
+                except BaseException:
+                    conn.execute("ROLLBACK")
+                    raise
+                conn.execute("COMMIT")
+        finally:
+            self._write_lock.release()
 
     def close(self) -> None:
         """Close every connection, each once the operation using it has given it back."""

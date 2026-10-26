@@ -742,8 +742,11 @@ round counters, a finding's English text), so the models read one shape and carr
 fallbacks for old data. The jobs
 table is also the work queue (§7). The connections are a small pool (8): an operation
 takes one and gives it back, the database runs in WAL mode, so the web handlers read
-while a worker writes, and a write transaction begins with `BEGIN IMMEDIATE`, so two
-writers wait for each other (5 s) instead of failing midway.
+while a worker writes. The store's writers queue on a lock before they take a connection
+(SQLite's busy timeout is no queue: a waiting writer can lose every poll to newer ones),
+and a write transaction begins with `BEGIN IMMEDIATE`, so a writer of another process
+(the command line while the app runs) waits for the app's (5 s) instead of failing
+midway.
 
 ## 6. The LLM client
 
