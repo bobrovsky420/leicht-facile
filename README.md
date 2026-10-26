@@ -123,12 +123,17 @@ needed), and an OpenAI-compatible model endpoint with its key: Apertus on the CS
 inference API or the Public AI gateway, a model server of your own (vLLM, llama.cpp,
 Ollama) or a provider's API.
 
-Run it straight from PyPI, without installing anything:
+The shortest way, with a CSCS key, straight from PyPI without installing anything:
 
 ```bash
-uvx leichtfacile setup        # the model and its key; then the language models
-uvx leichtfacile serve        # starts the app and opens http://127.0.0.1:8000
+uvx leichtfacile setup cscs-apertus   # asks for the CSCS key, then gets the language models
+uvx leichtfacile serve                # starts the app and opens http://127.0.0.1:8000
 ```
+
+Apertus 8B then writes and the 70B checks, on the CSCS inference API in Lugano: the
+setup of the reported numbers. For any other model, `uvx leichtfacile setup` without a
+name asks where it should run, or the app's **AI model** page does the same in the
+browser (`serve` starts without a key).
 
 `uvx` checks PyPI at every start, so it runs the newest release, at the latest 10 minutes
 after it is out; an installed command or a checkout is updated by hand
@@ -148,14 +153,14 @@ uv run leichtfacile setup     # the first uv run installs the app and the langua
 uv run leichtfacile serve
 ```
 
-`setup` asks where the model should run (CSCS, Public AI, Anthropic, OpenAI, Google,
-OpenRouter, a server of your own with llama.cpp, Ollama or vLLM, or another
-OpenAI-compatible server), for the key, and which of the provider's presets to use
-(`cscs-apertus`: Apertus 8B writes, the 70B checks; `claude-haiku-5-5-sonnet`: Haiku
-writes, Sonnet checks; ...), or any model the provider lists. The app's model page does
-the same in the browser: `serve` starts without a key, and the page lists every preset
-with where the text goes and what a page costs, takes the key and checks it. `setup`
-ends by offering the spaCy models for German and French, about 90 MB from GitHub
+`setup` without a name asks where the model should run (CSCS, Public AI, Anthropic,
+OpenAI, Google, OpenRouter, a server of your own with llama.cpp, Ollama or vLLM, or
+another OpenAI-compatible server), for the key, and which of the provider's presets to
+use (`cscs-apertus`: Apertus 8B writes, the 70B checks; `claude-haiku-5-5-sonnet`: Haiku
+writes, Sonnet checks; ...), or any model the provider lists; `setup <preset>` asks for
+the key alone. The app's model page does the same in the browser: the page lists every
+preset with where the text goes and what a page costs, takes the key and checks it.
+`setup` ends by offering the spaCy models for German and French, about 90 MB from GitHub
 (`leichtfacile models` gets them later; a checkout has them from `uv.lock`). With a
 provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), its
 presets are ready without setup:
