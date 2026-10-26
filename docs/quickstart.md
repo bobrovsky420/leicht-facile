@@ -150,7 +150,7 @@ uvx leichtfacile serve
 
 - `uvx` (short for `uv tool run`) keeps the release in uv's cache, so later calls start
   at once. `uvx leichtfacile@latest serve` checks for a newer release;
-  `uvx leichtfacile@0.7.0 serve` runs that version.
+  `uvx leichtfacile@0.7.1 serve` runs that version.
 - The config file, the keys and the data live in the user's folders
   ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
 - `setup` ends by offering the spaCy models the rule checker parses German and French
@@ -249,7 +249,7 @@ pip install leichtfacile
 
 Every release's wheel is also on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.0/leichtfacile-0.7.0-py3-none-any.whl`.
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.1/leichtfacile-0.7.1-py3-none-any.whl`.
 
 ```bash
 leichtfacile setup        # the endpoint and its key; then the language models
