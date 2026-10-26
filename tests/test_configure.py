@@ -113,6 +113,55 @@ def test_the_menu_leaves_out_the_rarely_used_presets_which_setup_still_takes(
     assert (llm.url, llm.models.writer) == ("https://api.mistral.ai/v1", "mistral-small-latest")
 
 
+def test_a_preset_with_choices_offers_them_before_any_listed_model(home, monkeypatch) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    listed = ["claude-haiku-5-5", "claude-opus-5-5", "claude-sonnet-5-5"]
+    said: list[str] = []
+    # Enter takes the first choice: Haiku, which judges itself.
+    code = run_setup(name="anthropic", ask=answers(""), ask_secret=answers("ak"),
+                     models=lambda url, key, headers: listed, say=said.append)  # fmt: skip
+    assert code == 0
+    menu = [line for line in said if re.match(r"  \d+\. ", line)]
+    assert menu == [f"  {i}. {choice['label']}" for i, choice in
+                    enumerate(config.PRESETS["anthropic"].choices, 1)] + [
+                    "  3. Another model the endpoint lists"]  # fmt: skip
+    assert toml(home)["endpoints"] == {"anthropic": {"models": {"writer": "claude-haiku-5-5"}}}
+    llm = load().settings.llm
+    assert (llm.models.writer, llm.judge_model) == ("claude-haiku-5-5", "claude-haiku-5-5")
+    # The preset switches Haiku's thinking off: nothing of it in the user's file.
+    assert llm.model_extra_body["claude-haiku-5-5"] == {"thinking": {"type": "disabled"}}
+    # The last option lists the endpoint's models and takes any of them.
+    code = run_setup(name="anthropic", force=True, ask=answers("3", "claude-opus-5-5"),
+                     ask_secret=answers(""), models=lambda url, key, headers: listed,
+                     say=said.append)  # fmt: skip
+    assert code == 0 and "  - claude-opus-5-5" in said
+    assert load().settings.llm.models.writer == "claude-opus-5-5"
+
+
+def test_a_choice_saves_its_settings_and_another_model_drops_them(home, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    listed = ["gpt-4.1", "gpt-5.4-nano", "gpt-5.6-luna"]
+    another = str(len(config.PRESETS["openai"].choices) + 1)
+    assert run_setup(name="openai", ask=answers("1"), ask_secret=answers("ok"),
+                     models=lambda url, key: listed, say=lambda line: None) == 0  # fmt: skip
+    assert toml(home)["endpoints"]["openai"] == {
+        "models": {"writer": "gpt-5.6-luna"},
+        "thinking": "reasoning-effort",
+        "thinking_stages": ["understand"],
+    }
+    llm = load().settings.llm
+    assert (llm.thinking, llm.thinking_stages) == ("reasoning-effort", ["understand"])
+    # Another model leaves no switch of the earlier choice behind.
+    assert run_setup(name="openai", force=True, ask=answers(another, "gpt-4.1"),
+                     ask_secret=answers(""), models=lambda url, key: listed,
+                     say=lambda line: None) == 0  # fmt: skip
+    assert toml(home)["endpoints"]["openai"] == {"models": {"writer": "gpt-4.1"}}
+    # A choice's model given as a flag brings the choice's settings.
+    assert run_setup(name="openai", model="gpt-5.4-nano", force=True, ask=never,
+                     ask_secret=never, say=lambda line: None) == 0  # fmt: skip
+    assert toml(home)["endpoints"]["openai"]["thinking_stages"] == ["understand"]
+
+
 def test_another_endpoint_offers_its_own_model_list(home) -> None:
     said: list[str] = []
     code = run_setup(ask=answers(OTHER, "https://llm.example/v1", "", "model-b"),

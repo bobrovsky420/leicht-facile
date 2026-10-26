@@ -110,22 +110,34 @@ def test_every_preset_is_a_valid_endpoint_with_a_label() -> None:
         # A server of one's own names its model at setup: with one, the preset would be
         # ready while nothing listens at its address.
         assert ("models" in preset.values) == (name in ("cscs", "apertus"))
+        for choice in preset.choices:  # the endpoint setup saves when it is picked
+            keys = {key: value for key, value in choice.items() if key != "label"}
+            config.Endpoint.model_validate({**preset.values, **keys})
+    assert [len(config.PRESETS[name].choices) for name in ("anthropic", "openai")] == [2, 3]
 
 
 def test_the_presets_file_holds_one_endpoint_table_per_preset(tmp_path) -> None:
     path = write(tmp_path / "presets.toml", '[c]\nlabel = "C"\nin_menu = false\n\n'
+                                            '[[c.choices]]\nlabel = "M"\n'
+                                            'models = { writer = "m" }\n\n'
                                             '[b]\nlabel = "B"\n'
                                             'url = "https://b.example/v1"\n')  # fmt: skip
     presets = config.read_presets(path)
     assert list(presets) == ["c", "b"]  # the file's order
     assert presets["b"] == config.Preset({"label": "B", "url": "https://b.example/v1"})
     assert presets["b"].label == "B" and presets["b"].in_menu
-    assert presets["c"] == config.Preset({"label": "C"}, in_menu=False)  # not an endpoint key
+    # in_menu and the choices are no endpoint keys
+    choice = {"label": "M", "models": {"writer": "m"}}
+    assert presets["c"] == config.Preset({"label": "C"}, in_menu=False, choices=(choice,))
     for text in ('[d]\nurl = "x"\n', '[d]\nlabel = ""\n', '[d]\nlabel = "D"\npreset = "c"\n'):
         with pytest.raises(ConfigError, match=r"presets\.toml: \[d\] needs a label"):
             config.read_presets(write(path, text))
     with pytest.raises(ConfigError, match=r"\[d\] in_menu is true or false"):
         config.read_presets(write(path, '[d]\nlabel = "D"\nin_menu = "no"\n'))
+    for text in ('[[d.choices]]\nlabel = "M"\n', '[[d.choices]]\nmodels = { writer = "m" }\n',
+                 'choices = "m"\n'):  # fmt: skip
+        with pytest.raises(ConfigError, match=r"\[\[d\.choices\]\] needs a label and models"):
+            config.read_presets(write(path, f'[d]\nlabel = "D"\n{text}'))
     with pytest.raises(ConfigError, match="a preset is a table"):
         config.read_presets(write(path, 'label = "top level"\n'))
 

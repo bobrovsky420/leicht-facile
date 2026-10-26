@@ -75,7 +75,8 @@ def run_setup(
     say: Callable[[str], None] = print,
 ) -> int:
     """Ask for what the preset and the arguments leave open: for a preset with its models,
-    the key alone, and nothing at all when the key's variable is set. What differs from
+    the key alone, and nothing at all when the key's variable is set; for one with
+    choices, the key and a choice, the last one any model the endpoint lists. What differs from
     the preset is saved as `[endpoints.<name>]`, the key in the .env next to the config
     file, and the endpoint is used. 0 when it is saved."""
     path = config.config_file()
@@ -83,15 +84,11 @@ def run_setup(
     if preset is None and name in PRESETS:
         preset = name  # `leichtfacile setup cscs`
     if preset is None and not (name or base_url):
-        choices = [*(key for key, item in PRESETS.items() if item.in_menu), "other"]
-        say("Which model endpoint should Leicht·Facile use?")
-        for i, key in enumerate(choices, 1):
-            label = PRESETS[key].label if key in PRESETS else "Another OpenAI-compatible endpoint"
-            say(f"  {i}. {label}")
-        answer = ask(f"Endpoint [1-{len(choices)}, Enter: 1]: ").strip() or "1"
-        while not (answer.isdigit() and 1 <= int(answer) <= len(choices)):
-            answer = ask(f"A number from 1 to {len(choices)}: ").strip()
-        preset = None if choices[int(answer) - 1] == "other" else choices[int(answer) - 1]
+        offered = [key for key, item in PRESETS.items() if item.in_menu]
+        labels = [*(PRESETS[key].label for key in offered), "Another OpenAI-compatible endpoint"]
+        index = _pick(ask, say, "Which model endpoint should Leicht·Facile use?", labels,
+                      "Endpoint")  # fmt: skip
+        preset = offered[index] if index < len(offered) else None
     values = PRESETS[preset].values if preset else {}
     known: dict[str, str] = values.get("models", {})
     # Nothing is asked when the address, the key and the model are given or known: the
@@ -133,8 +130,11 @@ def run_setup(
     named = bool(store or api_key_env or (found and not values.get("api_key")))
     key = store or (found[0] if found and named else values.get("api_key", ""))
 
-    # The model: the preset's, or asked with the endpoint's list; a key just entered is
-    # tried on the list as well, so a wrong one shows now and not at the first draft.
+    # The model: the preset's, one of its choices, or asked with the endpoint's list; a
+    # key just entered is tried on the list as well, so a wrong one shows now and not at
+    # the first draft.
+    choices = PRESETS[preset].choices if preset else ()
+    picked: dict[str, Any] | None = None
     listed: list[str] = []
     model = model or known.get("writer", "")
     if store or not model:
@@ -145,6 +145,12 @@ def run_setup(
             say(f"The endpoint's model list could not be read ({type(exc).__name__}).")
         else:
             say(f"The endpoint lists {len(listed)} models.")
+    if not model and choices:
+        labels = [*(choice["label"] for choice in choices), "Another model the endpoint lists"]
+        index = _pick(ask, say, "Which model should Leicht·Facile use?", labels, "Model")
+        if index < len(choices):
+            picked = choices[index]
+            model = picked["models"]["writer"]
     if not model:
         for listed_name in listed[:40]:
             say(f"  - {listed_name}")
@@ -153,7 +159,9 @@ def run_setup(
         model = _required(ask, "Model", listed[0] if len(listed) == 1 else "")
     if listed and model not in listed:
         say(f"Note: {model} is not in the endpoint's list.")
-    judge = judge or known.get("judge")
+    # A choice's model, however given, comes with the choice's settings.
+    picked = picked or next((c for c in choices if c["models"]["writer"] == model), None)
+    judge = judge or (picked or {}).get("models", {}).get("judge") or known.get("judge")
 
     # Only what differs from the preset goes into the file: a preset used as it is needs
     # no [endpoints.<name>] table at all.
@@ -171,6 +179,10 @@ def run_setup(
     _put(chosen, "writer", model if model != known.get("writer") else None)
     _put(chosen, "judge", judge if judge and judge != known.get("judge") else None)
     _put(table, "models", chosen or None)
+    # The chosen settings replace those of any choice, so that no switch of an earlier
+    # one stays behind.
+    for key in sorted({key for choice in choices for key in choice} - {"label", "models"}):
+        _put(table, key, (picked or {}).get(key))
     if len(table) and fresh:
         if "endpoints" not in doc:
             doc["endpoints"] = tomlkit.table(is_super_table=True)
@@ -201,6 +213,20 @@ def run_setup(
         say(f"Note: {other} picks another endpoint and wins over the config file.")
     say("Check it with `leichtfacile check-llm`; start the app with `leichtfacile serve`.")
     return 0
+
+
+def _pick(
+    ask: Callable[[str], str], say: Callable[[str], None], question: str, labels: list[str],
+    what: str,
+) -> int:  # fmt: skip
+    """The index of the option asked for by its number; Enter takes the first."""
+    say(question)
+    for i, label in enumerate(labels, 1):
+        say(f"  {i}. {label}")
+    answer = ask(f"{what} [1-{len(labels)}, Enter: 1]: ").strip() or "1"
+    while not (answer.isdigit() and 1 <= int(answer) <= len(labels)):
+        answer = ask(f"A number from 1 to {len(labels)}: ").strip()
+    return int(answer) - 1
 
 
 def _required(ask: Callable[[str], str], label: str, default: str) -> str:

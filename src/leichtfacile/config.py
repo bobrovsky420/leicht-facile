@@ -87,6 +87,9 @@ class ConfigError(ValueError):
 class Preset:
     values: dict[str, Any]  # the keys of an endpoint, `label` among them
     in_menu: bool = True  # in setup's list; `leichtfacile setup <name>` takes it either way
+    # The models setup offers, each a label and the endpoint keys it sets; its last option
+    # is any model the endpoint lists.
+    choices: tuple[dict[str, Any], ...] = ()
 
     @property
     def label(self) -> str:
@@ -97,7 +100,8 @@ def read_presets(path: Path) -> dict[str, Preset]:
     """The presets of a file, in the file's order (setup's): one table per preset, named
     after it, with the keys of an `[endpoints.<name>]` table and a `label`; the settings
     check the keys like any other source's. `in_menu = false` keeps one out of setup's
-    list."""
+    list; `[[<name>.choices]]` are the models setup offers, each with a label and
+    `models.writer`."""
     try:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as exc:
@@ -114,8 +118,19 @@ def read_presets(path: Path) -> dict[str, Preset]:
         in_menu = table.pop("in_menu", True)
         if not isinstance(in_menu, bool):
             raise ConfigError(f"{path}: [{name}] in_menu is true or false")
-        presets[name] = Preset(table, in_menu)
+        choices = table.pop("choices", [])
+        if not (isinstance(choices, list) and all(map(_is_choice, choices))):
+            raise ConfigError(f"{path}: [[{name}.choices]] needs a label and models.writer")
+        presets[name] = Preset(table, in_menu, tuple(choices))
     return presets
+
+
+def _is_choice(choice: object) -> bool:
+    if not isinstance(choice, dict) or not isinstance(models := choice.get("models"), dict):
+        return False
+    return all(
+        isinstance(text, str) and text for text in (choice.get("label"), models.get("writer"))
+    )
 
 
 PRESETS: dict[str, Preset] = read_presets(PRESETS_FILE)

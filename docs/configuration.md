@@ -93,6 +93,21 @@ draft form). A new table is a new preset; `tests/test_config.py` checks every ta
 keys and values. `in_menu = false` keeps a rarely used preset (`mistral`, `groq`,
 `huggingface`) out of setup's list; `leichtfacile setup <name>` still sets it up.
 
+`[[<name>.choices]]` are the models setup offers for a preset, each a `label` and the
+endpoint keys it sets: `models` (the judge is the writer unless `models.judge` names
+another) and what the model needs. Setup lists them after the key, with any model the
+endpoint lists as the last option; a choice's writer given with `--model` brings the
+choice's keys too, and another model drops them.
+
+```toml
+# src/leichtfacile/presets.toml
+[[openai.choices]]
+label = "GPT-5.6 Luna (fast, low cost)"
+models = { writer = "gpt-5.6-luna" }
+thinking = "reasoning-effort"
+thinking_stages = ["understand"]
+```
+
 ```toml
 # src/leichtfacile/presets.toml
 [cscs]
@@ -107,8 +122,8 @@ thinking = "model-suffix"
 |--------|----------|--------------|
 | `cscs` | Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers | the address, the key from `CSCS_API_KEY`, the 8B writing and the 70B judging, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`) |
 | `apertus` | Apertus on the Public AI gateway, for public documents only | the address, the key from `PUBLICAI_API_KEY`, the 8B and the 70B in the gateway's spelling, `thinking = "chat-template"`, and `extra_body` turning the gateway's response cache off |
-| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only); public documents only | the address, the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature) and the header `anthropic-version` the model list needs; no model: `setup anthropic` lists them. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`; switch it off on the saved endpoint with the native field, `extra_body = { thinking = { type = "disabled" } }` on Haiku 5.5 or `{ type = "between_tools" }` on Sonnet 5.5 (Opus 5.5 always thinks); when the two share an endpoint, `model_extra_body` gives one model its own switch |
-| `openai` | OpenAI; public documents only | the address, the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes `send_temperature = true` on the saved endpoint). Thinking is `reasoning_effort`: `thinking = "reasoning-effort"` on the saved endpoint, `thinking_stages = []` for none everywhere |
+| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint (chat completions only); public documents only | the address, the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature) and the header `anthropic-version` the model list needs; no model: setup offers Claude Haiku 5.5 and Sonnet 5.5 (the choices) or any model the endpoint lists. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`, so `model_extra_body` switches it off with the native field: `{ thinking = { type = "disabled" } }` for Haiku 5.5, `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value; Opus 5.5 always thinks) |
+| `openai` | OpenAI; public documents only | the address, the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes `send_temperature = true` on the saved endpoint). Thinking is `reasoning_effort`: `thinking = "reasoning-effort"` on the saved endpoint, `thinking_stages = []` for none everywhere. No model: setup offers GPT-5.6 Luna, GPT-5.6 Terra and GPT-5.4 Nano (the choices) or any model the endpoint lists; each choice sends `reasoning_effort` none but leaves Understand a thinking stage for its larger budget (`thinking_stages = ["understand"]`; without the field these models do not reason either), since on long German documents Understand's answer passed the 6,000 tokens of a stage that does not think |
 | `local` | llama.cpp (llama-server) on this machine, or another OpenAI-compatible server (`--base-url`) | `http://127.0.0.1:8080/v1`, the key `local` (such a server takes any key), `thinking = "chat-template"` (llama.cpp with `--jinja`) and 30 minutes per call (a thinking call on a small GPU takes minutes) |
 | `ollama` | Ollama on this machine | `http://127.0.0.1:11434/v1` and the key `ollama` (ignored); thinking off, since Ollama ignores the chat-template switch: a thinking model such as Qwen takes `thinking = "reasoning-effort"` on the saved endpoint |
 | `vllm` | vLLM, mostly a GPU machine of the organisation (`--base-url http://<server>:8000/v1`) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"` |
@@ -196,7 +211,7 @@ the preset's variable (`CSCS_API_KEY`) or `<NAME>_API_KEY` for an endpoint witho
 
 | Command | Does |
 |---------|------|
-| `leichtfacile setup [name]` | gives a preset (`cscs`, `apertus`, ...) its key and uses it, asking nothing when the key's variable is set; without a name offers the presets (but those with `in_menu = false`) and `other`; for another endpoint asks the address, a name, the key and the model (from the endpoint's list); saves what differs from a preset as `[endpoints.<name>]`; an endpoint saved already is updated with `--force`, its other keys kept |
+| `leichtfacile setup [name]` | gives a preset (`cscs`, `apertus`, ...) its key and uses it, asking nothing when the key's variable is set; without a name offers the presets (but those with `in_menu = false`) and `other`; for a preset with choices offers them after the key, any listed model last; for another endpoint asks the address, a name, the key and the model (from the endpoint's list); saves what differs from a preset as `[endpoints.<name>]`; an endpoint saved already is updated with `--force`, its other keys kept |
 | `leichtfacile endpoint list` | every endpoint, preset or saved, with its label, its writer model and whether it is ready (else what it lacks), the one in use marked `*` |
 | `leichtfacile endpoint use <name>` | uses that endpoint, a preset or a saved one, from now on |
 | `leichtfacile endpoint remove <name>` | removes a saved endpoint, or the saved settings that extend a preset (the preset stays) |

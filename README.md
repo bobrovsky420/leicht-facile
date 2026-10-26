@@ -147,7 +147,9 @@ uv run leichtfacile serve
 `setup` lists the presets (`cscs` and `apertus` for Apertus, `anthropic`, `openai`,
 `local` for llama.cpp, `ollama`, `vllm`) and any other endpoint; the rarely used presets
 `mistral`, `groq` and `huggingface` are not in the list but take `setup <name>`;
-`setup cscs` asks for the CSCS key alone, `setup ollama` for the model alone. It ends by
+`setup cscs` asks for the CSCS key alone, `setup ollama` for the model alone, and
+`setup anthropic` (or `openai`) for the key and one of a few models it offers, any other
+model the provider lists being the last option. It ends by
 offering the spaCy models for German and French, about 90 MB from GitHub (`leichtfacile
 models` gets them later; a checkout has them from `uv.lock`). With a preset's key in the
 environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), the app needs no setup:
