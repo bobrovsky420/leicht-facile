@@ -123,7 +123,7 @@ def test_a_providers_presets_are_offered_then_any_listed_model(home, monkeypatch
     assert code == 0
     assert menus(said)[1] == [
         "Claude Haiku 5.5", "Claude Haiku 5.5, checked by Sonnet 5.5", "Claude Sonnet 5.5",
-        ANOTHER_MODEL,
+        "Claude Opus 5.5", ANOTHER_MODEL,
     ]  # fmt: skip
     assert toml(home) == {"llm": {"preset": "claude-haiku-5-5"}}
     llm = load().settings.llm
@@ -131,7 +131,7 @@ def test_a_providers_presets_are_offered_then_any_listed_model(home, monkeypatch
     assert llm.for_model("claude-haiku-5-5").extra_body == {"thinking": {"type": "disabled"}}
     # The last option lists the provider's models and takes any of them, as a preset of
     # the user's own.
-    code = run_setup(provider="anthropic", ask=answers("4", "claude-opus-5-5", ""),
+    code = run_setup(provider="anthropic", ask=answers("5", "claude-opus-5-5", ""),
                      ask_secret=answers(""), models=lambda url, key, headers: listed,
                      say=said.append)  # fmt: skip
     assert code == 0 and "  - claude-opus-5-5" in said

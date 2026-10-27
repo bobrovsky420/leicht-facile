@@ -256,5 +256,5 @@ def test_the_new_draft_form_offers_the_ready_presets_from_the_settings(app, monk
     page = client.get("/new").text
     assert '<option value="publicai-apertus"' in page and "Claude Haiku 5.5 (Anthropic)" in page
     assert 'value="cscs-apertus"' not in page  # still without its key
-    assert len([n for n, _ in app.state.registry.ready()]) == 4
+    assert len([n for n, _ in app.state.registry.ready()]) == 5
     assert config.load(preset="claude-haiku-5-5").settings.llm.api_key is not None
