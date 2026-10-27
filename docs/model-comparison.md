@@ -171,6 +171,18 @@ thinking = "off on both, through the native thinking field set per model (the pr
 text = "United States (Anthropic)"
 prices = "Anthropic list prices"
 notes = "the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid"
+[[run]]
+label = "Claude Opus 5.5, always thinking, judges itself (Anthropic)"
+results = "eval/results-anthropic-claude-opus-5.5"
+file = "P2_claude-opus-5-5.jsonl"
+date = 2026-10-27
+endpoint = "Anthropic's OpenAI-compatible endpoint"
+writer = "claude-opus-5-5"
+judge = "claude-opus-5-5 (itself)"
+thinking = "always on, at the default effort (medium): Opus 5.5 refuses `disabled` and the endpoint ignores `output_config`; the thinking counts in max_tokens, so every call had 12,000 tokens more (`thinking_tokens`)"
+text = "United States (Anthropic)"
+prices = "Anthropic list prices"
+notes = "no temperature; with the stages' own budgets the Understand answer of a long document passed 12,000 tokens and the pair failed, so it ran again with the larger budget (the longest Understand answer reached 18,000); four Write answers passed 20,000 tokens and were written in halves; 250 calls, USD 33.5 paid with the failed attempt and six test calls"
 ```
 <!-- runs:end -->
 
@@ -187,6 +199,7 @@ notes = "the writer's Understand and first Write calls are those of the Haiku ru
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-haiku-5-5 (itself) | off, through the native thinking field (the endpoint ignores reasoning_effort; thinking tokens count in max_tokens and are not reported) | United States (Anthropic) | Anthropic list prices | no temperature (refused by the 5.5 models); the smallest current Claude; with adaptive thinking on, Understand ran to 12,000 and Write to 8,000 tokens | `eval/results-anthropic-claude-haiku-5.5/P2_claude-haiku-5-5.jsonl` |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-sonnet-5-5 | claude-sonnet-5-5 (itself) | off, through the native thinking field: `between_tools`, the only value Sonnet 5.5 accepts there (the endpoint refuses `adaptive`, Sonnet `disabled`); with no tools in the pipeline it does not think | United States (Anthropic) | Anthropic list prices | no temperature; nine Write answers passed 8,000 tokens and were written in halves, the longest Understand answer reached 10,800; 275 calls, USD 14.7 paid | `eval/results-anthropic-claude-sonnet-5.5/P2_claude-sonnet-5-5.jsonl` |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-sonnet-5-5 | off on both, through the native thinking field set per model (the provider's models tables): `disabled` for Haiku, `between_tools` for Sonnet | United States (Anthropic) | Anthropic list prices | the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid | `eval/results-anthropic-haiku-sonnet-judge/P2_claude-haiku-5-5.jsonl` |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 2026-10-27 | Anthropic's OpenAI-compatible endpoint | claude-opus-5-5 | claude-opus-5-5 (itself) | always on, at the default effort (medium): Opus 5.5 refuses `disabled` and the endpoint ignores `output_config`; the thinking counts in max_tokens, so every call had 12,000 tokens more (`thinking_tokens`) | United States (Anthropic) | Anthropic list prices | no temperature; with the stages' own budgets the Understand answer of a long document passed 12,000 tokens and the pair failed, so it ran again with the larger budget (the longest Understand answer reached 18,000); four Write answers passed 20,000 tokens and were written in halves; 250 calls, USD 33.5 paid with the failed attempt and six test calls | `eval/results-anthropic-claude-opus-5.5/P2_claude-opus-5-5.jsonl` |
 
 ## German
 
@@ -206,6 +219,7 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 92 % | 0 % | 0.9 | 29.9 | 6.9 | 57 | 44.1 | 8.6 | 0.3 | 46648 | 0.0085 | 33.3 |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 91 % | 0 % | 0.0 | 17.5 | 6.5 | 59 | 47.4 | 2.2 | 0.0 | 68069 | 0.2386 | 73.3 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 20 | 99 % | 91 % | 0 % | 0.0 | 7.6 | 6.4 | 59 | 48.1 | 0.1 | 0.0 | 58324 | 0.4977 | 128.2 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -225,6 +239,7 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 11.7 | 0.0 | 4.3 | 0.2 | 7.8 | 15.6 | 4.1 | 0.0 |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 8.0 | 0.0 | 2.2 | 0.0 | 5.5 | 2.6 | 0.4 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.8 | 0.0 | 4.6 | 0.1 | 9.1 | 16.5 | 4.1 | 0.0 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 1.1 | 0.0 | 1.0 | 0.0 | 3.7 | 1.7 | 0.4 | 0.0 |
 
 Fact-rich subset (17 pairs with at least 3 hard facts):
 
@@ -242,6 +257,7 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 17 | 90 % | 100 % | 4 % |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 17 | 89 % | 100 % | 1 % |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 17 | 91 % | 100 % | 2 % |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 17 | 89 % | 99 % | 1 % |
 
 Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
@@ -263,6 +279,7 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.9 | 21.3 | 7.6 | 80 | 46.6 | 7.7 | 0.0 | 35250 | 0.0063 | 23.9 |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 91 % | 0 % | 0.4 | 10.9 | 7.2 | 79 | 50.6 | 3.1 | 0.0 | 32037 | 0.1187 | 41.9 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.0 | 0.0 | 7.3 | 80 | 49.6 | 0.6 | 0.0 | 39165 | 0.3199 | 81.1 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -282,6 +299,7 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 8.5 | 0.0 | 6.5 | 0.0 | 4.0 | 0.0 | 3.3 | 0.0 |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 5.3 | 0.0 | 3.2 | 0.0 | 2.8 | 0.0 | 0.0 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.5 | 0.0 | 8.8 | 0.0 | 5.8 | 0.0 | 3.4 | 0.0 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 
 Fact-rich subset (3 pairs with at least 3 hard facts):
 
@@ -299,25 +317,29 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
 | Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 83 % | 100 % | 2 % |
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 91 % | 100 % | 1 % |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 87 % | 100 % | 2 % |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 83 % | 100 % | 1 % |
 <!-- tables:end -->
 
-## Reading, 25 October 2026
+## Reading, 25 and 27 October 2026
 
 - **Facts.** The Apertus runs keep 96 to 97 % of the hard values in German, gpt-oss 94 %,
-  gpt-5.4-nano and Haiku with Sonnet judging 93 %, Haiku alone 92 %, Sonnet 91 %,
-  gpt-5.6-luna 90 %, Qwen 87 %; Qwen and luna each lost one value in two hundred silently.
-  The Haiku drafts are the only ones that carry values not in the source (0.3 per 100
-  blocks with Haiku judging, 0.2 with Sonnet judging); Sonnet's own drafts carry none, as
-  everybody else's. In French (3 pairs) nano and Sonnet lead (93 and 91 %), the 70B 89 %,
-  Haiku with Sonnet judging 87 %, gpt-oss and Haiku 83 %, luna 80 %, the 8B and Qwen 72 %.
-- **Rules.** Sonnet writes no rule error at all in German and the fewest warnings (17.5
-  per 100 blocks); the 70B, Qwen, luna, nano and the two Haiku runs write 0.3 to 1.0
-  errors, gpt-oss 1.7, the 8B 3.7. Sonnet also leaves the fewest compounds for code to
-  split (2.6 per 100 blocks); Haiku 15.6, gpt-oss and nano the most.
-- **Readability.** Sonnet reads easiest (59 in German), the 70B and Claude Haiku 57, Haiku
-  with Sonnet judging 56, Qwen 55, the 8B 52, nano 48, gpt-oss 46, luna 44: the OpenAI
-  models and gpt-oss write short sentences with long words. Sonnet scores highest on SARI
-  (47), the closeness to the official versions; Haiku and luna follow (44 to 45).
+  gpt-5.4-nano and Haiku with Sonnet judging 93 %, Haiku alone 92 %, Sonnet and Opus
+  91 %, gpt-5.6-luna 90 %, Qwen 87 %; Qwen and luna each lost one value in two hundred
+  silently. The Haiku drafts are the only ones that carry values not in the source (0.3
+  per 100 blocks with Haiku judging, 0.2 with Sonnet judging); Sonnet's and Opus's own
+  drafts carry none, as everybody else's. In French (3 pairs) nano and Sonnet lead (93
+  and 91 %), the 70B 89 %, Haiku with Sonnet judging 87 %, gpt-oss, Haiku and Opus 83 %,
+  luna 80 %, the 8B and Qwen 72 %.
+- **Rules.** Sonnet and Opus write no rule error at all in German; Opus has by far the
+  fewest warnings (7.6 per 100 blocks, Sonnet 17.5) and none at all in French. The 70B,
+  Qwen, luna, nano and the two Haiku runs write 0.3 to 1.0 errors, gpt-oss 1.7, the 8B
+  3.7. Opus and Sonnet also leave the fewest compounds for code to split (1.7 and 2.6 per
+  100 blocks); Haiku 15.6, gpt-oss and nano the most.
+- **Readability.** Sonnet and Opus read easiest (59 in German), the 70B and Claude Haiku
+  57, Haiku with Sonnet judging 56, Qwen 55, the 8B 52, nano 48, gpt-oss 46, luna 44: the
+  OpenAI models and gpt-oss write short sentences with long words. Opus and Sonnet score
+  highest on SARI (48 and 47), the closeness to the official versions; Haiku and luna
+  follow (44 to 45).
 - **The judge alone.** The run with Haiku writing and Sonnet judging reused Haiku's
   Understand and first Write answers, so the differences to the Haiku run come only from
   the judge and the repairs it asked for: unsupported statements fall from 8.6 to 5.6 per
@@ -330,21 +352,28 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
   at Public AI's prices; the OpenAI small models: 85 s and USD 0.017 to 0.019 per page
   (38k tokens per page); Sonnet everywhere: 73 s and USD 0.24 per page (68k tokens per
   page, the most: longer factsheets and drafts, larger judge prompts), 28 times Haiku and
-  about ten times the 70B; the laptop: 588 s and no token price. The seconds per page of
-  the Haiku-writes-Sonnet-judges run (29) leave out Understand and the first Write, which
-  came from the cache.
+  about ten times the 70B; Opus everywhere: 128 s and USD 0.50 per page (58k tokens per
+  page, its thinking included), twice Sonnet; the laptop: 588 s and no token price. The
+  seconds per page of the Haiku-writes-Sonnet-judges run (29) leave out Understand and the
+  first Write, which came from the cache.
 - **Output budgets.** The OpenAI small models answered Understand with 6 to 9 thousand
   tokens on the long documents, past the 6,000-token budget of a stage without thinking;
   those pairs ran with the thinking budget of 12,000 (the models reason only when asked, so
   nothing else changed). Claude Haiku's Write passed 8,000 tokens on three long documents
   and Sonnet's on nine; those drafts were written in two halves, as the pipeline does.
   Sonnet's longest Understand answer reached 10,800 tokens, under the 12,000 budget.
+  Opus thinks on every call and the thinking counts in the budget: its Understand answer
+  on a long document passed 12,000 tokens and the pair failed, so its table adds 12,000
+  tokens to every call (`thinking_tokens`) and the pair ran again; its longest Understand
+  answer then reached 18,000, and four Write answers passed 20,000 and were written in
+  halves.
 - **Thinking.** Only Apertus on CSCS thought where the pipeline asks for it. Qwen 3.5 9B
   and gpt-oss-20b at Groq's default effort ran their reasoning to the budget's end, so Qwen
   ran without thinking and gpt-oss at the lowest effort; the OpenAI models ran with
-  `reasoning_effort: none`; the Claude models with thinking switched off through the
+  `reasoning_effort: none`; Claude Haiku and Sonnet with thinking switched off through the
   native field, since Anthropic's OpenAI-compatible endpoint ignores `reasoning_effort`
   and counts thinking tokens in the output budget (with thinking on, Haiku's Understand
   ran to 12,000 tokens). Each Claude model accepts a different value there: `disabled` on
   Haiku 5.5, `between_tools` on Sonnet 5.5 (the endpoint refuses `adaptive`), so the mixed
-  run set the field per model.
+  run set the field per model. Opus 5.5 refuses both values and the endpoint ignores
+  `output_config`, so Opus thought on every call at its default effort (medium).
