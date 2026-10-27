@@ -767,9 +767,12 @@ midway.
   (a thinking model on Ollama, whose `/v1` endpoint ignores the other switches:
   `reasoning_effort: "none"` for the stages that do not think, the model's default for
   the others); `send_temperature` and `max_tokens_key` (OpenAI's GPT-5 models refuse a
-  temperature and `max_tokens`); `extra_body` (fields sent with every request: a
-  gateway's switches, a model's thinking switch, such as the native field Claude's
-  models take); `timeout_s`, `max_retries`, `stream`. The web app holds a registry of
+  temperature and `max_tokens`); `thinking_tokens` (added to every call's output budget
+  for a model that thinks whatever the request says, Claude Opus 5.5); `extra_body`
+  (fields sent with every request: a gateway's switches, a model's thinking switch, such
+  as the native field Claude's models take; a model's table and the preset add their
+  fields to the provider's, so OpenRouter's `provider` switch reaches every model);
+  `timeout_s`, `max_retries`, `stream`. The web app holds a registry of
   clients (`llm/registry.py`), one per ready preset, made on first use and made anew when
   the model page changes the settings: a draft may pick another preset in the New draft
   form (`JobConfig.endpoint`), the orchestrator runs it on that preset's client

@@ -30,7 +30,7 @@ import httpx
 import openai
 
 from leichtfacile import __version__
-from leichtfacile.config import ModelSettings, Settings
+from leichtfacile.config import ModelSettings, Settings, merge_tables
 from leichtfacile.llm.cache import ResponseCache, cache_key
 from leichtfacile.llm.reasoning import split_reasoning
 
@@ -205,7 +205,8 @@ class LLMClient:
     ) -> LLMResult:
         name, thinking_body = self.resolve_model(model, thinking)
         settings = self.settings.llm.for_model(name)  # the provider's, the model's, the preset's
-        extra_body = {**settings.extra_body, **thinking_body}
+        extra_body = merge_tables(settings.extra_body, thinking_body)
+        max_tokens += settings.thinking_tokens
         params: dict[str, Any] = {settings.max_tokens_key: max_tokens}
         if settings.send_temperature:
             params["temperature"] = temperature

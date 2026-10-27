@@ -79,8 +79,12 @@ the model:
 
 A request's settings come from the provider, then the table of the model called, then
 the preset, then the user's tables of the same names (the config file extends a shipped
-provider or preset with a table of its name, and adds new ones). Names are lowercase
-letters, digits, `-` and `_`.
+provider or preset with a table of its name, and adds new ones). A later value replaces
+an earlier one, except in `extra_body`, whose fields add up: OpenRouter's provider table
+sends `{ provider = { data_collection = "deny" } }`, a model's table adds
+`{ reasoning = { enabled = false } }`, and the request carries both; a field set in both
+tables (`reasoning`) takes the later value. Names are lowercase letters, digits, `-` and
+`_`.
 
 - A preset is ready when its provider has an address and a key (given, or its variable
   set) and it names a writer. `leichtfacile preset list` shows every preset and what it
@@ -139,7 +143,7 @@ models = { writer = "claude-haiku-5-5", judge = "claude-sonnet-5-5" }
 |----------|---------------------|-------------------------------|
 | `cscs` | CSCS inference API, Lugano (`ch`, any document): the endpoint of the reported numbers | the key from `CSCS_API_KEY`, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`). Preset `cscs-apertus`: the 8B writes, the 70B judges |
 | `publicai` | The Public AI gateway (`world`, public documents only): run by Metagov Inc. (US nonprofit), requests go to compute partners | the key from `PUBLICAI_API_KEY`, `thinking = "chat-template"`, `extra_body` turning the gateway's response cache off; Apertus at Public AI's list prices, by pattern, which the evaluation uses for every Apertus run. Preset `publicai-apertus`: the 8B and the 70B in the gateway's spelling |
-| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint, chat completions only (`us`, public) | the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature), the header `anthropic-version` the model list needs. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`, so each model's table switches it off with the native field: `{ thinking = { type = "disabled" } }` for Haiku 5.5, `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value; Opus 5.5 always thinks). Presets `claude-haiku-5-5`, `claude-haiku-5-5-sonnet` (Haiku writes, Sonnet judges), `claude-sonnet-5-5` |
+| `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint, chat completions only (`us`, public) | the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature), the header `anthropic-version` the model list needs. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`, so each model's table switches it off with the native field: `{ thinking = { type = "disabled" } }` for Haiku 5.5, `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value). Opus 5.5 always thinks, at its default effort (the endpoint ignores `output_config`), so its table adds 12,000 tokens to every call's output budget (`thinking_tokens = 12000`; an Understand answer on a long document passed the 12,000 of a thinking stage). Presets `claude-haiku-5-5`, `claude-haiku-5-5-sonnet` (Haiku writes, Sonnet judges), `claude-sonnet-5-5`, `claude-opus-5-5` |
 | `openai` | OpenAI (`us`, public) | the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; the `gpt-4*` table takes the old fields back). The `gpt-5*` table sets `thinking = "reasoning-effort"` (`reasoning_effort` none for the stages that do not think) and leaves Understand a thinking stage for its larger budget (`thinking_stages = ["understand"]`; without the field these models do not reason either), since on long German documents Understand's answer passed the 6,000 tokens of a stage that does not think. Presets `gpt-5-6-luna`, `gpt-5-6-terra`, `gpt-5-4-nano` |
 | `gemini` | Google's Gemini through its OpenAI-compatible endpoint, in beta (`us`, public; on the free tier Google uses the texts to improve its products) | the key from `GEMINI_API_KEY`, `send_temperature = false` (Google advises against a temperature on Gemini 3: below its default of 1.0 it may loop). Gemini 3 models always think (`reasoning_effort` none switches off only Gemini 2.5) and count the thinking in `max_tokens`, so the model's table sends `reasoning_effort = "low"`, the lowest level 3.8 Flash takes (`minimal` is an error), on every call. Preset `gemini-3-8-flash`. From Google's documentation (26 October 2026), not run yet |
 | `openrouter` | OpenRouter, a gateway to many providers (`world`, public) | the key from `OPENROUTER_API_KEY`, `extra_body = { provider = { data_collection = "deny" } }` so that it routes to no provider that stores prompts; each model's table switches thinking through OpenRouter's `reasoning` field. Presets `openrouter-claude-haiku-5-5`, `openrouter-claude-haiku-5-5-sonnet`, `openrouter-gpt-5-6-luna`, `openrouter-gemini-3-8-flash`, `openrouter-qwen3-5-27b`. From its model list (26 October 2026), not run yet |
@@ -340,10 +344,11 @@ Where models run and how to reach them. Its request settings apply to every mode
 | `thinking_stages` | `["understand", "judge"]` | The stages that think, when thinking is on. |
 | `stream` | `true` | Streamed answers, so that a proxy cannot time out a long one; false only for a server that cannot stream. |
 | `max_tokens_key` | `"max_tokens"` | The request field for the output budget: max_tokens, or max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens). |
+| `thinking_tokens` | `0` | Tokens added to every call's output budget, for a model that thinks whatever the request says and counts the thinking in that budget. |
 | `send_temperature` | `true` | Send each stage's temperature; false for a model that takes only its default (OpenAI's GPT-5 models, Gemini 3). |
 | `timeout_s` | `300.0` | Seconds one call may take. |
 | `max_retries` | `8` | Retries of a failed call. |
-| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. |
+| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
 | `label` |  | The name the interface shows. |
@@ -368,10 +373,11 @@ What the calls to a model take and cost. Set on a provider for all its models, i
 | `thinking_stages` | `["understand", "judge"]` | The stages that think, when thinking is on. |
 | `stream` | `true` | Streamed answers, so that a proxy cannot time out a long one; false only for a server that cannot stream. |
 | `max_tokens_key` | `"max_tokens"` | The request field for the output budget: max_tokens, or max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens). |
+| `thinking_tokens` | `0` | Tokens added to every call's output budget, for a model that thinks whatever the request says and counts the thinking in that budget. |
 | `send_temperature` | `true` | Send each stage's temperature; false for a model that takes only its default (OpenAI's GPT-5 models, Gemini 3). |
 | `timeout_s` | `300.0` | Seconds one call may take. |
 | `max_retries` | `8` | Retries of a failed call. |
-| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. |
+| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
 
@@ -387,10 +393,11 @@ A provider with the models that write, read and check: what the user picks. Any 
 | `thinking_stages` | `["understand", "judge"]` | The stages that think, when thinking is on. |
 | `stream` | `true` | Streamed answers, so that a proxy cannot time out a long one; false only for a server that cannot stream. |
 | `max_tokens_key` | `"max_tokens"` | The request field for the output budget: max_tokens, or max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens). |
+| `thinking_tokens` | `0` | Tokens added to every call's output budget, for a model that thinks whatever the request says and counts the thinking in that budget. |
 | `send_temperature` | `true` | Send each stage's temperature; false for a model that takes only its default (OpenAI's GPT-5 models, Gemini 3). |
 | `timeout_s` | `300.0` | Seconds one call may take. |
 | `max_retries` | `8` | Retries of a failed call. |
-| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. |
+| `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
 | `label` |  | The name the interface shows. Default: the preset's name. |

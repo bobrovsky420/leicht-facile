@@ -92,6 +92,15 @@ def test_the_output_budget_field_and_the_temperature_follow_the_endpoint(endpoin
     assert "max_tokens" not in body and "temperature" not in body
 
 
+def test_a_model_that_always_thinks_gets_its_thinking_tokens_on_top(endpoint, make_client):
+    client = make_client(make_settings(llm__model_settings={"opus": {"thinking_tokens": 12000}}))
+    endpoint.push(chat_response("a"), chat_response("b"))
+    client.complete(MSG, max_tokens=500)
+    client.complete(MSG, model="opus", max_tokens=500)
+    first, second = endpoint.chat_bodies()
+    assert (first["max_tokens"], second["max_tokens"]) == (500, 12500)
+
+
 def test_a_models_table_sets_its_calls_over_the_providers_settings(endpoint, make_client):
     """What a call takes follows the model called: the provider's settings, the table
     of the model (by its name or a pattern) over them."""
@@ -114,8 +123,9 @@ def test_a_models_table_sets_its_calls_over_the_providers_settings(endpoint, mak
     first, second, third = endpoint.chat_bodies()
     assert first["thinking"] == {"type": "disabled"} and first["cache"] == {"no-cache": True}
     assert (first["temperature"], first["max_tokens"]) == (0.2, 50)
-    # The table's extra_body replaces the provider's as a whole; its other keys apply.
-    assert second["thinking"] == {"type": "between_tools"} and "cache" not in second
+    # The table's extra_body adds its fields to the provider's, its own value for a field
+    # both set; its other keys apply.
+    assert second["thinking"] == {"type": "between_tools"} and second["cache"] == {"no-cache": True}
     assert "temperature" not in second and second["max_tokens"] == 50
     assert third["max_completion_tokens"] == 50 and "max_tokens" not in third  # the pattern
 
@@ -131,13 +141,17 @@ def test_the_endpoints_headers_go_with_every_call(endpoint, make_client):
 
 def test_extra_body_is_sent_with_every_call(endpoint, make_client):
     client = make_client(
-        make_settings(llm__thinking="chat-template", llm__extra_body={"cache": {"no-cache": True}})
+        make_settings(
+            llm__thinking="chat-template",
+            llm__extra_body={"cache": {"no-cache": True}, "chat_template_kwargs": {"budget": 512}},
+        )
     )
     endpoint.push(chat_response("a"))
     client.complete(MSG, thinking=True)
     body = endpoint.chat_bodies()[0]
     assert body["cache"] == {"no-cache": True}
-    assert body["chat_template_kwargs"] == {"enable_thinking": True}
+    # The thinking switch joins the settings' own chat_template_kwargs.
+    assert body["chat_template_kwargs"] == {"budget": 512, "enable_thinking": True}
 
 
 def test_off_mode_sends_model_unchanged(endpoint, make_client):

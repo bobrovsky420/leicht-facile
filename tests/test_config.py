@@ -211,6 +211,31 @@ def test_a_users_table_extends_a_shipped_preset_or_provider(home, monkeypatch) -
     assert loaded.flat["llm.headers"].source == "provider anthropic"
 
 
+def test_extra_body_fields_add_up(home, monkeypatch) -> None:
+    """A table's extra_body adds its fields to the earlier tables', a table within a table
+    too; a field set twice takes the later value. OpenRouter's switch that keeps prompts
+    from providers that store them reaches every model."""
+    monkeypatch.setenv("OPENROUTER_API_KEY", "k")
+    llm = load(preset="openrouter-claude-haiku-5-5").settings.llm
+    deny = {"data_collection": "deny"}
+    haiku = llm.for_model("anthropic/claude-haiku-5.5")
+    assert haiku.extra_body == {"provider": deny, "reasoning": {"enabled": False}}
+    assert llm.for_model("other/model").extra_body == {"provider": deny}
+    # The user's tables add to the shipped ones: the provider's, a model's, the preset's.
+    write(home, '[providers.openrouter]\n'
+                'extra_body = { provider = { order = ["anthropic"] } }\n\n'
+                '[providers.openrouter.models."other/model"]\n'
+                'extra_body = { reasoning = { effort = "low" } }\n\n'
+                '[presets.openrouter-claude-haiku-5-5]\n'
+                'extra_body = { reasoning = { enabled = true } }\n')  # fmt: skip
+    llm = load(preset="openrouter-claude-haiku-5-5").settings.llm
+    routed = {"data_collection": "deny", "order": ["anthropic"]}
+    haiku = llm.for_model("anthropic/claude-haiku-5.5")
+    assert haiku.extra_body == {"provider": routed, "reasoning": {"enabled": True}}
+    other = llm.for_model("other/model")
+    assert other.extra_body == {"provider": routed, "reasoning": {"effort": "low", "enabled": True}}
+
+
 def test_a_preset_of_ones_own_names_a_known_provider(home) -> None:
     write(home, '[presets.mine]\nmodels = { writer = "m" }\n')
     with pytest.raises(ConfigError, match=r"preset mine: names no provider"):

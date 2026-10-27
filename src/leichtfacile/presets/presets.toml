@@ -19,8 +19,11 @@
 # user's config file extends or adds providers and presets with tables of the same form.
 #
 # A request's settings come from the provider, then the table of the model called, then
-# the preset, then the user's tables of the same names. The interface and `leichtfacile
-# setup` list the presets in this file's order; `default` is the preset of a fresh install.
+# the preset, then the user's tables of the same names. `extra_body` adds up: a later
+# table's fields join the earlier ones (a model's `reasoning` joins the provider's
+# `provider`), and a field set twice takes the later value. The interface and
+# `leichtfacile setup` list the presets in this file's order; `default` is the preset of
+# a fresh install.
 
 default = "cscs-apertus"
 
@@ -92,8 +95,10 @@ models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-7
 # so each model's table switches thinking off through the native field, with the value
 # the model accepts: `disabled` for Haiku 5.5, `between_tools` for Sonnet 5.5 (each
 # refuses the other's; the endpoint refuses `adaptive`, and with no tools in the pipeline
-# Sonnet does not think). Opus 5.5 always thinks. Prices: Anthropic's list (25 October
-# 2026), Haiku up to 100K tokens of prompt. Both Haiku runs are in docs/model-comparison.md.
+# Sonnet does not think). Opus 5.5 always thinks (it refuses `disabled`), at its default
+# effort: the endpoint ignores `output_config` (it takes even an effort of "bogus", 27
+# October 2026). Prices: Anthropic's list (25 October 2026), Haiku up to 100K tokens of
+# prompt. The runs are in docs/model-comparison.md.
 [providers.anthropic]
 label = "Anthropic"
 url = "https://api.anthropic.com/v1"
@@ -114,7 +119,10 @@ extra_body = { thinking = { type = "between_tools" } }
 input_usd = 2.00
 output_usd = 10.00
 
+# Opus's thinking counts in max_tokens: on a long document its Understand answer passed
+# the 12,000 tokens of a thinking stage (27 October 2026), so every call gets 12,000 more.
 [providers.anthropic.models.claude-opus-5-5]
+thinking_tokens = 12000
 input_usd = 4.00
 output_usd = 20.00
 
@@ -136,6 +144,11 @@ models = { writer = "claude-haiku-5-5", judge = "claude-sonnet-5-5" }
 provider = "anthropic"
 label = "Claude Sonnet 5.5"
 models = { writer = "claude-sonnet-5-5" }
+
+[presets.claude-opus-5-5]
+provider = "anthropic"
+label = "Claude Opus 5.5"
+models = { writer = "claude-opus-5-5" }
 
 # OpenAI's GPT-5 models (the current line: gpt-5.4-nano, gpt-5.6-luna, gpt-5.6-terra, ...)
 # refuse `max_tokens` and any temperature but their default; a GPT-4.1 model takes the
@@ -266,31 +279,31 @@ documents = "public"
 extra_body = { provider = { data_collection = "deny" } }
 
 [providers.openrouter.models."anthropic/claude-haiku-5.5"]
-extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+extra_body = { reasoning = { enabled = false } }
 send_temperature = false
 input_usd = 0.10
 output_usd = 0.50
 
 [providers.openrouter.models."anthropic/claude-sonnet-5.5"]
-extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+extra_body = { reasoning = { enabled = false } }
 send_temperature = false
 input_usd = 2.00
 output_usd = 10.00
 
 [providers.openrouter.models."openai/gpt-5.6-luna"]
-extra_body = { provider = { data_collection = "deny" }, reasoning = { effort = "none" } }
+extra_body = { reasoning = { effort = "none" } }
 send_temperature = false
 input_usd = 0.20
 output_usd = 1.20
 
 [providers.openrouter.models."google/gemini-3.8-flash"]
-extra_body = { provider = { data_collection = "deny" }, reasoning = { effort = "low" } }
+extra_body = { reasoning = { effort = "low" } }
 send_temperature = false
 input_usd = 0.825
 output_usd = 4.125
 
 [providers.openrouter.models."qwen/qwen3.5-27b"]
-extra_body = { provider = { data_collection = "deny" }, reasoning = { enabled = false } }
+extra_body = { reasoning = { enabled = false } }
 input_usd = 0.27
 output_usd = 2.16
 

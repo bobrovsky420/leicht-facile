@@ -19,10 +19,10 @@ the user picks: a provider and the models that write, read and check. `[llm]` na
 preset in use (`llm.preset`, the shipped default without it) and holds the two switches
 that apply to every preset, `cache` and `offer`; a request's settings come from the
 provider, the table of the model called, the preset, and the user's tables of the same
-names, in that order (`preset_layer`). A secret is given in a file (`api_key`,
-`auth.token`) or named (`api_key_env`, `auth.token_env`): the named variable comes from
-the environment, else from `.env` in the current folder, else from `.env` next to the
-config file. A `.env` holds such secrets and nothing else.
+names, in that order (`preset_layer`), extra_body's fields added up. A secret is given
+in a file (`api_key`, `auth.token`) or named (`api_key_env`, `auth.token_env`): the
+named variable comes from the environment, else from `.env` in the current folder, else
+from `.env` next to the config file. A `.env` holds such secrets and nothing else.
 """
 
 from __future__ import annotations
@@ -156,6 +156,14 @@ class ModelSettings(Section):
         description="The request field for the output budget: max_tokens, or "
         "max_completion_tokens (OpenAI's GPT-5 models refuse max_tokens).",
     )
+    # Claude Opus 5.5 thinks whatever the request says and counts the thinking in
+    # max_tokens: an Understand answer on a long document passed 12,000 (27 October 2026).
+    thinking_tokens: int = Field(
+        0,
+        ge=0,
+        description="Tokens added to every call's output budget, for a model that thinks "
+        "whatever the request says and counts the thinking in that budget.",
+    )
     send_temperature: bool = Field(
         True,
         description="Send each stage's temperature; false for a model that takes only its "
@@ -168,7 +176,7 @@ class ModelSettings(Section):
     extra_body: dict[str, Any] = Field(
         default_factory=dict,
         description="Fields sent with every request: a gateway's switches, a model's "
-        "thinking switch.",
+        "thinking switch. A later table's fields add to the earlier ones.",
     )
     input_usd: float | None = Field(
         None, ge=0, description="USD per million input tokens, for the cost per page."
@@ -384,14 +392,14 @@ class LLM(Connection):
         found: dict[str, Any] = {}
         for key in matching_tables(name, self.model_settings):
             table = self.model_settings[key]
-            found.update(table.model_dump(include=table.model_fields_set))
+            found = merge_tables(found, table.model_dump(include=table.model_fields_set))
         return found
 
     def for_model(self, name: str) -> ModelSettings:
         """The request settings of one model: the preset's over its table's over the
-        provider's."""
+        provider's, extra_body's fields added up."""
         base = self.model_dump(include=MODEL_KEYS)
-        return ModelSettings.model_validate({**base, **self.model_table(name)})
+        return ModelSettings.model_validate(merge_tables(base, self.model_table(name)))
 
     def price(self, name: str) -> tuple[float, float] | None:
         """USD per million input and output tokens of a model; None without a price
@@ -410,6 +418,20 @@ def matching_tables(name: str, tables: Iterable[str]) -> list[str]:
         k for k in tables if any(c in k for c in "*?[") and fnmatch.fnmatchcase(lowered, k.lower())
     ]
     return patterns + [k for k in tables if k.lower() == lowered]
+
+
+def merge_tables(base: Mapping[str, Any], over: Mapping[str, Any]) -> dict[str, Any]:
+    """`over` on `base` key by key, a table within a table too: a model's extra_body adds
+    its fields to the provider's (OpenRouter's `provider` switch stays when a model's
+    table sets `reasoning`), and a field set in both takes `over`'s value."""
+    merged = dict(base)
+    for key, value in over.items():
+        earlier = merged.get(key)
+        if isinstance(earlier, Mapping) and isinstance(value, Mapping):
+            merged[key] = merge_tables(earlier, value)
+        else:
+            merged[key] = value
+    return merged
 
 
 def listed(model: str, models: Iterable[str]) -> bool:
@@ -841,7 +863,8 @@ def source_of(flat: Flat, key: str) -> str | None:
     return None
 
 
-# A key that takes a whole table, never merged key by key.
+# A key whose table is one value, not settings of its own: a later source's table
+# replaces it, except extra_body, whose fields add up (`_merge`).
 _OPAQUE = {"extra_body", "headers", "model_settings"}
 # A provider's models tables: one value per model, since model names hold dots.
 _MODEL_TABLES = re.compile(r"providers\.[^.]+\.models")
@@ -895,12 +918,14 @@ def _merge(layers: Iterable[Flat]) -> Flat:
                 merged.pop(partner, None)
             earlier = merged.get(key)
             if (
-                _MODEL_TABLES.fullmatch(key)
-                and earlier is not None
+                earlier is not None
                 and isinstance(earlier.value, Mapping)
                 and isinstance(item.value, Mapping)
-            ):  # the models tables of a provider: a later source adds or replaces models
-                item = Setting({**earlier.value, **item.value}, item.source)
+            ):
+                if _MODEL_TABLES.fullmatch(key):  # a later source adds or replaces models
+                    item = Setting({**earlier.value, **item.value}, item.source)
+                elif last == "extra_body":  # a later source's fields add to the earlier ones
+                    item = Setting(merge_tables(earlier.value, item.value), item.source)
             merged[key] = item
     return merged
 
@@ -1099,7 +1124,7 @@ def preset_layer(flat: Flat, name: str) -> Flat:
         provider["provider_label"] = label
     overrides = {key: item.value for key, item in preset.items() if key in MODEL_KEYS}
     model_settings = {
-        model: {**table, **overrides}
+        model: merge_tables(table, overrides)
         for model, table in (tables.value if tables is not None else {}).items()
     }
     layer = _merge([provider, preset])
