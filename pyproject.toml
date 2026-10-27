@@ -22,9 +22,8 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
 ]
 requires-python = ">=3.12"
-# No spaCy model here: they are not on PyPI, and PyPI refuses dependencies given by URL.
-# `leichtfacile models` downloads them (spacy_models.py); a checkout gets them from the
-# `models` group below.
+# leichtfacile-model-de and -fr: spaCy's models for German and French, republished on
+# PyPI (the tables [tool.leichtfacile.spacy-models] below, the same versions).
 dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
@@ -40,6 +39,8 @@ dependencies = [
     "wordfreq>=3.1.1",
     "tomlkit>=0.13",
     "python-dotenv>=1.1",
+    "leichtfacile-model-de==3.8.0",
+    "leichtfacile-model-fr==3.8.0",
 ]
 
 [project.urls]
@@ -58,20 +59,13 @@ dev = [
     "pyyaml>=6.0.3",
     "ruff>=0.13",
 ]
-# The versions spacy_models.MODELS pins, with the same SHA-256 in uv.lock.
-models = [
-    "de-core-news-md @ https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl",
-    "fr-core-news-md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl",
-]
-
-[tool.uv]
-default-groups = ["dev", "models"]
 
 # spaCy's models for German and French, republished with their files unchanged as the
 # packages leichtfacile-model-de and leichtfacile-model-fr: spaCy publishes them on
 # GitHub only, and PyPI refuses dependencies given by URL. scripts/model_packages.py
 # builds the packages from spaCy's wheel (its name, version and SHA-256 here), with the
-# license expression given here; .github/workflows/models.yml publishes them.
+# license expression given here; .github/workflows/models.yml publishes them. A new
+# version is published first, then pinned in `dependencies` (tests/test_release.py).
 [tool.leichtfacile.spacy-models.de]
 name = "de_core_news_md"
 version = "3.8.0"

@@ -17,14 +17,15 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 | [3. Install the command](#3-install-the-command) | `uv tool install leichtfacile` (or `pip install`), `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+ |
 | [4. Command line only](#4-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1, 2 or 3 |
 | [5. On a server](#5-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 3, a login or a reverse proxy |
-| [6. Offline install](#6-offline-install-air-gapped) | `pip wheel` and `pip download` on a connected machine; `pip install --no-index` and `leichtfacile models --from` on the target | a connected machine of the same kind |
+| [6. Offline install](#6-offline-install-air-gapped) | `pip wheel` on a connected machine; `pip install --no-index` on the target | a connected machine of the same kind |
 
-Every way needs the same two things to make drafts: a model that is ready (a preset and
-its key: [The model](#the-model)) and the spaCy
-models for German and French (`setup` offers them, `leichtfacile models` gets them, a
-checkout has them from `uv.lock`). The examples below write `leichtfacile`; with way 1
-it is `uvx leichtfacile`, with way 2 `uv run leichtfacile`. How each way gets a newer
-release: [Updates](#updates).
+Every way needs a model that is ready to make drafts: a preset and its key
+([The model](#the-model)). The spaCy models the rule checker parses German and French
+with (about 90 MB) are dependencies of the package, the packages leichtfacile-model-de
+and leichtfacile-model-fr on PyPI (spaCy's models, their files unchanged), so every way
+brings them. The examples below write `leichtfacile`; with way 1 it is `uvx
+leichtfacile`, with way 2 `uv run leichtfacile`. How each way gets a newer release:
+[Updates](#updates).
 
 The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
 whether the model's provider answers and lists the configured models. The interface is in
@@ -38,8 +39,8 @@ run, with its address and key) and the models that write, read and check. The pr
 below come with the app; each lacks only what the program cannot know, mostly the key.
 There are three ways to make one ready:
 
-- **The model page.** `leichtfacile serve` starts without a ready model (its first
-  start gets the language models) and opens the browser on its page **AI model**, which
+- **The model page.** `leichtfacile serve` starts without a ready model and opens the
+  browser on its page **AI model**, which
   lists every preset with where the text goes, what a page costs and what it lacks,
   takes the key, checks it and makes a test call. The preset of a fresh install is
   `cscs-apertus`.
@@ -77,9 +78,8 @@ draft.
 
 Flags answer the questions in advance: `--name` (the preset saved for `--model`, or
 the server), `--base-url` (a server of your own), `--api-key`, `--api-key-env` (a
-variable that holds the key), `--model`, `--judge`, `--force` to update a preset saved
-already, and `--no-models` to leave the spaCy models for later (`leichtfacile models`).
-With the provider, the key and the preset or model given or known, setup asks nothing,
+variable that holds the key), `--model`, `--judge` and `--force` to update a preset
+saved already. With the provider, the key and the preset or model given or known, setup asks nothing,
 so it runs from a script. `--api-key` ends up in the shell history; leave it out to be
 asked.
 
@@ -99,8 +99,8 @@ presets, the keys, the commands that change settings (`leichtfacile config set`,
 config file is a TOML file with a section per topic; a `leichtfacile.toml` in the current
 folder overrides it, `LEICHTFACILE_<SECTION>__<KEY>` variables override both, and the
 command line (`--preset`, `serve --host`, `serve --port`) overrides everything. A
-`.env` holds keys only. The data (the database `leichtfacile.sqlite`, the caches and the
-spaCy models in `models/`) lives in `data.dir`:
+`.env` holds keys only. The data (the database `leichtfacile.sqlite` and the caches)
+lives in `data.dir`:
 
 | System | Config file | `data.dir` by default |
 |--------|-------------|-----------------------|
@@ -143,11 +143,11 @@ on. With [uv](https://docs.astral.sh/uv/), `uvx` runs it from there without inst
 anything; uv picks or downloads a suitable Python (3.12 or newer).
 
 ```bash
-uvx leichtfacile serve        # gets the language models, opens http://127.0.0.1:8000/model
+uvx leichtfacile serve        # opens http://127.0.0.1:8000/model
 ```
 
-The first start downloads the language models (90 MB) and opens the browser on the AI
-model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
+The first start downloads the app with its dependencies, the language models among them
+(90 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
 other. `uvx leichtfacile setup` asks the same on the command line. With a provider's key
 in a `.env` in the current folder (or in the environment), its presets are ready without
 either:
@@ -162,13 +162,6 @@ uvx leichtfacile serve publicai-apertus
   is quick. `uvx leichtfacile@0.7.1 serve` runs that version.
 - The config file, the keys and the data live in the user's folders
   ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
-- The spaCy models the rule checker parses German and French with are about 90 MB from
-  spaCy's releases on GitHub, checked against pinned SHA-256 hashes and unpacked into
-  `models/` in `data.dir` (they are not on PyPI, so the package cannot bring them).
-  `serve` downloads the missing ones on its first start, without asking; `setup` offers
-  them at its end (`setup --no-models` skips them); `leichtfacile models` gets them at
-  any time. Without them `check` and `simplify` stop with a hint instead of checking
-  less, and so does `serve` when the download fails (offline: way 6).
 - `serve` opens the default browser once `/healthz` answers, but only when the app runs on
   this machine (`--host` 127.0.0.1, localhost or ::1) and, on Linux, only with a desktop
   (`DISPLAY` or `WAYLAND_DISPLAY`). `--no-browser` leaves it closed.
@@ -181,8 +174,8 @@ uvx leichtfacile serve publicai-apertus
 ## 2. Clone and run (development)
 
 Needs git and uv. The first `uv run` installs the Python version in `.python-version`
-(3.14; 3.12 or newer works), the dependencies and the spaCy models from `uv.lock` into
-the checkout's `.venv`; every later one keeps it in step with `uv.lock`.
+(3.14; 3.12 or newer works) and the dependencies, the spaCy models among them, from
+`uv.lock` into the checkout's `.venv`; every later one keeps it in step with `uv.lock`.
 
 ```bash
 git clone https://github.com/bobrovsky420/leicht-facile.git
@@ -262,15 +255,15 @@ Every release's wheel is also on the
 `uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.1/leichtfacile-0.7.1-py3-none-any.whl`.
 
 ```bash
-leichtfacile serve        # gets the language models, opens http://127.0.0.1:8000/model
+leichtfacile serve        # opens http://127.0.0.1:8000/model
 ```
 
 - Everything said under way 1 holds, without the `uvx` in front.
 - `python -m leichtfacile` does the same as `leichtfacile`.
 - `uv tool upgrade leichtfacile` (or `pip install -U leichtfacile`) gets a newer release;
   nothing updates it by itself ([Updates](#updates)).
-- `uv tool uninstall leichtfacile` removes the program; the config file and the data (with
-  the models) stay.
+- `uv tool uninstall leichtfacile` removes the program with the language models; the
+  config file and the data stay.
 
 ## 4. Command line only
 
@@ -319,11 +312,10 @@ sudo useradd --system --home-dir /var/lib/leichtfacile --shell /usr/sbin/nologin
 sudo python3 -m venv /opt/leichtfacile
 sudo /opt/leichtfacile/bin/pip install leichtfacile
 CONFIG="--config /etc/leichtfacile/config.toml"
-sudo /opt/leichtfacile/bin/leichtfacile $CONFIG setup --no-models
+sudo /opt/leichtfacile/bin/leichtfacile $CONFIG setup
 sudo /opt/leichtfacile/bin/leichtfacile $CONFIG config set data.dir /var/lib/leichtfacile
 sudo chown -R leichtfacile /etc/leichtfacile
 sudo install -d -o leichtfacile /var/lib/leichtfacile
-sudo -u leichtfacile /opt/leichtfacile/bin/leichtfacile $CONFIG models
 ```
 
 `/etc/systemd/system/leichtfacile.service`:
@@ -356,8 +348,7 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
   `/etc/leichtfacile/.env`, both readable by the service's user alone after the `chown`.
   The app's model page is read-only on a published server (every user shares one
   login); `[llm] offer = ["<preset>"]` shows the users one model and no page at all.
-- `StateDirectory` keeps `/var/lib/leichtfacile` for the service's user; the models are
-  in its `models/` folder, so `leichtfacile models` runs as that user.
+- `StateDirectory` keeps `/var/lib/leichtfacile` for the service's user.
 - The app reads the config file itself through `LEICHTFACILE_CONFIG`;
   `Environment=LEICHTFACILE_<SECTION>__<KEY>=...` lines override single settings.
 - For the direct way, put a secret into `/etc/leichtfacile/.env`
@@ -370,14 +361,11 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
 ## 6. Offline install (air-gapped)
 
 On a connected machine with the same operating system, CPU architecture and Python
-version as the target, collect the app with every dependency, and the two spaCy
-models, in one folder:
+version as the target, collect the app with every dependency, the two spaCy models
+among them, in one folder:
 
 ```bash
 pip wheel leichtfacile -w wheelhouse
-pip download --no-deps -d wheelhouse \
-  https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl \
-  https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl
 ```
 
 `pip wheel` downloads the wheels and builds one for any dependency published only as
@@ -386,12 +374,7 @@ source. Carry the folder over and install on the target:
 ```bash
 python3 -m venv /opt/leichtfacile
 /opt/leichtfacile/bin/pip install --no-index --find-links wheelhouse leichtfacile
-/opt/leichtfacile/bin/leichtfacile models --from wheelhouse
 ```
-
-`models --from` checks the two models' SHA-256 as the download does and unpacks them
-into `models/` in `data.dir`; on a server, run it as the service's user with its config
-file (way 5).
 
 The model server runs inside the network too, with its weights carried over the same way
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
@@ -416,6 +399,10 @@ With the command installed (way 3), `uvx leichtfacile` runs the installed versio
 the newest one; `uvx leichtfacile@latest` runs the newest and leaves the installed one as
 it is. `leichtfacile --version` shows the version in use, and each release on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases) links its changes.
+
+Up to 0.7.1, `leichtfacile models` unpacked the spaCy models into `models/` in
+`data.dir`. They come with the package now, so that folder (about 120 MB) is no longer
+read and can be deleted.
 
 ## Running a model yourself
 
@@ -516,7 +503,6 @@ static files need no login. Details:
 | `The preset cscs-apertus is not ready: - llm.api_key: the variable CSCS_API_KEY ... is not set` (a command that calls the model) | `leichtfacile setup <preset>` (for example `setup cscs-apertus`), the key in a `.env` in the current folder, or another preset: `leichtfacile preset list`. `serve` starts anyway and its model page asks for the key |
 | `The settings are not valid: - server.prot (...): Extra inputs are not permitted` | a misspelt key or a wrong value; the message names the file or the variable it came from |
 | `llm.preset = '...': no such preset; known: ...` | a preset that is not shipped and not in the file: `leichtfacile preset list`, or `leichtfacile setup` for a new one |
-| `The models could not be installed: ...` then `Missing the spaCy models ...: run leichtfacile models` | `serve` could not download the language models (no network): `leichtfacile models` once the network is back, offline `leichtfacile models --from <folder>` (way 6) |
 | `failed to hardlink file ... incompatible hardlinks. (os error 396)` from `uvx` or `uv tool install` (Windows) | uv links files from its cache, and Windows refuses another link to a file that already has one in a OneDrive folder (for example a checkout's `.venv` there). Add `--link-mode=copy` (`uvx --link-mode=copy leichtfacile setup`), or set it for good in PowerShell with `[Environment]::SetEnvironmentVariable('UV_LINK_MODE', 'copy', 'User')` and open a new terminal |
 | `leichtfacile: command not found` after `uv tool install` | `uv tool update-shell`, then open a new terminal |
 | setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |

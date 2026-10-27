@@ -1,10 +1,9 @@
 """Command line: `leichtfacile <command>` (or `python -m leichtfacile <command>`).
 
-- `setup`      ask for a provider, its key and a preset, save them, get the models
+- `setup`      ask for a provider, its key and a preset, save them
 - `preset`     list the presets, pick the one in use, remove one of your own
 - `config`     show the settings and their sources, set, unset or edit them
-- `models`     download (or unpack) the spaCy models for German and French
-- `serve`      run the web application and open it in the browser
+- `serve`     run the web application and open it in the browser
 - `check-llm`  list the provider's models and make one short call
 - `ingest`     print the segments of a file or URL
 - `check`      run the rule checker on an existing easy-language text
@@ -20,7 +19,6 @@ import logging
 import os
 import sys
 from collections import Counter
-from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -60,7 +58,6 @@ def main(argv: list[str] | None = None) -> int:
     setup.add_argument("--model", help="the model that reads, writes and repairs")
     setup.add_argument("--judge", help="the judge's model")
     setup.add_argument("--force", action="store_true", help="update a preset saved already")
-    setup.add_argument("--no-models", action="store_true", help="do not download the spaCy models")
 
     preset = sub.add_parser("preset", help="list the presets, pick one, remove one of your own")
     preset_sub = preset.add_subparsers(dest="preset_command", required=True)
@@ -87,12 +84,6 @@ def main(argv: list[str] | None = None) -> int:
     config_edit = settings_sub.add_parser("edit", help="open the file in the editor")
     for p in (config_path, config_set, config_unset, config_edit):
         p.add_argument("--local", action="store_true", help="./leichtfacile.toml instead")
-
-    models = sub.add_parser("models", help="download the spaCy models (German, French)")
-    models.add_argument(
-        "--from", dest="source", type=Path, help="a folder with the model wheels (offline)"
-    )
-    models.add_argument("--force", action="store_true", help="replace models already there")
 
     serve = sub.add_parser("serve", help="run the web application")
     serve.add_argument(
@@ -180,7 +171,7 @@ def with_preset(parser: argparse.ArgumentParser) -> None:
 
 def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     if args.command == "setup":
-        from leichtfacile.config import collect, preset_names, provider_table, secret_value
+        from leichtfacile.config import collect, preset_names
 
         # `setup claude-haiku-5-5` names a preset, `setup ollama` a provider, `setup gpu
         # --base-url ...` a server of one's own.
@@ -189,30 +180,18 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         provider = target if preset is None and target in PROVIDERS else None
         name = args.name or (target if preset is None and provider is None else None)
         try:
-            code = configure.run_setup(
+            return configure.run_setup(
                 provider=provider, preset=preset, name=name, base_url=args.base_url,
                 api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
                 judge=args.judge, force=args.force,
             )  # fmt: skip
-            if code == 0 and not args.no_models:
-                # Without a question asked so far, the models are not asked about either.
-                table = provider_table(collect(), provider) if provider else {}
-                variable = table.get("api_key_env")
-                scripted = bool(
-                    args.api_key or args.api_key_env or table.get("api_key")
-                    or (variable and secret_value(variable))
-                )  # fmt: skip
-                code = offer_models(ask=None if scripted else input)
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.", file=sys.stderr)
             return 1
-        return code
     if args.command == "preset":
         return _preset(args)
     if args.command == "config":
         return _config(args)
-    if args.command == "models":
-        return _models(args.source, force=args.force)
     if args.command == "serve":
         # the app configures its logs (logs.py)
         named = bool(args.preset or args.preset_name)
@@ -285,8 +264,6 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
     # command line (`serve <preset>`, for this run only) must be ready, since the page
     # cannot change what the command line picks: nothing is asked, nothing is saved.
     settings = settings_or_exit(strict=strict)
-    fetch_models()  # the first start gets the language models; nothing is asked
-    models_or_exit()
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
         from leichtfacile.config import load
@@ -300,70 +277,6 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
     uvicorn.run(
         "leichtfacile.web.app:create_app", factory=True, host=host, port=port, access_log=False
     )
-    return 0
-
-
-def fetch_models() -> None:
-    """Download the missing spaCy models before the app starts (`uvx leichtfacile serve`
-    on a fresh machine), with a line on the terminal and no question, as `uvx` itself
-    downloads what it runs; when that fails (offline), `models_or_exit` says what to
-    do."""
-    from leichtfacile import spacy_models
-
-    langs = spacy_models.missing()
-    if not langs:
-        return
-    size = sum(spacy_models.MODELS[lang].size for lang in langs) / 1e6
-    print(f"Getting the language models for the checker ({size:.0f} MB from GitHub) ...")
-    try:
-        spacy_models.install(langs)
-    except (OSError, ValueError) as exc:
-        print(f"The models could not be installed: {exc}", file=sys.stderr)
-
-
-def models_or_exit() -> None:
-    """Stop with a hint when the German or French spaCy model is missing: without them
-    the checker would stop at the first German or French text."""
-    from leichtfacile import spacy_models
-
-    missing = spacy_models.missing()
-    if missing:
-        names = ", ".join(spacy_models.MODELS[lang].name for lang in missing)
-        print(f"Missing the spaCy models {names}: run `leichtfacile models` (about 90 MB "
-              "from GitHub), or `leichtfacile models --from <folder>` offline.",
-              file=sys.stderr)  # fmt: skip
-        raise SystemExit(2)
-
-
-def offer_models(ask: Callable[[str], str] | None = input) -> int:
-    """After setup: download the missing models, after asking (`ask` None: without)."""
-    from leichtfacile import spacy_models
-
-    missing = spacy_models.missing()
-    if not missing:
-        return 0
-    size = sum(spacy_models.MODELS[lang].size for lang in missing) / 1e6
-    if ask is not None:
-        prompt = f"Download the language models for the checker now ({size:.0f} MB)? [Y/n] "
-        if ask(prompt).strip().lower() in ("n", "no"):
-            print("Later: `leichtfacile models`.")
-            return 0
-    return _models(None, force=False)
-
-
-def _models(source: Path | None, *, force: bool) -> int:
-    from leichtfacile import spacy_models
-
-    langs = list(spacy_models.MODELS) if force else spacy_models.missing()
-    for lang in spacy_models.MODELS:
-        if lang not in langs:
-            found = spacy_models.locate(lang)
-            print(f"{spacy_models.MODELS[lang].name}: {found} (already there)")
-    try:
-        spacy_models.install(langs, source=source)
-    except (OSError, ValueError) as exc:
-        print(f"The models could not be installed: {exc}", file=sys.stderr)
-        return 1
     return 0
 
 
@@ -481,7 +394,6 @@ def _check(args: argparse.Namespace) -> int:
     from leichtfacile.rules import check_draft, source_as_draft
     from leichtfacile.rules.messages import render_finding
 
-    models_or_exit()
     try:
         doc = load_source(args.input, args.lang, args.section)
     except (IngestError, OSError, ValueError) as exc:
@@ -527,7 +439,6 @@ def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.store import Store
 
     settings = settings_or_exit()
-    models_or_exit()
     try:
         source = load_source(args.input, args.lang)
     except (IngestError, OSError) as exc:

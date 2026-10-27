@@ -31,16 +31,34 @@ def test_publiccode_has_the_project_version() -> None:
 
 def test_the_install_commands_name_the_wheel_of_this_version() -> None:
     text = (ROOT / "docs/quickstart.md").read_text(encoding="utf-8")
-    # this project's wheels; the spaCy models' wheels have their own pinned versions
     urls = re.findall(r"https://github\.com/bobrovsky420/\S+?\.whl", text)
     assert urls and set(urls) == {WHEEL_URL}
 
 
 def test_no_dependency_is_given_by_url() -> None:
-    """PyPI refuses a package whose dependencies name a URL: the spaCy models stay in the
-    `models` group (spacy_models.py downloads them for an installed package)."""
+    """PyPI refuses a package whose dependencies name a URL: the spaCy models come from
+    PyPI as leichtfacile-model-de and -fr (scripts/model_packages.py)."""
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert not [d for d in project["dependencies"] if "@" in d or "://" in d]
+
+
+def test_the_model_packages_are_pinned_and_loaded() -> None:
+    """`dependencies` pins leichtfacile-model-<lang> at the version its table
+    [tool.leichtfacile.spacy-models.<lang>] builds, and the checker parses with that
+    model; Italian, without a model package, gets a blank pipeline."""
+    from leichtfacile.rules import nlp
+
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    models = pyproject["tool"]["leichtfacile"]["spacy-models"]
+    deps = pyproject["project"]["dependencies"]
+    pins = dict(d.split("==") for d in deps if d.startswith("leichtfacile-model-"))
+    assert pins == {f"leichtfacile-model-{lang}": m["version"] for lang, m in models.items()}
+    for lang, model in models.items():
+        meta = nlp.pipeline(lang).meta
+        assert f"{meta['lang']}_{meta['name']}" == model["name"]
+        assert meta["version"] == model["version"]
+        assert nlp.has_parser(nlp.pipeline(lang))
+    assert nlp.pipeline("it").pipe_names == ["sentencizer"]
 
 
 def test_the_readme_on_pypi_has_no_relative_link() -> None:

@@ -249,8 +249,7 @@ readable by its owner only where the system supports it, under the provider's va
 
 `setup` takes its answers as flags too: `--name` (the preset saved for `--model`, or the
 server), `--base-url` (a server of your own), `--api-key`, `--api-key-env`, `--model`,
-`--judge`, `--force` (update a preset saved already) and `--no-models` (leave the spaCy
-models for later). It asks only for what the flags leave open, and nothing at all when
+`--judge` and `--force` (update a preset saved already). It asks only for what the flags leave open, and nothing at all when
 the key's variable is set, so it runs from a script:
 
 ```bash
@@ -453,7 +452,7 @@ Where the app keeps its data. A relative folder is taken from the folder of the 
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `dir` | the user's app-data folder | The database, the caches and the spaCy models (models/). |
+| `dir` | the user's app-data folder | The database and the caches. |
 | `examples_dir` | the letters shipped with the package | A folder of example letters for the New draft form (.txt or .md, a .json of job settings next to each). |
 | `retention_days` | `0` | Jobs nobody changed for this many days are deleted; 0 keeps everything. |
 

@@ -1088,11 +1088,10 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--no-models]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. At the end it offers the spaCy models (`--no-models` skips them). |
+| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. |
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
-| `leichtfacile models [--from <folder>] [--force]` | Downloads the pinned spaCy models for German and French from spaCy's releases on GitHub (or takes their wheels from a folder, offline), checks their SHA-256 and unpacks them into `models/` in `data.dir` (`spacy_models.py`); lists the models already there. |
-| `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. The first start downloads the missing spaCy models (no question) and opens the browser on the model page while the preset in use lacks its key |
+| `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
 | `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
@@ -1253,16 +1252,18 @@ The app is a Python package (Python 3.12 and later), published on PyPI and as a 
 on a GitHub release for every version tag (`.github/workflows/release.yml`, PyPI by
 trusted publishing). `uv tool install leichtfacile` puts the command `leichtfacile` on
 the path; `pip install leichtfacile` installs it into an environment of one's own
-(docs/quickstart.md has the commands). The spaCy models for German and French are not
-on PyPI, and PyPI refuses dependencies given by URL, so the package does not depend on
-them: `leichtfacile models` (`spacy_models.py`, offered at the end of `setup`)
-downloads the pinned wheels from spaCy's releases on GitHub, checks their SHA-256 and
-unpacks the model folders into `models/` in `data.dir`, which needs no pip; a checkout gets
-them as packages from the `models` dependency group. Without them the checker raises
-`ModelMissing`; `serve` downloads them on its first start (`cli.fetch_models`, a line
-on the terminal, no question), and `serve` when that fails, `check` and `simplify`
-stop with a hint, instead of
-checking German or French on a blank pipeline. The Italian model is added when
+(docs/quickstart.md has the commands). The spaCy models for German and French
+(`de_core_news_md`, `fr_core_news_md`) are dependencies like any other: spaCy
+publishes them on GitHub only, and PyPI refuses dependencies given by URL, so they are
+republished on PyPI as `leichtfacile-model-de` and `leichtfacile-model-fr`, spaCy's
+files unchanged under the import names `leichtfacile_model_de` and `_fr`.
+`scripts/model_packages.py` builds them from spaCy's wheels, pinned by SHA-256 in
+`[tool.leichtfacile.spacy-models]` in pyproject.toml, and
+`.github/workflows/models.yml` publishes them, one job and GitHub environment per
+package (PyPI keeps one pending trusted publisher per repository, workflow and
+environment). A new model version is published first and pinned in `dependencies`
+afterwards; `tests/test_release.py` checks that the pins and the tables agree and that
+the checker loads those models (`rules/nlp.py`). The Italian model is added when
 Italian ships. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).
 
@@ -1340,7 +1341,7 @@ the app.
 | Architecture | Where the model runs and how Leicht·Facile meets it |
 |--------------|-----------------------------------------------------|
 | a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
-| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies are collected with `pip wheel`, the two spaCy model wheels with `pip download`, on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs the app and `leichtfacile models --from <folder>` checks and unpacks the models ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
+| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the two spaCy model packages among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs them ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
 | c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
@@ -1547,7 +1548,6 @@ src/leichtfacile/
   __main__.py, cli.py       setup, preset, config, serve, check-llm, ingest, check, simplify, eval
   config.py                 the settings: defaults, providers and presets, TOML files, LEICHTFACILE_ variables, keys from .env
   configure.py              `leichtfacile setup`, `preset`, `config`: the questions, changes to the file
-  spacy_models.py           the pinned spaCy models: find, download, check, unpack
   schemas.py                artifacts (§5)
   store.py                  SQLite access
   examples.py               the sample letters and their job settings (New draft form, empty drafts list)

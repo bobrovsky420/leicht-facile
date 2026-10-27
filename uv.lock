@@ -485,14 +485,6 @@ wheels = [
 ]
 
 [[package]]
-name = "de-core-news-md"
-version = "3.8.0"
-source = { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" }
-wheels = [
-    { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl", hash = "sha256:b903f59220f1e76dd672acdaa7fa454d6703fe056c5ccd6457820e70874116d0" },
-]
-
-[[package]]
 name = "defusedxml"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -587,14 +579,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/12/23/84dbe637708c2690972eff5df233a7c9f8d4bde809f714839dc1b08f5e5e/fpdf2-2.8.9.tar.gz", hash = "sha256:5b0b3786f5236a2b3cc83c1fee567df17ddd314f8c4e13d820d8f09b617ab4f0", size = 380865, upload-time = "2026-09-29T13:11:54.506Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/16/42cc18bba1561692a235fd232b38947e54f059150065d43d631b57a0085a/fpdf2-2.8.9-py3-none-any.whl", hash = "sha256:6e1d94af6d6311950a23dec7fb5fc84b000203eb59aee8e76c1e701b12a14976", size = 341268, upload-time = "2026-09-29T13:11:52.796Z" },
-]
-
-[[package]]
-name = "fr-core-news-md"
-version = "3.8.0"
-source = { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" }
-wheels = [
-    { url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl", hash = "sha256:8a70d090a54ef77525c3ffa6a6195b9d365f2cf369ae1cd84ede93f3d709079e" },
 ]
 
 [[package]]
@@ -891,6 +875,8 @@ dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "jinja2" },
+    { name = "leichtfacile-model-de" },
+    { name = "leichtfacile-model-fr" },
     { name = "openai" },
     { name = "pdfplumber" },
     { name = "pydantic" },
@@ -911,16 +897,14 @@ dev = [
     { name = "pyyaml" },
     { name = "ruff" },
 ]
-models = [
-    { name = "de-core-news-md" },
-    { name = "fr-core-news-md" },
-]
 
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.142" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "leichtfacile-model-de", specifier = "==3.8.0" },
+    { name = "leichtfacile-model-fr", specifier = "==3.8.0" },
     { name = "openai", specifier = ">=3.0" },
     { name = "pdfplumber", specifier = ">=0.11.10" },
     { name = "pydantic", specifier = ">=2.12" },
@@ -941,9 +925,27 @@ dev = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "ruff", specifier = ">=0.13" },
 ]
-models = [
-    { name = "de-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.8.0/de_core_news_md-3.8.0-py3-none-any.whl" },
-    { name = "fr-core-news-md", url = "https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl" },
+
+[[package]]
+name = "leichtfacile-model-de"
+version = "3.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "spacy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/0e/538e5b202b542e43e3aecb129b794bd0fbc5918082af48f4488644f039b7/leichtfacile_model_de-3.8.0-py3-none-any.whl", hash = "sha256:e14c9fc9e6e3132a4377043347d7ca612f94929be2fe416a43c19d639844e2bc", size = 44399147, upload-time = "2026-10-27T15:47:11.772Z" },
+]
+
+[[package]]
+name = "leichtfacile-model-fr"
+version = "3.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "spacy" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/af/3213f93a601b3a073f2be30f3ed58f31be53386e942d6942d08c339ba57e/leichtfacile_model_fr-3.8.0-py3-none-any.whl", hash = "sha256:4e0a2ce127c8e97d2dda637ad7a68a79cea73410edb4d57521cf02c526b7bd2e", size = 45836936, upload-time = "2026-10-27T15:47:13.425Z" },
 ]
 
 [[package]]

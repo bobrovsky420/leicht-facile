@@ -48,8 +48,8 @@ jobs:
           enable-cache: true
           # Sets UV_PYTHON, which wins over .python-version.
           python-version: ${{ matrix.python }}
-      # The spaCy models come from the wheel URLs pinned in uv.lock; nothing else
-      # is downloaded after this step.
+      # The spaCy models come from PyPI as leichtfacile-model-de and -fr, pinned in
+      # uv.lock; nothing else is downloaded after this step.
       - run: uv sync --frozen
       - run: uv run pytest -q
 

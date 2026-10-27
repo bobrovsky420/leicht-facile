@@ -576,7 +576,7 @@ class Data(Section):
 
     dir: Path = Field(
         default_factory=lambda: default_data_dir(),
-        description="The database, the caches and the spaCy models (models/).",
+        description="The database and the caches.",
         json_schema_extra=_shown("the user's app-data folder"),
     )
     examples_dir: Path = Field(

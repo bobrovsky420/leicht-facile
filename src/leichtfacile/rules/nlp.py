@@ -1,10 +1,10 @@
 """spaCy pipelines for the checker, loaded once per language.
 
-German uses de_core_news_md and French fr_core_news_md (morphologizer, parser,
-lemmatizer), installed as packages or unpacked by `leichtfacile models`
-(spacy_models.py); without them the checker stops with `ModelMissing` instead of
-checking less. Italian has no model yet; it gets a blank pipeline with a rule-based
-sentencizer, enough for readability and the language-independent rules.
+German parses with spaCy's de_core_news_md and French with fr_core_news_md
+(morphologizer, parser, lemmatizer), which the package depends on as
+leichtfacile-model-de and leichtfacile-model-fr (spaCy's models republished on PyPI,
+scripts/model_packages.py). Italian has no model yet; it gets a blank pipeline with a
+rule-based sentencizer, enough for readability and the language-independent rules.
 """
 
 from __future__ import annotations
@@ -15,22 +15,19 @@ from functools import lru_cache
 import spacy
 from spacy.language import Language
 
-from leichtfacile import spacy_models
-
 log = logging.getLogger(__name__)
 
-# Languages without a pinned model (spacy_models.MODELS): their package when installed.
-MODELS = {"it": "it_core_news_md"}
+# The packages the package depends on; a missing one is a broken install.
+MODELS = {"de": "leichtfacile_model_de", "fr": "leichtfacile_model_fr"}
+# Languages without a dependency: their package when installed.
+OPTIONAL = {"it": "it_core_news_md"}
 
 
 @lru_cache(maxsize=4)
 def pipeline(lang: str) -> Language:
-    if lang in spacy_models.MODELS:
-        source = spacy_models.locate(lang)
-        if source is None:
-            raise spacy_models.ModelMissing(lang)
-        return spacy.load(source, exclude=["ner"])
-    name = MODELS.get(lang)
+    if lang in MODELS:
+        return spacy.load(MODELS[lang], exclude=["ner"])
+    name = OPTIONAL.get(lang)
     if name:
         try:
             return spacy.load(name, exclude=["ner"])

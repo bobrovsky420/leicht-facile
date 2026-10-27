@@ -306,8 +306,7 @@ def test_edit_opens_the_editor_until_the_file_is_valid(home, monkeypatch) -> Non
 
 
 def test_the_command_line(home, tmp_path, capsys) -> None:
-    argv = ["setup", "test", "--base-url", "http://llm.test/v1", "--api-key", "k", "--model", "m",
-            "--no-models"]  # fmt: skip
+    argv = ["setup", "test", "--base-url", "http://llm.test/v1", "--api-key", "k", "--model", "m"]
     assert main(argv) == 0
     assert load().settings.llm.models.writer == "m" and load().settings.llm.preset == "test"
     assert main(["preset", "use", "cscs-apertus"]) == 0
@@ -324,38 +323,16 @@ def test_the_command_line(home, tmp_path, capsys) -> None:
     assert "server.port" in capsys.readouterr().err
 
 
-def test_serve_gets_the_language_models_on_the_first_start(home, capsys, monkeypatch) -> None:
-    """`uvx leichtfacile serve` on a fresh machine: the models are downloaded without a
-    question, then the app starts; when the download fails, the hint and no start."""
+def test_serve_starts_on_a_fresh_machine(home, monkeypatch) -> None:
+    """`uvx leichtfacile serve` on a fresh machine: the app starts at once (the language
+    models came with the package) and writes nothing."""
     import uvicorn
 
-    from leichtfacile import spacy_models
-
     started: list[dict] = []
-    installed: list[list[str]] = []
     monkeypatch.setattr(uvicorn, "run", lambda *a, **k: started.append(k))
-    missing = lambda folder=None: [] if installed else ["de", "fr"]  # noqa: E731
-    monkeypatch.setattr(spacy_models, "missing", missing)
-
-    def install(langs, source=None):
-        installed.append(list(langs))
-
-    monkeypatch.setattr(spacy_models, "install", install)
     assert main(["serve", "--no-browser"]) == 0
-    assert installed == [["de", "fr"]] and len(started) == 1
-    assert "Getting the language models" in capsys.readouterr().out
-    assert not home.exists()  # nothing written: the default preset waits for its key
-
-    def refuse(langs, source=None):
-        raise OSError("no network")
-
-    monkeypatch.setattr(spacy_models, "install", refuse)
-    monkeypatch.setattr(spacy_models, "missing", lambda folder=None: ["de"])
-    with pytest.raises(SystemExit) as stop:
-        main(["serve", "--no-browser"])
-    assert stop.value.code == 2 and len(started) == 1
-    error = capsys.readouterr().err
-    assert "no network" in error and "run `leichtfacile models`" in error
+    assert len(started) == 1
+    assert not home.exists()  # the default preset waits for its key on the model page
 
 
 def test_serve_with_a_preset_named_stops_unless_it_is_ready(home, capsys, monkeypatch) -> None:

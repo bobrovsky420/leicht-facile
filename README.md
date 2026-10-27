@@ -126,11 +126,11 @@ Ollama) or a provider's API.
 The shortest way, straight from PyPI without installing anything:
 
 ```bash
-uvx leichtfacile serve        # gets the language models, starts the app, opens the browser
+uvx leichtfacile serve        # starts the app and opens the browser
 ```
 
-The first start downloads the language models for the checker (90 MB) and opens the
-app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
+The first start downloads the app with its dependencies, the language models for the
+checker among them (90 MB), and opens the app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
 API in Lugano is pre-selected (the 8B writes, the 70B checks: the setup of the reported
 numbers), and the page takes the CSCS key, or any other model's. `uvx leichtfacile
 setup` does the same on the command line. With a provider's key in the environment or a
@@ -165,11 +165,10 @@ use (`cscs-apertus`: Apertus 8B writes, the 70B checks; `claude-haiku-5-5-sonnet
 writes, Sonnet checks; ...), or any model the provider lists; `setup <preset>` asks for
 the key alone. The app's model page does the same in the browser: the page lists every
 preset with where the text goes and what a page costs, takes the key and checks it.
-`setup` ends by offering the spaCy models for German and French, about 90 MB from GitHub
-(`leichtfacile models` gets them later; a checkout has them from `uv.lock`). With a
-provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`), its
-presets are ready without setup:
-`leichtfacile models` once (not in a checkout), then `serve`. `leichtfacile config show` lists every setting and where it comes from;
+With a provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`),
+its presets are ready without setup: `serve` alone. The spaCy models the checker parses
+German and French with (about 90 MB) are dependencies of the package, so every way of
+installing it brings them. `leichtfacile config show` lists every setting and where it comes from;
 [configuration.md](docs/configuration.md) explains them. Installing the command, the
 command line alone, a server for an organisation, an offline install, running a model
 yourself, reaching the app from other machines and what to do when it does not start:
@@ -218,7 +217,7 @@ without storing it.
 | Where the model runs | How |
 |----------------------|-----|
 | a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point the endpoint's `url` at it |
-| b) Air-gapped | As (a), and the app installed offline from a folder of wheels collected on a connected machine, the spaCy models unpacked from the same folder ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
+| b) Air-gapped | As (a), and the app installed offline, the spaCy models among its dependencies, from a folder of wheels collected on a connected machine ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point the endpoint's `url` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
 
 Documents and review records stay in a SQLite database in a folder the organisation
@@ -263,4 +262,6 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 
 Code: Apache License 2.0, see [LICENSE](LICENSE). Texts from cantonal and federal web
 pages are not part of the repository; the evaluation fetches them from their URLs
-([sources.md](docs/sources.md) §4).
+([sources.md](docs/sources.md) §4). The spaCy models come as the separate packages
+leichtfacile-model-de (MIT) and leichtfacile-model-fr (LGPL-LR), spaCy's files unchanged
+with their license files.

@@ -3,8 +3,8 @@
 #
 # PyPI takes it by trusted publishing: pypi.org trusts this workflow (the project's
 # publisher settings name the repository and release.yml), so no token is stored. The
-# spaCy models are not in the wheel's dependencies (PyPI refuses URLs);
-# `leichtfacile models` downloads them. The tag must match the version in
+# spaCy models come as the dependencies leichtfacile-model-de and -fr, published
+# beforehand by models.yml. The tag must match the version in
 # pyproject.toml; tests/test_release.py keeps that version, the package's
 # __version__, publiccode.yml and the install commands (docs/quickstart.md) in step.
 # Every action is pinned to a commit; the comment after the hash names the release.
@@ -44,15 +44,14 @@ jobs:
       - name: Build the wheel
         run: uv build --wheel --out-dir dist
       # A clean environment outside the checkout: the models come as a user gets them
-      # (`leichtfacile models`), and the rule checker loads them, so a missing package or
-      # model fails here, not on a user's machine.
+      # (the model packages from PyPI), and the rule checker loads them, so a missing
+      # package or model fails here, not on a user's machine.
       - name: Install it in a clean environment and run the checker
         working-directory: ${{ runner.temp }}
         run: |
           uv venv smoke
           uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/*.whl
           smoke/bin/leichtfacile --version
-          LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile models
           printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > text.txt
           LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile check text.txt --lang de
       - name: Publish the release
