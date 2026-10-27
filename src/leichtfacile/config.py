@@ -79,7 +79,7 @@ _APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
 NAME = re.compile(r"[a-z0-9][a-z0-9_-]*")
 # The known providers and presets, shipped with the package so that an upgrade fixes
 # them for every user.
-PRESETS_FILE = Path(__file__).parent / "presets.toml"
+PRESETS_FILE = Path(__file__).parent / "presets" / "presets.toml"
 # A page of 250 words through the full pipeline: the order of magnitude of the runs in
 # docs/model-comparison.md (30 to 47 thousand tokens, the judge's calls about 40 % of
 # them), for the cost per page the interface shows next to a preset.

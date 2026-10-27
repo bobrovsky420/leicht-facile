@@ -19,7 +19,7 @@ block and the prose are written by hand, the tables are not.
   own judge, and a model judging its own drafts flags differently from a larger model
   judging another's.
 - USD per page follows the prices in the providers' models tables of
-  `src/leichtfacile/presets.toml` (`input_usd`, `output_usd`): Apertus at
+  `src/leichtfacile/presets/presets.toml` (`input_usd`, `output_usd`): Apertus at
   Public AI's prices (the CSCS endpoint itself charged nothing), gpt-oss at Groq's. A
   model on one's own hardware has no price per token (a dash); the laptop run below cost
   some CHF 0.15 of electricity for its 23 pairs.

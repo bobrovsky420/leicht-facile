@@ -45,11 +45,11 @@ LANGUAGE_FAMILIES = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
 
 def price(model: str) -> tuple[float, float] | None:
     """USD per million input and output tokens of a model, from the providers' models
-    tables of src/leichtfacile/presets.toml (`input_usd`, `output_usd`: Apertus at Public
-    AI's list prices, since the CSCS endpoint of the reported runs charged nothing;
-    gpt-oss as the Hugging Face router bills it); None for a model without a price per
-    token (a server of one's own, which pays for hardware instead) or an unknown one.
-    Reported as an order of magnitude."""
+    tables of src/leichtfacile/presets/presets.toml (`input_usd`, `output_usd`: Apertus
+    at Public AI's list prices, since the CSCS endpoint of the reported runs charged
+    nothing; gpt-oss as the Hugging Face router bills it); None for a model without a
+    price per token (a server of one's own, which pays for hardware instead) or an
+    unknown one. Reported as an order of magnitude."""
     return config.model_price(model)
 
 

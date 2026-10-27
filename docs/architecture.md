@@ -775,7 +775,7 @@ midway.
   form (`JobConfig.endpoint`), the orchestrator runs it on that preset's client
   (`Orchestrator.client_for`, the settings of that preset with it), and the summary
   records the preset's name.
-- **Providers and presets** (`src/leichtfacile/presets.toml`, one table per provider,
+- **Providers and presets** (`src/leichtfacile/presets/presets.toml`, one table per provider,
   per model table and per preset, [configuration.md](configuration.md#providers-and-presets);
   the model page of the web app and `leichtfacile setup` pick a preset and take its
   key, or take any other server; a preset is named after its models' versions and
@@ -1213,7 +1213,7 @@ day, against the 82 percent above.
 | Readability | Amstad / Kandel-Moles / Gulpease: source vs. output vs. official easy version | Did it actually get easier? |
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
-| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/presets.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
+| Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/presets/presets.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
 | Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
 
@@ -1271,7 +1271,7 @@ The settings are one TOML file with a section per topic, and the providers and p
 of the model ([configuration.md](configuration.md)). The known providers (where models
 run and how to reach them, with a table per model for what it needs) and the presets on
 them (what the user picks: a provider and the models that write, read and check) come
-with the app, one table each in `src/leichtfacile/presets.toml`, complete but for the
+with the app, one table each in `src/leichtfacile/presets/presets.toml`, complete but for the
 key; a server of one's own names its models, which the model page lists. The preset in
 use resolves from its provider, the provider's table of each model it calls, its own
 keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`,
@@ -1556,7 +1556,7 @@ src/leichtfacile/
   lifecycle.py              the counts on the job row (from review.py), deletion with the cache rows, the purge, the log redaction
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
-  presets.toml              the known providers with their models tables and prices, and the presets on them
+  presets/presets.toml      the known providers with their models tables and prices, and the presets on them
   llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,

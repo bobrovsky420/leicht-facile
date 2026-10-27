@@ -105,7 +105,7 @@ letters, digits, `-` and `_`.
 
 ### Providers and presets
 
-The shipped providers and presets are the tables of `src/leichtfacile/presets.toml`,
+The shipped providers and presets are the tables of `src/leichtfacile/presets/presets.toml`,
 in the order the interface and `leichtfacile setup` list them; `default` names the
 preset of a fresh install. A new table there is a new provider or preset;
 `tests/test_config.py` checks every table's keys and values. A preset is named after
@@ -113,7 +113,7 @@ its models' versions and never changes meaning: a new model is a new preset, so 
 name in a config file, a job or an evaluation run keeps pointing at the same thing.
 
 ```toml
-# src/leichtfacile/presets.toml
+# src/leichtfacile/presets/presets.toml
 [providers.anthropic]
 label = "Anthropic"
 url = "https://api.anthropic.com/v1"
