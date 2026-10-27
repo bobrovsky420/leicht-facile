@@ -1,0 +1,66 @@
+# The spaCy models as packages on PyPI: leichtfacile-model-de and leichtfacile-model-fr,
+# built by scripts/model_packages.py from the tables [tool.leichtfacile.spacy-models] in
+# pyproject.toml. Run by hand (Actions, Models, Run workflow) after a change of those
+# tables, before the dependencies in pyproject.toml name the new versions.
+#
+# PyPI takes them by trusted publishing, as release.yml does. PyPI keeps one pending
+# publisher per repository, workflow and environment, so each package publishes from a
+# job with an environment of its own (pypi-model-de, pypi-model-fr), and its publisher
+# names this repository, models.yml and that environment. A wheel already on PyPI is
+# skipped (the same input builds the same bytes). Every action is pinned to a commit;
+# the comment after the hash names the release.
+
+name: Models
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  models:
+    name: leichtfacile-model-${{ matrix.lang }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lang: de
+            text: Sie müssen die Rechnung bis zum 30. November bezahlen.
+          - lang: fr
+            text: Vous devez payer la facture avant le 30 novembre.
+    environment: pypi-model-${{ matrix.lang }}
+    permissions:
+      id-token: write  # trusted publishing to PyPI
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      # Outside the project's environment, which depends on these packages.
+      - name: Build it from spaCy's wheel
+        run: |
+          uv run --no-project python scripts/model_packages.py --lang ${{ matrix.lang }} \
+            --out dist/models
+      # A clean environment: the package installs with its spaCy and parses a sentence
+      # with the parse and the morphology the rule checker reads.
+      - name: Install it in a clean environment and parse a sentence
+        working-directory: ${{ runner.temp }}
+        env:
+          MODEL: leichtfacile_model_${{ matrix.lang }}
+          TEXT: ${{ matrix.text }}
+        run: |
+          uv venv smoke
+          uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/models/*.whl
+          smoke/bin/python - <<'EOF'
+          import os
+          import spacy
+          doc = spacy.load(os.environ["MODEL"])(os.environ["TEXT"])
+          assert doc.has_annotation("DEP") and doc.has_annotation("MORPH")
+          print(" ".join(f"{t.text}/{t.pos_}/{t.dep_}" for t in doc))
+          EOF
+      - name: Publish to PyPI
+        run: |
+          uv publish --trusted-publishing always --check-url https://pypi.org/simple/ \
+            dist/models/*.whl

@@ -1581,7 +1581,8 @@ src/leichtfacile/
                             of the result rows), report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
-scripts/                    print_letters.py
+scripts/                    config_reference.py (the settings reference in configuration.md), print_letters.py,
+                            model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr)
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters

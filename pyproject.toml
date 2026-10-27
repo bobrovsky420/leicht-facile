@@ -67,6 +67,23 @@ models = [
 [tool.uv]
 default-groups = ["dev", "models"]
 
+# spaCy's models for German and French, republished with their files unchanged as the
+# packages leichtfacile-model-de and leichtfacile-model-fr: spaCy publishes them on
+# GitHub only, and PyPI refuses dependencies given by URL. scripts/model_packages.py
+# builds the packages from spaCy's wheel (its name, version and SHA-256 here), with the
+# license expression given here; .github/workflows/models.yml publishes them.
+[tool.leichtfacile.spacy-models.de]
+name = "de_core_news_md"
+version = "3.8.0"
+sha256 = "b903f59220f1e76dd672acdaa7fa454d6703fe056c5ccd6457820e70874116d0"
+license = "MIT"
+
+[tool.leichtfacile.spacy-models.fr]
+name = "fr_core_news_md"
+version = "3.8.0"
+sha256 = "8a70d090a54ef77525c3ffa6a6195b9d365f2cf369ae1cd84ede93f3d709079e"
+license = "LicenseRef-LGPL-LR"
+
 [build-system]
 requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]
 build-backend = "hatchling.build"
