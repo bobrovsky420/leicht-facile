@@ -15,11 +15,7 @@ case workers, not a replacement for their review or for the test by readers from
 target group.
 
 > About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
-> skills (Swiss Federal Statistical Office). The same survey, the OECD's
-> [Survey of Adult Skills](#references) (PIAAC 2022/23), finds 22 percent in Germany
-> (about 12 million adults) and 28 percent in France (about 11 million). None of them
-> should be excluded from the official letters that decide their money, deadlines and
-> rights.
+> skills ([Swiss Federal Statistical Office](#references)).
 
 A sentence like this one from a letter, in "Amtssprache" and with three negations, loses
 them, although the reader has only one question: do I get my money back?
@@ -249,14 +245,6 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
   [first results of PIAAC 2022/2023](https://www.bfs.admin.ch/asset/fr/33346105),
   Neuchâtel 2024, section 3.3: 1.25 million adults aged 16 to 65 (22 percent) with low
   literacy, level 1 or below.
-- OECD, Survey of Adult Skills 2023,
-  [country note Germany](https://www.oecd.org/content/dam/oecd/de/publications/reports/2024/12/survey-of-adults-skills-2023-country-notes_df7b4a60/germany_264dd624/a70d92ac-de.pdf)
-  (in German), December 2024: 22 percent of adults aged 16 to 65 at or below level 1 in
-  literacy; OECD average 26 percent.
-- OECD, Survey of Adult Skills 2023,
-  [country note France](https://www.oecd.org/content/dam/oecd/fr/publications/reports/2024/12/survey-of-adults-skills-2023-country-notes_df7b4a60/france_ba42b6a4/21bacb82-fr.pdf)
-  (in French), December 2024: 28 percent of adults aged 16 to 65 at or below level 1 in
-  literacy; OECD average 26 percent.
 
 ## Licence
 
