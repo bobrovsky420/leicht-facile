@@ -295,10 +295,10 @@ def test_llm_takes_the_choice_and_the_switches_and_nothing_else(home, monkeypatc
 
 
 def test_the_preset_in_use(home, monkeypatch) -> None:
-    monkeypatch.setenv("CSCS_API_KEY", "k")
-    lenient = load(strict=False)  # nothing named: the shipped default
+    lenient = load(strict=False)  # nothing named, no key set: the shipped default
     assert lenient.settings.llm.preset == "cscs-apertus"
     assert lenient.flat["llm.preset"].source == "the shipped default"
+    monkeypatch.setenv("CSCS_API_KEY", "k")
     write(home, LOCAL)
     assert load().settings.llm.preset == "laptop"
     use_overrides({"llm.preset": "cscs-apertus"})  # --preset
@@ -313,6 +313,24 @@ def test_the_preset_in_use(home, monkeypatch) -> None:
     assert load(preset="cscs-apertus").settings.llm.url == CSCS_URL  # a draft's choice
     with pytest.raises(ConfigError, match="no such preset"):
         load(preset="nope")
+
+
+def test_a_fresh_install_takes_the_first_preset_whose_key_is_set(home, monkeypatch) -> None:
+    def picked() -> tuple[str, str]:
+        item = load(strict=False).flat["llm.preset"]
+        return item.value, item.source
+
+    # The catalog's order: CSCS, Public AI, Anthropic, OpenAI, ...
+    monkeypatch.setenv("OPENAI_API_KEY", "k")
+    assert picked() == ("gpt-5-6-luna", "the key in OPENAI_API_KEY")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    assert picked() == ("claude-haiku-5-5", "the key in ANTHROPIC_API_KEY")
+    write(home.parent / ".env", "PUBLICAI_API_KEY=k\n")  # a .env counts too
+    assert picked() == ("publicai-apertus", "the key in PUBLICAI_API_KEY")
+    write(home, '[llm]\noffer = ["gpt-5-6-luna", "cscs-apertus"]\n')  # among the offered
+    assert picked() == ("gpt-5-6-luna", "the key in OPENAI_API_KEY")
+    write(home, '[llm]\npreset = "cscs-apertus"\n')  # a preset named wins over the keys
+    assert picked()[0] == "cscs-apertus"
 
 
 def test_available_lists_every_preset_with_what_it_lacks(home, monkeypatch) -> None:

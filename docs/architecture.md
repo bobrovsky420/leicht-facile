@@ -362,13 +362,14 @@ Each rule is declared in code once (`rules/catalog.py`, the registry of
 language; the language modules attach their checks and the instruction for the writer
 prompt, and the style guide is rendered from the registry, so prompt and checker never
 disagree; a test keeps the registry and [rules.md](rules.md) in sync. Of the 33 rules
-of the language families, 32 have a German check, 28 a French one and 10 an Italian one
-(28 October 2026; the Italian checks of its own follow): 10 share one check with the
-language's words and patterns in a table (`rules/shared.py`), the others have a check per
-language (`rules/de.py`, `rules/fr.py`, `rules/it.py`), German and French calibrated on
-the official easy-language pages; GRAM-09 (impersonal phrases) is French only, ORD-01,
-GRAM-02, GRAM-08, CH-01 and CH-02 are German only. 13 rules for facts, layout and
-readability apply to every language.
+of the language families, 32 have a German check, 28 a French one and 28 an Italian one
+(Italian since 28 October 2026): 10 share one check with the language's words and
+patterns in a table (`rules/shared.py`), the others have a check per language
+(`rules/de.py`, `rules/fr.py`, `rules/it.py`), each calibrated on the official
+easy-language pages; GRAM-09 (impersonal phrases) is French and Italian, GRAM-10
+(gerund clauses) Italian only, ORD-01, GRAM-02, GRAM-08, CH-01 and CH-02 German only,
+CH-03 German and French only. 13 rules for facts, layout and readability apply to
+every language.
 
 ### 4.5 Meaning check (a model as judge)
 
@@ -1119,7 +1120,7 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 
 | Status | German | French | Italian |
 |---|--------|--------|---------|
-| Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 10 (the shared ones) + 13; its own follow |
+| Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 28 + 13 |
 | Prompts and few-shot examples | yes | yes | yes (28 October 2026) |
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | - |
 
@@ -1287,8 +1288,9 @@ them (what the user picks: a provider and the models that write, read and check)
 with the app, one table each in `src/leichtfacile/presets/presets.toml`, complete but for the
 key; a server of one's own names its models, which the model page lists. The preset in
 use resolves from its provider, the provider's table of each model it calls, its own
-keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`,
-the shipped default `cscs-apertus` without it), the `cache` switch and `offer` (the
+keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`;
+without it the first preset in the catalog's order whose provider's key is set,
+`config.first_with_key`, else the shipped default `cscs-apertus`), the `cache` switch and `offer` (the
 presets an organisation shows), nothing else. The model page of the web app (`/model`,
 `web/model.py`) lists the presets by group with where the text goes, the cost per page
 and what each lacks, takes the key (into the `.env` next to the config file), checks it

@@ -620,7 +620,8 @@ with an `action` field, so it works without JavaScript:
   running, not ready with the reason) and a line with the provider, where the text goes,
   which documents may go there and "about USD 0.02 per page" (from the writer's and the
   judge's prices, an order of magnitude; "no price per token" for a server of one's
-  own). The shipped default is pre-selected on a fresh install.
+  own). On a fresh install the first preset whose provider's key is set is pre-selected,
+  with no key the shipped default.
 - Under a row whose provider takes a key: the key field (`api_key_<provider>`,
   `type="password"`, never shown again; "A key is saved" when one is), with "Where do I
   get a key?" linking the provider's page. CSS `:has()` shows the chosen row's field

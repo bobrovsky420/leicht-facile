@@ -151,7 +151,9 @@ The first start downloads the app with its dependencies, the language packages a
 (95 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
 other. `uvx leichtfacile setup` asks the same on the command line. With a provider's key
 in a `.env` in the current folder (or in the environment), its presets are ready without
-either:
+either, and the first start uses the first of them, in the order setup lists the
+providers (CSCS, Public AI, Anthropic, OpenAI, ...;
+[configuration.md](configuration.md#the-model)):
 
 ```bash
 echo "PUBLICAI_API_KEY=<your key>" > .env
@@ -161,6 +163,17 @@ uvx leichtfacile serve publicai-apertus
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
   ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
   is quick. `uvx leichtfacile@0.7.1 serve` runs that version.
+- Nothing lands on the PATH or in the current folder: uv unpacks the app with its
+  dependencies into its cache, a Python it downloads goes to its Python folder.
+  `uv cache dir` and `uv python dir` print both; by default:
+
+  | System | uv's cache (the app) | uv's Python folder |
+  |--------|----------------------|--------------------|
+  | Windows | `%LOCALAPPDATA%\uv\cache` | `%APPDATA%\uv\python` |
+  | macOS, Linux | `$XDG_CACHE_HOME/uv`, else `~/.cache/uv` | `$XDG_DATA_HOME/uv/python`, else `~/.local/share/uv/python` |
+
+  `uv cache clean leichtfacile` removes the app from the cache (the next `uvx` downloads
+  it again); the config file and the data stay.
 - The config file, the keys and the data live in the user's folders
   ([The settings](#the-settings)), as with an installed command: way 3 later finds them.
 - `serve` opens the default browser once `/healthz` answers, but only when the app runs on
@@ -261,6 +274,10 @@ leichtfacile serve        # opens http://127.0.0.1:8000/model
 ```
 
 - Everything said under way 1 holds, without the `uvx` in front.
+- `uv tool install` puts the app into a virtual environment of its own in uv's tools
+  folder (`uv tool dir`: `%APPDATA%\uv\tools` on Windows, `~/.local/share/uv/tools`
+  elsewhere) and the `leichtfacile` command into `uv tool dir --bin` (`~/.local/bin`, on
+  Windows `%USERPROFILE%\.local\bin`).
 - `python -m leichtfacile` does the same as `leichtfacile`.
 - `uv tool upgrade leichtfacile` (or `pip install -U leichtfacile`) gets a newer release;
   nothing updates it by itself ([Updates](#updates)).

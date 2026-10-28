@@ -90,8 +90,15 @@ tables (`reasoning`) takes the later value. Names are lowercase letters, digits,
   set) and it names a writer. `leichtfacile preset list` shows every preset and what it
   lacks; the model page shows the same.
 - `[llm]` names the preset in use: `llm.preset` is a shipped preset or one of the user's
-  own; without it the shipped default (`cscs-apertus`) is in use. Nothing is guessed
-  from the keys in the shell: a forgotten key never picks a provider. `[llm]` takes two
+  own. Without it (a fresh install, or after `preset remove` of the one in use) the app
+  takes the first preset, in the order of the catalog, whose provider's key is set in the
+  environment or a `.env`: `CSCS_API_KEY` gives `cscs-apertus`, else `PUBLICAI_API_KEY`
+  gives `publicai-apertus`, else `ANTHROPIC_API_KEY` `claude-haiku-5-5`, else
+  `OPENAI_API_KEY` `gpt-5-6-luna`, and so on; with `llm.offer`, among the offered ones.
+  With no key set, the shipped default (`cscs-apertus`) is in use and the model page asks
+  for its key. `serve` says which key picked the preset, `leichtfacile config show` names
+  it as the source of `llm.preset`; the model page, `setup` and `preset use` save a
+  choice, after which the keys pick nothing. `[llm]` takes two
   more keys, `cache` (keep the answers and reuse them, whichever preset is in use) and
   `offer` (the presets the interface offers, an organisation's choice; one preset alone
   hides the model page); a provider's or a preset's keys live in their tables, never in
@@ -110,8 +117,8 @@ tables (`reasoning`) takes the later value. Names are lowercase letters, digits,
 ### Providers and presets
 
 The shipped providers and presets are the tables of `src/leichtfacile/presets/presets.toml`,
-in the order the interface and `leichtfacile setup` list them; `default` names the
-preset of a fresh install. A new table there is a new provider or preset;
+in the order the interface and `leichtfacile setup` list them and a fresh install looks
+for their keys; `default` names the preset of a fresh install without any key. A new table there is a new provider or preset;
 `tests/test_config.py` checks every table's keys and values. A preset is named after
 its models' versions and never changes meaning: a new model is a new preset, so a
 name in a config file, a job or an evaluation run keeps pointing at the same thing.
@@ -329,7 +336,7 @@ The preset in use, and the two switches that apply to every preset. A provider's
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `preset` |  | The preset in use: a shipped one or one of your own. Default: cscs-apertus. |
+| `preset` |  | The preset in use: a shipped one or one of your own. Default: the first preset, in the order of presets.toml, whose provider's key is set; with none, cscs-apertus. |
 | `cache` | `false` | Keep the answers in data.dir and reuse them (development, evaluation), whichever preset is in use. |
 | `offer` | `[]` | The presets the interface offers (an organisation's choice); empty: every ready one. |
 

@@ -16,7 +16,8 @@ Each source overrides the one before:
 A provider (`[providers.<name>]`) is where models run and how to reach them; its
 `models` tables hold what one model there needs; a preset (`[presets.<name>]`) is what
 the user picks: a provider and the models that write, read and check. `[llm]` names the
-preset in use (`llm.preset`, the shipped default without it) and holds the two switches
+preset in use (`llm.preset`; without it the first preset whose key is set, else the
+shipped default) and holds the two switches
 that apply to every preset, `cache` and `offer`; a request's settings come from the
 provider, the table of the model called, the preset, and the user's tables of the same
 names, in that order (`preset_layer`), extra_body's fields added up. A secret is given
@@ -318,8 +319,9 @@ class LLMChoice(Section):
 
     preset: str | None = Field(
         None,
-        description="The preset in use: a shipped one or one of your own. Default: "
-        f"{DEFAULT_PRESET}.",
+        description="The preset in use: a shipped one or one of your own. Default: the "
+        "first preset, in the order of presets.toml, whose provider's key is set; with "
+        f"none, {DEFAULT_PRESET}.",
     )
     cache: bool = Field(
         False,
@@ -794,7 +796,8 @@ def load(
     preset: str | None = None,
 ) -> Loaded:
     """The settings with the preset in use resolved: `preset` for this load (a draft
-    that picked one), else llm.preset, else the shipped default. `strict`: a ConfigError
+    that picked one), else llm.preset, else the first preset with its key set, else the
+    shipped default. `strict`: a ConfigError
     when the preset is incomplete (no key); else its problems are returned."""
     flat = _resolve_llm(collect(replace), preset)
     problems = _resolve_secrets(flat)
@@ -1074,8 +1077,9 @@ LLM_KEYS = ("llm.preset", "llm.cache", "llm.offer")
 
 def _resolve_llm(flat: Flat, requested: str | None = None) -> Flat:
     """The preset in use as `llm.*` keys: `requested` (--preset, or a draft that picked
-    one), else llm.preset, else the shipped default. A key of a provider or a preset in
-    [llm] itself is an error, since it belongs to that table."""
+    one), else llm.preset, else the first preset with its key set (`first_with_key`). A
+    key of a provider or a preset in [llm] itself is an error, since it belongs to that
+    table."""
     for key, item in flat.items():
         if key.startswith("llm.") and key not in LLM_KEYS:
             raise ConfigError(
@@ -1086,7 +1090,7 @@ def _resolve_llm(flat: Flat, requested: str | None = None) -> Flat:
     names = preset_names(flat)
     picked = Setting(requested, "requested") if requested else flat.get("llm.preset")
     if picked is None:
-        picked = Setting(DEFAULT_PRESET, "the shipped default")
+        picked = first_with_key(flat, names)
     name = str(picked.value)
     if name not in names:
         raise ConfigError(
@@ -1100,6 +1104,23 @@ def _resolve_llm(flat: Flat, requested: str | None = None) -> Flat:
     out = {key: item for key, item in flat.items() if not key.startswith("llm.")}
     out.update({f"llm.{key}": item for key, item in layer.items()})
     return out
+
+
+def first_with_key(flat: Flat, names: list[str]) -> Setting:
+    """The preset of a fresh install, while nothing names one: the first, in the
+    catalog's order (setup's and the model page's), whose provider's key is in its
+    variable (the environment or a .env), among llm.offer when set; else the shipped
+    default. A preset of the user's own that is not complete yet is passed over."""
+    if (offer := flat.get("llm.offer")) is not None and (wanted := _as_list(offer.value)):
+        names = [name for name in names if name in wanted]
+    for name in names:
+        try:
+            variable = preset_layer(flat, name).get("api_key_env")
+        except ConfigError:
+            continue
+        if variable is not None and secret_value(str(variable.value)) is not None:
+            return Setting(name, f"the key in {variable.value}")
+    return Setting(DEFAULT_PRESET, "the shipped default")
 
 
 def preset_layer(flat: Flat, name: str) -> Flat:

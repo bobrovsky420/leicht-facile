@@ -263,14 +263,19 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
     # does not: the app starts and its model page asks for it. A preset named on the
     # command line (`serve <preset>`, for this run only) must be ready, since the page
     # cannot change what the command line picks: nothing is asked, nothing is saved.
+    from leichtfacile.config import load
+
     settings = settings_or_exit(strict=strict)
+    loaded = load(strict=False)
+    # A fresh install takes the first preset whose key is set: say which and why.
+    if (source := loaded.flat["llm.preset"].source).startswith("the key in"):
+        print(f"Model: {settings.llm.preset}, picked by {source}; the model page or "
+              "`leichtfacile preset use` changes it.")  # fmt: skip
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
-        from leichtfacile.config import load
-
         address = f"[{host}]" if ":" in host else host
         # A fresh start opens on the model page, which asks for the key.
-        page = "" if not load(strict=False).problems else "model"
+        page = "" if not loaded.problems else "model"
         open_when_ready(f"http://{address}:{port}/", page)
     # The app writes its own access line, with the request id and without the query
     # string (web/observability.py); uvicorn's would double it.

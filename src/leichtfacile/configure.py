@@ -363,7 +363,7 @@ def list_presets(*, say: Callable[[str], None] = print) -> int:
 def remove_preset(name: str, *, path: Path, say: Callable[[str], None] = print) -> int:
     """Remove a preset of the user's own, or the user's table that extends a shipped
     preset (the shipped one stays). One that was in use leaves the choice to the
-    shipped default."""
+    first preset whose key is set, else the shipped default."""
     doc = read_document(path)
     presets = doc.get("presets")
     if not isinstance(presets, MutableMapping) or name not in presets:
