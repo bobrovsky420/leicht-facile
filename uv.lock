@@ -906,7 +906,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "leichtfacile-model-de", specifier = "==3.8.0" },
     { name = "leichtfacile-model-fr", specifier = "==3.8.0" },
-    { name = "leichtfacile-model-it", specifier = "==1.0.0" },
+    { name = "leichtfacile-model-it", specifier = "==1.0.1" },
     { name = "openai", specifier = ">=3.0" },
     { name = "pdfplumber", specifier = ">=0.11.10" },
     { name = "pydantic", specifier = ">=2.12" },
@@ -952,13 +952,13 @@ wheels = [
 
 [[package]]
 name = "leichtfacile-model-it"
-version = "1.0.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "spacy" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/df/fb/cbc659b3a494bae41a0a102b949bcd017ebe61e6a7eedfe07102e3b9234f/leichtfacile_model_it-1.0.0-py3-none-any.whl", hash = "sha256:cc185990f4bb343f83746d94b39bc08ca9aecf5ec114524f7201b44ae96a8ac2", size = 2888989, upload-time = "2026-10-28T09:18:31.307Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/d3/2c6d63884038d26947324854852917d10a949b4a160e4392b97a36eda123/leichtfacile_model_it-1.0.1-py3-none-any.whl", hash = "sha256:53b650e342f6c35a3e345065ce768fd1d03e61bac145e6890ef34dc983362402", size = 2891769, upload-time = "2026-10-28T11:10:35.619Z" },
 ]
 
 [[package]]

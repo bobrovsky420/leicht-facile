@@ -9,8 +9,10 @@ The lexicon comes from the archive the table [tool.leichtfacile.lexicon-models.i
 pyproject.toml names (the Language Bank of Finland's HFST build, which carries the
 original text file and its readme; the authors' site refuses downloads by scripts),
 checked against the archive's SHA-256 and the lexicon's own. The licence texts go into
-the wheel. The same input gives the same bytes, so a wheel already on PyPI is
-recognised and skipped by the publish step of .github/workflows/models.yml.
+the wheel. The same input gives the same bytes, on Windows too (text files with LF,
+the sentencizer's punctuation sorted), so a wheel already on PyPI is recognised and
+skipped by the publish step of .github/workflows/models.yml; 1.0.1 on PyPI predates
+the sorting, so a rebuild of it differs in sentencizer.json alone.
 
     uv run python scripts/lexicon_package.py [--out dist/models]
 
@@ -133,7 +135,8 @@ def build(
     package = f"leichtfacile_model_{lang}"
     data_dir = f"{lang}_{name}-{version}"
     nlp = spacy.blank(lang)
-    nlp.add_pipe("sentencizer")
+    sentencizer = nlp.add_pipe("sentencizer")
+    sentencizer.punct_chars = sorted(sentencizer.punct_chars)  # a set: its order varies per run
     component: morphit.MorphitLexicon = nlp.add_pipe(morphit.COMPONENT)
     component.load_tsv(files["lexicon"])
     print(f"{len(component)} forms")
@@ -170,6 +173,8 @@ def build(
     with zipfile.ZipFile(wheel, "w") as target:
 
         def add(path: str, data: bytes) -> None:
+            if path.endswith((".py", ".json", ".cfg")):
+                data = data.replace(b"\r\n", b"\n")  # a Windows build gives the same bytes
             info = zipfile.ZipInfo(path, EPOCH)
             info.external_attr = 0o644 << 16
             info.compress_type = zipfile.ZIP_DEFLATED
