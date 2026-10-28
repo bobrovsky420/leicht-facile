@@ -97,7 +97,7 @@ def test_the_page_lists_the_groups_and_a_key_puts_a_preset_to_use(app, home, fak
     assert "publicai-apertus is in use" in saved and "A key is saved" in saved
     # The app follows without a restart: the app bar, the probe, a draft.
     assert app.state.settings.llm.preset == "publicai-apertus"
-    assert "Apertus 8B, checked by Apertus 70B" in client.get("/").text
+    assert "Apertus 70B at every stage" in client.get("/").text
     ready = client.get("/readyz").json()
     assert (ready["llm"]["preset"], ready["llm"]["ready"], ready["llm"]["reachable"]) == (
         "publicai-apertus", True, True,
@@ -108,7 +108,7 @@ def test_the_page_lists_the_groups_and_a_key_puts_a_preset_to_use(app, home, fak
     )
     assert submitted.status_code == 303
     assert app.state.runner.wait_idle(30)
-    assert fake.chat_bodies()[0]["model"] == "swiss-ai/apertus-v1.5-8b"
+    assert fake.chat_bodies()[0]["model"] == "swiss-ai/apertus-v1.5-70b"
     assert fake.chat_bodies()[0]["cache"] == {"no-cache": True}  # the provider's extra_body
 
 

@@ -227,9 +227,10 @@ The development tasks run with uv:
 
 The evaluation runs the conditions on the held-out pairs and writes the tables of
 [evaluation.md](evaluation.md). `--results` keeps one preset's results together
-(`eval/results-cscs` for the reported numbers); `--cache` reuses the cached answers, so
-an interrupted run resumes cheaply. `uv run leichtfacile eval --help` lists every
-evaluation command.
+(`eval/results-cscs` for the reported numbers), and `eval run --preset cscs-apertus`
+runs on that preset whatever the configuration selects; `--cache` reuses the cached
+answers, so an interrupted run resumes cheaply. `uv run leichtfacile eval --help` lists
+every evaluation command.
 
 ```bash
 # the pairs, and the rule checker on the official easy-language pages (no model)
@@ -247,6 +248,10 @@ uv run leichtfacile eval run --cache --condition P1 --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --results eval/results-cscs
 uv run leichtfacile eval report --results eval/results-cscs --out docs/evaluation.md
 uv run leichtfacile eval compare      # docs/model-comparison.md: every run side by side
+# Italian ran on the Public AI gateway, the 70B at every stage (28 October 2026)
+uv run leichtfacile eval reference --role all --lang it --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang it --preset publicai-apertus --results eval/results-publicai
+uv run leichtfacile eval report --results eval/results-publicai --role eval --out docs/evaluation-publicai.md
 # the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
 uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs

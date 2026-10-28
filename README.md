@@ -239,6 +239,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
 - [hard-texts.md](docs/hard-texts.md): hard words and sentences for tests
 - [evaluation.md](docs/evaluation.md): the evaluation tables, per language and setup
+- [evaluation-publicai.md](docs/evaluation-publicai.md): the Italian tables, run on the Public AI gateway with the Apertus 1.5 70B at every stage (28 October 2026)
 - [model-comparison.md](docs/model-comparison.md): every evaluation run side by side, Apertus on CSCS, Qwen on a laptop, gpt-oss on Groq and the runs to come
 
 ## References

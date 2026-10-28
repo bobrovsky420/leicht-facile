@@ -191,7 +191,7 @@ def _run(args: argparse.Namespace) -> int:
     from leichtfacile.eval.run import run_condition
     from leichtfacile.llm.client import LLMClient
 
-    settings = settings_or_exit()
+    settings = settings_or_exit(preset=args.preset)
     pairs = _pairs(args)[: args.limit] if args.limit else _pairs(args)
     llm = LLMClient.from_settings(settings)
     path = run_condition(

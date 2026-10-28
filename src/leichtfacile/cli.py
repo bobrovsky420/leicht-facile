@@ -212,12 +212,15 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     return 2
 
 
-def settings_or_exit(*, strict: bool = True) -> Settings:
+def settings_or_exit(*, strict: bool = True, preset: str | None = None) -> Settings:
     """The settings, or a short message instead of a traceback when they are invalid,
-    or (`strict`, a command that calls the model) incomplete."""
+    or (`strict`, a command that calls the model) incomplete. `preset` names the preset
+    for this command (`eval run --preset`) instead of the configured one."""
     from leichtfacile.config import get_settings, load
 
     try:
+        if preset:
+            return load(strict=strict, preset=preset).settings
         return get_settings() if strict else load(strict=False).settings
     except ConfigError as exc:
         print(exc, file=sys.stderr)

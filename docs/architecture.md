@@ -809,7 +809,12 @@ midway.
      per name: the 8B still went to Juelich (Germany, 4 of 4 calls), the 70B was split
      between Infomaniak (Switzerland) and Featherless (a US company), 8 of 11 calls
      to Featherless, and both `-thinking` names answered with an error. So Public AI
-     is not Swiss-hosted throughout, whatever its own pages say;
+     is not Swiss-hosted throughout, whatever its own pages say. Checked again on
+     28 October 2026: the gateway still lists all four names, but chat completions
+     with both 8B names and both `-thinking` names answer 400 ("invalid model name"
+     for the key); the 70B answers from a new partner (`maas.phoeniqs.com`) and the
+     Apertus 1 8B from Featherless. Since then the preset runs every stage on the
+     70B, without thinking;
   4. the Hugging Face inference router, for development only. It serves only the
      older Apertus 1 models (`swiss-ai/Apertus-8B-Instruct-2509` through Public AI,
      `…-70B-Instruct-2509` through Featherless). No Hugging Face provider serves
@@ -1196,6 +1201,17 @@ price per page; the hybrid finds 99 percent and keeps 94 percent of the hard fac
 3.0 errors, at about the 8B's price (0.0145 against 0.0159 USD per page). The 8B
 writer stays the default, since it runs on one GPU; docs/prompts.md has the
 tables.
+
+Italian ran on 28 October 2026 on the 9 Italian eval pairs, on the Public AI gateway
+(the CSCS key had expired), where the 8B was no longer served that day: every stage on
+the Apertus 1.5 70B, without thinking (`--preset publicai-apertus --results
+eval/results-publicai`; the tables in docs/evaluation-publicai.md, kept apart from the
+CSCS tables and not comparable one to one with them). P2 found 100 percent of the
+must-keep facts and kept 82 percent of the hard facts with 0.5 rule errors per 100
+blocks and a Gulpease readability of 78; the single prompt found 56 percent and kept
+49, with 18.3 errors; the official easy-language pages keep 31 percent of the hard
+facts (they are summaries of their originals) at 13.1 errors. The whole Italian
+evaluation cost USD 0.64 at Public AI's list prices, about 2 cents per P2 page.
 
 P0-ZH runs with the settings of P0 (no thinking, temperature 0.3, 6000 tokens) and
 with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags

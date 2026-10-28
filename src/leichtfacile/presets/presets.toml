@@ -52,11 +52,12 @@ label = "Apertus 8B, checked by Apertus 70B"
 models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
 
 # Apertus on the Public AI gateway, for public documents only: run by Metagov Inc. (US
-# nonprofit), requests go to compute partners (the 8B at Juelich, the 70B at Infomaniak).
-# The 8B (vLLM) thinks when asked through the chat template; the 70B ignores the switch.
-# The gateway caches answers without regard to the switch, so extra_body turns its cache
-# off. Its "-thinking" names serve the older Apertus 1 without thinking. Checked on
-# 6 October 2026.
+# nonprofit), requests go to compute partners. Since 28 October 2026 the gateway rejects
+# both Apertus 1.5 8B names and the "-thinking" names (400, "invalid model name"); the
+# 1.5 70B answers (maas.phoeniqs.com) and ignores the thinking switch, and the older
+# Apertus 1 8B (apertus-8b-instruct, Featherless, US) is the only 8B left. So the preset
+# runs every stage on the 70B, without thinking. The gateway caches answers without
+# regard to the switch, so extra_body turns its cache off.
 [providers.publicai]
 label = "Public AI gateway"
 url = "https://api.publicai.co/v1"
@@ -88,8 +89,8 @@ output_usd = 2.92
 
 [presets.publicai-apertus]
 provider = "publicai"
-label = "Apertus 8B, checked by Apertus 70B"
-models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
+label = "Apertus 70B at every stage"
+models = { writer = "swiss-ai/apertus-v1.5-70b" }
 
 # -- US clouds, public documents only ----------------------------------------------------
 

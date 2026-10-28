@@ -364,6 +364,12 @@ def test_missing_settings_name_themselves_and_the_setup(home, capsys) -> None:
     assert "The preset cscs-apertus is not ready" in error and "leichtfacile setup" in error
     assert str(home.parent / ".env") in error
     assert settings_or_exit(strict=False).llm.preset == "cscs-apertus"  # `serve` starts anyway
+    # `eval run --preset`: the named preset, not the configured one
+    named = settings_or_exit(strict=False, preset="claude-haiku-5-5")
+    assert named.llm.preset == "claude-haiku-5-5"
+    with pytest.raises(SystemExit):
+        settings_or_exit(preset="claude-haiku-5-5")
+    assert "The preset claude-haiku-5-5 is not ready" in capsys.readouterr().err
 
 
 def test_the_browser_opens_only_on_this_machine_with_a_desktop(monkeypatch) -> None:
