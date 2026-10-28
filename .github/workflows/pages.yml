@@ -1,0 +1,48 @@
+# The project's page at https://leichtfacile.ch: site/index.html with the app's fonts and
+# the review screenshot copied next to it, published on GitHub Pages. The repository's
+# Pages settings take "GitHub Actions" as the source and leichtfacile.ch as the custom
+# domain (a deployment by this workflow needs no CNAME file). Every action is pinned to a
+# commit; the comment after the hash names the release.
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/images/review-page.png"
+      - "src/leichtfacile/web/static/fonts/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and publish the page
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write  # the deployment's token for GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/fonts _site/images
+          cp site/index.html _site/
+          cp src/leichtfacile/web/static/fonts/*.woff2 src/leichtfacile/web/static/fonts/OFL-*.txt _site/fonts/
+          cp docs/images/review-page.png _site/images/
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

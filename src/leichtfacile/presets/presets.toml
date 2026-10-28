@@ -281,7 +281,10 @@ models = { writer = "gemini-3.8-flash" }
 # Anthropic, OpenRouter bills nothing but still holds back each call's highest possible
 # cost from the account's credits: with none, a call may ask for about USD 0.04, which
 # Sonnet's judge (6,000 tokens out) exceeds (402). Haiku ran a whole letter that way (28
-# October 2026); the other models have not been run with the app yet.
+# October 2026); the other models have not been run with the app yet. The headers name
+# the app in OpenRouter's analytics and public rankings (without them its calls count as
+# "Unknown"): the address is the app's id, kept with its path; the title must be ASCII
+# (httpx refuses the middle dot in a header).
 [providers.openrouter]
 label = "OpenRouter"
 url = "https://openrouter.ai/api/v1"
@@ -289,6 +292,7 @@ api_key_env = "OPENROUTER_API_KEY"
 key_url = "https://openrouter.ai/settings/keys"
 location = "world"
 documents = "public"
+headers = { HTTP-Referer = "https://leichtfacile.ch", X-OpenRouter-Title = "Leicht-Facile" }
 extra_body = { provider = { data_collection = "deny" } }
 
 [providers.openrouter.models."anthropic/claude-haiku-5.5"]

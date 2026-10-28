@@ -11,7 +11,9 @@
 # publisher per repository, workflow and environment, so each package publishes from a
 # job with an environment of its own (pypi-model-de, pypi-model-fr, pypi-model-it), and
 # its publisher names this repository, models.yml and that environment. A wheel already
-# on PyPI is skipped (the same input builds the same bytes). Every action is pinned to a
+# on PyPI is skipped (the same input builds the same bytes); the wheels name the project's
+# Homepage, so the versions on PyPI built before it became https://leichtfacile.ch (28
+# October 2026) differ and fail a rebuild. Every action is pinned to a
 # commit; the comment after the hash names the release.
 
 name: Models

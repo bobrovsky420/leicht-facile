@@ -1560,11 +1560,13 @@ What the service stores, where, for how long, and how it leaves:
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release
+.github/workflows/pages.yml    on a change of site/: the project's page published on GitHub Pages at https://leichtfacile.ch
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 README.md                   project overview, quick start, documentation list
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues
+site/index.html             the project's page (https://leichtfacile.ch); pages.yml adds the app's fonts and a screenshot
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key

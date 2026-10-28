@@ -40,7 +40,7 @@ import httpx
 from leichtfacile import __version__
 from leichtfacile.ingest.errors import FetchError, PrivateAddressError, UnknownHostError
 
-USER_AGENT = f"leicht-facile/{__version__} (+https://github.com/bobrovsky420/leicht-facile)"
+USER_AGENT = f"leicht-facile/{__version__} (+https://leichtfacile.ch)"
 DEFAULT_TIMEOUT_S = 30.0  # each connect, each read
 DEFAULT_TOTAL_TIMEOUT_S = 120.0  # the whole fetch, redirects included
 DEFAULT_MAX_BYTES = 15_000_000

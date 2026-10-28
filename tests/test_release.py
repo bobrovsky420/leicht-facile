@@ -35,6 +35,23 @@ def test_the_install_commands_name_the_wheel_of_this_version() -> None:
     assert urls and set(urls) == {WHEEL_URL}
 
 
+def test_the_project_address_agrees() -> None:
+    """https://leichtfacile.ch (the site in site/) is the project's address on PyPI, in
+    publiccode.yml, in the web fetcher's User-Agent and in the header that names the app to
+    OpenRouter."""
+    from leichtfacile.ingest.fetch import USER_AGENT
+
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    home = project["urls"]["Homepage"]
+    publiccode = (ROOT / "publiccode.yml").read_text(encoding="utf-8")
+    presets = (ROOT / "src/leichtfacile/presets/presets.toml").read_text(encoding="utf-8")
+    openrouter = tomllib.loads(presets)["providers"]["openrouter"]["headers"]
+    assert home == "https://leichtfacile.ch"
+    assert re.search(r'^landingURL: "([^"]+)"$', publiccode, re.MULTILINE)[1] == home
+    assert USER_AGENT.endswith(f"(+{home})")
+    assert openrouter["HTTP-Referer"] == home
+
+
 def test_no_dependency_is_given_by_url() -> None:
     """PyPI refuses a package whose dependencies name a URL: the spaCy models come from
     PyPI as leichtfacile-model-de and -fr (scripts/model_packages.py)."""

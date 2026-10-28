@@ -48,7 +48,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bobrovsky420/leicht-facile"
+Homepage = "https://leichtfacile.ch"
 Documentation = "https://github.com/bobrovsky420/leicht-facile/blob/main/docs/quickstart.md"
 Source = "https://github.com/bobrovsky420/leicht-facile"
 Issues = "https://github.com/bobrovsky420/leicht-facile/issues"
