@@ -53,7 +53,7 @@ def _fields(text: str) -> set[str]:
 
 def test_every_catalog_has_the_english_keys_and_placeholders() -> None:
     english = catalogs()["en"]
-    assert set(catalogs()) >= {"en", "de"}
+    assert set(catalogs()) >= {"en", "de", "fr", "it"}
     for code, catalog in catalogs().items():
         assert set(catalog) == set(english), code
         for key, text in english.items():
@@ -133,11 +133,13 @@ def test_keys_built_from_data_exist() -> None:
 def test_rule_titles_are_one_per_rule() -> None:
     """A rule has one id whatever the language (rules/catalog.py): GRAM-08 (separable
     verbs, German) and GRAM-09 (impersonal phrases, French) each have their own title."""
-    de, fr = Translator("de"), Translator("fr")
+    de, fr, it = Translator("de"), Translator("fr"), Translator("it")
     assert "Trennbare" in rule_title(de, "GRAM-08")
     assert "unpersönlich" in rule_title(de, "GRAM-09")
     assert "impersonnelles" in rule_title(fr, "GRAM-09")
     assert rule_title(fr, "LEX-06").endswith("vous")
+    assert "impersonale" in rule_title(it, "GRAM-09")
+    assert rule_title(it, "LEX-06").endswith("Lei")
     assert rule_title(de, "LEN-01") == "Höchstens N Wörter pro Satz"
 
 
@@ -169,7 +171,8 @@ def test_the_language_choice() -> None:
     assert pick_language(None, "de-CH,de;q=0.9,en;q=0.8") == "de"
     assert ui_languages()["fr"] == "Français"
     assert pick_language(None, "fr-CH, en;q=0.5, de;q=0.7") == "fr"
-    assert pick_language(None, "it-CH, en;q=0.5, de;q=0.7") == "de"  # no Italian catalog
+    assert ui_languages()["it"] == "Italiano"
+    assert pick_language(None, "it-CH, en;q=0.5, de;q=0.7") == "it"
     assert pick_language(None, "de;q=0, en") == "en"
     assert pick_language(None, "de-CH", default="en") == "en"  # server.ui_lang beats the browser
     assert pick_language("en", "de-CH", default="de") == "en"  # the switcher beats both
@@ -217,6 +220,19 @@ def test_the_interface_speaks_french(client) -> None:
     assert "Créer le brouillon" in client.get("/new").text
     checked = client.post("/check", data={"text": "Das Formular wird geprüft.", "level": "A2"})
     assert "Voix passive" in checked.text  # the checker's findings follow the interface
+
+
+def test_the_interface_speaks_italian(client) -> None:
+    assert 'href="/ui/it?next=/"' in client.get("/").text
+    client.get("/ui/it")
+    italian = client.get("/")
+    assert '<html lang="it">' in italian.text
+    assert "Nuova bozza" in italian.text and "Ancora nessuna bozza" in italian.text
+    assert '"saving": "Salvataggio..."' in italian.text  # the texts for app.js
+    assert "Crea la bozza" in client.get("/new").text
+    checked = client.post("/check", data={"text": "Das Formular wird geprüft.", "level": "A2"})
+    assert "Forma passiva" in checked.text  # the findings follow the interface, with Lei
+    assert "Dica chi fa che cosa" in checked.text
 
 
 def test_the_switcher_stays_on_this_site(client) -> None:

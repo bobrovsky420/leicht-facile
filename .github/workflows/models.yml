@@ -38,9 +38,10 @@ jobs:
             build: uv run --no-project python scripts/model_packages.py --lang fr --out dist/models
             text: Vous devez payer la facture avant le 30 novembre.
             annotation: DEP
-          # Building the Italian pipeline needs spaCy; the package itself does not.
+          # Building the Italian pipeline needs spaCy, and the package then requires at
+          # least the spaCy it was built with: the version here is uv.lock's.
           - lang: it
-            build: uv run --no-project --with "spacy>=3.8.16,<3.9" python scripts/lexicon_package.py --out dist/models
+            build: uv run --no-project --with "spacy==3.8.18" python scripts/lexicon_package.py --out dist/models
             text: Deve pagare la fattura entro il 30 novembre.
             annotation: MORPH
     environment: pypi-model-${{ matrix.lang }}

@@ -1,6 +1,6 @@
-"""The checks German and French share: the logic once, the language's words and
-patterns in a table (`TABLES`). The checks that differ between the languages stay in
-`de.py` and `fr.py`; the rules themselves are declared in `catalog.py`.
+"""The checks German, French and Italian share: the logic once, the language's words
+and patterns in a table (`TABLES`). The checks that differ between the languages stay
+in `de.py`, `fr.py` and `it.py`; the rules themselves are declared in `catalog.py`.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from spacy.tokens import Span
 
-from leichtfacile.rules import de, fr
+from leichtfacile.rules import de, fr, it
 from leichtfacile.rules.base import BlockInfo, Context, Hit, rule
 from leichtfacile.rules.messages import hit
 from leichtfacile.rules.values import (
@@ -31,7 +31,7 @@ from leichtfacile.rules.values import (
 )
 from leichtfacile.rules.vocabulary import find_terms, office_words
 
-LANGS = ("de", "fr")
+LANGS = ("de", "fr", "it")
 LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error
 RARE_PUNCTUATION_RE = re.compile(r"[;()\[\]{}&]")
 BIG_NUMBER_RE = re.compile(r"(?<![\d'.,:/+’])\d{4,}(?![\d'’])")
@@ -92,6 +92,21 @@ TABLES: dict[str, Table] = {
         amount_re=fr.AMOUNT_STYLE_RE,
         currency_word="francs",
     ),
+    "it": Table(
+        word_count=it.word_count,
+        slash_re=it.SLASH_RE,
+        slash_words=("e", "o"),
+        role_noun_re=it.ROLE_NOUN_RE,
+        address="Lei",
+        office_exclude_re=it.ROLE_NOUN_WORD_RE,
+        identifier_before_re=it.IDENTIFIER_BEFORE_RE,
+        currency_near_re=it.CURRENCY_NEAR_RE,
+        date_short_re=it.DATE_SHORT_RE,
+        duration_re=it.DURATION_RE,
+        percent_word="per cento",
+        amount_re=it.AMOUNT_STYLE_RE,
+        currency_word="franchi",
+    ),
 }
 
 
@@ -108,6 +123,7 @@ def table(ctx: Context) -> Table:
     guide={
         "de": "Schreibe kurze Sätze: höchstens {max_words} Wörter pro Satz.",
         "fr": "Écris des phrases courtes : au plus {max_words} mots par phrase.",
+        "it": "Scrivi frasi corte: al massimo {max_words} parole per frase.",
     },
 )
 def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -137,6 +153,8 @@ def len_01(sent: Span, ctx: Context) -> Iterator[Hit]:
         "zwischen Wörtern.",
         "fr": "Pas de signes rares : pas de point-virgule, pas de parenthèses, pas de & et "
         "pas de / entre les mots.",
+        "it": "Niente segni rari: niente punto e virgola, niente parentesi, niente & e "
+        "niente / tra le parole.",
     },
 )
 def lex_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -159,6 +177,7 @@ def lex_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Sprich die Leserin oder den Leser direkt mit Sie an.",
         "fr": "Parle directement à la lectrice ou au lecteur avec vous.",
+        "it": "Rivolgiti direttamente alla lettrice o al lettore con Lei.",
     },
 )
 def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -180,6 +199,8 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         "nach statt gemäss, wenn nötig statt gegebenenfalls.",
         "fr": "Prends les mots de tous les jours, pas les mots de l'administration (pas : "
         "émolument, moyennant, le cas échéant, dûment).",
+        "it": "Usa le parole di tutti i giorni, non le parole dell'amministrazione (non: "
+        "istanza, ai sensi di, qualora, debitamente).",
     },
 )
 def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
@@ -198,6 +219,7 @@ def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Grosse Zahlen schreibst du mit Apostroph: 1'500 Franken, 500'000.",
         "fr": "Les grands nombres s'écrivent avec une espace : 1 500 francs, 500 000.",
+        "it": "I numeri grandi si scrivono con l'apostrofo: 1'500 franchi, 500'000.",
     },
 )
 def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -221,6 +243,7 @@ def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Ein Datum schreibst du so: 4. Februar 2026.",
         "fr": "Une date s'écrit ainsi : 4 février 2026.",
+        "it": "Una data si scrive così: 4 febbraio 2026.",
     },
 )
 def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -256,6 +279,7 @@ def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Eine Dauer schreibst du so: 1 Stunde und 30 Minuten.",
         "fr": "Une durée s'écrit ainsi : 1 heure et 30 minutes.",
+        "it": "Una durata si scrive così: 1 ora e 30 minuti.",
     },
 )
 def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -269,6 +293,7 @@ def num_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Schreibe Prozent als Wort: 10 Prozent.",
         "fr": "Écris pour cent en lettres : 10 pour cent.",
+        "it": "Scrivi per cento in lettere: 10 per cento.",
     },
 )
 def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -289,6 +314,7 @@ def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Geld·beträge schreibst du so: 500 Franken oder CHF 500.",
         "fr": "Les montants s'écrivent ainsi : 500 francs ou CHF 500.",
+        "it": "Gli importi si scrivono così: 500 franchi o CHF 500.",
     },
 )
 def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -307,6 +333,7 @@ def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     guide={
         "de": "Telefon·nummern schreibst du mit Abständen: 044 123 45 67.",
         "fr": "Les numéros de téléphone s'écrivent avec des espaces : 022 123 45 67.",
+        "it": "I numeri di telefono si scrivono con gli spazi: 091 123 45 67.",
     },
 )
 def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:

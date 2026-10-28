@@ -14,8 +14,10 @@ recognised and skipped by the publish step of .github/workflows/models.yml.
 
     uv run python scripts/lexicon_package.py [--out dist/models]
 
-Needs spaCy and srsly, which the project's environment has (or `uv run --no-project
---with "spacy>=3.8.16,<3.9"`); the package itself is not needed to build it.
+Needs spaCy and srsly, which the project's environment has; the package itself is not
+needed to build it. The package requires at least the spaCy it was built with (spaCy
+writes its own version into the pipeline's metadata), so .github/workflows/models.yml
+builds with the spaCy version of uv.lock.
 """
 
 from __future__ import annotations

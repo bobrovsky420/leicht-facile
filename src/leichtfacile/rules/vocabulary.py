@@ -5,13 +5,14 @@ The lists are rules/data/vocabulary_{lang}.toml; their header says how to edit t
 They are the seed of the planned termbase: hard term, easy term, explanation.
 
 `find_terms` finds the entries in a parsed text. A word matches in its inflected forms
-(the lemma, or the term with a usual ending: Verfügungen, versées), with its Mediopunkt
-(Prämien·verbilligung), as a German separable verb (reichen ... ein for einreichen) and
-as a German verbal phrase whose verb stands elsewhere in the sentence (tritt ... in
-Kraft). Abbreviations and acronyms match as written, case and dots included, so the
-French "ai" is never the AI. A phrase of the [not_in] table hides a term inside it
-(zur Verfügung stehen is no decision), and of overlapping matches the longest wins
-(opposition à la poursuite over opposition).
+(the lemma, the term with a usual ending: Verfügungen, versées, or an Italian form with
+its ending swapped: decisioni, notificato), with its Mediopunkt (Prämien·verbilligung),
+as a German separable verb (reichen ... ein for einreichen) and as a German verbal
+phrase whose verb stands elsewhere in the sentence (tritt ... in Kraft). Abbreviations
+and acronyms match as written, case and dots included, so the French "ai" is never the
+AI. A phrase of the [not_in] table hides a term inside it (zur Verfügung stehen is no
+decision), and of overlapping matches the longest wins (opposition à la poursuite over
+opposition).
 
 The pipeline uses the lists in four places (docs/architecture.md §4): the fact sheet
 gets the checked explanations, code adds missing glossary entries (rules/glossary.py),
@@ -54,7 +55,30 @@ _ENDINGS = {
     "fr": ("e", "s", "es", "x"),
 }
 _MIN_STEM = 4  # shorter words match only as written or by their lemma
-# French function words in their contracted and elided forms: dans le cadre du.
+# Italian inflects by changing the ending: an inflected form's ending and the endings
+# of the base forms it may stand for (decisioni: decisione, premi: premio, rendite:
+# rendita, notifica and notificato: notificare, rivolgersi: rivolgere). Verb endings
+# only where they name the conjugation, so a bare -o (verso) is never a verb.
+_ENDING_SWAPS: dict[str, dict[str, tuple[str, ...]]] = {
+    "it": {
+        "i": ("o", "e", "a", "io", "are"),
+        "e": ("a", "o", "i", "ere", "ire"),
+        "a": ("o", "e", "are", "ere"),
+        "o": ("i",),
+        "chi": ("co", "care"),
+        "ghi": ("go",),
+        "che": ("ca",),
+        "ghe": ("ga",),
+        "iamo": ("are", "ere", "ire"),
+        "erà": ("are", "ere"),
+        "rsi": ("re",),
+        **dict.fromkeys(("ano", "ato", "ata", "ati", "ate", "ando"), ("are",)),
+        **dict.fromkeys(("uto", "uta", "uti", "ute"), ("ere",)),
+        **dict.fromkeys(("ono", "endo"), ("ere", "ire")),
+        **dict.fromkeys(("ito", "ita", "iti", "ite", "isce", "isca", "iscono", "irà"), ("ire",)),
+    },
+}
+# Function words in their contracted and elided forms: dans le cadre du, ai sensi della.
 _FUNCTION_FORMS = {
     "fr": {
         "de": {"d'", "du", "des"},
@@ -62,8 +86,17 @@ _FUNCTION_FORMS = {
         "le": {"la", "les", "l'"},
         "la": {"le", "les", "l'"},
     },
+    "it": {
+        "di": {"d'", "del", "dello", "della", "dell'", "dei", "degli", "delle"},
+        "d'": {"di"},
+        "a": {"al", "allo", "alla", "all'", "ai", "agli", "alle"},
+        "da": {"dal", "dallo", "dalla", "dall'", "dai", "dagli", "dalle"},
+        "in": {"nel", "nello", "nella", "nell'", "nei", "negli", "nelle"},
+        "su": {"sul", "sullo", "sulla", "sull'", "sui", "sugli", "sulle"},
+    },
 }
 _REFLEXIVE = ("s'", "se ")  # French verbs listed with their pronoun: s'acquitter de
+_REFLEXIVE_IT = re.compile(r"^(\w{3,}[aei])rsi\b")  # Italian: the pronoun at the end, rivolgersi a
 _GERMAN_INFINITIVE = re.compile(r"[a-zäöü]+(?:en|ern|eln)")
 
 
@@ -158,7 +191,12 @@ def vocabulary_version(lang: str) -> str | None:
     return hashlib.sha256(vocabulary_path(lang).read_bytes()).hexdigest()[:12]
 
 
-_ARTICLE = re.compile(r"^(?:der|die|das|den|dem|des|le|la|les|l')\s*", re.IGNORECASE)
+# A leading article of a glossary term: a word article needs a space after it (`le` in
+# `legge` and `Le` in `Lebensbedarf` are no articles; found 28 October 2026), the
+# elided l' none.
+_ARTICLE = re.compile(
+    r"^(?:(?:der|die|das|den|dem|des|le|la|les|il|lo|i|gli)\s+|l')", re.IGNORECASE
+)
 
 
 def explained_term(term: str, lang: str) -> VocabularyEntry | None:
@@ -210,7 +248,7 @@ class VocabularyMatcher:
     def _patterns(self) -> dict[str, list[_Pattern]]:
         """Word patterns by every accepted form of their first word."""
         words = [e for e in self.entries if not e.abbreviation]
-        terms = [_without_reflexive(e.term) if self.lang == "fr" else e.term for e in words]
+        terms = [_without_reflexive(e.term, self.lang) for e in words]
         index: dict[str, list[_Pattern]] = defaultdict(list)
         for entry, doc in zip(words, self._nlp.pipe(terms), strict=True):
             tokens = [t for t in doc if not t.is_space]
@@ -252,7 +290,7 @@ class VocabularyMatcher:
     def _forms(self, token: Token) -> set[str]:
         """What a token of the text can stand for: as written, its lemma, its stem
         without a usual ending, the parts of a hyphenated word, a separable verb with its
-        particle, and the base form of a contracted French function word."""
+        particle, and the base form of a contracted function word (du, della)."""
         surface = _norm(token.text)
         forms = self._word_forms(surface) | {_norm(token.lemma_)}
         if "-" in surface:
@@ -269,11 +307,15 @@ class VocabularyMatcher:
         return forms
 
     def _word_forms(self, word: str) -> set[str]:
-        """A normalised word and its stems without a usual ending (Fristen: frist)."""
+        """A normalised word, its stems without a usual ending (Fristen: frist) and its
+        base forms with the ending swapped (decisioni: decisione)."""
         forms = {word}
         for ending in _ENDINGS.get(self.lang, ()):
             if word.endswith(ending) and len(word) - len(ending) >= _MIN_STEM:
                 forms.add(word[: -len(ending)])
+        for ending, bases in _ENDING_SWAPS.get(self.lang, {}).items():
+            if word.endswith(ending) and len(word) - len(ending) >= _MIN_STEM:
+                forms.update(word[: -len(ending)] + base for base in bases)
         return forms
 
     def find(self, doc: Doc | Span) -> list[Match]:
@@ -406,10 +448,16 @@ def _is_acronym(term: str) -> bool:
     return " " not in term and term.isalpha() and sum(c.isupper() for c in term) >= 2
 
 
-def _without_reflexive(term: str) -> str:
-    for pronoun in _REFLEXIVE:
-        if term.startswith(pronoun):
-            return term[len(pronoun) :]
+def _without_reflexive(term: str, lang: str) -> str:
+    """The term without its reflexive pronoun, which the text puts elsewhere (vous vous
+    acquittez de, Lei si rivolge a): s'acquitter de is listed as acquitter de,
+    rivolgersi a as rivolgere a."""
+    if lang == "fr":
+        for pronoun in _REFLEXIVE:
+            if term.startswith(pronoun):
+                return term[len(pronoun) :]
+    if lang == "it":
+        return _REFLEXIVE_IT.sub(r"\1re", term)
     return term
 
 

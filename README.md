@@ -6,7 +6,7 @@
 [![Python](https://badgen.net/pypi/python/leichtfacile)](https://pypi.org/project/leichtfacile/)
 
 Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
-Sprache and Einfache Sprache, French FALC; Italian follows) with a large language model,
+Sprache and Einfache Sprache, French FALC, Italian lingua facile) with a large language model,
 and proves with code that no deadline, amount or phone number got lost. It works with any
 OpenAI-compatible endpoint (a provider's API, a gateway or a model server of your own)
 and was built and evaluated with Apertus, the open Swiss model. It is a drafting
@@ -43,9 +43,9 @@ run where the organisation controls it, and **Apertus fits best**
    Code adds every date, amount and contact the model missed.
 2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 45 deterministic rules for German and 41 for French from the
-   published Swiss guidelines (sentence length, passive, genitive, numbers, Swiss
-   spelling, Mediopunkt, ...) and an exact check of every fact value in both
+3. **Check** (code): 45 deterministic rules for German, 41 for French and 23 for Italian
+   from the published Swiss guidelines (sentence length, passive, genitive, numbers,
+   Swiss spelling, Mediopunkt, ...) and an exact check of every fact value in both
    directions (no value lost, no value invented), in milliseconds, without a model.
 4. **Judge** (a second model, ideally a larger one): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
@@ -162,9 +162,9 @@ writes, Sonnet checks; ...), or any model the provider lists; `setup <preset>` a
 the key alone. The app's model page does the same in the browser: the page lists every
 preset with where the text goes and what a page costs, takes the key and checks it.
 With a provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`),
-its presets are ready without setup: `serve` alone. The spaCy models the checker parses
-German and French with (about 90 MB) are dependencies of the package, so every way of
-installing it brings them. `leichtfacile config show` lists every setting and where it comes from;
+its presets are ready without setup: `serve` alone. The language packages the checker
+parses German and French and tags Italian with (about 95 MB) are dependencies of the
+package, so every way of installing it brings them. `leichtfacile config show` lists every setting and where it comes from;
 [configuration.md](docs/configuration.md) explains them. Installing the command, the
 command line alone, a server for an organisation, an offline install, running a model
 yourself, reaching the app from other machines and what to do when it does not start:
@@ -178,11 +178,11 @@ sheet) and the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
 
 ### Your first draft
 
-The interface speaks English, German or French (switch at the top right).
+The interface speaks English, German, French or Italian (switch at the top right).
 
 **1. Start a draft.** Before the first draft, the start page offers the example
-letters: a municipality's letter about premium reduction in German and in French, and a
-decision of a child and adult protection authority (team-written, described in the
+letters: a municipality's letter about premium reduction in German, French and Italian,
+and a decision of a child and adult protection authority (team-written, described in the
 examples' [README.md](data/examples/README.md)). Click one to open the New draft form
 with it filled in, or click **New draft** and paste a text, enter a web address or
 upload a file (PDF, HTML, text or Markdown). Choose the language (or let it be
@@ -252,4 +252,5 @@ Code: Apache License 2.0, see [LICENSE](LICENSE). Texts from cantonal and federa
 pages are not part of the repository; the evaluation fetches them from their URLs
 ([sources.md](docs/sources.md) §4). The spaCy models come as the separate packages
 leichtfacile-model-de (MIT) and leichtfacile-model-fr (LGPL-LR), spaCy's files unchanged
-with their license files.
+with their license files; the Italian pipeline comes as leichtfacile-model-it, built on
+the Morph-it! lexicon (CC BY-SA 2.0 and LGPL, [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).

@@ -117,3 +117,50 @@ def recipe_fr(opener: str | None, text: str = "") -> str:
     if word == "si" and "même si" in text.lower():
         return _FR["concession"]
     return _FR[_FR_OPENERS.get(word, "two")]
+
+
+# Italian: the model is addressed with tu, the reader of the examples with Lei.
+_IT = {
+    "reason": "Fai 2 frasi: prima la ragione, poi la conseguenza con Per questo. "
+    "(Lei guadagna poco. Per questo riceve dei soldi.)",
+    "aim": "Fai 2 frasi: prima lo scopo, poi il modo con Per questo. "
+    "(Lei vuole i soldi. Per questo fa una domanda.)",
+    "concession": "Fai 2 frasi. La seconda comincia con Ma. "
+    "(Lei guadagna molto. Ma riceve dei soldi.)",
+    "condition": "Fai una domanda e una risposta con Allora. "
+    "(Lei guadagna poco? Allora riceve dei soldi.) "
+    "Mai forse: la condizione resta una condizione.",
+    "time": "Fai 2 frasi nell'ordine del tempo. La seconda comincia con Poi. "
+    "(Prima Lei riceve la lettera. Poi paga.)",
+    "relative": "Fai 2 frasi e ripeti il nome. (Questo è il modulo. Lei compila il modulo.)",
+    "that": "Fai 2 frasi: ripeti il nome (Questo è il modulo. Lei compila il modulo.), "
+    "oppure scrivi con i due punti dopo un verbo (Le comunichiamo: la Sua domanda è "
+    "accettata.).",
+    "two": "Fai 2 frasi corte: un'informazione per frase.",
+}
+_IT_OPENERS = {
+    "perché": "reason", "poiché": "reason", "siccome": "reason", "dato che": "reason",
+    "visto che": "reason", "in quanto": "reason",
+    "affinché": "aim", "per": "aim", "al fine di": "aim", "allo scopo di": "aim",
+    "benché": "concession", "sebbene": "concession", "anche se": "concession",
+    "nonostante": "concession", "malgrado": "concession",
+    "se": "condition", "qualora": "condition", "a condizione che": "condition",
+    "purché": "condition", "a patto che": "condition",
+    "quando": "time", "mentre": "time", "dopo che": "time", "dopo": "time", "prima di": "time",
+    "prima che": "time", "appena": "time", "non appena": "time", "finché": "time",
+    "da quando": "time", "una volta che": "time",
+    "chi": "relative", "cui": "relative", "il quale": "relative", "la quale": "relative",
+    "i quali": "relative", "le quali": "relative", "dove": "relative",
+    "che": "that",
+}  # fmt: skip
+
+
+def recipe_it(opener: str | None, text: str = "") -> str:
+    """The recipe for the Italian opener a LEN-02 finding names (`perché`, `se`, `che`,
+    `per`); "anche se" is read off the sentence, since the clause check gives `se`."""
+    if opener is None:
+        return _IT["two"]
+    word = opener.lower().replace("’", "'")
+    if word == "se" and "anche se" in text.lower():
+        return _IT["concession"]
+    return _IT[_IT_OPENERS.get(word, "two")]

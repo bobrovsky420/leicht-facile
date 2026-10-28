@@ -94,15 +94,23 @@ DATE_TEXT_RE = re.compile(
 )
 TIME_RE = re.compile(
     r"(?<![\d.:'])(?:"
-    r"(\d{1,2})[.:](\d{2})(?!\d)(?![.,']\d)(?:[ ]?Uhr)?"  # 9.00 Uhr, 09:00
+    # 9.00 Uhr, 09:00; Italian ore 9.00, alle 9.00, dalle 8.00 (a dotted time counts
+    # without Uhr only with such a word before it: 1.50 is an amount or a decimal)
+    r"(?:(?:ore|alle|dalle)[ ])?(\d{1,2})[.:](\d{2})(?!\d)(?![.,']\d)(?:[ ]?Uhr)?"
     r"|(\d{1,2})[ ]?h[ ]?(\d{2})?(?!\w)"  # 9 h 00, 9h
     r"|(\d{1,2})[ ]?Uhr"  # 9 Uhr
+    r"|ore[ ](\d{1,2})(?![\d:])(?![.,]\d)"  # Italian alle ore 9
     r")"
 )
 TIME_RANGE_RE = re.compile(
     r"(?<![\d.:'])(\d{1,2})[.:](\d{2})[ ]?(?:Uhr[ ]?)?(?:bis|-|\u2013)[ ]?"
     r"(\d{1,2})[.:](\d{2})(?:[ ]?Uhr)"
 )  # 8.30 bis 11.30 Uhr: the first time has no "Uhr" of its own
+TIME_RANGE_IT_RE = re.compile(
+    r"(?<![\d.:'])(?:dalle|tra le|fra le)[ ](?:ore[ ])?(\d{1,2})[.:](\d{2})"
+    r"[ ](?:alle|e le)[ ](?:ore[ ])?(\d{1,2})[.:](\d{2})(?!\d)",
+    re.IGNORECASE,
+)  # Italian dalle 8.00 alle 11.30, dalle ore 8.30 alle ore 11.30, tra le 11.00 e le 15.00
 PERCENT_RE = re.compile(
     r"(?<![\d.,])(\d+(?:[.,]\d+)?)[ ]?(?:%|Prozent|pour[ ]?cent|per[ ]?cento)", re.IGNORECASE
 )
@@ -607,13 +615,16 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
     )
     take("percent", PERCENT_RE, lambda m: canonical_number(*_split_decimal(m.group(1))))
     spans = []
-    for m in TIME_RANGE_RE.finditer(masked):
-        for h, mi in ((1, 2), (3, 4)):
-            hour, minute = int(m.group(h)), int(m.group(mi))
-            if hour <= 24 and minute <= 59:
-                start, end = m.start(h), m.end(mi)
-                found.append(Value("time", f"{hour:02d}:{minute:02d}", text[start:end], start, end))
-        spans.append(m.span())
+    for pattern in (TIME_RANGE_RE, TIME_RANGE_IT_RE):
+        for m in pattern.finditer(masked):
+            for h, mi in ((1, 2), (3, 4)):
+                hour, minute = int(m.group(h)), int(m.group(mi))
+                if hour <= 24 and minute <= 59:
+                    start, end = m.start(h), m.end(mi)
+                    found.append(
+                        Value("time", f"{hour:02d}:{minute:02d}", text[start:end], start, end)
+                    )
+            spans.append(m.span())
     masked = mask(masked, spans)
     take("time", TIME_RE, _time)
     take("period", _PERIOD_RE.get(lang, _PERIOD_RE["de"]), lambda m: _period(m, lang))
@@ -670,12 +681,13 @@ def _numeric_date(m: re.Match[str]) -> str | None:
 def _time(m: re.Match[str]) -> str | None:
     if m.group(1):
         hour, minute = int(m.group(1)), int(m.group(2))
-        if "Uhr" not in m.group(0) and ":" not in m.group(0):
+        italian = m.group(0).startswith(("ore", "alle", "dalle"))
+        if "Uhr" not in m.group(0) and ":" not in m.group(0) and not italian:
             return None  # "1.50" is an amount or a decimal, not a time
     elif m.group(3):
         hour, minute = int(m.group(3)), int(m.group(4) or 0)
     else:
-        hour, minute = int(m.group(5)), 0
+        hour, minute = int(m.group(5) or m.group(6)), 0
     if hour > 24 or minute > 59:
         return None
     return f"{hour:02d}:{minute:02d}"

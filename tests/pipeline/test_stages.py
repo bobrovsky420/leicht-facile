@@ -340,7 +340,11 @@ def test_prompt_files_use_plain_hyphens() -> None:
         assert not re.search("[\u2013\u2014]", text), path
 
 
-EASY_MARKERS = {"de": "Fassung in Leichter Sprache:", "fr": "Version en FALC :"}
+EASY_MARKERS = {
+    "de": "Fassung in Leichter Sprache:",
+    "fr": "Version en FALC :",
+    "it": "Versione in lingua facile:",
+}
 
 
 @pytest.mark.parametrize("lang", sorted(EASY_MARKERS))
@@ -399,6 +403,48 @@ def test_french_prompts_render_completely_with_french_labels() -> None:
     assert "(vide)" in prompts["judge"]  # the empty glossary
     assert "Les faits qui manquent" in prompts["repair"]
     assert prompts["baseline"].startswith("Écris ce texte en FALC :")
+
+
+def test_italian_prompts_render_completely_with_italian_labels() -> None:
+    source = SourceDocument(
+        id="d",
+        lang="it",
+        source=SourceInfo(type="text"),
+        segments=[
+            Segment(id="s0001", kind="heading", text="Tassa 2026", heading_level=1, para=0),
+            Segment(id="s0002", kind="paragraph", text="La tassa costa CHF 20.-.", para=1),
+        ],
+    )
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), source.id)
+    draft = Draft(doc_id=source.id, lang="it", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="La tassa costa 20 franchi.", segment_ids=["s0002"],
+              fact_ids=["f02"])
+    ])  # fmt: skip
+    common = {"level_name": level_name("it", "A2"), "level": "A2"}
+    prompts = {
+        "understand": render("it", "understand", **common, source=r.source_text(source)),
+        "write": render("it", "write", **common, style_guide=style_guide("it", "A2"),
+                        examples=examples("it"), section="",
+                        factsheet=r.factsheet_text(fs, lang="it"), source=r.source_text(source)),
+        "judge": render("it", "judge", **common, factsheet=r.factsheet_text(fs, lang="it"),
+                        source=r.source_text(source), draft=r.draft_lines(draft),
+                        glossary=r.glossary_text(draft)),
+        "repair": render("it", "repair", **common, style_guide=style_guide("it", "A2"),
+                         flagged="[b001] ...", missing="- f01: ...",
+                         factsheet=r.factsheet_text(fs, lang="it"),
+                         draft=r.draft_lines(draft), source=r.source_text(source)),
+        "baseline": render("it", "baseline", **common, text=source.text()),
+    }  # fmt: skip
+    for stage, text in prompts.items():
+        assert "{{" not in text and "{%" not in text, stage
+    assert prompts["understand"].startswith("Tu prepari una versione in lingua facile.")
+    assert "18 parole" in prompts["write"]  # the style guide's sentence length
+    assert "Versione in lingua facile" in prompts["write"]  # the examples
+    assert "Fatti:" in prompts["write"] and "Tatsachen" not in prompts["write"]
+    assert "(fatti: f02; fonte: s0002)" in prompts["judge"]
+    assert "(vuoto)" in prompts["judge"]  # the empty glossary
+    assert "I fatti che mancano" in prompts["repair"]
+    assert prompts["baseline"].startswith("Scrivi questo testo in lingua facile:")
 
 
 def test_repairs_do_not_repeat_sentences() -> None:
@@ -502,12 +548,16 @@ def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
     assert copied_sentences([part], "de", "write") == 0
     for lang, stage in (
         ("fr", "write"),
+        ("it", "write"),
         ("de", "understand"),
         ("fr", "understand"),
+        ("it", "understand"),
         ("de", "repair"),
         ("fr", "repair"),
+        ("it", "repair"),
     ):
         assert example_keys(lang, stage)  # fmt: skip
+    assert _example_key("Annunci il Suo cane al controllo abitanti.") in example_keys("it", "write")
     assert copied_sentences(["Die Hundesteuer kostet 120 Franken pro Hund"], "de", "write") == 1
     assert copied_sentences(["Das Gesuch muss bis 31. März 2026 da sein."], "de", "write") == 0
 
@@ -606,6 +656,15 @@ def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps
     assert topic_sentences(["Annoncez votre chien."], "fr", "Les impôts.") == [
         "Annoncez votre chien."
     ]
+    # The Italian examples (28 October 2026): the dog, the microchip and the date.
+    dog_it = "Annunci il Suo cane al controllo abitanti."
+    assert topic_sentences([dog_it], "it", "Le imposte.") == [dog_it]
+    assert topic_sentences(["Annunci il cane."], "it", "I cani vanno annunciati.") == []
+    chip_it = "Deve inviare il numero del microchip con il materiale di voto."
+    assert topic_sentences([chip_it], "it", "Le petizioni sono depositate.") == [chip_it]
+    assert topic_sentences(["Paghi entro il 30 aprile 2026."], "it", "Le imposte.") == [
+        "Paghi entro il 30 aprile 2026."
+    ]
 
     llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
@@ -639,6 +698,9 @@ def test_the_examples_office_is_example_content_unless_the_source_names_it() -> 
     assert topic_sentences([leak], "de", own) == []
     leak_fr = "Téléphonez au contrôle des habitants : 022 123 45 67."
     assert topic_sentences([leak_fr], "fr", "Téléphone 022 123 45 67.") == [leak_fr]
+    leak_it = "Telefoni al controllo abitanti: 091 123 45 67."
+    assert topic_sentences([leak_it], "it", "Telefono 091 123 45 67.") == [leak_it]
+    assert topic_sentences([leak_it], "it", "Controllo abitanti, telefono 091 123 45 67.") == []
 
 
 def test_understand_keeps_only_hard_terms_of_the_source(endpoint, sleeps) -> None:
@@ -770,6 +832,9 @@ def test_the_exact_form_of_a_missing_value() -> None:
     assert missing_value_label(fact("deadline", "2026-03-31"), "fr") == (
         " (valeur : 2026-03-31 ; écris : 31 mars 2026)"
     )
+    assert missing_value_label(fact("deadline", "2026-03-31"), "it") == (
+        " (valore: 2026-03-31; scrivi: 31 marzo 2026)"
+    )
     assert missing_value_label(fact("amount", "1500"), "de") == (
         " (Wert: 1500; schreibe: 1'500 Franken)"
     )
@@ -825,6 +890,13 @@ def test_the_decision_partial_renders_only_in_decision_mode() -> None:
         **mode_context("judge", "decision"),
     )  # fmt: skip
     assert "SEM-09" in french and "SEM-10" in french
+    italian = render(
+        "it", "judge", level_name=level_name("it", "A2"), level="A2",
+        factsheet=r.factsheet_text(fs, lang="it"), source=r.source_text(source),
+        draft=r.draft_lines(draft), glossary=r.glossary_text(draft),
+        **mode_context("judge", "decision"),
+    )  # fmt: skip
+    assert "SEM-09" in italian and "SEM-10" in italian
 
 
 def test_code_completion_works_on_the_document_text_and_keeps_percentages_checkable() -> None:

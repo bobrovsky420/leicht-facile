@@ -43,7 +43,7 @@ description:
       - A second model judges meaning; a repair loop fixes what the checks find
       - Every draft sentence linked to its source sentences; omissions listed
       - Review workbench with keyboard shortcuts; Markdown, HTML, Word and audit-bundle export
-      - German and French; decision mode for letters that go out with a decision
+      - German, French and Italian; decision mode for letters that go out with a decision
   de:
     shortDescription: >-
       Leichte-Sprache-Fassungen von Behördentexten mit einem Sprachmodell nach Wahl
@@ -74,7 +74,7 @@ description:
       - Ein zweites Modell beurteilt den Sinn; eine Reparaturschlaufe behebt die Befunde
       - Jeder Satz des Entwurfs mit seinen Quellensätzen verknüpft; Weglassungen aufgeführt
       - Freigabe-Arbeitsplatz mit Tastaturkürzeln; Export als Markdown, HTML, Word und Prüfpaket
-      - Deutsch und Französisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
+      - Deutsch, Französisch und Italienisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
   fr:
     shortDescription: >-
       Versions FALC de textes officiels suisses avec un modèle au choix (testé avec
@@ -105,7 +105,37 @@ description:
       - Un second modèle juge le sens ; une boucle de réparation corrige les constats
       - Chaque phrase du brouillon liée à ses phrases source ; les omissions listées
       - Poste de relecture avec raccourcis clavier ; export Markdown, HTML, Word et dossier d'audit
-      - Allemand et français ; mode décision pour les lettres qui accompagnent une décision
+      - Allemand, français et italien ; mode décision pour les lettres qui accompagnent une décision
+  it:
+    shortDescription: >-
+      Versioni in lingua facile di testi ufficiali svizzeri con un modello a scelta
+      (testato con Apertus); il codice verifica ogni valore, una persona rivede.
+    longDescription: >-
+      Leicht·Facile aiuta chi scrive nei cantoni e nei comuni a portare un testo
+      ufficiale (una pagina web, una lettera, una decisione) in lingua facile, Leichte
+      Sprache o FALC. Una scheda dei fatti trattiene ciò che deve restare: termini,
+      importi, numeri di telefono, indirizzi, numeri di incarto, periodi. La bozza è
+      scritta da un modello linguistico scelto dall'organizzazione (qualsiasi endpoint
+      compatibile con OpenAI; sviluppato e valutato con Apertus, il modello aperto
+      svizzero), poi verificata due volte: da regole deterministiche (lunghezza delle
+      frasi, passivo, numeri, date, ortografia svizzera, ogni valore della scheda
+      presente e nessun valore assente dalla fonte) e da un secondo modello che giudica
+      il senso. Un ciclo di riparazione corregge ciò che le verifiche trovano; ciò che
+      non si può correggere va alla persona che rivede, con la segnalazione accanto al
+      blocco. Ogni frase della bozza nomina le frasi della fonte da cui proviene, e il
+      fascicolo di audit conserva il modello, i prompt, ogni verifica e ogni decisione
+      della revisione. Un modo decisione mantiene intatti il dispositivo e l'indicazione
+      dei rimedi giuridici di una decisione e inserisce l'avvertenza fissa dell'autorità
+      in ogni esportazione. Il servizio è un pacchetto Python per un computer portatile o
+      un server; il modello gira dove l'organizzazione vuole (il proprio hardware, la
+      piattaforma Swiss AI CSCS o un altro fornitore), e nessun testo va altrove.
+    features:
+      - Scheda dei fatti con le domande principali di chi legge e ogni valore duro della fonte
+      - Verifica deterministica delle regole della lingua facile, dei valori dei fatti e dell'ortografia svizzera
+      - Un secondo modello giudica il senso; un ciclo di riparazione corregge le segnalazioni
+      - Ogni frase della bozza collegata alle sue frasi della fonte; le omissioni elencate
+      - Postazione di revisione con scorciatoie da tastiera; esportazione Markdown, HTML, Word e fascicolo di audit
+      - Tedesco, francese e italiano; modo decisione per le lettere che accompagnano una decisione
 
 legal:
   license: Apache-2.0
@@ -125,6 +155,7 @@ localisation:
   availableLanguages:
     - de
     - fr
+    - it
     - en
 
 intendedAudience:

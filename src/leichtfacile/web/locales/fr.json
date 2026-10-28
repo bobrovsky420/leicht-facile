@@ -18,7 +18,7 @@
   "check.no_findings": "Aucun constat.",
   "check.suggestion": "Suggestion : {text}",
   "check.error.empty": "Collez d'abord un texte.",
-  "check.error.lang": "Pas encore de règles pour : {lang} ; les textes en allemand et en français sont contrôlés.",
+  "check.error.lang": "Pas encore de règles pour : {lang}.",
   "site.drafts": "Brouillons",
   "site.ui_lang": "Langue de l'interface",
   "site.footer": "Un assistant de rédaction pour les professionnels : chaque brouillon doit être relu par une personne, puis par des lectrices et lecteurs du public cible avant publication.",

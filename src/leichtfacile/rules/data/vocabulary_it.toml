@@ -1,0 +1,496 @@
+# Italian vocabulary for easy language (lingua facile A2, linguaggio chiaro B1), Swiss
+# usage. Written for this project; checked by tests/rules/test_vocabulary.py.
+#
+# [replace.<group>]  hard word = everyday word to use instead. A suggestion for the
+#                    writer and the checker, not a blind substitution: the sentence
+#                    may need a change ("provvedere al pagamento" -> "pagare").
+# [explain.<group>]  a term that has to stay, because the reader meets it again on
+#                    forms, letters and the phone = a plain explanation for the
+#                    glossary, in short sentences that pass the checker.
+# [<kind>.context]   words with a second, everyday sense: the writer gets them as a
+#                    hint, code never flags or adds them on its own.
+# [not_in]           phrases in which a term does not count (in sostanza).
+#
+# A trailing "# TERMDAT <id>" names the entry of the federal terminology database
+# (www.termdat.bk.admin.ch/entry/<id>) that confirms the official term.
+# Terms TERMDAT lacks name the act that defines them instead ("# LPC art. 10").
+#
+# Base forms: nouns in the singular, verbs in the infinitive (a reflexive verb with
+# its pronoun: rivolgersi a), adjectives in the masculine. Straight apostrophe. The
+# reader is addressed with Lei. Swiss terms (franchi, Comune, Cantone, cassa malati),
+# never the terms of Italy's administration. Every term appears once per file.
+
+# -- replace -----------------------------------------------------------------------
+
+[replace.connectors]
+"ai sensi di" = "secondo"
+"a norma di" = "secondo"
+"in base a" = "secondo"
+"conformemente a" = "secondo"
+"in conformità" = "secondo"
+"in ottemperanza" = "secondo"
+"qualora" = "se"
+"nel caso in cui" = "se"
+"ove" = "se"
+"in caso contrario" = "altrimenti"
+"in mancanza di" = "senza"
+"nonché" = "e"
+"entro e non oltre" = "entro"
+"non oltre" = "entro"
+"entro il termine di" = "entro"
+"al termine di" = "alla fine di"
+"in merito a" = "su"
+"concernente" = "su"
+"per quanto concerne" = "per"
+"per quanto riguarda" = "per"
+"a decorrere da" = "a partire da"
+"sino a" = "fino a"
+"al fine di" = "per"
+"onde" = "per"
+"affinché" = "così"
+"a tal fine" = "per questo"
+"all'uopo" = "per questo"
+"previo" = "solo con"
+"salvo" = "tranne"
+"ad eccezione di" = "tranne"
+"ovvero" = "oppure"
+"ossia" = "cioè"
+"suddetto" = "questo"
+"summenzionato" = "questo"
+"sopraccitato" = "questo"
+"di cui sopra" = "qui sopra"
+"in oggetto" = "di questa lettera"
+"in allegato" = "con questa lettera"
+"con la presente" = "con questa lettera"
+"in data odierna" = "oggi"
+"in data" = "il"
+"a seguito di" = "dopo"
+"in seguito a" = "dopo"
+"in seguito" = "dopo"
+"a carico di" = "deve pagare"
+"a favore di" = "per"
+"mediante" = "con"
+"nell'ambito di" = "per"
+"nel corso di" = "durante"
+"presso" = "da"
+"tuttavia" = "ma"
+"pertanto" = "quindi"
+"in quanto" = "perché"
+"poiché" = "perché"
+"anziché" = "invece di"
+"in deroga a" = "come eccezione a"
+"in via eccezionale" = "come eccezione"
+"nella fattispecie" = "in questo caso"
+"il sottoscritto" = "io"
+
+[replace.adverbs]
+"debitamente" = "bene"
+"tempestivamente" = "subito"
+"senza indugio" = "subito"
+"preventivamente" = "prima"
+"successivamente" = "poi"
+"ulteriore" = "altro"
+"eventualmente" = "forse"
+"eventuale" = "possibile"
+"altresì" = "anche"
+"obbligatoriamente" = "Lei deve"
+"esclusivamente" = "solo"
+"interamente" = "tutto"
+"parzialmente" = "in parte"
+"gratuitamente" = "gratis"
+"esigibile" = "da pagare subito"
+"domiciliato" = "abita"
+"residente" = "abita"
+"defunto" = "morto"
+"deceduto" = "morto"
+"celibe" = "non sposato"
+"nubile" = "non sposata"
+"coniugato" = "sposato"
+"esente" = "non deve pagare"
+"indebitamente" = "senza averne diritto"
+"retroattivo" = "anche per il passato"
+"in vigore" = "valido"
+"complessivo" = "totale"
+"rispettivamente" = "in 2 frasi"
+
+[replace.verbs]
+"inoltrare" = "mandare"
+"fare pervenire" = "mandare"
+"pervenire" = "arrivare"
+"effettuare" = "fare"
+"eseguire" = "fare"
+"procedere a" = "fare"
+"adempiere" = "fare"
+"ottemperare" = "rispettare"
+"attenersi a" = "rispettare"
+"decorrere" = "cominciare"
+"sollecitare" = "chiedere"
+"prendere visione di" = "leggere"
+"fornire" = "dare"
+"beneficiare" = "ricevere"
+"tenuto a" = "deve"
+"ammontare a" = "essere di"
+"sottoscrivere" = "firmare"
+"restituire" = "dare indietro"
+"revocare" = "annullare"
+"respingere" = "rifiutare"
+"sospendere" = "fermare per un certo tempo"
+"risiedere" = "abitare"
+"entrare in vigore" = "cominciare a valere"
+"detrarre" = "togliere"
+"fare valere" = "chiedere"
+"recarsi" = "andare"
+"avvalersi di" = "usare"
+"annunciarsi" = "iscriversi"
+"avere luogo" = "essere"
+"venire meno" = "finire"
+"cessare" = "finire"
+"pronunciarsi" = "dare la Sua opinione"
+
+[replace.nouns]
+"istanza" = "domanda"  # TERMDAT 47878
+"incarto" = "pratica"
+"emolumento" = "tassa"
+"documentazione" = "documenti"
+"decorrenza" = "inizio"
+"adempimento" = "rispetto dell'obbligo"
+"autorità" = "ufficio"
+"domicilio" = "dove Lei abita"
+"residenza" = "dove Lei abita"
+"richiedente" = "persona che fa la domanda"
+"avente diritto" = "persona che ha diritto"
+"coniuge" = "marito o moglie"
+"convivente" = "persona con cui Lei vive"
+"decesso" = "morte"
+"creditore" = "persona a cui Lei deve dei soldi"
+"debitore" = "persona che deve dei soldi"
+"contribuente" = "persona che paga le imposte"
+"scadenza" = "ultimo giorno"
+"acconto" = "pagamento parziale"
+"dilazione" = "più tempo per pagare"
+"restituzione" = "rimborso"
+"giustificativo" = "prova"
+"pezza giustificativa" = "prova"
+"modalità" = "modo"
+"legislazione" = "leggi"
+"normativa" = "regole"
+"disposizioni legali" = "regole della legge"
+"base legale" = "regola della legge"  # TERMDAT 56841
+"base giuridica" = "regola della legge"  # TERMDAT 56839
+"degenza" = "soggiorno in ospedale"
+"locazione" = "affitto"
+"pigione" = "affitto"
+"presa di posizione" = "la Sua opinione"
+"autorizzazione" = "permesso"
+"esenzione" = "non deve pagare"
+"assicurazione obbligatoria delle cure medico-sanitarie" = "assicurazione di base"  # TERMDAT 37586
+"autorità di protezione dei minori e degli adulti" = "APMA"  # TERMDAT 379564
+"importo forfettario" = "importo fisso"  # TERMDAT 96993
+"forfait" = "importo fisso"
+"Comune di domicilio" = "Comune dove Lei abita"  # TERMDAT 217182
+"cittadinanza" = "nazionalità"  # TERMDAT 217278
+"generalità" = "dati personali"  # TERMDAT 325295
+"mandatario" = "persona che agisce per Lei"  # TERMDAT 106315
+"patrocinatore" = "avvocato"  # TERMDAT 47592
+"termine suppletorio" = "ultimo termine"  # TERMDAT 106530
+"sanzione" = "punizione"
+"versamento" = "pagamento"
+"accertamento" = "controllo"
+
+[replace.abbreviations]
+"p. es." = "per esempio"
+"ad es." = "per esempio"
+"ecc." = "eccetera"
+"cfr." = "vedi"
+"risp." = "in 2 frasi"
+"ev." = "forse"
+"ca." = "circa"
+"all." = "allegato"
+"n." = "numero"
+"tel." = "telefono"
+"art." = "articolo"
+"cpv." = "capoverso"
+"lett." = "lettera"
+"fr." = "franchi"
+"PC" = "prestazioni complementari"
+"RIPAM" = "riduzione dei premi"
+"AOMS" = "assicurazione di base"
+"LAMal" = "legge sull'assicurazione malattie"
+"LPC" = "legge sulle prestazioni complementari"
+"LDis" = "legge sui disabili"
+
+
+[replace.context]
+# Words whose hard sense depends on the letter (presente: this letter, or present;
+# trasmettere a document, or a disease). The writer gets them as a hint; code never
+# flags them. The official Italian easy-language pages keep versare (viene versato),
+# concedere, rivolgersi a, di seguito and beneficiario (in the name of an aid).
+"giusta" = "secondo"
+"presente" = "questo"
+"di seguito" = "qui sotto"
+"provvedere" = "fare"
+"trasmettere" = "mandare"
+"versare" = "pagare"
+"concedere" = "dare"
+"rivolgersi a" = "chiedere a"
+"autorizzare" = "permettere"
+"beneficiario" = "persona che riceve"
+"corrispondere" = "pagare"
+"produrre" = "dare"
+"presentare" = "dare"
+"percepire" = "ricevere"
+"accogliere" = "accettare"
+"dedurre" = "togliere"
+"disporre" = "decidere"
+"intimare" = "mandare"
+"istante" = "persona che fa la domanda"
+"disposizione" = "regola"
+"conduttore" = "inquilino"
+"corrispondenza" = "lettere"
+"ricorrente" = "persona che fa ricorso"  # TERMDAT 86794
+"sinistro" = "danno"
+"competente" = "responsabile"
+"scaduto" = "passato"
+"motivazione" = "motivi"
+
+# -- explain -----------------------------------------------------------------------
+
+[explain.law]
+"decisione" = "Una decisione è la risposta di un ufficio o di un tribunale. Vale per Lei. Arriva per lettera."  # TERMDAT 56886
+"notifica" = "La notifica è la consegna di una lettera ufficiale. Per esempio di una decisione. Il termine comincia il giorno della notifica."
+"notificazione" = "La notificazione è la consegna ufficiale di una decisione. Il termine comincia quel giorno."  # TERMDAT 47814
+"intimazione" = "In Ticino l'intimazione è la consegna ufficiale di una decisione. Il termine comincia quel giorno."
+"opposizione" = "Lei non è d'accordo con una decisione? Allora Lei scrive allo stesso ufficio. L'ufficio esamina la decisione ancora una volta."  # TERMDAT 47831
+"reclamo" = "Lei non è d'accordo con la Sua tassazione? Allora Lei scrive un reclamo all'ufficio delle imposte. L'ufficio esamina la tassazione ancora una volta."  # TERMDAT 55293
+"ricorso" = "Lei non è d'accordo con una decisione? Allora Lei scrive a un tribunale o a un altro ufficio. Questo esamina la decisione."  # TERMDAT 37500
+"rimedi giuridici" = "Questo testo è alla fine di una decisione. Spiega i Suoi mezzi di difesa. Dice anche il termine e l'indirizzo."  # PA art. 35
+"passaggio in giudicato" = "Nessuno può più fare ricorso contro la decisione. La decisione vale ora per sempre."  # TERMDAT 217436
+"termine" = "Un termine è il tempo per un compito. Lei deve fare il compito prima della fine del termine."
+"proroga" = "Con una proroga Lei riceve più tempo per un compito. Lei la chiede all'ufficio prima della fine del termine."
+"domanda" = "Con una domanda Lei chiede qualcosa a un ufficio. Per esempio dei soldi o un permesso."
+"avere diritto a" = "Avere diritto a una cosa vuol dire: Lei può ricevere questa cosa. La legge lo dice."
+"non entrata nel merito" = "L'ufficio non esamina la Sua domanda. Per esempio mancano dei documenti. Oppure Lei ha mandato la domanda troppo tardi."
+"allegato" = "Un allegato è un foglio nella stessa lettera. Per esempio un formulario o una copia."  # TERMDAT 193810
+"procura" = "Con una procura un'altra persona può fare qualcosa per Lei. Lei lo permette con la Sua firma."
+"legge" = "Una legge è una regola dello Stato. Tutti devono rispettarla."
+"tribunale" = "Un tribunale decide in caso di conflitto. Controlla anche le decisioni degli uffici."
+"segreto professionale" = "Il medico tiene per sé le Sue informazioni. Non le dice ad altre persone. Questo è il segreto professionale."
+"protezione dei dati" = "La legge protegge i Suoi dati. Solo alcune persone possono vederli."  # TERMDAT 52411
+"ARP" = "L'ARP è l'autorità regionale di protezione. È un ufficio del Cantone Ticino. Protegge i bambini e gli adulti in difficoltà. Può per esempio decidere una curatela."
+"autorità regionale di protezione" = "L'autorità regionale di protezione è un ufficio del Cantone Ticino. Protegge i bambini e gli adulti in difficoltà. Il nome breve è ARP."
+"APMA" = "L'APMA è un ufficio dei Grigioni. Protegge i bambini e gli adulti in difficoltà. Può per esempio decidere una curatela. In Ticino questo ufficio è l'ARP."
+"curatela" = "Una persona La aiuta nelle cose importanti. Per esempio con i soldi o con le lettere degli uffici. L'ARP sceglie questa persona."  # TERMDAT 379528
+"curatore" = "Un curatore o una curatrice La aiuta nelle cose importanti. L'ARP sceglie questa persona."  # TERMDAT 379544
+"gratuito patrocinio" = "Lei ha pochi soldi? Allora forse non deve pagare la procedura. Lei può anche ricevere un avvocato o un'avvocata. Il Suo caso deve avere una possibilità di successo."  # TERMDAT 79024
+"esame degli atti" = "Lei può leggere gli atti del Suo caso. Gli atti sono tutti i documenti dell'ufficio sul Suo caso."  # TERMDAT 47777
+"diritto di essere sentito" = "Prima di una decisione Lei può dare la Sua opinione. L'ufficio deve esaminare la Sua opinione."  # TERMDAT 47696
+"spese di procedura" = "Sono le spese dell'ufficio o del tribunale per il Suo caso."  # TERMDAT 383679
+"obbligo di collaborare" = "Lei deve aiutare l'ufficio. Per esempio Lei dà tutti i documenti necessari. Altrimenti l'ufficio può ridurre la prestazione."  # TERMDAT 379493
+"obbligo di notifica" = "Lei deve comunicare i cambiamenti all'ufficio. Per esempio un nuovo salario o un nuovo indirizzo."
+"obbligo di rimborso" = "Lei ha ricevuto troppi soldi. Allora Lei deve dare indietro questi soldi."  # TERMDAT 37961
+"caso di rigore" = "La Sua situazione è molto difficile. Per questo l'ufficio fa un'eccezione alla regola."  # TERMDAT 386670
+"capacità di discernimento" = "Lei capisce una situazione. Lei può decidere in modo ragionevole. Allora Lei ha la capacità di discernimento."  # TERMDAT 379558
+"esercizio dei diritti civili" = "Lei può fare da solo dei contratti. Per questo Lei deve avere 18 anni e la capacità di discernimento."  # TERMDAT 379569
+"rappresentanza legale" = "Una persona fa le pratiche per Lei. La legge le dà questo diritto. Per esempio i genitori per il loro figlio."  # TERMDAT 47787
+"mandato precauzionale" = "Lei sceglie oggi una persona. Più tardi forse Lei non può più decidere da solo. Allora questa persona decide per Lei."  # TERMDAT 379515
+"direttiva del paziente" = "Lei scrive i Suoi desideri per le cure mediche. Più tardi forse Lei non può più decidere. Allora i medici rispettano i Suoi desideri."  # TERMDAT 379518
+"ricovero a scopo di assistenza" = "Una persona deve andare in una clinica contro la sua volontà. È una misura di protezione. Un medico o l'ARP decide questo."  # TERMDAT 379534
+"effetto sospensivo" = "Lei fa ricorso contro una decisione. Fino alla nuova decisione la vecchia decisione non vale ancora. A volte l'ufficio toglie l'effetto sospensivo. Allora la decisione vale subito."  # PA art. 55
+"anticipo delle spese" = "Lei paga in anticipo dei soldi per la procedura. Senza questo pagamento il tribunale forse non esamina il Suo ricorso."  # PA art. 63
+"riconsiderazione" = "L'ufficio esamina ancora una volta la sua decisione. Per esempio in caso di errore nella decisione."  # LPGA art. 53
+"prescrizione" = "Dopo un certo tempo nessuno può più chiedere un debito. Questa è la prescrizione."  # TERMDAT 106519
+"esecutivo" = "Esecutivo vuol dire: l'ufficio può ora applicare la decisione. Per esempio con un'esecuzione."  # TERMDAT 383650
+"inammissibile" = "L'ufficio non esamina la Sua domanda. Per esempio Lei ha mandato la domanda troppo tardi. Oppure manca la firma."
+"multa" = "Una multa è una punizione in soldi."  # TERMDAT 108519
+"minorenne" = "Minorenne vuol dire: una persona con meno di 18 anni."
+"maggiorenne" = "Maggiorenne vuol dire: una persona con 18 anni o più."
+"permesso di dimora" = "Permesso di dimora è il nome ufficiale del permesso B. Lei può abitare in Svizzera per un certo tempo."  # TERMDAT 38369
+"permesso di domicilio" = "Permesso di domicilio è il nome ufficiale del permesso C. Lei può abitare in Svizzera senza limite di tempo."  # TERMDAT 38375
+"decreto d'accusa" = "Un decreto d'accusa è una decisione del procuratore pubblico. Dice: Lei ha commesso un reato. Dice anche la pena. Lei può fare opposizione entro 10 giorni."  # TERMDAT 108682
+"procuratore pubblico" = "Il procuratore pubblico lavora per lo Stato. Indaga sui reati. Può anche fare un decreto d'accusa."
+
+[explain.debt]
+"sollecito di pagamento" = "Un sollecito di pagamento è una lettera. Lei non ha ancora pagato una fattura. Lei la paga ora."
+"diffida" = "Una diffida è una lettera severa. Lei deve pagare ora. Altrimenti seguono altre misure."  # TERMDAT 108601
+"esecuzione" = "Lei ha dei debiti. Con un'esecuzione qualcuno recupera questi soldi. L'ufficio di esecuzione aiuta in questo."  # TERMDAT 86779
+"ufficio di esecuzione" = "L'ufficio di esecuzione recupera i soldi dei debiti. Poi dà questi soldi alla persona giusta."  # TERMDAT 38822
+"precetto esecutivo" = "Un precetto esecutivo è una lettera dell'ufficio di esecuzione. Lei deve pagare un debito."  # TERMDAT 86796
+"opposizione al precetto esecutivo" = "Lei non è d'accordo con il debito? Lei lo dice all'ufficio di esecuzione. Lei ha 10 giorni di tempo."  # LEF art. 74
+"attestato di carenza di beni" = "Un documento dell'ufficio di esecuzione. Lei deve ancora questi debiti."  # TERMDAT 38907
+"minimo vitale" = "Il minimo vitale è la somma minima per la vita quotidiana. L'ufficio di esecuzione non può prendere questi soldi."  # TERMDAT 55347
+"incasso" = "Lei deve dei soldi. Con l'incasso l'ufficio recupera questi soldi. A volte lo fa una ditta."
+"consulenza sui debiti" = "Lei ha dei debiti? Degli esperti La aiutano. Fanno un piano con Lei."
+"interesse moratorio" = "Lei paga una fattura in ritardo. Allora Lei paga di più. Questi soldi in più sono l'interesse moratorio."  # TERMDAT 43049
+"estratto del registro delle esecuzioni" = "Un documento dell'ufficio di esecuzione. Mostra le Sue esecuzioni. I proprietari di case lo chiedono spesso."  # TERMDAT 384196
+"pignoramento del salario" = "L'ufficio di esecuzione prende ogni mese una parte del Suo salario. Con questi soldi paga i Suoi debiti."  # TERMDAT 385114
+"pignoramento" = "L'ufficio di esecuzione prende una parte dei Suoi beni. Per esempio del Suo salario. Con questi soldi paga i Suoi debiti."  # TERMDAT 67435
+"fallimento" = "Una ditta o una persona non può più pagare i suoi debiti. Allora l'ufficio vende i suoi beni."  # TERMDAT 86789
+"rigetto dell'opposizione" = "Lei ha fatto opposizione al precetto esecutivo. Con il rigetto un tribunale permette lo stesso la continuazione dell'esecuzione."  # TERMDAT 86781
+"domanda d'esecuzione" = "Una persona chiede un'esecuzione contro di Lei all'ufficio di esecuzione. Questa è la domanda d'esecuzione."  # TERMDAT 86698
+"solidalmente" = "Solidalmente vuol dire qui: ogni persona deve pagare tutto il debito. Per esempio una coppia sposata per le imposte."
+"IBAN" = "L'IBAN è il numero del Suo conto in banca. La Sua banca Le dà questo numero."
+"polizza di versamento" = "La polizza di versamento è un foglio per il pagamento. Lei la usa alla posta o in banca."
+
+[explain.insurance]
+"cassa malati" = "La cassa malati paga le spese del medico e dell'ospedale. Paga anche le medicine. Ogni persona in Svizzera deve avere una cassa malati."  # TERMDAT 37562
+"assicurazione di base" = "L'assicurazione di base è l'assicurazione malattia per tutti. Ogni persona in Svizzera deve averla."
+"assicurazione complementare" = "Un'assicurazione complementare non è obbligatoria. Paga più dell'assicurazione di base. Per esempio una camera singola in ospedale."  # TERMDAT 37650
+"premio" = "Il premio è la somma per un'assicurazione. Lei paga il premio spesso ogni mese."
+"sussidio" = "Il Cantone paga una parte del Suo premio di cassa malati. È un aiuto per le persone con pochi soldi."
+"riduzione dei premi" = "Il Cantone paga una parte del Suo premio di cassa malati. È un aiuto per le persone con pochi soldi."
+"franchigia" = "La franchigia è una somma fissa all'anno. Fino a questa somma Lei paga da solo il medico e le medicine. Dopo paga la cassa malati."  # TERMDAT 37529
+"aliquota percentuale" = "Dopo la franchigia Lei paga ancora una parte delle spese. Questa è l'aliquota percentuale."  # TERMDAT 37607
+"partecipazione ai costi" = "È la Sua parte delle spese del medico e delle medicine. La franchigia e l'aliquota percentuale ne fanno parte."  # TERMDAT 37560
+"rendita" = "Una rendita è una somma di soldi per ogni mese. Lei la riceve per esempio alla pensione. Oppure in caso di invalidità."
+"rendita AVS" = "La rendita AVS è una somma di soldi per ogni mese. Lei la riceve alla pensione."
+"rendita AI" = "La rendita AI è una somma di soldi per ogni mese. Lei la riceve in caso di invalidità."
+"AVS" = "L'AVS è un'assicurazione. Paga una rendita alla pensione. Aiuta anche la famiglia dopo la morte di un parente."  # TERMDAT 498
+"AI" = "L'AI è un'assicurazione. Aiuta le persone con una disabilità o una lunga malattia. Aiuta per esempio nel lavoro. Oppure paga una rendita."  # TERMDAT 499
+"prestazioni complementari" = "Sono soldi dello Stato in più alla rendita AVS o AI. La Sua rendita è troppo piccola? Allora Lei riceve le prestazioni complementari."  # TERMDAT 470993
+"assegno per grandi invalidi" = "Questi soldi aiutano le persone con un grande bisogno di aiuto ogni giorno. Per esempio per i vestiti o per il bagno."  # TERMDAT 55520
+"contributo per l'assistenza" = "Soldi dell'AI. Con questi soldi Lei può assumere una persona. Questa persona La aiuta a casa."  # LAI art. 42quater
+"indennità giornaliera" = "Soldi per ogni giorno senza lavoro. Per esempio in caso di malattia o di infortunio."  # TERMDAT 37626
+"garanzia di assunzione dei costi" = "Un'assicurazione o un ufficio Le scrive: noi paghiamo queste spese. Lei la riceve prima della cura o dell'aiuto."
+"mezzo ausiliario" = "Un oggetto di aiuto per le persone con una disabilità. Per esempio una sedia a rotelle o un apparecchio acustico."
+"cassa pensioni" = "La cassa pensioni tiene i soldi per la Sua pensione. Lei e il datore di lavoro pagate ogni mese una parte del salario."
+"pilastro 3a" = "Il pilastro 3a è un conto di risparmio per la pensione. Per questi soldi Lei paga meno imposte. Di solito Lei li riceve poco prima della pensione."
+"assicurazione contro la disoccupazione" = "Lei ha perso il lavoro? Allora questa assicurazione Le dà dei soldi. La aiuta anche a cercare un nuovo lavoro."  # TERMDAT 106572
+"AD" = "L'AD è un'assicurazione. Lei ha perso il lavoro? Allora l'AD Le dà dei soldi. La aiuta anche a cercare un nuovo lavoro."
+"URC" = "L'URC è un ufficio. Aiuta le persone senza lavoro a trovare un nuovo impiego."  # TERMDAT 477888
+"assicurazione contro gli infortuni" = "Paga le spese dopo un infortunio. Per esempio il medico. Paga anche dei soldi durante il tempo senza lavoro."  # TERMDAT 37634
+"assegni familiari" = "Soldi per i genitori, per ogni figlio. Di solito Lei li riceve con il salario."  # TERMDAT 41628
+"fornitore di prestazioni" = "Un fornitore di prestazioni La cura. Per esempio un medico o un ospedale. Manda la fattura a Lei o alla cassa malati."  # TERMDAT 37415
+"modello medico di famiglia" = "Con questo modello Lei va prima dal Suo medico di famiglia. In cambio il Suo premio è più basso."  # TERMDAT 37543
+"obbligo d'assicurazione" = "La legge dice: Lei deve avere un'assicurazione. Per la cassa malati vale per tutti in Svizzera."  # TERMDAT 37640
+"Suva" = "La Suva è una grande assicurazione contro gli infortuni. Molti datori di lavoro assicurano i loro dipendenti alla Suva."  # TERMDAT 3042
+"incapacità al lavoro" = "Lei non può lavorare a causa di una malattia o di un infortunio. Oppure Lei può lavorare solo un po'."  # LPGA art. 6
+"incapacità al guadagno" = "A causa della Sua salute Lei non può più guadagnare abbastanza soldi. Questo dura a lungo."  # TERMDAT 37525
+"grado di invalidità" = "Il grado di invalidità è un numero in per cento. Mostra la perdita di salario a causa della Sua salute. La rendita AI dipende da questo numero."  # TERMDAT 294549
+"integrazione professionale" = "L'AI La aiuta per il ritorno al lavoro. Per esempio con un corso. Oppure con una nuova formazione."  # TERMDAT 89634
+"decisione su opposizione" = "L'ufficio ha esaminato la Sua opposizione. La decisione su opposizione è la sua risposta."  # TERMDAT 37518
+"indennità di disoccupazione" = "Lei non ha più lavoro? Allora Lei riceve questi soldi dall'AD."  # TERMDAT 525519
+"giorni di sospensione" = "In questi giorni l'AD non paga. È una punizione. Per esempio Lei ha fatto troppe poche ricerche di lavoro."  # TERMDAT 525599
+"occupazione adeguata" = "Questo lavoro va bene per Lei. Lei deve accettarlo. Altrimenti Lei riceve meno soldi dall'AD."  # TERMDAT 6551
+"termine quadro" = "Il termine quadro è un periodo di 2 anni. Solo in questo periodo l'AD Le paga dei soldi."  # TERMDAT 525720
+"indennità di maternità" = "Soldi per le madri dopo la nascita. Lei li riceve per 14 settimane. È per le madri con un lavoro."  # TERMDAT 93386
+"assegno per i figli" = "Soldi per ogni figlio fino a 16 anni. È un assegno familiare."  # TERMDAT 6614
+"assegno di formazione" = "Soldi per ogni figlio in formazione. Lei li riceve dai 16 ai 25 anni."  # TERMDAT 93630
+"spese riconosciute" = "Queste spese contano per le prestazioni complementari. Per esempio l'affitto o il premio di cassa malati."  # LPC art. 10
+"premio medio" = "È il premio medio di cassa malati nel Suo Cantone. L'ufficio calcola con questo premio."  # LPC art. 10
+"invalidità" = "L'invalidità è una perdita di guadagno a causa della salute. Dura a lungo. L'AI aiuta in questo caso."  # TERMDAT 93527
+"cassa di compensazione" = "La cassa di compensazione è l'ufficio dell'AVS. Incassa i contributi. Paga le rendite."  # TERMDAT 444049
+"numero AVS" = "Il numero AVS è il Suo numero personale per le assicurazioni. Comincia con 756. È sulla tessera della cassa malati."
+
+[explain.health]
+"ambulatoriale" = "Ambulatoriale vuol dire: Lei torna a casa il giorno della cura."  # TERMDAT 37480
+"stazionario" = "Stazionario vuol dire: Lei resta la notte in ospedale per la cura."
+"assistenza e cura a domicilio" = "Degli infermieri vengono a casa Sua. Aiutano per le cure o per la casa. Il nome breve è SACD."
+"SACD" = "Il SACD è un servizio di cura a casa Sua. Degli infermieri vengono a casa Sua. Aiutano per le cure o per la casa."
+"certificato medico" = "Un documento del medico. Il medico conferma la Sua malattia. Lei non può lavorare."  # TERMDAT 47451
+"aiuto alle vittime" = "L'aiuto alle vittime aiuta le persone dopo una violenza. La consulenza è gratis. Gli esperti tengono tutto per sé."  # LAV art. 2
+"lingua dei segni" = "Una lingua con le mani e il viso. Molte persone sorde la parlano."  # TERMDAT 133684
+
+[explain.social]
+"aiuto sociale" = "L'aiuto sociale è un aiuto dello Stato. È per le persone con troppo pochi soldi. Lei riceve dei soldi."  # TERMDAT 38013
+"assistenza sociale" = "In Ticino l'assistenza sociale è l'aiuto sociale. È un aiuto dello Stato per le persone con troppo pochi soldi."
+"servizio sociale" = "Il servizio sociale è un ufficio del Comune. Aiuta le persone in difficoltà. Per esempio con dei soldi o con dei consigli."
+"certificato di salario" = "Un documento del Suo datore di lavoro. Mostra il Suo salario di un anno. Lei ne ha bisogno per la dichiarazione d'imposta."  # TERMDAT 6590
+"termine di disdetta" = "Il termine di disdetta è il tempo prima della fine del contratto. Comincia con la lettera di disdetta."  # TERMDAT 41377
+"disdetta" = "Con la disdetta una persona mette fine a un contratto. Per esempio al contratto d'affitto o di lavoro. La disdetta è una lettera."  # TERMDAT 39761
+"periodo di prova" = "Le prime settimane in un nuovo lavoro. In questo tempo la disdetta è più veloce. Per Lei e per il datore di lavoro."  # TERMDAT 41332
+"a tempo indeterminato" = "A tempo indeterminato vuol dire: senza una data di fine. Per esempio un contratto di lavoro senza data di fine."
+"deposito di garanzia" = "Soldi come sicurezza per il proprietario. Sono su un conto speciale in banca. Lei li riceve indietro dopo il trasloco."  # CO art. 257e
+"spese accessorie" = "Le spese accessorie sono le spese per la casa in più all'affitto. Per esempio il riscaldamento e l'acqua."  # CO art. 257a
+"autorità parentale" = "I genitori con l'autorità parentale decidono le cose importanti per il figlio. Per esempio per la scuola e per la salute."  # TERMDAT 216979
+"contributo di mantenimento" = "Soldi per la vita di un figlio. Oppure per un ex marito o una ex moglie. Una persona li paga regolarmente all'altra."  # TERMDAT 471088
+"stato civile" = "Lo stato civile è la Sua situazione di famiglia. Per esempio con un matrimonio. Oppure senza matrimonio."  # TERMDAT 539372
+"vedovo" = "Vedovo o vedova vuol dire: Suo marito o Sua moglie non vive più."
+"borsa di studio" = "Soldi del Cantone per una formazione. Lei non deve dare indietro questi soldi."  # TERMDAT 56159
+"convivenza di fatto" = "2 persone vivono insieme come una coppia. Ma non hanno un matrimonio."  # TERMDAT 216966
+"obbligo di mantenimento" = "Lei deve pagare per la vita di un'altra persona. Per esempio i genitori per i loro figli."  # TERMDAT 56279
+"pigione massima" = "È l'affitto più alto per il calcolo dell'ufficio. La Sua casa costa di più? Allora Lei paga la differenza."  # TERMDAT 385470
+"forfait per il mantenimento" = "Soldi dell'aiuto sociale per la vita di tutti i giorni. Per esempio per il cibo e i vestiti. La somma dipende dal numero di persone in casa."  # norme COSAS
+"unità di assistenza" = "Sono le persone di una casa con degli obblighi tra loro. Per esempio i genitori e i loro figli. L'aiuto sociale fa un solo calcolo per loro."  # norme COSAS
+"anticipo degli alimenti" = "Un genitore non paga gli alimenti per il figlio. Allora il Comune o il Cantone paga per il momento. Poi l'ufficio recupera i soldi dall'altro genitore."  # CC art. 293, cantonale
+"licenza di condurre" = "La licenza di condurre è il documento per la guida dell'auto. In Italia il nome è patente."  # TERMDAT 158059
+
+[explain.tax]
+"dichiarazione d'imposta" = "Un formulario per le imposte. Lei scrive il Suo reddito. Lei scrive anche la Sua sostanza."
+"tassazione" = "L'ufficio delle imposte calcola le Sue imposte. Il risultato è la tassazione. Lei la riceve per lettera."  # TERMDAT 97000
+"notifica di tassazione" = "La notifica di tassazione è una lettera dell'ufficio delle imposte. Dice: queste sono le Sue imposte per un anno."
+"imposta alla fonte" = "Il datore di lavoro toglie le imposte direttamente dal salario. Per esempio per le persone con un permesso B."
+"deduzione" = "Una deduzione è una somma. Lei può toglierla dal Suo reddito. Così Lei paga meno imposte."
+"reddito imponibile" = "Il Suo reddito dopo tutte le deduzioni. L'ufficio delle imposte calcola le imposte su questo reddito."
+"reddito determinante" = "Questo reddito conta per una decisione. L'ufficio lo calcola con le sue regole."
+"sostanza" = "La sostanza sono i Suoi beni. Per esempio i soldi sul conto o una casa."  # TERMDAT 54458
+"valore locativo" = "Lei abita nella Sua casa. L'ufficio delle imposte conta un affitto per questa casa come reddito. Questo è il valore locativo."  # LIFD art. 21
+"decisione su reclamo" = "L'ufficio delle imposte ha esaminato il Suo reclamo. La decisione su reclamo è la sua risposta."  # TERMDAT 97023
+"condono dell'imposta" = "Lei non può pagare le Sue imposte a causa di una situazione difficile. Allora l'ufficio può annullare una parte o tutte le Sue imposte."  # TERMDAT 97116
+"agevolazioni di pagamento" = "Lei può pagare più tardi o in più volte. L'ufficio deve essere d'accordo."  # LIFD art. 166
+"periodo fiscale" = "L'anno per le Sue imposte. Di solito dal 1° gennaio al 31 dicembre."  # LIFD art. 40
+"conteggio finale" = "L'ultima fattura esatta per un anno di imposte. Prima Lei ha forse già pagato delle fatture provvisorie."  # leggi fiscali cantonali
+"tassazione d'ufficio" = "Lei non ha mandato la Sua dichiarazione d'imposta. Allora l'ufficio delle imposte stima il Suo reddito e la Sua sostanza."  # LIFD art. 130
+"ricupero d'imposta" = "Lei non ha dichiarato tutto il Suo reddito o tutta la Sua sostanza. Allora l'ufficio delle imposte chiede le imposte in più. Anche per gli anni passati."  # LIFD art. 151
+
+[explain.residence]
+"permesso B" = "Lei può abitare in Svizzera per un certo tempo. Poi Lei deve rinnovare il permesso. Permesso di dimora è il nome ufficiale."  # TERMDAT 38543
+"permesso C" = "Lei può abitare in Svizzera senza limite di tempo. Permesso di domicilio è il nome ufficiale."  # TERMDAT 38546
+"ammissione provvisoria" = "Lei può restare in Svizzera per il momento. Il ritorno nel Suo Paese ora non è possibile. È il permesso F."  # TERMDAT 38432
+"statuto di protezione S" = "Lei viene da un Paese in guerra. La Svizzera La protegge per un certo tempo. È il permesso S."  # TERMDAT 500839
+"controllo abitanti" = "Un ufficio del Comune. Lei comunica il Suo indirizzo a questo ufficio. Per esempio dopo un trasloco."
+"notifica di partenza" = "Lei trasloca in un altro Comune? Allora Lei lo dice al controllo abitanti del vecchio Comune. Questa è la notifica di partenza."  # TERMDAT 109664
+"ufficio dello stato civile" = "Questo ufficio scrive gli eventi importanti in un registro. Per esempio una nascita o un matrimonio."
+"naturalizzazione" = "Lei diventa cittadino svizzero o cittadina svizzera. Lei riceve allora il passaporto svizzero."  # TERMDAT 110119
+"luogo di origine" = "La Sua famiglia viene da questo Comune. Il passaporto indica questo luogo. Spesso Lei abita in un altro luogo."  # TERMDAT 387328
+"attinenza" = "L'attinenza è il Comune di origine della Sua famiglia. I Suoi documenti indicano l'attinenza. Spesso Lei abita in un altro Comune."  # TERMDAT 217169
+"ricongiungimento familiare" = "La Sua famiglia viene dall'estero da Lei in Svizzera. Per questo Lei ha bisogno di un permesso."  # TERMDAT 37788
+
+[explain.vote]
+"votazione" = "In una votazione il popolo dice sì o no a una domanda. Per esempio a una nuova legge."  # TERMDAT 109989
+"diritto di voto" = "Lei può partecipare alle votazioni e alle elezioni. Di solito sono gli adulti con il passaporto svizzero."  # TERMDAT 109850
+"iniziativa popolare" = "Delle persone raccolgono delle firme. Vogliono una nuova regola nella Costituzione. Con abbastanza firme c'è una votazione."
+"referendum" = "Delle persone raccolgono delle firme contro una nuova legge. Con abbastanza firme il popolo vota su questa legge."
+"controprogetto" = "Un'altra proposta del parlamento o del governo. È una risposta a un'iniziativa popolare."
+"carta di legittimazione" = "Questa carta arriva con il materiale di voto. Lei firma la carta. Poi la manda con la scheda. Altrimenti il Suo voto non conta."
+"urna" = "L'urna è una scatola per le schede di voto. Andare alle urne vuol dire: votare al seggio."
+"Gran Consiglio" = "Il Gran Consiglio è il parlamento del Cantone. Fa le leggi del Cantone."
+"Consiglio di Stato" = "Il Consiglio di Stato è il governo del Cantone Ticino. Ha 5 membri."
+"Municipio" = "Il Municipio è il governo del Comune. Decide le cose del Comune. Il sindaco è il capo del Municipio."
+"Consiglio comunale" = "Il Consiglio comunale è il parlamento del Comune. Decide per esempio le spese del Comune."
+"assemblea comunale" = "Le persone con diritto di voto del Comune fanno una riunione. Insieme decidono le cose del Comune."
+"Costituzione" = "La Costituzione è la legge più importante del Paese o del Cantone. Contiene le regole di base e i Suoi diritti."  # TERMDAT 56853
+"Confederazione" = "È il nome dello Stato svizzero. Le leggi federali valgono in tutta la Svizzera."  # TERMDAT 109472
+"Pretura" = "La Pretura è un tribunale del Cantone Ticino. Decide per esempio nelle cause civili. Per esempio per l'affitto o per i debiti."
+
+[explain.context]
+# Terms with a second, everyday sense (prestazione in sport, contributo to a cause,
+# periodo di attesa at the doctor's). Kept for the writer and the termbase; code never
+# adds them.
+"consultazione" = "Prima di una nuova legge il governo chiede l'opinione di molti gruppi. Questa è la consultazione."
+"custodia" = "Il figlio abita da Lei. Lei cura il figlio ogni giorno."  # TERMDAT 216982
+"compensazione" = "L'ufficio toglie i Suoi debiti dai soldi per Lei. Lei riceve solo il resto."  # TERMDAT 97006
+"preavviso" = "Qui il preavviso è una lettera dell'AI. Prima della decisione l'AI dice: vogliamo decidere così. Lei può dare la Sua opinione entro 30 giorni."  # LAI art. 57a
+"richiamo" = "Un richiamo è una lettera. Lei non ha ancora pagato una fattura. Lei la paga ora."
+"conclusioni" = "In un ricorso le conclusioni sono le Sue richieste."  # TERMDAT 335314
+"ordinanza" = "Qui un'ordinanza è una lista di regole. Il governo la fa. Spiega una legge in modo più preciso."  # TERMDAT 56863
+"tutela" = "Un bambino non ha genitori con l'autorità parentale. Allora l'ARP sceglie un tutore o una tutrice. Questa persona cura il bambino."  # TERMDAT 383659
+"verbale" = "Un verbale è un documento scritto. Contiene le frasi importanti di un colloquio. Lei firma il verbale."  # TERMDAT 47677
+"contributo" = "Un contributo sono soldi per un'assicurazione. Per esempio per l'AVS. Per i dipendenti il datore di lavoro lo toglie dal salario."
+"prestazione" = "Una prestazione è un aiuto di un'assicurazione o di un ufficio. Per esempio dei soldi. Oppure un servizio."
+"periodo di attesa" = "L'assicurazione paga solo dopo alcuni giorni. Questi giorni sono il periodo di attesa."  # TERMDAT 56382
+"generico" = "Un generico è una medicina meno cara. Ha lo stesso effetto della medicina originale."  # TERMDAT 37534
+"accessibile" = "Accessibile vuol dire: tutti possono usarlo bene. Anche le persone con una disabilità."
+
+# -- not in ------------------------------------------------------------------------
+
+# Phrases in which a term does not mean what the vocabulary explains.
+[not_in]
+"istanza" = ["prima istanza", "seconda istanza", "ultima istanza", "istanza superiore", "istanza inferiore", "istanza precedente", "istanza cantonale"]
+"sostanza" = ["in sostanza"]
+"esecuzione" = ["in esecuzione"]
+"disposizione" = ["a disposizione", "a Sua disposizione", "a vostra disposizione"]
+"domicilio" = ["a domicilio", "al proprio domicilio", "al suo domicilio"]
+"beneficiare" = ["beneficio", "benefici", "beneficiari", "beneficiaria"]
+"termine" = ["a termine"]
+"prescrizione" = ["prescrizione medica"]
+"salvo" = ["in salvo", "sano e salvo"]

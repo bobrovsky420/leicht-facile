@@ -19,7 +19,7 @@
   "check.no_findings": "No findings.",
   "check.suggestion": "Suggestion: {text}",
   "check.error.empty": "Paste a text first.",
-  "check.error.lang": "No checker rules for {lang} yet; German and French texts are checked.",
+  "check.error.lang": "No checker rules for {lang} yet.",
   "site.drafts": "Drafts",
   "site.ui_lang": "Interface language",
   "site.footer": "A drafting assistant for professionals: every draft needs a human review, and a review by readers from the target group before publication.",

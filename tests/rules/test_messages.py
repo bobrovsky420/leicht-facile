@@ -139,3 +139,28 @@ def test_findings_carry_key_and_values() -> None:
     assert f.params == {"opener": "weil", "clauses": 3, "limit": 1, "level": "A2"}
     assert render_finding(f) == MESSAGES["LEN-02.sub"].format(**f.params)
     assert all(f.key in MESSAGES or variant(f.key, f.params) in MESSAGES for f in findings)
+
+
+@pytest.mark.parametrize(
+    ("lang", "text", "key"),
+    [
+        ("de", "Der Antragsteller wartet.", "LEX-06.no_address"),
+        ("de", "Der Antragsteller wartet. Wir schicken Ihnen Post.", "LEX-06"),
+        ("de", "Der Antragsteller wartet. Wir schicken dir Post.", "LEX-06"),
+        ("de", "Der Antragsteller wartet. Du bekommst Post.", "LEX-06"),
+        ("fr", "Le requérant attend.", "LEX-06.no_address"),
+        ("fr", "Le requérant attend. Nous vous écrivons.", "LEX-06"),
+        ("fr", "Le requérant attend. Tu reçois une lettre.", "LEX-06"),
+        ("fr", "Le requérant attend. Nous t'écrivons.", "LEX-06"),
+    ],
+)
+def test_lex_06_reminder_only_where_the_text_never_addresses_the_reader(
+    lang: str, text: str, key: str
+) -> None:
+    """The informal form (du, tu) addresses the reader too: a text in it gets the short
+    LEX-06 finding, not the reminder that easy language talks to the reader directly."""
+    draft = Draft(
+        doc_id="d", lang=lang, level="A2", blocks=[Block(id="b001", kind="sentence", text=text)]
+    )
+    (finding,) = [f for f in get_checker(lang).check(draft).findings if f.rule_id == "LEX-06"]
+    assert finding.key == key

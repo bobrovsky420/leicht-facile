@@ -521,7 +521,7 @@ class Server(Section):
     )
     ui_lang: str = Field(
         "auto",
-        description="Interface language for visitors who have not picked one: en, de, fr, "
+        description="Interface language for visitors who have not picked one: en, de, fr, it, "
         "or auto (the browser's).",
     )
     # The redirect hops are still walked and checked (ingest/fetch.py).

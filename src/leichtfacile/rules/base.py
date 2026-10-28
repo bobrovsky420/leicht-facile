@@ -16,7 +16,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
-from leichtfacile.schemas import Level, Severity
+from leichtfacile.schemas import LANGS, Level, Severity
 
 if TYPE_CHECKING:
     from spacy.tokens import Span
@@ -49,6 +49,13 @@ LANG_PARAMS: dict[str, dict[str, LevelParams]] = {
     "fr": {
         "A2": replace(PARAMS["A2"], max_words=15),
         "B1": replace(PARAMS["B1"], max_words=18),
+    },
+    # Italian needs about half more words than German: on the 14 official Italian
+    # easy-language pages the mean sentence has 8.9 words and 95 percent of the
+    # sentences have at most 19 (calibration of 28 October 2026, docs/rules.md).
+    "it": {
+        "A2": replace(PARAMS["A2"], max_words=18),
+        "B1": replace(PARAMS["B1"], max_words=21),
     },
 }
 
@@ -90,7 +97,7 @@ class Context:
     glossary: set[str] = field(default_factory=set)  # lowercased terms, without Mediopunkt
     blocks: list[BlockInfo] = field(default_factory=list)
     block_index: int = 0  # index of the block being checked
-    addresses_reader: bool = False  # the text says Sie / Ihnen / Ihr to the reader
+    addresses_reader: bool = False  # Sie or du, vous or tu, Lei or voi in the text
     introduced: set[str] = field(default_factory=set)  # abbreviations explained in the text
     # Decision mode, export checks: the authority's fixed text, which the export must
     # begin and end with (FACT-07) and which the layout rules leave alone.
@@ -232,3 +239,10 @@ def rules_for(lang: str, scope: Scope) -> Iterator[tuple[RuleSpec, CheckFn]]:
         check = spec.check_for(lang)
         if check is not None:
             yield spec, check
+
+
+def checked_languages() -> tuple[str, ...]:
+    """The languages with checks of their own, in the order of LANGS: the ones the Check
+    page offers and the README counts. Call it after the rules are registered
+    (importing `leichtfacile.rules` does that)."""
+    return tuple(lang for lang in LANGS if any(lang in spec.checks for spec in RULES.values()))

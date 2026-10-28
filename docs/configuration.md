@@ -438,7 +438,7 @@ The web application (`leichtfacile serve`).
 | `host` | `"127.0.0.1"` | The interface the app is published on (0.0.0.0: every interface); anything but this machine needs a login ([auth]). |
 | `port` | `8000` | The port. |
 | `open_browser` | `true` | Open the browser at the start, on this machine and, on Linux, with a desktop. |
-| `ui_lang` | `"auto"` | Interface language for visitors who have not picked one: en, de, fr, or auto (the browser's). |
+| `ui_lang` | `"auto"` | Interface language for visitors who have not picked one: en, de, fr, it, or auto (the browser's). |
 | `allow_private_urls` | `false` | Let users submit URLs of the internal network (an intranet). |
 | `rate_limit_per_minute` | `120` | Writes (POST, PUT, PATCH, DELETE) per client address and minute; 0: no limit. |
 

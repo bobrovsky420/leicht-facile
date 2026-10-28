@@ -23,7 +23,7 @@ from leichtfacile.ingest.detect import detect_language
 from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
-from leichtfacile.rules.base import RULES
+from leichtfacile.rules.base import RULES, checked_languages
 from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
 from leichtfacile.web import api
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
@@ -302,7 +302,13 @@ def _refused(request: Request, exc: SubmissionError | QueueFull, form: dict) -> 
 
 # -- Check my text: the rules alone, on a text the writer wrote ---------------------------
 
-CHECK_LANGS = ("de", "fr")  # the languages the checker has rules for
+
+@cache
+def check_langs() -> tuple[str, ...]:
+    """The languages the checker has rules for: the Check page offers them."""
+    import leichtfacile.rules  # noqa: F401  (registers the rules)
+
+    return checked_languages()
 
 
 def _check(
@@ -320,7 +326,7 @@ def _check(
         error=error,
         form=form,
         view=view,
-        doc_langs=CHECK_LANGS,
+        doc_langs=check_langs(),
         max_chars=MAX_TEXT_CHARS,
         chars=len(form.get("text") or ""),
         rules=rule_count(),
@@ -363,7 +369,7 @@ def check_text(
             status_code=400,
         )
     chosen = None if lang in ("", "auto") else lang
-    if chosen is not None and chosen not in CHECK_LANGS:
+    if chosen is not None and chosen not in check_langs():
         error = t("check.error.lang", lang=t.get(f"lang.{chosen}", chosen))
         return _check(request, form, error=error, status_code=400)
     try:
@@ -372,7 +378,7 @@ def check_text(
         return _check(
             request, form, error=SubmissionError("ingest", detail=str(exc)).text(t), status_code=400
         )
-    if doc.lang not in CHECK_LANGS:
+    if doc.lang not in check_langs():
         error = t("check.error.lang", lang=t.get(f"lang.{doc.lang}", doc.lang))
         return _check(request, form, error=error, status_code=400)
     draft = source_as_draft(doc, level)  # type: ignore[arg-type]

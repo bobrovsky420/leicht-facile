@@ -125,6 +125,14 @@ def test_german_values(text: str, expected: tuple[str, str]) -> None:
         ("it", "nei prossimi tre mesi", ("period", "3m")),
         ("it", "Riferimento Pratica: TIC-9988", ("identifier", "TIC-9988")),
         ("it", "Numero di contribuente 482.317.556", ("identifier", "482.317.556")),
+        # 28 October 2026: Italian times, which carry no Uhr and no colon.
+        ("it", "L'ufficio apre alle ore 9.00.", ("time", "09:00")),
+        ("it", "Telefoni alle ore 9.", ("time", "09:00")),
+        ("it", "dal lunedì al venerdì dalle 8.00 alle 11.30", ("time", "08:00")),
+        ("it", "dal lunedì al venerdì dalle 8.00 alle 11.30", ("time", "11:30")),
+        ("it", "dalle ore 8.30 alle ore 11.30", ("time", "11:30")),
+        ("it", "tra le 11.00 e le 15.00", ("time", "15:00")),
+        ("it", "Il costo è di 9.00 franchi.", ("amount", "9")),
     ],
 )  # fmt: skip
 def test_french_and_italian_values(lang: str, text: str, expected: tuple[str, str]) -> None:

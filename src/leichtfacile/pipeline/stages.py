@@ -208,6 +208,18 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
         # sentences of a final draft about petitions in the run of 11 October 2026.
         r"\bpuce\b",
     ),
+    # The Italian examples (28 October 2026) are the French ones in Italian wording:
+    # the dog and its tax, the parking permit, the office and the microchip of the
+    # write example. Not measured on a model yet.
+    "it": (
+        r"\bcan[ei]\b",
+        r"\btassa sui cani",
+        r"\b(?:carta|contrassegno) di parcheggio",
+        r"\bparabrezza",
+        r"\blibretto delle vaccinazioni",
+        r"\bcontrollo (?:degli )?abitanti",
+        r"\bmicrochip\b",
+    ),
 }
 
 

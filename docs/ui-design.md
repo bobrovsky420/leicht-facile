@@ -304,8 +304,8 @@ them into local time and "Today" or "Yesterday".
     ("PDF with a text layer, HTML or plain text, up to 15 MB"). After a choice, the
     file name and size show. Dropping needs JavaScript; the label works without it.
 - **Settings card**:
-  - Language of the document: select (Detect, German, French, "Italian (follows)"
-    disabled), as today.
+  - Language of the document: select (Detect, German, French, Italian; the Italian
+    entry was a disabled "Italian (follows)" until 28 October 2026).
   - Level: radio list, "A2 · Leichte Sprache, FALC" ("Easy language: short
     sentences, one statement each, hard words explained.") and "B1 · Einfache
     Sprache, langage clair" ("Plain language for readers with some reading
@@ -1057,7 +1057,8 @@ Open when the redesign was planned; all four were decided as recommended on 7 Oc
 
 ## 16. Not in this package
 
-- The Italian interface catalog; French shipped on 8 October 2026.
+- Interface catalogs beyond English, German, French and Italian; French shipped on 8
+  October 2026, Italian on 28 October 2026.
 - Settings for the accent or the density (§14).
 - Autosave, and saving decisions without JavaScript (reading the review works without
   it; saving needs it today and still will).

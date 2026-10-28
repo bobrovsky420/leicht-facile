@@ -42,7 +42,7 @@ def has_prompt(lang: str, stage: str) -> bool:
 _IN_LEVEL = {
     "de": {"A2": "Leichter Sprache", "B1": "Einfacher Sprache"},
     "fr": {"A2": "FALC", "B1": "langage clair"},
-    "it": {"A2": "lingua facile", "B1": "linguaggio semplice"},
+    "it": {"A2": "lingua facile", "B1": "linguaggio chiaro"},
 }
 
 

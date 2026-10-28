@@ -13,7 +13,7 @@ from leichtfacile.rules.messages import render_finding
 from leichtfacile.rules.vocabulary import easy_for, load_vocabulary, matcher, office_words
 from leichtfacile.schemas import Block, Draft, GlossaryEntry
 
-LANGS = ("de", "fr")
+LANGS = ("de", "fr", "it")
 # LEX-01 wants a Mediopunkt in long German words; code adds it to drafts at A2 only,
 # so the level-neutral list keeps the plain spelling.
 SKIP_RULES = {"LEX-01"}
@@ -115,6 +115,32 @@ def test_french_terms_in_their_forms(text: str, expected: list[tuple[str, str]])
     assert _found("fr", text) == expected
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # inflected nouns and adjectives: the ending swapped for the base form's
+        ("I premi suddetti sono esigibili.",
+         [("premio", "premi"), ("suddetto", "suddetti"), ("esigibile", "esigibili")]),
+        ("La prestazione complementare e l'assegno familiare.",
+         [("prestazioni complementari", "prestazione complementare"),
+          ("assegni familiari", "assegno familiare")]),
+        # verb forms, and an articulated preposition for the term's bare one
+        ("Ai sensi della legge, l'ufficio provvede al pagamento e ha effettuato il controllo.",
+         [("ai sensi di", "Ai sensi della"), ("legge", "legge"),
+          ("provvedere", "provvede"), ("effettuare", "effettuato")]),
+        # a reflexive verb: listed with its pronoun, which the text puts before the verb
+        ("Lei si rivolge all'ufficio e deve annunciarsi all'URC.",
+         [("rivolgersi a", "rivolge all'"), ("annunciarsi", "annunciarsi"), ("URC", "URC")]),
+        # inoltre is no inoltrare, verso no versare, and in sostanza no sostanza (not_in)
+        ("Inoltre, verso sera la decisione è in sostanza chiara.", [("decisione", "decisione")]),
+        ("Porti i documenti, p. es. il permesso B, ecc.",
+         [("p. es.", "p. es."), ("permesso B", "permesso B"), ("ecc.", "ecc.")]),
+    ],
+)  # fmt: skip
+def test_italian_terms_in_their_forms(text: str, expected: list[tuple[str, str]]) -> None:
+    assert _found("it", text) == expected
+
+
 def test_context_words_are_no_office_words() -> None:
     matches = matcher("de").find_text("Schreiben Sie uns, gemäss dem Gesetz zur Abklärungs-Stelle.")
     assert [m.entry.term for m in matches] == ["Schreiben", "gemäss", "Gesetz", "Abklärung"]
@@ -126,4 +152,4 @@ def test_abbreviations_give_their_full_word() -> None:
     assert easy_for("de", "z.B.") == "zum Beispiel"
     assert easy_for("fr", "p. ex.") == "par exemple"
     assert easy_for("de", "CHF") is None
-    assert easy_for("it", "ecc.") is None  # no Italian vocabulary yet
+    assert easy_for("it", "ecc.") == "eccetera"

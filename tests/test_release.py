@@ -43,22 +43,30 @@ def test_no_dependency_is_given_by_url() -> None:
 
 
 def test_the_model_packages_are_pinned_and_loaded() -> None:
-    """`dependencies` pins leichtfacile-model-<lang> at the version its table
-    [tool.leichtfacile.spacy-models.<lang>] builds, and the checker parses with that
-    model; Italian, without a model package, gets a blank pipeline."""
+    """`dependencies` pins leichtfacile-model-<lang> at the version its table builds
+    ([tool.leichtfacile.spacy-models.<lang>] for the spaCy models German and French,
+    [tool.leichtfacile.lexicon-models.it] for the Italian lexicon pipeline), the checker
+    parses with the spaCy models and tags with the lexicon component."""
     from leichtfacile.rules import nlp
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     models = pyproject["tool"]["leichtfacile"]["spacy-models"]
+    lexicons = pyproject["tool"]["leichtfacile"]["lexicon-models"]
     deps = pyproject["project"]["dependencies"]
     pins = dict(d.split("==") for d in deps if d.startswith("leichtfacile-model-"))
-    assert pins == {f"leichtfacile-model-{lang}": m["version"] for lang, m in models.items()}
+    expected = {f"leichtfacile-model-{lang}": m["version"] for lang, m in models.items()}
+    expected |= {f"leichtfacile-model-{lang}": m["version"] for lang, m in lexicons.items()}
+    assert pins == expected
     for lang, model in models.items():
         meta = nlp.pipeline(lang).meta
         assert f"{meta['lang']}_{meta['name']}" == model["name"]
         assert meta["version"] == model["version"]
         assert nlp.has_parser(nlp.pipeline(lang))
-    assert nlp.pipeline("it").pipe_names == ["sentencizer"]
+    for lang, model in lexicons.items():
+        pipe = nlp.pipeline(lang)
+        assert pipe.meta["name"] == model["name"] and pipe.meta["version"] == model["version"]
+        assert nlp.LEXICON_COMPONENT in pipe.pipe_names
+        assert nlp.has_analysis(pipe) and not nlp.has_parser(pipe)
 
 
 def test_the_readme_on_pypi_has_no_relative_link() -> None:

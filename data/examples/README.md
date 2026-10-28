@@ -9,9 +9,10 @@ letters of the image input spike in `data/examples/print/` (below).
 
 The letters in `src/leichtfacile/letters/` are written by the team for testing and
 demonstration. They imitate the style of Swiss official letters but describe no real
-authority: the municipalities Musterwil and Exempleville are invented, the web and
-e-mail addresses use the reserved `.example` domain, and 044 123 45 67 and
-022 123 45 67 are example numbers in the style of Swiss style guides. The New draft
+authority: the municipalities Musterwil, Exempleville and Esempiopoli are invented, the
+web and e-mail addresses use the reserved `.example` domain, and 044 123 45 67,
+022 123 45 67 and 091 123 45 67 are example numbers in the style of Swiss style guides.
+The New draft
 form offers each one as a one-click fill (`/new?example=<file name>`), and so does the
 drafts list while it is empty.
 
@@ -19,6 +20,7 @@ drafts list while it is empty.
 |------|---------|-----|
 | `praemienverbilligung-brief.txt` | Letter about health insurance premium reduction: income limits, a deadline, documents to enclose, objection period, contact | The smoke run (`uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke`), tests, an example text in the New draft form |
 | `reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, an example text in the New draft form |
+| `riduzione-premi-lettera.txt` | The same letter in Italian (riduzione individuale dei premi), from the invented municipality of Esempiopoli | Italian test runs, an example text in the New draft form |
 | `entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Decision mode (docs/use-case-decisions.md), tests, an example text in the New draft form |
 
 A JSON file next to a letter holds that example's job settings, any `JobConfig` field:

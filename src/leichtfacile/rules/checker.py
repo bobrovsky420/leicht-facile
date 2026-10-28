@@ -12,6 +12,7 @@ from collections.abc import Iterable
 
 from leichtfacile.rules import de as de_rules
 from leichtfacile.rules import fr as fr_rules
+from leichtfacile.rules import it as it_rules
 from leichtfacile.rules.base import (
     RULES,
     BlockInfo,
@@ -22,7 +23,7 @@ from leichtfacile.rules.base import (
     rules_for,
 )
 from leichtfacile.rules.document import DocInput, fact_coverage
-from leichtfacile.rules.nlp import has_parser, pipeline
+from leichtfacile.rules.nlp import has_analysis, pipeline
 from leichtfacile.schemas import (
     SEVERITY_RANK,
     Block,
@@ -54,13 +55,24 @@ def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
     return Draft(doc_id=doc.id, lang=doc.lang, level=level, blocks=blocks, origin="review")
 
 
-# The text talks to the reader: Sie (German), vous (French).
+# The text talks to the reader: Sie or du (German), vous or tu (French), Lei or voi
+# (Italian). The writer asks for the formal form, but a text in the informal one does
+# address the reader, so LEX-06 must not add the reminder that it never does. The
+# capitalised Italian forms count inside a sentence and at its start; voi in any case.
 _ADDRESS_RE = {
-    "de": re.compile(r"\b(?:Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres)\b|(?<=[a-zäöü,] )Sie\b"),
-    "fr": re.compile(r"\b(?:vous|votre|vos)\b", re.IGNORECASE),
+    "de": re.compile(
+        r"\b(?:Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres)\b|(?<=[a-zäöü,] )Sie\b"
+        r"|(?i:\b(?:du|dich|dir|dein|deine|deinen|deinem|deiner|deines"
+        r"|euch|euer|eure|euren|eurem|eurer|eures)\b)"
+    ),
+    "fr": re.compile(r"\b(?:vous|votre|vos|tu|toi|te|ton|ta|tes)\b|\bt['’](?=\w)", re.IGNORECASE),
+    "it": re.compile(
+        r"(?<=[a-zàèéìòù,] )(?:Lei|La|Le|Suo|Sua|Suoi|Sue)\b|(?:^|[.!?:]\s+)Lei\b"
+        r"|(?i:\b(?:voi|vostr[oaie]|tu|ti|tuo|tua|tuoi|tue)\b)"
+    ),
 }
-# Sentence analysis for the document metrics, per language with a parser.
-_ANALYSIS = {"de": de_rules, "fr": fr_rules}
+# Sentence analysis for the document metrics, per language with an analysis.
+_ANALYSIS = {"de": de_rules, "fr": fr_rules, "it": it_rules}
 _INTRODUCED_RE = re.compile(r"\(([A-ZÄÖÜ][A-Za-zÄÖÜäöü]{1,7})\)")  # (EL), (BehiG)
 
 
@@ -68,7 +80,9 @@ class RuleChecker:
     def __init__(self, lang: str) -> None:
         self.lang = lang
         self.nlp = pipeline(lang)
-        self.parsed = has_parser(self.nlp)  # German: full parse; others: sentences only
+        # German and French: a full parse; Italian: the lexicon's lemma, part of speech
+        # and morphology. The sentence rules run with either.
+        self.parsed = has_analysis(self.nlp)
         # One spaCy pipeline per language, used by the worker threads and the web
         # requests (the Check page) at once: one text through it at a time, as
         # ingest/segment.py does with its sentencizer.

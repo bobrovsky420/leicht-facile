@@ -120,5 +120,66 @@ Dann bekommen Sie Geld für die Kranken·kasse. Sie müssen ein Gesuch schicken.
 """
 
 
+# The Italian letter and the hand-written answers of its P1 job (tests/web/test_web.py):
+# the German letter above in Italian, with the office's number of the Italian example
+# letter. The draft has a passive sentence and leaves the deadline out.
+LETTERA = """# Riduzione dei premi 2026
+
+Le persone con un reddito modesto hanno diritto a una riduzione dei premi.
+La richiesta deve essere inoltrata al Comune entro il 31 marzo 2026.
+
+Per l'elaborazione il Comune riscuote una tassa di 20 franchi.
+
+Informazioni: Ufficio delle assicurazioni sociali, telefono 091 123 45 67.
+
+La base legale è l'articolo 5 della legge di applicazione.
+"""
+
+UNDERSTAND_IT = {
+    "doc_type": "Promemoria",
+    "audience": "Le persone con poco reddito",
+    "core": {
+        "what": {"text": "Il Cantone paga una parte del premio.", "segment_ids": ["s0002"]},
+        "must_do": {"text": "Inviare una richiesta al Comune.", "segment_ids": ["s0003"]},
+        "deadline": {"text": "Entro il 31 marzo 2026.", "segment_ids": ["s0003"]},
+        "cost": {"text": "Tassa di 20 franchi.", "segment_ids": ["s0004"]},
+        "contact": {"text": "Ufficio delle assicurazioni sociali, 091 123 45 67.",
+                    "segment_ids": ["s0005"]},
+    },
+    "facts": [
+        {"id": "f01", "kind": "amount", "text": "La tassa costa 20 franchi.", "value_norm": "20",
+         "segment_ids": ["s0004"], "must_keep": True},
+        {"id": "f02", "kind": "deadline",
+         "text": "La richiesta deve arrivare al Comune entro il 31 marzo 2026.",
+         "value_norm": "2026-03-31", "segment_ids": ["s0003"], "must_keep": True},
+        {"id": "f03", "kind": "contact",
+         "text": "L'ufficio ha il numero di telefono 091 123 45 67.",
+         "value_norm": "0911234567", "segment_ids": ["s0005"], "must_keep": True},
+    ],
+    "hard_terms": [
+        {"term": "riduzione dei premi",
+         "explanation": "Il Cantone paga una parte del premio della cassa malati."}
+    ],
+    "omit_candidates": [{"segment_ids": ["s0006"], "reason": "Articolo di legge"}],
+}  # fmt: skip
+
+WRITE_IT = {
+    "blocks": [
+        {"kind": "heading", "text": "Che cosa deve fare?"},
+        {"kind": "sentence", "text": "La tassa è di 20 franchi.",
+         "fact_ids": ["f01"], "segment_ids": ["s0004"]},
+        {"kind": "sentence", "text": "La richiesta viene controllata dal Comune.",
+         "segment_ids": ["s0003"]},
+        {"kind": "sentence", "text": "Per domande telefoni al numero 091 123 45 67.",
+         "fact_ids": ["f03"], "segment_ids": ["s0005"]},
+    ],
+    "omissions": [{"what": "Articolo di legge", "why": "non necessario", "segment_ids": ["s0006"]}],
+    "glossary": [
+        {"term": "riduzione dei premi",
+         "explanation": "Il Cantone paga una parte del premio della cassa malati."}
+    ],
+}  # fmt: skip
+
+
 def as_json(obj: object) -> str:
     return json.dumps(obj, ensure_ascii=False)

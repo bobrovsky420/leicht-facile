@@ -345,8 +345,44 @@ def test_a_french_letter_runs_through_the_french_prompts_and_rules(app_env) -> N
     assert "Brouillon : pas encore relu." in md
 
 
-def test_a_language_without_prompts_is_refused(app_env) -> None:
+def test_an_italian_letter_runs_through_the_italian_prompts_and_rules(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND_IT)),
+        chat_response(fx.as_json(fx.WRITE_IT)),
+    )
+    job_id = run_job(client, app, text=fx.LETTERA, lang="it", condition="P1", title="Premi")
+    job = client.get(f"/api/jobs/{job_id}").json()
+    assert job["status"] == "needs_review", job["error"]
+    assert job["config"]["lang"] == "it"
+
+    prompts = [body["messages"][0]["content"] for body in endpoint.chat_bodies()]
+    assert prompts[0].startswith("Tu prepari una versione in lingua facile.")
+    assert "Fatti:" in prompts[1] and "18 parole" in prompts[1]
+
+    rules = client.get(f"/api/jobs/{job_id}/artifacts/rules").json()
+    found = {(f["rule_id"], f.get("fact_id")) for f in rules["findings"]}
+    # "viene controllata dal Comune": the Italian passive rule, with or without a suffix
+    # The passive "viene controllata" becomes GRAM-01's finding once the Italian rule
+    # module has its checks of its own (docs/rules.md, "Italian"); until then the shared
+    # and the language-independent rules run.
+    assert found
+    assert ("FACT-01", "f02") in found  # the deadline is missing
+    missing = next(f for f in rules["findings"] if f["rule_id"] == "FACT-01")
+    assert missing["key"] == "FACT-01" and missing["params"]["expected"] == "31 marzo 2026"
+    assert rules["metrics"]["readability_formula"] == "gulpease"
+
+    md = client.get(f"/api/jobs/{job_id}/export?format=md").text
+    assert "Bozza: non ancora rivista." in md
+
+
+def test_a_language_without_prompts_is_refused(app_env, monkeypatch) -> None:
+    from leichtfacile.web import jobs
+
     client, _, _ = app_env
+    # Every language of the app has prompts since 28 October 2026 (Italian was the last),
+    # so the gate is tried with Italian taken away again.
+    monkeypatch.setattr(jobs, "available_languages", lambda: ["de", "fr"])
     italian = {"text": "Il termine scade il 31 marzo.", "lang": "it"}
     response = client.post("/api/jobs", data=italian)
     assert response.status_code == 400

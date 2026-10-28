@@ -25,7 +25,7 @@
   // Thousands as the interface language writes them: 1,960 or 1'960 (views.format_number).
   const number = (n) => {
     const text = Math.round(n).toLocaleString("en-US");
-    return lang === "de" ? text.replace(/,/g, "'") : text;
+    return lang === "de" || lang === "it" ? text.replace(/,/g, "'") : text;
   };
   const clock = (date) => date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
   const typing = (el) =>

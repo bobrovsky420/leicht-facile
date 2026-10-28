@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from leichtfacile.rules import PARAMS, RULES, check_draft, get_checker, style_guide
+from leichtfacile.rules.base import checked_languages
 from leichtfacile.rules.layout import wrap_sentence
 from leichtfacile.schemas import Block, Draft
 
@@ -30,11 +31,15 @@ def checked_rules(lang: str) -> int:
 
 def test_the_readme_states_the_rule_counts() -> None:
     """The counts the README states follow the registry."""
-    de, fr = checked_rules("de"), checked_rules("fr")
+    de, fr, it = checked_rules("de"), checked_rules("fr"), checked_rules("it")
     readme = (RULES_MD.parents[1] / "README.md").read_text(encoding="utf-8")
-    assert f"{de} deterministic rules for German and {fr} for French" in readme
+    assert f"{de} deterministic rules for German, {fr} for French and {it} for Italian" in readme
     stated = re.findall(r"(\d+) deterministic rules", readme)
     assert stated and {int(n) for n in stated} == {de}
+
+
+def test_the_check_page_offers_the_languages_with_checks() -> None:
+    assert checked_languages() == ("de", "fr", "it")
 
 
 def test_every_registered_rule_is_documented() -> None:
@@ -59,8 +64,13 @@ def test_french_guide_follows_the_registry_and_the_french_limits() -> None:
     assert len(a2.splitlines()) == len(guided) + 1
 
 
-def test_fixed_guide_for_italian() -> None:
-    assert "12 parole" in style_guide("it", "A2")
+def test_italian_guide_follows_the_registry_and_the_italian_limits() -> None:
+    a2, b1 = style_guide("it", "A2"), style_guide("it", "B1")
+    assert a2.startswith("Regole per la lingua facile (livello A2):")
+    assert b1.startswith("Regole per il linguaggio chiaro (livello B1):")
+    assert "al massimo 18 parole" in a2 and "al massimo 21 parole" in b1
+    guided = [r for r in RULES.values() if r.guide_for("it", "A2")]
+    assert len(a2.splitlines()) == len(guided) + 1
 
 
 def test_severity_depends_on_level() -> None:

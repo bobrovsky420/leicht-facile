@@ -41,6 +41,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Morph-it! (the Italian lexicon)
+
+The Italian rule checker tags with Morph-it!, the morphological lexicon of the Italian
+language by Eros Zanchetta and Marco Baroni (University of Bologna), version 0.4.8 of
+23 February 2009, http://sslmit.unibo.it/morphit: about 505,000 inflected forms with
+their lemma and morphological features. Every spaCy Italian model is licensed for
+non-commercial use only (CC BY-NC-SA 3.0), which is why the lexicon stands in for a
+model. `scripts/lexicon_package.py` turns the lexicon's text file, unchanged in
+content, into the lookup table of the pipeline component `morphit`
+(`scripts/morphit.py`) inside the package `leichtfacile-model-it`, which the app
+depends on like the spaCy models for German and French; the lexicon's readme and the
+LGPL text travel inside that package.
+
+Morph-it! is dual-licensed: its readme says that it may be redistributed and modified
+under the Creative Commons Attribution ShareAlike 2.0 License and the GNU Lesser
+General Public License (the readme's GNU section quotes the wording of the GNU General
+Public License, version 2 or later, under the LGPL heading, and the archive ships the
+LGPL 2.1 text). Copyright (C) 2004-2009 Marco Baroni and Eros Zanchetta. The lexicon
+itself is used, not the code of its tools. Reference: E. Zanchetta and M. Baroni,
+"Morph-it! A free corpus-based morphological resource for the Italian language",
+Proceedings of Corpus Linguistics 2005, Birmingham.
+
 ## Fonts of the web UI
 
 The web UI ships three font families, vendored as woff2 files in

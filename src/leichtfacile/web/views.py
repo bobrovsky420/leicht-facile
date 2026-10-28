@@ -647,9 +647,10 @@ def display_title(job: Job) -> str:
 
 
 def format_number(n: int, lang: str) -> str:
-    """Thousands separated the way the interface language writes them: 1,960 or 1'960."""
+    """Thousands separated the way the interface language writes them: 1,960 in English
+    and French, 1'960 in German and Italian."""
     text = f"{n:,}"
-    return text.replace(",", "'") if lang == "de" else text
+    return text.replace(",", "'") if lang in ("de", "it") else text
 
 
 def source_line(counts: JobCounts | None, t: Translator = ENGLISH) -> str:

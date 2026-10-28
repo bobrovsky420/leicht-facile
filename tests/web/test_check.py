@@ -30,10 +30,20 @@ def test_the_check_page_refuses_an_empty_text_and_an_unchecked_language(app_env)
     client, app, endpoint = app_env
     empty = client.post("/check", data={"text": "   "})
     assert empty.status_code == 400 and "Paste a text first." in empty.text
-    italian = client.post("/check", data={"text": "Il modulo deve essere compilato.", "lang": "it"})
-    assert italian.status_code == 400 and "No checker rules for Italian yet" in italian.text
+    romansh = client.post("/check", data={"text": "Il termin scada ils 31 da mars.", "lang": "rm"})
+    assert romansh.status_code == 400 and "No checker rules for rm yet" in romansh.text
     too_long = client.post("/check", data={"text": "x" * 200_001})
     assert too_long.status_code == 400
+
+
+def test_the_check_page_checks_italian(app_env) -> None:
+    client, app, endpoint = app_env
+    italian = client.post(
+        "/check", data={"text": "Paghi la fattura entro il 31.03.2026.", "lang": "it"}
+    )
+    assert italian.status_code == 200
+    assert "NUM-03" in italian.text and "31 marzo 2026" in italian.text
+    assert "Italian" in italian.text and "Gulpease" in italian.text
 
 
 def test_the_check_page_speaks_german_and_checks_french(app_env) -> None:

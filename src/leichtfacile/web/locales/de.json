@@ -19,7 +19,7 @@
   "check.no_findings": "Keine Befunde.",
   "check.suggestion": "Vorschlag: {text}",
   "check.error.empty": "Fügen Sie zuerst einen Text ein.",
-  "check.error.lang": "Für {lang} gibt es noch keine Regeln; geprüft werden deutsche und französische Texte.",
+  "check.error.lang": "Noch keine Regeln für {lang}.",
   "site.drafts": "Entwürfe",
   "site.ui_lang": "Sprache der Oberfläche",
   "site.footer": "Ein Schreibassistent für Fachleute: Jeder Entwurf braucht eine Prüfung durch einen Menschen und vor der Veröffentlichung eine Prüfung durch Lesende aus der Zielgruppe.",

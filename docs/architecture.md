@@ -362,13 +362,13 @@ Each rule is declared in code once (`rules/catalog.py`, the registry of
 language; the language modules attach their checks and the instruction for the writer
 prompt, and the style guide is rendered from the registry, so prompt and checker never
 disagree; a test keeps the registry and [rules.md](rules.md) in sync. Of the 33 rules
-of the language families, 32 have a German check and 28 a French one: 10 share one
-check with the language's words and patterns in a table (`rules/shared.py`), the others
-have a check per language (`rules/de.py`, `rules/fr.py`), both calibrated on the
-official easy-language pages; GRAM-09 (impersonal phrases) is French only, ORD-01,
+of the language families, 32 have a German check, 28 a French one and 10 an Italian one
+(28 October 2026; the Italian checks of its own follow): 10 share one check with the
+language's words and patterns in a table (`rules/shared.py`), the others have a check per
+language (`rules/de.py`, `rules/fr.py`, `rules/it.py`), German and French calibrated on
+the official easy-language pages; GRAM-09 (impersonal phrases) is French only, ORD-01,
 GRAM-02, GRAM-08, CH-01 and CH-02 are German only. 13 rules for facts, layout and
-readability apply to every language. Italian texts get only those until their rule set
-ships.
+readability apply to every language.
 
 ### 4.5 Meaning check (a model as judge)
 
@@ -944,7 +944,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
   need review, **New draft**, **Check my text**, **AI model**, the model indicator (the
   preset in use, a link to the model page; the dot turns green, amber or red from
-  `/readyz`, kept 5 minutes in `sessionStorage`), the EN / DE / FR switch and the API
+  `/readyz`, kept 5 minutes in `sessionStorage`), the EN / DE / FR / IT switch and the API
   link. A "Skip to content" link comes first.
 - **Drafts** (`/`): the work queue as a table. Title and where the text came from,
   language and level, pipeline, status (the stage and time while running, the error
@@ -1057,7 +1057,7 @@ names it first and falls back to Arial and Helvetica, without embedding it. All 
 families are vendored as woff2 under `web/static/fonts/` (SIL OFL 1.1, licences next
 to the files, THIRD_PARTY_NOTICES.md), so nothing is fetched from another host.
 
-**Interface languages.** The UI speaks English, German and French (French since 8 October 2026); the interface language is
+**Interface languages.** The UI speaks English, German, French and Italian (French since 8 October 2026, Italian since 28 October 2026); the interface language is
 the reviewer's and independent of the document's, so a German-speaking reviewer can
 check a French draft. Every text lives in one flat JSON catalog per language,
 `web/locales/<code>.json` (keys such as `review.approve`, `{name}` placeholders,
@@ -1065,11 +1065,11 @@ check a French draft. Every text lives in one flat JSON catalog per language,
 them and provides `t(key, ...)` to the templates and view models. The texts `app.js`
 needs (keys under `js.`) are embedded in each page as JSON, and the script picks
 plural forms and relative times with `Intl`. The language is the choice from the EN /
-DE / FR switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
-`server.ui_lang`, else the browser's `Accept-Language`, else English. Adding Italian means
-adding `it.json`, as French was added: the switcher, the language choice and the
-tests pick it up, and a test fails until the catalog has every English key with the
-same placeholders. The rule checker's findings follow the switch too: a finding is the
+DE / FR / IT switcher in the header (`/ui/{code}`, stored in a cookie for a year), else
+`server.ui_lang`, else the browser's `Accept-Language`, else English. A further language
+is one more catalog: the switcher, the language choice and the tests pick it up, and a
+test fails until the catalog has every English key with the same placeholders. The
+rule checker's findings follow the switch too: a finding is the
 key of its message and the values for its placeholders, nothing else (`rules/messages.py`
 holds the English templates and renders the English text for the CLI, the evaluation
 and the repair prompt), the English catalog takes the templates over as
@@ -1106,9 +1106,9 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 | | German | French | Italian |
 |---|--------|--------|---------|
 | Easy level (A2) | Leichte Sprache | FALC (facile à lire et à comprendre) | lingua facile |
-| Plain level (B1) | Einfache Sprache | langage clair / simplifié | linguaggio semplice |
+| Plain level (B1) | Einfache Sprache | langage clair / simplifié | linguaggio chiaro |
 | Rule source | Canton Zürich rules; EBGB (federal) guide; Inclusion Europe "Informationen für alle" | Inclusion Europe "L'information pour tous"; cantonal FALC pages (FR, VD, GE) | Inclusion Europe "Informazioni per tutti"; Canton Ticino pages |
-| spaCy model | `de_core_news_md` | `fr_core_news_md` | `it_core_news_md` |
+| spaCy pipeline | `de_core_news_md` | `fr_core_news_md` | the blank Italian tokenizer and sentencizer with the Morph-it! lexicon as tagger (`leichtfacile_model_it`); no parser, since every spaCy Italian model is CC BY-NC-SA |
 | Readability | Amstad: `180 - ASL - 58.5·ASW` | Kandel-Moles (French Flesch) | Gulpease: `89 + (300·sentences - 10·letters) / words` |
 | Swiss conventions | `ss` for `ß`, `500'000`, `9.00 Uhr`, `044 123 45 67`, Helvetisms | `CHF`, `1 500 francs`, Swiss terms (`septante`, `nonante`) | `fr.` / `CHF`, Ticino terms |
 
@@ -1119,15 +1119,18 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 
 | Status | German | French | Italian |
 |---|--------|--------|---------|
-| Checker rules | 30 + 11 shared | 27 + 11 shared | 11 shared |
-| Prompts and few-shot examples | yes | yes | no; jobs are refused |
+| Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 10 (the shared ones) + 13; its own follow |
+| Prompts and few-shot examples | yes | yes | yes (28 October 2026) |
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | - |
 
 German came first in the build order. French followed on 6 October 2026, before the
-CSCS key arrived: rules, prompts, examples and the web form. Italian is out of scope
-for now and on the roadmap ([rules.md](rules.md#italian-it-ch-lingua-facile)
-says why its grammar rules need a licence decision first). Syllables for readability come from `pyphen` with the `de_CH`, `fr`, `it`
-dictionaries.
+CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28
+October 2026: the shared rules, the prompts and few-shot examples, the example letter,
+the interface catalog and the web form; its checks of their own and the calibration
+follow. Every spaCy Italian model is licensed CC BY-NC-SA, so the Italian checker tags
+with the Morph-it! lexicon, a spaCy component without a parser
+([rules.md](rules.md#italian-it-ch-lingua-facile)). Syllables for readability come
+from `pyphen` with the `de_CH`, `fr`, `it` dictionaries.
 
 ## 9. Evaluation
 
@@ -1136,9 +1139,12 @@ dictionaries.
 `data/pairs/manifest.jsonl`: one row per document pair - `id`, `publisher`, `canton`,
 `lang`, `level`, `role`, `topic`, `url_standard`, `url_easy`, `section_standard` and
 `section_easy` (a heading when only one section of a page corresponds), approximate
-word counts, `facts_estimate`, `licence_note` and `notes`. It holds 35 verified pairs:
+word counts, `facts_estimate`, `licence_note` and `notes`. It holds 49 verified pairs:
 30 German (20 `eval`, 10 `dev`) from Zürich, Bern, St. Gallen, Luzern, Basel-Stadt,
-Graubünden, Zug and three federal offices, and 5 French (3 `eval`, 2 `dev`). `dev`
+Graubünden, Zug and three federal offices, 5 French (3 `eval`, 2 `dev`) and, since 28
+October 2026, 14 Italian (9 `eval`, 5 `dev`) from the BAG, the EBGB, eHealth Suisse and
+Ticino's Divisione dell'azione sociale e delle famiglie, whose easy pages are written
+with Pro Infirmis. `dev`
 pairs are for prompt development and checker calibration; `eval` pairs are held out
 for the final numbers. `python -m leichtfacile eval fetch` downloads and caches the
 texts under `cache/pairs/` in `data.dir`
@@ -1266,8 +1272,12 @@ files unchanged under the import names `leichtfacile_model_de` and `_fr`.
 package (PyPI keeps one pending trusted publisher per repository, workflow and
 environment). A new model version is published first and pinned in `dependencies`
 afterwards; `tests/test_release.py` checks that the pins and the tables agree and that
-the checker loads those models (`rules/nlp.py`). The Italian model is added when
-Italian ships. The vendored UI assets are inside the package. The app never runs
+the checker loads those models (`rules/nlp.py`). The Italian pipeline,
+`leichtfacile-model-it`, is built the same way by `scripts/lexicon_package.py`: the
+blank Italian tokenizer and sentencizer with the Morph-it! lexicon as the tagger, the
+lexicon's archive pinned by SHA-256 in `[tool.leichtfacile.lexicon-models.it]` and the
+component's code (`scripts/morphit.py`) inside the package, since every spaCy Italian
+model is licensed for non-commercial use only. The vendored UI assets are inside the package. The app never runs
 a model itself: the endpoint is provided outside it (below).
 
 The settings are one TOML file with a section per topic, and the providers and presets
@@ -1569,15 +1579,15 @@ src/leichtfacile/
                             normalize.py, detect.py, errors.py
   pipeline/                 models.py, prompts.py, render.py, stages.py, rounds.py (the plan of
                             the rounds after the first draft), orchestrator.py, runner.py
-  rules/                    base.py, messages.py, de.py, fr.py, document.py, layout.py, values.py,
+  rules/                    base.py, messages.py, de.py, fr.py, it.py, document.py, layout.py, values.py,
                             lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
-                            vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml),
+                            vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml, vocabulary_it.toml),
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
   web/                      app.py, api.py, pages.py, model.py (the model page), jobs.py, views.py, i18n.py,
                             security.py (the hardening layer), health.py (the probes),
                             observability.py (request ids, the access line, /metrics), templates/,
-                            static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json)
+                            static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json, it.json)
   export/                   layout.py (the one layout every writer serialises), markdown.py, html.py,
                             docx.py, bundle.py
   eval/                     dataset.py, calibrate.py, score.py (prices from presets.toml), run.py, results.py (the one reader
@@ -1585,7 +1595,9 @@ src/leichtfacile/
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
 scripts/                    config_reference.py (the settings reference in configuration.md), print_letters.py,
-                            model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr)
+                            model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),
+                            lexicon_package.py and morphit.py (the Italian pipeline leichtfacile-model-it
+                            from the Morph-it! lexicon)
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters

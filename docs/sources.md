@@ -42,12 +42,15 @@ Rules for using reference pairs:
 
 ### The manifest
 
-`data/pairs/manifest.jsonl` holds 35 pairs, each URL checked on 5 October 2026 (HTTP
-200, no redirect, real content): 30 German (20 `eval`, 10 `dev`) and 5 French (3
-`eval`, 2 `dev`). Publishers: Zürich 13, Bern 8 (6 German, 2 French), St. Gallen 3,
-Luzern 2, Basel-Stadt, Graubünden and Zug 1 each, the federal offices BAG, BWL (German
-and French) and EBGB, and Geneva and Neuchâtel (French). Each row carries approximate
-word counts and a rough count of checkable facts in the standard text.
+`data/pairs/manifest.jsonl` holds 49 pairs, each URL checked on 5 October 2026 (HTTP
+200, no redirect, real content; the Italian rows on 28 October 2026): 30 German (20
+`eval`, 10 `dev`), 5 French (3 `eval`, 2 `dev`) and 14 Italian (9 `eval`, 5 `dev`).
+Publishers: Zürich 13, Bern 8 (6 German, 2 French), Ticino 8 (Italian), St. Gallen 3,
+Luzern 2, Basel-Stadt, Graubünden and Zug 1 each, the federal offices BAG (1 German, 4
+Italian), BWL (German and French) and EBGB (German and Italian, the Italian standard
+being the Federal Council's press release on admin.ch), eHealth Suisse (Italian, with
+the Confederation and the cantons), and Geneva and Neuchâtel (French). Each row carries
+approximate word counts and a rough count of checkable facts in the standard text.
 
 Corrections to the shortlist above, from building the manifest:
 
@@ -70,7 +73,7 @@ Corrections to the shortlist above, from building the manifest:
 | Bern | About 60 topics in the [A-Z list](https://www.be.ch/de/start/leichte-sprache/inhalte.html?tab=abisz), spread over department subdomains | Each easy page has a "Zur Standardsprache" link, often only to the department's start page; pair by hand | Many pages are short (150-200 words) and carry no facts, for example marriage. Prefer pages with deadlines, amounts and contacts. Many pages also exist in French. |
 | St. Gallen | A [list of documents](https://www.sg.ch/gesundheit-soziales/soziales-in-leichter-sprache/behinderung-in-leichter-sprache/teilhabe-und-barrierefreiheit-in-leichter-sprache/informationen-in-leichter-sprache.html), mostly reports | Pair by title | Reports are long and fact-poor; the SVA sheet above is the best item. |
 | Vaud (French) | The FALC adaptation of the welcome brochure, published 12 February 2026 | Standard version on Issuu, FALC version on [vaud-bienvenue.ch](https://www.vaud-bienvenue.ch/brochures) | The standard brochure has 110 pages: use selected chapters only. |
-| Ticino (Italian) | Voting and election information in lingua facile; no paired page identified yet | - | Italian stays a stretch goal. |
+| Ticino (Italian) | 24 pages in lingua facile of the Divisione dell'azione sociale e delle famiglie (DASF), listed on its [introduzione](https://www4.ti.ch/dss/dasf/lingua-facile/introduzione); written with Pro Infirmis and checked by a reader group | Each easy page links its standard page under `/dss/dasf/temi/...` ("Consulta la pagina completa"); some easy pages combine two to eight standard pages, so pair those by section | Social topics (families, disability, elderly, social assistance, victim support). FAQ-style standard pages with contact boxes that the ingest keeps; amounts written `700 fr.`, phones with `+41`. `www4.ti.ch` stalls intermittently (a fetch times out after 30 s, the retry succeeds). Eight pairs in the manifest. The federal Italian pool is the [CCLF list](https://www.edi.admin.ch/it/informazioni-in-lingua-facile-cclf) (14 texts) plus the 14 BAG texts under [Informazioni in lingua facile](https://www.bag.admin.ch/it/informazioni-in-lingua-facile); the standard counterparts are chosen by hand, and BWL and MeteoSvizzera have no usable Italian standard page. |
 
 ## 3. Demo documents (no easy-language version)
 
@@ -99,6 +102,7 @@ evaluation by the BAG pair above.
 | [be.ch](https://www.be.ch/de/tools/rechtliches.html) | Written consent required in advance for any reproduction | Same as Zürich |
 | [admin.ch](https://www.admin.ch/de/rechtliches) | Rights reserved by the federal authorities | Web pages and fact sheets: manifest only unless article 5 clearly applies |
 | [sg.ch](https://www.sg.ch/content/dam/sgch/kanton-stgallen/personalhandbuch/Legal_Disclaimer.pdf) | Reuse with full attribution for private use; other use needs written permission | Same as Zürich |
+| [ti.ch](https://www4.ti.ch/tich/informazioni-legali/) | All content is the property of the cantonal administration; use, reproduction and distribution for non-commercial purposes only with written permission, requested in advance, and with the source named; photos carry fees | Same as Zürich |
 | [ahv-iv.ch](https://www.ahv-iv.ch/de/Merkblätter) | Even partial reprints need written consent of the Informationsstelle AHV/IV | Not used |
 | Federal voting explanations | Three layers (research of 5 October 2026, not legal advice). The bill text is an enactment (article 5 para. 1a): free. The Federal Council's own parts ("In Kürze", "Im Detail", the Federal Council's arguments) are very likely a report of an authority (para. 1c): legally required, a government act, published to reach everybody. The committees' argument pages (about 2,500 characters each) are written by the committees: treat them as third-party text. Infographics and photos may be protected separately. The admin.ch notice asks for consent for any reproduction, but a website notice cannot create copyright in a text article 5 excludes; the booklets themselves carry no reuse note. | Federal Council parts and bill text can be used in demos and as fixtures, with the source named. Committee pages: short quotes only, unless the committee consents. No images. A written confirmation from the Federal Chancellery is optional and need not be awaited. |
 

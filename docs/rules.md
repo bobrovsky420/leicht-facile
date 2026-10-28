@@ -20,7 +20,7 @@ does not block; `info` is reported only.
 
 | Parameter | A2 (Leichte Sprache / FALC / lingua facile) | B1 (Einfache Sprache / langage clair) |
 |-----------|---------------------------------------------|-----------------------|
-| Max words per sentence | 12; French 15 | 15; French 18 |
+| Max words per sentence | 12; French 15; Italian 18 | 15; French 18; Italian 21 |
 | Clauses per sentence | 1 | 2 |
 | Passive | error | warn |
 | Genitive | warn | info |
@@ -33,6 +33,9 @@ The A2 values follow the Canton Zürich rules; the B1 values are our own, since 
 official Swiss rule set for Einfache Sprache exists yet. French needs about a quarter
 more words than German for the same content (articles, prepositions); the French
 sentence limits follow from the calibration on the official French pages (below).
+Italian needs about half more: on the 14 official Italian pages the mean sentence has
+8.9 words and 95 percent of the sentences have at most 19, so the Italian limits are 18
+and 21 (calibration of 28 October 2026, below).
 
 ## German (DE-CH)
 
@@ -130,7 +133,7 @@ other document gets the standard prompt word for word.
 | `phone` | `044 123 45 67`, `+41 44 123 45 67`, `0041 44 123 45 67`, `0800 123 456`, `0848 35 45 55` (the ten-digit service numbers 0800, 084x and 090x in either grouping; since 8 October 2026, before that the emergency pages' hotlines came out as four plain numbers) | digits only |
 | `email`, `url` | as written, with or without `https://` and `www.` | lowercase; a shortened web address that is a prefix of a source address passes FACT-06 |
 | `percent` | `10 %`, `10 Prozent`, `10 pour cent` | the number; a fact sheet carries it as `10%` (the prompt's form, and the code completion's since 7 October 2026: a bare number would parse as a plain number and match no percentage) |
-| `time` | `9.00 Uhr`, `09:00`, `9 Uhr`, `9 h 00`, `8.30 bis 11.30 Uhr` | HH:MM |
+| `time` | `9.00 Uhr`, `09:00`, `9 Uhr`, `9 h 00`, `8.30 bis 11.30 Uhr`; Italian (since 28 October 2026) `ore 9.00`, `alle 9.00`, `alle ore 9`, `dalle 8.00 alle 11.30`, `tra le 11.00 e le 15.00` (a dotted time without such a word before it stays a number, as `1.50` is an amount) | HH:MM |
 | `period` | a count in digits or as a number word with days, working days, weeks, months or years in any inflection, also as an adjective: `innert 30 Tagen`, `dreissig Tage`, `30-tägige Frist`, `zwei Wochen`, `ein Jahr`, `5 Arbeitstage`; French `jours`, `jours ouvrables`, `semaines`, `mois`, `ans`; Italian `giorni`, `settimane`, `mesi`, `anni`; since 12 October 2026 also the German genitive (`innert dreier Monate`), an elision before the count (`d'un mois`, `d'une semaine`; a thousands separator is none: `1'000 jours`) and one adjective between count and unit (`die zwei folgenden Wochen`, `les quatre derniers mois`, `nei prossimi tre mesi`); ages (`ab 18 Jahren`) are periods too; not an ordinal (`am 3. Tag`), not a unit without a count (`pro Tag`) and not a frequency (`an vier Tagen pro Woche`, `365 Tage im Jahr`, `2 jours par semaine`) | count and unit as written (`30d`, `2w`, `1y`, `5wd`); weeks match days (`2 Wochen` equals `14 Tage`) and years match months, working days match only working days; a period also matches its bare count (`Kinder bis 16 Jahre` survives as `Kinder unter 16`, and a fact the model gave as `30` is found in `30 Tage`) |
 | `identifier` | AHV number (`756.1234.5678.97`, spaced or as 13 digits); IBAN and QR-IBAN (`CH`, two check digits and 17 characters, any spacing); postal account (`80-151-4`); UID (`CHE-123.456.789`); a code with a digit after a keyword: `Referenz`, `Dossier`, `Aktenzeichen`, compounds with `-nummer` (`Geschäftsnummer`, `Kundennummer`, `Versichertennummer`, `Policennummer`), `Verfügung Nr.`, `Fall Nr.`; since 12 October 2026 the keywords of tax letters, payment orders, penal orders and patient letters: `Steuernummer`, `Zahlungsbefehl Nr.`, `Strafbefehl Nr.`, `Patientennummer`, `Personalnummer`, `Registernummer`, `Beschwerde Nr.`, `Mahnung Nr.`; French `référence`, `dossier`, `n° de client`, `n° de contribuable`, `commandement de payer n°`, `poursuite n°`; Italian `riferimento`, `incarto`, `pratica`, `numero di contribuente`, `precetto esecutivo n.`; a keyword split by code (`Geschäfts·nummer`) and a few small words in between (`Die Nummer von Ihrem Dossier ist 2026-0042`) are allowed; a fact-sheet value that is a bare code (`2026-0042`, `K-4711`) is an identifier too, and so is a dotted or lettered code the fact sheet gives for a fact of kind `identifier` (`482.317.556`, `TIC-9988`; before 12 October 2026 its first digits were read as a plain number) | IBAN and AHV number without spaces, everything else exactly after whitespace normalisation, no checksum test (letters carry specimen numbers); a digits-only identifier also matches the number without its keyword (`Dossier 12345` survives as `Ihre Nummer: 12345`); a form number (`Formular 5100`), a count after a common word (`in diesem Fall 300 Franken`) and a one- or two-digit number after a bare keyword are no identifiers |
 | `quantity` | a number with a unit of a dose or a measurement: `mg`, `µg`, `g`, `kg`, `ml`, `dl`, `l`, `IE`, `Tropfen`, `Tablette`, `Kapsel`, `Hub`, `°C`, `Grad`, `mmHg`, `mmol/l`, `mg/dl`, `mg/kg`, as symbol or name in German, French or Italian (`2,5 mg`, `2.5 Milligramm`, `2 Tabletten`, `1½ Tabletten`, `über 38,5 Grad`, `9 Liter`); not a length, a weight of goods or money | number with a decimal point and the unit's symbol (`2.5 mg`, `1.5 Tablette`, `38.5 °C`); a match needs the same number and symbol; a fact given as a bare number is found in the quantity (`2` in `2 Tabletten`), a quantity whose unit the draft dropped is not |
@@ -209,14 +212,24 @@ Europe, "L'information pour tous", plus the cantonal FALC pages used as examples
 
 ## Italian (IT-CH, lingua facile)
 
-On the roadmap: the rules below are specified, not built, and the registry test leaves the ids ending in `-IT` out. An
-Italian text gets the language-independent rules (facts, layout, readability). Two
-findings from scoping them on 8 October 2026: every spaCy Italian model is licensed
-CC BY-NC-SA 3.0 (non-commercial, from its training data UD Italian ISDT), unlike the
-German (MIT) and French (LGPL-LR) models, so how the grammar rules get their parse is
-a decision of its own; and the polite imperative with Lei (`Compili il modulo`) is a
-subjunctive form, so GRAM-03-IT may only fire on a subjunctive after `che` or a
-conjunction.
+Since 28 October 2026 an Italian text gets the ten checks the languages share
+(`rules/shared.py`: LEN-01, LEX-04, LEX-06, LEX-07, NUM-02, NUM-03, NUM-05, NUM-06,
+NUM-07 and NUM-08, with the Italian words and patterns in `rules/it.py`) and the
+language-independent rules (facts, layout, readability). The checks of its own in the
+table below are specified, not built yet, and the registry test leaves the ids ending
+in `-IT` out until they are. Two findings from scoping them on 8 October 2026: every
+spaCy Italian model is licensed CC BY-NC-SA 3.0 (non-commercial, from its training data
+UD Italian ISDT), unlike the German (MIT) and French (LGPL-LR) models, so the Italian
+checker tags with the Morph-it! lexicon instead (Eros Zanchetta and Marco Baroni,
+University of Bologna, CC BY-SA 2.0 and LGPL): the spaCy component `morphit` of
+`leichtfacile_model_it` sets the lemma, the part of speech and the morphology of every
+token from the lexicon and keeps every reading of an ambiguous form, and there is no
+dependency parse, so clauses are counted from the finite verbs and the words that open
+subordinate clauses, and a passive is an auxiliary followed by a participle; and the
+polite imperative with Lei (`Compili il modulo`) is a subjunctive form, so GRAM-03 may
+only fire on a subjunctive after `che` or a conjunction, on an imperfect subjunctive and
+on the conditional. The reader is addressed with Lei; voi and tu count as direct address
+too (the federal competence centre writes tu, Ticino's pages voi).
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
@@ -254,8 +267,8 @@ show them next to the code findings:
 
 ## Vocabulary
 
-`rules/data/vocabulary_de.toml` and `vocabulary_fr.toml` collect hard words of Swiss
-administrative letters, read by `rules/vocabulary.py`. Two kinds:
+`rules/data/vocabulary_de.toml`, `vocabulary_fr.toml` and `vocabulary_it.toml` collect
+hard words of Swiss administrative letters, read by `rules/vocabulary.py`. Two kinds:
 
 - `replace`: a bureaucratic word, phrase or abbreviation and the everyday word to use
   instead (`innert` = `innerhalb von`, `moyennant` = `avec`, `z. B.` = `zum
@@ -272,7 +285,8 @@ administrative letters, read by `rules/vocabulary.py`. Two kinds:
 - `[not_in]`: phrases in which a term does not count (`zur Verfügung` is no decision).
 
 Size on 7 October: German 260 replace (13 of them context-dependent) and 197 explain
-(7), French 225 (24) and 190 (10). Sources:
+(7), French 225 (24) and 190 (10); Italian on 28 October 214 (27) and 205 (14).
+Sources:
 
 - the hard words of the standard pages in the pairs (`data/pairs/`), the explanations
   official easy pages give for the same terms, and the rule lists above (LEX-01,
@@ -281,10 +295,15 @@ Size on 7 October: German 260 replace (13 of them context-dependent) and 197 exp
   `https://ld.admin.ch/query`, graph `https://lindas.admin.ch/fch/termdat`, about
   40,000 entries in DE, FR, IT, RM, EN): the terms of the pilot's letters (decisions
   and appeals, social insurance, unemployment, IV, KESB, debt collection, tax,
-  residence, grants) with the official French equivalent. The entry is named in a
-  trailing comment (`# TERMDAT 47696`); only the term names are taken, every
+  residence, grants) with the official French and Italian equivalents. The entry is
+  named in a trailing comment (`# TERMDAT 47696`); only the term names are taken, every
   explanation is our own. Terms TERMDAT lacks (`aufschiebende Wirkung`, `Vorbescheid`,
-  the EL terms) name the act that defines them (`# IVG Art. 57a`);
+  the EL terms) name the act that defines them (`# IVG Art. 57a`, `# LEF art. 74`);
+- the Italian list (28 October 2026) was written from the German and French lists and
+  the terms of Ticino and Grisons letters (`Municipio`, `Pretura`, `autorità regionale
+  di protezione`, `intimazione`, `attinenza`, `pigione`), with the official Italian
+  term of 128 entries confirmed in TERMDAT and the others cited to their act; it has had
+  no cross-check against a published Italian list yet;
 - a cross-check against published lists, used as checklists only, never copied: COSLA's
   *Lexique administratif* (Le Robert 2004, about 4,300 entries; before the check we
   covered about 60 percent of its entries relevant to Swiss letters), the German guides
@@ -306,9 +325,13 @@ as part of a hyphenated word (`Rente` in `IV-Rente`), as a German separable verb
 (`reichen ... ein` for `einreichen`) and as a German verbal phrase whose verb stands
 elsewhere in the sentence (`tritt ... in Kraft`); French contracted and elided forms
 count (`dans le cadre du`), and a French verb is listed without its pronoun
-(`vous vous acquittez de`). Abbreviations and acronyms match as written, so the French
-`ai` is never the `AI`. Of overlapping matches the longest wins (`opposition à la
-poursuite` over `opposition`).
+(`vous vous acquittez de`). An Italian form matches with its ending swapped for a base
+form's (`decisioni`, `premi`, `provvede`, `notificato`; `rivolgersi` for `rivolgere`),
+the articulated prepositions count for the bare one (`ai sensi della`, `all'` for `a`),
+and an Italian reflexive verb is listed with its pronoun at the end (`rivolgersi a`),
+which the text puts before the verb (`Lei si rivolge a`). Abbreviations and acronyms
+match as written, so the French `ai` is never the `AI`. Of overlapping matches the
+longest wins (`opposition à la poursuite` over `opposition`).
 
 **Use in the pipeline** (since 7 October 2026; `pipeline.vocabulary = false` switches it off, only
 to measure it; docs/architecture.md §4.2, §4.3, §4.6):
@@ -341,7 +364,15 @@ entries (`Behörde`, `Merkblatt`) or context-dependent (`Unterlagen`, `obligator
 `Dienststelle` in names of offices, `Beeinträchtigung` as the respectful word,
 `inklusive` meaning inclusion, `site internet`), and a word inside a hyphenated name
 (`Abklärungs-Stelle`) is no longer flagged. What still fires on the easy pages are
-office words (`genehmigt`, `einreichen`, `Anliegen`).
+office words (`genehmigt`, `einreichen`, `Anliegen`). Italian (28 October 2026): the
+first list fired 6.7 times per 100 blocks on the 14 official Italian easy-language
+pages and 34.0 times on their standard originals; after the calibration LEX-07 fires
+0.8 and 27.3. The words the official writers keep on purpose became explain entries
+(`minorenne`, `maggiorenne`, `a tempo indeterminato`) or context-dependent (`versare`
+in `viene versato`, `trasmettere` of a disease, `provvedere a se stesso`, `concedere`,
+`rivolgersi a`, `di seguito` also meaning in a row, `beneficiario` in the name of an
+aid, `autorizzare`), and `a domicilio` (at home) is no `domicilio`. What still fires
+on the easy pages are office words (`effettuato`, `in base a`, `a favore di`).
 
 ## Fact checks for the further use cases
 
@@ -463,6 +494,38 @@ What the calibration changed, and why:
   are no abbreviations.
 - GRAM-05: `votation` is everyday Swiss French, `ambulance` a concrete thing.
 - NUM-04: `8h` and `16h30`, as the Geneva pages write them, are a note.
+
+### Italian
+
+Run on 28 October 2026 with `python -m leichtfacile eval calibrate --role all --lang it`:
+the 14 official Italian easy-language pages of the manifest (the BAG, the EBGB, eHealth
+Suisse and Ticino's DASF), 654 blocks, level A2, with the ten shared checks and the
+language-independent rules; the Italian checks of their own were not built yet.
+
+| Run | Errors / 100 blocks | Warnings / 100 blocks | Info / 100 blocks |
+|-----|---------------------|-----------------------|-------------------|
+| The shared checks with the French limits (15 and 18 words) | 5.8 | 12.8 | 5.0 |
+| With the Italian limits (18 and 21 words) and the first vocabulary | 2.9 | 20.9 | 5.0 |
+| After the calibration of the vocabulary (LEX-07, "Vocabulary" below) | 2.9 | 12.4 | 5.0 |
+
+What the calibration set, and why:
+
+- The sentence limits. On these pages the mean sentence has 8.9 words (French 7.3,
+  German 5.9) and 95 percent of the sentences have at most 19 words (French 15, German
+  11); with the French limits LEN-01 alone caused the 5.8 errors. The Italian limits are
+  18 words (A2) and 21 (B1). The 19 errors that remain are sentences of 22 words or
+  more, contact lines and list-like lines among them.
+- LEX-04 fires 7.8 times per 100 blocks: the official Italian pages put acronyms and
+  short explanations in parentheses (`(UFSP)`, `60 mesi (5 anni)`); a warning, as for
+  the German and French pages.
+- NUM-06: the BAG pages write `10%`; the rule asks for `per cento`, as the German and
+  French ones ask for Prozent and pour cent.
+- LEX-07 fired 9.3 times per 100 blocks with the first vocabulary of 28 October 2026
+  and 0.8 after its calibration the same day (German 1.2, French 0.7; 27.3 on the
+  standard originals): the words the official writers keep became explain or context
+  entries, as for German and French ("Vocabulary" below). The role nouns (LEX-06) are
+  matched in the singular and the plural (`richiedente`, `richiedenti`,
+  `beneficiari`); a defect of the first pattern had missed the singular.
 
 ### The value kinds of 7 October on the official texts
 

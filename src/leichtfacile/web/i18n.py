@@ -4,8 +4,8 @@ Every language is one JSON file in `locales/`, named by its code (`en.json`,
 `de.json`). The file maps flat dotted keys to texts with `{name}` placeholders; the
 key `_name` holds the language's own name for the switcher. English is the reference:
 a key missing in another catalog falls back to English, and a test makes sure every
-shipped catalog has exactly the English keys. Adding French or Italian means adding
-`fr.json` or `it.json`; nothing else changes.
+shipped catalog has exactly the English keys. A further language is one more file,
+`<code>.json`; nothing else changes.
 
 The rule checker's findings are translated as well: `rules/messages.py` holds their
 English templates, the English catalog takes them over under `finding.<key>`, and the

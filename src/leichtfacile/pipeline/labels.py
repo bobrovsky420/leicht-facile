@@ -85,6 +85,44 @@ LABELS: dict[str, dict[str, str]] = {
         "notice_default": "Cette explication vous aide à comprendre la décision. "
         "Seule la décision fait foi.",
     },
+    "it": {
+        "core_what": "Di che cosa si tratta?",
+        "core_must_do": "Che cosa bisogna fare?",
+        "core_deadline": "Entro quando?",
+        "core_cost": "Quanto costa?",
+        "core_contact": "A chi chiedere?",
+        "doc_type": "Tipo: {doc_type}. Per: {audience}.",
+        "core": "Domande principali:",
+        "unanswered": "Il documento non risponde a:",
+        "facts": "Fatti:",
+        "background": "contesto",
+        "fact_value": " | valore: {value}",
+        "fact_from": " | fonte: {ids}",
+        "hard_terms": "Parole difficili:",
+        "omit": "Si può tralasciare:",
+        "none": "(nessuno)",
+        "empty": "(vuoto)",
+        "block_refs": "   (fatti: {facts}; fonte: {sources})",
+        "suggestion": "Suggerimento: {text}",
+        "problems": "Problemi:",
+        "keep_facts": "Il blocco deve mantenere questi fatti:",
+        "missing_value": " (valore: {value})",
+        "missing_value_exact": " (valore: {value}; scrivi: {exact})",
+        "unsupported": "Questo non è nell'originale.",
+        "distorted": "Il fatto {fact_id} è sbagliato: {note} Corretto: {fact}",
+        "section": "le frasi da {first} a {last}",
+        "copied_example": "La risposta contiene {count} frasi dell'esempio nelle istruzioni "
+        "(tassa sui cani). L'esempio mostra solo la forma. Scrivi sul documento qui "
+        "sotto, con i suoi fatti e i suoi numeri di frase.",
+        "foreign_values": "La risposta contiene valori che non sono nel documento: {values}. "
+        "Ogni valore deve venire dalla scheda dei fatti o dalle frasi dell'originale. "
+        "Scrivi queste frasi senza il valore estraneo, oppure tralasciale.",
+        "recover_value": "Le tue frasi non hanno il valore {value}. Scrivilo esattamente così.",
+        "recover_foreign": "Questi valori non sono nel paragrafo dell'originale: {values}. "
+        "Scrivi solo quello che c'è nel paragrafo.",
+        "notice_default": "Questa spiegazione La aiuta a capire la decisione. "
+        "Fa stato la decisione.",
+    },
 }
 
 

@@ -24,7 +24,9 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 # leichtfacile-model-de and -fr: spaCy's models for German and French, republished on
-# PyPI (the tables [tool.leichtfacile.spacy-models] below, the same versions).
+# PyPI (the tables [tool.leichtfacile.spacy-models] below, the same versions);
+# leichtfacile-model-it: the Italian pipeline built on the Morph-it! lexicon (the table
+# [tool.leichtfacile.lexicon-models.it] below, the same version).
 dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
@@ -42,6 +44,7 @@ dependencies = [
     "python-dotenv>=1.1",
     "leichtfacile-model-de==3.8.0",
     "leichtfacile-model-fr==3.8.0",
+    "leichtfacile-model-it==1.0.0",
 ]
 
 [project.urls]

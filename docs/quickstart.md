@@ -20,16 +20,17 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 | [6. Offline install](#6-offline-install-air-gapped) | `pip wheel` on a connected machine; `pip install --no-index` on the target | a connected machine of the same kind |
 
 Every way needs a model that is ready to make drafts: a preset and its key
-([The model](#the-model)). The spaCy models the rule checker parses German and French
-with (about 90 MB) are dependencies of the package, the packages leichtfacile-model-de
-and leichtfacile-model-fr on PyPI (spaCy's models, their files unchanged), so every way
-brings them. The examples below write `leichtfacile`; with way 1 it is `uvx
+([The model](#the-model)). The language packages the rule checker parses German and
+French and tags Italian with (about 95 MB) are dependencies of the package, the packages
+leichtfacile-model-de, leichtfacile-model-fr and leichtfacile-model-it on PyPI (spaCy's
+models, their files unchanged, and the Italian pipeline built on the Morph-it! lexicon),
+so every way brings them. The examples below write `leichtfacile`; with way 1 it is `uvx
 leichtfacile`, with way 2 `uv run leichtfacile`. How each way gets a newer release:
 [Updates](#updates).
 
 The web UI runs at <http://127.0.0.1:8000>: `/healthz` says the process is up, `/readyz`
 whether the model's provider answers and lists the configured models. The interface is in
-English, German or French. The New draft form and the empty drafts list offer the
+English, German, French or Italian. The New draft form and the empty drafts list offer the
 example letters shipped with the package as one-click fills.
 
 ## The model
@@ -146,8 +147,8 @@ anything; uv picks or downloads a suitable Python (3.12 or newer).
 uvx leichtfacile serve        # opens http://127.0.0.1:8000/model
 ```
 
-The first start downloads the app with its dependencies, the language models among them
-(90 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
+The first start downloads the app with its dependencies, the language packages among them
+(95 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
 other. `uvx leichtfacile setup` asks the same on the command line. With a provider's key
 in a `.env` in the current folder (or in the environment), its presets are ready without
 either:
@@ -222,6 +223,7 @@ evaluation command.
 uv run leichtfacile eval fetch --role all
 uv run leichtfacile eval calibrate --role all --lang de
 uv run leichtfacile eval calibrate --role all --lang fr
+uv run leichtfacile eval calibrate --role all --lang it
 # the originals and the official versions, P0, P0-ZH (the Canton of Zurich's prompt,
 # German only), P1 and P2, then the tables
 uv run leichtfacile eval reference --role all --results eval/results-cscs
@@ -361,8 +363,8 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
 ## 6. Offline install (air-gapped)
 
 On a connected machine with the same operating system, CPU architecture and Python
-version as the target, collect the app with every dependency, the two spaCy models
-among them, in one folder:
+version as the target, collect the app with every dependency, the three language
+packages among them, in one folder:
 
 ```bash
 pip wheel leichtfacile -w wheelhouse
