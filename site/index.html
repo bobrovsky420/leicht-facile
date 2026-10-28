@@ -55,6 +55,7 @@
   --accent: #1F4E8A;
   --accent-hover: #163B6A;
   --accent-weak: #E9EDF3;
+  --accent-line: #A5B8D0;
   --on-accent: #FFFFFF;
   --ok: #1E6B3A;
   --ok-weak: #E8F3EC;
@@ -74,6 +75,7 @@
     --accent: #8FB1DE;
     --accent-hover: #B3CBEA;
     --accent-weak: #1E2B3D;
+    --accent-line: #3D5578;
     --on-accent: #10161F;
     --ok: #7CC596;
     --ok-weak: #15291C;
@@ -130,6 +132,14 @@ section:last-of-type { border-bottom: 0; }
 .langs p { margin: 0; padding: 14px 16px; background: var(--sunken); border: 1px solid var(--hairline); border-radius: 8px; font-size: 0.95rem; color: var(--text-2); }
 .langs b { display: block; color: var(--ink); font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
 
+.stat {
+  display: grid; grid-template-columns: auto 1fr; align-items: center;
+  margin: 32px 0 0; padding: 20px 0; border-radius: 10px;
+  background: var(--accent-weak); color: var(--text-2); font-size: 1.05rem;
+}
+.stat strong { padding: 0 28px; color: var(--accent); font-size: clamp(1.5rem, 3.2vw, 1.9rem); font-weight: 600; line-height: 1.1; white-space: nowrap; }
+.stat span { padding: 2px 28px; border-left: 1px solid var(--accent-line); }
+
 .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
 .card h3 { font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -174,6 +184,9 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
 }
 @media (max-width: 520px) {
   ol.steps { grid-template-columns: 1fr; }
+  .stat { grid-template-columns: 1fr; padding: 18px 20px; gap: 12px; }
+  .stat strong { padding: 0; }
+  .stat span { padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--accent-line); }
   nav ul { gap: 14px; }
 }
 </style>
@@ -215,6 +228,9 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
       <p lang="it"><b>Italiano</b>Versioni in lingua facile di testi ufficiali svizzeri con un
       modello a scelta; il codice verifica ogni valore, una persona rivede.</p>
     </div>
+    <p class="stat"><strong>1.25 million</strong> <span>adults in Switzerland aged 16 to 65
+    (22 percent) have low reading skills (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Swiss
+    Federal Statistical Office, PIAAC 2022/2023</a>).</span></p>
   </div>
 </section>
 
@@ -235,9 +251,6 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
         bekommen Sie kein Geld zurück.</blockquote>
       </div>
     </div>
-    <p class="note">About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have
-    low reading skills (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Swiss Federal
-    Statistical Office, PIAAC 2022/2023</a>).</p>
   </div>
 </section>
 
