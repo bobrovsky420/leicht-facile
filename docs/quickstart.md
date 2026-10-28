@@ -162,7 +162,7 @@ uvx leichtfacile serve publicai-apertus
 
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
   ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
-  is quick. `uvx leichtfacile@0.7.1 serve` runs that version.
+  is quick. `uvx leichtfacile@0.8.0 serve` runs that version.
 - Nothing lands on the PATH or in the current folder: uv unpacks the app with its
   dependencies into its cache, a Python it downloads goes to its Python folder.
   `uv cache dir` and `uv python dir` print both; by default:
@@ -272,7 +272,7 @@ pip install leichtfacile
 
 Every release's wheel is also on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.7.1/leichtfacile-0.7.1-py3-none-any.whl`.
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.8.0/leichtfacile-0.8.0-py3-none-any.whl`.
 
 ```bash
 leichtfacile serve        # opens http://127.0.0.1:8000/model

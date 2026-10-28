@@ -1574,6 +1574,7 @@ docs/
   prompts.md                prompt design notes and change log
   image-input.md            what image input keeps and loses, by kind of value
   evaluation.md             the evaluation tables, written by `eval report`
+  evaluation-publicai.md    the Italian tables from the Public AI gateway, written by `eval report`
   model-comparison.md       every run on every endpoint side by side, tables written by `eval compare`
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
