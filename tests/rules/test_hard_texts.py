@@ -90,8 +90,45 @@ HARD_SENTENCES_FR = {
         {"NUM-03", "NUM-07", "LEX-07"},
     ),
 }
+HARD_SENTENCES_IT = {
+    "IT-1": (
+        "Il diritto alla riduzione individuale dei premi è riconosciuto alle persone il cui "
+        "reddito determinante non supera i limiti fissati dal Consiglio di Stato.",
+        {"GRAM-01", "LEN-02"},
+    ),
+    "IT-2": (
+        "La domanda deve essere inoltrata, debitamente compilata e firmata, entro il "
+        "31.03.2027, pena la perdita del diritto.",
+        {"GRAM-01", "NUM-03", "LEX-07"},
+    ),
+    "IT-3": (
+        "Contro la presente decisione può essere presentato reclamo scritto e motivato entro "
+        "30 giorni dalla notificazione.",
+        {"GRAM-01"},
+    ),
+    "IT-4": (
+        "Occorre rilevare che le spese non annunciate entro i termini non potranno essere "
+        "rimborsate.",
+        {"GRAM-09", "GRAM-01", "NEG-01"},
+    ),
+    "IT-5": (
+        "Qualora Lei non fosse in grado di pagare l'importo dovuto, La preghiamo di "
+        "contattare i nostri uffici.",
+        {"GRAM-03", "LEX-07"},
+    ),
+    "IT-6": (
+        "Il/la richiedente trasmette i documenti giustificativi all'ufficio competente, il "
+        "quale li esamina e, se del caso, li inoltra.",
+        {"LEX-04", "LEX-06"},
+    ),
+    "IT-7": (
+        "Il termine è prorogato al 15.09 mediante un emolumento di fr. 40.-.",
+        {"NUM-03", "NUM-07", "LEX-07"},
+    ),
+}
 CASES = [("de", key, *value) for key, value in HARD_SENTENCES.items()]
 CASES += [("fr", key, *value) for key, value in HARD_SENTENCES_FR.items()]
+CASES += [("it", key, *value) for key, value in HARD_SENTENCES_IT.items()]
 
 
 @pytest.mark.parametrize(("lang", "key", "text", "expected"), CASES, ids=[c[1] for c in CASES])

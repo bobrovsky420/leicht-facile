@@ -38,15 +38,18 @@ MESSAGES: dict[str, str] = {
     # -- grammar
     "GRAM-01": "Passive voice: '{found}'. Say who does what.",
     "GRAM-01.state": "Passive voice or a state: '{found}'. If someone does something, say who.",
+    "GRAM-01.si": "Passive with si: '{found}'. Say who does what.",
     "GRAM-02": "Genitive '{found}': use von + dative or rephrase.",
     # {mood}: Konjunktiv (German), Subjonctif (French)
     "GRAM-03": "{mood} '{found}': write it directly.",
     "GRAM-03.condition": "Konjunktiv '{found}' as a hidden condition: write Wenn ... and the verb.",
     "GRAM-03.after": "Subjunctive after '{reason}' ('{found}'): write two sentences.",
-    "GRAM-03.conditional": "Conditional '{found}': write it directly (vous devez, vous pouvez).",
+    "GRAM-03.conditional": "Conditional '{found}': write it directly.",
     "GRAM-04": "Präteritum '{found}': use the Perfekt.",
     "GRAM-04.future": "Futur simple '{found}': use aller + infinitive or the present.",
     "GRAM-04.passe_simple": "Passé simple '{found}': use the passé composé.",
+    "GRAM-04.passato_remoto": "Passato remoto '{found}': use the passato prossimo.",
+    "GRAM-04.futuro": "Future '{found}': the present is simpler (Lei riceve).",
     "GRAM-05": "Nominal style '{found}': use a verb.",
     "GRAM-05.abstract": "Abstract noun '{found}': a verb or a concrete word may be clearer.",
     "GRAM-05.infinitive": "Nominalised verb '{found}': use the verb.",
@@ -56,8 +59,9 @@ MESSAGES: dict[str, str] = {
     "GRAM-07.reported": "Reported statement ('{found}').",
     "GRAM-08": "'{found}' is a separable verb written as one word: in a main clause the "
     "prefix goes to the end ({expected}).",
-    "GRAM-09": "Impersonal '{found}': say who does what (vous devez ...).",
+    "GRAM-09": "Impersonal '{found}': say who does what.",
     "GRAM-09.soft": "Impersonal '{found}': say who does what, if you can.",
+    "GRAM-10": "Gerund '{found}': write a sentence with its own subject and verb.",
     # -- negation
     "NEG-01": "Double negation: {found}.",
     "NEG-02": "Negation '{found}': can it be said positively?",

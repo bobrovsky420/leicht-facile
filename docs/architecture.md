@@ -1122,13 +1122,15 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 |---|--------|--------|---------|
 | Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 28 + 13 |
 | Prompts and few-shot examples | yes | yes | yes (28 October 2026) |
-| Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | - |
+| Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
 
 German came first in the build order. French followed on 6 October 2026, before the
 CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28
-October 2026: the shared rules, the prompts and few-shot examples, the example letter,
-the interface catalog and the web form; its checks of their own and the calibration
-follow. Every spaCy Italian model is licensed CC BY-NC-SA, so the Italian checker tags
+October 2026: the shared rules, the checks of its own, the prompts and few-shot
+examples, the example letter, the interface catalog, the web form and the calibration
+(10.4 errors per 100 blocks: the official Italian pages, Ticino's above all, keep
+passives and sentences of three clauses, which the rules exclude; every error was read).
+Every spaCy Italian model is licensed CC BY-NC-SA, so the Italian checker tags
 with the Morph-it! lexicon, a spaCy component without a parser
 ([rules.md](rules.md#italian-it-ch-lingua-facile)). Syllables for readability come
 from `pyphen` with the `de_CH`, `fr`, `it` dictionaries.

@@ -93,7 +93,7 @@ license = "LicenseRef-LGPL-LR"
 # inside it are pinned by SHA-256; `version` is the package's own.
 [tool.leichtfacile.lexicon-models.it]
 name = "morphit"
-version = "1.0.0"
+version = "1.0.1"
 source_version = "0.4.8"
 url = "https://kielipankki.fi/download/hfst-morphologies/test/it/morph-it/hfst-it-morph-morph-it.zip"
 sha256 = "895913df4b60435d01362674ae56612c0d3546e452b2ad75b2dfe1e0f48f651f"

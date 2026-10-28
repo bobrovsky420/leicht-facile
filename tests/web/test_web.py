@@ -363,10 +363,7 @@ def test_an_italian_letter_runs_through_the_italian_prompts_and_rules(app_env) -
     rules = client.get(f"/api/jobs/{job_id}/artifacts/rules").json()
     found = {(f["rule_id"], f.get("fact_id")) for f in rules["findings"]}
     # "viene controllata dal Comune": the Italian passive rule, with or without a suffix
-    # The passive "viene controllata" becomes GRAM-01's finding once the Italian rule
-    # module has its checks of its own (docs/rules.md, "Italian"); until then the shared
-    # and the language-independent rules run.
-    assert found
+    assert any(rule.startswith("GRAM-01") for rule, _ in found), found
     assert ("FACT-01", "f02") in found  # the deadline is missing
     missing = next(f for f in rules["findings"] if f["rule_id"] == "FACT-01")
     assert missing["key"] == "FACT-01" and missing["params"]["expected"] == "31 marzo 2026"

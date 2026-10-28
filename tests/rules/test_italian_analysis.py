@@ -41,6 +41,32 @@ def test_ambiguous_forms_keep_every_reading(nlp) -> None:
     assert nlp("La domanda è pronta.")[1].pos_ == "NOUN"  # after the article
     assert nlp("Lei domanda un modulo.")[1].pos_ == "VERB"
     assert nlp("Secondo la legge paga.")[0].pos_ == "ADP"  # secondo: not the verb secondare
+    assert nlp("Tu sei malato.")[1].pos_ == "VERB" and nlp("Lei aspetta sei mesi.")[2].pos_ == "NUM"
+    assert nlp("Se sei stato nel bosco, controlla la pelle.")[2].pos_ == "VERB"  # the participle
+    assert nlp("Ha raggiunto la sua franchigia.")[2].pos_ == "DET"  # la before a possessive
+    doc = nlp("Un appartamento senza gradini e ostacoli.")
+    assert doc[2].pos_ == "ADP" and doc[3].pos_ == "NOUN" and doc[5].pos_ == "NOUN"
+    assert nlp("Sono ostacoli fisici presenti in casa.")[3].pos_ != "VERB"
+    doc = nlp("Chieda all'Ufficio rette, anticipi e incassi.")
+    assert [t.pos_ for t in doc[3:8]] == ["NOUN", "PUNCT", "NOUN", "CCONJ", "NOUN"]
+
+
+@pytest.mark.parametrize(
+    ("text", "pos"),
+    [
+        ("Telefoni al numero 117.", "VERB"),  # a polite imperative, not the plural noun
+        ("Telefoni per fissare un appuntamento.", "VERB"),
+        ("Controlli i documenti.", "VERB"),
+        ("Per domande: telefoni all'ufficio.", "VERB"),
+        ("Aspetti della vita", "NOUN"),
+        ("Contatti per domande", "NOUN"),
+        ("Telefoni fissi e cellulari", "NOUN"),
+    ],
+)
+def test_polite_imperatives_at_the_start(nlp, text: str, pos: str) -> None:
+    doc = nlp(text)
+    token = doc[3] if text.startswith("Per domande") else doc[0]
+    assert token.pos_ == pos
 
 
 def test_word_count_joins_elisions_and_number_runs(nlp) -> None:
@@ -71,6 +97,10 @@ def test_passive_constructions(nlp, text: str, expected: list) -> None:
         ("Paga la tassa se ha un cane.", ["se"], 2),
         ("Questo è il modulo che Lei compila.", ["che"], 2),
         ("Telefoni per fissare un appuntamento.", ["per"], 2),
+        ("Per ricevere i soldi Lei deve fare una domanda.", ["per"], 2),
+        ("Per confrontare i prezzi:", ["per"], 1),
+        ("La domanda è stata inviata e il Comune ha risposto.", [], 2),
+        ("Bisogna chiedere all'Ufficio rette, anticipi e incassi.", [], 1),
         ("Lei riceve una lettera e paga la fattura.", [], 1),
         ("Lei riceve una lettera e il Comune paga.", [], 2),
         ("Perché paga?", [], 1),

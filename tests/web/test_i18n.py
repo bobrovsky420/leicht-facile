@@ -137,7 +137,7 @@ def test_rule_titles_are_one_per_rule() -> None:
     assert "Trennbare" in rule_title(de, "GRAM-08")
     assert "unpersönlich" in rule_title(de, "GRAM-09")
     assert "impersonnelles" in rule_title(fr, "GRAM-09")
-    assert rule_title(fr, "LEX-06").endswith("vous")
+    assert "vous" in rule_title(fr, "LEX-06")
     assert "impersonale" in rule_title(it, "GRAM-09")
     assert rule_title(it, "LEX-06").endswith("Lei")
     assert rule_title(de, "LEN-01") == "Höchstens N Wörter pro Satz"

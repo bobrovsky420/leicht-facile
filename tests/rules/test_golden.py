@@ -1,5 +1,5 @@
 """Golden sentences: every rule fires on its positive and stays silent on its negative
-examples (tests/rules/golden_<lang>.yaml), for German and French."""
+examples (tests/rules/golden_<lang>.yaml), for German, French and Italian."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import yaml
 from leichtfacile.rules import RULES, check_draft
 from leichtfacile.schemas import Block, Draft, GlossaryEntry
 
-LANGS = ("de", "fr")
+LANGS = ("de", "fr", "it")
 HERE = Path(__file__).parent
 GOLDEN = {
     lang: yaml.safe_load((HERE / f"golden_{lang}.yaml").read_text(encoding="utf-8"))

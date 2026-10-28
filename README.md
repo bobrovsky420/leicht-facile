@@ -43,7 +43,7 @@ run where the organisation controls it, and **Apertus fits best**
    Code adds every date, amount and contact the model missed.
 2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 45 deterministic rules for German, 41 for French and 23 for Italian
+3. **Check** (code): 45 deterministic rules for German, 41 for French and 41 for Italian
    from the published Swiss guidelines (sentence length, passive, genitive, numbers,
    Swiss spelling, Mediopunkt, ...) and an exact check of every fact value in both
    directions (no value lost, no value invented), in milliseconds, without a model.
@@ -126,7 +126,8 @@ uvx leichtfacile serve        # starts the app and opens the browser
 ```
 
 The first start downloads the app with its dependencies, the language models for the
-checker among them (90 MB), and opens the app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
+checker among them (90 MB), into uv's cache (not onto the PATH,
+[quickstart.md](docs/quickstart.md#1-run-with-uvx-no-install)), and opens the app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
 API in Lugano is pre-selected (the 8B writes, the 70B checks: the setup of the reported
 numbers), and the page takes the CSCS key, or any other model's. `uvx leichtfacile
 setup` does the same on the command line. With a provider's key in the environment or a
@@ -162,7 +163,8 @@ writes, Sonnet checks; ...), or any model the provider lists; `setup <preset>` a
 the key alone. The app's model page does the same in the browser: the page lists every
 preset with where the text goes and what a page costs, takes the key and checks it.
 With a provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`),
-its presets are ready without setup: `serve` alone. The language packages the checker
+its presets are ready without setup: `serve` alone, and on a fresh install the first
+provider with a key, in setup's order, picks the preset. The language packages the checker
 parses German and French and tags Italian with (about 95 MB) are dependencies of the
 package, so every way of installing it brings them. `leichtfacile config show` lists every setting and where it comes from;
 [configuration.md](docs/configuration.md) explains them. Installing the command, the

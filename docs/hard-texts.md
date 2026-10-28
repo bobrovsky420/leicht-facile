@@ -74,6 +74,21 @@ at the top are the most interesting: the code checker cannot see them, only the 
 | émolument, moyennant, nonobstant | Old bureaucratic vocabulary | LEX-07 |
 | le cas échéant, dûment, en vertu de | Fixed administrative phrases | LEX-07 |
 
+### Italian
+
+| Word | Why it is hard | Rule |
+|------|----------------|------|
+| prestazioni complementari (PC) | Readers know `PC` as a computer; the benefit is unknown | LEX-02, SEM-05 |
+| notificazione | Readers know the phone's notifications; here formal delivery | SEM-05 |
+| franchigia, aliquota percentuale | Same false friend as in German; a technical share | LEX-03, SEM-05 |
+| esecuzione, precetto esecutivo | Debt-collection terms that sound like a penalty | SEM-04 |
+| permesso di domicilio, imposta alla fonte | Institutions the reader must already know | SEM-04 |
+| riduzione individuale dei premi (RIPAM), sussidio | Abbreviation, rare word | LEX-02 |
+| rimedi giuridici, termine di ricorso | Legal jargon | SEM-04 |
+| avente diritto, richiedente, istante | Legal role words; `istante` is also the instant | LEX-06, SEM-05 |
+| emolumento, mediante, nonostante | Old bureaucratic vocabulary | LEX-07 |
+| qualora, debitamente, in virtù di | Fixed administrative phrases | LEX-07 |
+
 ## 3. Sentences
 
 The rewrites are hand-written illustrations of the target, not tool output.
@@ -113,6 +128,24 @@ Illustrative FALC rewrite of FR-4:
 > Vous avez des frais ?
 > Annoncez les frais à temps.
 > Sinon, vous ne recevez pas d'argent.
+
+### Italian
+
+| ID | Sentence | Why it is hard | Rules |
+|----|----------|----------------|-------|
+| IT-1 | Il diritto alla riduzione individuale dei premi è riconosciuto alle persone il cui reddito determinante non supera i limiti fissati dal Consiglio di Stato. | Passive, `il cui`, negation, jargon | GRAM-01, LEN-02, SEM-04 |
+| IT-2 | La domanda deve essere inoltrata, debitamente compilata e firmata, entro il 31.03.2027, pena la perdita del diritto. | Passive, inserted phrase, numeric date, `pena` | GRAM-01, NUM-03, LEX-07 |
+| IT-3 | Contro la presente decisione può essere presentato reclamo scritto e motivato entro 30 giorni dalla notificazione. | Passive, nominal style, false friend | GRAM-01, SEM-02, SEM-05 |
+| IT-4 | Occorre rilevare che le spese non annunciate entro i termini non potranno essere rimborsate. | Impersonal start, two negations, future passive | GRAM-09, NEG-01, GRAM-01 |
+| IT-5 | Qualora Lei non fosse in grado di pagare l'importo dovuto, La preghiamo di contattare i nostri uffici. | Subjunctive after `qualora`, courtesy formulas hide the instruction ("call us") | GRAM-03, LEX-07, SEM-01 |
+| IT-6 | Il/la richiedente trasmette i documenti giustificativi all'ufficio competente, il quale li esamina e, se del caso, li inoltra. | Slash, third person, `il quale`, unclear `li` | LEX-04, LEX-06, SEM-03 |
+| IT-7 | Il termine è prorogato al 15.09 mediante un emolumento di fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03, NUM-07, LEX-07 |
+
+Illustrative lingua facile rewrite of IT-4:
+
+> Lei ha delle spese?
+> Annunci le spese in tempo.
+> Altrimenti non riceve i soldi.
 
 ## 4. Other uses
 

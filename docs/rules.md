@@ -3,7 +3,7 @@
 The specification for `src/leichtfacile/rules/`. Every rule here is deterministic
 (spaCy morphology, dependency parse, or regex) and has a golden test with at least
 two sentences that trigger it and one that must not (`tests/rules/golden_de.yaml`,
-`golden_fr.yaml`);
+`golden_fr.yaml`, `golden_it.yaml`);
 the hard texts of [hard-texts.md](hard-texts.md) are a second acceptance test. Each
 rule is registered once in code with its id, severity per level and its instruction
 for the writer prompt; the style guide in the writer prompt is rendered from that
@@ -212,40 +212,70 @@ Europe, "L'information pour tous", plus the cantonal FALC pages used as examples
 
 ## Italian (IT-CH, lingua facile)
 
-Since 28 October 2026 an Italian text gets the ten checks the languages share
-(`rules/shared.py`: LEN-01, LEX-04, LEX-06, LEX-07, NUM-02, NUM-03, NUM-05, NUM-06,
-NUM-07 and NUM-08, with the Italian words and patterns in `rules/it.py`) and the
-language-independent rules (facts, layout, readability). The checks of its own in the
-table below are specified, not built yet, and the registry test leaves the ids ending
-in `-IT` out until they are. Two findings from scoping them on 8 October 2026: every
-spaCy Italian model is licensed CC BY-NC-SA 3.0 (non-commercial, from its training data
-UD Italian ISDT), unlike the German (MIT) and French (LGPL-LR) models, so the Italian
+The same rules as French, under the same ids (`rules/catalog.py` declares each rule
+once; built 28 October 2026): ten checks serve the three languages with the Italian
+words and patterns in a table (`rules/shared.py`: LEN-01, LEX-04, LEX-06, LEX-07,
+NUM-02, NUM-03, NUM-05, NUM-06, NUM-07, NUM-08), the others are Italian checks of
+their own in `rules/it.py`; GRAM-10 (gerund clauses) is Italian only. Every spaCy
+Italian model is licensed CC BY-NC-SA 3.0 (non-commercial, from its training data UD
+Italian ISDT), unlike the German (MIT) and French (LGPL-LR) models, so the Italian
 checker tags with the Morph-it! lexicon instead (Eros Zanchetta and Marco Baroni,
 University of Bologna, CC BY-SA 2.0 and LGPL): the spaCy component `morphit` of
 `leichtfacile_model_it` sets the lemma, the part of speech and the morphology of every
-token from the lexicon and keeps every reading of an ambiguous form, and there is no
-dependency parse, so clauses are counted from the finite verbs and the words that open
-subordinate clauses, and a passive is an auxiliary followed by a participle; and the
-polite imperative with Lei (`Compili il modulo`) is a subjunctive form, so GRAM-03 may
-only fire on a subjunctive after `che` or a conjunction, on an imperfect subjunctive and
-on the conditional. The reader is addressed with Lei; voi and tu count as direct address
-too (the federal competence centre writes tu, Ticino's pages voi).
+token from the lexicon and keeps every reading of an ambiguous form (`compili` is an
+indicative and three subjunctives, `la` an article and a pronoun), and there is no
+dependency parse. So clauses are counted from the finite verbs and the words that open
+subordinate clauses, a passive is an auxiliary followed by a participle, and a mood or
+tense rule fires only on a form whose readings agree or after a word that requires that
+mood: the polite imperative with Lei (`Compili il modulo`) is a present-subjunctive
+form, so GRAM-03 counts the present subjunctive only after `che` or a conjunction that
+requires it; the imperfect subjunctive and the conditional are never imperatives. The
+reader is addressed with Lei; voi and tu count as direct address too (the federal
+competence centre writes tu, Ticino's pages voi).
+
+Not carried over from German and French: the genitive (GRAM-02), the Mediopunkt (LEX-01
+is a note on long words, as in French), the word order rule (ORD-01), the separable
+verbs (GRAM-08), `ß` and quotation marks (CH-01, CH-02; guillemets are standard in
+Swiss Italian) and the Swiss variants (CH-03: Swiss Italian differs from Italy's in
+words the vocabulary handles, not in numerals).
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| GRAM-01-IT | No passive, including `si` passivante | `essere`/`venire` + participle; `si` + 3rd person with patient subject | error (A2) / warn (B1) |
-| GRAM-03-IT | No subjunctive or conditional | `Mood=Sub`, `Mood=Cnd` | warn |
-| GRAM-04-IT | Present and passato prossimo; no passato remoto | `Tense=Past` finite forms | warn |
-| GRAM-09-IT | No gerund clauses | `VerbForm=Ger` heading a clause | warn |
-| LEX-01-IT | No long words; no bureaucratic vocabulary (`burocratese`) | word longer than 13 letters; a stop list (`ai sensi di`, `di cui sopra`, `in ottemperanza`, `istanza`) | warn |
-| NUM-02-IT | Thousands separator `1'500` (Swiss) | `\d{4,}` unspaced, or `1.500` (Italian style) | warn |
-| NUM-03-IT | Date `4 febbraio 2020` | numeric dates | warn |
-| NUM-04-IT | Time `ore 9.00` or `9.00`, ranges `dalle 9.00 alle 12.00` | `09:00`, `9h` | warn |
-| NUM-07-IT | Amounts `500 franchi` or `CHF 500` | `fr. 500.-`, `500,00` | info |
+| LEN-01 | At most N words per sentence (N from level, Italian limits) | words without punctuation; an elided word counts with the next one (`l'ufficio`, `dell'anno`), a run of numbers as one word | warn up to 3 words over, error beyond |
+| LEN-02 | One clause per sentence; no subordinate clauses | per colon-separated part: the finite verbs that open a clause (a compound tense or a modal with its infinitive counts once, `è stato inviato`, `deve fare`; a coordinated verb that shares its subject not at all: `paga e firma`; a part without a finite verb is one statement: `Per confrontare i prezzi:`), the openers of subordinate clauses with a finite verb after them (`perché`, `poiché`, `siccome`, `affinché`, `benché`, `sebbene`, `qualora`, `purché`, `quando`, `mentre`, `finché`, `se`, `che`, the relatives `chi`, `cui`, `il quale`, `dove`; `se` before a pronoun and `che` in `è che`, `più che` do not count) and adverbial infinitives (`per`, `prima di`, `senza`, `al fine di`, `dopo`). The suggestion is the rewrite recipe for the opener (`rules/recipes.py`): `perché`, `poiché`, `siccome` two sentences with `Per questo`; `affinché`, `per` the aim first, then `Per questo`; `benché`, `anche se` `Ma`; `se`, `qualora` a question and an answer with `Allora`, never `forse`; `quando`, `mentre`, `dopo che`, `prima di` two sentences in the order of time with `Poi`; `chi`, `cui`, `il quale`, `dove` two sentences with the noun repeated; `che` the noun repeated or a colon after a verb | warn for one clause too many, error for two or more |
+| LEN-03 | Enumerations of three or more items become a list | noun phrases separated by commas and a final `e`, `o` or `oppure` | warn |
+| GRAM-01 | No passive, including the si passivante | `essere`, `venire` or `andare` followed by the participle of another verb (adverbs, clitics and `stato` may stand between). With an agent (`da ...`), in a compound tense (`è stata inviata`), after a modal (`deve essere inviato`), with `venire` or `andare` (`viene inviato`, `va compilato`) or in the future (`sarà inviata`) it is a passive; a plain present with `essere` (`è inviato`) may describe a state and is a warning (A2) or a note (B1); stative participles (`chiuso`, `aperto`, `assicurato`, `iscritto`, `vietato`, ...), the compound past of an intransitive verb (`è arrivata`) and a reflexive (`si è iscritta`) are not flagged. The si passivante, `si` before a finite verb in the third person plural (`le domande si inviano`) or in the singular after its noun (`il modulo si compila online`), is a note; the common pronominal verbs (`si ammala`, `si chiama`, `si trova`, `si iscrive`) are not counted | error (A2) / warn (B1) |
+| GRAM-03 | No subjunctive or conditional | a conditional whose readings agree (`potrebbe`, `bisognerebbe`); a form with a subjunctive reading after a conjunction or a verb that requires it (`affinché`, `benché`, `purché`, `qualora`, `prima che`, `senza che`, `a condizione che`, ..., `bisogna che`, `occorre che`, `è necessario che`, `vuole che`, `spera che`, ...) or after `se` (`se fosse`); an imperfect subjunctive whose readings agree (`avesse`, `compilasse`). A present-subjunctive form on its own (`Compili`, `Faccia`, `Vada`) is the polite imperative and is left alone | warn |
+| GRAM-04 | Present and passato prossimo; no passato remoto | a passato remoto whose readings agree (`inviò`, `pagarono`); a future whose readings agree (`riceverà`) is a note: the present is simpler | warn / info |
+| GRAM-05 | No nominalisations | a noun ending in `-zione`, `-sione`, `-mento`, `-ità`, `-enza`, `-anza`, `-aggio`, `-ura`, `-ismo` that is not an everyday word (Zipf frequency below 4.0; stop list: `votazione`, `stazione`, `assicurazione`, ...), not a name (capitalised inside the sentence: `la Confederazione`) and not in the glossary. Warning in nominal style (with a light verb such as `avvenire`, `effettuare`, `procedere`, `provvedere` in the sentence, after `in caso di`, `a seguito di`, `in occasione di`, `mediante`, ... or with a `di` attribute: `l'erogazione del contributo`), otherwise a note | warn / info |
+| GRAM-06 | Pronouns only with an unambiguous reference | `lui`, `lei`, `esso`, `essa`, `essi`, `esse`, the clitics `lo`, `la`, `li`, `le` and `questo`, `quello` as pronouns (not before a noun), with no noun of matching gender and number in the same or the previous block, or with several; the capital `Lei`, `La`, `Le` of the formal address are skipped | info (judge confirms: SEM-03) |
+| GRAM-07 | No reported speech | `secondo` + article (`secondo la legge`), `a detta di`, `stando a`, `come riferito da`; the ordinal `secondo` (`il secondo giorno`) is not one | info |
+| GRAM-09 | No impersonal `si prega di`, `è fatto obbligo di`, `occorre` | phrase list: `si prega di`, `si invita a`, `si raccomanda di`, `si rammenta che`, `si fa presente che`, `si comunica che`, `si informa che`, `è fatto obbligo`, `è d'obbligo`, `è opportuno`, `va ricordato`, `occorre` and `bisogna` + infinitive or `che`; `è necessario`, `obbligatorio`, `possibile`, `importante`, `vietato` ... + infinitive or `che` is a note | warn |
+| GRAM-10 | No gerund clauses | a gerund whose readings agree (`compilando`, `avendo pagato`), not after a form of `stare` (`sta compilando`, the progressive) | warn |
+| NEG-01 | No double negation | per clause part (commas, colons, `e`, `o`, `ma`, `però` and the opener of a subordinate clause separate parts): `non` with its concord words (`mai`, `niente`, `nulla`, `nessuno`, `più`, `neanche`, `né`, ...) counts as one negation; a second `non`, `senza` and an adjective with a negative prefix after `non` (`impossibile`, `inutile`, `incompleto`, ...) each add one; two negations in one part | error |
+| NEG-02 | Prefer positive formulation | one negation in a sentence | info |
+| LEX-01 | No long words | a word or part (at hyphens and apostrophes) longer than 13 letters (A2) or 16 (B1), not in the glossary; Italian has no compounds to split | info |
+| LEX-02 | No abbreviations except common ones | dotted abbreviations (`p. es.`, `ecc.`, `cfr.`, `ca.`, `art. 5`, `cpv. 2`, `lett. b`, `n. 3`, `tel.`, `Sig.`, `Dott.`, `Avv.`, ...), abbreviated weekday ranges (`lu-ve`) and months, capital clusters and mixed-case law abbreviations (`UFSP`, `LAMal`); allowlist: `CHF`, `AVS`, `AI`, `FFS`, `PDF`, `WC`, `SMS`, `TV`, `ID`, `OK`; known words in an all-capital heading and words in capitals for emphasis (`SÌ`, `NO`) are no abbreviations; an abbreviation explained in the text or the glossary is only `info`; the suggestion is the full word from the vocabulary (`ecc.`: `eccetera`) | warn |
+| LEX-03 | No foreign words, anglicisms, jargon | a content word, or a word the lexicon lacks, with a Zipf frequency below 2.5 (wordfreq, Italian), unless it is a hyphenated word of common parts, in the glossary, or an office word LEX-07 names the everyday word for | info |
+| LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded) | warn |
+| LEX-05 | Inclusive forms without typographic devices | asterisk, schwa and slash forms (`cittadin*`, `cittadinə`, `cittadini/e`) | info |
+| LEX-06 | Direct address with `Lei` | role nouns for the reader with an article (`il richiedente`, `l'assicurato`, `i beneficiari`, `il contribuente`, `la persona interessata`, ...) | info |
+| LEX-07 | Everyday words instead of office words | a `replace` word of the vocabulary (`inoltrare`, `qualora`, `debitamente`, `emolumento`, `mediante`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02), not the role nouns (LEX-06) | warn / info |
+| NUM-01 | Numbers as digits, except `uno`/`una` | cardinal number words (`due` ... `diciannove`, `venti` ... `novanta` and their compounds `ventuno`, `trentotto`, `cento`, `mille`, `duecento`, `duemila`; not `cento` after `per`, not `sei` where it is the verb) and the ordinals from `terzo` to `decimo` (suggestion `3°`); `primo` and `secondo` are not flagged (`secondo` is also according to) | warn |
+| NUM-02 | Thousands separator `1'500` | 5+ digits without a separator; 4 digits only next to a currency; phone numbers, dates, IBANs, postal codes and numbers after `n.`, `art.`, `modulo`, ... are skipped | warn |
+| NUM-03 | Date `4 febbraio 2020` | numeric dates (`31.03.2026`, ISO and slash dates), also a day and month without year after `il`, `entro il`, `dal`, `al` (`il 15.09`); the suggestion is the written-out date | warn |
+| NUM-04 | Time `9.00` or `ore 9.00`, ranges `dalle 9.00 alle 12.00` | colon times (`09:00`), `9h` and `16h30`, ranges with a dash (`8.30-11.30`, `ore 8-12`); the suggestion is the written-out form | warn |
+| NUM-05 | Durations in words and digits: `1 ora e 30 minuti` | `1,5 ore`, `1½ ore`, `90 min` | info |
+| NUM-06 | Percent written out | `%` → `per cento` | warn |
+| NUM-07 | Amounts `500 franchi` or `CHF 500` | `CHF 120.00`, `fr. 500.-`, `500,00 franchi`, `500 CHF` | info |
+| NUM-08 | Phone numbers spaced: `091 123 45 67` | as NUM-08, including the accepted `+41 91 123 45 67` | warn |
 
-Readability: Gulpease, which needs letters, words and sentences only (no syllables).
-Rule source: Inclusion Europe, "Informazioni per tutti"; Canton Ticino pages as
-examples.
+Readability: Gulpease, which needs letters, words and sentences only (no syllables);
+reported, with no target yet. Rule sources for the writer prompt: Inclusion Europe,
+"Informazioni per tutti"; the federal guide "Lingua facile, guida per le amministrazioni
+pubbliche" (UFPD, version 1.1, June 2026: digits, times as `09.30`, phone numbers with
+spaces, no special characters, no passive, no double negation, every sentence on its own
+line); the official pages of the BAG, the EBGB and Ticino's DASF used as examples.
 
 ## Delegated to the judge (all languages)
 
@@ -499,16 +529,56 @@ What the calibration changed, and why:
 
 Run on 28 October 2026 with `python -m leichtfacile eval calibrate --role all --lang it`:
 the 14 official Italian easy-language pages of the manifest (the BAG, the EBGB, eHealth
-Suisse and Ticino's DASF), 654 blocks, level A2, with the ten shared checks and the
-language-independent rules; the Italian checks of their own were not built yet.
+Suisse and Ticino's DASF), 654 blocks, level A2. The first three runs had the ten
+shared checks and the language-independent rules only, the last one the Italian checks
+of their own with the tagger as published (`leichtfacile-model-it` 1.0.1).
 
 | Run | Errors / 100 blocks | Warnings / 100 blocks | Info / 100 blocks |
 |-----|---------------------|-----------------------|-------------------|
 | The shared checks with the French limits (15 and 18 words) | 5.8 | 12.8 | 5.0 |
 | With the Italian limits (18 and 21 words) and the first vocabulary | 2.9 | 20.9 | 5.0 |
 | After the calibration of the vocabulary (LEX-07, "Vocabulary" below) | 2.9 | 12.4 | 5.0 |
+| With the Italian checks of their own, after their calibration | 10.4 | 41.6 | 39.6 |
+
+The remaining errors are genuine deviations of the pages from the rules, read one by
+one: passives (GRAM-01, 3.8 per 100 blocks: `viene versato`, `può essere prolungato`,
+`va inviata`, `sono organizzate dall'ospedale`; the Ticino pages keep them), sentences
+of three clauses or more (LEN-02, 3.7: "Le operatrici che lavorano in queste case
+aiutano le donne che hanno subito violenza ad affrontare la situazione che hanno
+vissuto") and sentences of 22 words or more (LEN-01, 2.9; contact lines and joined list
+items among them). The warnings are led by LEN-02 (16.7: relative clauses with `che`
+and `per` + infinitive, which the Italian pages use as freely as the French ones use
+`qui` and `pour`), LEX-02 (9.3: the acronyms the pages use throughout, `CIP`, `ONU`,
+`UFSP`, and `ecc.`) and LEX-04 (7.8, below). The notes are NEG-02 (8.0), LEX-03 (7.8:
+`restituirti`, street names) and GRAM-05 (5.7: `infiammazione`, `vaccinazione`).
 
 What the calibration set, and why:
+
+- The tagger (`scripts/morphit.py`, the context rules of the Morph-it! component) was
+  tuned on these pages, each item a false finite verb and with it a clause too many in
+  LEN-02, or a false number in NUM-01: the polite imperative at the start of a sentence
+  or after a comma or a colon is a verb, not a plural noun (`Telefoni al numero`,
+  `Controlli i documenti`, `Telefoni per fissare un appuntamento`; `Aspetti della
+  vita` and `Contatti per domande` stay nouns); `sei` is the verb unless an article, a
+  preposition, a plural noun or punctuation marks the number (`Se sei stato nel bosco`
+  against `sei mesi`, `alle sei`); `la` before a possessive is an article (`la sua
+  franchigia`); a noun coordinated with a noun (`rette, anticipi e incassi`, `gradini e
+  ostacoli`), a second postnominal adjective (`ostacoli fisici presenti in casa`) and a
+  participle that does not agree with its noun (`Ufficio rette`) are no verbs; `senza`,
+  `dopo`, `tra` and `fra` are prepositions, not conjunctions.
+- LEN-02 counts a compound tense or a modal with its infinitive once (`è stato
+  inviato`, `deve fare`) and a part without a finite verb of its own as one statement
+  (`Per confrontare i prezzi:`).
+- GRAM-01: the si passivante is a note, and the common pronominal verbs are not counted
+  (`si ammala`, `si chiama`, `si trova`, `si iscrive`; `rules/it.py`,
+  `PRONOMINAL_VERBS`). The 25 errors are passives with `venire`, `andare`, a modal or
+  an agent.
+- GRAM-05 skips a capitalised noun inside the sentence (`la Confederazione`, a name).
+- NUM-01 leaves `cento` after `per` to NUM-06 (`in per cento`).
+- GRAM-09: `è importante sapere`, `è utile confrontare` and `bisogna` + infinitive are
+  notes; the pages use them. `si prega di` and the other office phrases stay warnings.
+- LEX-02: `tel.` in a contact line is a note; `CHF`, `AVS`, `AI`, `FFS`, `PDF`, `WC`,
+  `SMS`, `TV`, `ID` and `OK` are known.
 
 - The sentence limits. On these pages the mean sentence has 8.9 words (French 7.3,
   German 5.9) and 95 percent of the sentences have at most 19 words (French 15, German

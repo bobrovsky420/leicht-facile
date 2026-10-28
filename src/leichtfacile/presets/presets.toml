@@ -21,9 +21,13 @@
 # A request's settings come from the provider, then the table of the model called, then
 # the preset, then the user's tables of the same names. `extra_body` adds up: a later
 # table's fields join the earlier ones (a model's `reasoning` joins the provider's
-# `provider`), and a field set twice takes the later value. The interface and
-# `leichtfacile setup` list the presets in this file's order; `default` is the preset of
-# a fresh install.
+# `provider`), and a field set twice takes the later value.
+#
+# The order of the tables is the priority of the providers and presets: `leichtfacile
+# setup` and the model page list them in it, and while nothing names the preset in use
+# (a fresh install), the app uses the first preset whose provider's key variable is set
+# (CSCS_API_KEY, then PUBLICAI_API_KEY, ANTHROPIC_API_KEY, ...). `default` is the preset
+# when no key is set.
 
 default = "cscs-apertus"
 

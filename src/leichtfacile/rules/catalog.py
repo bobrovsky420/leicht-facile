@@ -1,9 +1,10 @@
 """The rules of the language families, declared once (docs/rules.md).
 
 A rule has one id, title, severity and scope whatever the language: the German check
-lives in `de.py`, the French one in `fr.py`, and a check both languages share, with
-the language's words and patterns in a table, in `shared.py`. ORD-01, GRAM-02,
-GRAM-08, CH-01 and CH-02 have a German check only, GRAM-09 a French one only. The
+lives in `de.py`, the French one in `fr.py`, the Italian one in `it.py`, and a check
+the languages share, with the language's words and patterns in a table, in
+`shared.py`. ORD-01, GRAM-02, GRAM-08, CH-01, CH-02 and CH-03 have a German or French
+check only, GRAM-09 a French and an Italian one, GRAM-10 an Italian one only. The
 facts, layout and readability rules apply to every language and declare themselves
 where they are checked (document.py, decision.py, medication.py, layout.py).
 """
@@ -57,7 +58,7 @@ declare(
 )
 declare(
     "GRAM-04",
-    title="The tenses of everyday speech: Perfekt, présent and passé composé",
+    title="The tenses of everyday speech: Perfekt, présent and passé composé, passato prossimo",
     severity=sev("warn"),
     scope="sentence",
 )
@@ -77,10 +78,11 @@ declare(
 )
 declare(
     "GRAM-09",
-    title="No impersonal il convient de, il y a lieu de",
+    title="No impersonal phrases: il convient de, il y a lieu de, si prega di",
     severity=sev("warn"),
     scope="block",
 )
+declare("GRAM-10", title="No gerund clauses", severity=sev("warn"), scope="sentence")
 
 # -- negation
 declare("NEG-01", title="No double negation", severity=sev("error"), scope="sentence")
@@ -104,7 +106,7 @@ declare(
     severity=sev("info"),
     scope="block",
 )
-declare("LEX-06", title="Direct address with Sie or vous", severity=sev("info"), scope="block")
+declare("LEX-06", title="Direct address with Sie, vous or Lei", severity=sev("info"), scope="block")
 declare(
     "LEX-07",
     title="Everyday words instead of office words",
@@ -115,7 +117,7 @@ declare(
 # -- numbers, dates, times, amounts
 declare(
     "NUM-01",
-    title="Numbers as digits, except one (ein, eine, un, une)",
+    title="Numbers as digits, except one (ein, eine, un, une, uno, una)",
     severity=sev("warn"),
     scope="sentence",
 )
@@ -127,26 +129,28 @@ declare(
 )
 declare(
     "NUM-03",
-    title="Dates with the month as a word: 4. Februar 2020, 4 février 2020",
+    title="Dates with the month as a word: 4. Februar 2020, 4 février 2020, 4 febbraio 2020",
     severity=sev("warn"),
     scope="block",
 )
 declare(
     "NUM-04",
-    title="Times as 9 Uhr or 9.30 Uhr, 9 h 00 or 9 h 30; ranges with bis or de ... à",
+    title="Times as 9 Uhr or 9.30 Uhr, 9 h 00 or 9 h 30, ore 9.00; ranges with bis, de ... à "
+    "or dalle ... alle",
     severity=sev("warn"),
     scope="block",
 )
 declare(
     "NUM-05",
-    title="Durations in words and digits: 1 Stunde und 30 Minuten, 1 heure et 30 minutes",
+    title="Durations in words and digits: 1 Stunde und 30 Minuten, 1 heure et 30 minutes, "
+    "1 ora e 30 minuti",
     severity=sev("info"),
     scope="block",
 )
 declare("NUM-06", title="Percent written out", severity=sev("warn"), scope="block")
 declare(
     "NUM-07",
-    title="Amounts as 500 Franken, 500 francs or CHF 500",
+    title="Amounts as 500 Franken, 500 francs, 500 franchi or CHF 500",
     severity=sev("info"),
     scope="block",
 )

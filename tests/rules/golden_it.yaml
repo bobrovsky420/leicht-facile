@@ -1,0 +1,268 @@
+# Golden sentences for the Italian rules (docs/rules.md, "Test plan for the checker").
+# For every rule: sentences that must trigger it (positive) and sentences that must not
+# (negative). Each entry is one block; an entry may be a mapping with `text`, `kind`
+# (sentence | list_item | heading), `level` (A2 | B1, default A2) and `glossary`.
+# All sentences are written by the team for these tests. The reader is addressed with
+# Lei, as the Italian prompts ask.
+
+LEN-01:
+  positive:
+    - "Lei può compilare il modulo allo sportello del Suo Comune oppure su internet e poi mandarlo per posta all'ufficio competente entro la fine del mese."
+    - "Se l'anno scorso Lei ha guadagnato meno di 30'000 franchi, forse riceve dei soldi dal Cantone per pagare i premi della cassa malati."
+    - "Lei può compilare il modulo allo sportello del Suo Comune oppure su internet e poi mandarlo per posta subito."
+  negative:
+    - "Lei riceve una lettera."
+    - "Telefoni al numero 091 123 45 67."
+    - "Il termine scade il 31 marzo 2026."
+    - {text: "Lei può compilare il modulo allo sportello del Suo Comune oppure su internet e poi mandarlo per posta subito.", level: B1}
+
+LEN-02:
+  positive:
+    - "Lei riceve dei soldi perché guadagna poco."
+    - "Questo è il modulo che Lei deve compilare."
+    - "Per ricevere i soldi Lei deve fare una domanda."
+    - "Se Lei ha un cane, paga la tassa."
+    - {text: "Lei riceve dei soldi perché guadagna poco, se manda il modulo.", level: B1}
+  negative:
+    - "Lei riceve dei soldi."
+    - "Può telefonare o scrivere un'e-mail."
+    - "Ha domande?"
+    - {text: "Lei riceve dei soldi perché guadagna poco.", level: B1}
+
+LEN-03:
+  positive:
+    - "Deve portare il passaporto, la carta d'assicurazione e una foto."
+    - "Può pagare in contanti, con la carta o per posta."
+  negative:
+    - "Deve portare il passaporto e una foto."
+    - "Può telefonare o scrivere."
+
+GRAM-01:
+  positive:
+    - "Il modulo viene controllato dall'ufficio."
+    - "Il modulo deve essere inviato entro il 31 marzo."
+    - "La domanda è stata accettata."
+    - "La lettera sarà inviata per posta."
+    - "Le domande si inviano all'ufficio."
+  negative:
+    - "L'ufficio è chiuso il lunedì."
+    - "Le persone si ammalano prima o poi."
+    - "Lei è arrivata ieri."
+    - "L'ufficio controlla il modulo."
+    - "Lei si è iscritta al corso."
+
+GRAM-03:
+  positive:
+    - "Lei potrebbe ricevere dei soldi."
+    - "Bisogna che Lei compili il modulo."
+    - "Se fosse possibile, pagherebbe subito."
+    - "Affinché Lei possa pagare, Le mandiamo una fattura."
+  negative:
+    - "Lei deve inviare il modulo."
+    - "Compili il modulo."
+    - "Faccia la domanda entro marzo."
+    - "Lei può pagare in contanti."
+
+GRAM-04:
+  positive:
+    - "Il Comune inviò la lettera."
+    - "Lei pagò la tassa l'anno scorso."
+    - "Lei riceverà una lettera."
+  negative:
+    - "Lei ha ricevuto una lettera."
+    - "Lei riceve una lettera."
+    - "Il modulo è arrivato."
+
+GRAM-05:
+  positive:
+    - "L'erogazione del contributo avviene in aprile."
+    - "In caso di mancata restituzione del modulo, la domanda è respinta."
+  negative:
+    - "Lei fa la domanda su internet."
+    - "In alcuni casi paga anche la Confederazione."
+    - "La stazione è vicina."
+    - "L'informazione è importante."
+
+GRAM-06:
+  positive:
+    - "Lui paga la tassa."
+    - "Lo vede ogni giorno."
+  negative:
+    - "Lei paga la tassa."
+    - "Il modulo è pronto. Lo compili subito."
+    - "Questo modulo è nuovo."
+
+GRAM-07:
+  positive:
+    - "Secondo la legge Lei deve pagare."
+    - "A detta dell'ufficio il termine è scaduto."
+  negative:
+    - "Il secondo mese è gratis."
+    - "Lei paga il secondo giorno."
+
+GRAM-09:
+  positive:
+    - "Si prega di compilare il modulo."
+    - "È fatto obbligo di pagare entro marzo."
+    - "Occorre inviare il modulo."
+    - "È necessario che Lei paghi."
+  negative:
+    - "Lei deve compilare il modulo."
+    - "Lei paga entro marzo."
+
+GRAM-10:
+  positive:
+    - "Compilando il modulo, Lei chiede i soldi."
+    - "Avendo pagato, Lei non deve fare altro."
+  negative:
+    - "Lei sta compilando il modulo."
+    - "Durante la riunione Lei paga."
+    - "Quando paga, riceve una conferma."
+
+NEG-01:
+  positive:
+    - "Non è impossibile pagare dopo."
+    - "Non può non pagare."
+    - "Senza il modulo non riceve niente."
+  negative:
+    - "Lei non riceve niente."
+    - "Non paga mai in contanti."
+    - "Non ha un cane e non ha un gatto."
+
+NEG-02:
+  positive:
+    - "Lei non riceve una lettera."
+    - "Non paga mai in contanti."
+  negative:
+    - "Lei riceve una lettera."
+    - "Non è impossibile."
+
+LEX-01:
+  positive:
+    - "L'autocertificazione è obbligatoria."
+    - "La responsabilizzazione è importante."
+  negative:
+    - "Il modulo è pronto."
+    - "L'ufficio risponde."
+    - {text: "L'autocertificazione è pronta.", glossary: ["autocertificazione"]}
+
+LEX-02:
+  positive:
+    - "Porti il modulo, il passaporto, ecc."
+    - "Vedi art. 5 cpv. 2 della legge."
+    - "La LAMal è una legge."
+    - "Scriva al Sig. Rossi."
+  negative:
+    - "Lei paga in CHF."
+    - "L'AVS paga la rendita."
+    - "Vada all'ufficio."
+
+LEX-03:
+  positive:
+    - "La prassi è farraginosa."
+    - "La frase è pleonastica."
+  negative:
+    - "Il modulo è pronto."
+    - "La casa è grande."
+
+LEX-04:
+  positive:
+    - "Lei paga (entro marzo) la tassa."
+    - "Il modulo e/o la lettera."
+  negative:
+    - "Lei paga la tassa."
+
+LEX-05:
+  positive:
+    - "Tutt* i cittadin* pagano."
+    - "I cittadini/e pagano la tassa."
+  negative:
+    - "Le cittadine e i cittadini pagano."
+    - "Il link è www.esempio.ch/it."
+
+LEX-06:
+  positive:
+    - "Il richiedente deve firmare il modulo."
+    - "L'assicurato paga il premio."
+  negative:
+    - "Lei firma il modulo."
+
+LEX-07:
+  positive:
+    - "Lei deve inoltrare la domanda."
+    - "Qualora Lei non paghi, riceve un richiamo."
+  negative:
+    - "Lei manda la domanda."
+    - "Lei paga la tassa."
+
+NUM-01:
+  positive:
+    - "Lei ha tre giorni di tempo."
+    - "Porti due foto."
+    - "Il terzo piano è chiuso."
+    - "Lei aspetta sei mesi."
+  negative:
+    - "Lei ha un cane."
+    - "Se sei stato nel bosco, controlla la pelle."
+    - "Una lettera arriva."
+    - "Il secondo piano è chiuso."
+    - "Lei paga 3 franchi."
+
+NUM-02:
+  positive:
+    - "Il limite è 42000 franchi."
+    - "La tassa è 1500 franchi."
+  negative:
+    - "Il limite è 42'000 franchi."
+    - "Nel 2026 Lei paga."
+    - "Il modulo n. 5100 è pronto."
+
+NUM-03:
+  positive:
+    - "Paghi entro il 31.03.2026."
+    - "Il termine è il 2026-03-31."
+    - "La riunione è il 15.09."
+  negative:
+    - "Paghi entro il 31 marzo 2026."
+    - "Il costo è 9.50 franchi."
+
+NUM-04:
+  positive:
+    - "L'ufficio apre alle 09:00."
+    - "Orario: 8.30-11.30."
+    - "Telefoni dalle ore 8-12."
+  negative:
+    - "L'ufficio apre alle 9.00."
+    - "Telefoni dalle 8.30 alle 11.30."
+    - "Il modulo ha 3 pagine."
+
+NUM-05:
+  positive:
+    - "La riunione dura 1,5 ore."
+    - "Aspetti 90 min."
+  negative:
+    - "La riunione dura 1 ora e 30 minuti."
+
+NUM-06:
+  positive:
+    - "Lei paga il 10% dei costi."
+    - "Il 20 % è a Suo carico."
+  negative:
+    - "Lei paga il 10 per cento dei costi."
+
+NUM-07:
+  positive:
+    - "La tassa costa CHF 120.00."
+    - "Paghi fr. 500.- entro marzo."
+    - "Il costo è di 500,00 franchi."
+  negative:
+    - "La tassa costa 120 franchi."
+    - "La tassa costa CHF 120."
+
+NUM-08:
+  positive:
+    - "Telefoni allo 0911234567."
+    - "Il numero è 091/123 45 67."
+  negative:
+    - "Telefoni allo 091 123 45 67."
+    - "Il numero è +41 91 123 45 67."

@@ -19,9 +19,7 @@ def documented_ids() -> set[str]:
 
 
 def test_every_documented_rule_is_registered() -> None:
-    documented = documented_ids()
-    pending = {i for i in documented if i.endswith("-IT")}  # Italian later
-    assert documented - pending - set(RULES) == set()
+    assert documented_ids() - set(RULES) == set()
 
 
 def checked_rules(lang: str) -> int:
