@@ -273,7 +273,15 @@ models = { writer = "gemini-3.8-flash" }
 # so that it routes to no provider that stores prompts; the models' own providers see the
 # text. Thinking is OpenRouter's `reasoning` field; GPT and Gemini also take
 # reasoning_effort. Ids and prices from its model list (26 October 2026; Gemini costs 10 %
-# more than at Google); not run with the app yet.
+# more than at Google). Sonnet 5.5 refuses every off switch of OpenRouter's (`enabled =
+# false`, effort none, `max_tokens = 0`: 400, "Reasoning is mandatory for this
+# endpoint"), and with no field it thinks on half the calls; OpenRouter passes Anthropic's
+# native `thinking` field on, and `between_tools`, as on Anthropic's endpoint, kept it from
+# thinking on every call (`disabled` did not; 28 October 2026). With a key of one's own at
+# Anthropic, OpenRouter bills nothing but still holds back each call's highest possible
+# cost from the account's credits: with none, a call may ask for about USD 0.04, which
+# Sonnet's judge (6,000 tokens out) exceeds (402). Haiku ran a whole letter that way (28
+# October 2026); the other models have not been run with the app yet.
 [providers.openrouter]
 label = "OpenRouter"
 url = "https://openrouter.ai/api/v1"
@@ -290,7 +298,7 @@ input_usd = 0.10
 output_usd = 0.50
 
 [providers.openrouter.models."anthropic/claude-sonnet-5.5"]
-extra_body = { reasoning = { enabled = false } }
+extra_body = { thinking = { type = "between_tools" } }
 send_temperature = false
 input_usd = 2.00
 output_usd = 10.00
