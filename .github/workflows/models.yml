@@ -1,14 +1,18 @@
-# The spaCy models as packages on PyPI: leichtfacile-model-de and leichtfacile-model-fr,
-# built by scripts/model_packages.py from the tables [tool.leichtfacile.spacy-models] in
-# pyproject.toml. Run by hand (Actions, Models, Run workflow) after a change of those
-# tables, before the dependencies in pyproject.toml name the new versions.
+# The checker's pipelines as packages on PyPI: leichtfacile-model-de and -fr are spaCy's
+# German and French models, built by scripts/model_packages.py from the tables
+# [tool.leichtfacile.spacy-models] in pyproject.toml; leichtfacile-model-it is the
+# Italian pipeline with the Morph-it! lexicon as its tagger, built by
+# scripts/lexicon_package.py from [tool.leichtfacile.lexicon-models.it] (every spaCy
+# Italian model is licensed for non-commercial use only). Run by hand (Actions, Models,
+# Run workflow) after a change of those tables, before the dependencies in
+# pyproject.toml name the new versions.
 #
 # PyPI takes them by trusted publishing, as release.yml does. PyPI keeps one pending
 # publisher per repository, workflow and environment, so each package publishes from a
-# job with an environment of its own (pypi-model-de, pypi-model-fr), and its publisher
-# names this repository, models.yml and that environment. A wheel already on PyPI is
-# skipped (the same input builds the same bytes). Every action is pinned to a commit;
-# the comment after the hash names the release.
+# job with an environment of its own (pypi-model-de, pypi-model-fr, pypi-model-it), and
+# its publisher names this repository, models.yml and that environment. A wheel already
+# on PyPI is skipped (the same input builds the same bytes). Every action is pinned to a
+# commit; the comment after the hash names the release.
 
 name: Models
 
@@ -27,9 +31,18 @@ jobs:
       matrix:
         include:
           - lang: de
+            build: uv run --no-project python scripts/model_packages.py --lang de --out dist/models
             text: Sie müssen die Rechnung bis zum 30. November bezahlen.
+            annotation: DEP
           - lang: fr
+            build: uv run --no-project python scripts/model_packages.py --lang fr --out dist/models
             text: Vous devez payer la facture avant le 30 novembre.
+            annotation: DEP
+          # Building the Italian pipeline needs spaCy; the package itself does not.
+          - lang: it
+            build: uv run --no-project --with "spacy>=3.8.16,<3.9" python scripts/lexicon_package.py --out dist/models
+            text: Deve pagare la fattura entro il 30 novembre.
+            annotation: MORPH
     environment: pypi-model-${{ matrix.lang }}
     permissions:
       id-token: write  # trusted publishing to PyPI
@@ -39,17 +52,17 @@ jobs:
         with:
           enable-cache: true
       # Outside the project's environment, which depends on these packages.
-      - name: Build it from spaCy's wheel
-        run: |
-          uv run --no-project python scripts/model_packages.py --lang ${{ matrix.lang }} \
-            --out dist/models
-      # A clean environment: the package installs with its spaCy and parses a sentence
-      # with the parse and the morphology the rule checker reads.
-      - name: Install it in a clean environment and parse a sentence
+      - name: Build it
+        run: ${{ matrix.build }}
+      # A clean environment: the package installs with its spaCy and annotates a
+      # sentence with what the rule checker reads: a parse (German, French) or the
+      # lexicon's morphology (Italian).
+      - name: Install it in a clean environment and annotate a sentence
         working-directory: ${{ runner.temp }}
         env:
           MODEL: leichtfacile_model_${{ matrix.lang }}
           TEXT: ${{ matrix.text }}
+          ANNOTATION: ${{ matrix.annotation }}
         run: |
           uv venv smoke
           uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/models/*.whl
@@ -57,8 +70,8 @@ jobs:
           import os
           import spacy
           doc = spacy.load(os.environ["MODEL"])(os.environ["TEXT"])
-          assert doc.has_annotation("DEP") and doc.has_annotation("MORPH")
-          print(" ".join(f"{t.text}/{t.pos_}/{t.dep_}" for t in doc))
+          assert doc.has_annotation(os.environ["ANNOTATION"]) and doc.has_annotation("MORPH")
+          print(" ".join(f"{t.text}/{t.pos_}/{t.dep_ or t.tag_}" for t in doc))
           EOF
       - name: Publish to PyPI
         run: |

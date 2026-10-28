@@ -9,12 +9,13 @@ authors = [
     { name = "Alexander Bobrovsky", email = "bobrovsky@seznam.cz" },
     { name = "Ivan Kuzmych", email = "i.kuzmych@hotmail.com" },
 ]
-keywords = ["easy language", "Leichte Sprache", "FALC", "plain language", "LLM", "Apertus"]
+keywords = ["easy language", "Leichte Sprache", "FALC", "lingua facile", "plain language", "LLM", "Apertus"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
     "Natural Language :: French",
     "Natural Language :: German",
+    "Natural Language :: Italian",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -77,6 +78,27 @@ name = "fr_core_news_md"
 version = "3.8.0"
 sha256 = "8a70d090a54ef77525c3ffa6a6195b9d365f2cf369ae1cd84ede93f3d709079e"
 license = "LicenseRef-LGPL-LR"
+
+# The Italian pipeline: spaCy's blank Italian tokenizer and sentencizer with the
+# Morph-it! lexicon as the tagger (scripts/morphit.py), built by
+# scripts/lexicon_package.py as the package leichtfacile-model-it and published by
+# .github/workflows/models.yml like the spaCy models, since every spaCy Italian model
+# is licensed CC BY-NC-SA (docs/rules.md). Morph-it! (Eros Zanchetta and Marco Baroni,
+# University of Bologna, 0.4.8, CC BY-SA 2.0 and LGPL) is taken from the archive of the
+# Language Bank of Finland's HFST build, which carries the original text file and its
+# readme; the authors' site refuses downloads by scripts. The archive and the lexicon
+# inside it are pinned by SHA-256; `version` is the package's own.
+[tool.leichtfacile.lexicon-models.it]
+name = "morphit"
+version = "1.0.0"
+source_version = "0.4.8"
+url = "https://kielipankki.fi/download/hfst-morphologies/test/it/morph-it/hfst-it-morph-morph-it.zip"
+sha256 = "895913df4b60435d01362674ae56612c0d3546e452b2ad75b2dfe1e0f48f651f"
+lexicon = "hfst-it-morph-morph-it/morph-it/morph-it_048.txt.utf8"
+lexicon_sha256 = "7375216351ee59cee4326b455503f3a6c4e9542cd63ecb86ff5cd58ca5c8e800"
+readme = "hfst-it-morph-morph-it/morph-it/readme-morph-it.txt"
+lgpl = "hfst-it-morph-morph-it/morph-it/lgpl.txt"
+license = "CC-BY-SA-2.0 OR LGPL-2.1-or-later"
 
 [build-system]
 requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]
