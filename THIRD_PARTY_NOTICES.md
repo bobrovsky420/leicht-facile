@@ -65,21 +65,21 @@ Proceedings of Corpus Linguistics 2005, Birmingham.
 
 ## Fonts of the web UI
 
-The web UI ships three font families, vendored as woff2 files in
+The web UI ships two font families, vendored as woff2 files in
 `src/leichtfacile/web/static/fonts/` so that it fetches nothing from another host
 (docs/ui-design.md, section 3.4). The files are the `latin` and `latin-ext` subsets of
 the Fontsource npm packages, version 5.3.0, unchanged:
 
 | Family | Weights | Package | Licence text |
 |--------|---------|---------|--------------|
-| IBM Plex Sans | 400, 500, 600 | `@fontsource/ibm-plex-sans` | `OFL-IBM-Plex-Sans.txt` |
-| IBM Plex Mono | 400, 600 | `@fontsource/ibm-plex-mono` | `OFL-IBM-Plex-Mono.txt` |
-| Atkinson Hyperlegible Next | 400, 700 | `@fontsource/atkinson-hyperlegible-next` | `OFL-Atkinson-Hyperlegible-Next.txt` |
+| Atkinson Hyperlegible Next | 400, 500, 600, 700 | `@fontsource/atkinson-hyperlegible-next` | `OFL-Atkinson-Hyperlegible-Next.txt` |
+| Atkinson Hyperlegible Mono | 400, 600 | `@fontsource/atkinson-hyperlegible-mono` | `OFL-Atkinson-Hyperlegible-Mono.txt` |
 
-IBM Plex: Copyright 2017-2019 IBM Corp., https://github.com/IBM/plex. Atkinson
-Hyperlegible Next: Copyright 2020-2024 The Atkinson Hyperlegible Next Project Authors,
-https://github.com/googlefonts/atkinson-hyperlegible-next.
+Atkinson Hyperlegible Next: Copyright 2020-2024 The Atkinson Hyperlegible Next Project
+Authors, https://github.com/googlefonts/atkinson-hyperlegible-next. Atkinson
+Hyperlegible Mono: Copyright 2020-2024 The Atkinson Hyperlegible Mono Project Authors,
+https://github.com/googlefonts/atkinson-hyperlegible-next-mono.
 
-All three are licensed under the SIL Open Font License, Version 1.1; the full text
+Both are licensed under the SIL Open Font License, Version 1.1; the full text
 with each family's copyright notice lies next to the font files. The files are
 distributed unmodified, bundled with the software, as the licence permits.

@@ -1060,11 +1060,12 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   not break it again, and never inside a value (no-break spaces in a date, an amount or
   a phone number); printed, it sets 14 points on A4.
 
-Type: IBM Plex Sans and Mono for the interface; the reader view uses Atkinson
-Hyperlegible Next, injected into the preview response only. The HTML export
-names it first and falls back to Arial and Helvetica, without embedding it. All three
-families are vendored as woff2 under `web/static/fonts/` (SIL OFL 1.1, licences next
-to the files, THIRD_PARTY_NOTICES.md), so nothing is fetched from another host.
+Type: Atkinson Hyperlegible Next for the interface and Atkinson Hyperlegible Mono for
+ids and values; the reader view uses Atkinson Hyperlegible Next too, injected into the
+preview response. The HTML export names it first and falls back to Arial and
+Helvetica, without embedding it. Both families are vendored as woff2 under
+`web/static/fonts/` (SIL OFL 1.1, licences next to the files, THIRD_PARTY_NOTICES.md),
+so nothing is fetched from another host.
 
 **Interface languages.** The UI speaks English, German, French and Italian (French since 8 October 2026, Italian since 28 October 2026); the interface language is
 the reviewer's and independent of the document's, so a German-speaking reviewer can

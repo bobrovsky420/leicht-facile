@@ -140,10 +140,10 @@ def test_pages_load_nothing_from_another_host() -> None:
     assert "@import" not in css
     fonts = re.findall(r"url\(([^)]+)\)", css)
     fonts += [f.removeprefix("/static/") for f in re.findall(r"url\(([^)]+)\)", READER_FONTS)]
-    assert len(fonts) == 18
+    assert len(fonts) == 16
     for font in fonts:
         assert (WEB / "static" / font).is_file(), font
-    assert len(list((WEB / "static" / "fonts").glob("OFL-*.txt"))) == 3  # the licences
+    assert len(list((WEB / "static" / "fonts").glob("OFL-*.txt"))) == 2  # the licences
 
 
 def test_new_draft_page_offers_the_examples(env) -> None:

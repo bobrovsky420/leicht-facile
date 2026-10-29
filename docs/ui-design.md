@@ -117,22 +117,29 @@ Rules:
 
 | Role | Font | Size / line | Weight |
 |------|------|-------------|--------|
-| Page title (Drafts, New draft) | IBM Plex Sans | 20/28 | 600 |
-| Screen title (the document on the job and review pages) | IBM Plex Sans | 18/24 | 600 |
-| Card heading | IBM Plex Sans | 15/22 | 600 |
-| Pane heading; table head | IBM Plex Sans | 13/18; 12/16 | 600 |
-| Interface text | IBM Plex Sans | 14/20 | 400 |
-| Field label | IBM Plex Sans | 12/16 | 500 |
-| Caption, count | IBM Plex Sans | 12/16 | 400 |
-| Draft block (review) | IBM Plex Sans | 16/24; headings 17/24 | 400; 600 |
-| Source sentence (review) | IBM Plex Sans | 15/23; headings 15/22 | 400; 600 |
-| IDs (`s0010`, `b008`, `f07`) | IBM Plex Mono | 11/16 | 400 |
-| Rule ids; values | IBM Plex Mono | 11/16; 11-12/18 | 600; 400 |
+| Page title (Drafts, New draft) | Atkinson Hyperlegible Next | 20/28 | 600 |
+| Screen title (the document on the job and review pages) | Atkinson Hyperlegible Next | 18/24 | 600 |
+| Card heading | Atkinson Hyperlegible Next | 15/22 | 600 |
+| Pane heading; table head | Atkinson Hyperlegible Next | 13/18; 12/16 | 600 |
+| Interface text | Atkinson Hyperlegible Next | 14/20 | 400 |
+| Field label | Atkinson Hyperlegible Next | 12/16 | 500 |
+| Caption, count | Atkinson Hyperlegible Next | 12/16 | 400 |
+| Draft block (review) | Atkinson Hyperlegible Next | 16/24; headings 17/24 | 400; 600 |
+| Source sentence (review) | Atkinson Hyperlegible Next | 15/23; headings 15/22 | 400; 600 |
+| IDs (`s0010`, `b008`, `f07`) | Atkinson Hyperlegible Mono | 11/16 | 400 |
+| Rule ids; values | Atkinson Hyperlegible Mono | 11/16; 11-12/18 | 600; 400 |
 | Reader page | Atkinson Hyperlegible Next (§14) | 20/32; h1 29/36; h2 23/30 | 400; 700 |
 
-Font stacks: `"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif`;
-`"IBM Plex Mono", ui-monospace, Consolas, monospace`; `"Atkinson Hyperlegible Next",
-Arial, Helvetica, sans-serif`. Counts and table numbers use
+One family everywhere: Atkinson Hyperlegible, which the Braille Institute designed for
+readers with low vision (I, l and 1, O and 0, b, d, p and q are distinct). A tool for
+accessible language uses an accessible typeface in its own interface, not only in its
+output; the interface and the project pages (`site/`) share it since 29 October 2026,
+replacing IBM Plex Sans and Mono.
+
+Font stacks: `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI",
+sans-serif` for the interface; `"Atkinson Hyperlegible Mono", ui-monospace, Consolas,
+monospace`; `"Atkinson Hyperlegible Next", Arial, Helvetica, sans-serif` for the reader
+page and the HTML export. Counts and table numbers use
 `font-variant-numeric: tabular-nums`.
 
 ### 3.3 Spacing, shape, sizes
@@ -156,15 +163,15 @@ Into `src/leichtfacile/web/static/fonts/`, as woff2, subsets `latin` and
 
 | Family | Weights | Licence | Source |
 |--------|---------|---------|--------|
-| IBM Plex Sans | 400, 500, 600 | SIL OFL 1.1 | Fontsource `@fontsource/ibm-plex-sans`, or IBM's `IBM/plex` releases |
-| IBM Plex Mono | 400, 600 | SIL OFL 1.1 | Fontsource `@fontsource/ibm-plex-mono`, or `IBM/plex` |
-| Atkinson Hyperlegible Next | 400, 700 | SIL OFL 1.1 | Fontsource `@fontsource/atkinson-hyperlegible-next`, or `googlefonts/atkinson-hyperlegible-next` |
+| Atkinson Hyperlegible Next | 400, 500, 600, 700 | SIL OFL 1.1 | Fontsource `@fontsource/atkinson-hyperlegible-next`, or `googlefonts/atkinson-hyperlegible-next` |
+| Atkinson Hyperlegible Mono | 400, 600 | SIL OFL 1.1 | Fontsource `@fontsource/atkinson-hyperlegible-mono`, or `googlefonts/atkinson-hyperlegible-next-mono` |
 
-14 files of 7 to 24 KB, 236 KB together (Fontsource 5.3.0). One `@font-face` per
+12 files of 6 to 13 KB, 113 KB together (Fontsource 5.3.0). One `@font-face` per
 file with `font-display: swap` and the subset's `unicode-range`. The licence text of
-each family lies next to the files (`OFL-IBM-Plex-Sans.txt`, `OFL-IBM-Plex-Mono.txt`,
-`OFL-Atkinson-Hyperlegible-Next.txt`), and `THIRD_PARTY_NOTICES.md` has a section on
-the fonts with the version used.
+each family lies next to the files (`OFL-Atkinson-Hyperlegible-Next.txt`,
+`OFL-Atkinson-Hyperlegible-Mono.txt`), and `THIRD_PARTY_NOTICES.md` has a section on
+the fonts with the version used. The project pages (`site/`) reuse the same files: the
+Pages workflow copies them into the site.
 
 ## 4. Components
 
