@@ -653,7 +653,7 @@ class Orchestrator:
             judge_model=(cfg.judge_model or run.llm.judge_model())
             if cfg.condition == "P2" and cfg.use_judge
             else None,
-            prompt_versions=prompt_versions(source.lang),
+            prompt_versions=prompt_versions(source.variety),
             blocking_findings=[blocking_count(h[1], h[2]) for h in history],
             notes=list(run.notes),
             vocabulary=vocabulary_version(source.lang)

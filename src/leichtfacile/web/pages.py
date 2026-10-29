@@ -20,11 +20,11 @@ from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
 from leichtfacile.export.layout import build_layout
 from leichtfacile.ingest.detect import detect_language
-from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES, checked_languages
 from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.varieties import region_for, variety
 from leichtfacile.web import api
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import (
@@ -250,8 +250,13 @@ def _new(
         endpoints=_endpoint_options(request.app.state),
         max_chars=MAX_TEXT_CHARS,
         chars=len(form.get("text") or ""),
-        # Decision mode: the authority's notice, prefilled per document language.
-        notice_defaults={lang: label(lang, "notice_default") for lang in LANGS if lang in written},
+        # Decision mode: the authority's notice, prefilled per document language, in the
+        # installation's variety (texts.region).
+        notice_defaults={
+            lang: variety(lang, request.app.state.settings.texts.region).notice
+            for lang in LANGS
+            if lang in written
+        },
         section="new",
     )
 
@@ -381,6 +386,8 @@ def check_text(
     if doc.lang not in check_langs():
         error = t("check.error.lang", lang=t.get(f"lang.{doc.lang}", doc.lang))
         return _check(request, form, error=error, status_code=400)
+    region = region_for(doc.lang, request.app.state.settings.texts.region)
+    doc = doc.model_copy(update={"region": region})  # checked in the installation's variety
     draft = source_as_draft(doc, level)  # type: ignore[arg-type]
     view = check_view(draft, check_draft(draft), t)
     return _check(request, form, view=view)

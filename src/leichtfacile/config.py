@@ -55,7 +55,7 @@ from pydantic import (
 )
 from pydantic.fields import FieldInfo
 
-from leichtfacile.schemas import PipelineOptions
+from leichtfacile.schemas import PipelineOptions, Region
 
 ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
@@ -478,6 +478,23 @@ def model_price(name: str) -> tuple[float, float] | None:
 Pipeline = PipelineOptions
 
 
+class Texts(Section):
+    """The texts the installation works on (docs/architecture.md section 8). Set by
+    `leichtfacile setup`; a job keeps the value it was created with."""
+
+    region: Region = Field(
+        "CH",
+        description="The national variety of German the drafts follow: CH (Switzerland), DE "
+        "(Germany) or AT (Austria); `leichtfacile setup --region` sets it. French and Italian "
+        "texts are Swiss whatever the value.",
+    )
+
+    @field_validator("region", mode="before")
+    @classmethod
+    def _region_code(cls, value: object) -> object:
+        return value.strip().upper() if isinstance(value, str) else value
+
+
 class Jobs(Section):
     """The job queue (docs/architecture.md §7)."""
 
@@ -643,6 +660,7 @@ class Settings(Section):
     llm: LLM = Field(default_factory=LLM)
     providers: dict[str, Provider] = Field(default_factory=dict)  # the user's own tables
     presets: dict[str, Preset] = Field(default_factory=dict)
+    texts: Texts = Field(default_factory=Texts)
     pipeline: Pipeline = Field(default_factory=Pipeline)
     jobs: Jobs = Field(default_factory=Jobs)
     server: Server = Field(default_factory=Server)
@@ -838,9 +856,19 @@ _cached_settings = get_settings
 def paths() -> Data:
     """[data] alone: the folders without the preset (no key is needed to read the
     examples or the dataset)."""
-    flat = {key: item for key, item in collect().items() if key.startswith("data.")}
+    return _section("data").data
+
+
+def texts() -> Texts:
+    """[texts] alone: the variety of the texts, for the commands that call no model
+    (`check`)."""
+    return _section("texts").texts
+
+
+def _section(name: str) -> Settings:
+    flat = {key: item for key, item in collect().items() if key.startswith(f"{name}.")}
     try:
-        return Settings.model_validate(_tree(flat)).data
+        return Settings.model_validate(_tree(flat))
     except ValidationError as exc:
         raise ConfigError(describe(exc, flat)) from None
 
@@ -1202,8 +1230,8 @@ MODEL_SECTION = "providers.<name>.models.<model>"
 PRESET_SECTION = "presets.<name>"
 SECTIONS: dict[str, type[Section]] = {
     "llm": LLMChoice, PROVIDER_SECTION: Provider, MODEL_SECTION: ModelSettings,
-    PRESET_SECTION: Preset, "pipeline": Pipeline, "jobs": Jobs, "server": Server,
-    "auth": Auth, "data": Data, "log": Log,
+    PRESET_SECTION: Preset, "texts": Texts, "pipeline": Pipeline, "jobs": Jobs,
+    "server": Server, "auth": Auth, "data": Data, "log": Log,
 }  # fmt: skip
 # What `config show` lists: the preset in use with every key, then the other sections.
 IN_USE: dict[str, type[Section]] = {

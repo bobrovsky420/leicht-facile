@@ -16,7 +16,10 @@ from fastapi.testclient import TestClient
 from leichtfacile import ingest
 from leichtfacile.export.docx import DOCX_TYPE
 from leichtfacile.ingest.fetch import FetchedResource
-from tests.conftest import chat_response
+from leichtfacile.llm.client import LLMClient
+from leichtfacile.store import Store
+from leichtfacile.web.app import create_app
+from tests.conftest import chat_response, make_settings
 from tests.pipeline import fixtures as fx
 
 LETTER = """# Prämienverbilligung 2026
@@ -474,3 +477,26 @@ def test_a_missing_fact_gets_a_suggested_sentence_from_its_paragraph(app_env) ->
     draft = client.get(f"/api/jobs/{job_id}/artifacts/draft").json()
     assert draft["version"] == 1  # nothing stored
     assert client.post(f"/api/jobs/{job_id}/facts/f99/recover").status_code == 404
+
+
+def test_a_job_carries_the_installations_variety(tmp_path, endpoint, sleeps) -> None:
+    # The region of the settings (texts.region, set by setup) goes onto the job and the
+    # source when the job is created; French and Italian stay Swiss. The job keeps it
+    # when the setting changes later.
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0, texts__region="AT")
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    store = Store(tmp_path / "web.sqlite")
+    with TestClient(create_app(settings, llm, store)) as client:
+        endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+        job_id = run_job(client, client.app, text=LETTER, condition="P1", title="Brief")
+        job = client.get(f"/api/jobs/{job_id}").json()
+        assert job["config"]["region"] == "AT"
+        assert client.get(f"/api/jobs/{job_id}/artifacts/source").json()["region"] == "AT"
+        assert client.get(f"/api/jobs/{job_id}/artifacts/draft").json()["region"] == "AT"
+        endpoint.push(chat_response("Voici la lettre."))
+        french = run_job(
+            client, client.app, text="Bonjour, voici une lettre du canton.", lang="fr",
+            condition="P0",
+        )  # fmt: skip
+        assert client.get(f"/api/jobs/{french}").json()["config"]["region"] == "CH"
+    store.close()

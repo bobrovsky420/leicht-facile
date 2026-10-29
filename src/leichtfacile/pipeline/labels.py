@@ -42,10 +42,6 @@ LABELS: dict[str, dict[str, str]] = {
         "recover_value": "Deine Sätze haben den Wert {value} nicht. Schreibe ihn genau so.",
         "recover_foreign": "Diese Werte stehen nicht im Absatz des Originals: {values}. "
         "Schreibe nur, was im Absatz steht.",
-        # Decision mode: the authority's notice, the first and last paragraph of the
-        # export, when the job sets none (docs/use-case-decisions.md).
-        "notice_default": "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. "
-        "Massgebend ist der Entscheid.",
     },
     "fr": {
         "core_what": "De quoi s'agit-il ?",
@@ -82,8 +78,6 @@ LABELS: dict[str, dict[str, str]] = {
         "recover_value": "Tes phrases n'ont pas la valeur {value}. Écris-la exactement ainsi.",
         "recover_foreign": "Ces valeurs ne sont pas dans le paragraphe de l'original : "
         "{values}. Écris seulement ce qui est dans le paragraphe.",
-        "notice_default": "Cette explication vous aide à comprendre la décision. "
-        "Seule la décision fait foi.",
     },
     "it": {
         "core_what": "Di che cosa si tratta?",
@@ -120,8 +114,6 @@ LABELS: dict[str, dict[str, str]] = {
         "recover_value": "Le tue frasi non hanno il valore {value}. Scrivilo esattamente così.",
         "recover_foreign": "Questi valori non sono nel paragrafo dell'originale: {values}. "
         "Scrivi solo quello che c'è nel paragrafo.",
-        "notice_default": "Questa spiegazione La aiuta a capire la decisione. "
-        "Fa stato la decisione.",
     },
 }
 

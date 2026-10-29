@@ -1,0 +1,39 @@
+# The national varieties of the document languages (docs/architecture.md section 8):
+# one table per variety, keyed as the prompts, labels and rule checks are looked up
+# (schemas.variety): the language code alone for the Swiss varieties, `de-DE` and
+# `de-AT` for Germany and Austria. The facts of a variety live here, not in Python, so
+# that a convention can be corrected without touching the code; read by
+# src/leichtfacile/varieties/__init__.py.
+#
+# lang, region   the language and the region the table stands for
+# label          the variety's name in the interface's English
+# setup_label    the choice `leichtfacile setup` offers (German varieties only)
+# word_lang      the language tag of the Word export (the spell checker's variety)
+# hyphenation    pyphen's dictionary for the syllable count of the readability index
+# notice         the decision mode's default notice: the first and the last paragraph of
+#                the export when the job sets none (docs/use-case-decisions.md)
+
+[de]
+lang = "de"
+region = "CH"
+label = "German (Switzerland)"
+setup_label = "Switzerland: ss, Mediopunkt, Franken"
+word_lang = "de-CH"
+hyphenation = "de_CH"
+notice = "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
+
+[fr]
+lang = "fr"
+region = "CH"
+label = "French (Switzerland)"
+word_lang = "fr-CH"
+hyphenation = "fr"
+notice = "Cette explication vous aide à comprendre la décision. Seule la décision fait foi."
+
+[it]
+lang = "it"
+region = "CH"
+label = "Italian (Switzerland)"
+word_lang = "it-CH"
+hyphenation = "it"
+notice = "Questa spiegazione La aiuta a capire la decisione. Fa stato la decisione."

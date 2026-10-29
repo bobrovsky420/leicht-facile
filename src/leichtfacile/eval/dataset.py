@@ -43,6 +43,7 @@ class Pair(BaseModel):
     publisher: str = ""
     canton: str = ""
     lang: Literal["de", "fr", "it"]
+    region: Literal["CH", "DE", "AT"] = "CH"  # the national variety the pair is written in
     level: Literal["A2", "B1"] = "A2"
     role: Literal["dev", "eval", "example"] = "eval"
     topic: str = ""
@@ -154,7 +155,9 @@ def load_side(pair: Pair, side: Side, root: Path | None = None) -> SourceDocumen
     path = cached_path(pair.id, side, root)
     if not path.exists():
         raise FileNotFoundError(f"{path} is missing: run `python -m leichtfacile eval fetch` first")
-    return SourceDocument.model_validate_json(path.read_text(encoding="utf-8"))
+    doc = SourceDocument.model_validate_json(path.read_text(encoding="utf-8"))
+    # The cached text carries no region; the pair says which variety it is written in.
+    return doc.model_copy(update={"region": pair.region})
 
 
 def load_pair(pair: Pair, root: Path | None = None) -> tuple[SourceDocument, SourceDocument]:

@@ -1,0 +1,6861 @@
+{
+ "zh-premium-reduction-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 77,
+   "values": {
+    "date": 2,
+    "email": 1,
+    "percent": 2,
+    "period": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 19,
+     "GRAM-02 warn": 22,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 14,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 4,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 15,
+     "LEN-01 warn": 16,
+     "LEN-02 error": 7,
+     "LEN-02 warn": 12,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 15,
+     "LEX-01 warn": 52,
+     "LEX-02 info": 14,
+     "LEX-02 warn": 13,
+     "LEX-03 info": 23,
+     "LEX-04 warn": 8,
+     "LEX-05 info": 2,
+     "LEX-06 info": 2,
+     "LEX-07 warn": 26,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 2,
+     "ORD-01 info": 35,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 77,
+     "words": 814,
+     "readability": 36.6,
+     "pct_passive": 27.3,
+     "pct_genitive": 27.3,
+     "pct_subordinate": 24.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 19,
+     "GRAM-02 info": 22,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 14,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 4,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 9,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 42,
+     "LEX-02 info": 14,
+     "LEX-02 warn": 13,
+     "LEX-03 info": 23,
+     "LEX-04 warn": 8,
+     "LEX-05 info": 2,
+     "LEX-06 info": 2,
+     "LEX-07 info": 26,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 2,
+     "ORD-01 info": 35,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 77,
+     "words": 814,
+     "readability": 36.6,
+     "pct_passive": 27.3,
+     "pct_genitive": 27.3,
+     "pct_subordinate": 24.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 69,
+   "values": {
+    "address": 1,
+    "date": 2,
+    "email": 2,
+    "phone": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 2,
+     "GRAM-05 info": 15,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 warn": 6,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 3,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 366,
+     "readability": 62.3,
+     "pct_passive": 0.0,
+     "pct_genitive": 3.1,
+     "pct_subordinate": 1.5
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 2,
+     "GRAM-05 info": 15,
+     "LEX-01 warn": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 3,
+     "LEX-07 info": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 14,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 366,
+     "readability": 62.3,
+     "pct_passive": 0.0,
+     "pct_genitive": 3.1,
+     "pct_subordinate": 1.5
+    }
+   }
+  },
+  "kept": 0
+ },
+ "zh-emergency-numbers-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 67,
+   "values": {
+    "address": 1,
+    "amount": 1,
+    "date": 4,
+    "email": 1,
+    "phone": 7
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 4,
+     "GRAM-05 info": 10,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 4,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 23,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 13,
+     "LEX-05 info": 1,
+     "LEX-07 warn": 4,
+     "NEG-01 error": 1,
+     "NEG-02 info": 4,
+     "NUM-03 warn": 1,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 67,
+     "words": 383,
+     "readability": 40.3,
+     "pct_passive": 1.3,
+     "pct_genitive": 5.2,
+     "pct_subordinate": 1.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 4,
+     "GRAM-05 info": 10,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 3,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 14,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 13,
+     "LEX-05 info": 1,
+     "LEX-07 info": 4,
+     "NEG-01 error": 1,
+     "NEG-02 info": 4,
+     "NUM-03 warn": 1,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 67,
+     "words": 383,
+     "readability": 40.3,
+     "pct_passive": 1.3,
+     "pct_genitive": 5.2,
+     "pct_subordinate": 1.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 158,
+   "values": {
+    "address": 1,
+    "amount": 1,
+    "email": 1,
+    "phone": 7
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-02 warn": 1,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 10,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 9,
+     "LEX-05 info": 2,
+     "NEG-02 info": 5,
+     "ORD-01 info": 9,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 158,
+     "words": 631,
+     "readability": 69.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 0.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-02 info": 1,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 2,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 7,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 9,
+     "LEX-05 info": 2,
+     "NEG-02 info": 5,
+     "ORD-01 info": 9,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 158,
+     "words": 631,
+     "readability": 69.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 0.8
+    }
+   }
+  },
+  "kept": 10
+ },
+ "zh-blue-algae-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 101,
+   "values": {
+    "address": 1,
+    "email": 4,
+    "phone": 6,
+    "time": 5
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 6,
+     "GRAM-05 info": 19,
+     "GRAM-05 warn": 10,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 12,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 13,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 44,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 24,
+     "LEX-04 warn": 7,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 4,
+     "NEG-01 error": 1,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 101,
+     "words": 638,
+     "readability": 48.8,
+     "pct_passive": 3.8,
+     "pct_genitive": 2.5,
+     "pct_subordinate": 15.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 6,
+     "GRAM-05 info": 19,
+     "GRAM-05 warn": 10,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 7,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 24,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 24,
+     "LEX-04 warn": 7,
+     "LEX-05 info": 2,
+     "LEX-07 info": 4,
+     "NEG-01 error": 1,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 101,
+     "words": 638,
+     "readability": 48.8,
+     "pct_passive": 3.8,
+     "pct_genitive": 2.5,
+     "pct_subordinate": 15.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 133,
+   "values": {
+    "email": 2,
+    "phone": 4,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 3,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 6,
+     "GRAM-06 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 6,
+     "ORD-01 info": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 133,
+     "words": 624,
+     "readability": 78.7,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.6,
+     "pct_subordinate": 5.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 3,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 6,
+     "GRAM-06 info": 2,
+     "LAY-03 info": 1,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 6,
+     "ORD-01 info": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 133,
+     "words": 624,
+     "readability": 78.7,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.6,
+     "pct_subordinate": 5.7
+    }
+   }
+  },
+  "kept": 6
+ },
+ "zh-heat-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 48,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "phone": 2,
+    "quantity": 3
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 5,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 2,
+     "LEN-01 error": 10,
+     "LEN-01 warn": 4,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 10,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 13,
+     "LEX-02 info": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 3,
+     "NEG-02 info": 5,
+     "ORD-01 info": 9,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 48,
+     "words": 405,
+     "readability": 49.5,
+     "pct_passive": 2.6,
+     "pct_genitive": 10.3,
+     "pct_subordinate": 15.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 5,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 2,
+     "LEN-01 error": 7,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 1,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 9,
+     "LEX-02 info": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 3,
+     "NEG-02 info": 5,
+     "ORD-01 info": 9,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 48,
+     "words": 405,
+     "readability": 49.5,
+     "pct_passive": 2.6,
+     "pct_genitive": 10.3,
+     "pct_subordinate": 15.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 95,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "phone": 2,
+    "quantity": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 3,
+     "GRAM-05 info": 4,
+     "LEX-01 warn": 2,
+     "LEX-03 info": 2,
+     "NEG-02 info": 8,
+     "ORD-01 info": 13,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 402,
+     "readability": 77.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 0.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 3,
+     "GRAM-05 info": 4,
+     "LEX-01 warn": 2,
+     "LEX-03 info": 2,
+     "NEG-02 info": 8,
+     "ORD-01 info": 13,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 402,
+     "readability": 77.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 0.0
+    }
+   }
+  },
+  "kept": 5
+ },
+ "zh-oral-health-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 87,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "percent": 2,
+    "period": 1,
+    "phone": 1,
+    "time": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 11,
+     "GRAM-02 warn": 19,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 7,
+     "GRAM-05 warn": 10,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 14,
+     "LEN-01 warn": 12,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 11,
+     "LEX-01 info": 10,
+     "LEX-01 warn": 33,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 36,
+     "LEX-04 warn": 13,
+     "LEX-07 warn": 8,
+     "NEG-01 error": 1,
+     "NEG-02 info": 6,
+     "NUM-01 warn": 2,
+     "NUM-04 warn": 2,
+     "NUM-06 warn": 2,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 87,
+     "words": 754,
+     "readability": 45.7,
+     "pct_passive": 14.3,
+     "pct_genitive": 19.5,
+     "pct_subordinate": 15.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 11,
+     "GRAM-02 info": 19,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 7,
+     "GRAM-05 warn": 10,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 9,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 3,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 11,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 36,
+     "LEX-04 warn": 13,
+     "LEX-07 info": 8,
+     "NEG-01 error": 1,
+     "NEG-02 info": 6,
+     "NUM-01 warn": 2,
+     "NUM-04 warn": 2,
+     "NUM-06 warn": 2,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 87,
+     "words": 754,
+     "readability": 45.7,
+     "pct_passive": 14.3,
+     "pct_genitive": 19.5,
+     "pct_subordinate": 15.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 168,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "period": 2,
+    "phone": 1,
+    "time": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 5,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 13,
+     "GRAM-05 warn": 3,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 7,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 3,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 8,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 28,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 168,
+     "words": 867,
+     "readability": 69.8,
+     "pct_passive": 2.0,
+     "pct_genitive": 3.4,
+     "pct_subordinate": 4.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 5,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 13,
+     "GRAM-05 warn": 3,
+     "LEX-01 warn": 3,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 1,
+     "NEG-02 info": 8,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 28,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 168,
+     "words": 867,
+     "readability": 69.8,
+     "pct_passive": 2.0,
+     "pct_genitive": 3.4,
+     "pct_subordinate": 4.0
+    }
+   }
+  },
+  "kept": 6
+ },
+ "zh-sebe-disability-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 223,
+   "values": {
+    "address": 5,
+    "email": 1,
+    "period": 9,
+    "phone": 1,
+    "time": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 15,
+     "GRAM-02 warn": 13,
+     "GRAM-05 info": 15,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 9,
+     "GRAM-08 error": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 17,
+     "LEN-01 warn": 24,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 33,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 14,
+     "LEX-01 warn": 74,
+     "LEX-02 warn": 41,
+     "LEX-03 info": 110,
+     "LEX-04 warn": 1,
+     "LEX-05 info": 6,
+     "LEX-07 warn": 13,
+     "NEG-02 info": 14,
+     "NUM-01 warn": 9,
+     "NUM-04 warn": 4,
+     "ORD-01 info": 40,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 223,
+     "words": 1699,
+     "readability": 49.7,
+     "pct_passive": 8.2,
+     "pct_genitive": 4.9,
+     "pct_subordinate": 14.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 15,
+     "GRAM-02 info": 13,
+     "GRAM-05 info": 15,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 9,
+     "GRAM-08 warn": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 14,
+     "LEN-02 warn": 3,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 25,
+     "LEX-02 warn": 41,
+     "LEX-03 info": 110,
+     "LEX-04 warn": 1,
+     "LEX-05 info": 6,
+     "LEX-07 info": 13,
+     "NEG-02 info": 14,
+     "NUM-01 warn": 9,
+     "NUM-04 warn": 4,
+     "ORD-01 info": 40,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 223,
+     "words": 1699,
+     "readability": 49.7,
+     "pct_passive": 8.2,
+     "pct_genitive": 4.9,
+     "pct_subordinate": 14.1
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 303,
+   "values": {
+    "address": 4,
+    "amount": 1,
+    "date": 1,
+    "email": 1,
+    "period": 5,
+    "phone": 1,
+    "time": 2,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 3,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 11,
+     "GRAM-05 warn": 12,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 8,
+     "LEN-02 warn": 22,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 7,
+     "LEX-02 warn": 64,
+     "LEX-03 info": 98,
+     "LEX-04 warn": 4,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 16,
+     "NUM-01 warn": 3,
+     "ORD-01 info": 29,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 303,
+     "words": 1624,
+     "readability": 62.0,
+     "pct_passive": 0.4,
+     "pct_genitive": 0.8,
+     "pct_subordinate": 7.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 3,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 11,
+     "GRAM-05 warn": 12,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-03 warn": 3,
+     "LEX-01 warn": 1,
+     "LEX-02 warn": 64,
+     "LEX-03 info": 98,
+     "LEX-04 warn": 4,
+     "LEX-07 info": 1,
+     "NEG-02 info": 16,
+     "NUM-01 warn": 3,
+     "ORD-01 info": 29,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 303,
+     "words": 1624,
+     "readability": 62.0,
+     "pct_passive": 0.4,
+     "pct_genitive": 0.8,
+     "pct_subordinate": 7.1
+    }
+   }
+  },
+  "kept": 13
+ },
+ "zh-accessibility-statement-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 187,
+   "values": {
+    "date": 2,
+    "email": 1,
+    "period": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 error": 17,
+     "GRAM-02 warn": 43,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 16,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 2,
+     "LEN-01 error": 25,
+     "LEN-01 warn": 27,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 27,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 32,
+     "LEX-01 warn": 89,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 9,
+     "LEX-03 info": 19,
+     "LEX-04 warn": 25,
+     "LEX-05 info": 1,
+     "LEX-07 warn": 44,
+     "NEG-02 info": 26,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 12,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 187,
+     "words": 1596,
+     "readability": 33.3,
+     "pct_passive": 11.3,
+     "pct_genitive": 18.5,
+     "pct_subordinate": 15.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 warn": 17,
+     "GRAM-02 info": 43,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 16,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 2,
+     "LEN-01 error": 13,
+     "LEN-01 warn": 12,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 3,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 32,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 9,
+     "LEX-03 info": 19,
+     "LEX-04 warn": 25,
+     "LEX-05 info": 1,
+     "LEX-07 info": 44,
+     "NEG-02 info": 26,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 12,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 187,
+     "words": 1596,
+     "readability": 33.3,
+     "pct_passive": 11.3,
+     "pct_genitive": 18.5,
+     "pct_subordinate": 15.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 116,
+   "values": {
+    "email": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 7,
+     "GRAM-05 info": 4,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 3,
+     "LEN-01 warn": 7,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 30,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 11,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 116,
+     "words": 754,
+     "readability": 55.1,
+     "pct_passive": 4.2,
+     "pct_genitive": 6.3,
+     "pct_subordinate": 14.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 7,
+     "GRAM-05 info": 4,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 3,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 7,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 1,
+     "NEG-02 info": 11,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 116,
+     "words": 754,
+     "readability": 55.1,
+     "pct_passive": 4.2,
+     "pct_genitive": 6.3,
+     "pct_subordinate": 14.7
+    }
+   }
+  },
+  "kept": 1
+ },
+ "zh-voting-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 95,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "period": 4,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 12,
+     "GRAM-02 warn": 26,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 21,
+     "GRAM-05 warn": 8,
+     "GRAM-06 info": 2,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 32,
+     "LEN-01 warn": 12,
+     "LEN-02 error": 7,
+     "LEN-02 warn": 18,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 15,
+     "LEX-01 warn": 71,
+     "LEX-02 warn": 24,
+     "LEX-03 info": 23,
+     "LEX-04 warn": 18,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 31,
+     "NEG-02 info": 9,
+     "NUM-01 warn": 11,
+     "ORD-01 info": 32,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 1140,
+     "readability": 44.3,
+     "pct_passive": 13.3,
+     "pct_genitive": 24.1,
+     "pct_subordinate": 22.9
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 12,
+     "GRAM-02 info": 26,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 21,
+     "GRAM-05 warn": 8,
+     "GRAM-06 info": 2,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 24,
+     "LEN-01 warn": 8,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 30,
+     "LEX-02 warn": 24,
+     "LEX-03 info": 23,
+     "LEX-04 warn": 18,
+     "LEX-05 info": 2,
+     "LEX-07 info": 31,
+     "NEG-02 info": 9,
+     "NUM-01 warn": 11,
+     "ORD-01 info": 32,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 1140,
+     "readability": 44.3,
+     "pct_passive": 13.3,
+     "pct_genitive": 24.1,
+     "pct_subordinate": 22.9
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 117,
+   "values": {
+    "address": 2,
+    "email": 1,
+    "period": 1,
+    "phone": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 3,
+     "GRAM-02 warn": 1,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 5,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 12,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 6,
+     "LEX-03 info": 17,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 6,
+     "ORD-01 info": 21,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 117,
+     "words": 674,
+     "readability": 66.4,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.0,
+     "pct_subordinate": 10.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 3,
+     "GRAM-02 info": 1,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 5,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 2,
+     "LEX-03 info": 17,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 2,
+     "NEG-02 info": 6,
+     "ORD-01 info": 21,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 117,
+     "words": 674,
+     "readability": 66.4,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.0,
+     "pct_subordinate": 10.2
+    }
+   }
+  },
+  "kept": 4
+ },
+ "zh-political-rights-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 154,
+   "values": {
+    "amount": 2,
+    "email": 1,
+    "period": 4,
+    "phone": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 error": 36,
+     "GRAM-02 warn": 46,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 26,
+     "GRAM-05 warn": 12,
+     "GRAM-06 info": 12,
+     "LEN-01 error": 48,
+     "LEN-01 warn": 21,
+     "LEN-02 error": 8,
+     "LEN-02 warn": 44,
+     "LEN-03 warn": 7,
+     "LEX-01 info": 39,
+     "LEX-01 warn": 150,
+     "LEX-02 warn": 22,
+     "LEX-03 info": 38,
+     "LEX-04 warn": 32,
+     "LEX-05 info": 4,
+     "LEX-06 info": 1,
+     "LEX-07 warn": 61,
+     "NEG-01 error": 1,
+     "NEG-02 info": 23,
+     "NUM-01 warn": 9,
+     "ORD-01 info": 43,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 154,
+     "words": 1782,
+     "readability": 29.4,
+     "pct_passive": 23.0,
+     "pct_genitive": 26.7,
+     "pct_subordinate": 29.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 warn": 36,
+     "GRAM-02 info": 46,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 26,
+     "GRAM-05 warn": 12,
+     "GRAM-06 info": 12,
+     "LEN-01 error": 30,
+     "LEN-01 warn": 18,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 7,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 83,
+     "LEX-02 warn": 22,
+     "LEX-03 info": 38,
+     "LEX-04 warn": 32,
+     "LEX-05 info": 4,
+     "LEX-06 info": 1,
+     "LEX-07 info": 61,
+     "NEG-01 error": 1,
+     "NEG-02 info": 23,
+     "NUM-01 warn": 9,
+     "ORD-01 info": 43,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 154,
+     "words": 1782,
+     "readability": 29.4,
+     "pct_passive": 23.0,
+     "pct_genitive": 26.7,
+     "pct_subordinate": 29.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 216,
+   "values": {
+    "email": 1,
+    "period": 2,
+    "phone": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 5,
+     "GRAM-02 warn": 16,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 9,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 1,
+     "LEN-01 warn": 4,
+     "LEN-02 warn": 13,
+     "LEX-01 info": 16,
+     "LEX-01 warn": 2,
+     "LEX-03 info": 71,
+     "LEX-04 warn": 2,
+     "LEX-06 info": 2,
+     "LEX-07 warn": 6,
+     "NEG-02 info": 10,
+     "ORD-01 info": 18,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 216,
+     "words": 1202,
+     "readability": 52.9,
+     "pct_passive": 2.5,
+     "pct_genitive": 7.1,
+     "pct_subordinate": 6.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 5,
+     "GRAM-02 info": 16,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 9,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 1,
+     "LEX-03 info": 71,
+     "LEX-04 warn": 2,
+     "LEX-06 info": 2,
+     "LEX-07 info": 6,
+     "NEG-02 info": 10,
+     "ORD-01 info": 18,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 216,
+     "words": 1202,
+     "readability": 52.9,
+     "pct_passive": 2.5,
+     "pct_genitive": 7.1,
+     "pct_subordinate": 6.1
+    }
+   }
+  },
+  "kept": 4
+ },
+ "zh-municipalities-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 133,
+   "values": {
+    "address": 2,
+    "date": 2,
+    "email": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 2,
+     "GRAM-02 warn": 32,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 4,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 11,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 101,
+     "LEX-02 info": 3,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 21,
+     "LEX-04 warn": 8,
+     "LEX-07 warn": 5,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 6,
+     "ORD-01 info": 15,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 133,
+     "words": 860,
+     "readability": 34.0,
+     "pct_passive": 1.7,
+     "pct_genitive": 23.1,
+     "pct_subordinate": 7.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 2,
+     "GRAM-02 info": 32,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 3,
+     "GRAM-06 info": 4,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 1,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 59,
+     "LEX-02 info": 3,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 21,
+     "LEX-04 warn": 8,
+     "LEX-07 info": 5,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 6,
+     "ORD-01 info": 15,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 133,
+     "words": 860,
+     "readability": 34.0,
+     "pct_passive": 1.7,
+     "pct_genitive": 23.1,
+     "pct_subordinate": 7.7
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 159,
+   "values": {
+    "address": 2,
+    "email": 1,
+    "period": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 3,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 3,
+     "GRAM-07 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 7,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 4,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 1,
+     "ORD-01 info": 9,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 159,
+     "words": 778,
+     "readability": 55.6,
+     "pct_passive": 0.7,
+     "pct_genitive": 2.0,
+     "pct_subordinate": 0.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 3,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 3,
+     "GRAM-07 info": 1,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 2,
+     "NEG-02 info": 1,
+     "ORD-01 info": 9,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 159,
+     "words": 778,
+     "readability": 55.6,
+     "pct_passive": 0.7,
+     "pct_genitive": 2.0,
+     "pct_subordinate": 0.7
+    }
+   }
+  },
+  "kept": 4
+ },
+ "zh-victim-counselling-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 79,
+   "values": {
+    "address": 8,
+    "email": 10,
+    "phone": 10,
+    "time": 5
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 11,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 16,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 35,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 15,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 1,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 79,
+     "words": 364,
+     "readability": 31.6,
+     "pct_passive": 0.0,
+     "pct_genitive": 11.9,
+     "pct_subordinate": 1.5
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 11,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEN-03 warn": 16,
+     "LEX-01 warn": 12,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 15,
+     "LEX-05 info": 2,
+     "LEX-07 info": 1,
+     "NEG-02 info": 1,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 79,
+     "words": 364,
+     "readability": 31.6,
+     "pct_passive": 0.0,
+     "pct_genitive": 11.9,
+     "pct_subordinate": 1.5
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 88,
+   "values": {
+    "address": 1,
+    "email": 10,
+    "phone": 10,
+    "time": 5,
+    "url": 9
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 8,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 5,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 2,
+     "LEX-05 info": 4,
+     "NEG-02 info": 5,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 88,
+     "words": 404,
+     "readability": 56.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 1,
+     "LAY-03 info": 2,
+     "LEN-03 warn": 1,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 2,
+     "LEX-05 info": 4,
+     "NEG-02 info": 5,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 88,
+     "words": 404,
+     "readability": 56.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.7
+    }
+   }
+  },
+  "kept": 26
+ },
+ "zh-shelters-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 31,
+   "values": {
+    "email": 6,
+    "phone": 6
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 1,
+     "LEN-01 error": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 warn": 7,
+     "LEX-02 warn": 1,
+     "LEX-04 warn": 3,
+     "NEG-02 info": 1,
+     "ORD-01 info": 3,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 31,
+     "words": 87,
+     "readability": 61.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 4.5,
+     "pct_subordinate": 4.5
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 1,
+     "LEN-01 warn": 1,
+     "LEX-01 warn": 6,
+     "LEX-02 warn": 1,
+     "LEX-04 warn": 3,
+     "NEG-02 info": 1,
+     "ORD-01 info": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 31,
+     "words": 87,
+     "readability": 61.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 4.5,
+     "pct_subordinate": 4.5
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 29,
+   "values": {
+    "phone": 6,
+    "url": 6
+   },
+   "A2": {
+    "findings": {
+     "LAY-03 info": 1,
+     "LEN-02 warn": 4,
+     "LEX-01 warn": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 29,
+     "words": 102,
+     "readability": 53.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 19.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "LAY-03 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 29,
+     "words": 102,
+     "readability": 53.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 19.0
+    }
+   }
+  },
+  "kept": 6
+ },
+ "zh-passport-id-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 168,
+   "values": {
+    "address": 1,
+    "amount": 1,
+    "date": 1,
+    "email": 3,
+    "period": 4,
+    "phone": 2,
+    "time": 8,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 error": 26,
+     "GRAM-02 warn": 26,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "LEN-01 error": 32,
+     "LEN-01 warn": 14,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 33,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 14,
+     "LEX-01 warn": 82,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 20,
+     "LEX-04 warn": 35,
+     "LEX-05 info": 4,
+     "LEX-07 warn": 25,
+     "NEG-01 error": 2,
+     "NEG-02 info": 28,
+     "NUM-01 warn": 2,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 40,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 168,
+     "words": 1429,
+     "readability": 45.7,
+     "pct_passive": 17.4,
+     "pct_genitive": 14.6,
+     "pct_subordinate": 17.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 warn": 26,
+     "GRAM-02 info": 26,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "LEN-01 error": 14,
+     "LEN-01 warn": 18,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 25,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 20,
+     "LEX-04 warn": 35,
+     "LEX-05 info": 4,
+     "LEX-07 info": 25,
+     "NEG-01 error": 2,
+     "NEG-02 info": 28,
+     "NUM-01 warn": 2,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 40,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 168,
+     "words": 1429,
+     "readability": 45.7,
+     "pct_passive": 17.4,
+     "pct_genitive": 14.6,
+     "pct_subordinate": 17.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 257,
+   "values": {
+    "address": 2,
+    "amount": 1,
+    "email": 3,
+    "period": 4,
+    "phone": 3,
+    "time": 9,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 3,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 6,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 19,
+     "LEX-03 info": 14,
+     "LEX-04 warn": 8,
+     "LEX-05 info": 1,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 15,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 36,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 257,
+     "words": 1274,
+     "readability": 70.6,
+     "pct_passive": 1.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 1.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 3,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEX-01 warn": 8,
+     "LEX-03 info": 14,
+     "LEX-04 warn": 8,
+     "LEX-05 info": 1,
+     "LEX-07 info": 1,
+     "NEG-02 info": 15,
+     "NUM-04 warn": 2,
+     "ORD-01 info": 36,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 257,
+     "words": 1274,
+     "readability": 70.6,
+     "pct_passive": 1.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 1.8
+    }
+   }
+  },
+  "kept": 19
+ },
+ "be-tax-extension-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 76,
+   "values": {
+    "amount": 3,
+    "date": 6,
+    "period": 3,
+    "time": 1,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 5,
+     "GRAM-05 info": 6,
+     "GRAM-06 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 8,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 8,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 34,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 6,
+     "LEX-05 info": 1,
+     "LEX-06 info": 1,
+     "LEX-07 warn": 11,
+     "NEG-02 info": 3,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 76,
+     "words": 392,
+     "readability": 41.9,
+     "pct_passive": 4.0,
+     "pct_genitive": 2.7,
+     "pct_subordinate": 5.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 5,
+     "GRAM-05 info": 6,
+     "GRAM-06 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 12,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 6,
+     "LEX-05 info": 1,
+     "LEX-06 info": 1,
+     "LEX-07 info": 11,
+     "NEG-02 info": 3,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 76,
+     "words": 392,
+     "readability": 41.9,
+     "pct_passive": 4.0,
+     "pct_genitive": 2.7,
+     "pct_subordinate": 5.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 115,
+   "values": {
+    "amount": 3,
+    "date": 4,
+    "period": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 9,
+     "GRAM-02 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 warn": 3,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "NEG-02 info": 5,
+     "ORD-01 info": 20,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 115,
+     "words": 619,
+     "readability": 70.9,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.0,
+     "pct_subordinate": 1.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 9,
+     "GRAM-02 info": 1,
+     "LAY-03 info": 1,
+     "LEX-01 warn": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "NEG-02 info": 5,
+     "ORD-01 info": 20,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 115,
+     "words": 619,
+     "readability": 70.9,
+     "pct_passive": 0.0,
+     "pct_genitive": 1.0,
+     "pct_subordinate": 1.0
+    }
+   }
+  },
+  "kept": 6
+ },
+ "be-emergency-numbers-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 65,
+   "values": {
+    "address": 1,
+    "phone": 13,
+    "time": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 8,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 15,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 3,
+     "LEX-05 info": 1,
+     "LEX-07 warn": 3,
+     "NUM-04 warn": 1,
+     "ORD-01 info": 3,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 65,
+     "words": 183,
+     "readability": 24.7,
+     "pct_passive": 1.7,
+     "pct_genitive": 5.0,
+     "pct_subordinate": 0.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 8,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEX-01 warn": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 3,
+     "LEX-05 info": 1,
+     "LEX-07 info": 3,
+     "NUM-04 warn": 1,
+     "ORD-01 info": 3,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 65,
+     "words": 183,
+     "readability": 24.7,
+     "pct_passive": 1.7,
+     "pct_genitive": 5.0,
+     "pct_subordinate": 0.0
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 32,
+   "values": {
+    "phone": 12
+   },
+   "A2": {
+    "findings": {
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 6,
+     "LEX-01 info": 1,
+     "NEG-02 info": 3,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 155,
+     "readability": 57.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 16.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "NEG-02 info": 3,
+     "ORD-01 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 155,
+     "readability": 57.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 16.2
+    }
+   }
+  },
+  "kept": 12
+ },
+ "be-pregnancy-counselling-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 88,
+   "values": {
+    "address": 8,
+    "email": 9,
+    "period": 2,
+    "phone": 11,
+    "url": 7
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 8,
+     "GRAM-02 warn": 27,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 2,
+     "GRAM-07 info": 2,
+     "LAY-03 info": 3,
+     "LEN-01 error": 16,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 12,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 27,
+     "LEX-01 warn": 47,
+     "LEX-02 warn": 15,
+     "LEX-03 info": 35,
+     "LEX-04 warn": 15,
+     "LEX-07 warn": 14,
+     "NEG-02 info": 6,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 88,
+     "words": 898,
+     "readability": 37.5,
+     "pct_passive": 7.5,
+     "pct_genitive": 16.8,
+     "pct_subordinate": 9.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 8,
+     "GRAM-02 info": 27,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 2,
+     "GRAM-07 info": 2,
+     "LAY-03 info": 3,
+     "LEN-01 error": 11,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 22,
+     "LEX-02 warn": 15,
+     "LEX-03 info": 35,
+     "LEX-04 warn": 15,
+     "LEX-07 info": 14,
+     "NEG-02 info": 6,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 88,
+     "words": 898,
+     "readability": 37.5,
+     "pct_passive": 7.5,
+     "pct_genitive": 16.8,
+     "pct_subordinate": 9.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 95,
+   "values": {
+    "email": 6,
+    "period": 3,
+    "phone": 8
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 2,
+     "GRAM-05 info": 1,
+     "LEX-01 info": 7,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 2,
+     "NEG-02 info": 9,
+     "ORD-01 info": 16,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 301,
+     "readability": 59.7,
+     "pct_passive": 0.0,
+     "pct_genitive": 2.3,
+     "pct_subordinate": 0.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 2,
+     "GRAM-05 info": 1,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 2,
+     "NEG-02 info": 9,
+     "ORD-01 info": 16,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 95,
+     "words": 301,
+     "readability": 59.7,
+     "pct_passive": 0.0,
+     "pct_genitive": 2.3,
+     "pct_subordinate": 0.0
+    }
+   }
+  },
+  "kept": 13
+ },
+ "be-education-initiative-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 22,
+   "values": {
+    "date": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 6,
+     "GRAM-03 warn": 8,
+     "GRAM-05 info": 4,
+     "GRAM-07 info": 6,
+     "LAY-03 info": 1,
+     "LEN-01 error": 11,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 10,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 22,
+     "LEX-07 warn": 10,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 22,
+     "words": 317,
+     "readability": 35.2,
+     "pct_passive": 13.0,
+     "pct_genitive": 17.4,
+     "pct_subordinate": 47.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 6,
+     "GRAM-03 warn": 8,
+     "GRAM-05 info": 4,
+     "GRAM-07 info": 6,
+     "LAY-03 info": 1,
+     "LEN-01 error": 9,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 1,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 12,
+     "LEX-07 info": 10,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 22,
+     "words": 317,
+     "readability": 35.2,
+     "pct_passive": 13.0,
+     "pct_genitive": 17.4,
+     "pct_subordinate": 47.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 51,
+   "values": {
+    "address": 1,
+    "date": 2,
+    "email": 1,
+    "phone": 1,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-02 warn": 1,
+     "GRAM-05 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 8,
+     "LEX-01 warn": 10,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 2,
+     "ORD-01 info": 6,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 51,
+     "words": 424,
+     "readability": 63.1,
+     "pct_passive": 3.5,
+     "pct_genitive": 1.8,
+     "pct_subordinate": 12.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 2,
+     "GRAM-02 info": 1,
+     "GRAM-05 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 2,
+     "LEX-01 warn": 7,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 1,
+     "NEG-02 info": 2,
+     "ORD-01 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 51,
+     "words": 424,
+     "readability": 63.1,
+     "pct_passive": 3.5,
+     "pct_genitive": 1.8,
+     "pct_subordinate": 12.3
+    }
+   }
+  },
+  "kept": 1
+ },
+ "be-birth-registration-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 69,
+   "values": {
+    "amount": 1,
+    "date": 1,
+    "period": 3
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 8,
+     "GRAM-02 warn": 28,
+     "GRAM-05 info": 5,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 17,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 5,
+     "LEN-02 warn": 15,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 16,
+     "LEX-01 warn": 36,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 25,
+     "NEG-02 info": 12,
+     "NUM-01 warn": 1,
+     "NUM-07 info": 1,
+     "ORD-01 info": 19,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 717,
+     "readability": 48.4,
+     "pct_passive": 14.8,
+     "pct_genitive": 42.6,
+     "pct_subordinate": 27.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 8,
+     "GRAM-02 info": 28,
+     "GRAM-05 info": 5,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 9,
+     "LEN-02 warn": 5,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 6,
+     "LEX-01 warn": 11,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 25,
+     "NEG-02 info": 12,
+     "NUM-01 warn": 1,
+     "NUM-07 info": 1,
+     "ORD-01 info": 19,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 717,
+     "readability": 48.4,
+     "pct_passive": 14.8,
+     "pct_genitive": 42.6,
+     "pct_subordinate": 27.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 32,
+   "values": {},
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 3,
+     "GRAM-05 warn": 2,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 8,
+     "LEX-03 info": 9,
+     "NEG-02 info": 1,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 194,
+     "readability": 68.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 7.1,
+     "pct_subordinate": 3.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 3,
+     "GRAM-05 warn": 2,
+     "LAY-03 info": 1,
+     "LEX-01 info": 1,
+     "LEX-03 info": 9,
+     "NEG-02 info": 1,
+     "ORD-01 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 194,
+     "readability": 68.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 7.1,
+     "pct_subordinate": 3.6
+    }
+   }
+  },
+  "kept": 0
+ },
+ "be-name-change-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 36,
+   "values": {
+    "address": 1,
+    "amount": 3,
+    "phone": 1,
+    "time": 4
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 6,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 4,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 5,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 23,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 4,
+     "NEG-02 info": 1,
+     "NUM-04 warn": 2,
+     "NUM-07 info": 3,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 274,
+     "readability": 51.7,
+     "pct_passive": 3.1,
+     "pct_genitive": 18.8,
+     "pct_subordinate": 18.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 6,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 4,
+     "LEN-02 error": 1,
+     "LEX-01 warn": 5,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 4,
+     "NEG-02 info": 1,
+     "NUM-04 warn": 2,
+     "NUM-07 info": 3,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 274,
+     "readability": 51.7,
+     "pct_passive": 3.1,
+     "pct_genitive": 18.8,
+     "pct_subordinate": 18.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 34,
+   "values": {
+    "address": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 3,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 warn": 11,
+     "LEX-03 info": 7,
+     "NEG-02 info": 3,
+     "ORD-01 info": 7,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 34,
+     "words": 204,
+     "readability": 60.2,
+     "pct_passive": 0.0,
+     "pct_genitive": 9.4,
+     "pct_subordinate": 3.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 3,
+     "LAY-03 info": 1,
+     "LEX-01 warn": 3,
+     "LEX-03 info": 7,
+     "NEG-02 info": 3,
+     "ORD-01 info": 7,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 34,
+     "words": 204,
+     "readability": 60.2,
+     "pct_passive": 0.0,
+     "pct_genitive": 9.4,
+     "pct_subordinate": 3.1
+    }
+   }
+  },
+  "kept": 0
+ },
+ "sg-el-costs-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 83,
+   "values": {
+    "amount": 13,
+    "percent": 1,
+    "period": 2,
+    "phone": 2,
+    "url": 4
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 error": 39,
+     "GRAM-02 warn": 26,
+     "GRAM-05 info": 14,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 26,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 25,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 76,
+     "LEX-02 warn": 14,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 11,
+     "LEX-05 info": 1,
+     "LEX-06 info": 6,
+     "LEX-07 warn": 59,
+     "NEG-01 error": 1,
+     "NEG-02 info": 9,
+     "NUM-02 warn": 4,
+     "NUM-06 warn": 1,
+     "ORD-01 info": 18,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 83,
+     "words": 968,
+     "readability": 37.4,
+     "pct_passive": 47.3,
+     "pct_genitive": 23.0,
+     "pct_subordinate": 29.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 5,
+     "GRAM-01 warn": 39,
+     "GRAM-02 info": 26,
+     "GRAM-05 info": 14,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 19,
+     "LEN-01 warn": 7,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 44,
+     "LEX-02 warn": 14,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 11,
+     "LEX-05 info": 1,
+     "LEX-06 info": 6,
+     "LEX-07 info": 59,
+     "NEG-01 error": 1,
+     "NEG-02 info": 9,
+     "NUM-02 warn": 4,
+     "NUM-06 warn": 1,
+     "ORD-01 info": 18,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 83,
+     "words": 968,
+     "readability": 37.4,
+     "pct_passive": 47.3,
+     "pct_genitive": 23.0,
+     "pct_subordinate": 29.7
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 329,
+   "values": {
+    "address": 1,
+    "amount": 8,
+    "date": 1,
+    "period": 2,
+    "phone": 1,
+    "time": 4,
+    "url": 4
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 4,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 45,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 8,
+     "LEN-02 warn": 9,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 3,
+     "LEX-02 warn": 41,
+     "LEX-03 info": 33,
+     "LEX-07 warn": 9,
+     "NEG-02 info": 20,
+     "NUM-02 warn": 3,
+     "ORD-01 info": 54,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 329,
+     "words": 2099,
+     "readability": 63.9,
+     "pct_passive": 0.3,
+     "pct_genitive": 1.1,
+     "pct_subordinate": 0.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 4,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 45,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 3,
+     "LEX-01 warn": 1,
+     "LEX-02 warn": 41,
+     "LEX-03 info": 33,
+     "LEX-07 info": 9,
+     "NEG-02 info": 20,
+     "NUM-02 warn": 3,
+     "ORD-01 info": 54,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 329,
+     "words": 2099,
+     "readability": 63.9,
+     "pct_passive": 0.3,
+     "pct_genitive": 1.1,
+     "pct_subordinate": 0.8
+    }
+   }
+  },
+  "kept": 7
+ },
+ "sg-disability-act-revision-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 27,
+   "values": {
+    "address": 1,
+    "date": 2,
+    "email": 1,
+    "identifier": 1,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 6,
+     "GRAM-02 warn": 9,
+     "GRAM-05 info": 4,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 5,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 16,
+     "LEX-02 info": 8,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 3,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "ORD-01 info": 7,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 27,
+     "words": 224,
+     "readability": 40.2,
+     "pct_passive": 20.0,
+     "pct_genitive": 25.0,
+     "pct_subordinate": 20.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 6,
+     "GRAM-02 info": 9,
+     "GRAM-05 info": 4,
+     "LEN-01 error": 5,
+     "LEX-01 warn": 6,
+     "LEX-02 info": 8,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 3,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "ORD-01 info": 7,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 27,
+     "words": 224,
+     "readability": 40.2,
+     "pct_passive": 20.0,
+     "pct_genitive": 25.0,
+     "pct_subordinate": 20.0
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 38,
+   "values": {
+    "address": 1,
+    "date": 1,
+    "email": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 5,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 2,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 4,
+     "LEX-01 warn": 1,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 38,
+     "words": 253,
+     "readability": 64.3,
+     "pct_passive": 15.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 6.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 5,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 2,
+     "ORD-01 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 38,
+     "words": 253,
+     "readability": 64.3,
+     "pct_passive": 15.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 6.1
+    }
+   }
+  },
+  "kept": 4
+ },
+ "sg-disability-support-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 54,
+   "values": {
+    "address": 1,
+    "email": 2,
+    "phone": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 7,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 8,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 12,
+     "LEX-01 warn": 25,
+     "LEX-03 info": 2,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 13,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 54,
+     "words": 418,
+     "readability": 38.4,
+     "pct_passive": 7.0,
+     "pct_genitive": 14.0,
+     "pct_subordinate": 16.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 7,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 6,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 15,
+     "LEX-03 info": 2,
+     "LEX-05 info": 2,
+     "LEX-07 info": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 13,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 54,
+     "words": 418,
+     "readability": 38.4,
+     "pct_passive": 7.0,
+     "pct_genitive": 14.0,
+     "pct_subordinate": 16.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 141,
+   "values": {
+    "address": 2,
+    "amount": 2,
+    "email": 4,
+    "phone": 4,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 3,
+     "GRAM-05 info": 2,
+     "GRAM-06 info": 5,
+     "GRAM-08 error": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 15,
+     "LEX-01 info": 19,
+     "LEX-01 warn": 16,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 12,
+     "LEX-05 info": 1,
+     "LEX-07 warn": 4,
+     "NEG-02 info": 14,
+     "NUM-05 info": 1,
+     "NUM-07 info": 2,
+     "ORD-01 info": 23,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 141,
+     "words": 1006,
+     "readability": 57.4,
+     "pct_passive": 1.8,
+     "pct_genitive": 1.8,
+     "pct_subordinate": 7.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 3,
+     "GRAM-05 info": 2,
+     "GRAM-06 info": 5,
+     "GRAM-08 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEX-01 warn": 9,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 12,
+     "LEX-05 info": 1,
+     "LEX-07 info": 4,
+     "NEG-02 info": 14,
+     "NUM-05 info": 1,
+     "NUM-07 info": 2,
+     "ORD-01 info": 23,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 141,
+     "words": 1006,
+     "readability": 57.4,
+     "pct_passive": 1.8,
+     "pct_genitive": 1.8,
+     "pct_subordinate": 7.4
+    }
+   }
+  },
+  "kept": 5
+ },
+ "bag-health-insurance-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 100,
+   "values": {
+    "amount": 7,
+    "date": 1,
+    "email": 1,
+    "percent": 4,
+    "period": 3,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 16,
+     "GRAM-02 warn": 32,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 3,
+     "LAY-03 info": 11,
+     "LEN-01 error": 30,
+     "LEN-01 warn": 12,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 19,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 14,
+     "LEX-01 warn": 79,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 9,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 11,
+     "LEX-05 info": 1,
+     "LEX-06 info": 14,
+     "LEX-07 warn": 32,
+     "NEG-01 error": 2,
+     "NEG-02 info": 14,
+     "NUM-01 warn": 1,
+     "NUM-02 warn": 2,
+     "ORD-01 info": 20,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 100,
+     "words": 1067,
+     "readability": 38.7,
+     "pct_passive": 19.7,
+     "pct_genitive": 25.0,
+     "pct_subordinate": 26.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 16,
+     "GRAM-02 info": 32,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 3,
+     "LAY-03 info": 11,
+     "LEN-01 error": 19,
+     "LEN-01 warn": 11,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 47,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 9,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 11,
+     "LEX-05 info": 1,
+     "LEX-06 info": 14,
+     "LEX-07 info": 32,
+     "NEG-01 error": 2,
+     "NEG-02 info": 14,
+     "NUM-01 warn": 1,
+     "NUM-02 warn": 2,
+     "ORD-01 info": 20,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 100,
+     "words": 1067,
+     "readability": 38.7,
+     "pct_passive": 19.7,
+     "pct_genitive": 25.0,
+     "pct_subordinate": 26.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 96,
+   "values": {
+    "amount": 6,
+    "date": 1,
+    "email": 1,
+    "percent": 1,
+    "period": 3,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 2,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 3,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 6,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 7,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 2,
+     "LEX-06 info": 1,
+     "NEG-02 info": 2,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 20,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 96,
+     "words": 557,
+     "readability": 65.9,
+     "pct_passive": 0.0,
+     "pct_genitive": 2.1,
+     "pct_subordinate": 6.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 2,
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 3,
+     "LAY-03 info": 1,
+     "LEX-01 warn": 6,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 2,
+     "LEX-06 info": 1,
+     "NEG-02 info": 2,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 20,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 96,
+     "words": 557,
+     "readability": 65.9,
+     "pct_passive": 0.0,
+     "pct_genitive": 2.1,
+     "pct_subordinate": 6.2
+    }
+   }
+  },
+  "kept": 6
+ },
+ "lu-outpatient-services-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 103,
+   "values": {
+    "amount": 1,
+    "period": 2
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 19,
+     "GRAM-02 warn": 37,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 18,
+     "GRAM-05 warn": 15,
+     "GRAM-06 info": 9,
+     "GRAM-07 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 33,
+     "LEN-01 warn": 12,
+     "LEN-02 error": 8,
+     "LEN-02 warn": 14,
+     "LEN-03 warn": 9,
+     "LEX-01 info": 15,
+     "LEX-01 warn": 90,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 43,
+     "LEX-04 warn": 12,
+     "LEX-06 info": 3,
+     "LEX-07 warn": 41,
+     "NEG-02 info": 11,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 103,
+     "words": 1150,
+     "readability": 28.0,
+     "pct_passive": 19.5,
+     "pct_genitive": 30.5,
+     "pct_subordinate": 22.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 19,
+     "GRAM-02 info": 37,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 18,
+     "GRAM-05 warn": 15,
+     "GRAM-06 info": 9,
+     "GRAM-07 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 24,
+     "LEN-01 warn": 9,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 6,
+     "LEN-03 warn": 9,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 48,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 43,
+     "LEX-04 warn": 12,
+     "LEX-06 info": 3,
+     "LEX-07 info": 41,
+     "NEG-02 info": 11,
+     "NUM-01 warn": 1,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 103,
+     "words": 1150,
+     "readability": 28.0,
+     "pct_passive": 19.5,
+     "pct_genitive": 30.5,
+     "pct_subordinate": 22.0
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 163,
+   "values": {
+    "address": 1,
+    "amount": 1,
+    "email": 1,
+    "period": 2,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 12,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 14,
+     "GRAM-06 info": 6,
+     "LAY-03 info": 3,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 7,
+     "LEX-01 info": 8,
+     "LEX-01 warn": 7,
+     "LEX-02 info": 24,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 9,
+     "LEX-07 warn": 6,
+     "NEG-02 info": 11,
+     "ORD-01 info": 22,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 163,
+     "words": 1023,
+     "readability": 57.7,
+     "pct_passive": 2.4,
+     "pct_genitive": 6.7,
+     "pct_subordinate": 0.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 12,
+     "GRAM-05 info": 10,
+     "GRAM-05 warn": 14,
+     "GRAM-06 info": 6,
+     "LAY-03 info": 3,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 1,
+     "LEX-02 info": 24,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 9,
+     "LEX-07 info": 6,
+     "NEG-02 info": 11,
+     "ORD-01 info": 22,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 163,
+     "words": 1023,
+     "readability": 57.7,
+     "pct_passive": 2.4,
+     "pct_genitive": 6.7,
+     "pct_subordinate": 0.6
+    }
+   }
+  },
+  "kept": 3
+ },
+ "lu-cost-approval-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 57,
+   "values": {
+    "amount": 1,
+    "date": 2,
+    "url": 4
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 11,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 4,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 5,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 6,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 46,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 14,
+     "LEX-04 warn": 14,
+     "LEX-07 warn": 12,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 1,
+     "NUM-03 warn": 2,
+     "NUM-07 info": 1,
+     "ORD-01 info": 10,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 57,
+     "words": 446,
+     "readability": 35.0,
+     "pct_passive": 8.2,
+     "pct_genitive": 12.2,
+     "pct_subordinate": 12.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 11,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 4,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 3,
+     "LEN-03 warn": 3,
+     "LEX-01 warn": 17,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 14,
+     "LEX-04 warn": 14,
+     "LEX-07 info": 12,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 1,
+     "NUM-03 warn": 2,
+     "NUM-07 info": 1,
+     "ORD-01 info": 10,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 57,
+     "words": 446,
+     "readability": 35.0,
+     "pct_passive": 8.2,
+     "pct_genitive": 12.2,
+     "pct_subordinate": 12.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 82,
+   "values": {
+    "date": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 2,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 6,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 4,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 17,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 7,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 3,
+     "NUM-03 warn": 2,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 82,
+     "words": 484,
+     "readability": 48.2,
+     "pct_passive": 3.7,
+     "pct_genitive": 2.5,
+     "pct_subordinate": 3.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 2,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 6,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 warn": 3,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 7,
+     "LEX-07 info": 1,
+     "NEG-02 info": 3,
+     "NUM-03 warn": 2,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 82,
+     "words": 484,
+     "readability": 48.2,
+     "pct_passive": 3.7,
+     "pct_genitive": 2.5,
+     "pct_subordinate": 3.7
+    }
+   }
+  },
+  "kept": 2
+ },
+ "bs-tax-deduction-vote-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 3,
+   "values": {
+    "date": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 2,
+     "LEN-01 warn": 1,
+     "LEX-01 warn": 3,
+     "LEX-02 warn": 1,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 3,
+     "words": 23,
+     "readability": 18.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 33.3,
+     "pct_subordinate": 0.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 2,
+     "LEX-01 warn": 2,
+     "LEX-02 warn": 1,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 1,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 3,
+     "words": 23,
+     "readability": 18.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 33.3,
+     "pct_subordinate": 0.0
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 101,
+   "values": {
+    "date": 2,
+    "percent": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 4,
+     "GRAM-02 warn": 5,
+     "GRAM-04 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 8,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 2,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 10,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 10,
+     "ORD-01 info": 14,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 101,
+     "words": 741,
+     "readability": 65.6,
+     "pct_passive": 3.9,
+     "pct_genitive": 2.9,
+     "pct_subordinate": 6.9
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 4,
+     "GRAM-02 info": 5,
+     "GRAM-04 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 2,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 10,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 2,
+     "NEG-02 info": 10,
+     "ORD-01 info": 14,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 101,
+     "words": 741,
+     "readability": 65.6,
+     "pct_passive": 3.9,
+     "pct_genitive": 2.9,
+     "pct_subordinate": 6.9
+    }
+   }
+  },
+  "kept": 1
+ },
+ "bwl-emergency-supplies-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 50,
+   "values": {
+    "period": 2,
+    "quantity": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 error": 7,
+     "GRAM-02 warn": 9,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 3,
+     "LEN-01 error": 10,
+     "LEN-01 warn": 8,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 10,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 34,
+     "LEX-02 warn": 13,
+     "LEX-03 info": 19,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 10,
+     "NEG-02 info": 7,
+     "NUM-01 warn": 2,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 554,
+     "readability": 33.6,
+     "pct_passive": 14.9,
+     "pct_genitive": 19.1,
+     "pct_subordinate": 21.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 2,
+     "GRAM-01 warn": 7,
+     "GRAM-02 info": 9,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 3,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 2,
+     "LEX-01 warn": 13,
+     "LEX-02 warn": 13,
+     "LEX-03 info": 19,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 10,
+     "NEG-02 info": 7,
+     "NUM-01 warn": 2,
+     "ORD-01 info": 11,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 554,
+     "readability": 33.6,
+     "pct_passive": 14.9,
+     "pct_genitive": 19.1,
+     "pct_subordinate": 21.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 50,
+   "values": {
+    "period": 2,
+    "quantity": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-05 info": 1,
+     "GRAM-05 warn": 2,
+     "LEN-02 warn": 5,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 1,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 3,
+     "NEG-02 info": 3,
+     "ORD-01 info": 8,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 285,
+     "readability": 67.5,
+     "pct_passive": 2.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 9.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-05 info": 1,
+     "GRAM-05 warn": 2,
+     "LEN-03 warn": 4,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 3,
+     "NEG-02 info": 3,
+     "ORD-01 info": 8,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 285,
+     "readability": 67.5,
+     "pct_passive": 2.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 9.1
+    }
+   }
+  },
+  "kept": 2
+ },
+ "ebgb-inclusion-initiative-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 41,
+   "values": {
+    "date": 1
+   },
+   "A2": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 error": 3,
+     "GRAM-02 warn": 37,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 3,
+     "LAY-03 info": 1,
+     "LEN-01 error": 24,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 8,
+     "LEX-01 info": 24,
+     "LEX-01 warn": 37,
+     "LEX-02 info": 9,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 10,
+     "LEX-07 warn": 20,
+     "NEG-02 info": 4,
+     "ORD-01 info": 20,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 41,
+     "words": 649,
+     "readability": 23.3,
+     "pct_passive": 8.6,
+     "pct_genitive": 60.0,
+     "pct_subordinate": 20.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 4,
+     "GRAM-01 warn": 3,
+     "GRAM-02 info": 37,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 3,
+     "LAY-03 info": 1,
+     "LEN-01 error": 17,
+     "LEN-01 warn": 7,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 16,
+     "LEX-02 info": 9,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 10,
+     "LEX-07 info": 20,
+     "NEG-02 info": 4,
+     "ORD-01 info": 20,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 41,
+     "words": 649,
+     "readability": 23.3,
+     "pct_passive": 8.6,
+     "pct_genitive": 60.0,
+     "pct_subordinate": 20.0
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 60,
+   "values": {},
+   "A2": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 error": 2,
+     "GRAM-02 warn": 1,
+     "GRAM-05 info": 2,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 3,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 4,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 359,
+     "readability": 58.9,
+     "pct_passive": 3.8,
+     "pct_genitive": 1.9,
+     "pct_subordinate": 3.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "CH-02 info": 1,
+     "GRAM-01 warn": 2,
+     "GRAM-02 info": 1,
+     "GRAM-05 info": 2,
+     "LEN-01 warn": 1,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 2,
+     "ORD-01 info": 4,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 359,
+     "readability": 58.9,
+     "pct_passive": 3.8,
+     "pct_genitive": 1.9,
+     "pct_subordinate": 3.8
+    }
+   }
+  },
+  "kept": 0
+ },
+ "gr-racism-counselling-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 27,
+   "values": {
+    "email": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 8,
+     "GRAM-02 warn": 13,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 12,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 19,
+     "LEX-01 warn": 19,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 8,
+     "LEX-04 warn": 6,
+     "LEX-05 info": 7,
+     "LEX-07 warn": 10,
+     "NEG-02 info": 3,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 3,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 27,
+     "words": 354,
+     "readability": 26.4,
+     "pct_passive": 25.9,
+     "pct_genitive": 29.6,
+     "pct_subordinate": 29.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 8,
+     "GRAM-02 info": 13,
+     "GRAM-05 info": 4,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 7,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 4,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 8,
+     "LEX-04 warn": 6,
+     "LEX-05 info": 7,
+     "LEX-07 info": 10,
+     "NEG-02 info": 3,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 3,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 27,
+     "words": 354,
+     "readability": 26.4,
+     "pct_passive": 25.9,
+     "pct_genitive": 29.6,
+     "pct_subordinate": 29.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 72,
+   "values": {
+    "email": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-02 warn": 6,
+     "GRAM-05 info": 3,
+     "LAY-03 info": 1,
+     "LEN-01 error": 2,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 11,
+     "LEX-01 warn": 4,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 1,
+     "LEX-07 warn": 3,
+     "NEG-02 info": 8,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 5,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 72,
+     "words": 373,
+     "readability": 50.6,
+     "pct_passive": 0.0,
+     "pct_genitive": 7.8,
+     "pct_subordinate": 7.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-02 info": 6,
+     "GRAM-05 info": 3,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 1,
+     "LEX-07 info": 3,
+     "NEG-02 info": 8,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 5,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 72,
+     "words": 373,
+     "readability": 50.6,
+     "pct_passive": 0.0,
+     "pct_genitive": 7.8,
+     "pct_subordinate": 7.8
+    }
+   }
+  },
+  "kept": 2
+ },
+ "zg-disability-services-act-de": {
+  "standard": {
+   "lang": "de",
+   "segments": 63,
+   "values": {
+    "address": 2,
+    "date": 1,
+    "email": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 11,
+     "GRAM-02 warn": 13,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 15,
+     "GRAM-05 warn": 5,
+     "GRAM-07 info": 1,
+     "LEN-01 error": 7,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 55,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 20,
+     "LEX-04 warn": 5,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 12,
+     "NEG-02 info": 4,
+     "NUM-03 warn": 1,
+     "ORD-01 info": 10,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 63,
+     "words": 482,
+     "readability": 22.9,
+     "pct_passive": 18.6,
+     "pct_genitive": 18.6,
+     "pct_subordinate": 6.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 11,
+     "GRAM-02 info": 13,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 15,
+     "GRAM-05 warn": 5,
+     "GRAM-07 info": 1,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 2,
+     "LEX-01 warn": 26,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 20,
+     "LEX-04 warn": 5,
+     "LEX-05 info": 2,
+     "LEX-07 info": 12,
+     "NEG-02 info": 4,
+     "NUM-03 warn": 1,
+     "ORD-01 info": 10,
+     "READ-01 warn": 1
+    },
+    "metrics": {
+     "blocks": 63,
+     "words": 482,
+     "readability": 22.9,
+     "pct_passive": 18.6,
+     "pct_genitive": 18.6,
+     "pct_subordinate": 6.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "de",
+   "segments": 69,
+   "values": {
+    "date": 1,
+    "email": 1,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-02 warn": 1,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 5,
+     "GRAM-05 warn": 4,
+     "LAY-03 info": 2,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 23,
+     "LEX-01 warn": 3,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 5,
+     "NEG-02 info": 4,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 336,
+     "readability": 76.3,
+     "pct_passive": 1.5,
+     "pct_genitive": 1.5,
+     "pct_subordinate": 0.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-02 info": 1,
+     "GRAM-04 warn": 3,
+     "GRAM-05 info": 5,
+     "GRAM-05 warn": 4,
+     "LAY-03 info": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 9,
+     "LEX-01 warn": 2,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 5,
+     "NEG-02 info": 4,
+     "NUM-02 warn": 1,
+     "ORD-01 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 69,
+     "words": 336,
+     "readability": 76.3,
+     "pct_passive": 1.5,
+     "pct_genitive": 1.5,
+     "pct_subordinate": 0.0
+    }
+   }
+  },
+  "kept": 2
+ },
+ "be-tax-extension-fr": {
+  "standard": {
+   "lang": "fr",
+   "segments": 74,
+   "values": {
+    "amount": 3,
+    "date": 6,
+    "period": 4,
+    "time": 1,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-01 warn": 2,
+     "GRAM-04 warn": 4,
+     "GRAM-05 info": 12,
+     "GRAM-05 warn": 13,
+     "LAY-03 info": 1,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 4,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 12,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 7,
+     "LEX-05 info": 1,
+     "LEX-06 info": 2,
+     "LEX-07 warn": 12,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 74,
+     "words": 513,
+     "readability": 66.6,
+     "pct_passive": 4.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 13.9
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 1,
+     "GRAM-04 warn": 4,
+     "GRAM-05 info": 12,
+     "GRAM-05 warn": 13,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 3,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 12,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 7,
+     "LEX-05 info": 1,
+     "LEX-06 info": 2,
+     "LEX-07 info": 12,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 74,
+     "words": 513,
+     "readability": 66.6,
+     "pct_passive": 4.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 13.9
+    }
+   }
+  },
+  "easy": {
+   "lang": "fr",
+   "segments": 122,
+   "values": {
+    "amount": 3,
+    "date": 4,
+    "period": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "LAY-03 info": 3,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 9,
+     "LEX-02 warn": 1,
+     "NEG-02 info": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 122,
+     "words": 742,
+     "readability": 78.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-05 info": 2,
+     "GRAM-05 warn": 1,
+     "LAY-03 info": 3,
+     "LEX-02 warn": 1,
+     "NEG-02 info": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 122,
+     "words": 742,
+     "readability": 78.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.3
+    }
+   }
+  },
+  "kept": 7
+ },
+ "be-emergency-numbers-fr": {
+  "standard": {
+   "lang": "fr",
+   "segments": 67,
+   "values": {
+    "address": 1,
+    "phone": 13,
+    "time": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEN-02 warn": 1,
+     "LEX-01 info": 10,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 3,
+     "LEX-07 warn": 3,
+     "NUM-04 info": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 67,
+     "words": 255,
+     "readability": 68.3,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 1.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 3,
+     "LEX-01 info": 10,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 3,
+     "LEX-07 info": 3,
+     "NUM-04 info": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 67,
+     "words": 255,
+     "readability": 68.3,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 1.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "fr",
+   "segments": 32,
+   "values": {
+    "phone": 12
+   },
+   "A2": {
+    "findings": {
+     "GRAM-05 info": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 5,
+     "LEX-01 info": 2,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 228,
+     "readability": 89.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 12.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-05 info": 1,
+     "LAY-03 info": 2,
+     "LEN-01 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 32,
+     "words": 228,
+     "readability": 89.5,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 12.8
+    }
+   }
+  },
+  "kept": 12
+ },
+ "ge-prosecutor-election-fr": {
+  "standard": {
+   "lang": "fr",
+   "segments": 143,
+   "values": {
+    "address": 1,
+    "date": 6,
+    "email": 1,
+    "percent": 1,
+    "period": 3,
+    "phone": 1,
+    "time": 3,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 5,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 4,
+     "GRAM-05 info": 20,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 11,
+     "LAY-03 info": 2,
+     "LEN-01 error": 25,
+     "LEN-01 warn": 15,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 13,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 72,
+     "LEX-02 warn": 15,
+     "LEX-03 info": 56,
+     "LEX-04 warn": 31,
+     "LEX-05 info": 2,
+     "LEX-07 warn": 21,
+     "NEG-02 info": 16,
+     "NUM-01 warn": 1,
+     "NUM-04 info": 7,
+     "NUM-06 warn": 1,
+     "NUM-08 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 143,
+     "words": 1989,
+     "readability": 56.1,
+     "pct_passive": 3.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 6.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 5,
+     "GRAM-01 warn": 4,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 4,
+     "GRAM-05 info": 20,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 11,
+     "LAY-03 info": 2,
+     "LEN-01 error": 16,
+     "LEN-01 warn": 9,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 5,
+     "LEX-01 info": 72,
+     "LEX-02 warn": 15,
+     "LEX-03 info": 56,
+     "LEX-04 warn": 31,
+     "LEX-05 info": 2,
+     "LEX-07 info": 21,
+     "NEG-02 info": 16,
+     "NUM-01 warn": 1,
+     "NUM-04 info": 7,
+     "NUM-06 warn": 1,
+     "NUM-08 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 143,
+     "words": 1989,
+     "readability": 56.1,
+     "pct_passive": 3.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 6.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "fr",
+   "segments": 131,
+   "values": {
+    "address": 1,
+    "date": 5,
+    "period": 1,
+    "phone": 1,
+    "time": 5,
+    "url": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 2,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 7,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 9,
+     "NUM-01 warn": 2,
+     "NUM-04 info": 15,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 131,
+     "words": 798,
+     "readability": 86.8,
+     "pct_passive": 5.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 9.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 4,
+     "GRAM-03 warn": 1,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 7,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 9,
+     "NUM-01 warn": 2,
+     "NUM-04 info": 15,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 131,
+     "words": 798,
+     "readability": 86.8,
+     "pct_passive": 5.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 9.7
+    }
+   }
+  },
+  "kept": 12
+ },
+ "ne-disability-petitions-fr": {
+  "standard": {
+   "lang": "fr",
+   "segments": 185,
+   "values": {
+    "date": 11,
+    "percent": 1,
+    "period": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 21,
+     "GRAM-01 warn": 20,
+     "GRAM-03 warn": 26,
+     "GRAM-04 warn": 8,
+     "GRAM-05 info": 58,
+     "GRAM-05 warn": 32,
+     "GRAM-06 info": 16,
+     "GRAM-07 info": 4,
+     "GRAM-09 warn": 3,
+     "LAY-03 info": 7,
+     "LEN-01 error": 104,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 26,
+     "LEN-02 warn": 45,
+     "LEN-03 warn": 22,
+     "LEX-01 info": 126,
+     "LEX-02 info": 48,
+     "LEX-02 warn": 22,
+     "LEX-03 info": 33,
+     "LEX-04 warn": 32,
+     "LEX-06 info": 2,
+     "LEX-07 warn": 59,
+     "NEG-02 info": 12,
+     "NUM-01 warn": 12,
+     "NUM-03 warn": 8,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 185,
+     "words": 4049,
+     "readability": 53.3,
+     "pct_passive": 17.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 34.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 20,
+     "GRAM-01 warn": 21,
+     "GRAM-03 warn": 26,
+     "GRAM-04 warn": 8,
+     "GRAM-05 info": 58,
+     "GRAM-05 warn": 32,
+     "GRAM-06 info": 16,
+     "GRAM-07 info": 4,
+     "GRAM-09 warn": 3,
+     "LAY-03 info": 7,
+     "LEN-01 error": 85,
+     "LEN-01 warn": 19,
+     "LEN-02 error": 8,
+     "LEN-02 warn": 18,
+     "LEN-03 warn": 22,
+     "LEX-01 info": 126,
+     "LEX-02 info": 48,
+     "LEX-02 warn": 22,
+     "LEX-03 info": 33,
+     "LEX-04 warn": 32,
+     "LEX-06 info": 2,
+     "LEX-07 info": 59,
+     "NEG-02 info": 12,
+     "NUM-01 warn": 12,
+     "NUM-03 warn": 8,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 185,
+     "words": 4049,
+     "readability": 53.3,
+     "pct_passive": 17.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 34.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "fr",
+   "segments": 212,
+   "values": {
+    "date": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-01 warn": 2,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 11,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 2,
+     "LEN-01 warn": 11,
+     "LEN-02 warn": 21,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 19,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 4,
+     "LEX-07 warn": 3,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 212,
+     "words": 1574,
+     "readability": 77.7,
+     "pct_passive": 1.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 2,
+     "GRAM-03 warn": 3,
+     "GRAM-04 warn": 2,
+     "GRAM-05 info": 11,
+     "GRAM-05 warn": 2,
+     "GRAM-06 info": 6,
+     "GRAM-07 info": 1,
+     "LAY-03 info": 2,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 19,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 4,
+     "LEX-07 info": 3,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 212,
+     "words": 1574,
+     "readability": 77.7,
+     "pct_passive": 1.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.0
+    }
+   }
+  },
+  "kept": 2
+ },
+ "bwl-emergency-supplies-fr": {
+  "standard": {
+   "lang": "fr",
+   "segments": 47,
+   "values": {
+    "period": 2,
+    "quantity": 2
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-03 warn": 4,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 24,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 15,
+     "LEN-01 warn": 6,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 7,
+     "LEX-01 info": 16,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 11,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 8,
+     "LEX-07 warn": 6,
+     "NEG-02 info": 6,
+     "NUM-01 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 47,
+     "words": 702,
+     "readability": 60.7,
+     "pct_passive": 7.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 3,
+     "GRAM-03 warn": 4,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 24,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 10,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 2,
+     "LEX-01 info": 16,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 11,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 8,
+     "LEX-07 info": 6,
+     "NEG-02 info": 6,
+     "NUM-01 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 47,
+     "words": 702,
+     "readability": 60.7,
+     "pct_passive": 7.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "fr",
+   "segments": 47,
+   "values": {
+    "period": 2,
+    "quantity": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 2,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 6,
+     "LEN-03 warn": 4,
+     "LEX-02 warn": 2,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 47,
+     "words": 368,
+     "readability": 84.5,
+     "pct_passive": 2.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 6,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 2,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 4,
+     "LEX-02 warn": 2,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 1,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 47,
+     "words": 368,
+     "readability": 84.5,
+     "pct_passive": 2.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.4
+    }
+   }
+  },
+  "kept": 2
+ },
+ "bag-health-insurance-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 103,
+   "values": {
+    "amount": 7,
+    "date": 1,
+    "email": 1,
+    "percent": 4,
+    "period": 4,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 15,
+     "GRAM-01 info": 4,
+     "GRAM-01 warn": 1,
+     "GRAM-03 warn": 1,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 12,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 2,
+     "GRAM-09 info": 6,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 2,
+     "LAY-03 info": 11,
+     "LEN-01 error": 22,
+     "LEN-01 warn": 11,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 10,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 28,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 17,
+     "LEX-06 info": 11,
+     "LEX-07 warn": 34,
+     "NEG-02 info": 23,
+     "NUM-01 warn": 3,
+     "NUM-02 warn": 2,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 103,
+     "words": 1235,
+     "readability": 50.8,
+     "pct_passive": 15.8,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 5,
+     "GRAM-01 warn": 15,
+     "GRAM-03 warn": 1,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 12,
+     "GRAM-05 warn": 4,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 2,
+     "GRAM-09 info": 6,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 2,
+     "LAY-03 info": 11,
+     "LEN-01 error": 16,
+     "LEN-01 warn": 6,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 6,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 12,
+     "LEX-04 warn": 17,
+     "LEX-06 info": 11,
+     "LEX-07 info": 34,
+     "NEG-02 info": 23,
+     "NUM-01 warn": 3,
+     "NUM-02 warn": 2,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 103,
+     "words": 1235,
+     "readability": 50.8,
+     "pct_passive": 15.8,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 81,
+   "values": {
+    "amount": 4,
+    "date": 1,
+    "email": 1,
+    "percent": 1,
+    "period": 1,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-06 info": 2,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 16,
+     "LEX-01 info": 3,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 5,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 81,
+     "words": 585,
+     "readability": 79.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 26.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-06 info": 2,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 2,
+     "LEX-01 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 5,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 81,
+     "words": 585,
+     "readability": 79.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 26.0
+    }
+   }
+  },
+  "kept": 4
+ },
+ "bag-ticks-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 37,
+   "values": {
+    "email": 1,
+    "percent": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 2,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 3,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 9,
+     "LEX-01 info": 20,
+     "LEX-02 info": 7,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 42,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 5,
+     "NEG-02 info": 4,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 37,
+     "words": 525,
+     "readability": 46.8,
+     "pct_passive": 20.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 24.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 4,
+     "GRAM-05 info": 3,
+     "GRAM-05 warn": 3,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 2,
+     "LEX-01 info": 7,
+     "LEX-02 info": 7,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 42,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 5,
+     "NEG-02 info": 4,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 37,
+     "words": 525,
+     "readability": 46.8,
+     "pct_passive": 20.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 24.1
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 57,
+   "values": {
+    "email": 1,
+    "period": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 1,
+     "GRAM-05 info": 4,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 6,
+     "LEX-01 info": 6,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 7,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 57,
+     "words": 305,
+     "readability": 80.5,
+     "pct_passive": 4.5,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 13.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 3,
+     "GRAM-01 warn": 1,
+     "GRAM-05 info": 4,
+     "LAY-03 info": 1,
+     "LEX-01 info": 6,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 11,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 7,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 57,
+     "words": 305,
+     "readability": 80.5,
+     "pct_passive": 4.5,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 13.6
+    }
+   }
+  },
+  "kept": 2
+ },
+ "bag-heat-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 134,
+   "values": {
+    "date": 1,
+    "email": 1,
+    "period": 1,
+    "quantity": 1,
+    "time": 3
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 7,
+     "GRAM-01 warn": 4,
+     "GRAM-03 warn": 3,
+     "GRAM-05 info": 18,
+     "GRAM-05 warn": 8,
+     "GRAM-09 info": 2,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 5,
+     "LEN-01 error": 22,
+     "LEN-01 warn": 9,
+     "LEN-02 error": 7,
+     "LEN-02 warn": 12,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 33,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 43,
+     "LEX-04 warn": 34,
+     "LEX-07 warn": 14,
+     "NEG-02 info": 10,
+     "NUM-01 warn": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 134,
+     "words": 1520,
+     "readability": 54.7,
+     "pct_passive": 9.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 17.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 4,
+     "GRAM-01 warn": 7,
+     "GRAM-03 warn": 3,
+     "GRAM-05 info": 18,
+     "GRAM-05 warn": 8,
+     "GRAM-09 info": 2,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 5,
+     "LEN-01 error": 13,
+     "LEN-01 warn": 9,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 5,
+     "LEN-03 warn": 4,
+     "LEX-01 info": 2,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 7,
+     "LEX-03 info": 43,
+     "LEX-04 warn": 34,
+     "LEX-07 info": 14,
+     "NEG-02 info": 10,
+     "NUM-01 warn": 5,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 134,
+     "words": 1520,
+     "readability": 54.7,
+     "pct_passive": 9.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 17.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 62,
+   "values": {
+    "email": 1,
+    "period": 1,
+    "quantity": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-05 info": 2,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 6,
+     "NEG-02 info": 10,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 62,
+     "words": 320,
+     "readability": 86.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-05 info": 2,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-02 error": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 5,
+     "LEX-04 warn": 6,
+     "NEG-02 info": 10,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 62,
+     "words": 320,
+     "readability": 86.0,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.0
+    }
+   }
+  },
+  "kept": 2
+ },
+ "bag-vaccine-costs-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 122,
+   "values": {
+    "date": 3,
+    "email": 1,
+    "percent": 1,
+    "period": 3,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 31,
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 16,
+     "GRAM-03 warn": 3,
+     "GRAM-04 info": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 17,
+     "GRAM-05 warn": 13,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 7,
+     "LEN-01 error": 25,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 13,
+     "LEN-02 warn": 21,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 20,
+     "LEX-02 info": 50,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 29,
+     "LEX-04 warn": 31,
+     "LEX-07 warn": 42,
+     "NEG-02 info": 17,
+     "NUM-01 warn": 1,
+     "NUM-06 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 122,
+     "words": 1564,
+     "readability": 45.7,
+     "pct_passive": 38.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 25.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 17,
+     "GRAM-01 warn": 31,
+     "GRAM-03 warn": 3,
+     "GRAM-04 info": 1,
+     "GRAM-04 warn": 1,
+     "GRAM-05 info": 17,
+     "GRAM-05 warn": 13,
+     "GRAM-06 info": 3,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 2,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 7,
+     "LEN-01 error": 19,
+     "LEN-01 warn": 6,
+     "LEN-02 error": 6,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 6,
+     "LEX-02 info": 50,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 29,
+     "LEX-04 warn": 31,
+     "LEX-07 info": 42,
+     "NEG-02 info": 17,
+     "NUM-01 warn": 1,
+     "NUM-06 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 122,
+     "words": 1564,
+     "readability": 45.7,
+     "pct_passive": 38.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 25.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 59,
+   "values": {
+    "amount": 3,
+    "email": 1,
+    "percent": 2,
+    "period": 1,
+    "phone": 1
+   },
+   "A2": {
+    "findings": {
+     "LEN-01 error": 1,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 3,
+     "NEG-02 info": 7,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 59,
+     "words": 350,
+     "readability": 83.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 14.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "LEN-01 error": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 9,
+     "LEX-04 warn": 3,
+     "NEG-02 info": 7,
+     "NUM-06 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 59,
+     "words": 350,
+     "readability": 83.1,
+     "pct_passive": 0.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 14.0
+    }
+   }
+  },
+  "kept": 2
+ },
+ "ebgb-inclusion-initiative-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 36,
+   "values": {
+    "date": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-01 warn": 1,
+     "GRAM-04 info": 5,
+     "GRAM-05 info": 25,
+     "GRAM-05 warn": 8,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 18,
+     "LEN-01 warn": 2,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 20,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 22,
+     "LEX-04 warn": 7,
+     "LEX-07 warn": 12,
+     "NEG-02 info": 5,
+     "NUM-03 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 792,
+     "readability": 38.2,
+     "pct_passive": 9.1,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 33.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 2,
+     "GRAM-04 info": 5,
+     "GRAM-05 info": 25,
+     "GRAM-05 warn": 8,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 16,
+     "LEN-01 warn": 2,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 12,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 22,
+     "LEX-04 warn": 7,
+     "LEX-07 info": 12,
+     "NEG-02 info": 5,
+     "NUM-03 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 792,
+     "readability": 38.2,
+     "pct_passive": 9.1,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 33.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 60,
+   "values": {},
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 16,
+     "GRAM-06 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 5,
+     "LEX-01 info": 1,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 466,
+     "readability": 68.5,
+     "pct_passive": 4.1,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 2,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 16,
+     "GRAM-06 info": 1,
+     "LEN-01 warn": 1,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 6,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 4,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 466,
+     "readability": 68.5,
+     "pct_passive": 4.1,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.2
+    }
+   }
+  },
+  "kept": 0
+ },
+ "ehs-patient-record-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 209,
+   "values": {
+    "period": 3
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 19,
+     "GRAM-01 warn": 13,
+     "GRAM-03 warn": 5,
+     "GRAM-04 info": 18,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 5,
+     "GRAM-10 warn": 3,
+     "LAY-03 info": 18,
+     "LEN-01 error": 40,
+     "LEN-01 warn": 22,
+     "LEN-02 error": 15,
+     "LEN-02 warn": 61,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 65,
+     "LEX-02 info": 166,
+     "LEX-02 warn": 11,
+     "LEX-03 info": 26,
+     "LEX-04 warn": 33,
+     "LEX-06 info": 1,
+     "LEX-07 warn": 51,
+     "NEG-01 error": 2,
+     "NEG-02 info": 26,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 209,
+     "words": 2748,
+     "readability": 51.5,
+     "pct_passive": 15.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 43.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 13,
+     "GRAM-01 warn": 19,
+     "GRAM-03 warn": 5,
+     "GRAM-04 info": 18,
+     "GRAM-05 info": 8,
+     "GRAM-05 warn": 1,
+     "GRAM-06 info": 5,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 5,
+     "GRAM-10 warn": 3,
+     "LAY-03 info": 18,
+     "LEN-01 error": 30,
+     "LEN-01 warn": 10,
+     "LEN-02 error": 5,
+     "LEN-02 warn": 10,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 1,
+     "LEX-02 info": 166,
+     "LEX-02 warn": 11,
+     "LEX-03 info": 26,
+     "LEX-04 warn": 33,
+     "LEX-06 info": 1,
+     "LEX-07 info": 51,
+     "NEG-01 error": 2,
+     "NEG-02 info": 26,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 209,
+     "words": 2748,
+     "readability": 51.5,
+     "pct_passive": 15.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 43.4
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 98,
+   "values": {},
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-04 info": 3,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 24,
+     "LEX-01 info": 4,
+     "LEX-02 warn": 35,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 98,
+     "words": 681,
+     "readability": 84.1,
+     "pct_passive": 2.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 23.5
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 2,
+     "GRAM-04 info": 3,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 1,
+     "LEN-02 warn": 1,
+     "LEX-02 warn": 35,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 2,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 98,
+     "words": 681,
+     "readability": 84.1,
+     "pct_passive": 2.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 23.5
+    }
+   }
+  },
+  "kept": 0
+ },
+ "ti-child-maintenance-advance-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 44,
+   "values": {
+    "address": 5,
+    "amount": 1,
+    "email": 5,
+    "percent": 1,
+    "period": 2,
+    "phone": 10,
+    "time": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 5,
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-03 warn": 2,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 4,
+     "GRAM-06 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 7,
+     "LEN-01 warn": 5,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 5,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 12,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 8,
+     "LEX-07 warn": 20,
+     "NEG-02 info": 4,
+     "NUM-01 warn": 1,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 44,
+     "words": 489,
+     "readability": 52.3,
+     "pct_passive": 18.8,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.8
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 2,
+     "GRAM-01 warn": 5,
+     "GRAM-03 warn": 2,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 4,
+     "GRAM-06 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 4,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 12,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 8,
+     "LEX-07 info": 20,
+     "NEG-02 info": 4,
+     "NUM-01 warn": 1,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 44,
+     "words": 489,
+     "readability": 52.3,
+     "pct_passive": 18.8,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.8
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 36,
+   "values": {
+    "address": 5,
+    "amount": 1,
+    "email": 5,
+    "period": 4,
+    "phone": 7,
+    "time": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-01 info": 3,
+     "GRAM-01 warn": 1,
+     "GRAM-09 info": 1,
+     "LEN-01 error": 3,
+     "LEN-01 warn": 4,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 6,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 14,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 397,
+     "readability": 58.8,
+     "pct_passive": 10.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 26.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 4,
+     "GRAM-01 warn": 3,
+     "GRAM-09 info": 1,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 14,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 2,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 36,
+     "words": 397,
+     "readability": 58.8,
+     "pct_passive": 10.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 26.7
+    }
+   }
+  },
+  "kept": 17
+ },
+ "ti-women-shelters-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 51,
+   "values": {
+    "address": 1,
+    "date": 4,
+    "period": 3,
+    "phone": 3,
+    "time": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 11,
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 3,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 5,
+     "GRAM-06 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 14,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 8,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 10,
+     "LEX-02 info": 7,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 15,
+     "LEX-06 info": 1,
+     "LEX-07 warn": 14,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 1,
+     "NUM-04 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 51,
+     "words": 670,
+     "readability": 54.1,
+     "pct_passive": 23.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.6
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 4,
+     "GRAM-01 warn": 11,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 5,
+     "GRAM-06 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 9,
+     "LEN-01 warn": 5,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 1,
+     "LEX-02 info": 7,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 15,
+     "LEX-06 info": 1,
+     "LEX-07 info": 14,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 1,
+     "NUM-04 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 51,
+     "words": 670,
+     "readability": 54.1,
+     "pct_passive": 23.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 18.6
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 23,
+   "values": {
+    "address": 1,
+    "period": 1,
+    "phone": 3,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 2,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 5,
+     "LEX-01 info": 1,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 4,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 23,
+     "words": 194,
+     "readability": 65.4,
+     "pct_passive": 5.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 42.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 1,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 6,
+     "LEX-04 warn": 4,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 23,
+     "words": 194,
+     "readability": 65.4,
+     "pct_passive": 5.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 42.1
+    }
+   }
+  },
+  "kept": 6
+ },
+ "ti-home-care-allowance-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 35,
+   "values": {
+    "address": 1,
+    "email": 1,
+    "percent": 2,
+    "period": 3,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 5,
+     "GRAM-01 warn": 6,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 5,
+     "GRAM-06 info": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 2,
+     "LEN-02 error": 3,
+     "LEN-02 warn": 7,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 4,
+     "LEX-02 info": 11,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 17,
+     "LEX-07 warn": 12,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 35,
+     "words": 468,
+     "readability": 50.5,
+     "pct_passive": 28.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 32.1
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 6,
+     "GRAM-01 warn": 5,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 5,
+     "GRAM-06 info": 1,
+     "GRAM-10 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 7,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 1,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 1,
+     "LEX-02 info": 11,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 1,
+     "LEX-04 warn": 17,
+     "LEX-07 info": 12,
+     "NEG-02 info": 3,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 35,
+     "words": 468,
+     "readability": 50.5,
+     "pct_passive": 28.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 32.1
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 21,
+   "values": {
+    "address": 1,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 3,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 2,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 5,
+     "LEX-02 info": 2,
+     "LEX-04 warn": 2,
+     "LEX-07 warn": 1,
+     "NEG-02 info": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 21,
+     "words": 167,
+     "readability": 67.7,
+     "pct_passive": 17.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 35.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 3,
+     "GRAM-05 info": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 2,
+     "LEN-02 error": 1,
+     "LEX-02 info": 2,
+     "LEX-04 warn": 2,
+     "LEX-07 info": 1,
+     "NEG-02 info": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 21,
+     "words": 167,
+     "readability": 67.7,
+     "pct_passive": 17.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 35.3
+    }
+   }
+  },
+  "kept": 4
+ },
+ "ti-housing-adaptation-allowance-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 34,
+   "values": {
+    "address": 1,
+    "amount": 2,
+    "date": 3,
+    "email": 1,
+    "period": 1,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 7,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 1,
+     "GRAM-05 warn": 1,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 5,
+     "LEN-02 warn": 3,
+     "LEX-01 info": 7,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 13,
+     "LEX-06 info": 1,
+     "LEX-07 warn": 16,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 34,
+     "words": 381,
+     "readability": 49.6,
+     "pct_passive": 29.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 29.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 7,
+     "GRAM-01 warn": 4,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 1,
+     "GRAM-05 warn": 1,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 3,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 2,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 13,
+     "LEX-06 info": 1,
+     "LEX-07 info": 16,
+     "NEG-02 info": 2,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 34,
+     "words": 381,
+     "readability": 49.6,
+     "pct_passive": 29.2,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 29.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 19,
+   "values": {
+    "address": 1,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-05 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 1,
+     "LEX-01 info": 4,
+     "LEX-02 info": 2,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 19,
+     "words": 184,
+     "readability": 56.3,
+     "pct_passive": 21.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 21.4
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 4,
+     "GRAM-05 info": 2,
+     "LAY-03 info": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEX-02 info": 2,
+     "LEX-03 info": 4,
+     "LEX-04 warn": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 19,
+     "words": 184,
+     "readability": 56.3,
+     "pct_passive": 21.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 21.4
+    }
+   }
+  },
+  "kept": 4
+ },
+ "ti-care-homes-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 38,
+   "values": {
+    "address": 1,
+    "amount": 1,
+    "date": 5,
+    "email": 1,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 2,
+     "GRAM-05 info": 6,
+     "GRAM-07 info": 3,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 9,
+     "LEN-01 warn": 3,
+     "LEN-02 warn": 4,
+     "LEX-01 info": 7,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 15,
+     "LEX-06 info": 4,
+     "LEX-07 warn": 13,
+     "NEG-02 info": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 38,
+     "words": 475,
+     "readability": 50.2,
+     "pct_passive": 10.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 3,
+     "GRAM-01 warn": 2,
+     "GRAM-05 info": 6,
+     "GRAM-07 info": 3,
+     "GRAM-09 info": 1,
+     "GRAM-09 warn": 1,
+     "LAY-03 info": 2,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 4,
+     "LEX-02 info": 8,
+     "LEX-02 warn": 3,
+     "LEX-03 info": 16,
+     "LEX-04 warn": 15,
+     "LEX-06 info": 4,
+     "LEX-07 info": 13,
+     "NEG-02 info": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 38,
+     "words": 475,
+     "readability": 50.2,
+     "pct_passive": 10.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.7
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 50,
+   "values": {
+    "address": 1,
+    "period": 2,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 1,
+     "GRAM-05 info": 1,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 11,
+     "LEX-01 info": 1,
+     "LEX-02 info": 3,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 2,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 458,
+     "readability": 68.7,
+     "pct_passive": 10.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 31.9
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 4,
+     "GRAM-05 info": 1,
+     "GRAM-09 info": 1,
+     "LAY-03 info": 3,
+     "LEN-01 error": 1,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 4,
+     "LEX-02 info": 3,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 2,
+     "NEG-02 info": 6,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 50,
+     "words": 458,
+     "readability": 68.7,
+     "pct_passive": 10.6,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 31.9
+    }
+   }
+  },
+  "kept": 3
+ },
+ "ti-adult-protection-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 60,
+   "values": {
+    "address": 5,
+    "date": 5,
+    "email": 4,
+    "phone": 9,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 6,
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 3,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 7,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 2,
+     "LAY-03 info": 2,
+     "LEN-01 error": 10,
+     "LEN-01 warn": 5,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 11,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 16,
+     "LEX-02 info": 9,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 10,
+     "LEX-04 warn": 23,
+     "LEX-06 info": 5,
+     "LEX-07 warn": 14,
+     "NEG-01 error": 1,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 791,
+     "readability": 51.0,
+     "pct_passive": 16.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 29.2
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 4,
+     "GRAM-01 warn": 6,
+     "GRAM-03 warn": 2,
+     "GRAM-05 info": 7,
+     "GRAM-05 warn": 5,
+     "GRAM-06 info": 1,
+     "GRAM-07 info": 1,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 2,
+     "LAY-03 info": 2,
+     "LEN-01 error": 9,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 3,
+     "LEN-03 warn": 3,
+     "LEX-01 info": 3,
+     "LEX-02 info": 9,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 10,
+     "LEX-04 warn": 23,
+     "LEX-06 info": 5,
+     "LEX-07 info": 14,
+     "NEG-01 error": 1,
+     "NEG-02 info": 5,
+     "NUM-01 warn": 3,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 60,
+     "words": 791,
+     "readability": 51.0,
+     "pct_passive": 16.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 29.2
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 37,
+   "values": {
+    "address": 1,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 4,
+     "GRAM-01 warn": 1,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 3,
+     "LEN-01 error": 5,
+     "LEN-01 warn": 4,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 9,
+     "LEN-03 warn": 2,
+     "LEX-01 info": 3,
+     "LEX-02 info": 3,
+     "LEX-04 warn": 4,
+     "LEX-06 info": 3,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 37,
+     "words": 439,
+     "readability": 58.0,
+     "pct_passive": 13.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 40.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 4,
+     "GRAM-04 info": 1,
+     "GRAM-05 info": 3,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 3,
+     "LEN-03 warn": 2,
+     "LEX-02 info": 3,
+     "LEX-04 warn": 4,
+     "LEX-06 info": 3,
+     "NEG-02 info": 4,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 37,
+     "words": 439,
+     "readability": 58.0,
+     "pct_passive": 13.3,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 40.0
+    }
+   }
+  },
+  "kept": 3
+ },
+ "ti-temporary-stays-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 30,
+   "values": {
+    "address": 2,
+    "amount": 1,
+    "date": 4,
+    "email": 1,
+    "period": 2,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 2,
+     "GRAM-01 warn": 3,
+     "GRAM-05 info": 7,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 1,
+     "LEN-01 error": 6,
+     "LEN-01 warn": 1,
+     "LEN-02 error": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 3,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 7,
+     "LEX-04 warn": 5,
+     "LEX-06 info": 2,
+     "LEX-07 warn": 6,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 30,
+     "words": 326,
+     "readability": 52.6,
+     "pct_passive": 17.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.7
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 3,
+     "GRAM-01 warn": 2,
+     "GRAM-05 info": 7,
+     "GRAM-09 info": 1,
+     "GRAM-10 warn": 1,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 2,
+     "LEN-02 error": 1,
+     "LEN-03 warn": 1,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 4,
+     "LEX-03 info": 7,
+     "LEX-04 warn": 5,
+     "LEX-06 info": 2,
+     "LEX-07 info": 6,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 30,
+     "words": 326,
+     "readability": 52.6,
+     "pct_passive": 17.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 8.7
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 23,
+   "values": {
+    "address": 1,
+    "period": 2,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-05 info": 8,
+     "LAY-03 info": 2,
+     "LEN-02 warn": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 23,
+     "words": 184,
+     "readability": 67.8,
+     "pct_passive": 5.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.0
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 1,
+     "GRAM-05 info": 8,
+     "LAY-03 info": 2,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 5,
+     "LEX-03 info": 2,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 23,
+     "words": 184,
+     "readability": 67.8,
+     "pct_passive": 5.0,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 10.0
+    }
+   }
+  },
+  "kept": 5
+ },
+ "ti-childcare-subsidies-it": {
+  "standard": {
+   "lang": "it",
+   "segments": 28,
+   "values": {
+    "address": 1,
+    "amount": 2,
+    "date": 4,
+    "email": 2,
+    "percent": 1,
+    "period": 2,
+    "phone": 2,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 7,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 1,
+     "GRAM-09 info": 2,
+     "LAY-03 info": 2,
+     "LEN-01 error": 8,
+     "LEN-01 warn": 3,
+     "LEN-02 error": 4,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 7,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 13,
+     "LEX-04 warn": 6,
+     "LEX-07 warn": 8,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 28,
+     "words": 430,
+     "readability": 51.6,
+     "pct_passive": 16.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 33.3
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 warn": 7,
+     "GRAM-03 warn": 1,
+     "GRAM-05 info": 1,
+     "GRAM-09 info": 2,
+     "LAY-03 info": 2,
+     "LEN-01 error": 4,
+     "LEN-01 warn": 4,
+     "LEN-02 warn": 4,
+     "LEN-03 warn": 1,
+     "LEX-02 info": 2,
+     "LEX-02 warn": 1,
+     "LEX-03 info": 13,
+     "LEX-04 warn": 6,
+     "LEX-07 info": 8,
+     "NUM-01 warn": 2,
+     "NUM-06 warn": 1,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 28,
+     "words": 430,
+     "readability": 51.6,
+     "pct_passive": 16.7,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 33.3
+    }
+   }
+  },
+  "easy": {
+   "lang": "it",
+   "segments": 28,
+   "values": {
+    "address": 1,
+    "period": 2,
+    "phone": 1,
+    "url": 1
+   },
+   "A2": {
+    "findings": {
+     "GRAM-01 error": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-09 info": 3,
+     "LAY-03 info": 2,
+     "LEN-01 error": 3,
+     "LEN-02 error": 2,
+     "LEN-02 warn": 10,
+     "LEN-03 warn": 1,
+     "LEX-01 info": 3,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 28,
+     "words": 329,
+     "readability": 61.7,
+     "pct_passive": 7.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 51.9
+    }
+   },
+   "B1": {
+    "findings": {
+     "GRAM-01 info": 1,
+     "GRAM-01 warn": 1,
+     "GRAM-09 info": 3,
+     "LAY-03 info": 2,
+     "LEN-01 error": 2,
+     "LEN-01 warn": 1,
+     "LEN-02 warn": 2,
+     "LEN-03 warn": 1,
+     "LEX-02 info": 1,
+     "LEX-02 warn": 8,
+     "LEX-03 info": 3,
+     "LEX-04 warn": 1,
+     "NEG-02 info": 1,
+     "NUM-01 warn": 2,
+     "READ-01 info": 1
+    },
+    "metrics": {
+     "blocks": 28,
+     "words": 329,
+     "readability": 61.7,
+     "pct_passive": 7.4,
+     "pct_genitive": 0.0,
+     "pct_subordinate": 51.9
+    }
+   }
+  },
+  "kept": 3
+ }
+}

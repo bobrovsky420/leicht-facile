@@ -49,6 +49,7 @@ class Entry:
 @dataclass(frozen=True)
 class Layout:
     lang: str
+    variety: str  # the national variety (schemas.variety): the Word export's language tag
     version: int
     title: str | None
     note: str | None  # the draft note, while the draft is not reviewed
@@ -103,6 +104,7 @@ def build_layout(
             items.append(Item(kind, lines_of(b.text, draft.lang, width - indent)))
     return Layout(
         lang=draft.lang,
+        variety=draft.variety,
         version=draft.version,
         title=clean(title) if title else None,
         note=None if final.reviewed else labels["draft_note"],

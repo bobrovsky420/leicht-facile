@@ -9,6 +9,7 @@ Einfache Sprache, FALC and langage clair, lingua facile and linguaggio chiaro.
 from __future__ import annotations
 
 from leichtfacile.rules.base import RULES
+from leichtfacile.schemas import base_lang
 
 # The Italian names carry their article, because the header says "Regole per la
 # lingua facile" and "Regole per il linguaggio chiaro".
@@ -26,8 +27,11 @@ _HEADER = {
 
 
 def style_guide(lang: str, level: str) -> str:
-    name = LEVEL_NAMES.get(lang, LEVEL_NAMES["de"])[level]
-    lines = [_HEADER.get(lang, _HEADER["de"]).format(name=name, level=level)]
+    """`lang`: a language or a variety key (`de-AT`): the level names are the
+    language's, the guides the variety's where a rule has its own."""
+    language = base_lang(lang)
+    name = LEVEL_NAMES.get(language, LEVEL_NAMES["de"])[level]
+    lines = [_HEADER.get(language, _HEADER["de"]).format(name=name, level=level)]
     for spec in RULES.values():
         text = spec.guide_for(lang, level)
         if text:

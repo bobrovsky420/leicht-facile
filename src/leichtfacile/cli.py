@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 
 from leichtfacile import __version__, configure
 from leichtfacile.config import PRESETS, PROVIDERS, ConfigError, use_overrides
-from leichtfacile.schemas import CONDITIONS
+from leichtfacile.schemas import CONDITIONS, REGIONS
 
 if TYPE_CHECKING:
     from leichtfacile.config import Settings
@@ -58,6 +58,13 @@ def main(argv: list[str] | None = None) -> int:
     setup.add_argument("--model", help="the model that reads, writes and repairs")
     setup.add_argument("--judge", help="the judge's model")
     setup.add_argument("--force", action="store_true", help="update a preset saved already")
+    setup.add_argument(
+        "--region",
+        choices=list(REGIONS),
+        type=str.upper,
+        help="the German variety of the texts: CH (Switzerland, the default), DE (Germany) "
+        "or AT (Austria); alone, it changes the variety and nothing else",
+    )
 
     preset = sub.add_parser("preset", help="list the presets, pick one, remove one of your own")
     preset_sub = preset.add_subparsers(dest="preset_command", required=True)
@@ -183,7 +190,7 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
             return configure.run_setup(
                 provider=provider, preset=preset, name=name, base_url=args.base_url,
                 api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
-                judge=args.judge, force=args.force,
+                judge=args.judge, force=args.force, region=args.region,
             )  # fmt: skip
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.", file=sys.stderr)
@@ -398,15 +405,19 @@ def _ingest(args: argparse.Namespace) -> int:
 
 
 def _check(args: argparse.Namespace) -> int:
+    from leichtfacile.config import texts
     from leichtfacile.ingest.errors import IngestError
     from leichtfacile.rules import check_draft, source_as_draft
     from leichtfacile.rules.messages import render_finding
+    from leichtfacile.varieties import region_for
 
     try:
         doc = load_source(args.input, args.lang, args.section)
     except (IngestError, OSError, ValueError) as exc:
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
+    # Checked in the installation's variety (texts.region, set by setup).
+    doc = doc.model_copy(update={"region": region_for(doc.lang, texts().region)})
     draft = source_as_draft(doc, args.level)
     result = check_draft(draft)
     if args.json:
@@ -445,6 +456,7 @@ def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.pipeline.orchestrator import Orchestrator
     from leichtfacile.schemas import Draft, JobConfig, PipelineSummary
     from leichtfacile.store import Store
+    from leichtfacile.varieties import region_for
 
     settings = settings_or_exit()
     try:
@@ -452,12 +464,16 @@ def _simplify(args: argparse.Namespace) -> int:
     except (IngestError, OSError) as exc:
         print(f"cannot read {args.input}: {exc}", file=sys.stderr)
         return 1
+    # The installation's variety (texts.region, set by setup) on the source and the job.
+    region = region_for(source.lang, settings.texts.region)
+    source = source.model_copy(update={"region": region})
     store = Store(settings.data.dir / "leichtfacile.sqlite")
     rounds = settings.pipeline
     if args.no_repair:  # no repair rounds, and so none of the rounds after them
         rounds = rounds.model_copy(update={"repair_rounds": 0, "facts_rounds": 0})
     config = JobConfig(
         lang=source.lang,
+        region=region,
         level=args.level,
         condition=args.condition,
         endpoint=args.preset,  # --preset: the job's record says where it ran

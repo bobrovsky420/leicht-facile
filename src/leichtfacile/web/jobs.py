@@ -23,7 +23,6 @@ from fastapi.concurrency import run_in_threadpool
 from leichtfacile.config import Settings
 from leichtfacile.ingest.errors import IngestError, PrivateAddressError, UnknownHostError
 from leichtfacile.lifecycle import source_counts
-from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
     JOB_MODES,
@@ -34,6 +33,7 @@ from leichtfacile.schemas import (
     SourceDocument,
 )
 from leichtfacile.store import Store
+from leichtfacile.varieties import region_for, variety
 from leichtfacile.web.i18n import ENGLISH, Translator
 
 MAX_TEXT_CHARS = 200_000
@@ -256,11 +256,16 @@ def create_job(
         raise SubmissionError(
             "unsupported_lang", lang=source.lang, langs=tuple(available_languages())
         )
+    # The installation's variety (texts.region, set by setup) goes onto the source and
+    # the job: a later setup leaves this job as it was.
+    region = region_for(source.lang, settings.texts.region)
+    source = source.model_copy(update={"region": region})
     notice = (sub.notice or "").strip() or None
     if sub.mode == "decision" and notice is None:
-        notice = label(source.lang, "notice_default")  # the authority's text, per language
+        notice = variety(source.variety).notice  # the authority's text, per variety
     config = JobConfig(
         lang=source.lang,
+        region=region,  # type: ignore[arg-type]
         level=sub.level,  # type: ignore[arg-type]
         condition=condition,  # type: ignore[arg-type]
         endpoint=endpoint,

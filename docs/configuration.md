@@ -247,7 +247,7 @@ readable by its owner only where the system supports it, under the provider's va
 
 | Command | Does |
 |---------|------|
-| `leichtfacile setup [name]` | sets a preset up and uses it: asks for the provider (or takes a preset's name, which names its provider, or a provider's), its key (nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists, saved as a preset of the user's own; for a server of the user's own asks its address and a name and saves it as a provider too; a preset saved already is updated with `--force`, its other keys kept |
+| `leichtfacile setup [name]` | sets a preset up and uses it: asks for the provider (or takes a preset's name, which names its provider, or a provider's), its key (nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists, saved as a preset of the user's own; for a server of the user's own asks its address and a name and saves it as a provider too; a preset saved already is updated with `--force`, its other keys kept. The variety of the texts (`[texts] region`: CH, DE or AT) is asked once more than one German variety ships, and set by `--region`; `setup --region AT` alone changes it and nothing else |
 | `leichtfacile preset list` | every preset, shipped or the user's own, with its label, its provider, its writer model and whether it is ready (else what it lacks), the one in use marked `*` |
 | `leichtfacile preset use <name>` | uses that preset from now on |
 | `leichtfacile preset remove <name>` | removes a preset of the user's own, or the user's table that extends a shipped preset (the shipped one stays) |
@@ -260,8 +260,11 @@ readable by its owner only where the system supports it, under the provider's va
 
 `setup` takes its answers as flags too: `--name` (the preset saved for `--model`, or the
 server), `--base-url` (a server of your own), `--api-key`, `--api-key-env`, `--model`,
-`--judge` and `--force` (update a preset saved already). It asks only for what the flags leave open, and nothing at all when
-the key's variable is set, so it runs from a script:
+`--judge`, `--force` (update a preset saved already) and `--region` (the variety of the
+texts, `[texts] region`, docs/architecture.md section 8: `CH`, the default, `DE` or `AT`;
+offered once a variety ships its prompts). It asks only for what the flags leave open,
+and nothing at all when the key's variable is set, so it runs from a script. Setup is
+the one place that sets the variety; the app reads it at its start:
 
 ```bash
 leichtfacile setup cscs-apertus                   # asks for the key; the rest is shipped
@@ -411,6 +414,14 @@ A provider with the models that write, read and check: what the user picks. Any 
 | `models.writer` |  | The model that reads, writes and repairs. Required. |
 | `models.understand` |  | The Understand stage's model, when it differs from the writer. |
 | `models.judge` |  | The judge's model. Default: the 70B of an Apertus 8B writer when the provider lists it, else the writer. |
+
+### `[texts]`
+
+The texts the installation works on (docs/architecture.md section 8). Set by `leichtfacile setup`; a job keeps the value it was created with.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `region` | `"CH"` | The national variety of German the drafts follow: CH (Switzerland), DE (Germany) or AT (Austria); `leichtfacile setup --region` sets it. French and Italian texts are Swiss whatever the value. |
 
 ### `[pipeline]`
 

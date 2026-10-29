@@ -34,6 +34,7 @@ from leichtfacile.schemas import (
     Level,
     RuleFindings,
     SourceDocument,
+    base_lang,
 )
 
 _SEGMENT_KINDS = {"heading": "heading", "list_item": "list_item"}
@@ -52,7 +53,9 @@ def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
         )
         for i, seg in enumerate(doc.segments, 1)
     ]
-    return Draft(doc_id=doc.id, lang=doc.lang, level=level, blocks=blocks, origin="review")
+    return Draft(
+        doc_id=doc.id, lang=doc.lang, region=doc.region, level=level, blocks=blocks, origin="review"
+    )
 
 
 # The text talks to the reader: Sie or du (German), vous or tu (French), Lei or voi
@@ -78,8 +81,11 @@ _INTRODUCED_RE = re.compile(r"\(([A-ZÄÖÜ][A-Za-zÄÖÜäöü]{1,7})\)")  # (E
 
 class RuleChecker:
     def __init__(self, lang: str) -> None:
-        self.lang = lang
-        self.nlp = pipeline(lang)
+        """`lang`: a language or a variety key (schemas.variety, `de-AT`): the checks and
+        guides are the variety's where it has its own, the spaCy pipeline the language's."""
+        self.variety = lang
+        self.lang = base_lang(lang)
+        self.nlp = pipeline(self.lang)
         # German and French: a full parse; Italian: the lexicon's lemma, part of speech
         # and morphology. The sentence rules run with either.
         self.parsed = has_analysis(self.nlp)
@@ -109,6 +115,7 @@ class RuleChecker:
         return Context(
             lang=self.lang,
             params=params_for(self.lang, draft.level),
+            variety=self.variety,
             glossary=glossary_keys(terms),
             blocks=infos,
             addresses_reader=bool(self.lang in _ADDRESS_RE and _ADDRESS_RE[self.lang].search(text)),
@@ -129,8 +136,8 @@ class RuleChecker:
         ctx = self.context(draft, factsheet, infos)
         findings: list[Finding] = []
 
-        sentence_rules = list(rules_for(self.lang, "sentence")) if self.parsed else []
-        block_rules = list(rules_for(self.lang, "block"))
+        sentence_rules = list(rules_for(self.variety, "sentence")) if self.parsed else []
+        block_rules = list(rules_for(self.variety, "block"))
         for index, info in enumerate(infos):
             ctx.block_index = index
             for spec, check in block_rules:
@@ -149,7 +156,7 @@ class RuleChecker:
             mode=mode,
         )
         for scope in ("document", "factsheet"):
-            for spec, check in rules_for(self.lang, scope):
+            for spec, check in rules_for(self.variety, scope):
                 findings += self._findings(spec.id, check(doc, ctx), ctx, None)
 
         metrics = self.metrics(infos, draft, factsheet, source)
@@ -164,9 +171,11 @@ class RuleChecker:
         self, lines: list[str], level: Level, *, notice: str | None = None
     ) -> list[Finding]:
         """`notice`: the fixed text a decision's export begins and ends with (FACT-07)."""
-        ctx = Context(lang=self.lang, params=params_for(self.lang, level), notice=notice)
+        ctx = Context(
+            lang=self.lang, params=params_for(self.lang, level), variety=self.variety, notice=notice
+        )
         findings: list[Finding] = []
-        for spec, check in rules_for(self.lang, "export"):
+        for spec, check in rules_for(self.variety, "export"):
             findings += self._findings(spec.id, check(lines, ctx), ctx, None)
         return findings
 
@@ -211,7 +220,7 @@ class RuleChecker:
             counts = [len([t for t in s if not (t.is_punct or t.is_space)]) for s in sentences]
             passive = genitive = subordinate = 0
         n = len(sentences)
-        result = readability([s.text for s in sentences], self.lang)
+        result = readability([s.text for s in sentences], self.variety)
         metrics = DocMetrics(
             blocks=len(infos),
             sentences=n,
@@ -260,6 +269,8 @@ _CHECKERS_LOCK = threading.Lock()
 
 
 def get_checker(lang: str) -> RuleChecker:
+    """The checker of a language or variety key; the varieties of one language share
+    its spaCy pipeline (rules/nlp.py caches it)."""
     with _CHECKERS_LOCK:  # two threads must not load the same model twice
         if lang not in _CHECKERS:
             _CHECKERS[lang] = RuleChecker(lang)
@@ -274,4 +285,4 @@ def check_draft(
     mode: str = "standard",
 ) -> RuleFindings:
     """`mode`: the job mode (schemas.JobMode); FACT-08 runs for a decision only."""
-    return get_checker(draft.lang).check(draft, source=source, factsheet=factsheet, mode=mode)
+    return get_checker(draft.variety).check(draft, source=source, factsheet=factsheet, mode=mode)

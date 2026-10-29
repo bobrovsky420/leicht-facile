@@ -483,3 +483,15 @@ def test_the_reference_in_the_docs_is_current() -> None:
     assert doc[doc.index(start) + len(start) : doc.index(end)].strip() == (
         reference_markdown().strip()
     ), "run `uv run python scripts/config_reference.py`"
+
+
+def test_the_texts_section_names_the_variety_and_reads_without_a_preset(home, monkeypatch):
+    write(home, LOCAL + '\n[texts]\nregion = "at"\n')
+    assert load().settings.texts.region == "AT"  # the code is read in any case
+    assert config.texts().region == "AT"  # the commands that call no model read it alone
+    monkeypatch.setenv("LEICHTFACILE_TEXTS__REGION", "DE")
+    assert load().settings.texts.region == "DE"
+    write(home, LOCAL + '\n[texts]\nregion = "ch-de"\n')
+    monkeypatch.delenv("LEICHTFACILE_TEXTS__REGION")
+    with pytest.raises(ConfigError, match="texts.region"):
+        load()

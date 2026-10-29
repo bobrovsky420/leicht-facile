@@ -39,10 +39,14 @@ from typing import Literal
 
 import pyphen
 
+from leichtfacile.schemas import base_lang
+from leichtfacile.varieties import variety
+
 Formula = Literal["amstad", "kandel-moles", "gulpease"]
 
+# The formula is the language's; the hyphenation dictionary for the syllable count is
+# the variety's (varieties.toml: de_CH for Swiss German).
 FORMULAS: dict[str, Formula] = {"de": "amstad", "fr": "kandel-moles", "it": "gulpease"}
-_HYPHENATION = {"de": "de_CH", "fr": "fr", "it": "it"}
 
 # Characters that join the parts of one word: hyphen, Unicode hyphen, non-breaking
 # hyphen, Mediopunkt, apostrophe, typographic apostrophe.
@@ -168,8 +172,9 @@ def _averages(sentences: int, words: int, syllables: int) -> tuple[float, float]
 
 
 def _formula(lang: str) -> Formula:
+    """`lang`: a language or a variety key (`de-AT`)."""
     try:
-        return FORMULAS[lang]
+        return FORMULAS[base_lang(lang)]
     except KeyError:
         raise ValueError(f"unsupported language {lang!r}; expected de, fr or it") from None
 
@@ -177,7 +182,7 @@ def _formula(lang: str) -> Formula:
 @cache
 def _hyphenator(lang: str) -> pyphen.Pyphen:
     _formula(lang)  # validates the language
-    return pyphen.Pyphen(lang=_HYPHENATION[lang], left=1, right=1)
+    return pyphen.Pyphen(lang=variety(lang).hyphenation, left=1, right=1)
 
 
 def _is_vowel(word: str, i: int) -> bool:

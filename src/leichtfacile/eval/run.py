@@ -32,6 +32,7 @@ from leichtfacile.schemas import (
     PipelineSummary,
     RuleFindings,
     SourceDocument,
+    variety,
 )
 from leichtfacile.store import Store
 
@@ -109,12 +110,15 @@ def run_condition(
         if pair.id in done:
             log.info("%s %s: done already", condition, pair.id)
             continue
-        if condition in ZH_CONDITIONS and not has_prompt(pair.lang, "baseline_zh"):
+        if condition in ZH_CONDITIONS and not has_prompt(
+            variety(pair.lang, pair.region), "baseline_zh"
+        ):
             log.info("%s %s: no Zurich prompt for '%s', skipped", condition, pair.id, pair.lang)
             continue
         standard, easy = load_pair(pair)
         config = JobConfig(
             lang=pair.lang,
+            region=pair.region,  # the pair's variety, not the installation's setting
             level=pair.level,
             condition=condition,  # type: ignore[arg-type]
             writer_model=writer,

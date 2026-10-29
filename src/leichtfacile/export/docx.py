@@ -26,9 +26,9 @@ from leichtfacile import __version__
 from leichtfacile.export import LABELS
 from leichtfacile.export.layout import Layout
 from leichtfacile.schemas import ZH_CONDITIONS, PipelineSummary
+from leichtfacile.varieties import variety
 
 DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-LANG_TAGS = {"de": "de-CH", "fr": "fr-CH", "it": "it-CH"}
 
 # The prompt template that wrote the text: a baseline's single prompt, else the writer's.
 WRITER_PROMPTS = {"P0": "baseline"} | dict.fromkeys(ZH_CONDITIONS, "baseline_zh")
@@ -226,7 +226,7 @@ def to_docx(
             body.append(_paragraph(entry.lines))
     if layout.notice:
         body.append(_paragraph([layout.notice], "Notice"))
-    lang = LANG_TAGS.get(layout.lang, "de-CH")
+    lang = variety(layout.variety).word_lang  # the spell checker's variety (varieties.toml)
     footer = _paragraph([footer_line(layout, summary, today)], "Footer")
     return _package(
         {

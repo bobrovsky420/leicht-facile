@@ -382,3 +382,23 @@ def test_the_browser_opens_only_on_this_machine_with_a_desktop(monkeypatch) -> N
     assert wants_browser("127.0.0.1")
     monkeypatch.setattr(sys, "platform", "win32")
     assert wants_browser("localhost")
+
+
+def test_the_region_is_set_by_setup_alone_and_only_for_a_variety_that_ships(home) -> None:
+    quiet = {"ask": never, "ask_secret": never, "say": lambda line: None}
+    # Only Swiss German ships its prompts, so setup asks nothing and the default stands.
+    assert run_setup(preset="cscs-apertus", api_key="k", **quiet) == 0
+    assert "texts" not in toml(home) and load().settings.texts.region == "CH"
+    # --region alone changes the variety and nothing else; the key lands in [texts].
+    said: list[str] = []
+    assert run_setup(region="ch", ask=never, ask_secret=never, say=said.append) == 0
+    assert toml(home)["texts"] == {"region": "CH"}
+    assert toml(home)["llm"] == {"preset": "cscs-apertus"}  # nothing else changed
+    assert any("German (Switzerland)" in line for line in said)
+    with pytest.raises(ConfigError, match="not available yet"):
+        run_setup(region="DE", **quiet)
+    with pytest.raises(ConfigError, match="unknown region"):
+        run_setup(region="XX", **quiet)
+    # With the preset, the flag writes the key in the same run.
+    assert run_setup(preset="publicai-apertus", api_key="k", region="CH", **quiet) == 0
+    assert toml(home)["texts"] == {"region": "CH"}

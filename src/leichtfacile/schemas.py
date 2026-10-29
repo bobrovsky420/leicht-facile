@@ -13,6 +13,11 @@ from typing import Literal, get_args
 from pydantic import BaseModel, ConfigDict, Field
 
 Lang = Literal["de", "fr", "it"]
+# The national variety of the language: Switzerland (the project's home, the default of
+# every stored artifact without the field), Germany or Austria. One setting per
+# installation (`texts.region`, set by `leichtfacile setup`), carried by the job, the
+# source and the drafts; it shapes German only, French and Italian are always Swiss.
+Region = Literal["CH", "DE", "AT"]
 Level = Literal["A2", "B1"]
 Severity = Literal["error", "warn", "info"]
 SegmentKind = Literal["heading", "paragraph", "list_item", "table_cell"]
@@ -61,7 +66,23 @@ ZH_CONDITIONS: frozenset[str] = frozenset({"P0-ZH-complete", "P0-ZH-condensed"})
 BASELINE_CONDITIONS: frozenset[str] = frozenset({"P0"}) | ZH_CONDITIONS
 
 LANGS: tuple[Lang, ...] = ("de", "fr", "it")
+REGIONS: tuple[Region, ...] = ("CH", "DE", "AT")
 LEVELS: tuple[Level, ...] = ("A2", "B1")
+
+
+def variety(lang: str, region: str = "CH") -> str:
+    """The key of a language's national variety: the language code alone for the Swiss
+    varieties (`de`, `fr`, `it`, the names of the prompt folders and rule tables since
+    the start), `de-DE` and `de-AT` for Germany and Austria. The prompts, labels, rule
+    checks and guides are looked up by this key and fall back to the language."""
+    return lang if region == "CH" else f"{lang}-{region}"
+
+
+def base_lang(key: str) -> str:
+    """The language of a variety key: `de` for `de-AT`; a plain language code as it is."""
+    return key.partition("-")[0]
+
+
 SEVERITY_RANK: dict[str, int] = {"error": 0, "warn": 1, "info": 2}
 # The rounds after the first draft, in the order the plan runs them (pipeline/rounds.py):
 # repair (the loop on the findings), facts (the missing must-keep values alone), recover
@@ -120,9 +141,14 @@ class Segment(Artifact):
 class SourceDocument(Artifact):
     id: str
     lang: Lang
+    region: Region = "CH"  # the national variety the job reads the text in
     title: str | None = None
     source: SourceInfo
     segments: list[Segment]
+
+    @property
+    def variety(self) -> str:
+        return variety(self.lang, self.region)
 
     def segment_ids(self) -> set[str]:
         return {s.id for s in self.segments}
@@ -254,6 +280,7 @@ class CodeEdit(Artifact):
 class Draft(Artifact):
     doc_id: str
     lang: Lang
+    region: Region = "CH"  # the national variety the draft is written and checked in
     level: Level
     version: int = 1
     parent_version: int | None = None
@@ -262,6 +289,10 @@ class Draft(Artifact):
     omissions: list[Omission] = Field(default_factory=list)
     glossary: list[GlossaryEntry] = Field(default_factory=list)
     code_edits: list[CodeEdit] = Field(default_factory=list)  # made on this version
+
+    @property
+    def variety(self) -> str:
+        return variety(self.lang, self.region)
 
     def by_id(self) -> dict[str, Block]:
         return {b.id: b for b in self.blocks}
@@ -521,6 +552,9 @@ class PipelineSummary(Artifact):
 
 class JobConfig(Artifact):
     lang: Lang | None = None  # None: detect from the source
+    # The installation's `texts.region` when the job was created, so a later setup
+    # never alters a stored job; a job stored before the field existed is Swiss.
+    region: Region = "CH"
     level: Level = "A2"
     condition: Condition = "P2"
     endpoint: str | None = None  # the endpoint picked for this job; None: the one in use

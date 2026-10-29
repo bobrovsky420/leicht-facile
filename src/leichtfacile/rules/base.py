@@ -16,7 +16,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
-from leichtfacile.schemas import LANGS, Level, Severity
+from leichtfacile.schemas import LANGS, Level, Severity, base_lang
 
 if TYPE_CHECKING:
     from spacy.tokens import Span
@@ -61,8 +61,9 @@ LANG_PARAMS: dict[str, dict[str, LevelParams]] = {
 
 
 def params_for(lang: str | None, level: str) -> LevelParams:
-    """The thresholds for a language and level; PARAMS unless the language has its own."""
-    return LANG_PARAMS.get(lang or "", {}).get(level) or PARAMS[level]
+    """The thresholds for a language and level; PARAMS unless the language has its own.
+    A variety key (`de-AT`) takes its language's: the limits are the language's."""
+    return LANG_PARAMS.get(base_lang(lang or ""), {}).get(level) or PARAMS[level]
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,9 @@ class Context:
 
     lang: str
     params: LevelParams
+    # The national variety the text is checked in (schemas.variety: `de`, `de-DE`, ...);
+    # the language's key when the checker is made for a language alone.
+    variety: str = ""
     glossary: set[str] = field(default_factory=set)  # lowercased terms, without Mediopunkt
     blocks: list[BlockInfo] = field(default_factory=list)
     block_index: int = 0  # index of the block being checked
@@ -102,6 +106,9 @@ class Context:
     # Decision mode, export checks: the authority's fixed text, which the export must
     # begin and end with (FACT-07) and which the layout rules leave alone.
     notice: str | None = None
+
+    def __post_init__(self) -> None:
+        self.variety = self.variety or self.lang
 
     @property
     def level(self) -> Level:
@@ -139,11 +146,12 @@ class RuleSpec:
     severity: dict[str, Severity]  # per level
     scope: Scope
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading")  # block kinds checked
-    # The checks by language, or one under EVERY_LANGUAGE; a rule the judge decides or a
-    # metric reports has none.
+    # The checks by language or variety key (`de`, `de-AT`), or one under
+    # EVERY_LANGUAGE; a rule the judge decides or a metric reports has none. A variety
+    # without a check of its own takes its language's.
     checks: dict[str, CheckFn] = field(default_factory=dict)
-    # The instruction for the writer prompt, by language; {max_words} and the other
-    # LevelParams fields are filled in.
+    # The instruction for the writer prompt, by language or variety key; {max_words} and
+    # the other LevelParams fields are filled in.
     guides: dict[str, Guide] = field(default_factory=dict)
 
     @property
@@ -153,13 +161,20 @@ class RuleSpec:
         return tuple(lang for lang in self.checks if lang != EVERY_LANGUAGE)
 
     def check_for(self, lang: str) -> CheckFn | None:
-        return self.checks.get(lang) or self.checks.get(EVERY_LANGUAGE)
+        """The check for a language or a variety key, the variety's own first."""
+        return (
+            self.checks.get(lang)
+            or self.checks.get(base_lang(lang))
+            or self.checks.get(EVERY_LANGUAGE)
+        )
 
     def severity_for(self, level: str) -> Severity:
         return self.severity[level]
 
     def guide_for(self, lang: str, level: str) -> str | None:
         guide = self.guides.get(lang)
+        if guide is None:
+            guide = self.guides.get(base_lang(lang))
         text = guide.get(level) if isinstance(guide, dict) else guide
         if text is None:
             return None
@@ -232,7 +247,7 @@ def rule(
 
 
 def rules_for(lang: str, scope: Scope) -> Iterator[tuple[RuleSpec, CheckFn]]:
-    """The rules of a scope with the check they have for the language."""
+    """The rules of a scope with the check they have for the language or variety key."""
     for spec in RULES.values():
         if spec.scope != scope:
             continue

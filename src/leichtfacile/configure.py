@@ -42,6 +42,8 @@ from leichtfacile.config import (
     provider_names,
     provider_table,
 )
+from leichtfacile.schemas import REGIONS
+from leichtfacile.varieties import regions, variety
 
 _PLAIN = re.compile(r"[\w.:/@+=,{}\[\]-]*")
 HEADER = (
@@ -85,6 +87,7 @@ def run_setup(
     model: str | None = None,
     judge: str | None = None,
     force: bool = False,
+    region: str | None = None,
     ask: Callable[[str], str] = input,
     ask_secret: Callable[[str], str] = getpass.getpass,
     models: Callable[..., list[str]] = list_models,
@@ -95,10 +98,34 @@ def run_setup(
     none), and the preset: one of the provider's, or a model the provider lists, saved
     as a preset of the user's own. A server of the user's own becomes a provider with
     its address. The key goes into the .env next to the config file, the preset into
-    use. 0 when it is saved."""
+    use. The variety of the texts (`texts.region`, docs/architecture.md section 8)
+    is asked once, when more than one German variety ships its prompts and the file
+    names none yet; `region` answers it, and alone it changes the variety and nothing
+    else. 0 when it is saved."""
     path = config.config_file()
     doc = read_document(path)
     flat = config.collect()
+
+    # The texts' variety (`texts.region`): setup is the one place that sets it (the
+    # owner's decision of 29 October 2026); the choices are the German varieties whose
+    # prompts exist.
+    offered_regions = regions()
+    if region is not None:
+        region = region.strip().upper()
+        if region not in REGIONS:
+            raise ConfigError(f"unknown region {region!r}; use one of {', '.join(REGIONS)}")
+        if region not in offered_regions:
+            raise ConfigError(
+                f"German for {region} is not available yet; available: {', '.join(offered_regions)}"
+            )
+        if provider is None and preset is None and base_url is None and model is None:
+            set_key(doc, ["texts", "region"], region)
+            check(path, doc)
+            write_document(path, doc)
+            say(f"The texts follow {variety('de', region).label}: {path}.")
+            say("It applies to the drafts created from now on; a running app takes it at its "
+                "next start.")  # fmt: skip
+            return 0
 
     # The provider: from the preset, named, a new server (--base-url), or asked.
     if preset is not None:
@@ -200,6 +227,18 @@ def run_setup(
         use = not _no(ask(f"Use {preset} from now on, instead of {active}? [Y/n] "))
     if use:
         set_key(doc, ["llm", "preset"], preset)
+
+    # The variety: given, else asked once while the file names none and there is a
+    # choice; with CH alone the shipped default stands and nothing is asked.
+    saved_region = (doc.get("texts") or {}).get("region")
+    if region is not None:
+        set_key(doc, ["texts", "region"], region)
+        written.append("[texts]")
+    elif saved_region is None and len(offered_regions) > 1 and not scripted:
+        labels = [variety("de", r).setup_label or r for r in offered_regions]
+        index = _pick(ask, say, "Which German do your texts use?", labels, "Variety")
+        set_key(doc, ["texts", "region"], offered_regions[index])
+        written.append("[texts]")
 
     check(path, doc)
     secrets = path.parent / ".env"

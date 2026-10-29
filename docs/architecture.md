@@ -656,7 +656,8 @@ code turns into these artifacts.
 
 ```text
 SourceDocument
-  id, lang (de|fr|it), title, source {type, uri, fetched_at, license_note}
+  id, lang (de|fr|it), region (CH|DE|AT: the national variety, §8; CH when absent),
+  title, source {type, uri, fetched_at, license_note}
   segments[]: {id, kind, text, heading_path[], heading_level?, para, page?}
 
 FactSheet
@@ -667,7 +668,8 @@ FactSheet
   omit_candidates[]: {segment_ids[], reason}
 
 Draft  (one per version)
-  doc_id, lang, level (A2|B1), version, parent_version?, origin (write|repair|baseline|review)
+  doc_id, lang, region (as the source's), level (A2|B1), version, parent_version?,
+  origin (write|repair|baseline|review)
   blocks[]: {id, kind (heading|sentence|list_item), text, fact_ids[], segment_ids[]}
   omissions[]: {what, why, segment_ids[]}
   glossary[]: {term, explanation, origin (model|vocabulary)}
@@ -714,7 +716,8 @@ PipelineSummary
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
-  config: {lang, level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
+  config: {lang, region (the installation's texts.region when the job was created, §8),
+           level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
            writer_model, understand_model, judge_model, use_judge,
            pipeline (the [pipeline] settings when the job was created: repair_rounds,
                      facts_rounds, missing_per_facts_round, recover_facts, polish_rounds,
@@ -1097,7 +1100,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. |
+| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. |
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
@@ -1128,6 +1131,35 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 | Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 28 + 13 |
 | Prompts and few-shot examples | yes | yes | yes (28 October 2026) |
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
+
+**National varieties** (since 29 October 2026, the foundations; the German of Germany and
+Austria are planned, docs/sources.md collects their sources). A language has national
+varieties: Swiss German, the German of Germany and Austrian German differ in spelling
+(`ss` or `ß`), in the mark that splits a long compound (Mediopunkt or hyphen), in the
+currency, the number formats, the phone and address formats, the names of the authorities
+and the decision letters. One installation works in one variety: `texts.region` (CH, DE
+or AT, shipped default CH) is set by `leichtfacile setup` alone, which asks for it once
+more than one German variety ships its prompts (`varieties.regions`, decided from the
+prompt folders) and takes `--region`. Every job, source and draft carries the region it
+was created with (`JobConfig.region`, `SourceDocument.region`, `Draft.region`), so a
+later setup never alters a stored job, and an artifact stored before the field is Swiss.
+French and Italian are Swiss whatever the setting (`varieties.region_for`). The key of a
+variety (`schemas.variety`: `de`, `fr`, `it` for the Swiss varieties, the names of the
+prompt folders and rule tables since the start; `de-DE`, `de-AT`) is what the prompt
+templates and few-shot examples (`pipeline/prompts.py`), the labels, the rule checks and
+guides (`rules/base.py`), the checker (`get_checker`, one per variety, the spaCy pipeline
+shared per language) and the style guide are looked up by, each falling back to the
+language's; the Canton of Zurich's prompt is Swiss and is not inherited. The facts of a
+variety (its label, the Word export's language tag, the hyphenation dictionary, the
+decision mode's default notice) are data in `src/leichtfacile/varieties/varieties.toml`,
+one table per variety, read by `leichtfacile.varieties`. While the Swiss varieties are the
+only ones, nothing changes for the user: setup asks nothing, every output is as before,
+and two guards keep it so for every later package: the rendered prompts of the three
+languages are frozen in `tests/fixtures/prompts/` (`tests/pipeline/test_prompt_snapshots.py`,
+every stage, level, mode and partial on one synthetic letter; the response cache keys on
+these texts) and `scripts/parity.py` counts the checker's findings and the hard values on
+the cached pages of the 49 Swiss pairs against `tests/fixtures/parity/swiss.json` (counts
+only; it needs the fetched pages, so it runs on a developer's machine).
 
 German came first in the build order. French followed on 6 October 2026, before the
 CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28
@@ -1320,7 +1352,8 @@ preset's or a provider's name), its key (not echoed; nothing with the key's vari
 set), then one of the provider's presets or any model it lists, saved as
 `[presets.<name>]`, a server of one's own as `[providers.<name>]` too; `--name`,
 `--base-url`, `--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` answer the
-questions in advance. A preset is ready when its provider has an address and a key and
+questions in advance, and `--region` the question for the texts' variety (`[texts]`,
+§8), which setup alone sets; the app reads it at its start. A preset is ready when its provider has an address and a key and
 it names a writer; nothing is guessed from the keys in the shell (since 25 October
 2026). `leichtfacile preset` lists every preset with what it lacks, switches and
 removes, `leichtfacile config` shows and changes every setting (§7). The settings come
@@ -1594,6 +1627,7 @@ src/leichtfacile/
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
   letters/                  the example letters shipped with the package
   presets/presets.toml      the known providers with their models tables and prices, and the presets on them
+  varieties/                the national varieties (§8): varieties.toml, one table per variety, and its reader
   llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
                             recover.md, examples/; decision.md (the decision mode's partial,
@@ -1619,6 +1653,7 @@ src/leichtfacile/
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
 scripts/                    config_reference.py (the settings reference in configuration.md), print_letters.py,
+                            parity.py (the Swiss parity check against tests/fixtures/parity/swiss.json, §8),
                             model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),
                             lexicon_package.py and morphit.py (the Italian pipeline leichtfacile-model-it
                             from the Morph-it! lexicon)
@@ -1628,7 +1663,8 @@ data/
   cache/, *.sqlite          with data.dir = "data": fetched texts, LLM cache, the database (git-ignored)
 eval/                       evaluation outputs (results*/) and labelling sheets (labels/), git-ignored
 tests/                      rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
-                            eval, web
+                            eval, web; fixtures/prompts/ (the rendered prompts, frozen) and
+                            fixtures/parity/ (the Swiss counts), §8
 ```
 
 ## 12. Endpoint checks

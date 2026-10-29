@@ -74,6 +74,7 @@ from leichtfacile.schemas import (
     SemanticFinding,
     SourceDocument,
     Unsupported,
+    base_lang,
 )
 
 
@@ -265,7 +266,8 @@ def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
 
 @lru_cache(maxsize=8)
 def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
-    return tuple(re.compile(p) for p in EXAMPLE_TOPIC_WORDS.get(lang, ()))
+    words = EXAMPLE_TOPIC_WORDS.get(lang) or EXAMPLE_TOPIC_WORDS.get(base_lang(lang), ())
+    return tuple(re.compile(p) for p in words)
 
 
 @lru_cache(maxsize=16)
@@ -409,11 +411,11 @@ def understand(
     addressee: str | None = None,
 ) -> tuple[FactSheet, list[LLMResult]]:
     prompt = render(
-        source.lang,
+        source.variety,
         "understand",
         **mode_context("understand", mode, addressee),
         medication=has_doses(source),
-        level_name=level_name(source.lang, level),
+        level_name=level_name(source.variety, level),
         source=r.source_text(source),
     )
     out, results = _call(
@@ -422,10 +424,10 @@ def understand(
         prompt,
         UnderstandOut,
         model,
-        check=_copy_check(source.lang, "understand", _understand_texts),
-        soft_check=_topic_check(source.lang, "understand", _understand_texts, source.text()),
+        check=_copy_check(source.variety, "understand", _understand_texts),
+        soft_check=_topic_check(source.variety, "understand", _understand_texts, source.text()),
     )
-    dropped = drop_topical(_understand_texts(out), source.lang, source.text(), "understand")
+    dropped = drop_topical(_understand_texts(out), source.variety, source.text(), "understand")
     if dropped:
         out.facts = [f for f in out.facts if f.text not in dropped]
     fs = to_factsheet(out, source.id)
@@ -673,6 +675,7 @@ def write(
     addressee: str | None = None,
 ) -> tuple[Draft, list[LLMResult]]:
     lang = source.lang
+    variety = source.variety  # the prompts, the style guide and the examples are the variety's
     if source.word_count() > LONG_DOCUMENT_WORDS:
         sections = split_sections(source)
     else:
@@ -691,14 +694,14 @@ def write(
         if sectioned:
             fact_ids = [f.id for f in factsheet.facts if set(f.segment_ids) & in_section]
         prompt = render(
-            lang,
+            variety,
             "write",
             **mode_context("write", mode, addressee),
             medication=names_medication(factsheet),
-            level_name=level_name(lang, level),
+            level_name=level_name(variety, level),
             level=level,
-            style_guide=style_guide(lang, level),
-            examples=examples(lang),
+            style_guide=style_guide(variety, level),
+            examples=examples(variety),
             section=title if sectioned else "",
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
             source=r.source_lines(segments),
@@ -710,8 +713,8 @@ def write(
                 prompt,
                 WriteOut,
                 model,
-                check=_copy_check(lang, "write", _write_texts),
-                soft_check=_topic_check(lang, "write", _write_texts, source.text()),
+                check=_copy_check(variety, "write", _write_texts),
+                soft_check=_topic_check(variety, "write", _write_texts, source.text()),
             )
         except LLMOutputError as exc:
             results += exc.results
@@ -729,7 +732,7 @@ def write(
             sectioned = True
             continue
         results += res
-        dropped = drop_topical(_write_texts(out), lang, source.text(), "write")
+        dropped = drop_topical(_write_texts(out), variety, source.text(), "write")
         for b in out.blocks:
             if b.text in dropped:
                 continue
@@ -755,6 +758,7 @@ def write(
     draft = Draft(
         doc_id=source.id,
         lang=lang,
+        region=source.region,
         level=level,
         version=1,
         origin="write",
@@ -957,10 +961,10 @@ def judge(
     cited |= {s for f in factsheet.facts for s in f.segment_ids}
     excerpt = r.cited_source(source, cited) if cited else r.source_text(source)
     prompt = render(
-        draft.lang,
+        draft.variety,
         "judge",
         **mode_context("judge", mode, addressee),
-        level_name=level_name(draft.lang, draft.level),
+        level_name=level_name(draft.variety, draft.level),
         factsheet=r.factsheet_text(factsheet, lang=draft.lang),
         source=excerpt,
         draft=r.draft_lines(draft, refs=False),
@@ -1104,6 +1108,7 @@ def repair(
     vocabulary round starts from the best version, not the latest)."""
     version = version if version is not None else draft.version + 1
     lang = draft.lang
+    variety = draft.variety  # the prompt and the style guide are the variety's
     by_id = draft.by_id()
     facts = {f.id: f for f in factsheet.facts}
     flagged_lines = []
@@ -1122,12 +1127,12 @@ def repair(
         cited |= set(fact.segment_ids)
         missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}")
     prompt = render(
-        draft.lang,
+        variety,
         "repair",
         **mode_context("repair", mode, addressee),
-        level_name=level_name(draft.lang, draft.level),
+        level_name=level_name(variety, draft.level),
         level=draft.level,
-        style_guide=style_guide(draft.lang, draft.level),
+        style_guide=style_guide(variety, draft.level),
         flagged="\n\n".join(flagged_lines) or label(lang, "none"),
         missing="\n".join(missing_lines),
         factsheet=r.factsheet_text(factsheet, lang=lang),
@@ -1141,9 +1146,9 @@ def repair(
         prompt,
         RepairOut,
         model,
-        check=_copy_check(lang, "repair", _repair_texts),
+        check=_copy_check(variety, "repair", _repair_texts),
         soft_check=_soft_checks(
-            _topic_check(lang, "repair", _repair_texts, source.text()),
+            _topic_check(variety, "repair", _repair_texts, source.text()),
             _foreign_check(lang, known, _repair_texts),
         ),
     )
@@ -1159,7 +1164,7 @@ def repair(
             for a in out.additions
         ],
     )
-    topical = drop_topical(_repair_texts(out), lang, source.text(), "repair")
+    topical = drop_topical(_repair_texts(out), variety, source.text(), "repair")
     if topical:
         for item in out.repairs:
             record.dropped += [
@@ -1390,6 +1395,7 @@ def recover_fact(
     paragraph alone recovered f07 of the premium letter in 0 of 3 runs, with the value
     and its sentence named in 3 of 3 (docs/prompts.md, "Recovering a missing fact")."""
     lang = draft.lang
+    variety = draft.variety  # the prompt and the style guide are the variety's
     fact = next(f for f in factsheet.facts if f.id == fact_id)
     recovery = Recovery(fact_id=fact.id)
     paragraph = fact_paragraph(source, fact)
@@ -1401,11 +1407,11 @@ def recover_fact(
     target = parse_value_norm(fact.value_norm, fact.kind, lang)
     exact = (display_value(target, lang) if target else "") or (fact.value_norm or "")
     prompt = render(
-        lang,
+        variety,
         "recover",
-        level_name=level_name(lang, draft.level),
+        level_name=level_name(variety, draft.level),
         level=draft.level,
-        style_guide=style_guide(lang, draft.level),
+        style_guide=style_guide(variety, draft.level),
         value=exact,
         sentence_ids=", ".join(f"[{i}]" for i in fact.segment_ids if i in para_ids),
         fact=f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}",
@@ -1547,7 +1553,7 @@ def baseline(
     s = STAGES["baseline"]
     thinking = thinking_for(llm, "baseline", model)
     prompt = render(
-        source.lang, "baseline", level_name=level_name(source.lang, level), text=source.text()
+        source.variety, "baseline", level_name=level_name(source.variety, level), text=source.text()
     )
     result = llm.complete(
         [{"role": "user", "content": prompt}],
@@ -1558,7 +1564,10 @@ def baseline(
         stage="baseline",
     )
     blocks = text_to_blocks(result.text, source.lang)
-    draft = Draft(doc_id=source.id, lang=source.lang, level=level, origin="baseline", blocks=blocks)
+    draft = Draft(
+        doc_id=source.id, lang=source.lang, region=source.region, level=level, origin="baseline",
+        blocks=blocks,
+    )  # fmt: skip
     return draft, [result]
 
 
@@ -1608,7 +1617,7 @@ def baseline_zh(
     thinking = thinking_for(llm, "baseline", model)
     context = {"variant": variant, "text": source.text()}
     messages = [
-        {"role": part, "content": render(source.lang, "baseline_zh", part=part, **context)}
+        {"role": part, "content": render(source.variety, "baseline_zh", part=part, **context)}
         for part in ("system", "user")
     ]
     result = llm.complete(
@@ -1621,7 +1630,10 @@ def baseline_zh(
     )
     text, tagged = zh_answer_text(result.text)
     blocks = text_to_blocks(text, source.lang)
-    draft = Draft(doc_id=source.id, lang=source.lang, level=level, origin="baseline", blocks=blocks)
+    draft = Draft(
+        doc_id=source.id, lang=source.lang, region=source.region, level=level, origin="baseline",
+        blocks=blocks,
+    )  # fmt: skip
     return draft, [result], [] if tagged else [ZH_NO_TAGS_NOTE]
 
 
