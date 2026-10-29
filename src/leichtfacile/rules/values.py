@@ -21,6 +21,8 @@ from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Literal
 
+from leichtfacile.schemas import base_lang
+
 ValueKind = Literal[
     "date", "amount", "number", "phone", "email", "url", "percent", "time",
     "period", "identifier", "address", "quantity", "schedule", "medication",
@@ -34,7 +36,8 @@ HARD_KINDS: tuple[ValueKind, ...] = (
 
 MONTHS: dict[str, dict[str, int]] = {
     "de": {
-        "januar": 1, "jan": 1, "februar": 2, "feb": 2, "märz": 3, "maerz": 3, "mär": 3,
+        "januar": 1, "jan": 1, "jänner": 1, "jaenner": 1, "jän": 1, "februar": 2, "feb": 2,
+        "feber": 2, "märz": 3, "maerz": 3, "mär": 3,
         "april": 4, "apr": 4, "mai": 5, "juni": 6, "jun": 6, "juli": 7, "jul": 7,
         "august": 8, "aug": 8, "september": 9, "sept": 9, "sep": 9, "oktober": 10,
         "okt": 10, "november": 11, "nov": 11, "dezember": 12, "dez": 12,
@@ -53,6 +56,10 @@ MONTHS: dict[str, dict[str, int]] = {
 MONTH_NAMES = {
     "de": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
            "September", "Oktober", "November", "Dezember"],
+    # Austria writes Jänner (the varieties, docs/architecture.md section 8); the other
+    # German varieties take the "de" names.
+    "de-AT": ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
+              "September", "Oktober", "November", "Dezember"],
     "fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
            "septembre", "octobre", "novembre", "décembre"],
     "it": ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio",
@@ -63,7 +70,8 @@ DASHES = "-\u2010\u2011\u2012\u2013\u2014"
 _SEP = r"[ '\u2019\u02bc\u00a0\u202f\u2009]"  # thousands separators seen in Swiss texts
 _QUOTES = "\"'\u00ab\u00bb\u201c\u201d\u201e"
 _ALL_MONTHS = sorted({m for names in MONTHS.values() for m in names}, key=len, reverse=True)
-_ABBREVIATED = {"jan", "feb", "mär", "apr", "jun", "jul", "aug", "sep", "sept", "okt", "nov", "dez"}
+_ABBREVIATED = {"jan", "jän", "feb", "mär", "apr", "jun", "jul", "aug", "sep", "sept", "okt", "nov",
+                "dez"}  # fmt: skip
 # Abbreviated months may carry a dot (31. Jan. 2026); full names may not, so a
 # sentence-final dot is never part of the date.
 _MONTH_RE = "|".join(re.escape(m) + (r"\.?" if m in _ABBREVIATED else "") for m in _ALL_MONTHS)
@@ -118,10 +126,45 @@ NUMBER_RE = re.compile(
     r"(?<![\d.,'/])(\d{1,3}(?:" + _SEP + r"\d{3})+|\d+)"
     r"(?:([.,])(\d{1,2}|[" + DASHES + r"]{1,2})(?!\d))?(?![\d'])"
 )
-_CURRENCY_BEFORE = re.compile(r"(?:CHF|Fr\.|SFr\.|sFr\.)[ ]?$")
+_CURRENCY_BEFORE = re.compile(r"(?:CHF|Fr\.|SFr\.|sFr\.|EUR|€)[ ]?$")
 _CURRENCY_AFTER = re.compile(
-    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|Rappen|francs?|franchi|franco)", re.IGNORECASE
-)  # `2 millions de francs`
+    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|Rappen|francs?|franchi|franco|EUR|Euro|€)",
+    re.IGNORECASE,
+)  # `2 millions de francs`; the euro of the German and Austrian letters (29 October 2026)
+# Germany and Austria write the thousands with a dot and the decimals with a comma
+# (`1.500,00 €`, `€ 1.500,--`); a dot before one or two digits is read as a decimal
+# point all the same (`1.5 Mio.`). The Swiss varieties keep NUMBER_RE above. The style
+# follows the variety key (`de-DE`, `de-AT`: `_german_style`).
+_SEP_DE = r"[. '\u2019\u00a0\u202f\u2009]"
+_NUMBER_DE_RE = re.compile(
+    r"(?<![\d.,'/])(\d{1,3}(?:" + _SEP_DE + r"\d{3})+|\d+)"
+    r"(?:(,)(\d{1,2}|[" + DASHES + r"]{1,2})(?!\d)|(\.)(\d{1,2})(?!\d))?(?![\d'])"
+)
+_GERMAN_REGIONS = ("DE", "AT")
+
+
+def _german_style(lang: str) -> bool:
+    """Whether a language or variety key writes numbers the German and Austrian way."""
+    return lang.partition("-")[2] in _GERMAN_REGIONS
+
+
+def _number_parts(m: re.Match[str], german: bool) -> tuple[str, str | None, str | None]:
+    """The integer, the separator and the decimals of a number match, for either style."""
+    if not german:
+        return m.group(1), m.group(2), m.group(3)
+    if m.group(2):
+        return m.group(1), m.group(2), m.group(3)
+    return m.group(1), m.group(4), m.group(5)
+
+
+# German and Austrian numbers have area codes of two to five digits and subscriber
+# numbers of three to eight, written with spaces, slashes, hyphens or brackets, never
+# with dots: `030 1234567`, `0221 / 12 34 56`, `(05544) 332211`, `0 55 44 33 22 11`,
+# `01 53115-0` (Vienna), `+49 30 1234567`, `+43 1 711 00-0`. Seven to thirteen digits in
+# the national form (`_phone_de`); PHONE_RE above runs first and takes what it fits.
+_PHONE_DE_RE = re.compile(
+    r"(?<![\w+])(?:(?:\+4[39]|004[39])[ /-]?(?:\(0\)[ ]?)?|\(?0)[\d ()/-]{6,19}\d(?!\w)"
+)
 # A multiplier after a number scales it (since 12 October 2026): `CHF 1,5 Mio.` and
 # `1'500'000 Franken` are the same amount, `20 Millionen Franken` is an amount, not the
 # plain number 20 (found on the Fedlex Answer snippets, docs/rules.md).
@@ -223,7 +266,12 @@ _PERIOD_WORDS: dict[str, dict[str, tuple[str, str]]] = {
 # -- identifiers: AHV number, IBAN, postal account, UID, a reference after a keyword ----
 
 _AHV_RE = re.compile(r"(?<!\d)756[. ]?\d{4}[. ]?\d{4}[. ]?\d{2}(?!\d)")
-_IBAN_RE = re.compile(r"(?<![A-Z0-9])(?:CH|LI)\d{2}(?:[ ]?[0-9A-Z]{4}){4}[ ]?[0-9A-Z](?![0-9A-Z])")
+# A Swiss or Liechtenstein IBAN (21 characters), a German one (22) or an Austrian one
+# (20), with or without spaces; whatever the variety, a letter may cite any of them.
+_IBAN_RE = re.compile(
+    r"(?<![A-Z0-9])(?:(?:CH|LI)\d{2}(?:[ ]?[0-9A-Z]{4}){4}[ ]?[0-9A-Z]"
+    r"|DE\d{2}(?:[ ]?\d{4}){4}[ ]?\d{2}|AT\d{2}(?:[ ]?\d{4}){4})(?![0-9A-Z])"
+)
 _POSTAL_ACCOUNT_RE = re.compile(
     r"(?<![\d-])\d{2}[" + DASHES + r"]\d{1,6}[" + DASHES + r"]\d(?![\d-])"
 )
@@ -238,8 +286,11 @@ _REF_KEYWORDS = (
     r"|(?:Geschäfts|Kunden|Versicherten|Versicherungs|Policen|Fall|Rechnungs|Vertrags|Betreibungs"
     r"|Verfahrens|Gesuchs|Entscheid|Verfügungs|Mitglieder|Partner|Vorgangs|Konto|Akten|Schaden"
     r"|Steuer|Patienten|Personal|Register|Kontroll|Auftrags|Mandats|Antrags|Bewilligungs|Objekt"
-    r"|Zahlungsbefehls|Strafbefehls|Beschwerde)"
+    r"|Zahlungsbefehls|Strafbefehls|Beschwerde|Bedarfsgemeinschafts|Buchungs)"
     r"·?nummern?"
+    # Germany and Austria (29 October 2026): the file numbers of a Bescheid and of the
+    # tax and social insurance letters.
+    r"|Kassen·?zeichen|Geschäfts·?zahl|Akten·?zahl|GZ|Zl\.|BG-Nummer"
     r"|(?:Verfügung|Entscheid|Fall|Police|Rechnung|Vertrag|Gesuch|Betreibung|Verfahren|Urteil"
     r"|Beschluss|Konto|Dossier|Referenz|Geschäft|Akte|Schaden|Steuer|Patient|Register|Auftrag"
     r"|Mandat|Antrag|Bewilligung|Objekt|Zahlungsbefehl|Strafbefehl|Beschwerde|Mahnung)"
@@ -273,8 +324,19 @@ _REF_CODE = (
 )
 _NOT_AFTER_CODE = (
     r"(?![ ]?(?:Tag|Tage|Tagen|Woche|Wochen|Monat|Monate|Monaten|Jahr|Jahre|Jahren|Franken"
-    r"|Rappen|Prozent|Uhr|Minuten|Stunden|Mal|Seiten|Personen|jours?|semaines?|mois|ans?|francs?"
-    r"|heures|giorni|mesi|anni|franchi)(?![\w·]))"
+    r"|Rappen|Euro|Cent|Prozent|Uhr|Minuten|Stunden|Mal|Seiten|Personen|jours?|semaines?|mois"
+    r"|ans?|francs?|heures|giorni|mesi|anni|franchi)(?![\w·]))"
+)
+# The spaced numbers of German and Austrian insurance and tax letters, after their
+# keyword: the Steuer-ID (`12 345 678 901`), the Rentenversicherungsnummer
+# (`65 170839 J 003`), the Austrian Sozialversicherungsnummer (`1234 010180`). The
+# reference pattern above takes a code up to its first space; these keywords take the
+# groups together (29 October 2026). Swiss letters use none of the keywords.
+_SPACED_ID_RE = re.compile(
+    r"(?<![\w·])(?:Steuer-?ID|IdNr\.?|Steuer·?identifikations·?nummer"
+    r"|Sozial·?versicherungs·?nummer|SVNR|SV-Nummer|Renten·?versicherungs·?nummer)"
+    r"[ ]*:?[ ]*(?P<code>[\dA-Z]{2,4}(?:[ ][\dA-Z]{1,6}){1,4})(?![\w·])",
+    re.IGNORECASE,
 )
 REFERENCE_RE = re.compile(
     r"(?<![\w·])(?P<keyword>"
@@ -309,15 +371,18 @@ _STREET_ADJECTIVE = (
 )
 _STREET_DE = (
     r"(?:" + _STREET_ADJECTIVE + _SP + r")?" + _UPPER + r"(?:[^\W\d_]|[·'’-])*?"
-    r"(?i:strasse|str\.|weg|gasse|platz|allee|quai|promenade|ring|rain|halde|matte|steig|graben)"
-)
+    r"(?i:strasse|straße|str\.|weg|gasse|platz|allee|quai|promenade|ring|rain|halde|matte|steig"
+    r"|graben|damm|ufer|chaussee|gürtel|kai|lände|zeile)"
+)  # the German and Austrian street words since 29 October 2026 (damm, ufer, gürtel, ...)
 _STREET_FR_IT = (
     r"(?:Rue|Avenue|Av\.|Chemin|Ch\.|Route|Rte|Place|Boulevard|Bd|Impasse|Allée|Quai|Promenade"
     r"|Via|Viale|Piazza|Piazzale|Corso|Strada|Vicolo|Salita)(?:"
     + _SP
     + r"(?:[^\W\d_]|[·'’-])+){1,4}?"
 )
-_HOUSE = r"(?P<house>\d{1,4}(?:" + _SP + r"?[a-zA-Z](?![^\W\d_])|[-/]\d{1,4})?)"
+# A house number, with a letter (12a), a range (12-14) or, in Austria, the stair and the
+# door after slashes (5/2/7).
+_HOUSE = r"(?P<house>\d{1,4}(?:" + _SP + r"?[a-zA-Z](?![^\W\d_])|[-/]\d{1,4}(?:/\d{1,4})?)?)"
 _POBOX = (
     r"(?P<pobox>(?:Post·?fach|Case" + _SP + r"postale|CP|Casella" + _SP + r"postale)"
     r"(?:" + _SP + r"\d{1,6})?)"
@@ -342,8 +407,13 @@ ADDRESS_RE = re.compile(
     r"(?<![\w·'’-])"
     r"(?:(?P<street>" + _STREET_DE + r"|" + _STREET_FR_IT + r")" + _SP + _HOUSE + _SP + r"*,?\s*)?"
     r"(?:" + _POBOX + _SP + r"*,?\s*)?"
-    r"(?P<ch>CH[- ])?(?<!\d)(?P<plz>[1-9]\d{3})" + _SP + r"+" + _PLACE + r"(?![\w·'’-])"
-)
+    r"(?P<ch>(?:CH|D|A)[- ])?(?<!\d)(?P<plz>[1-9]\d{3}|\d{5})"
+    + _SP
+    + r"+"
+    + _PLACE
+    + r"(?![\w·'’-])"
+)  # five digits are a German postcode: taken in the German varieties, elsewhere only
+# with a street, a Postfach or the country letter in front (`_address`)
 # What may follow a postcode and place that have no street in front: the end, a
 # punctuation mark, a line break, a digit (the phone number) or a capitalised word
 # (Telefon). A lowercase word means a count ("6000 Stimmberechtigte können ...").
@@ -441,8 +511,8 @@ def canonical_date(day: int, month: int, year: int | None) -> str | None:
     return f"{year:04d}-{month:02d}-{day:02d}" if year else f"--{month:02d}-{day:02d}"
 
 
-def canonical_number(integer: str, decimals: str | None = None) -> str | None:
-    digits = re.sub(_SEP, "", integer)
+def canonical_number(integer: str, decimals: str | None = None, seps: str = _SEP) -> str | None:
+    digits = re.sub(seps, "", integer)
     if not digits.isdigit():
         return None
     try:
@@ -464,18 +534,34 @@ def mask_numbers(text: str) -> str:
     on the plain numbers that remain."""
     spans = [m.span() for r in (URL_RE, EMAIL_RE, PHONE_RE) for m in r.finditer(text)]
     spans += [m.span() for r in (DATE_ISO_RE, DATE_NUM_RE, DATE_SLASH_RE) for m in r.finditer(text)]
-    spans += [m.span() for m in re.finditer(r"\bCH\d{2}(?:\s?[\dA-Z]{4}){4,7}", text)]  # IBAN
+    spans += [m.span() for m in re.finditer(r"\b(?:CH|LI|DE|AT)\d{2}(?:\s?[\dA-Z]{4}){4,7}", text)]
     return mask(text, spans)
 
 
 def canonical_phone(text: str) -> str:
+    """The national digits: +41, +43 and +49 (and 0041, ...) become the leading 0."""
     stripped = text.strip()
     digits = re.sub(r"\D", "", stripped.replace("(0)", ""))
-    if digits.startswith("0041"):
+    if digits.startswith(("0041", "0043", "0049")):
         digits = "0" + digits[4:]
-    elif stripped.startswith("+41"):
+    elif stripped.startswith(("+41", "+43", "+49")):
         digits = "0" + digits[2:]
     return digits
+
+
+def _phone_de(m: re.Match[str]) -> str | None:
+    """A German or Austrian number: seven to thirteen national digits, at least one pair
+    of digits together, and no separator doubled up once the spaces around a slash, a
+    hyphen or a bracket are taken away (`0221 / 221-30700` and `0 55 44 - 33 22 11`
+    pass, a column of single digits does not)."""
+    text = m.group(0)
+    compact = re.sub(r" ?([()/-]) ?", r"\1", text)
+    if re.search(r"[ ()/-]{2,}", compact) or text.count("(") != text.count(")"):
+        return None
+    if not re.search(r"\d{2}", text):
+        return None
+    digits = canonical_phone(text)
+    return digits if 7 <= len(digits) <= 13 else None
 
 
 def canonical_url(text: str) -> str:
@@ -486,17 +572,20 @@ def canonical_url(text: str) -> str:
 
 
 def format_date(canonical: str, lang: str = "de") -> str:
-    """Render a canonical date the way easy language writes it: 4. Februar 2020."""
+    """Render a canonical date the way easy language writes it: 4. Februar 2020, 4
+    février 2020; `lang` may be a variety key (`de-AT`: 4. Jänner 2020)."""
     m = re.fullmatch(r"(\d{4}|-)-(\d{2})-(\d{2})", canonical)
     if not m:
         return canonical
     year = None if m.group(1) == "-" else int(m.group(1))
     month, day = int(m.group(2)), int(m.group(3))
-    name = MONTH_NAMES.get(lang, MONTH_NAMES["de"])[month - 1]
-    if lang == "de":
+    language = base_lang(lang)
+    names = MONTH_NAMES.get(lang) or MONTH_NAMES.get(language, MONTH_NAMES["de"])
+    name = names[month - 1]
+    if language == "de":
         out = f"{day}. {name}"
     else:
-        out = f"{'1er' if lang == 'fr' and day == 1 else day} {name}"
+        out = f"{'1er' if language == 'fr' and day == 1 else day} {name}"
     return f"{out} {year}" if year else out
 
 
@@ -505,9 +594,18 @@ def format_date(canonical: str, lang: str = "de") -> str:
 _SERVICE_PHONE_RE = re.compile(r"0(?:800|84\d|90\d)")
 
 
-def format_phone(canonical: str) -> str:
-    """0441234567 -> 044 123 45 67; a service number 0800123456 -> 0800 123 456."""
+def format_phone(canonical: str, lang: str = "de") -> str:
+    """0441234567 -> 044 123 45 67; a service number 0800123456 -> 0800 123 456. In the
+    German and Austrian varieties the digits go in pairs after the leading 0, as the
+    Netzwerk Leichte Sprache writes them (`0 55 44 33 22 11`, rule Z8); the area code
+    is not known, so an odd count ends in a group of three."""
     digits = re.sub(r"\D", "", canonical)
+    if _german_style(lang) and 7 <= len(digits) <= 13:
+        rest = digits[1:]
+        groups = [rest[i : i + 2] for i in range(0, len(rest) - len(rest) % 2, 2)]
+        if len(rest) % 2:
+            groups[-1] += rest[-1]
+        return " ".join([digits[0], *groups])
     if len(digits) == 10 and _SERVICE_PHONE_RE.match(digits):
         return f"{digits[:4]} {digits[4:7]} {digits[7:]}"
     if len(digits) == 10:
@@ -516,16 +614,19 @@ def format_phone(canonical: str) -> str:
 
 
 def format_thousands(canonical: str, lang: str = "de") -> str:
-    """500000 -> 500'000 (German, Italian), 500 000 (French)."""
+    """500000 -> 500'000 (Swiss German, Italian), 500 000 (French), 500.000 (Germany and
+    Austria, where the decimals take a comma: 20,50)."""
     integer, _, decimals = canonical.partition(".")
-    sep = " " if lang == "fr" else "'"
+    german = _german_style(lang)
+    sep = " " if base_lang(lang) == "fr" else "." if german else "'"
+    point = "," if german else "."
     groups: list[str] = []
     while len(integer) > 3:
         groups.insert(0, integer[-3:])
         integer = integer[:-3]
     groups.insert(0, integer)
     out = sep.join(groups)
-    return f"{out}.{decimals}" if decimals else out
+    return f"{out}{point}{decimals}" if decimals else out
 
 
 def period_parts(canonical: str) -> tuple[int, str]:
@@ -539,13 +640,13 @@ def period_parts(canonical: str) -> tuple[int, str]:
 def format_period(canonical: str, lang: str = "de") -> str:
     """ "30d" -> 30 Tage, "1y" -> 1 Jahr, "5wd" -> 5 jours ouvrables (French)."""
     count, unit = period_parts(canonical)
-    one, many = _PERIOD_WORDS.get(lang, _PERIOD_WORDS["de"])[unit]
+    one, many = _PERIOD_WORDS.get(base_lang(lang), _PERIOD_WORDS["de"])[unit]
     return f"{count} {one if count == 1 else many}"
 
 
 def format_identifier(canonical: str) -> str:
     """An IBAN in groups of four; every other identifier as it is."""
-    if re.fullmatch(r"(?:CH|LI)\d{2}[0-9A-Z]{17}", canonical):
+    if re.fullmatch(r"(?:CH|LI)\d{2}[0-9A-Z]{17}|DE\d{20}|AT\d{18}", canonical):
         return " ".join(canonical[i : i + 4] for i in range(0, len(canonical), 4))
     return canonical
 
@@ -570,9 +671,14 @@ def mask(text: str, spans: Iterable[tuple[int, int]]) -> str:
 def extract_values(text: str, lang: str = "de") -> list[Value]:
     """All values in the text, in order of appearance, without overlaps. Each kind is
     taken from the text with the earlier kinds masked, so an IBAN is never also a
-    phone number and the count of a period never also a plain number."""
+    phone number and the count of a period never also a plain number. `lang` is a
+    language or a variety key: the German and Austrian varieties (`de-DE`, `de-AT`) read
+    the thousands dot and the decimal comma, their phone shapes and five-digit
+    postcodes; the month and period words are the language's."""
     found: list[Value] = []
     masked = text
+    language = base_lang(lang)
+    german = _german_style(lang)
 
     def take(
         kind: ValueKind, pattern: re.Pattern[str], canon, trim: str = "", group: int | str = 0
@@ -596,17 +702,20 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
     take("identifier", _AHV_RE, lambda m: canonical_ahv(m.group(0)))
     take("identifier", _POSTAL_ACCOUNT_RE, lambda m: re.sub("[" + DASHES + "]", "-", m.group(0)))
     take("identifier", _UID_RE, lambda m: "CHE-" + m.group(0)[-11:])
+    take("identifier", _SPACED_ID_RE, _spaced_id, group="code")
     take("identifier", REFERENCE_RE, _reference, group="code")
     take("schedule", _SCHEDULE_RE, _schedule)
     take("quantity", _QUANTITY_RE, _quantity)  # before addresses: "1000 IE" is no postcode
-    take("address", ADDRESS_RE, _address)
+    take("address", ADDRESS_RE, lambda m: _address(m, german))
     take("phone", PHONE_RE, lambda m: canonical_phone(m.group(0)))
+    if german:
+        take("phone", _PHONE_DE_RE, _phone_de)
     take(
         "date",
         DATE_ISO_RE,
         lambda m: canonical_date(int(m.group(3)), int(m.group(2)), int(m.group(1))),
     )
-    take("date", DATE_TEXT_RE, lambda m: _text_date(m, lang))
+    take("date", DATE_TEXT_RE, lambda m: _text_date(m, language))
     take("date", DATE_NUM_RE, _numeric_date)
     take(
         "date",
@@ -627,12 +736,14 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
             spans.append(m.span())
     masked = mask(masked, spans)
     take("time", TIME_RE, _time)
-    take("period", _PERIOD_RE.get(lang, _PERIOD_RE["de"]), lambda m: _period(m, lang))
+    take("period", _PERIOD_RE.get(language, _PERIOD_RE["de"]), lambda m: _period(m, language))
 
-    for m in NUMBER_RE.finditer(masked):
-        decimals = m.group(3)
+    for m in (_NUMBER_DE_RE if german else NUMBER_RE).finditer(masked):
+        integer, _, decimals = _number_parts(m, german)
         dash_decimals = bool(decimals) and not decimals.isdigit()  # "500.-" is 500
-        canonical = canonical_number(m.group(1), None if dash_decimals else decimals)
+        canonical = canonical_number(
+            integer, None if dash_decimals else decimals, _SEP_DE if german else _SEP
+        )
         if canonical is None:
             continue
         before = text[max(0, m.start() - 6) : m.start()]
@@ -695,6 +806,7 @@ def _time(m: re.Match[str]) -> str | None:
 
 def _number_word(word: str, lang: str) -> int | None:
     """dreissig -> 30, einundzwanzig -> 21, vingt-cinq -> 25, quatre-vingt-onze -> 91."""
+    lang = base_lang(lang)
     table = _NUMBER_WORDS.get(lang, _NUMBER_WORDS["de"])
     word = word.replace(" et ", "-").replace("-et-", "-")
     if word in table:
@@ -753,6 +865,11 @@ def _schedule(m: re.Match[str]) -> str | None:
     return None if None in numbers else "-".join(n for n in numbers if n is not None)
 
 
+def _spaced_id(m: re.Match[str]) -> str:
+    """The groups of a Steuer-ID or an insurance number as one code: `12 345 678 901`."""
+    return m.group("code").replace(" ", "").upper()
+
+
 def _reference(m: re.Match[str]) -> str | None:
     """The code after a keyword, with plain hyphens. After a bare keyword (`Dossier`,
     `Referenz`) a one- or two-digit code is a count, not a reference."""
@@ -767,18 +884,22 @@ def _clean(text: str) -> str:
     return " ".join(text.replace("·", "").split())
 
 
-def _address(m: re.Match[str]) -> str | None:
+def _address(m: re.Match[str], german: bool = False) -> str | None:
     """street number|Postfach|postcode place; empty parts for what the text lacks. A
     postcode without a street, Postfach or CH- in front counts only after a boundary
-    (line start, comma, colon) and never in 1900-2099 (a year followed by a noun)."""
+    (line start, comma, colon) and never in 1900-2099 (a year followed by a noun). A
+    five-digit postcode is German: taken as it stands in the German varieties
+    (`german`), elsewhere only with a street, a Postfach or `D-` in front."""
     plz, place = m.group("plz"), m.group("place")
     strong = bool(m.group("street") or m.group("pobox") or m.group("ch"))
+    if len(plz) == 5 and not (german or strong):
+        return None
     if place.split()[0].lower().replace("·", "") in _NOT_A_PLACE:
         return None
     if not m.group("street") and not _AFTER_PLACE.match(m.string[m.end() :]):
         return None  # a count, or a box number and the next sentence
     if not strong:
-        if 1900 <= int(plz) <= 2099:
+        if len(plz) == 4 and 1900 <= int(plz) <= 2099:
             return None
         before = m.string[: m.start()].rstrip(" " + _NBSP)
         if before and before[-1] not in ",:;(\n":
@@ -788,7 +909,7 @@ def _address(m: re.Match[str]) -> str | None:
     street = ""
     if m.group("street"):
         street = _clean(f"{m.group('street')} {m.group('house')}")
-        street = re.sub(r"(?i)str\.(?=[ ])", "strasse", street)
+        street = re.sub(r"(?i)str\.(?=[ ])", "straße" if german else "strasse", street)
     pobox = _clean(m.group("pobox")) if m.group("pobox") else ""
     return f"{street}|{pobox}|{plz} {_clean(place)}"
 
@@ -865,9 +986,11 @@ def parse_value_norm(
     if m := re.fullmatch(r"(\d{1,2}):(\d{2})", raw):
         return Value("time", f"{int(m.group(1)):02d}:{m.group(2)}")
     if re.fullmatch(r"(?:\+|00)?\d{9,13}", raw.replace(" ", "")) and raw.lstrip("+").startswith(
-        ("0", "41")
+        ("0", "41", "43", "49")
     ):
-        return Value("phone", canonical_phone(raw if not raw.startswith("41") else "+" + raw))
+        return Value(
+            "phone", canonical_phone("+" + raw if raw.startswith(("41", "43", "49")) else raw)
+        )
     if fact_kind == "identifier" and _CODE_RE.fullmatch(raw) and not raw.isdigit():
         # A dotted or lettered code the model names as an identifier (`482.317.556`,
         # `TIC-9988`) is one; its first digits are no plain number (12 October 2026).
@@ -901,8 +1024,9 @@ def _address_matches(target: Value, candidate: Value) -> bool:
     (an address without its street is a loss, a street the source lacks an invention)."""
     if candidate.kind != "address":
         return False
-    t_street, t_pobox, t_place = target.canonical.lower().split("|")
-    c_street, c_pobox, c_place = candidate.canonical.lower().split("|")
+    # casefold: `Musterstraße 1` and `Musterstrasse 1` are one street (ß folds to ss)
+    t_street, t_pobox, t_place = target.canonical.casefold().split("|")
+    c_street, c_pobox, c_place = candidate.canonical.casefold().split("|")
     if t_place != c_place or (t_street and t_street != c_street):
         return False
     return not t_pobox or c_pobox.startswith(t_pobox)

@@ -1,10 +1,10 @@
-Du bereitest eine Fassung in {{ level_name }} vor. Dafür liest du ein amtliches Schweizer Dokument und erstellst ein Faktenblatt. Du schreibst noch nichts um.
+Du bereitest eine Fassung in {{ level_name }} vor. Dafür liest du ein amtliches {{ v.prompt.country_adjective }} Dokument und erstellst ein Faktenblatt. Du schreibst noch nichts um.
 
 Das Dokument steht unten. Jede Zeile ist ein Satz mit seiner Nummer in eckigen Klammern. Zeilen mit # sind Überschriften, Zeilen mit - sind Listenpunkte.
 
 Deine Aufgabe:
 
-1. Bestimme in wenigen Wörtern die Art des Dokuments (zum Beispiel Brief, Verfügung, Formular, Merkblatt, Webseite) und für wen es ist.
+1. Bestimme in wenigen Wörtern die Art des Dokuments (zum Beispiel {{ v.prompt.doc_types }}) und für wen es ist.
 2. Beantworte die 5 Kernfragen der Leserin oder des Lesers, nur mit dem Dokument. Gib zu jeder Antwort die Nummern der Sätze an, aus denen sie stammt. Beantwortet das Dokument eine Frage nicht, setze "text" auf null und lass "segment_ids" leer. Rate nie.
    - what: Worum geht es?
    - must_do: Was muss die Leserin oder der Leser tun?
@@ -19,8 +19,8 @@ Deine Aufgabe:
    - "must_keep": true, wenn die Leserin oder der Leser die Tatsache braucht. false für reinen Hintergrund.
 4. Liste schwierige Wörter auf: Fachwörter, Namen von Ämtern, Abkürzungen. Erkläre jedes Wort einfach, in höchstens 2 kurzen Sätzen.
 5. Liste Stellen auf, die eine Fassung in {{ level_name }} weglassen kann, zum Beispiel Gesetzesartikel, Wiederholungen oder interne Hinweise. Gib die Satznummern und einen kurzen Grund an.
-{% if mode is defined and mode == "decision" %}{% include "de/decision.md" %}{% endif %}
-{% if medication is defined and medication %}{% include "de/medication.md" %}{% endif %}
+{% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}
+{% if medication is defined and medication %}{% include medication_partial %}{% endif %}
 
 Schreibe alle Texte auf Deutsch.
 
@@ -33,16 +33,16 @@ Antworte nur mit einem JSON-Objekt, ohne anderen Text. Die Form sieht so aus (di
     "what": {"text": "Die Gemeinde verlangt eine Steuer für Hunde.", "segment_ids": ["s0002"]},
     "must_do": {"text": "Den Hund anmelden und die Steuer bezahlen.", "segment_ids": ["s0003", "s0005"]},
     "deadline": {"text": "Bis 30. April 2026.", "segment_ids": ["s0003"]},
-    "cost": {"text": "120 Franken pro Hund.", "segment_ids": ["s0002"]},
-    "contact": {"text": "Einwohnerkontrolle, Telefon 031 987 65 43.", "segment_ids": ["s0008"]}
+    "cost": {"text": "120 {{ v.prompt.currency }} pro Hund.", "segment_ids": ["s0002"]},
+    "contact": {"text": "{{ v.prompt.office }}, Telefon {{ v.prompt.phone }}.", "segment_ids": ["s0008"]}
   },
   "facts": [
     {"id": "f01", "kind": "deadline", "text": "Die Hundesteuer muss bis 30. April 2026 bezahlt sein.", "value_norm": "2026-04-30", "segment_ids": ["s0003"], "must_keep": true},
-    {"id": "f02", "kind": "amount", "text": "Die Hundesteuer kostet 120 Franken pro Hund.", "value_norm": "120", "segment_ids": ["s0002"], "must_keep": true},
-    {"id": "f03", "kind": "obligation", "text": "Jeder Hund muss bei der Einwohnerkontrolle angemeldet sein.", "value_norm": null, "segment_ids": ["s0005"], "must_keep": true}
+    {"id": "f02", "kind": "amount", "text": "Die Hundesteuer kostet 120 {{ v.prompt.currency }} pro Hund.", "value_norm": "120", "segment_ids": ["s0002"], "must_keep": true},
+    {"id": "f03", "kind": "obligation", "text": "Jeder Hund muss {{ v.prompt.office_at }} {{ v.prompt.office }} angemeldet sein.", "value_norm": null, "segment_ids": ["s0005"], "must_keep": true}
   ],
   "hard_terms": [
-    {"term": "Einwohnerkontrolle", "explanation": "Das Amt der Gemeinde für die Menschen, die dort wohnen.", "segment_ids": ["s0005"]}
+    {"term": "{{ v.prompt.office }}", "explanation": "Das Amt der Gemeinde für die Menschen, die dort wohnen.", "segment_ids": ["s0005"]}
   ],
   "omit_candidates": [
     {"segment_ids": ["s0009"], "reason": "Gesetzesartikel, für die Leserin nicht nötig"}

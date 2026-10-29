@@ -1150,7 +1150,12 @@ prompt folders and rule tables since the start; `de-DE`, `de-AT`) is what the pr
 templates and few-shot examples (`pipeline/prompts.py`), the labels, the rule checks and
 guides (`rules/base.py`), the checker (`get_checker`, one per variety, the spaCy pipeline
 shared per language) and the style guide are looked up by, each falling back to the
-language's; the Canton of Zurich's prompt is Swiss and is not inherited. The facts of a
+language's; the Canton of Zurich's prompt is Swiss and is not inherited. The value
+parser reads the variety's conventions and writes a value back in them (`rules/values.py`,
+since 29 October 2026: the thousands dot and the decimal comma, the euro, the German
+and Austrian phone shapes, five-digit postcodes, Jänner; [rules.md](rules.md), "Value
+kinds"), and the fact rules, the code completion, the repair and recover prompts, the
+export layout and the evaluation pass the variety to it. The facts of a
 variety (its label, the Word export's language tag, the hyphenation dictionary, the
 decision mode's default notice) are data in `src/leichtfacile/varieties/varieties.toml`,
 one table per variety, read by `leichtfacile.varieties`. While the Swiss varieties are the
@@ -1161,6 +1166,31 @@ every stage, level, mode and partial on one synthetic letter; the response cache
 these texts) and `scripts/parity.py` counts the checker's findings and the hard values on
 the cached pages of the 49 Swiss pairs against `tests/fixtures/parity/swiss.json` (counts
 only; it needs the fetched pages, so it runs on a developer's machine).
+
+**One German template set** (since 29 October 2026). The German prompt templates serve
+every German variety: what the varieties need differently in the standard templates
+are a few facts, not the instructions, and these are data, the `prompt` table of each
+German variety in `varieties.toml` (`[de.prompt]`: the country as `in der Schweiz` and
+`Schweizer`, the kinds of document with `Verfügung`, the currency, the judge's two
+spellings of one amount, the office of the dog-tax example with its article and its
+dative after `bei`, and its phone number). `render` (`pipeline/prompts.py`) puts the
+variety into every rendering as `v` (the templates write `{{ v.prompt.currency }}`) and
+sets the paths of the decision and medication partials to the variety's own file when
+it has one (`prompts/de-AT/decision.md`), else the language's, so a variety brings its
+own partial where its law differs and inherits the rest. A variety without a table
+renders exactly as Swiss German; one with a table sets every field the templates use,
+and the template files carry no Swiss fact (`tests/pipeline/test_prompt_varieties.py`).
+The version a job records (`prompt_versions`) hashes the template and the table. French
+and Italian have one variety each; their templates are not parametrized.
+
+The vocabulary follows the same pattern (since 29 October 2026): `rules/data/vocabulary_de.toml`
+holds the German entries the three countries share and `vocabulary_de-CH.toml`,
+`vocabulary_de-DE.toml` and `vocabulary_de-AT.toml` those of each country, which
+`rules/vocabulary.py` reads after the shared file for a variety key (the Swiss key `de`
+gives the list as before, entry for entry). All German files are written in the Swiss
+spelling and rendered for Germany and Austria at load time with the ß table of
+`rules/data/spelling_de.toml` (`standard_spelling`, for the planned spelling check to
+reuse), and matching treats ß and ss alike ([rules.md](rules.md), "Vocabulary").
 
 German came first in the build order. French followed on 6 October 2026, before the
 CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28
@@ -1180,12 +1210,17 @@ from `pyphen` with the `de_CH`, `fr`, `it` dictionaries.
 `data/pairs/manifest.jsonl`: one row per document pair - `id`, `publisher`, `canton`,
 `lang`, `level`, `role`, `topic`, `url_standard`, `url_easy`, `section_standard` and
 `section_easy` (a heading when only one section of a page corresponds), approximate
-word counts, `facts_estimate`, `licence_note` and `notes`. It holds 49 verified pairs:
+word counts, `facts_estimate`, `licence_note`, `notes` and, since 29 October 2026,
+`region` (the national variety, §8; CH when absent). It holds 73 verified pairs. Swiss:
 30 German (20 `eval`, 10 `dev`) from Zürich, Bern, St. Gallen, Luzern, Basel-Stadt,
 Graubünden, Zug and three federal offices, 5 French (3 `eval`, 2 `dev`) and, since 28
 October 2026, 14 Italian (9 `eval`, 5 `dev`) from the BAG, the EBGB, eHealth Suisse and
 Ticino's Divisione dell'azione sociale e delle famiglie, whose easy pages are written
-with Pro Infirmis. `dev`
+with Pro Infirmis. Since 29 October 2026, 12 pairs from Germany (the Bundesagentur für
+Arbeit, the Deutsche Rentenversicherung, the Familienportal, Bayern, Köln, München,
+Nürnberg) and 12 from Austria (Tirol's Leicht Lesen pages and the Sozialministerium,
+both written by capito), 8 `eval` and 4 `dev` each, all at A2 ([sources.md](sources.md)
+has the pools, the publishers' terms and what the pages write). `dev`
 pairs are for prompt development and checker calibration; `eval` pairs are held out
 for the final numbers. `python -m leichtfacile eval fetch` downloads and caches the
 texts under `cache/pairs/` in `data.dir`

@@ -234,7 +234,7 @@ class RuleChecker:
             readability_formula=result.formula,
         )
         if factsheet:
-            coverage = fact_coverage(draft, factsheet, self.lang, source)
+            coverage = fact_coverage(draft, factsheet, self.variety, source)
             metrics.facts_total = len(coverage.checkable)
             metrics.facts_found = len(coverage.found)
             ratio = coverage.ratio

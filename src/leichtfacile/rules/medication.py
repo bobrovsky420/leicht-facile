@@ -72,7 +72,7 @@ def has_doses(source: SourceDocument) -> bool:
     the standard prompt, word for word."""
     return any(
         v.kind == "schedule" or (v.kind == "quantity" and _belongs(v, ""))
-        for v in extract_values(source.text(), source.lang)
+        for v in extract_values(source.text(), source.variety)
     )
 
 
@@ -186,11 +186,11 @@ def separated_values(
 def fact_09(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not (doc.factsheet and doc.source):
         return
-    for found in separated_values(doc.draft.blocks, doc.source, doc.factsheet, ctx.lang):
+    for found in separated_values(doc.draft.blocks, doc.source, doc.factsheet, ctx.variety):
         yield hit(
             "FACT-09",
-            name=display_value(found.item.name, ctx.lang),
-            values=", ".join(display_value(v, ctx.lang) for v in found.values),
+            name=display_value(found.item.name, ctx.variety),
+            values=", ".join(display_value(v, ctx.variety) for v in found.values),
             evidence=found.block.text,
             fact_id=found.item.fact_id,
             segment_ids=(found.item.segment_id,),

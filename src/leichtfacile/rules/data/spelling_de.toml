@@ -1,0 +1,56 @@
+# Swiss and standard German spelling: the stems Switzerland writes with ss and Germany
+# and Austria with ß. Written for this project; read by standard_spelling() in
+# rules/vocabulary.py, which renders the German vocabulary for the varieties de-DE and
+# de-AT at load time (every vocabulary file is written in the Swiss spelling), and
+# checked by tests/rules/test_vocabulary.py.
+#
+# [sharp_s]  Swiss stem = standard stem, in lower case. A stem matches inside a word and
+#            in any case, and the first letter keeps its case: Bundesstrasse becomes
+#            Bundesstraße, gemässe gemäße, Grösse Größe. A word in capitals stays as it
+#            is (STRASSE). Of two stems at one place the longer wins, so a stem written
+#            as it is protects the words that keep ss (Fussel, Hausservice, Grossist).
+#
+# Only unambiguous stems. Left out on purpose, because the ss form is a word of its own
+# or stands at the joint of a compound:
+#   Masse (mass, crowd) and Maße (measures), in Massen and in Maßen, Mass (Swiss for
+#   both Maß and the litre of beer): no stem mass, only massnahme, massgeb, massstab and
+#   ausmass;
+#   Busse (buses) and Buße (a fine): only bussgeld and geldbusse;
+#   weiss (weiß): Ausweis, Hinweis, Nachweis, Beweis before a joining s
+#   (Ausweisstelle, Hinweisschild, Beweissicherung);
+#   reiss (reißen): Preis before a joining s (Preissenkung);
+#   spass (Spaß): a joining s before Pass (Gesundheitspass);
+#   aussen (außen): aussenden and Aussendung keep ss;
+#   Floss and Floß, Russe and Ruß, Schoss (shot) and Schoß, Strauss and Strauß.
+# After a short vowel every variety writes ss (muss, dass, Fluss, Schluss): no entry.
+
+[sharp_s]
+"strasse" = "straße"
+"gross" = "groß"
+"gröss" = "größ"
+"gemäss" = "gemäß"
+"mässig" = "mäßig"
+"massnahme" = "maßnahme"
+"massgeb" = "maßgeb"
+"massstab" = "maßstab"
+"ausmass" = "ausmaß"
+"ausser" = "außer"
+"äusser" = "äußer"
+"schliess" = "schließ"
+"heiss" = "heiß"
+"fuss" = "fuß"
+"grüss" = "grüß"
+"gruss" = "gruß"
+"bloss" = "bloß"
+"stoss" = "stoß"
+"stöss" = "stöß"
+"fliess" = "fließ"
+"niess" = "nieß"
+"draussen" = "draußen"
+"dreissig" = "dreißig"
+"bussgeld" = "bußgeld"
+"geldbusse" = "geldbuße"
+# written as they are: words that keep ss around a shorter stem
+"fussel" = "fussel"
+"hausser" = "hausser"
+"grossist" = "grossist"

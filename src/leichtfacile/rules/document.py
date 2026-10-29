@@ -25,7 +25,7 @@ from leichtfacile.rules.values import (
     matches,
     parse_value_norm,
 )
-from leichtfacile.schemas import Draft, Fact, FactSheet, SourceDocument
+from leichtfacile.schemas import Draft, Fact, FactSheet, SourceDocument, base_lang
 
 
 @dataclass
@@ -40,17 +40,22 @@ class DocInput:
 # -- facts ---------------------------------------------------------------------------
 
 
-# How amounts, percentages and times are written, per language (the NUM rules).
+# How amounts, percentages and times are written, per language or variety (the NUM
+# rules): the German varieties of Germany and Austria count in euros.
 _UNITS = {
     "de": {"amount": "{} Franken", "percent": "{} Prozent"},
+    "de-DE": {"amount": "{} Euro", "percent": "{} Prozent"},
+    "de-AT": {"amount": "{} Euro", "percent": "{} Prozent"},
     "fr": {"amount": "{} francs", "percent": "{} pour cent"},
     "it": {"amount": "{} franchi", "percent": "{} per cento"},
 }
 
 
 def display_value(value: Value, lang: str) -> str:
-    """A value as the draft should write it: 4. Februar 2026, 4 février 2026."""
-    units = _UNITS.get(lang, _UNITS["de"])
+    """A value as the draft should write it: 4. Februar 2026, 4 février 2026; `lang` is
+    a language or a variety key (de-DE: 1.500 Euro, de-AT: 4. Jänner 2026)."""
+    language = base_lang(lang)
+    units = _UNITS.get(lang) or _UNITS.get(language, _UNITS["de"])
     if value.kind == "date":
         return format_date(value.canonical, lang)
     if value.kind == "amount":
@@ -59,11 +64,11 @@ def display_value(value: Value, lang: str) -> str:
         return units["percent"].format(value.canonical)
     if value.kind == "time":
         hour, minute = value.canonical.split(":")
-        if lang == "fr":
+        if language == "fr":
             return f"{int(hour)} h {minute}"
-        return f"ore {int(hour)}.{minute}" if lang == "it" else f"{int(hour)}.{minute} Uhr"
+        return f"ore {int(hour)}.{minute}" if language == "it" else f"{int(hour)}.{minute} Uhr"
     if value.kind == "phone":
-        return format_phone(value.canonical)
+        return format_phone(value.canonical, lang)
     if value.kind == "period":
         return format_period(value.canonical, lang)
     if value.kind == "identifier":
@@ -141,10 +146,10 @@ def fact_coverage(
 def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.factsheet:
         return
-    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.lang, doc.source)
+    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.variety, doc.source)
     for fact in coverage.missing:
-        target = parse_value_norm(fact.value_norm, fact.kind, ctx.lang)
-        expected = display_value(target, ctx.lang) if target else fact.value_norm
+        target = parse_value_norm(fact.value_norm, fact.kind, ctx.variety)
+        expected = display_value(target, ctx.variety) if target else fact.value_norm
         yield hit(
             "FACT-01",
             fact=fact.id,
@@ -168,7 +173,8 @@ def fact_02(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         return
     referenced = {fid for b in doc.draft.blocks for fid in b.fact_ids}
     # A value that is missing is FACT-01's finding: one missing fact, one error.
-    missing = {f.id for f in fact_coverage(doc.draft, doc.factsheet, ctx.lang, doc.source).missing}
+    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.variety, doc.source)
+    missing = {f.id for f in coverage.missing}
     for fact in doc.factsheet.must_keep():
         if fact.origin == "code" and not fact.value_norm:
             continue  # a protected part of a decision: FACT-08 checks it by its segments
@@ -256,7 +262,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not (doc.factsheet and doc.source):
         return
     by_id = doc.source.by_id()
-    all_values = source_values(doc.source, ctx.lang)
+    all_values = source_values(doc.source, ctx.variety)
     source_text = full_text(doc.source)
     for fact in doc.factsheet.facts:
         unknown = [s for s in fact.segment_ids if s not in by_id]
@@ -268,11 +274,11 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
                 evidence=fact.text,
                 fact_id=fact.id,
             )
-        target = parse_value_norm(fact.value_norm, fact.kind, ctx.lang)
+        target = parse_value_norm(fact.value_norm, fact.kind, ctx.variety)
         if target is None:
             continue
         cited = " ".join(by_id[s].text for s in fact.segment_ids if s in by_id)
-        if contains(target, cited, extract_values(cited, ctx.lang)):
+        if contains(target, cited, extract_values(cited, ctx.variety)):
             continue
         yield hit(
             "FACT-05.cited" if contains(target, source_text, all_values) else "FACT-05",
@@ -403,7 +409,7 @@ def foreign_values(
 def fact_06(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.source:
         return
-    for item in foreign_values(doc.draft, doc.source, doc.factsheet, ctx.lang):
+    for item in foreign_values(doc.draft, doc.source, doc.factsheet, ctx.variety):
         yield hit(
             f"FACT-06.{item.value.kind}",  # one message per kind: the date, the amount, ...
             value=item.value.text,
@@ -453,7 +459,7 @@ FORMULAS = {"de": "Amstad", "fr": "Kandel-Moles", "it": "Gulpease"}
 def read_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     from leichtfacile.rules.readability import readability
 
-    result = readability(doc.sentences, ctx.lang)
+    result = readability(doc.sentences, ctx.variety)
     if result.score is None:
         return
     name = FORMULAS.get(ctx.lang, result.formula)

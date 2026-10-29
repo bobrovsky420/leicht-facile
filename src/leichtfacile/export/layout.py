@@ -101,7 +101,7 @@ def build_layout(
             items.append(Item(kind, [clean(b.text)]))
         else:
             indent = LIST_INDENT if kind == "list_item" else 0
-            items.append(Item(kind, lines_of(b.text, draft.lang, width - indent)))
+            items.append(Item(kind, lines_of(b.text, draft.variety, width - indent)))
     return Layout(
         lang=draft.lang,
         variety=draft.variety,
@@ -112,7 +112,8 @@ def build_layout(
         items=items,
         glossary_title=labels["glossary"],
         glossary=[
-            Entry(clean(g.term), lines_of(g.explanation, draft.lang, width)) for g in final.glossary
+            Entry(clean(g.term), lines_of(g.explanation, draft.variety, width))
+            for g in final.glossary
         ],
         final=final,
     )

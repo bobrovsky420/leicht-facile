@@ -1,18 +1,25 @@
-"""Hard words for easy language, per language: an everyday word to use instead, or a
-plain explanation for the glossary when the term has to stay.
+"""Hard words for easy language, per language and national variety: an everyday word to
+use instead, or a plain explanation for the glossary when the term has to stay.
 
-The lists are rules/data/vocabulary_{lang}.toml; their header says how to edit them.
-They are the seed of the planned termbase: hard term, easy term, explanation.
+The lists are rules/data/vocabulary_<name>.toml; their header says how to edit them.
+They are the seed of the planned termbase: hard term, easy term, explanation. Every
+function takes a language or a variety key (schemas.variety: `de` for Swiss German,
+`de-DE`, `de-AT`). A key reads its language's file, shared by the varieties, and the
+variety's own: `de` reads vocabulary_de.toml and vocabulary_de-CH.toml, `de-AT`
+vocabulary_de.toml and vocabulary_de-AT.toml; French and Italian have one file each.
+Every German file is written in the Swiss spelling (ss, never sharp s); for Germany and
+Austria the loader renders terms and texts in their spelling with the table of
+rules/data/spelling_de.toml (`standard_spelling`: Bundesstrasse, Bundesstraße).
 
 `find_terms` finds the entries in a parsed text. A word matches in its inflected forms
 (the lemma, the term with a usual ending: Verfügungen, versées, or an Italian form with
 its ending swapped: decisioni, notificato), with its Mediopunkt (Prämien·verbilligung),
 as a German separable verb (reichen ... ein for einreichen) and as a German verbal
-phrase whose verb stands elsewhere in the sentence (tritt ... in Kraft). Abbreviations
-and acronyms match as written, case and dots included, so the French "ai" is never the
-AI. A phrase of the [not_in] table hides a term inside it (zur Verfügung stehen is no
-decision), and of overlapping matches the longest wins (opposition à la poursuite over
-opposition).
+phrase whose verb stands elsewhere in the sentence (tritt ... in Kraft); sharp s and ss
+are the same letters (Maßnahme matches Massnahme). Abbreviations and acronyms match as
+written, case and dots included, so the French "ai" is never the AI. A phrase of the
+[not_in] table hides a term inside it (zur Verfügung stehen is no decision), and of
+overlapping matches the longest wins (opposition à la poursuite over opposition).
 
 The pipeline uses the lists in four places (docs/architecture.md §4): the fact sheet
 gets the checked explanations, code adds missing glossary entries (rules/glossary.py),
@@ -28,13 +35,14 @@ import re
 import tomllib
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property, lru_cache
 from importlib import resources
 from typing import TYPE_CHECKING, Literal
 
 from leichtfacile.rules.lexicon import MEDIOPUNKT, zipf
 from leichtfacile.rules.nlp import pipeline
+from leichtfacile.schemas import base_lang
 
 if TYPE_CHECKING:
     from spacy.tokens import Doc, Span, Token
@@ -97,7 +105,15 @@ _FUNCTION_FORMS = {
 }
 _REFLEXIVE = ("s'", "se ")  # French verbs listed with their pronoun: s'acquitter de
 _REFLEXIVE_IT = re.compile(r"^(\w{3,}[aei])rsi\b")  # Italian: the pronoun at the end, rivolgersi a
-_GERMAN_INFINITIVE = re.compile(r"[a-zäöü]+(?:en|ern|eln)")
+_GERMAN_INFINITIVE = re.compile(r"[a-zäöüß]+(?:en|ern|eln)")
+_DATA = resources.files("leichtfacile.rules") / "data"
+# The Swiss variety's key is the bare language (schemas.variety); its own file is named
+# with the region, vocabulary_de-CH.toml.
+_SWISS = "CH"
+# The varieties that write sharp s: their vocabulary is rendered with the table of
+# rules/data/spelling_de.toml at load time.
+SHARP_S_VARIETIES = frozenset({"de-DE", "de-AT"})
+_SPELLING = _DATA / "spelling_de.toml"
 
 
 @dataclass(frozen=True)
@@ -136,22 +152,34 @@ class Match:
         return self.ranges or ((self.start, self.end),)
 
 
-def vocabulary_path(lang: str):
-    return resources.files("leichtfacile.rules") / "data" / f"vocabulary_{lang}.toml"
-
-
-def has_vocabulary(lang: str) -> bool:
-    return vocabulary_path(lang).is_file()
+def _vocabulary_path(name: str):
+    return _DATA / f"vocabulary_{name}.toml"
 
 
 @lru_cache
-def load_vocabulary(lang: str) -> tuple[VocabularyEntry, ...]:
-    if not has_vocabulary(lang):
-        return ()
-    data = tomllib.loads(vocabulary_path(lang).read_text(encoding="utf-8"))
+def vocabulary_files(key: str) -> tuple[str, ...]:
+    """The names of the files a language or variety key reads, in this order: the
+    language's, shared by its varieties (`de`), and the variety's own (`de-CH` for the
+    Swiss key `de`, `de-AT` for `de-AT`); French and Italian have the first alone."""
+    lang = base_lang(key)
+    own = key if key != lang else f"{lang}-{_SWISS}"
+    return tuple(name for name in (lang, own) if _vocabulary_path(name).is_file())
+
+
+def has_vocabulary(key: str) -> bool:
+    return bool(vocabulary_files(key))
+
+
+@lru_cache
+def read_vocabulary(name: str) -> tuple[VocabularyEntry, ...]:
+    """One file as written, rules/data/vocabulary_<name>.toml (`de`, `de-CH`, `fr`, ...):
+    its entries in file order and in its own spelling. A term's [not_in] phrases stand
+    in the term's file."""
+    file = f"vocabulary_{name}.toml"
+    data = tomllib.loads(_vocabulary_path(name).read_text(encoding="utf-8"))
     unknown = set(data) - {*KINDS, "not_in"}
     if unknown:
-        raise ValueError(f"vocabulary_{lang}.toml: unknown tables {sorted(unknown)}")
+        raise ValueError(f"{file}: unknown tables {sorted(unknown)}")
     not_in = {term: tuple(phrases) for term, phrases in data.get("not_in", {}).items()}
     entries = []
     for kind in KINDS:
@@ -163,32 +191,90 @@ def load_vocabulary(lang: str) -> tuple[VocabularyEntry, ...]:
                 )
     orphans = set(not_in) - {e.term for e in entries}
     if orphans:
-        raise ValueError(f"vocabulary_{lang}.toml: [not_in] names unknown terms {sorted(orphans)}")
+        raise ValueError(f"{file}: [not_in] names unknown terms {sorted(orphans)}")
     return tuple(entries)
 
 
-def is_hard(entry: VocabularyEntry, lang: str) -> bool:
+@lru_cache
+def load_vocabulary(key: str) -> tuple[VocabularyEntry, ...]:
+    """The entries of a language or variety key: its files in the order of
+    `vocabulary_files`, in the spelling of Germany and Austria for their keys."""
+    entries = [e for name in vocabulary_files(key) for e in read_vocabulary(name)]
+    if key in SHARP_S_VARIETIES:
+        entries = [_in_standard_spelling(e) for e in entries]
+    return tuple(entries)
+
+
+def is_hard(entry: VocabularyEntry, key: str) -> bool:
     """Whether code may explain the term on its own: an abbreviation, a phrase, or a
     word rarer than everyday words."""
     if entry.abbreviation or " " in entry.term or "-" in entry.term:
         return True
-    return zipf(entry.term.lower(), lang) < HARD_ZIPF
+    return zipf(entry.term.lower(), base_lang(key)) < HARD_ZIPF
 
 
-def rarity(entry: VocabularyEntry, lang: str) -> float:
+def rarity(entry: VocabularyEntry, key: str) -> float:
     """How common the term is, for "the rarest first": abbreviations and phrases count
     as rare (0), a word by its Zipf frequency."""
     if entry.abbreviation or " " in entry.term or "-" in entry.term:
         return 0.0
-    return zipf(entry.term.lower(), lang)
+    return zipf(entry.term.lower(), base_lang(key))
 
 
 @lru_cache
-def vocabulary_version(lang: str) -> str | None:
-    """A short hash of the vocabulary file, recorded with every job that used it."""
-    if not has_vocabulary(lang):
+def vocabulary_version(key: str) -> str | None:
+    """A short hash of the files the key reads, in their order and with the spelling
+    table last for Germany and Austria, recorded with every job that used them. A key
+    of one file (French, Italian) keeps the hash of that file alone."""
+    paths = [_vocabulary_path(name) for name in vocabulary_files(key)]
+    if not paths:
         return None
-    return hashlib.sha256(vocabulary_path(lang).read_bytes()).hexdigest()[:12]
+    if key in SHARP_S_VARIETIES:
+        paths.append(_SPELLING)
+    return hashlib.sha256(b"".join(p.read_bytes() for p in paths)).hexdigest()[:12]
+
+
+# -- spelling -------------------------------------------------------------------------
+
+
+@lru_cache
+def _sharp_s() -> tuple[re.Pattern[str], dict[str, str]]:
+    """The stems of rules/data/spelling_de.toml as one pattern, the longest first, so a
+    stem written as it is (fussel) wins over a shorter one inside it (fuss)."""
+    data = tomllib.loads(_SPELLING.read_text(encoding="utf-8"))
+    table = {stem.lower(): standard for stem, standard in data["sharp_s"].items()}
+    stems = sorted(table, key=len, reverse=True)
+    return re.compile("|".join(re.escape(stem) for stem in stems), re.IGNORECASE), table
+
+
+def standard_spelling(text: str) -> str:
+    """A Swiss text in the spelling of Germany and Austria: sharp s for the ss of the
+    stems in rules/data/spelling_de.toml, also inside a word (Bundesstrasse:
+    Bundesstraße, gemässe: gemäße), with the case of the first letter kept. The words
+    the table leaves out as ambiguous (Masse, Busse) and words in capitals stay."""
+    pattern, table = _sharp_s()
+
+    def standard(m: re.Match[str]) -> str:
+        found = m.group(0)
+        if found.isupper():
+            return found
+        out = table[found.lower()]
+        return out[:1].upper() + out[1:] if found[:1].isupper() else out
+
+    return pattern.sub(standard, text)
+
+
+def _in_standard_spelling(entry: VocabularyEntry) -> VocabularyEntry:
+    def standard(text: str | None) -> str | None:
+        return standard_spelling(text) if text else text
+
+    return replace(
+        entry,
+        term=standard_spelling(entry.term),
+        easy=standard(entry.easy),
+        explanation=standard(entry.explanation),
+        not_in=tuple(standard_spelling(phrase) for phrase in entry.not_in),
+    )
 
 
 # A leading article of a glossary term: a word article needs a space after it (`le` in
@@ -199,18 +285,18 @@ _ARTICLE = re.compile(
 )
 
 
-def explained_term(term: str, lang: str) -> VocabularyEntry | None:
+def explained_term(term: str, key: str) -> VocabularyEntry | None:
     """The explain entry a hard term or glossary term names as a whole: Franchise,
     die Prämien·verbilligung, Invalidenversicherung (IV) through its IV. None for any
     other term and for the context-dependent entries."""
-    if not has_vocabulary(lang):
+    if not has_vocabulary(key):
         return None
     main = re.sub(r"\s*\([^)]*\)", "", term).strip()
     for text in (main, *re.findall(r"\(([^)]*)\)", term)):
         text = _ARTICLE.sub("", text.strip())
         if not text:
             continue
-        for m in matcher(lang).find_text(text):
+        for m in matcher(key).find_text(text):
             entry = m.entry
             whole = m.start == 0 and m.end == len(text) and not m.partial
             if whole and entry.kind == "explain" and not entry.context:
@@ -218,9 +304,9 @@ def explained_term(term: str, lang: str) -> VocabularyEntry | None:
     return None
 
 
-def easy_for(lang: str, abbreviation: str) -> str | None:
+def easy_for(key: str, abbreviation: str) -> str | None:
     """The full word for an abbreviation of the vocabulary (z. B. -> zum Beispiel)."""
-    return _abbreviations(lang).get(_squeeze(abbreviation))
+    return _abbreviations(key).get(_squeeze(abbreviation))
 
 
 # -- matching -------------------------------------------------------------------------
@@ -234,11 +320,12 @@ class _Pattern:
 
 
 class VocabularyMatcher:
-    """The entries of one language, ready to be found in parsed text."""
+    """The entries of one language or variety, ready to be found in parsed text."""
 
-    def __init__(self, lang: str) -> None:
-        self.lang = lang
-        self.entries = load_vocabulary(lang)
+    def __init__(self, key: str) -> None:
+        self.key = key
+        self.lang = base_lang(key)  # the spaCy pipeline and the inflection rules
+        self.entries = load_vocabulary(key)
 
     @cached_property
     def _nlp(self):
@@ -400,13 +487,13 @@ class VocabularyMatcher:
 
 
 @lru_cache
-def matcher(lang: str) -> VocabularyMatcher:
-    return VocabularyMatcher(lang)
+def matcher(key: str) -> VocabularyMatcher:
+    return VocabularyMatcher(key)
 
 
-def find_terms(lang: str, doc: Doc | Span) -> list[Match]:
+def find_terms(key: str, doc: Doc | Span) -> list[Match]:
     """The vocabulary entries in a parsed text (see the module docstring)."""
-    return matcher(lang).find(doc) if has_vocabulary(lang) else []
+    return matcher(key).find(doc) if has_vocabulary(key) else []
 
 
 def office_words(
@@ -436,7 +523,9 @@ def covered_offsets(matches: Iterable[Match], base: int = 0) -> set[int]:
 
 
 def _norm(text: str) -> str:
-    return text.replace(MEDIOPUNKT, "").lower()
+    """A word for matching: without its Mediopunkt and case-folded, which also makes
+    sharp s ss (Maßnahme: massnahme)."""
+    return text.replace(MEDIOPUNKT, "").casefold()
 
 
 def _squeeze(text: str) -> str:
@@ -480,13 +569,18 @@ def _has_sents(doc: Doc | Span) -> bool:
 
 def _hidden(match: Match, text: str) -> bool:
     """Whether the match stands inside a [not_in] phrase of its term."""
-    lowered = text.lower()
     start, end = match.parts[0]
     for phrase in match.entry.not_in:
-        for m in re.finditer(re.escape(phrase.lower()), lowered):
+        for m in _phrase_pattern(phrase).finditer(text):
             if m.start() <= start and end <= m.end():
                 return True
     return False
+
+
+@lru_cache(maxsize=1024)
+def _phrase_pattern(phrase: str) -> re.Pattern[str]:
+    """A [not_in] phrase in any case, with ss and sharp s alike (Bescheid weiss)."""
+    return re.compile(re.escape(phrase.casefold()).replace("ss", "(?:ss|ß)"), re.IGNORECASE)
 
 
 def _longest(matches: list[Match]) -> list[Match]:
@@ -505,9 +599,9 @@ def _longest(matches: list[Match]) -> list[Match]:
 
 
 @lru_cache
-def _abbreviations(lang: str) -> dict[str, str]:
+def _abbreviations(key: str) -> dict[str, str]:
     return {
         _squeeze(e.term): e.easy
-        for e in load_vocabulary(lang)
+        for e in load_vocabulary(key)
         if e.kind == "replace" and e.abbreviation and e.easy
     }

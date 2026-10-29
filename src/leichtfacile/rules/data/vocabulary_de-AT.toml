@@ -1,0 +1,177 @@
+# German vocabulary for easy language (Leichte Sprache A2, Einfache Sprache B1),
+# entries of Austria: the authorities, procedures, benefits and office words of
+# Austrian letters (Bescheid, Spruch, Beschwerde, Bezirkshauptmannschaft, Meldezettel,
+# AMS, e-card, RSa-Brief, ehestmöglich, urgieren). The variety de-AT reads
+# vocabulary_de.toml and this file; a term stands in one of the two only. Written for
+# this project, every explanation our own; checked by tests/rules/test_vocabulary.py.
+#
+# Format: the header of vocabulary_de.toml. A trailing comment cites the act that
+# defines the term or sets the rule the explanation states ("# AVG § 58",
+# "# VwGVG § 7"); an institution or a word without such an act has none.
+#
+# Written in the Swiss spelling like every German file (ss, never sharp s), so the
+# tests check every explanation with the Swiss checker; the loader writes sharp s for
+# Austria where rules/data/spelling_de.toml says so (grösste: größte). Amounts change
+# every year and stay out of the explanations; the periods and deadlines are those in
+# force on 29 October 2026.
+
+# -- replace -----------------------------------------------------------------------
+
+[replace.connectors]
+"binnen" = "innerhalb von"
+"anbei" = "mit diesem Brief"
+"nunmehr" = "jetzt"
+"diesfalls" = "dann"
+"obgenannt" = "oben genannt"
+
+[replace.adverbs]
+"ehestmöglich" = "so bald wie möglich"
+"ehebaldigst" = "so bald wie möglich"
+"allfällig" = "möglich"
+"eingelangt" = "angekommen"
+
+[replace.verbs]
+"urgieren" = "nachfragen"
+"einlangen" = "ankommen"
+"retournieren" = "zurückschicken"
+"in Evidenz halten" = "vormerken"
+"verständigen" = "informieren"
+"vorstellig werden" = "vorbeikommen"
+"zurückweisen" = "ablehnen"
+
+[replace.nouns]
+"Ansuchen" = "Antrag"
+"Mietzins" = "Miete"
+"Parteienverkehr" = "Öffnungszeiten"
+"Amtsstunden" = "Öffnungszeiten"
+"Kundmachung" = "öffentliche Information"
+"Rücksprache" = "Gespräch"
+"Attest" = "Bestätigung vom Arzt"
+
+[replace.abbreviations]
+"ho." = "bei uns"
+"iVm" = "zusammen mit"
+"gem." = "nach"
+"idgF" = "in der aktuellen Fassung"
+"BH" = "Bezirkshauptmannschaft"
+"LVwG" = "Landesverwaltungsgericht"
+"PVA" = "Pensionsversicherungsanstalt"
+
+[replace.context]
+# Words whose hard sense depends on the letter (Erledigung: a reply of the office or
+# a task done). The writer gets them as a hint; code never flags them.
+"Erledigung" = "Antwort vom Amt"
+"Anbringen" = "Antrag"
+"Massnahme" = "Schritt"
+
+# -- explain -----------------------------------------------------------------------
+
+[explain.law]
+"Bescheid" = "Ein Bescheid ist ein Brief vom Amt mit einer Entscheidung. Die Entscheidung gilt für Sie. Sie können sich mit einer Beschwerde dagegen wehren."  # AVG § 56, § 58
+"Spruch" = "Der Spruch ist der wichtigste Teil von einem Bescheid. Dort steht die Entscheidung vom Amt."  # AVG § 59
+"Beschwerde" = "Sie sind mit einem Bescheid nicht einverstanden? Dann schreiben Sie innerhalb von 4 Wochen eine Beschwerde. Schicken Sie sie an das Amt mit dem Bescheid. Danach prüft ein Verwaltungsgericht den Bescheid."  # VwGVG § 7, § 12
+"Rechtsmittel" = "Mit einem Rechtsmittel wehren Sie sich gegen einen Bescheid oder ein Urteil. Zum Beispiel mit einer Beschwerde."  # VwGVG § 7
+"Rechtsmittelbelehrung" = "Dieser Text steht am Ende von einem Bescheid. Er sagt: So können Sie sich wehren. Er sagt auch, bis wann und bei wem."  # AVG § 61
+"Landesverwaltungsgericht" = "Jedes Bundesland hat ein Landesverwaltungsgericht. Es prüft Bescheide von Ämtern im Bundesland. Zum Beispiel von der Bezirkshauptmannschaft."  # B-VG Art. 130, 131
+"Bundesverwaltungsgericht" = "Das Bundesverwaltungsgericht prüft Bescheide von Ämtern vom Bund. Zum Beispiel im Asylverfahren."  # B-VG Art. 131
+"Bezirkshauptmannschaft" = "Die Bezirkshauptmannschaft ist das Amt für einen Bezirk. Dort bekommen Sie zum Beispiel einen Reisepass. Sie hilft auch bei der Sozialhilfe."
+"Magistrat" = "Der Magistrat ist das Amt von einer grossen Stadt. Er macht dort auch die Arbeit von der Bezirkshauptmannschaft. Zum Beispiel in Graz oder Linz."  # B-VG Art. 116
+"Gemeindeamt" = "Das Gemeindeamt ist das Amt von Ihrer Gemeinde. Dort melden Sie zum Beispiel Ihre Adresse."
+"Gericht" = "Ein Gericht entscheidet bei einem Streit. Es prüft auch Bescheide von Ämtern."
+"Behörde" = "Eine Behörde ist ein Amt. Zum Beispiel das Gemeindeamt oder das Finanzamt."
+"Parteiengehör" = "Vor dem Bescheid dürfen Sie Ihre Meinung sagen. Das Amt zeigt Ihnen dafür die Ergebnisse von seiner Prüfung. Das Amt muss Ihre Meinung prüfen."  # AVG § 45
+"Rechtskraft" = "Rechtskraft heisst: Gegen den Bescheid kann sich niemand mehr wehren. Er gilt jetzt endgültig."  # AVG § 68
+"rechtskräftig" = "Rechtskräftig heisst: Die Frist für die Beschwerde ist vorbei. Der Bescheid gilt jetzt endgültig."  # AVG § 68
+"aufschiebende Wirkung" = "Sie schreiben eine Beschwerde gegen einen Bescheid. Bis zur Entscheidung gilt der Bescheid dann noch nicht. Manchmal nimmt das Amt die aufschiebende Wirkung weg. Dann gilt der Bescheid sofort."  # VwGVG § 13
+"Fristerstreckung" = "Sie bekommen mehr Zeit für eine Aufgabe. Fragen Sie das Amt vor dem Ende von der Frist."  # AVG § 33
+"Verfahrenshilfe" = "Sie haben wenig Geld? Dann müssen Sie die Kosten für das Gericht vielleicht nicht bezahlen. Sie bekommen auch eine Anwältin oder einen Anwalt. Ihr Fall muss aber Chancen haben."  # ZPO § 63, VwGVG § 8a
+"Zustellung" = "Zustellung heisst: Das Amt gibt Ihnen einen Brief auf eine besondere Art. Zum Beispiel als RSa-Brief. Oft beginnt an diesem Tag eine Frist."  # ZustG § 2
+"Hinterlegung" = "Die Post hat Sie nicht angetroffen? Dann bleibt der Brief bei der Post. Sie können ihn dort abholen. Die Frist beginnt aber schon am ersten Tag."  # ZustG § 17
+"RSa-Brief" = "Ein RSa-Brief ist ein Brief vom Amt mit Rückschein. Die Post gibt ihn nur Ihnen selbst. Sie unterschreiben dafür."  # ZustG § 21
+"RSb-Brief" = "Ein RSb-Brief ist ein Brief vom Amt mit Rückschein. Die Post darf ihn auch an eine andere Person geben. Zum Beispiel an eine erwachsene Person in Ihrer Wohnung."  # ZustG § 16
+"Amtstag" = "Am Amtstag kommen Sie ohne Termin zum Gericht oder zum Amt. Dort bekommen Sie gratis Hilfe zu Ihrer Sache."
+"Geschäftszahl" = "Die Geschäftszahl ist die Nummer von Ihrer Sache beim Amt. Schreiben Sie sie auf jeden Brief an das Amt."
+"Strafverfügung" = "Mit einer Strafverfügung bestraft Sie das Amt mit Geld. Zum Beispiel wegen zu schnellem Fahren. Sie können sich innerhalb von 2 Wochen mit einem Einspruch wehren."  # VStG § 47, § 49
+"Einspruch" = "Mit einem Einspruch wehren Sie sich gegen eine Strafverfügung. Sie haben dafür 2 Wochen Zeit. Dann prüft das Amt die Sache noch einmal."  # VStG § 49
+"Organmandat" = "Ein Organmandat ist eine kleine Strafe in Geld. Die Polizei gibt es Ihnen sofort. Zum Beispiel für falsches Parken. Sie bezahlen es innerhalb von 2 Wochen."  # VStG § 50
+"Anonymverfügung" = "Eine Anonymverfügung ist eine kleine Strafe in Geld. Sie kommt mit der Post. Zum Beispiel nach einer Radarkontrolle. Bezahlen Sie sie innerhalb von 4 Wochen."  # VStG § 49a
+"Strafregisterbescheinigung" = "Ein Papier vom Amt. Es zeigt Ihre Strafen. Sie brauchen es zum Beispiel für manche Arbeitsstellen."  # StRegG § 10
+"Erwachsenenvertreter" = "Sie können wichtige Sachen nicht mehr allein regeln? Dann hilft Ihnen eine Erwachsenenvertreterin oder ein Erwachsenenvertreter. Diese Person handelt dann für Sie."  # ABGB § 271
+"Sachwalter" = "Sachwalter ist der alte Name für den Erwachsenenvertreter. Seit 2018 gelten dafür neue Regeln."  # ABGB § 268
+"Vorsorgevollmacht" = "Mit einer Vorsorgevollmacht bestimmen Sie heute eine Person. Später können Sie vielleicht nicht mehr selbst entscheiden. Dann handelt diese Person für Sie."  # ABGB § 260
+"Obsorge" = "Die Eltern mit der Obsorge entscheiden über wichtige Sachen für das Kind. Zum Beispiel über die Schule und die Gesundheit."  # ABGB § 158
+"Kinder- und Jugendhilfe" = "Die Kinder- und Jugendhilfe hilft Familien mit Kindern. Sie berät Eltern und schützt Kinder. Viele sagen auch Jugendamt."  # B-KJHG § 1
+
+[explain.debt]
+"Exekution" = "Sie haben Schulden nicht bezahlt? Dann kann das Gericht eine Exekution erlauben. Dann holt der Gerichtsvollzieher das Geld. Zum Beispiel von Ihrem Lohn."  # EO § 1
+"Gerichtsvollzieher" = "Der Gerichtsvollzieher holt Geld bei Menschen mit Schulden. Er arbeitet für das Gericht. Er kann auch Sachen von Ihnen nehmen."
+"Gehaltsexekution" = "Ihr Arbeitgeber behält einen Teil von Ihrem Lohn. Er zahlt damit Ihre Schulden. Das ist eine Gehaltsexekution."  # EO § 290a
+"Existenzminimum" = "So viel Geld braucht eine Person mindestens zum Leben. Dieses Geld darf bei einer Exekution niemand nehmen."  # EO § 291a
+"Privatkonkurs" = "Sie können Ihre Schulden nicht mehr bezahlen? Dann hilft vielleicht ein Privatkonkurs. Danach sind Sie nach einigen Jahren schuldenfrei. Eine Schuldenberatung hilft Ihnen dabei."  # IO § 181
+"Zahlungsanweisung" = "Mit einer Zahlungsanweisung bezahlen Sie eine Rechnung. Sie bezahlen damit bei der Bank oder online."
+"Erlagschein" = "Mit einem Erlagschein bezahlen Sie eine Rechnung. Heute heisst er meistens Zahlungsanweisung."
+"Mahnspesen" = "Sie haben zu spät bezahlt. Dann verlangt die Firma oder das Amt Mahnspesen. Das ist Geld für die Mahnung."
+
+[explain.insurance]
+"Krankenkasse" = "Die Krankenkasse bezahlt Kosten für Arzt und Krankenhaus. Sie bezahlt auch Medikamente. Fast alle Menschen in Österreich sind dort versichert."  # ASVG § 4
+"Sozialversicherung" = "Die Sozialversicherung hilft bei Krankheit oder Unfall. Sie hilft auch im Alter und ohne Arbeit. Bei Angestellten zieht der Arbeitgeber die Beiträge vom Lohn ab."  # ASVG § 1
+"e-card" = "Die e-card ist Ihre Karte von der Krankenkasse. Zeigen Sie sie beim Arzt oder im Krankenhaus."  # ASVG § 31a
+"ÖGK" = "Die ÖGK ist die Österreichische Gesundheitskasse. Sie ist die grösste Krankenkasse in Österreich. Bei ihr sind die meisten Angestellten versichert."  # ASVG § 23
+"Pensionsversicherungsanstalt" = "Die Pensionsversicherungsanstalt zahlt Ihre Pension im Alter. Sie zahlt auch das Pflegegeld für Menschen in Pension."  # ASVG
+"Pflegegeld" = "Sie brauchen viel Hilfe im Alltag? Dann bekommen Sie Pflegegeld. Es gibt 7 Stufen. Die Stufe hängt von den Stunden Pflege pro Monat ab."  # BPGG § 4, § 5
+"Arbeitslosengeld" = "Sie haben Ihre Arbeit verloren? Dann bekommen Sie Arbeitslosengeld vom AMS. Dafür müssen Sie vorher lange genug gearbeitet haben."  # AlVG § 7
+"Notstandshilfe" = "Ihr Arbeitslosengeld ist zu Ende? Dann bekommen Sie vielleicht Notstandshilfe vom AMS. Sie brauchen dieses Geld zum Leben."  # AlVG § 33
+"AMS" = "Das AMS ist das Arbeitsmarktservice. Es hilft bei der Suche nach Arbeit. Es zahlt auch das Arbeitslosengeld."  # AMSG § 1
+"Krankenstand" = "Sie sind krank und können nicht arbeiten. Dann sind Sie im Krankenstand. Melden Sie das sofort Ihrem Arbeitgeber."
+"Krankengeld" = "Sie sind länger krank? Dann zahlt die Krankenkasse Krankengeld. Vorher zahlt Ihr Arbeitgeber den Lohn weiter."  # ASVG § 138
+"Wochengeld" = "Geld für Mütter vor und nach der Geburt. Es kommt von der Krankenkasse. Sie bekommen es meistens 16 Wochen lang."  # ASVG § 162
+"Grad der Behinderung" = "Diese Zahl zeigt: So stark ist Ihre Behinderung. Ab 50 bekommen Sie einen Behindertenpass."  # BBG § 40, § 41
+"Behindertenpass" = "Diesen Ausweis bekommen Sie bei einer starken Behinderung. Er bringt Ihnen Vorteile. Zum Beispiel bei den Steuern."  # BBG § 40
+
+[explain.health]
+"stationär" = "Stationär heisst: Sie bleiben für die Behandlung über Nacht im Krankenhaus."
+"Rezeptgebühr" = "Für jedes Medikament auf Rezept bezahlen Sie einen festen Betrag. Das ist die Rezeptgebühr. Mit wenig Einkommen müssen Sie sie nicht bezahlen."  # ASVG § 136
+
+[explain.social]
+"Familienbeihilfe" = "Familienbeihilfe ist Geld für Eltern. Sie bekommen es jeden Monat für jedes Kind. Das Finanzamt zahlt es."  # FLAG § 2, § 8
+"Kinderbetreuungsgeld" = "Geld für Eltern mit einem kleinen Kind. Sie betreuen das Kind zu Hause. Die Krankenkasse zahlt das Geld."  # KBGG § 1
+"Mindestsicherung" = "Mindestsicherung ist Geld für Menschen mit zu wenig Geld zum Leben. In manchen Bundesländern heisst sie heute Sozialhilfe."
+"Wohnbeihilfe" = "Wohnbeihilfe ist Geld vom Bundesland für die Miete. Sie ist für Menschen mit wenig Einkommen."
+"Heizkostenzuschuss" = "Geld vom Bundesland für die Heizung im Winter. Sie bekommen es mit wenig Einkommen. Sie müssen es jedes Jahr neu beantragen."
+"Unterhaltsvorschuss" = "Ein Elternteil zahlt den Unterhalt für das Kind nicht. Dann zahlt der Staat vorläufig. Danach holt er das Geld beim anderen Elternteil."  # UVG § 3
+"Kaution" = "Geld als Sicherheit für den Vermieter. Nach dem Auszug bekommen Sie das Geld zurück."
+
+[explain.tax]
+"Finanzamt" = "Das Finanzamt ist das Amt für die Steuern. Es zahlt auch die Familienbeihilfe."
+"Steuererklärung" = "Ein Formular für die Steuern. Darin schreiben Sie Ihr Einkommen auf. Das Finanzamt berechnet dann Ihre Steuern."  # EStG § 42
+"Arbeitnehmerveranlagung" = "Sie arbeiten als Angestellte oder Angestellter? Dann machen Sie beim Finanzamt die Arbeitnehmerveranlagung. Oft bekommen Sie dann Geld zurück."  # EStG § 41
+"Einkommensteuerbescheid" = "Im Einkommensteuerbescheid steht: So viel Steuern müssen Sie bezahlen. Oder: So viel Geld bekommen Sie zurück."  # BAO § 198
+"Lohnzettel" = "Ein Papier vom Arbeitgeber. Darauf steht Ihr Lohn für ein ganzes Jahr. Das Finanzamt bekommt den Lohnzettel auch."  # EStG § 84
+
+[explain.residence]
+"Meldezettel" = "Mit dem Meldezettel melden Sie Ihre Adresse beim Amt. Nach einem Umzug haben Sie dafür 3 Tage Zeit."  # MeldeG § 3, § 9
+"Hauptwohnsitz" = "Am Hauptwohnsitz leben Sie die meiste Zeit. Dort ist Ihr Zuhause."  # MeldeG § 1
+"Nebenwohnsitz" = "Ein Nebenwohnsitz ist eine weitere Wohnung. Zum Beispiel für die Arbeit oder das Studium."  # MeldeG § 1
+"Meldebestätigung" = "Ein Papier vom Meldeamt. Darauf steht Ihre Adresse."  # MeldeG § 19
+"Staatsbürgerschaftsnachweis" = "Ein Papier vom Amt. Es zeigt: Sie sind Österreicherin oder Österreicher."  # StbG § 44
+"Aufenthaltstitel" = "Mit einem Aufenthaltstitel dürfen Sie in Österreich leben. Es gibt verschiedene Arten."  # NAG § 8
+"Einbürgerung" = "Sie werden Bürgerin oder Bürger von Österreich. Dann bekommen Sie den österreichischen Pass."  # StbG § 10
+"Standesamt" = "Dieses Amt schreibt wichtige Daten in ein Register. Zum Beispiel eine Geburt oder eine Heirat."  # PStG 2013
+
+[explain.vote]
+"Wahlkarte" = "Mit einer Wahlkarte wählen Sie mit der Post. Oder Sie wählen in einem anderen Wahllokal."  # NRWO § 38
+"Volksbegehren" = "Menschen unterschreiben für ein neues Gesetz. Mit genug Unterschriften muss das Parlament darüber reden."  # B-VG Art. 41
+"Wählerevidenz" = "Die Wählerevidenz ist eine Liste von der Gemeinde. Darauf stehen alle Menschen mit Wahlrecht."  # WEviG § 1
+
+[explain.context]
+# Terms with a second, everyday sense (Ladung of a truck, Beitrag in a newspaper).
+# Kept for the writer and the termbase; code never adds them.
+"Ladung" = "Ladung heisst hier: Das Amt oder das Gericht bestellt Sie zu einem Termin. Sie müssen dann kommen."  # AVG § 19
+"Beitrag" = "Ein Beitrag ist Geld für eine Versicherung. Zum Beispiel für die Krankenkasse. Bei Angestellten zieht der Arbeitgeber ihn vom Lohn ab."  # ASVG § 58
+
+# -- not in ------------------------------------------------------------------------
+
+# Phrases in which a term does not mean what the vocabulary explains:
+# Bescheid sagen is no decision.
+[not_in]
+"Bescheid" = ["Bescheid sagen", "Bescheid geben", "Bescheid gibt", "Bescheid wissen", "Bescheid weiss", "uns Bescheid", "mir Bescheid", "Ihnen Bescheid"]

@@ -63,8 +63,8 @@ class HardValues:
 
 
 def hard_values_of(draft: Draft, standard: SourceDocument) -> HardValues:
-    keys = hard_values(standard.text(), standard.lang)
-    out_values = extract_values(draft.text(), draft.lang)
+    keys = hard_values(standard.text(), standard.variety)
+    out_values = extract_values(draft.text(), draft.variety)
     found = [key for key in keys if hard_value_found(key, out_values)]
     return HardValues(keys, found, [key for key in keys if key not in found])
 
@@ -90,7 +90,7 @@ def text_metrics(
     # Values the source does not contain, strictly against the source (the runtime
     # rule FACT-06 also accepts the fact sheet's values; here a value the fact sheet
     # invented counts too).
-    invented = foreign_values(draft, standard, None, draft.lang)
+    invented = foreign_values(draft, standard, None, draft.variety)
     m = checked.metrics
     return {
         "blocks": len(draft.blocks),
@@ -147,7 +147,7 @@ def silent_losses(
     fact sheet the scorer borrows for it does not count. Zero by design for P1 and P2
     as long as the code completion of the fact sheet covers every hard value: a count
     above zero there names a value the completion missed."""
-    lang = standard.lang
+    lang = standard.variety  # the values are read in the pair's variety
     hard = hard or hard_values_of(draft, standard)
     keys, lost = hard.keys, hard.lost
     told: set[tuple[str, str]] = set()

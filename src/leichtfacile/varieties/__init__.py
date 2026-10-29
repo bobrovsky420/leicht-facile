@@ -4,16 +4,17 @@ and German for Germany and Austria (docs/architecture.md section 8).
 A variety is looked up by its key (`schemas.variety`: `de`, `de-DE`, `de-AT`, `fr`,
 `it`) and falls back to its language, so French and Italian, which are Swiss whatever
 the installation's region, resolve from a key such as `fr-DE` to the `fr` table. The
-facts come from varieties.toml next to this module; a variety is offered to the user
-(`leichtfacile setup`) only when its prompts exist, which `complete` decides from the
-prompt folders. This module imports nothing heavy: the settings and the setup command
-read it before any model or spaCy pipeline is loaded.
+facts come from varieties.toml next to this module, those the German prompt templates
+take among them (`prompt`); a variety is offered to the user (`leichtfacile setup`) only
+when its prompts exist, which `complete` decides from the prompt folders. This module
+imports nothing heavy: the settings and the setup command read it before any model or
+spaCy pipeline is loaded.
 """
 
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
@@ -34,6 +35,9 @@ class Variety:
     hyphenation: str  # pyphen's dictionary
     notice: str  # the decision mode's default notice
     setup_label: str | None = None  # the choice setup offers; German varieties only
+    # The facts the German prompt templates take as `v.prompt` (pipeline/prompts.py);
+    # French and Italian have none. Left out of the hash, so a Variety stays hashable.
+    prompt: dict[str, str] = field(default_factory=dict, hash=False)
 
 
 @lru_cache(maxsize=1)

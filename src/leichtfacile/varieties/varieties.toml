@@ -12,6 +12,19 @@
 # hyphenation    pyphen's dictionary for the syllable count of the readability index
 # notice         the decision mode's default notice: the first and the last paragraph of
 #                the export when the job sets none (docs/use-case-decisions.md)
+# prompt         German varieties only: the facts the German prompt templates take as
+#                `v.prompt` (src/leichtfacile/pipeline/prompts.py), one template set for
+#                every German variety. Each variety sets every field:
+#   country_in        "für Menschen ___" in write: in der Schweiz, in Deutschland
+#   country_adjective "ein amtliches ___ Dokument" in understand: Schweizer, deutsches
+#   doc_types         the kinds of document named in understand (Verfügung, Bescheid)
+#   currency          the currency of the JSON examples' amounts: Franken, Euro
+#   amount_spellings  two spellings of one amount, the judge's example of no distortion
+#   office            the dog-tax example's office, a municipal office for residents
+#   office_split      the office with the Mediopunkt, as easy-language texts write it
+#   office_article    the office's article, nominative and accusative alike: die, das
+#   office_at         "bei" with the office's article in the dative: bei der, beim
+#   phone             the dog-tax example's phone number, in the variety's format
 
 [de]
 lang = "de"
@@ -21,6 +34,18 @@ setup_label = "Switzerland: ss, Mediopunkt, Franken"
 word_lang = "de-CH"
 hyphenation = "de_CH"
 notice = "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
+
+[de.prompt]
+country_in = "in der Schweiz"
+country_adjective = "Schweizer"
+doc_types = "Brief, Verfügung, Formular, Merkblatt, Webseite"
+currency = "Franken"
+amount_spellings = "42'000 Franken statt CHF 42'000.-"
+office = "Einwohnerkontrolle"
+office_split = "Einwohner·kontrolle"
+office_article = "die"
+office_at = "bei der"
+phone = "031 987 65 43"
 
 [fr]
 lang = "fr"

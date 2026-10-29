@@ -2,17 +2,25 @@
 
 Each rendered prompt carries the version of its template, a short hash of the file, so
 the audit bundle and the evaluation can say exactly which prompt produced an artifact.
+
+The German templates are one set for every German variety: they take the variety's
+facts (the country, the currency, the office and the phone number of the examples) as
+`v.prompt` from src/leichtfacile/varieties/varieties.toml, and they include the decision
+and medication partials by a path `render` chooses, the variety's own partial when it
+has one, else the language's.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 from functools import lru_cache
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from leichtfacile.schemas import base_lang
+from leichtfacile.varieties import variety
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "llm" / "prompts"
 STAGES = ("understand", "write", "judge", "repair", "baseline", "baseline_zh")
@@ -54,6 +62,18 @@ def has_prompt(lang: str, stage: str) -> bool:
     return (PROMPTS_DIR / _folder(lang, stage) / f"{stage}.md").exists()
 
 
+# The partials the German templates include by a path in the context
+# (`{% include decision_partial %}`), so that a variety can bring its own.
+PARTIALS = ("decision", "medication")
+
+
+def _partial(lang: str, name: str) -> str:
+    """The path of a partial for a language or a variety key, as Jinja loads it: the
+    variety's own (`de-AT/decision.md`) when it exists, else its language's."""
+    folder = lang if (PROMPTS_DIR / lang / f"{name}.md").exists() else base_lang(lang)
+    return f"{folder}/{name}.md"
+
+
 # The level as the prompts use it after "in": German needs the dative.
 _IN_LEVEL = {
     "de": {"A2": "Leichter Sprache", "B1": "Einfacher Sprache"},
@@ -68,19 +88,33 @@ def level_name(lang: str, level: str) -> str:
 
 def render(lang: str, stage: str, **context: object) -> str:
     """`lang`: a language or a variety key (schemas.variety): the variety's template
-    when it has one, else its language's."""
+    when it has one, else its language's. The context gets the variety (`v`) and the
+    paths of the partials (`decision_partial`, `medication_partial`); a caller's own
+    values win, and the stages give none."""
     folder = _folder(lang, stage)
     if not (PROMPTS_DIR / folder / f"{stage}.md").exists():
         raise PromptNotAvailable(
             f"no {stage} prompt for language '{lang}' yet (available: {available_languages()})"
         )
+    context.setdefault("v", variety(lang))
+    for name in PARTIALS:
+        context.setdefault(f"{name}_partial", _partial(lang, name))
     return _env.get_template(f"{folder}/{stage}.md").render(**context).strip() + "\n"
 
 
 @lru_cache(maxsize=64)
 def prompt_version(lang: str, stage: str) -> str:
+    """A short hash of the stage's template and, for a variety whose prompt table fills
+    the template (varieties.toml, `prompt`), of that table too: a changed fact changes
+    the version the job records, as a changed template does."""
     path = PROMPTS_DIR / _folder(lang, stage) / f"{stage}.md"
-    return hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else "none"
+    if not path.exists():
+        return "none"
+    digest = hashlib.sha256(path.read_bytes())
+    table = variety(lang).prompt
+    if table:
+        digest.update(json.dumps(table, sort_keys=True, ensure_ascii=False).encode("utf-8"))
+    return digest.hexdigest()[:12]
 
 
 def prompt_versions(lang: str) -> dict[str, str]:

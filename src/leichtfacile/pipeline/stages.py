@@ -76,6 +76,7 @@ from leichtfacile.schemas import (
     Unsupported,
     base_lang,
 )
+from leichtfacile.varieties import variety as variety_table
 
 
 @dataclass(frozen=True)
@@ -267,7 +268,12 @@ def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
 @lru_cache(maxsize=8)
 def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
     words = EXAMPLE_TOPIC_WORDS.get(lang) or EXAMPLE_TOPIC_WORDS.get(base_lang(lang), ())
-    return tuple(re.compile(p) for p in words)
+    # The office of the variety's own dog-tax example (varieties.toml, `prompt.office`),
+    # so a variety whose example names another office than the Swiss Einwohnerkontrolle
+    # is guarded the same way.
+    office = variety_table(lang).prompt.get("office")
+    extra = (r"\b" + re.escape(office.lower()),) if office else ()
+    return tuple(re.compile(p) for p in (*words, *extra))
 
 
 @lru_cache(maxsize=16)
@@ -491,7 +497,7 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     identifier (case number, AHV number, IBAN) and postal address in the source that
     no fact carries becomes a fact of its own. Values in passages the model marked as
     droppable become background facts; the rest must be kept."""
-    lang = source.lang
+    lang = source.variety  # the values are read in the source's variety (de-DE: 1.500,00 €)
     covered = [v for f in fs.facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
     omitted = {s for o in fs.omit_candidates for s in o.segment_ids}
     facts = list(fs.facts)
@@ -878,12 +884,12 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
     worded = []  # (fact id, its segments, the values in its text) of the model's others
     plain = []  # (fact id, its segments) of the facts with no value anywhere
     for fact in factsheet.facts:
-        value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
+        value = parse_value_norm(fact.value_norm, fact.kind, draft.variety)
         if value is not None:
             targets.append((fact.id, value, fact.segment_ids))
         elif fact.origin == "code":
             parts.append((fact.id, set(fact.segment_ids)))
-        elif in_text := extract_values(fact.text, draft.lang):
+        elif in_text := extract_values(fact.text, draft.variety):
             worded.append((fact.id, set(fact.segment_ids), in_text))
         elif fact.segment_ids:
             plain.append((fact.id, set(fact.segment_ids)))
@@ -896,7 +902,7 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
             # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
             segment_ids = [s for s in segment_ids if s in source_ids]
         cited = bool(segment_ids)
-        values = extract_values(b.text, draft.lang) if targets or worded else []
+        values = extract_values(b.text, draft.variety) if targets or worded else []
         for fact_id, target, fact_segments in targets:
             if contains(target, b.text, values):
                 if fact_id not in ids:
@@ -934,7 +940,7 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
         if any(fact_id in b.fact_ids for b in blocks):
             continue
         citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
-        held = {i: extract_values(blocks[i].text, draft.lang) for i in citing}
+        held = {i: extract_values(blocks[i].text, draft.variety) for i in citing}
         if citing and all(any(matches(t, v) for i in citing for v in held[i]) for t in in_text):
             for i in citing:
                 if any(matches(t, v) for t in in_text for v in held[i]):
@@ -1125,7 +1131,7 @@ def repair(
     missing_lines = []
     for fact in request.missing:
         cited |= set(fact.segment_ids)
-        missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}")
+        missing_lines.append(f"- {fact.id}: {fact.text}{missing_value_label(fact, variety)}")
     prompt = render(
         variety,
         "repair",
@@ -1139,7 +1145,7 @@ def repair(
         draft=r.draft_lines(draft, refs=False, marked=set(request.problems)),
         source=r.cited_source(source, cited),
     )
-    known = KnownValues.of(source, factsheet, lang)
+    known = KnownValues.of(source, factsheet, variety)
     out, results = _call(
         llm,
         "repair",
@@ -1149,7 +1155,7 @@ def repair(
         check=_copy_check(variety, "repair", _repair_texts),
         soft_check=_soft_checks(
             _topic_check(variety, "repair", _repair_texts, source.text()),
-            _foreign_check(lang, known, _repair_texts),
+            _foreign_check(variety, known, _repair_texts),
         ),
     )
     record = RepairRecord(
@@ -1394,8 +1400,7 @@ def recover_fact(
     sent back once, one with values the paragraph lacks as well. On the 8B over CSCS the
     paragraph alone recovered f07 of the premium letter in 0 of 3 runs, with the value
     and its sentence named in 3 of 3 (docs/prompts.md, "Recovering a missing fact")."""
-    lang = draft.lang
-    variety = draft.variety  # the prompt and the style guide are the variety's
+    variety = draft.variety  # the prompt, the style guide and the values are the variety's
     fact = next(f for f in factsheet.facts if f.id == fact_id)
     recovery = Recovery(fact_id=fact.id)
     paragraph = fact_paragraph(source, fact)
@@ -1404,8 +1409,8 @@ def recover_fact(
         return recovery, []
     para_ids = {s.id for s in paragraph}
     window = fact_window(draft, source, para_ids)
-    target = parse_value_norm(fact.value_norm, fact.kind, lang)
-    exact = (display_value(target, lang) if target else "") or (fact.value_norm or "")
+    target = parse_value_norm(fact.value_norm, fact.kind, variety)
+    exact = (display_value(target, variety) if target else "") or (fact.value_norm or "")
     prompt = render(
         variety,
         "recover",
@@ -1414,15 +1419,15 @@ def recover_fact(
         style_guide=style_guide(variety, draft.level),
         value=exact,
         sentence_ids=", ".join(f"[{i}]" for i in fact.segment_ids if i in para_ids),
-        fact=f"- {fact.id}: {fact.text}{missing_value_label(fact, lang)}",
+        fact=f"- {fact.id}: {fact.text}{missing_value_label(fact, variety)}",
         paragraph=r.source_lines(paragraph),
         blocks="\n".join(f"[{b.id}] {b.text}" for b in window),
     )
     para_source = source.model_copy(update={"segments": paragraph, "title": None})
-    known = KnownValues.of(para_source, factsheet.model_copy(update={"facts": [fact]}), lang)
+    known = KnownValues.of(para_source, factsheet.model_copy(update={"facts": [fact]}), variety)
 
     def carries(text: str) -> bool:
-        return target is not None and contains(target, text, extract_values(text, lang))
+        return target is not None and contains(target, text, extract_values(text, variety))
 
     # A sentence without the fact's value whose values the draft already has repeats the
     # draft: the 8B added the income limits of block b009.1 to the date it was asked for.
@@ -1432,14 +1437,14 @@ def recover_fact(
         return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?")
 
     had = {key(b.text) for b in draft.blocks}
-    draft_values = [v for b in draft.blocks for v in extract_values(b.text, lang)]
+    draft_values = [v for b in draft.blocks for v in extract_values(b.text, variety)]
 
     def repeats(text: str) -> bool:
         if key(text) in had:
             return True
         if carries(text):
             return False
-        hard = [v for v in extract_values(text, lang) if v.kind in HARD_KINDS]
+        hard = [v for v in extract_values(text, variety) if v.kind in HARD_KINDS]
         return bool(hard) and all(any(matches(v, d) for d in draft_values) for v in hard)
 
     def foreign_values(texts: list[str]) -> list[str]:
@@ -1449,11 +1454,11 @@ def recover_fact(
     def has_value(out: RecoverOut) -> str | None:
         if target is None or any(carries(t) for t in out.texts):
             return None
-        return label(lang, "recover_value", value=exact)
+        return label(variety, "recover_value", value=exact)
 
     def in_paragraph(out: RecoverOut) -> str | None:
         foreign = foreign_values(out.texts)
-        return label(lang, "recover_foreign", values=", ".join(foreign)) if foreign else None
+        return label(variety, "recover_foreign", values=", ".join(foreign)) if foreign else None
 
     try:
         out, results = _call(

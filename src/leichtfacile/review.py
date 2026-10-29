@@ -207,7 +207,7 @@ def fact_rows(
     order = [b.id for b in draft.blocks]
     rows = []
     for fact in factsheet.facts:
-        value = parse_value_norm(fact.value_norm, fact.kind, draft.lang)
+        value = parse_value_norm(fact.value_norm, fact.kind, draft.variety)
         check = judged.get(fact.id)
         blocks = sorted(
             set(coverage.found.get(fact.id, []))
@@ -218,7 +218,7 @@ def fact_rows(
         rows.append(
             FactRow(
                 fact=fact,
-                expected=display_value(value, draft.lang) if value else None,
+                expected=display_value(value, draft.variety) if value else None,
                 code_found=(fact.id in coverage.found) if value and fact.must_keep else None,
                 blocks=blocks,
                 judge_status=check.status if check else None,
