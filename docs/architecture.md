@@ -1567,6 +1567,7 @@ THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues
 site/index.html             the project's page (https://leichtfacile.ch); pages.yml adds the app's fonts and a screenshot
+site/de/index.html          the same page in German (https://leichtfacile.ch/de/); site/style.css serves both
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key

@@ -1,0 +1,245 @@
+<!doctype html>
+<!-- https://leichtfacile.ch/de/: the project's page in German, the counterpart of
+     site/index.html (keep both in step); styles in site/style.css. Swiss spelling (ss). -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leicht·Facile: Entwürfe in Leichter Sprache für Schweizer Behördentexte</title>
+<meta name="description" content="Leicht·Facile entwirft mit einem Sprachmodell leicht verständliche Fassungen von Schweizer Behördentexten (Leichte Sprache, FALC, lingua facile) und weist mit Code nach, dass keine Frist, kein Betrag und keine Telefonnummer verloren geht. Open Source, entwickelt und evaluiert mit Apertus.">
+<link rel="canonical" href="https://leichtfacile.ch/de/">
+<link rel="alternate" hreflang="en" href="https://leichtfacile.ch/">
+<link rel="alternate" hreflang="de" href="https://leichtfacile.ch/de/">
+<link rel="alternate" hreflang="x-default" href="https://leichtfacile.ch/">
+<link rel="icon" href="data:,">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://leichtfacile.ch/de/">
+<meta property="og:title" content="Leicht·Facile">
+<meta property="og:description" content="Entwürfe in Leichter Sprache für Schweizer Behördentexte mit einem Sprachmodell nach Wahl; Code prüft jeden Wert, ein Mensch gibt jeden Entwurf frei.">
+<meta property="og:image" content="https://leichtfacile.ch/images/review-page.png">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt</a>
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="/de/">Leicht<span>·</span>Facile</a>
+    <nav aria-label="Abschnitte">
+      <ul>
+        <li><a href="#how">So funktioniert es</a></li>
+        <li><a href="#results">Ergebnisse</a></li>
+        <li><a href="#start">Loslegen</a></li>
+        <li><a href="#authors">Autoren</a></li>
+        <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
+        <li><a href="../" lang="en" hreflang="en">English</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero">
+  <div class="wrap">
+    <h1>Entwürfe in Leichter Sprache für Schweizer Behördentexte</h1>
+    <p class="lead">Leicht·Facile entwirft mit einem grossen Sprachmodell leicht verständliche
+    Fassungen von Schweizer Behördentexten (Leichte Sprache und Einfache Sprache auf Deutsch,
+    FALC auf Französisch, lingua facile auf Italienisch) und weist mit Code nach, dass keine
+    Frist, kein Betrag und keine Telefonnummer verloren gegangen ist. Es ist ein
+    Schreibassistent für die Menschen, die Behördentexte verfassen, kein Ersatz für ihre
+    Prüfung oder für die Prüfung durch Leserinnen und Leser aus der Zielgruppe.</p>
+    <div class="actions">
+      <a class="button primary" href="#start">Loslegen</a>
+      <a class="button secondary" href="https://github.com/bobrovsky420/leicht-facile">Quellcode auf GitHub</a>
+    </div>
+    <div class="langs">
+      <p lang="en"><b>English</b>Easy-language drafts of Swiss official texts with a model of
+      your choice; code checks every value, a person approves.</p>
+      <p lang="fr"><b>Français</b>Versions FALC de textes officiels suisses avec un modèle au
+      choix&#8239;; le code vérifie chaque valeur, une personne relit.</p>
+      <p lang="it"><b>Italiano</b>Versioni in lingua facile di testi ufficiali svizzeri con un
+      modello a scelta; il codice verifica ogni valore, una persona rivede.</p>
+    </div>
+    <p class="stat"><strong>1,25 Millionen</strong> <span>Erwachsene in der Schweiz zwischen 16
+    und 65 Jahren (22 Prozent) haben geringe Lesekompetenzen (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Bundesamt
+    für Statistik, PIAAC 2022/2023</a>).</span></p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Vorher und nachher</h2>
+    <p>Ein Satz aus einem Behördenbrief, in Amtssprache und mit drei Verneinungen. Wer Mühe
+    mit dem Lesen hat, hat nur eine Frage: Bekomme ich mein Geld zurück? Die Fassung in
+    Leichter Sprache beantwortet sie in drei kurzen Sätzen.</p>
+    <div class="compare">
+      <div class="card">
+        <h3>Vorher: der Brief</h3>
+        <blockquote>Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht
+        geltend gemacht werden, nicht vergütet werden können.</blockquote>
+      </div>
+      <div class="card after">
+        <h3>Nachher: Leichte Sprache</h3>
+        <blockquote>Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst
+        bekommen Sie kein Geld zurück.</blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-model" viewBox="0 0 24 24"><path d="M12 3Q13 11 21 12Q13 13 12 21Q11 13 3 12Q11 11 12 3Z"/></symbol>
+      <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+      <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></symbol>
+    </svg>
+    <h2>So funktioniert es</h2>
+    <p class="quote">Das Sprachmodell übernimmt alles, wofür man Sprache verstehen muss.
+    Gewöhnlicher Code übernimmt alles, was sich zählen lässt.</p>
+    <ol class="steps">
+      <li><h3>Lesen <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+        <p>Aus dem Dokument wird ein Faktenblatt: die Kernfragen der Leserinnen und Leser,
+        jede Tatsache mit ihrem genauen Wert, schwierige Wörter. Code ergänzt jedes Datum,
+        jeden Betrag und jeden Kontakt, den das Modell übersehen hat.</p></li>
+      <li><h3>Schreiben <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+        <p>Ein Entwurf in Leichter Sprache, jeder Satz verknüpft mit den Sätzen der Quelle, aus
+        denen er stammt, jede Auslassung begründet.</p></li>
+      <li><h3>Prüfen <span class="who" data-tip="Code"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg><span class="vh">(Code)</span></span></h3>
+        <p>Feste Regeln aus den veröffentlichten Schweizer Richtlinien und ein genauer
+        Abgleich jedes Faktenwerts in beide Richtungen: kein Wert verloren, kein Wert
+        erfunden.</p></li>
+      <li><h3>Beurteilen <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+        <p>Nur die Bedeutung: verzerrte Fakten, erfundene Aussagen, Metaphern, unklare
+        Bezüge.</p></li>
+      <li><h3>Überarbeiten <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+        <p>Nur die markierten Sätze, bis kein blockierender Befund mehr übrig ist; danach je
+        ein Satz für jeden Wert, der erhalten bleiben muss und noch fehlt.</p></li>
+      <li><h3>Freigabe <span class="who" data-tip="Mensch"><svg class="icon" aria-hidden="true"><use href="#i-person"/></svg><span class="vh">(Mensch)</span></span></h3>
+        <p>Quelle und Entwurf nebeneinander, die Herkunft jedes Satzes, eine Checkliste der
+        Fakten; jeden Block freigeben, bearbeiten oder ablehnen, Export mit
+        Prüfprotokoll.</p></li>
+    </ol>
+    <figure>
+      <img src="../images/review-page.png" width="1280" height="820" loading="lazy"
+        alt="Die Prüfseite: links die Quelle, in der Mitte der Entwurf in Leichter Sprache, rechts die Fakten, die erhalten bleiben müssen">
+      <figcaption>Die Prüfseite (englische Oberfläche) mit dem deutschen Beispielbrief: die
+      Quelle mit dem, was weggelassen wurde, und dem Grund dafür, der Entwurf mit seinen
+      Versionen und Befunden, und die Fakten, die erhalten bleiben müssen.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <h2>Gemessen, nicht versprochen</h2>
+    <p>Der vollständige Ablauf im Vergleich mit einem starken Einzelprompt (einem
+    veröffentlichten Prompt für Leichte Sprache aus einer Schweizer Verwaltung) auf demselben
+    Modell: 20 Paare echter deutscher Texte, die Schweizer Kantone und Bundesämter mit ihrer
+    Fassung in Leichter Sprache veröffentlicht haben und die bei der Entwicklung nicht
+    verwendet wurden, Apertus auf dem Endpunkt des CSCS, 12. Oktober 2026.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Ein starker Einzelprompt</th><th scope="col">Leicht·Facile</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Gefundene Fakten, die erhalten bleiben müssen</th><td>82 %</td><td class="lf">100 %</td></tr>
+          <tr><th scope="row">Harte Fakten spurlos verloren</th><td>15 % (33 % im Standardmodus)</td><td class="lf">keine: jede fehlende wird aufgelistet</td></tr>
+          <tr><th scope="row">Erfundene Werte pro 100 Blöcke</th><td>0,0</td><td class="lf">0,0</td></tr>
+          <tr><th scope="row">Regelfehler pro 100 Blöcke</th><td>15,0</td><td class="lf">3,7</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Alle Zahlen und die Methode (auf Englisch):
+    <a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/evaluation.md">evaluation.md</a>.</p>
+  </div>
+</section>
+
+<section id="sovereign">
+  <div class="wrap two">
+    <div>
+      <h2>Ihr Modell, Ihre Infrastruktur</h2>
+      <p>Leicht·Facile funktioniert mit jedem OpenAI-kompatiblen Endpunkt: der API eines
+      Anbieters, einem Gateway oder einem eigenen Modellserver. Dokumente und Prüfprotokolle
+      bleiben in einer Datenbank in einem Ordner, den die Organisation kontrolliert. Im
+      Betrieb kontaktiert die App nur den Modell-Endpunkt und, wenn jemand eine Webadresse
+      eingibt, den Server dieser Webseite: keine Telemetrie, kein CDN, kein
+      Login-Anbieter.</p>
+    </div>
+    <div>
+      <h2>Warum Apertus für vertrauliche Texte</h2>
+      <p>Ein Brief, der eine Person nennt, unterliegt dem Amtsgeheimnis, ein Patientenbrief
+      dem Arztgeheimnis, ein Steuerbrief dem Steuergeheimnis. Solche Texte brauchen ein
+      Modell, das dort läuft, wo die Organisation es kontrolliert, mit offenen Gewichten und
+      offenen Trainingsdaten, entwickelt in der Schweiz. Apertus von EPFL, ETH Zürich und
+      CSCS erfüllt all das, und Leicht·Facile wurde damit entwickelt und evaluiert
+      (<a href="https://github.com/bobrovsky420/leicht-facile#why-apertus-for-confidential-texts">warum</a>).</p>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap two">
+    <div>
+      <h2>Loslegen</h2>
+      <p>Ist <a href="https://docs.astral.sh/uv/">uv</a> installiert, lädt ein einziger Befehl
+      die App von PyPI, startet sie und öffnet den Browser:</p>
+      <pre><code>uvx leichtfacile serve</code></pre>
+      <p>Die Seite KI-Modell der App fragt nach dem Endpunkt und seinem Schlüssel: Apertus
+      auf der Inference-API des CSCS, das Gateway von Public AI, ein Anbieter wie Anthropic,
+      OpenAI, Google oder OpenRouter oder ein eigener Server (vLLM, llama.cpp, Ollama).</p>
+    </div>
+    <div>
+      <h2>Weiterlesen (auf Englisch)</h2>
+      <ul class="plain">
+        <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/quickstart.md">Schnellstart</a>: Installation, Server, Installation ohne Internet</li>
+        <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/use-case-canton.md">Briefe und Webseiten eines Kantons</a></li>
+        <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/use-case-decisions.md">Briefe zu Entscheiden</a> (KESB, Gerichte)</li>
+        <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/rules.md">Der Regelkatalog</a></li>
+        <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/architecture.md">Architektur</a></li>
+        <li><a href="https://pypi.org/project/leichtfacile/">Das Paket auf PyPI</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="authors">
+  <div class="wrap">
+    <h2>Autoren</h2>
+    <div class="authors">
+      <div class="author">
+        <img src="../images/authors/ab.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Alexander Bobrovsky</h3>
+          <p>Über 25 Jahre in der IT, davon über 15 im Produkt- und Programmmanagement, mit
+          Schwerpunkt auf Systemdesign und künstlicher Intelligenz. Hat Systeme mit einer
+          Verfügbarkeit von 99,999 Prozent entworfen und geliefert, die Hunderte Millionen
+          Ereignisse pro Tag verarbeiten.</p>
+          <a href="https://github.com/bobrovsky420">github.com/bobrovsky420</a>
+        </div>
+      </div>
+      <div class="author">
+        <img src="../images/authors/ik.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Ivan Kuzmych</h3>
+          <p>Über 15 Jahre praktische Softwareentwicklung in Java, Python und
+          JavaScript/TypeScript: Produktivsysteme von Anfang bis Ende gebaut und ausgeliefert,
+          DevOps und CI/CD eingeschlossen.</p>
+          <a href="https://github.com/ikzmch">github.com/ikzmch</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Leicht·Facile ist Open Source unter der Apache License 2.0.</p>
+    <ul>
+      <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
+      <li><a href="https://github.com/bobrovsky420/leicht-facile/releases">Releases</a></li>
+      <li><a href="https://github.com/bobrovsky420/leicht-facile/issues">Issues</a></li>
+    </ul>
+  </div>
+</footer>
+</body>
+</html>
