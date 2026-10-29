@@ -1,7 +1,8 @@
 <!doctype html>
 <!-- https://leichtfacile.ch: the project's page, published by .github/workflows/pages.yml
-     with the app's fonts (src/leichtfacile/web/static/fonts) and the review screenshot
-     (docs/images/review-page.png) copied next to it. No script, no external asset. -->
+     with site/images, the app's fonts (src/leichtfacile/web/static/fonts) and the review
+     screenshot (docs/images/review-page.png) copied next to it. No script, no external
+     asset. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -181,12 +182,19 @@ pre { background: var(--surface); border: 1px solid var(--border); border-radius
 ul.plain { padding-left: 1.2em; margin: 0 0 1em; }
 ul.plain li { margin-bottom: 0.4em; }
 
+.authors { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.author { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
+.author img { width: 56px; height: 56px; border-radius: 50%; display: block; }
+.author h3 { margin-bottom: 0.4em; }
+.author p { margin: 0 0 0.6em; color: var(--text-2); font-size: 0.95rem; }
+.author a { font-size: 0.92rem; }
+
 footer { background: var(--surface); border-top: 1px solid var(--border); padding: 28px 0; color: var(--muted); font-size: 0.92rem; }
 footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; flex-wrap: wrap; }
 
 @media (max-width: 820px) {
-  .langs, .compare, .two { grid-template-columns: 1fr; }
+  .langs, .compare, .two, .authors { grid-template-columns: 1fr; }
   ol.steps { grid-template-columns: 1fr 1fr; }
   section { padding: 44px 0; }
 }
@@ -209,6 +217,7 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
         <li><a href="#how">How it works</a></li>
         <li><a href="#results">Results</a></li>
         <li><a href="#start">Get started</a></li>
+        <li><a href="#authors">Authors</a></li>
         <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
       </ul>
     </nav>
@@ -370,6 +379,34 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
         <li><a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/architecture.md">Architecture</a></li>
         <li><a href="https://pypi.org/project/leichtfacile/">The package on PyPI</a></li>
       </ul>
+    </div>
+  </div>
+</section>
+
+<section id="authors">
+  <div class="wrap">
+    <h2>Authors</h2>
+    <div class="authors">
+      <div class="author">
+        <img src="images/authors/ab.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Alexander Bobrovsky</h3>
+          <p>25+ years in IT, 15+ of them in product and program management, with a focus on
+          system design and artificial intelligence. Designed and delivered systems with five-nines availability that
+          process hundreds of millions of events per day.</p>
+          <a href="https://github.com/bobrovsky420">github.com/bobrovsky420</a>
+        </div>
+      </div>
+      <div class="author">
+        <img src="images/authors/ik.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Ivan Kuzmych</h3>
+          <p>15+ years of hands-on software development in Java, Python and
+          JavaScript/TypeScript: production systems built and shipped end to end, DevOps and
+          CI/CD included.</p>
+          <a href="https://github.com/ikzmch">github.com/ikzmch</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>

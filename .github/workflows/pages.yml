@@ -1,5 +1,5 @@
-# The project's page at https://leichtfacile.ch: site/index.html with the app's fonts and
-# the review screenshot copied next to it, published on GitHub Pages. The repository's
+# The project's page at https://leichtfacile.ch: site/index.html and site/images with the
+# app's fonts and the review screenshot copied next to them, published on GitHub Pages. The repository's
 # Pages settings take "GitHub Actions" as the source and leichtfacile.ch as the custom
 # domain (a deployment by this workflow needs no CNAME file). Every action is pinned to a
 # commit; the comment after the hash names the release.
@@ -39,6 +39,7 @@ jobs:
         run: |
           mkdir -p _site/fonts _site/images
           cp site/index.html _site/
+          cp -r site/images/. _site/images/
           cp src/leichtfacile/web/static/fonts/*.woff2 src/leichtfacile/web/static/fonts/OFL-*.txt _site/fonts/
           cp docs/images/review-page.png _site/images/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
