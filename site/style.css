@@ -96,7 +96,7 @@ nav a:hover { color: var(--accent); text-decoration: underline; }
 section { padding: 56px 0; border-bottom: 1px solid var(--hairline); }
 section:last-of-type { border-bottom: 0; }
 .hero { background: var(--surface); padding: 64px 0 56px; }
-.hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); max-width: 22ch; letter-spacing: -0.01em; }
+.hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); max-width: 30ch; letter-spacing: -0.01em; text-wrap: balance; }
 .lead { font-size: 1.15rem; color: var(--text-2); max-width: 62ch; }
 .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
 .button {
