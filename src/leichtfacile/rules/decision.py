@@ -55,6 +55,22 @@ _OPERATIVE_TEXT = {
         re.IGNORECASE,
     ),
 }
+# Germany: a Bescheid has no heading for its decision, which stands before the heading
+# `Begründung` (`_before_reasons`); a court's judgment has a `Tenor`. Austria: `Spruch`.
+_OPERATIVE_HEADING["de-DE"] = re.compile(
+    "^" + _NUMBERED + r"(?:Tenor|Entscheidung|Entscheidungssatz|Entscheidungsformel|Dispositiv"
+    r"|Urteil|Beschluss)\s*[:.]?$",
+    re.IGNORECASE,
+)
+_OPERATIVE_HEADING["de-AT"] = re.compile(
+    "^" + _NUMBERED + r"(?:Spruch|Dispositiv|Urteil|Beschluss|Erkenntnis)\s*[:.]?$",
+    re.IGNORECASE,
+)
+_REASONS_HEADING = re.compile(
+    "^" + _NUMBERED + r"(?:Begründung|Gründe|Sachverhalt(?: und Begründung)?)\s*[:.]?$",
+    re.IGNORECASE,
+)
+_SALUTATION = re.compile(r"^(?:Sehr geehrte|Guten Tag|Liebe[rs]?)\b")
 _APPEAL_HEADING = {
     "de": re.compile(
         "^" + _NUMBERED + r"(?:Rechtsmittel(?:belehrung)?|Rechtsbehelf(?:sbelehrung)?)\s*[:.]?$",
@@ -81,6 +97,24 @@ _APPEAL_TEXT = {
         re.IGNORECASE,
     ),
 }
+# Germany: the Widerspruch within a month of the Bekanntgabe, or the Klage; Austria: the
+# Beschwerde binnen vier Wochen nach Zustellung (§ 7 Abs. 4 VwGVG).
+_APPEAL_TEXT["de-DE"] = re.compile(
+    r"^(?:\d{1,2}\.\s*)?Gegen (?:diesen|diese|dieses)\b.*\b(?:kann|können)\b"
+    r".*\b(?:Widerspruch|Klage|Einspruch|Beschwerde|Rechtsmittel|Rechtsbehelf)\b"
+    r"|\binnerhalb (?:eines Monats|einer Woche|von \d+ (?:Tagen|Wochen|Monaten))\b"
+    r".*\b(?:Widerspruch|Klage|Einspruch|Beschwerde)\b"
+    r"|\b(?:Widerspruch|Klage|Einspruch|Beschwerde) (?:erhoben|eingelegt|eingereicht) werden\b",
+    re.IGNORECASE,
+)
+_APPEAL_TEXT["de-AT"] = re.compile(
+    r"^(?:\d{1,2}\.\s*)?Gegen (?:diesen|diese|dieses)\b.*\b(?:kann|können|steht)\b"
+    r".*\b(?:Beschwerde|Vorstellung|Revision|Berufung|Rechtsmittel)\b"
+    r"|\bbinnen (?:vier|zwei|\d+) (?:Wochen|Tagen)\b"
+    r".*\b(?:Beschwerde|Vorstellung|Revision|Berufung)\b"
+    r"|\b(?:Beschwerde|Vorstellung|Revision|Berufung) (?:erhoben|eingebracht|eingereicht) werden\b",
+    re.IGNORECASE,
+)
 # The distribution list closes the operative part.
 _DISTRIBUTION = {
     "de": re.compile(
@@ -97,6 +131,7 @@ _ITEM_START = re.compile(r"^\d{1,2}[.)](?:\s|$)|^[a-z][.)]\s")  # "1." alone, "1
 # about them; the date of dispatch and the signatures do not.
 _APPEAL_WORDS = re.compile(
     r"\b(?:Beschwerde\w*|Einsprache|Rekurs|Rechtsmittel\w*|Frist|Tagen|Gericht\w*|Eingabe"
+    r"|Widerspruch\w*|Klage|Einspruch|Vorstellung|Bekanntgabe|Zustellung|Wochen|binnen|innerhalb"
     r"|recours|délai|jours|tribunal|mémoire)\b",
     re.IGNORECASE,
 )
@@ -129,7 +164,13 @@ class ProtectedSegments:
 
 
 def _lang(source: SourceDocument) -> str:
-    return "fr" if source.lang == "fr" else "de"
+    """The pattern set: French, or the German variety (`de`, `de-DE`, `de-AT`)."""
+    return "fr" if source.lang == "fr" else source.variety
+
+
+def _pattern(table: dict[str, re.Pattern[str]], key: str) -> re.Pattern[str]:
+    """A variety's pattern, else its language's."""
+    return table.get(key) or table["de"]
 
 
 def _text(segments: list[Segment]) -> str:
@@ -178,19 +219,45 @@ def _after_marker(segments: list[Segment], index: int) -> list[Segment]:
     return run
 
 
+def _before_reasons(segments: list[Segment]) -> tuple[list[Segment], int | None, str]:
+    """A German or Austrian Bescheid without a heading for its decision: the decision
+    stands in the paragraphs between the salutation (or the last heading before) and the
+    heading `Begründung`, which opens the reasons (the Bescheide of Köln and Tirol,
+    docs/sources.md). The heading's index is returned as the marker, so the appeal
+    instructions are looked for after it."""
+    end = next(
+        (
+            i
+            for i, s in enumerate(segments)
+            if s.kind == "heading" and _REASONS_HEADING.match(s.text.strip())
+        ),
+        None,
+    )
+    if end is None:
+        return [], None, ""
+    start = 0
+    for i, s in enumerate(segments[:end]):
+        if s.kind == "heading" or _SALUTATION.match(s.text.strip()):
+            start = i + 1
+    run = [s for s in segments[start:end] if s.kind != "heading"]
+    return run, (end if run else None), ("reasons" if run else "")
+
+
 def _operative(segments: list[Segment], lang: str) -> tuple[list[Segment], int | None, str]:
     for i, seg in enumerate(segments):
-        if seg.kind == "heading" and _OPERATIVE_HEADING[lang].match(seg.text.strip()):
+        if seg.kind == "heading" and _pattern(_OPERATIVE_HEADING, lang).match(seg.text.strip()):
             return _under_heading(segments, i), i, "heading"
     for i, seg in enumerate(segments):
-        if seg.kind != "heading" and _OPERATIVE_TEXT[lang].search(seg.text.strip()):
+        if seg.kind != "heading" and _pattern(_OPERATIVE_TEXT, lang).search(seg.text.strip()):
             return _after_marker(segments, i), i, "text"
+    if lang in ("de-DE", "de-AT"):
+        return _before_reasons(segments)
     return [], None, ""
 
 
 def _appeal(segments: list[Segment], lang: str, after: int | None) -> list[Segment]:
     for i, seg in enumerate(segments):
-        if seg.kind == "heading" and _APPEAL_HEADING[lang].match(seg.text.strip()):
+        if seg.kind == "heading" and _pattern(_APPEAL_HEADING, lang).match(seg.text.strip()):
             run: list[Segment] = []
             for group in _paras(_under_heading(segments, i)):
                 if run and not _APPEAL_WORDS.search(" ".join(s.text for s in group)):
@@ -201,7 +268,7 @@ def _appeal(segments: list[Segment], lang: str, after: int | None) -> list[Segme
     # there is none) that reads like the instructions, with the rest of its paragraph.
     start = after + 1 if after is not None else 0
     for seg in segments[start:]:
-        if seg.kind != "heading" and _APPEAL_TEXT[lang].search(seg.text.strip()):
+        if seg.kind != "heading" and _pattern(_APPEAL_TEXT, lang).search(seg.text.strip()):
             return [s for s in segments if s.para == seg.para and s.kind != "heading"]
     return []
 
@@ -217,7 +284,7 @@ def protected_segments(source: SourceDocument) -> ProtectedSegments:
     items: list[ProtectedPart] = []
     for group in _paras([s for s in operative if s.id not in appeal_ids]):
         text = _text(group)
-        if _DISTRIBUTION[lang].match(text):
+        if _pattern(_DISTRIBUTION, lang).match(text):
             break  # the list of recipients, and everything after it
         if not re.search(r"[^\W\d_]{3}", text):
             continue  # a bare number: "1." that stands as a segment of its own

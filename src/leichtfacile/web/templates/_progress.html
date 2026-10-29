@@ -1,7 +1,7 @@
 {# The progress fragment: included by job.html and polled at /jobs/{id}/progress. Its
    root carries the header's running line, which app.js copies after each swap. #}
 {% import "_icons.html" as icons with context %}
-<div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=number(p.tokens, ui_lang)) }}">
+<div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}">
   <section class="card pipeline" aria-labelledby="pipe-h">
     <div class="card-head">
       <h2 id="pipe-h">{{ t('progress.pipeline') }}</h2>
@@ -21,7 +21,7 @@
           <span class="step-top"><span class="step-title">{{ s.title }}</span>{{ icons.who(s.who) }}<span class="step-state">{{ t('progress.state.' ~ s.state) }}</span></span>
           <span class="step-desc">{{ s.description }}</span>
           {% if s.detail %}<span class="step-detail">{{ s.detail }}</span>{% endif %}
-          {% if s.usage %}<span class="step-usage">{{ t('progress.usage', n=s.usage.calls, tokens=number(s.usage.tokens_in + s.usage.tokens_out, ui_lang), time=duration(s.usage.seconds)) }}</span>
+          {% if s.usage %}<span class="step-usage">{{ t('progress.usage', n=s.usage.calls, tokens=t.number(s.usage.tokens_in + s.usage.tokens_out), time=duration(s.usage.seconds)) }}</span>
           {% elif s.key == 'check' and s.state == 'done' %}<span class="step-usage">{{ t('progress.no_model', rules=rule_count) }}</span>{% endif %}
         </span>
       </li>

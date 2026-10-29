@@ -1212,11 +1212,11 @@ FRANCE_NUMERAL_RE = re.compile(
 
 
 @rule(
-    "CH-03",
+    "REG-03",
     lang=FR,
     guide="Si un nombre s'écrit en lettres, prends les mots suisses : septante, nonante.",
 )
 def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in FRANCE_NUMERAL_RE.finditer(block.text):
         swiss = _FRANCE_TENS[m.group(1).lower()] + _AFTER_TEN[m.group(2).lower()]
-        yield hit("CH-03", found=m.group(0), swiss=swiss, evidence=m.group(0), suggestion=swiss)
+        yield hit("REG-03", found=m.group(0), swiss=swiss, evidence=m.group(0), suggestion=swiss)

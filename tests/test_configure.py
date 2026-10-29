@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from leichtfacile import config
+from leichtfacile import config, configure
 from leichtfacile.cli import main, settings_or_exit, wants_browser
 from leichtfacile.config import ConfigError, get_settings, load
 from leichtfacile.configure import (
@@ -75,15 +75,21 @@ def menus(said: list[str]) -> list[list[str]]:
 def test_a_shipped_preset_needs_only_the_key(home) -> None:
     said: list[str] = []
     # provider 1 (CSCS) in the menu, the key, then its one preset: no address, name,
-    # model or judge question
-    code = run_setup(ask=answers("1", "1"), ask_secret=answers("secret-key"),
+    # model or judge question; then the German of the texts, once (2: Germany)
+    code = run_setup(ask=answers("1", "1", "2"), ask_secret=answers("secret-key"),
                      models=lambda url, key, headers: LISTED, say=said.append)  # fmt: skip
     assert code == 0
-    assert toml(home) == {"llm": {"preset": "cscs-apertus"}}  # the preset as it is: no table
+    # the preset as it is: no table
+    assert toml(home) == {"llm": {"preset": "cscs-apertus"}, "texts": {"region": "DE"}}
     assert (home.parent / ".env").read_text(encoding="utf-8").endswith("CSCS_API_KEY=secret-key\n")
-    providers, presets = menus(said)
+    providers, presets, german = menus(said)
     assert providers == [str(t["label"]) for t in config.PROVIDERS.values()] + [ANOTHER_SERVER]
     assert presets == ["Apertus 8B, checked by Apertus 70B", ANOTHER_MODEL]
+    assert german == [
+        "Switzerland: ss, Mediopunkt, Franken", "Germany: ß, hyphen, Euro",
+        "Austria: ß, hyphen, Euro, Jänner",
+    ]  # fmt: skip
+    assert load().settings.texts.region == "DE"
     llm = load().settings.llm
     assert llm.url == "https://api.inference.cscs.ch/v1" and llm.thinking == "model-suffix"
     assert [llm.models.writer, llm.models.judge] == LISTED[::-1]
@@ -117,15 +123,16 @@ def test_a_providers_presets_are_offered_then_any_listed_model(home, monkeypatch
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     listed = ["claude-haiku-5-5", "claude-opus-5-5", "claude-sonnet-5-5"]
     said: list[str] = []
-    # Anthropic, the key, Enter: the first preset (Haiku, which judges itself).
-    code = run_setup(ask=answers(ANTHROPIC, ""), ask_secret=answers("ak"),
+    # Anthropic, the key, Enter: the first preset (Haiku, which judges itself); Enter:
+    # the first German (Switzerland).
+    code = run_setup(ask=answers(ANTHROPIC, "", ""), ask_secret=answers("ak"),
                      models=lambda url, key, headers: listed, say=said.append)  # fmt: skip
     assert code == 0
     assert menus(said)[1] == [
         "Claude Haiku 5.5", "Claude Haiku 5.5, checked by Sonnet 5.5", "Claude Sonnet 5.5",
         "Claude Opus 5.5", ANOTHER_MODEL,
     ]  # fmt: skip
-    assert toml(home) == {"llm": {"preset": "claude-haiku-5-5"}}
+    assert toml(home) == {"llm": {"preset": "claude-haiku-5-5"}, "texts": {"region": "CH"}}
     llm = load().settings.llm
     assert (llm.models.writer, llm.judge_model) == ("claude-haiku-5-5", "claude-haiku-5-5")
     assert llm.for_model("claude-haiku-5-5").extra_body == {"thinking": {"type": "disabled"}}
@@ -144,7 +151,7 @@ def test_a_providers_presets_are_offered_then_any_listed_model(home, monkeypatch
 def test_a_server_of_ones_own_becomes_a_provider_and_a_preset(home) -> None:
     said: list[str] = []
     listed = ["model-a", "model-b"]
-    code = run_setup(ask=answers(OTHER, "https://llm.example/v1", "", "model-b"),
+    code = run_setup(ask=answers(OTHER, "https://llm.example/v1", "", "model-b", ""),
                      ask_secret=answers("k"), models=lambda url, key, headers: listed,
                      say=said.append)  # fmt: skip
     assert code == 0 and "  - model-a" in said
@@ -152,6 +159,7 @@ def test_a_server_of_ones_own_becomes_a_provider_and_a_preset(home) -> None:
         "providers": {"llm": {"url": "https://llm.example/v1", "api_key_env": "LLM_API_KEY"}},
         "presets": {"llm": {"provider": "llm", "models": {"writer": "model-b"}}},
         "llm": {"preset": "llm"},
+        "texts": {"region": "CH"},
     }
     llm = load().settings.llm
     assert (llm.models.writer, llm.judge_model, llm.thinking) == ("model-b", "model-b", "off")
@@ -163,7 +171,7 @@ def test_a_model_list_that_cannot_be_read_still_asks_for_the_model(home) -> None
         raise OSError("refused")
 
     said: list[str] = []
-    code = run_setup(ask=answers(OTHER, "http://10.1.2.3:9/v1", "gpu", "", "my-model"),
+    code = run_setup(ask=answers(OTHER, "http://10.1.2.3:9/v1", "gpu", "", "my-model", ""),
                      ask_secret=answers("k"), models=unreachable, say=said.append)  # fmt: skip
     assert code == 0 and any("could not be read" in line for line in said)
     assert load().settings.llm.models.writer == "my-model"  # asked again after the empty answer
@@ -173,8 +181,9 @@ def test_a_model_list_that_cannot_be_read_still_asks_for_the_model(home) -> None
 
 def test_a_local_server_takes_the_providers_key_and_lists_its_models(home) -> None:
     said: list[str] = []
-    # Interactive: no key question, the server's models, Enter takes the only one.
-    code = run_setup(provider="local", ask=answers(""), ask_secret=never,
+    # Interactive: no key question, the server's models, Enter takes the only one; the
+    # region given, so no question for the German of the texts either.
+    code = run_setup(provider="local", region="CH", ask=answers(""), ask_secret=never,
                      models=lambda url, key, headers: ["apertus-q4"], say=said.append)  # fmt: skip
     assert code == 0 and not (home.parent / ".env").exists()
     assert toml(home)["presets"] == {"local-apertus-q4": {
@@ -210,7 +219,7 @@ def test_presets_are_listed_switched_and_removed(home) -> None:
     quiet = {"ask_secret": never, "say": lambda line: None}
     assert run_setup(preset="cscs-apertus", api_key="k", ask=never, **quiet) == 0
     # A server of one's own, in the file; keep cscs-apertus in use.
-    assert run_setup(provider="local", ask=answers("apertus-q4", "n"), ask_secret=never,
+    assert run_setup(provider="local", ask=answers("apertus-q4", "n", ""), ask_secret=never,
                      models=lambda url, key, headers: [], say=lambda line: None) == 0  # fmt: skip
     said: list[str] = []
     list_presets(say=said.append)
@@ -384,9 +393,11 @@ def test_the_browser_opens_only_on_this_machine_with_a_desktop(monkeypatch) -> N
     assert wants_browser("localhost")
 
 
-def test_the_region_is_set_by_setup_alone_and_only_for_a_variety_that_ships(home) -> None:
+def test_the_region_is_set_by_setup_alone_and_only_for_a_variety_that_ships(
+    home, monkeypatch
+) -> None:
     quiet = {"ask": never, "ask_secret": never, "say": lambda line: None}
-    # Only Swiss German ships its prompts, so setup asks nothing and the default stands.
+    # A scripted setup asks nothing, so the default stands.
     assert run_setup(preset="cscs-apertus", api_key="k", **quiet) == 0
     assert "texts" not in toml(home) and load().settings.texts.region == "CH"
     # --region alone changes the variety and nothing else; the key lands in [texts].
@@ -395,10 +406,17 @@ def test_the_region_is_set_by_setup_alone_and_only_for_a_variety_that_ships(home
     assert toml(home)["texts"] == {"region": "CH"}
     assert toml(home)["llm"] == {"preset": "cscs-apertus"}  # nothing else changed
     assert any("German (Switzerland)" in line for line in said)
-    with pytest.raises(ConfigError, match="not available yet"):
-        run_setup(region="DE", **quiet)
+    # Germany and Austria ship their prompts since 29 October 2026.
+    assert run_setup(region="DE", ask=never, ask_secret=never, say=said.append) == 0
+    assert toml(home)["texts"] == {"region": "DE"} and load().settings.texts.region == "DE"
+    assert any("German (Germany)" in line for line in said)
     with pytest.raises(ConfigError, match="unknown region"):
         run_setup(region="XX", **quiet)
+    # A region whose variety ships no prompts is refused (none today).
+    monkeypatch.setattr(configure, "regions", lambda: ("CH",))
+    with pytest.raises(ConfigError, match="not available yet"):
+        run_setup(region="AT", **quiet)
+    assert toml(home)["texts"] == {"region": "DE"}
     # With the preset, the flag writes the key in the same run.
     assert run_setup(preset="publicai-apertus", api_key="k", region="CH", **quiet) == 0
     assert toml(home)["texts"] == {"region": "CH"}

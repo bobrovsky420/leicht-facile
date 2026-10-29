@@ -1,12 +1,14 @@
 """Server-rendered pages: drafts list, new draft, job progress, review, reader preview.
 
 Every page is rendered in the reviewer's interface language (`i18n.py`): the choice
-from the switcher in the header (a cookie), else `server.ui_lang`, else the browser's.
+from the switcher in the header (a cookie), else `server.ui_lang`, else the browser's,
+written as the installation's variety writes it (`texts.region`: the overlays of
+Germany and Austria, the country the texts name, the thousands of a count).
 The layout and its parts are specified in docs/ui-design.md."""
 
 from __future__ import annotations
 
-from functools import cache, lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlencode
@@ -19,7 +21,6 @@ from leichtfacile import __version__
 from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
 from leichtfacile.export.layout import build_layout
-from leichtfacile.ingest.detect import detect_language
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES, checked_languages
@@ -43,7 +44,6 @@ from leichtfacile.web.views import (
     display_title,
     drafts_view,
     format_duration,
-    format_number,
     progress_view,
     review_view,
     stop_reason,
@@ -53,7 +53,6 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals.update(
     version=__version__,
     duration=format_duration,
-    number=format_number,
     ui_languages=ui_languages,
     stop_reason=stop_reason,
     export_formats=EXPORT_FORMATS,
@@ -90,12 +89,14 @@ READER_FONTS = (
 
 
 def translator(request: Request) -> Translator:
+    """The reviewer's interface language in the installation's variety (`texts.region`)."""
+    settings = request.app.state.settings
     lang = pick_language(
         request.cookies.get(COOKIE),
         request.headers.get("accept-language"),
-        request.app.state.settings.server.ui_lang,
+        settings.server.ui_lang,
     )
-    return Translator(lang)
+    return Translator(lang, settings.texts.region)
 
 
 def _render(request: Request, name: str, status_code: int = 200, **context) -> HTMLResponse:
@@ -130,29 +131,23 @@ def rule_count() -> int:
     return sum(1 for spec in RULES.values() if spec.checks)
 
 
-@lru_cache(maxsize=4)
-def _example_languages(folder: Path) -> dict[str, str]:
-    """The detected language of each example letter, once per examples folder: the
-    detection runs over the whole text and the files do not change while we run."""
-    return {e["id"]: detect_language(e["text"])[0] or "" for e in example_sources(folder)}
-
-
 def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[str, str]]:
-    """The example letters with their language, for the New draft page and the empty
-    list; `folder` is `settings.data.examples_dir`, else it is read from the settings."""
-    folder = folder or examples_dir()
-    langs = _example_languages(folder)
+    """The example letters the installation offers (those of its region, `t.region`)
+    with their language's name, for the New draft page and the empty list; `folder` is
+    `settings.data.examples_dir`, else it is read from the settings."""
     out = []
-    for example in example_sources(folder):
-        lang = langs.get(example["id"], "")
-        name = t.get(f"lang.{lang}", lang) if lang else ""
-        out.append({**example, "lang": lang, "lang_name": name})
+    for example in example_sources(folder or examples_dir(), t.region):
+        lang = example["lang"]
+        region = example.get("region") or region_for(lang, t.region)
+        out.append({**example, "lang_name": t.language(lang, region) if lang else ""})
     return out
 
 
 def _example(request: Request, example_id: str) -> dict[str, str] | None:
-    folder = request.app.state.settings.data.examples_dir
-    return next((e for e in example_sources(folder) if e["id"] == example_id), None)
+    """An example letter the installation offers, by its id; None for any other."""
+    settings = request.app.state.settings
+    found = example_sources(settings.data.examples_dir, settings.texts.region)
+    return next((e for e in found if e["id"] == example_id), None)
 
 
 def _list_url(status: str, q: str, lang: str) -> str:

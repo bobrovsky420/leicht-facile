@@ -306,21 +306,21 @@ NUM-08:
     - Rufen Sie 0848 35 45 55 an.
     - Rufen Sie +41 44 123 45 67 an.
 
-CH-01:
+REG-01:
   positive:
     - Die Straße ist gesperrt.
     - Das ist großartig.
   negative:
     - Die Strasse ist gesperrt.
 
-CH-02:
+REG-02:
   positive:
     - Das heisst «Prämien·verbilligung».
     - Klicken Sie auf „Senden“.
   negative:
     - Das heisst Prämien·verbilligung.
 
-CH-03:
+REG-03:
   positive:
     - Sie fahren mit dem Fahrrad.
     - Sie gehen ins Krankenhaus.

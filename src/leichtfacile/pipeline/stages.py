@@ -199,6 +199,28 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
         # the CSCS evaluation and 3 example builds (by 8 October 2026), in documents that
         # never name the office.
         r"\beinwohnerkontrolle",
+        r"\bchip\b",  # "die Nummer vom Chip" of the write example
+    ),
+    # Germany and Austria (29 October 2026): the shared JSON example's dog tax, and the
+    # examples of their own (prompts/de-DE/examples, de-AT/examples): a parking permit
+    # and a dog-tax letter; the office comes from the variety's table (`_topic_patterns`).
+    "de-DE": (
+        r"\bhund(?:e|es|en|s)?\b",
+        r"\bhundesteuer",
+        r"\b(?:bewohner)?parkausweis",
+        r"\bimpfausweis",
+        r"\bfrontscheibe",
+        r"\bwindschutzscheibe",
+        r"\bchip\b",
+    ),
+    "de-AT": (
+        r"\bhund(?:e|es|en|s)?\b",
+        r"\bhunde(?:steuer|abgabe)",
+        r"\bparkpickerl",
+        r"\bimpf(?:ausweis|pass)",
+        r"\bfrontscheibe",
+        r"\bwindschutzscheibe",
+        r"\bchip\b",
     ),
     "fr": (
         r"\bchiens?\b",
@@ -226,7 +248,10 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
 
 
 def _example_key(text: str) -> str:
-    return " ".join(text.lower().replace("·", "").split()).rstrip(".!?:")
+    # Without the compound marks: the Mediopunkt, and the hyphen between letters that
+    # Germany and Austria write for it (Hunde-Steuer).
+    plain = re.sub(r"(?<=[^\W\d_])-(?=[^\W\d_])", "", text.lower().replace("·", ""))
+    return " ".join(plain.split()).rstrip(".!?:")
 
 
 def _static_renders(lang: str, stage: str) -> list[str]:

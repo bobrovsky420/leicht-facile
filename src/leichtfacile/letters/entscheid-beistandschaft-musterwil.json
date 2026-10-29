@@ -1,5 +1,6 @@
 {
  "mode": "decision",
  "addressee": "Lea Muster",
- "notice": "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
+ "notice": "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid.",
+ "region": "CH"
 }

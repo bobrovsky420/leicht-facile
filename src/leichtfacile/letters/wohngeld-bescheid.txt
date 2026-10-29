@@ -1,0 +1,66 @@
+# Bescheid über Wohngeld (Mietzuschuss)
+
+Stadt Musterstadt
+Die Oberbürgermeisterin
+Amt für Wohnungswesen, Wohngeldstelle
+Rathausplatz 1, 12345 Musterstadt
+Telefon 0221 4710-312, wohngeld@musterstadt.example
+
+Frau
+Erika Beispiel
+Lindenstraße 12
+12345 Musterstadt
+
+Aktenzeichen: WG-2026-04711
+Musterstadt, 14. Oktober 2026
+
+Ihr Antrag auf Wohngeld vom 2. September 2026
+
+Sehr geehrte Frau Beispiel,
+
+1. Auf Ihren Antrag vom 2. September 2026 wird Ihnen für die Zeit vom 1. September 2026 bis zum 31. August 2027 Wohngeld als Mietzuschuss bewilligt. Das Wohngeld beträgt monatlich 286,00 Euro.
+
+2. Das Wohngeld wird jeweils zum Anfang eines Monats auf Ihr Konto bei der Sparkasse Musterstadt, IBAN DE00 1234 5678 9012 3456 78, überwiesen. Das Wohngeld für September und Oktober 2026, zusammen 572,00 Euro, wird mit der Zahlung für November 2026 nachgezahlt.
+
+3. Ihr Antrag auf Wohngeld für den Monat August 2026 wird abgelehnt.
+
+## Begründung
+
+1. Sie haben am 2. September 2026 Wohngeld als Mietzuschuss für Ihre Wohnung in der Lindenstraße 12 beantragt. Zu Ihrem Haushalt gehören zwei Personen: Sie und Ihr Sohn Jonas Beispiel, geboren am 11. März 2015. Sie wohnen zur Miete und zahlen die Miete selbst.
+
+2. Wohngeld erhält, wer für eine selbst genutzte Wohnung Miete zahlt und die Kosten für angemessenen Wohnraum mit dem eigenen Einkommen nicht allein tragen kann (§ 1 und § 3 WoGG). Sie und Ihr Sohn erhalten keine Leistungen, bei denen die Kosten der Unterkunft bereits berücksichtigt werden, zum Beispiel keine Sozialhilfe. Wohngeld ist deshalb nicht nach § 7 WoGG ausgeschlossen.
+
+3. Maßgebend für die Höhe des Wohngeldes sind die Zahl der Haushaltsmitglieder, die Miete und das Gesamteinkommen (§ 4 WoGG). Berücksichtigt wurden:
+- 2 Haushaltsmitglieder;
+- eine monatliche Miete von 690,00 Euro ohne Heizkosten. Sie liegt unter dem Höchstbetrag für einen Haushalt mit 2 Personen in Musterstadt und wird deshalb voll berücksichtigt. Hinzu kommen die Beträge für die Heizkosten und für den Klimaschutz (§ 12 WoGG);
+- ein monatliches Gesamteinkommen von 1.540,00 Euro. Es ergibt sich aus Ihrem Lohn aus einer Teilzeitstelle als Verkäuferin, abzüglich der Pauschalen für Werbungskosten, Steuern und Sozialversicherungsbeiträge (§§ 13 bis 16 WoGG).
+Die Berechnung im Einzelnen finden Sie in der Anlage zu diesem Bescheid.
+
+4. Das Wohngeld wird in der Regel für 12 Monate bewilligt (§ 25 Abs. 1 WoGG). Der Bewilligungszeitraum beginnt am Ersten des Monats, in dem der Antrag gestellt worden ist (§ 25 Abs. 2 WoGG). Ihr Antrag ist am 2. September 2026 bei der Wohngeldstelle eingegangen. Der Bewilligungszeitraum beginnt deshalb am 1. September 2026 und endet am 31. August 2027. Für August 2026 kann kein Wohngeld bewilligt werden, auch wenn Sie die Miete für August bereits bezahlt haben.
+
+5. Das Wohngeld wird gemäß § 26 WoGG monatlich im Voraus gezahlt. Die Beträge für die Monate vor diesem Bescheid werden nachgezahlt.
+
+## Hinweise
+
+Sie müssen der Wohngeldstelle unverzüglich mitteilen, wenn sich während des Bewilligungszeitraums etwas ändert (§ 27 Abs. 3 WoGG), insbesondere wenn
+- Sie umziehen oder Ihr Sohn auszieht;
+- das Einkommen Ihres Haushalts um mehr als 15 Prozent steigt;
+- Ihre Miete um mehr als 15 Prozent sinkt.
+
+Zu Unrecht gezahltes Wohngeld müssen Sie zurückzahlen (§ 50 SGB X). Wer eine Änderung nicht oder nicht rechtzeitig mitteilt, handelt ordnungswidrig. Dafür kann ein Bußgeld bis zu 2.000 Euro festgesetzt werden (§ 37 WoGG).
+
+Wenn Sie nach dem 31. August 2027 weiter Wohngeld erhalten möchten, stellen Sie bitte rechtzeitig einen neuen Antrag, am besten bis zum 30. Juni 2027. Formulare und Informationen finden Sie unter www.musterstadt.example/wohngeld.
+
+Die Wohngeldstelle erreichen Sie Montag bis Freitag von 8 bis 12:30 Uhr unter Telefon 0221 4710-312. Ihr Sachbearbeiter ist Herr Probemann.
+
+## Rechtsbehelfsbelehrung
+
+Gegen diesen Bescheid kann innerhalb eines Monats nach Bekanntgabe Widerspruch erhoben werden. Der Widerspruch ist schriftlich, in elektronischer Form oder zur Niederschrift bei der Stadt Musterstadt, Amt für Wohnungswesen, Rathausplatz 1, 12345 Musterstadt, einzulegen.
+
+Mit freundlichen Grüßen
+
+Im Auftrag
+
+Tobias Probemann
+
+Anlage: Berechnung des Wohngeldes

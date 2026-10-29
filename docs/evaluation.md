@@ -23,7 +23,7 @@ Silent losses: the share of the source's hard values that the text lost without 
 
 Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is the compounds split by code in the final version, per 100 blocks (P1 and P2 only; the baselines and the reference measure the text as written):
 
-| Setup | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | CH |
+| Setup | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | REG |
 |---|---|---|---|---|---|---|---|---|
 | SOURCE | 49.9 | 0.0 | 39.7 | 0.3 | 99.9 | - | 2.8 | 0.0 |
 | REF | 10.1 | 0.0 | 6.0 | 0.0 | 12.9 | - | 0.2 | 0.0 |
@@ -69,7 +69,7 @@ Silent losses: the share of the source's hard values that the text lost without 
 
 Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is the compounds split by code in the final version, per 100 blocks (P1 and P2 only; the baselines and the reference measure the text as written):
 
-| Setup | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | CH |
+| Setup | LEN | ORD | GRAM | NEG | LEX | LEX by code | NUM | REG |
 |---|---|---|---|---|---|---|---|---|
 | SOURCE | 53.7 | 0.0 | 24.5 | 0.0 | 39.5 | - | 4.5 | 0.0 |
 | REF | 17.0 | 0.0 | 4.0 | 0.0 | 3.1 | - | 0.5 | 0.0 |

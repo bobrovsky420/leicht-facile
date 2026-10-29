@@ -22,11 +22,10 @@
     const text = texts[key] ?? key;
     return text.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
   };
-  // Thousands as the interface language writes them: 1,960 or 1'960 (views.format_number).
-  const number = (n) => {
-    const text = Math.round(n).toLocaleString("en-US");
-    return lang === "de" || lang === "it" ? text.replace(/,/g, "'") : text;
-  };
+  // Thousands as the interface writes them in the installation's variety: 1,960, 1'960
+  // or 1.960, by the catalog text js.thousands (Translator.number in web/i18n.py).
+  const thousands = texts.thousands ?? ",";
+  const number = (n) => Math.round(n).toLocaleString("en-US").replace(/,/g, thousands);
   const clock = (date) => date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
   const typing = (el) =>
     Boolean(el && el.matches && el.matches("input:not([type=radio]):not([type=checkbox]), textarea, select"));

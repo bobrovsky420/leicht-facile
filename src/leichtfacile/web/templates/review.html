@@ -35,14 +35,14 @@
     </nav>
   </div>
   <div class="strip">
-    <span title="{{ t('level.' ~ v.draft.level) }}">{{ t.get('lang.' ~ doc_lang, doc_lang) }} · {{ v.draft.level }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
+    <span title="{{ t('level.' ~ v.draft.level) }}">{{ t.language(doc_lang, job.config.region) }} · {{ v.draft.level }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
     <nav class="versions" aria-label="{{ t('review.versions_label') }}">
       <span class="muted">{{ t('review.versions') }}</span>
       {% for row in v.version_rows %}
       <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}>v{{ row.version }}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}{% if row.blocking is not none %} <span class="vcount{% if row.blocking == 0 %} zero{% endif %}">{{ t('review.blocking_n', count=row.blocking) }}</span>{% endif %}</a>
       {% endfor %}
       {% if v.summary %}<span class="muted" title="{{ t('review.rounds', n=v.summary.rounds_of('repair'), reason=stop_reason(t, v.summary)) }}">{{ t('review.rounds_short', n=v.summary.rounds_of('repair')) }}</span>{% endif %}
-      {% if v.code_splits %}<span class="muted" title="{{ t('review.code_splits_title') }}">{{ t('review.code_splits', n=v.code_splits) }}</span>{% endif %}
+      {% if v.code_splits %}{% set mark = t('mark.' ~ v.compound_mark) %}<span class="muted" title="{{ t('review.code_splits_title', mark=mark) }}">{{ t('review.code_splits', n=v.code_splits, mark=mark) }}</span>{% endif %}
     </nav>
     <span class="grow"></span>
     <span class="stat">{{ icons.sev('error' if counts.error else 'none') }}{{ t('count.errors', n=counts.error) }}</span>
@@ -284,7 +284,7 @@
         <div class="more-section">
           <h3>{{ t('review.run') }}</h3>
           <dl class="runinfo">
-            <dt>{{ t('review.run.cost') }}</dt><dd>{{ t('review.cost', tokens=number(v.tokens_in + v.tokens_out, ui_lang), time=duration(v.seconds)) }}</dd>
+            <dt>{{ t('review.run.cost') }}</dt><dd>{{ t('review.cost', tokens=t.number(v.tokens_in + v.tokens_out), time=duration(v.seconds)) }}</dd>
           {% if v.summary %}
             {% if v.summary.endpoint %}<dt>{{ t('site.endpoint') }}</dt><dd>{{ v.summary.endpoint }}</dd>{% endif %}
             <dt>{{ t('progress.writer') }}</dt><dd>{{ v.summary.writer_model }}</dd>

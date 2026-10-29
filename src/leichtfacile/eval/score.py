@@ -40,7 +40,8 @@ from leichtfacile.schemas import (
 )
 
 WORDS_PER_PAGE = 250
-LANGUAGE_FAMILIES = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
+# REG was CH until 29 October 2026; eval/results.py maps the old rows' family.
+LANGUAGE_FAMILIES = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "REG")
 
 
 def price(model: str) -> tuple[float, float] | None:

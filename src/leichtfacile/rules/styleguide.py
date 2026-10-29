@@ -9,6 +9,7 @@ Einfache Sprache, FALC and langage clair, lingua facile and linguaggio chiaro.
 from __future__ import annotations
 
 from leichtfacile.rules.base import RULES
+from leichtfacile.rules.vocabulary import standard_spelling
 from leichtfacile.schemas import base_lang
 
 # The Italian names carry their article, because the header says "Regole per la
@@ -30,10 +31,13 @@ def style_guide(lang: str, level: str) -> str:
     """`lang`: a language or a variety key (`de-AT`): the level names are the
     language's, the guides the variety's where a rule has its own."""
     language = base_lang(lang)
+    # The guides are written in the Swiss spelling; Germany and Austria read them with the
+    # sharp s (rules/data/spelling_de.toml: Grosse Zahlen, gemäss).
+    standard = lang.partition("-")[2] in ("DE", "AT")
     name = LEVEL_NAMES.get(language, LEVEL_NAMES["de"])[level]
     lines = [_HEADER.get(language, _HEADER["de"]).format(name=name, level=level)]
     for spec in RULES.values():
         text = spec.guide_for(lang, level)
         if text:
-            lines.append(f"- {text}")
+            lines.append(f"- {standard_spelling(text) if standard else text}")
     return "\n".join(lines)

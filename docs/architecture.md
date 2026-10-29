@@ -301,8 +301,16 @@ the evaluation. The same step runs after every repair round, before the check: t
 does not apply the split it is given in a repair, and a warning alone costs a warnings
 round. P1 and P2 only; the baselines measure the prompt alone ([rules.md](rules.md),
 "Edits made by code"). Since 8 October 2026 the same step writes `ss` for `ß`
-(`rules/swiss.py`, CH-01, one edit per word, blocks and glossary): the 8B writes `ß`
-now and then, and a repair round is a poor use of a model call for one character.
+(`rules/swiss.py`, REG-01, one edit per word, blocks and glossary): the 8B writes `ß`
+now and then, and a repair round is a poor use of a model call for one character. Since
+29 October 2026 both steps follow the variety (§8): in the German of Germany and Austria
+the same split is written as `Kranken-Kasse`, the hyphen with a capital (the Netzwerk
+Leichte Sprache's rule W5, allowed by DIN SPEC 33429; `varieties.toml`, `compound_mark`;
+`rules/lexicon.hyphenated`), a Mediopunkt the model wrote is rendered the same way so one
+text carries one mark, LEX-01 proposes that form, the prompts show it (the examples, the
+style guide and the office are written with the Mediopunkt and rendered with the
+variety's mark), and the spelling step writes the sharp s instead of `ss`
+(`apply_spelling`, `apply_sz`); the Swiss text keeps the Mediopunkt and `ss`.
 
 ### 4.4 Rule check (code)
 
@@ -350,6 +358,16 @@ score, share of passive sentences, …). The full catalogue is in
   ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"). Every further
   use case turns on one of them
   ([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)).
+- the checks of the German of Germany and Austria (29 October 2026): the sharp s where
+  the standard spelling has it, written by code like the Swiss `ss` (REG-01), `„ “` for
+  direct speech only (REG-02), the Swiss words a Swiss-trained writer leaves in a German
+  draft as a warning (REG-03: Velo, Spital, Trottoir), the euro and the thousands dot,
+  `9:30 Uhr` in Germany and `9.30 Uhr` in Austria, the German phone shapes, Jänner, the
+  countries' abbreviations, hyphenated compounds counted as one word, and the Bescheid
+  in the decision mode; one id per rule, a check or a table per variety
+  ([rules.md](rules.md#german-in-germany-de-de-and-in-austria-de-at)). The first
+  calibration put the German pages at 2.2 errors per 100 blocks, the Austrian capito
+  pages at 10.7;
 - the checks for the further use cases, all built by 8 October 2026: the fixed notice
   (FACT-07) and the operative part and appeal instructions (FACT-08) of the decision
   mode, the judge's SEM-08 to SEM-10, and for patient letters a medication by its name
@@ -367,8 +385,8 @@ of the language families, 32 have a German check, 28 a French one and 28 an Ital
 patterns in a table (`rules/shared.py`), the others have a check per language
 (`rules/de.py`, `rules/fr.py`, `rules/it.py`), each calibrated on the official
 easy-language pages; GRAM-09 (impersonal phrases) is French and Italian, GRAM-10
-(gerund clauses) Italian only, ORD-01, GRAM-02, GRAM-08, CH-01 and CH-02 German only,
-CH-03 German and French only. 13 rules for facts, layout and readability apply to
+(gerund clauses) Italian only, ORD-01, GRAM-02, GRAM-08, REG-01 and REG-02 German only,
+REG-03 German and French only (the REG rules were CH-01 to CH-03 until 29 October 2026). 13 rules for facts, layout and readability apply to
 every language.
 
 ### 4.5 Meaning check (a model as judge)
@@ -1091,6 +1109,32 @@ alike. The rules' titles, which head the grouped findings, join the English cata
 the same way as `rule.<ID>`. Model output (the judge's notes) is not translated: it stays in the
 language it was produced in.
 
+**The installation's variety** (since 29 October 2026, §8). The catalogs are written for
+Switzerland, and the installation's region (`texts.region`) renders the German one for
+Germany and Austria: first in their spelling, with the ß table the vocabulary uses
+(`standard_spelling`, `rules/data/spelling_de.toml`), then with an overlay on top,
+`web/locales/de-DE.json` or `de-AT.json`, which holds only the texts whose words differ
+(Entscheidung for the reviewer's decision, Bescheid for the decision letter,
+Rechtsbehelfsbelehrung in Germany, the examples of the rule titles in euros, the hyphen
+of the compounds); `de-AT.json` names `de-DE.json` as the overlay it builds on
+(`_inherits`), so a German interface in Austria looks a text up in de-AT.json,
+de-DE.json, the rendered de.json and English, in that order, and a Swiss one reads
+de.json as it is. An overlay is no language: the switcher shows one German, and a test
+makes sure every overlay key is a key of de.json with the same placeholders and says
+something other than what it inherits. The region also fills `{country}` and
+`{spelling}` (the tagline and the Check page; `country.<region>` and `spelling.<region>`
+in every catalog), writes the thousands of a count (`js.thousands`, read by
+`Translator.number` and by `app.js`: 1'960 in German and Italian, 1,960 in English and
+French, 1.960 in the German of Germany and Austria), names the variety of a German
+document where it is not Swiss (`lang.de-DE`, "Deutsch (Deutschland)", in the drafts
+list, the review strip, the job page and the forms, each job with its own region, so a
+Swiss job kept after a setup change reads "Deutsch (Schweiz)"), and picks the sample
+letters (`examples.py`: those of its region, by the `region` in the JSON next to each,
+and the French and Italian ones). The review strip names the mark code split the
+compounds with in the draft's variety (`mark.mediopunkt`, `mark.hyphen`). Known gap: the
+drafts list's language filter works on the job's language, so after a change of the
+region it lists the Swiss German jobs under the new variety's name too.
+
 ### CLI
 
 The package installs the command `leichtfacile`; `python -m leichtfacile` runs the same
@@ -1129,12 +1173,12 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 
 | Status | German | French | Italian |
 |---|--------|--------|---------|
-| Checker rules | 32 of the language families + 13 for every language | 28 + 13 | 28 + 13 |
-| Prompts and few-shot examples | yes | yes | yes (28 October 2026) |
-| Calibration on official pages | 30 pages, 2.0 errors / 100 blocks | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
+| Checker rules | 32 of the language families + 13 for every language; Germany and Austria the same, 11 rules with a check or a table of their own (29 October 2026) | 28 + 13 | 28 + 13 |
+| Prompts and few-shot examples | yes; Germany and Austria since 29 October 2026 | yes | yes (28 October 2026) |
+| Calibration on official pages | 30 pages, 2.0 errors / 100 blocks; Germany 12 pages, 2.2; Austria 12 pages, 10.7 (29 October 2026, before tuning) | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
 
-**National varieties** (since 29 October 2026, the foundations; the German of Germany and
-Austria are planned, docs/sources.md collects their sources). A language has national
+**National varieties** (since 29 October 2026; the German of Germany and Austria the same
+day, their sources in docs/sources.md). A language has national
 varieties: Swiss German, the German of Germany and Austrian German differ in spelling
 (`ss` or `ß`), in the mark that splits a long compound (Mediopunkt or hyphen), in the
 currency, the number formats, the phone and address formats, the names of the authorities
@@ -1158,9 +1202,9 @@ kinds"), and the fact rules, the code completion, the repair and recover prompts
 export layout and the evaluation pass the variety to it. The facts of a
 variety (its label, the Word export's language tag, the hyphenation dictionary, the
 decision mode's default notice) are data in `src/leichtfacile/varieties/varieties.toml`,
-one table per variety, read by `leichtfacile.varieties`. While the Swiss varieties are the
-only ones, nothing changes for the user: setup asks nothing, every output is as before,
-and two guards keep it so for every later package: the rendered prompts of the three
+one table per variety, read by `leichtfacile.varieties`. A Swiss installation's output is
+unchanged, and an interactive setup asks once for the variety; two guards keep the Swiss
+output so for every later package: the rendered prompts of the three
 languages are frozen in `tests/fixtures/prompts/` (`tests/pipeline/test_prompt_snapshots.py`,
 every stage, level, mode and partial on one synthetic letter; the response cache keys on
 these texts) and `scripts/parity.py` counts the checker's findings and the hard values on
@@ -1183,6 +1227,26 @@ and the template files carry no Swiss fact (`tests/pipeline/test_prompt_varietie
 The version a job records (`prompt_versions`) hashes the template and the table. French
 and Italian have one variety each; their templates are not parametrized.
 
+**Germany and Austria** (since 29 October 2026). The German of Germany and Austria are
+complete varieties: each has its table in `varieties.toml` (`[de-DE]`, `[de-AT]`: the
+label, the setup choice, the Word export's language tag, pyphen's `de_DE` or `de_AT`, the
+hyphen as the compound mark, the notice "Diese Erklärung hilft Ihnen, den Bescheid zu
+verstehen. Maßgebend ist der Bescheid." and the ten prompt facts: Deutschland and
+Österreich, Bescheid among the kinds of document, Euro, the judge's `42.000 Euro statt
+42.000,00 €` and `42.000 Euro statt € 42.000,-`, das Bürgeramt and das Gemeindeamt with
+`beim`, `030 9876543` and `01 9876543`), two few-shot pairs (`prompts/de-DE/examples/`,
+`prompts/de-AT/examples/`: the Swiss topics, a resident parking permit and a dog-tax
+letter, in each country's Behördensprache, with a Widerspruch and a Beschwerde) and a
+decision partial of its own (`prompts/<key>/decision.md`: in Germany the decision before
+the heading Begründung, the Rechtsbehelfsbelehrung with Widerspruch or Klage within a
+month of the Bekanntgabe, the rechtliche Betreuung; in Austria the Spruch, the
+Rechtsmittelbelehrung with the Beschwerde binnen vier Wochen nach Zustellung, the
+Erwachsenenvertretung). The standard templates, the medication partial and the labels
+are the German set's; a Swiss word of the shared templates takes the variety's spelling
+through the filter `spelling` ("ausser", "außer"). `leichtfacile setup` therefore asks
+once for the German of the texts (Switzerland, Germany, Austria; Enter keeps
+Switzerland) and takes `--region`.
+
 The vocabulary follows the same pattern (since 29 October 2026): `rules/data/vocabulary_de.toml`
 holds the German entries the three countries share and `vocabulary_de-CH.toml`,
 `vocabulary_de-DE.toml` and `vocabulary_de-AT.toml` those of each country, which
@@ -1191,6 +1255,19 @@ gives the list as before, entry for entry). All German files are written in the 
 spelling and rendered for Germany and Austria at load time with the ß table of
 `rules/data/spelling_de.toml` (`standard_spelling`, for the planned spelling check to
 reuse), and matching treats ß and ss alike ([rules.md](rules.md), "Vocabulary").
+
+**The checks of Germany and Austria** (since 29 October 2026): the German checks under
+the German limits, with the variety's facts in the shared checks' tables (`rules/shared.py`,
+the tables `de-DE` and `de-AT`: the euro, the thousands dot, the file numbers of a
+Bescheid, hyphenated compounds as one word), a check per variety for the REG rules
+(the sharp s, written by code as the Swiss `ss` is; quotation marks; the Swiss words a
+Swiss-trained writer leaves in a German draft, a warning), the countries' abbreviations
+and time forms, Jänner, and the Bescheid of Germany (the decision before `Begründung`)
+and Austria (`Spruch`) in the decision mode; the style guide is rendered in the variety's
+spelling. `eval calibrate --region DE|AT` runs the checker on the pairs of a country
+([rules.md](rules.md#german-in-germany-de-de-and-in-austria-de-at) has the first
+numbers: 2.2 errors per 100 blocks on the German pages, 10.7 on the Austrian capito
+pages, whose A2 keeps longer sentences, genitives and unsplit compounds).
 
 German came first in the build order. French followed on 6 October 2026, before the
 CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28

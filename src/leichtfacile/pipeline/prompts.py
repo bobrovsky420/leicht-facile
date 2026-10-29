@@ -17,8 +17,10 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, pass_context
 
+from leichtfacile.rules.lexicon import hyphenated
+from leichtfacile.rules.vocabulary import standard_spelling
 from leichtfacile.schemas import base_lang
 from leichtfacile.varieties import variety
 
@@ -37,6 +39,18 @@ _env = Environment(
     autoescape=False,
     trim_blocks=True,
 )
+STANDARD_REGIONS = ("DE", "AT")  # the varieties that write the sharp s
+
+
+@pass_context
+def _spelling(context, text: str) -> str:
+    """The filter `spelling`: a Swiss word of the shared German templates ("ausser") in
+    the spelling of the variety being rendered; unchanged for Switzerland."""
+    v = context.get("v")
+    return standard_spelling(text) if v is not None and v.region in STANDARD_REGIONS else text
+
+
+_env.filters["spelling"] = _spelling
 
 
 def available_languages() -> list[str]:
@@ -96,10 +110,15 @@ def render(lang: str, stage: str, **context: object) -> str:
         raise PromptNotAvailable(
             f"no {stage} prompt for language '{lang}' yet (available: {available_languages()})"
         )
-    context.setdefault("v", variety(lang))
+    v = variety(lang)
+    context.setdefault("v", v)
     for name in PARTIALS:
         context.setdefault(f"{name}_partial", _partial(lang, name))
-    return _env.get_template(f"{folder}/{stage}.md").render(**context).strip() + "\n"
+    text = _env.get_template(f"{folder}/{stage}.md").render(**context).strip() + "\n"
+    # The variety's compound mark: Germany and Austria read Hunde-Steuer and Binde-Strich
+    # where the shared templates, the examples and the style guide write the Mediopunkt
+    # (rules/lexicon.hyphenated; the Swiss rendering is untouched).
+    return hyphenated(text) if v.compound_mark == "hyphen" else text
 
 
 @lru_cache(maxsize=64)

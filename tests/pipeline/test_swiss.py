@@ -45,8 +45,8 @@ def test_ss_replaces_sz_in_blocks_and_glossary_and_records_the_edits() -> None:
         ("glossary", "Maßnahme", "Massnahme"),
         ("glossary", "beschließt", "beschliesst"),
     ]
-    assert all(e.rule_id == "CH-01" for e in edits) and out.code_edits == edits
-    assert [f.rule_id for f in check_draft(out).findings if f.rule_id == "CH-01"] == []
+    assert all(e.rule_id == "REG-01" for e in edits) and out.code_edits == edits
+    assert [f.rule_id for f in check_draft(out).findings if f.rule_id == "REG-01"] == []
     assert kept_code_splits(out, edits) == 0  # not Mediopunkt splits
 
 
@@ -69,8 +69,8 @@ def test_the_pipeline_writes_ss_after_the_write_stage(store, endpoint, sleeps) -
     orchestrator(store, endpoint, sleeps).run(job_id)
     stored = store.get_artifact(job_id, "draft", Draft, version=1)
     assert stored.blocks[1].text == "Die Strasse ist gesperrt."
-    assert [(e.rule_id, e.before, e.after) for e in stored.code_edits if e.rule_id == "CH-01"] == [
-        ("CH-01", "Straße", "Strasse")
+    assert [(e.rule_id, e.before, e.after) for e in stored.code_edits if e.rule_id == "REG-01"] == [
+        ("REG-01", "Straße", "Strasse")
     ]
 
 

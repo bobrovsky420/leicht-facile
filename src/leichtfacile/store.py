@@ -299,6 +299,35 @@ def _rewrite_rule_ids(conn: sqlite3.Connection) -> None:
     _rewrite_json(conn, "artifacts", "data", _neutral_rule_ids, "WHERE name = 'rules'")
 
 
+# 29 October 2026: the Swiss rules CH-01 to CH-03 became REG-01 to REG-03, one id for the
+# region's spelling, quotation marks and words whatever the variety (rules/catalog.py).
+_REGION_IDS = {"CH-01": "REG-01", "CH-02": "REG-02", "CH-03": "REG-03"}
+
+
+def _region_finding(finding: dict[str, Any]) -> dict[str, Any]:
+    rule_id = str(finding.get("rule_id", ""))
+    if rule_id not in _REGION_IDS:
+        return finding
+    key = str(finding.get("key", ""))
+    new_key = re.sub(r"^CH-0([123])", r"REG-0\1", key)
+    return {**finding, "rule_id": _REGION_IDS[rule_id], "key": new_key}
+
+
+def _region_rules(rules: dict[str, Any]) -> dict[str, Any]:
+    return {**rules, "findings": [_region_finding(f) for f in rules.get("findings") or []]}
+
+
+def _region_edits(draft: dict[str, Any]) -> dict[str, Any]:
+    edits = draft.get("code_edits") or []
+    renamed = [{**e, "rule_id": _REGION_IDS.get(e.get("rule_id"), e.get("rule_id"))} for e in edits]
+    return {**draft, "code_edits": renamed}
+
+
+def _rewrite_region_ids(conn: sqlite3.Connection) -> None:
+    _rewrite_json(conn, "artifacts", "data", _region_rules, "WHERE name = 'rules'")
+    _rewrite_json(conn, "artifacts", "data", _region_edits, "WHERE name = 'draft'")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -313,6 +342,7 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_rewrite_round_records,),  # 3 (25 October 2026): one record per round, stop codes
     (_rewrite_finding_keys,),  # 4 (25 October 2026): findings as key and values
     (_rewrite_rule_ids,),  # 5 (25 October 2026): one rule id whatever the language
+    (_rewrite_region_ids,),  # 6 (29 October 2026): CH-01 to CH-03 became REG-01 to REG-03
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.

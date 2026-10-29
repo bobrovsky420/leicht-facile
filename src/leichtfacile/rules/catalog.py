@@ -3,8 +3,10 @@
 A rule has one id, title, severity and scope whatever the language: the German check
 lives in `de.py`, the French one in `fr.py`, the Italian one in `it.py`, and a check
 the languages share, with the language's words and patterns in a table, in
-`shared.py`. ORD-01, GRAM-02, GRAM-08, CH-01, CH-02 and CH-03 have a German or French
-check only, GRAM-09 a French and an Italian one, GRAM-10 an Italian one only. The
+`shared.py`. ORD-01, GRAM-02, GRAM-08, REG-01, REG-02 and REG-03 have a German or French
+check only (the REG rules, the region's spelling, quotation marks and words, one per
+German variety as they come), GRAM-09 a French and an Italian one, GRAM-10 an Italian
+one only. The
 facts, layout and readability rules apply to every language and declare themselves
 where they are checked (document.py, decision.py, medication.py, layout.py).
 """
@@ -91,7 +93,8 @@ declare("NEG-02", title="Prefer positive formulation", severity=sev("info"), sco
 # -- words
 declare(
     "LEX-01",
-    title="No long words; German compounds get a Mediopunkt, lowercase after the dot",
+    title="No long words; German compounds are split, with a Mediopunkt in Switzerland "
+    "(lowercase after the dot) and a hyphen in Germany and Austria (a capital after it)",
     severity=sev("warn"),
     scope="sentence",
 )
@@ -156,17 +159,25 @@ declare(
 )
 declare("NUM-08", title="Phone numbers spaced: 044 123 45 67", severity=sev("warn"), scope="block")
 
-# -- Swiss usage
-declare("CH-01", title="ss, never ß", severity=sev("error"), scope="block")
+# -- the region (CH-01 to CH-03 until 29 October 2026; one id, a check per variety)
 declare(
-    "CH-02",
-    title='No « » or „ “; use " sparingly or none',
+    "REG-01",
+    title="The spelling of the variety: ss, never ß, in Switzerland; ß where standard German "
+    "writes it in Germany and Austria",
+    severity=sev("error"),
+    scope="block",
+)
+declare(
+    "REG-02",
+    title='Quotation marks: none in Switzerland (no « » or „ “, " sparingly); „ “ for direct '
+    "speech only in Germany and Austria",
     severity=sev("info"),
     scope="block",
 )
 declare(
-    "CH-03",
-    title="Swiss usage: Helvetisms, and septante or nonante when numbers are written out",
+    "REG-03",
+    title="The words of the region: Helvetisms in Switzerland, and septante or nonante when "
+    "numbers are written out; the words of Germany and Austria in their varieties",
     severity=sev("info"),
     scope="block",
 )

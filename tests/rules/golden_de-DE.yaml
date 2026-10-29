@@ -1,0 +1,97 @@
+# Golden sentences for the German of Germany (de-DE): the rules with a check or a table
+# of their own for the variety (docs/rules.md, "German in Germany"). The other rules are
+# the German ones and are covered by golden_de.yaml, which test_golden.py runs under
+# this variety too.
+
+REG-01:
+  positive:
+    - Die Strasse ist gesperrt.
+    - Das ist gemäss Plan.
+    - Die Zahl ist gross.
+  negative:
+    - Die Straße ist gesperrt.
+    - Das Wasser ist kalt.
+    - Die Masse ist 5 Kilogramm.
+
+REG-02:
+  positive:
+    - Das heißt «Wohngeld».
+    - Klicken Sie auf ‚Senden‘.
+  negative:
+    - Klicken Sie auf „Senden“.
+    - Das heißt Wohngeld.
+
+REG-03:
+  positive:
+    - Sie fahren mit dem Velo.
+    - Sie gehen ins Spital.
+    - Sie können hier parkieren.
+  negative:
+    - Sie fahren mit dem Fahrrad.
+    - Sie gehen ins Krankenhaus.
+    - Das ist im Januar.
+
+LEX-02:
+  positive:
+    - Das gilt z. B. für Kinder.
+    - Lesen Sie Art. 5 im Gesetz.
+  negative:
+    - Dr. Muster hilft Ihnen.
+    - Der LKW steht dort.
+    - Sie fahren mit dem ICE nach Berlin.
+
+LEX-07:
+  positive:
+    - Das Geld wird umgehend überwiesen.
+    - Sie müssen den Antrag fristgerecht einreichen.
+  negative:
+    - Sie schicken den Antrag bis Freitag.
+    - Das Geld kommt bald.
+
+NUM-02:
+  positive:
+    - Das kostet 1500 Euro.
+    - Die Stadt hat 20000 Einwohner.
+  negative:
+    - Das kostet 1.500 Euro.
+    - Die Stadt hat 20.000 Einwohner.
+
+NUM-03:
+  positive:
+    - Sie zahlen bis 31.12.2026.
+    - Der Termin ist am 2026-12-31.
+  negative:
+    - Sie zahlen bis 31. Dezember 2026.
+
+NUM-04:
+  positive:
+    - Kommen Sie um 9h.
+    - Das Amt ist 9-12 Uhr offen.
+  negative:
+    - Kommen Sie um 9:30 Uhr.
+    - Kommen Sie um 9 Uhr.
+    - Das Amt ist 9 Uhr bis 12 Uhr offen.
+
+NUM-07:
+  positive:
+    - Das kostet 1.500,00 €.
+    - Sie zahlen EUR 500.
+  negative:
+    - Das kostet 1.500 Euro.
+    - Sie zahlen 500 Euro.
+
+NUM-08:
+  positive:
+    - Rufen Sie 03012345678 an.
+    - Rufen Sie 022122130700 an.
+  negative:
+    - Rufen Sie 0221 / 221-30700 an.
+    - Rufen Sie 0 55 44 33 22 11 an.
+
+LEX-01:
+  positive:
+    - Die Krankenversicherungspolice kommt.
+    - Die Kranken·kasse zahlt.
+  negative:
+    - Die Kranken-Versicherungs-Police kommt.
+    - Die Kranken-Kasse zahlt.

@@ -93,6 +93,7 @@ def select(
     role: str | None = None,
     lang: str | None = None,
     ids: Iterable[str] | None = None,
+    region: str | None = None,
 ) -> list[Pair]:
     wanted = set(ids or [])
     out = []
@@ -100,6 +101,8 @@ def select(
         if wanted and p.id not in wanted:
             continue
         if role not in (None, "all") and p.role != role:
+            continue
+        if region not in (None, "all") and p.region != region:
             continue
         if lang and p.lang != lang:
             continue

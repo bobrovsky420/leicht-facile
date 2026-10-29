@@ -288,6 +288,16 @@ def mediopunkt_suggestion(word: str, max_letters: int, lang: str = "de") -> str 
     return "".join(pieces) if changed else None
 
 
+_MARK_RE = re.compile(f"(?<=[^\\W\\d_]){MEDIOPUNKT}([^\\W\\d_])")
+
+
+def hyphenated(text: str) -> str:
+    """The text's compounds with a hyphen for the Mediopunkt and a capital after it, as
+    Germany and Austria write them (Kranken·kasse: Kranken-Kasse; the Netzwerk Leichte
+    Sprache's rule W5, DIN SPEC 33429). A Mediopunkt between letters only."""
+    return _MARK_RE.sub(lambda m: "-" + m.group(1).upper(), text)
+
+
 def lowercase_after_mediopunkt(word: str) -> str | None:
     """Prämien·Verbilligung -> Prämien·verbilligung; None when nothing changes."""
     if MEDIOPUNKT not in word:

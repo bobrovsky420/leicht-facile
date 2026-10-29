@@ -703,6 +703,15 @@ New or changed:
 
 ## 8. Interface texts
 
+- In an installation in Germany or Austria (`texts.region`, since 29 October 2026) the
+  German interface writes as the country does (ß, Entscheidung, Bescheid, 1.960 for a
+  count; `web/locales/de-DE.json`, `de-AT.json` as overlays on the rendered `de.json`)
+  and a German document shows its variety ("Deutsch (Deutschland)"); a Swiss
+  installation looks as before (docs/architecture.md §7, "The installation's variety").
+- The empty drafts list and the New draft form offer the sample letters of the
+  installation's region (the Wohngeld-Bescheid in Germany, the Familienbeihilfe-Bescheid
+  in Austria) and the French and Italian ones.
+
 Every new text in `en.json` and `de.json`; the catalog test fails otherwise. German
 in Swiss spelling (ss), plain hyphens only. Fix on the way: `detail.judged` says "1
 unsupported statements"; it gets `.one` and `.other` forms.

@@ -277,20 +277,21 @@ _POSTAL_ACCOUNT_RE = re.compile(
 )
 _UID_RE = re.compile(r"(?<![\w-])CHE[- ]?\d{3}\.\d{3}\.\d{3}(?!\d)")
 # A reference after a keyword: `Referenz 2026-0042`, `Dossier-Nr. 12345`, `Geschäfts·nummer:
-# K-4711` (a keyword split by code keeps its Mediopunkt), `N° de dossier 12345`. Words that
+# K-4711` (a keyword split by code keeps its Mediopunkt, or its hyphen in Germany and
+# Austria: `Geschäfts-Nummer`), `N° de dossier 12345`. Words that
 # are identifiers on their own, compounds with -nummer, and words that need Nr. or Nummer;
 # up to four small words may stand between keyword and code ("Die Nummer von Ihrem
 # Dossier ist 2026-0042"). The value is the code alone.
 _REF_KEYWORDS = (
-    r"Referenz·?nummern?|Referenz|Ref\.|Dossier·?nummern?|Dossier|Akten·?zeichen|Geschäfts·?zeichen"
+    r"Referenz[·-]?nummern?|Referenz|Ref\.|Dossier[·-]?nummern?|Dossier|Akten[·-]?zeichen|Geschäfts[·-]?zeichen"
     r"|(?:Geschäfts|Kunden|Versicherten|Versicherungs|Policen|Fall|Rechnungs|Vertrags|Betreibungs"
     r"|Verfahrens|Gesuchs|Entscheid|Verfügungs|Mitglieder|Partner|Vorgangs|Konto|Akten|Schaden"
     r"|Steuer|Patienten|Personal|Register|Kontroll|Auftrags|Mandats|Antrags|Bewilligungs|Objekt"
     r"|Zahlungsbefehls|Strafbefehls|Beschwerde|Bedarfsgemeinschafts|Buchungs)"
-    r"·?nummern?"
+    r"[·-]?nummern?"
     # Germany and Austria (29 October 2026): the file numbers of a Bescheid and of the
     # tax and social insurance letters.
-    r"|Kassen·?zeichen|Geschäfts·?zahl|Akten·?zahl|GZ|Zl\.|BG-Nummer"
+    r"|Kassen[·-]?zeichen|Geschäfts[·-]?zahl|Akten[·-]?zahl|GZ|Zl\.|BG-Nummer"
     r"|(?:Verfügung|Entscheid|Fall|Police|Rechnung|Vertrag|Gesuch|Betreibung|Verfahren|Urteil"
     r"|Beschluss|Konto|Dossier|Referenz|Geschäft|Akte|Schaden|Steuer|Patient|Register|Auftrag"
     r"|Mandat|Antrag|Bewilligung|Objekt|Zahlungsbefehl|Strafbefehl|Beschwerde|Mahnung)"

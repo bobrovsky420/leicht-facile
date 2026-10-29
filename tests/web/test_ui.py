@@ -16,6 +16,7 @@ from leichtfacile.rules import RULES
 from leichtfacile.rules.vocabulary import load_vocabulary
 from leichtfacile.schemas import (
     Block,
+    CodeEdit,
     CoreAnswer,
     CoreQuestions,
     Decision,
@@ -527,3 +528,85 @@ def test_the_form_offers_the_ready_presets_for_one_draft(tmp_path, endpoint, sle
     with TestClient(create_app(settings, llm, store, clients={})) as client:
         assert 'name="endpoint"' not in client.get("/new").text
     store.close()
+
+
+# -- the installation's variety (texts.region; docs/architecture.md section 8) --------
+
+
+@pytest.fixture
+def germany(tmp_path, endpoint: FakeEndpoint, sleeps):
+    """An installation in Germany (`texts.region` DE) with the German interface."""
+    settings = make_settings(
+        data__dir=tmp_path, llm__max_retries=0, texts__region="DE", server__ui_lang="de"
+    )
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    store = Store(tmp_path / "ui.sqlite")
+    with TestClient(create_app(settings, llm, store)) as client:
+        yield client, store, settings
+    store.close()
+
+
+def test_an_installation_in_germany_writes_as_germany_does(germany) -> None:
+    client, store, settings = germany
+    start = client.get("/").text
+    assert '<html lang="de">' in start and "amtliche Texte in Deutschland." in start
+    # The sample letters: Germany's and the French and Italian ones, Swiss everywhere.
+    assert 'href="/new?example=wohngeld-bescheid"' in start
+    assert 'href="/new?example=reduction-primes-lettre"' in start
+    assert "praemienverbilligung-brief" not in start and "familienbeihilfe" not in start
+
+    new = client.get("/new").text
+    assert '<option value="decision">Bescheid</option>' in new
+    assert "Navigation und Fußzeilen fallen weg" in new  # the spelling of Germany
+    assert "0 von 200.000 Zeichen" in new and '"thousands": "."' in new
+    assert '<option value="de">Deutsch (Deutschland)</option>' in new
+    assert '"lang_name": "Deutsch (Deutschland)"' in new  # the example's language
+    filled = client.get("/new", params={"example": "wohngeld-bescheid"}).text
+    assert '<option value="decision" selected>' in filled and 'value="Erika Beispiel"' in filled
+    assert "Maßgebend ist der Bescheid." in filled
+    swiss = client.get("/new", params={"example": "praemienverbilligung-brief"}).text
+    assert 'data-max="200000"></textarea>' in swiss  # not offered here: the form stays empty
+    assert "Daten, deutsche Rechtschreibung." in client.get("/check").text
+
+    job = queued_job(store, settings, title="Brief")
+    assert job.config.region == "DE"
+    assert "<td>Deutsch (Deutschland) <span" in client.get("/").text
+    assert "Deutsch (Deutschland) · A2" in client.get(f"/jobs/{job.id}").text
+
+
+def test_the_review_names_the_variety_and_its_compound_mark(germany) -> None:
+    client, store, settings = germany
+    job = queued_job(store, settings, title="Brief")
+    blocks = [Block(id="b001", kind="sentence", text="Sie bekommen Geld für die Kranken-Kasse.")]
+    split = CodeEdit(
+        block_id="b001", rule_id="LEX-01", before="Krankenkasse", after="Kranken-Kasse"
+    )
+    draft = Draft(doc_id=job.id, lang="de", region="DE", level="A2", blocks=blocks,
+                  code_edits=[split])  # fmt: skip
+    store.put_artifact(job.id, "draft", draft, 1)
+    store.update_job(job.id, status="needs_review")
+    page = client.get(f"/jobs/{job.id}").text
+    assert "Deutsch (Deutschland) · A2" in page
+    assert "1 Wort in dieser Version vom Code mit Bindestrich getrennt." in page
+    assert "Noch keine Entscheidungen gespeichert" in page
+    swiss = draft.model_copy(update={"region": "CH"})
+    store.put_artifact(job.id, "draft", swiss, 1)
+    view = review_view(store, store.get_job(job.id), t=Translator("en"))
+    assert view is not None and view.compound_mark == "mediopunkt"
+
+
+def test_a_swiss_installation_reads_as_before(env) -> None:
+    client, _, store, settings, _ = env
+    client.get("/ui/de")
+    start = client.get("/").text
+    assert "amtliche Texte in der Schweiz." in start
+    assert 'href="/new?example=praemienverbilligung-brief"' in start
+    assert "wohngeld-bescheid" not in start and "familienbeihilfe-bescheid" not in start
+    new = client.get("/new").text
+    assert '<option value="decision">Entscheid-Brief</option>' in new
+    assert "Navigation und Fusszeilen fallen weg" in new and "ß" not in new
+    assert "0 von 200&#39;000 Zeichen" in new and '<option value="de">Deutsch</option>' in new
+    assert "(Schweiz)" not in new and "(Deutschland)" not in new
+    assert 'data-max="200000"></textarea>' in client.get("/new?example=wohngeld-bescheid").text
+    queued_job(store, settings, title="Brief")
+    assert "<td>Deutsch <span" in client.get("/").text

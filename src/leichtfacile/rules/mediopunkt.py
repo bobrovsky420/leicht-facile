@@ -31,11 +31,13 @@ from spacy.tokens import Doc
 from leichtfacile.rules.base import params_for
 from leichtfacile.rules.lexicon import (
     MEDIOPUNKT,
+    hyphenated,
     lowercase_after_mediopunkt,
     mediopunkt_suggestion,
 )
 from leichtfacile.rules.nlp import pipeline
 from leichtfacile.schemas import CodeEdit, Draft
+from leichtfacile.varieties import variety
 
 RULE_ID = "LEX-01"
 GLOSSARY = "glossary"  # the block_id of an edit to a glossary term
@@ -52,20 +54,24 @@ def apply_mediopunkt(draft: Draft, keep: Iterable[str] = ()) -> tuple[Draft, lis
     if draft.lang not in LANGS:
         return draft, []
     limit = params_for(draft.lang, draft.level).max_word_letters
+    # Germany and Austria write the hyphen with a capital (Kranken-Kasse, 29 October
+    # 2026): the same split, rendered with the variety's mark; a Mediopunkt the model
+    # wrote is rendered too, so one text carries one mark (DIN SPEC 33429).
+    hyphen = variety(draft.variety).compound_mark == "hyphen"
     nlp = pipeline(draft.lang)
     tagged = _has_tagger(nlp)
     kept = frozenset(word.lower() for name in keep for word in name.split())
     edits: list[CodeEdit] = []
     blocks = []
     for block, doc in zip(draft.blocks, nlp.pipe(b.text for b in draft.blocks), strict=True):
-        text, changes = split_text(doc, limit, tagged, kept)
+        text, changes = split_text(doc, limit, tagged, kept, hyphen)
         edits += _edits(block.id, changes)
         blocks.append(block.model_copy(update={"text": text}) if changes else block)
     glossary = []
     for entry in draft.glossary:
         # A glossary term is a noun phrase by nature; the tagger is unreliable on a bare
         # phrase, so every capitalised word of the term counts as a noun.
-        term, changes = split_text(nlp(entry.term), limit, tagged=False, kept=kept)
+        term, changes = split_text(nlp(entry.term), limit, tagged=False, kept=kept, hyphen=hyphen)
         edits += _edits(GLOSSARY, changes)
         glossary.append(entry.model_copy(update={"term": term}) if changes else entry)
     if not edits:
@@ -79,20 +85,27 @@ def _edits(block_id: str, changes: list[tuple[str, str]]) -> list[CodeEdit]:
 
 
 def split_text(
-    doc: Doc, limit: int, tagged: bool, kept: frozenset[str] = frozenset()
+    doc: Doc,
+    limit: int,
+    tagged: bool,
+    kept: frozenset[str] = frozenset(),
+    hyphen: bool = False,
 ) -> tuple[str, list[tuple[str, str]]]:
     """The text of a parsed block with its compound nouns split; and (before, after) per
     changed word. With `tagged` False (no tagger, or a glossary term), a capitalised
-    word counts as a noun. A word of `kept` is never changed."""
+    word counts as a noun. A word of `kept` is never changed. With `hyphen`, the split
+    is written as Kranken-Kasse, and so is a Mediopunkt the word already has."""
     out: list[str] = []
     changes: list[tuple[str, str]] = []
     for t in doc:
         word = t.text
-        if word.lower() not in kept and _candidate(t, tagged) and not _before_number(t):
+        if word.lower() not in kept and _candidate(t, tagged, hyphen) and not _before_number(t):
             lowered = lowercase_after_mediopunkt(word)
             fixed = lowered or word
             split = mediopunkt_suggestion(fixed, limit)
             fixed = split or fixed
+            if hyphen:
+                fixed = hyphenated(fixed)
             if fixed != word:
                 changes.append((word, fixed))
                 word = fixed
@@ -100,13 +113,13 @@ def split_text(
     return "".join(out), changes
 
 
-def _candidate(t, tagged: bool) -> bool:
+def _candidate(t, tagged: bool, hyphen: bool = False) -> bool:
     text = t.text
     if t.like_url or t.like_email or any(ch.isdigit() for ch in text):
         return False
     if not any(ch.isalpha() for ch in text):
         return False
-    if MEDIOPUNKT in text and lowercase_after_mediopunkt(text):
+    if MEDIOPUNKT in text and (hyphen or lowercase_after_mediopunkt(text)):
         return True  # typography, whatever the part of speech
     if not text[:1].isupper():
         return False  # a German noun is capitalised; a lowercase NOUN tag is a tagger slip

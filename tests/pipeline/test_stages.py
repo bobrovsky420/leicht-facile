@@ -347,15 +347,25 @@ EASY_MARKERS = {
 }
 
 
-@pytest.mark.parametrize("lang", sorted(EASY_MARKERS))
-def test_few_shot_examples_follow_the_rules(lang: str) -> None:
+# The examples of Germany and Austria (prompts/de-DE, prompts/de-AT) write the ß of
+# standard spelling, which the Swiss checks flag until the varieties have their own.
+VARIETY_EXAMPLES = [
+    pytest.param(key, marks=pytest.mark.xfail(
+        strict=False, reason="the German and Austrian checks come with WP3"))
+    for key in ("de-DE", "de-AT")
+]  # fmt: skip
+
+
+@pytest.mark.parametrize("key", [*sorted(EASY_MARKERS), *VARIETY_EXAMPLES])
+def test_few_shot_examples_follow_the_rules(key: str) -> None:
     """The style anchors must not teach what the checker forbids."""
-    text = examples(lang)
+    lang, _, region = key.partition("-")
+    text = examples(key)
     easy = []
     for part in text.split("---"):
         easy += [ln for ln in part.split(EASY_MARKERS[lang])[1].splitlines() if ln.strip()]
     assert len(easy) >= 10
-    draft = Draft(doc_id="ex", lang=lang, level="A2", blocks=[
+    draft = Draft(doc_id="ex", lang=lang, region=region or "CH", level="A2", blocks=[
         Block(id=f"b{i:03d}", kind="heading" if ln.endswith("?") else "sentence", text=ln)
         for i, ln in enumerate(easy, 1)
     ])  # fmt: skip

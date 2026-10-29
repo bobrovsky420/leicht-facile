@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page page-form">
   <h1 style="margin-bottom: 4px">{{ t('site.check') }}</h1>
-  <p class="lead" style="margin-bottom: 16px">{{ t('check.intro') }}</p>
+  <p class="lead" style="margin-bottom: 16px">{{ t('check.intro', spelling=t.spelling) }}</p>
 
   {% if error %}
   <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>
@@ -17,7 +17,7 @@
         <label class="label" for="text">{{ t('index.text.label') }}</label>
         <textarea id="text" name="text" rows="18" placeholder="{{ t('check.placeholder') }}" data-max="{{ max_chars }}">{{ form.text or "" }}</textarea>
         <div class="textmeta">
-          <span>{{ t('js.chars', count=number(chars, ui_lang), max=number(max_chars, ui_lang)) }}</span>
+          <span>{{ t('js.chars', count=t.number(chars), max=t.number(max_chars)) }}</span>
           <span>{{ t('check.private') }}</span>
         </div>
       </div>
@@ -30,7 +30,7 @@
           <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
           <select id="lang" name="lang">
             <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
-            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t('lang.' ~ code) }}</option>{% endfor %}
+            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t.language(code) }}</option>{% endfor %}
           </select>
         </div>
         <fieldset>
@@ -58,7 +58,7 @@
   <section class="card check-results" aria-labelledby="chk-res-h" id="results">
     <div class="card-head">
       <h2 id="chk-res-h">{{ t('check.results') }}</h2>
-      <span class="meta">{{ t('lang.' ~ view.lang) }} · {{ t('level.' ~ view.level) }}</span>
+      <span class="meta">{{ t.language(view.lang) }} · {{ t('level.' ~ view.level) }}</span>
     </div>
     <div class="strip">
       <span><strong>{{ t('check.per100', errors=view.per_100(view.errors), warnings=view.per_100(view.warnings), infos=view.per_100(view.infos)) }}</strong></span>

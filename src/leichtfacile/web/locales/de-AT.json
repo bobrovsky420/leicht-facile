@@ -1,0 +1,8 @@
+{
+  "_inherits": "de-DE",
+
+  "finding.FACT-06.identifier": "Die Nummer {value} (Geschäftszahl, SV-Nummer, Konto) steht nicht in der Quelle. Entfernen Sie sie oder übernehmen Sie den Wert aus der Quelle.",
+  "finding.FACT-08.appeal": "Die Rechtsmittelbelehrung steht in keinem Block: {text}",
+  "finding.FACT-08.appeal_omitted": "Die Rechtsmittelbelehrung ist als weggelassen aufgeführt: {text}",
+  "rule.FACT-08": "Nichts aus dem Bescheid und der Rechtsmittelbelehrung fällt weg"
+}

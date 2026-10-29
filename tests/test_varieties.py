@@ -1,5 +1,6 @@
 """The national varieties (docs/architecture.md section 8): the keys, the table, the
-fallback to the language, and what setup offers while only Swiss German ships."""
+fallback to the language, and what setup offers: Switzerland, Germany and Austria since
+the German and Austrian prompts of 29 October 2026."""
 
 from __future__ import annotations
 
@@ -35,35 +36,47 @@ def test_artifacts_are_swiss_unless_they_say_otherwise() -> None:
     )
 
 
-def test_the_table_holds_the_swiss_varieties_and_falls_back_to_the_language() -> None:
-    assert set(varieties()) == {"de", "fr", "it"}
+def test_the_table_holds_the_varieties_and_falls_back_to_the_language() -> None:
+    assert set(varieties()) == {"de", "de-DE", "de-AT", "fr", "it"}
     assert table("de").word_lang == "de-CH" and table("de").hyphenation == "de_CH"
+    assert table("de", "DE") is table("de-DE") and table("de", "AT") is table("de-AT")
+    assert (table("de-DE").word_lang, table("de-DE").hyphenation) == ("de-DE", "de_DE")
+    assert (table("de-AT").word_lang, table("de-AT").hyphenation) == ("de-AT", "de_AT")
     assert table("fr", "DE") is table("fr")  # French is Swiss whatever the region
-    assert table("de-AT").notice == table("de").notice  # no Austrian table yet
+    assert table("de-XX") is table("de")  # a key without a table: its language's
     with pytest.raises(KeyError):
         table("rm")
     assert table("de").notice.endswith("Massgebend ist der Entscheid.")
+    assert table("de-DE").notice.endswith("Maßgebend ist der Bescheid.")
+    assert table("de-AT").notice == table("de-DE").notice
     assert region_for("de", "AT") == "AT" and region_for("fr", "AT") == "CH"
 
 
-def test_only_switzerland_is_complete_so_setup_asks_nothing() -> None:
+def test_the_three_german_varieties_are_complete_so_setup_asks_for_one() -> None:
     assert complete("de") and complete("fr") and complete("it")
-    assert not complete("de-DE") and not complete("de-AT")
-    assert regions() == ("CH",)
+    assert complete("de-DE") and complete("de-AT")  # their tables and few-shot examples
+    assert not complete("de-XX")
+    assert regions() == ("CH", "DE", "AT")
 
 
 def test_lookups_by_a_variety_key_take_the_language_until_the_variety_has_its_own() -> None:
-    # The prompts, the few-shot examples, the style guide and the rule checks of `de-AT`
-    # are the German ones today; the Zurich baseline is Swiss and is not inherited.
-    assert render("de-AT", "baseline", level_name="x", level="A2", text="t") == render(
+    # A key without a table or a prompt folder of its own (made up: there is no region
+    # XX) takes the German prompts, few-shot examples, style guide and rule checks; the
+    # Zurich baseline is Swiss and is not inherited.
+    key = "de-XX"
+    assert render(key, "baseline", level_name="x", level="A2", text="t") == render(
         "de", "baseline", level_name="x", level="A2", text="t"
     )
-    assert examples("de-AT") == examples("de")
-    assert style_guide("de-AT", "A2") == style_guide("de", "A2")
-    assert has_prompt("de", "baseline_zh") and not has_prompt("de-AT", "baseline_zh")
+    assert examples(key) == examples("de")
+    assert style_guide(key, "A2") == style_guide("de", "A2")
+    assert has_prompt("de", "baseline_zh") and not has_prompt(key, "baseline_zh")
     spec = RULES["LEN-01"]
-    assert spec.check_for("de-AT") is spec.check_for("de")
-    assert spec.guide_for("de-AT", "A2") == spec.guide_for("de", "A2")
-    checker = get_checker("de-AT")
-    assert (checker.lang, checker.variety) == ("de", "de-AT")
+    assert spec.check_for(key) is spec.check_for("de")
+    assert spec.guide_for(key, "A2") == spec.guide_for("de", "A2")
+    checker = get_checker(key)
+    assert (checker.lang, checker.variety) == ("de", key)
     assert checker.nlp is get_checker("de").nlp  # one spaCy pipeline per language
+    # Germany and Austria bring their own few-shot examples and decision partial and
+    # inherit the rest (tests/pipeline/test_prompt_varieties.py).
+    assert examples("de-AT") != examples("de") and "Jänner" in examples("de-AT")
+    assert not has_prompt("de-AT", "baseline_zh")

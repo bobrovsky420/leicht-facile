@@ -47,6 +47,7 @@ from leichtfacile.schemas import (
     SourceDocument,
 )
 from leichtfacile.store import Store
+from leichtfacile.varieties import variety
 from leichtfacile.web.i18n import ENGLISH, Translator
 
 CORE_KEYS = ("what", "must_do", "deadline", "cost", "contact")
@@ -224,8 +225,14 @@ class ReviewView:
 
     @property
     def code_splits(self) -> int:
-        """Words of this version that code split with a Mediopunkt (rules/mediopunkt.py)."""
+        """Words of this version that code split with its variety's mark (rules/mediopunkt.py)."""
         return sum(1 for e in self.draft.code_edits if e.rule_id == MEDIOPUNKT_RULE)
+
+    @property
+    def compound_mark(self) -> str:
+        """The mark code splits a long compound with in the draft's variety, a catalog
+        key `mark.<name>`: mediopunkt in Switzerland, hyphen in Germany and Austria."""
+        return variety(self.draft.variety).compound_mark
 
     @property
     def version_rows(self) -> list[VersionRow]:
@@ -623,7 +630,7 @@ def _aware(value: datetime) -> datetime:
 class DraftRow:
     job: Job
     title: str
-    language: str  # the document language's name
+    language: str  # the document language's name, with the variety where not Swiss
     doc_lang: str | None
     source_line: str = ""
     status_note: str = ""
@@ -646,13 +653,6 @@ def display_title(job: Job) -> str:
     return job.title or job.id
 
 
-def format_number(n: int, lang: str) -> str:
-    """Thousands separated the way the interface language writes them: 1,960 in English
-    and French, 1'960 in German and Italian."""
-    text = f"{n:,}"
-    return text.replace(",", "'") if lang in ("de", "it") else text
-
-
 def source_line(counts: JobCounts | None, t: Translator = ENGLISH) -> str:
     """Where a document came from, for the second line of a drafts list row."""
     if counts is None or counts.source_type is None:
@@ -664,7 +664,7 @@ def source_line(counts: JobCounts | None, t: Translator = ENGLISH) -> str:
         return t("drafts.source.pdf", name=counts.source_uri or "PDF")
     if counts.source_type == "image":
         return t("drafts.source.image")
-    return t("drafts.source.text", chars=format_number(counts.source_chars or 0, t.lang))
+    return t("drafts.source.text", chars=t.number(counts.source_chars or 0))
 
 
 def drafts_view(
@@ -686,7 +686,7 @@ def drafts_view(
         row = DraftRow(
             job=job,
             title=title,
-            language=t.get(f"lang.{doc_lang}", doc_lang) if doc_lang else "",
+            language=t.language(doc_lang, job.config.region) if doc_lang else "",
             doc_lang=doc_lang,
             source_line=source_line(counts, t),
         )

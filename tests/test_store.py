@@ -283,3 +283,44 @@ def test_the_pool_serves_parallel_threads_within_its_size(tmp_path) -> None:
     store.close()
     with pytest.raises(sqlite3.ProgrammingError):
         store.count_jobs()
+
+
+def test_the_swiss_rule_ids_become_the_regions_on_open(tmp_path) -> None:
+    """Migration 6 (29 October 2026): CH-01 to CH-03 became REG-01 to REG-03 in the
+    stored findings and in the code edits of the drafts."""
+    path = tmp_path / "s.sqlite"
+    store = Store(path)
+    job = store.create_job(JobConfig(), title="Test")
+    with sqlite3.connect(path) as db:
+        findings = (
+            '[{"block_id": "b001", "rule_id": "CH-01", "severity": "error", "key": "CH-01", '
+            '"params": {"found": "Strasse"}}, {"block_id": "b001", "rule_id": "CH-02", '
+            '"severity": "info", "key": "CH-02", "params": {}}, {"block_id": "b001", '
+            '"rule_id": "LEN-01", "severity": "warn", "key": "LEN-01", "params": {}}]'
+        )
+        db.execute(
+            "INSERT INTO artifacts VALUES (?, 'rules', 1, ?, '2026-10-28T12:00:00+00:00')",
+            (job.id, '{"draft_version": 1, "level": "A2", "findings": ' + findings + "}"),
+        )
+        draft = (
+            '{"doc_id": "d", "lang": "de", "level": "A2", "blocks": [], "code_edits": '
+            '[{"block_id": "b001", "rule_id": "CH-01", "before": "Straße", "after": "Strasse"}, '
+            '{"block_id": "b002", "rule_id": "LEX-01", "before": "Krankenkasse", '
+            '"after": "Kranken·kasse"}]}'
+        )
+        db.execute(
+            "INSERT INTO artifacts VALUES (?, 'draft', 1, ?, '2026-10-28T12:00:00+00:00')",
+            (job.id, draft),
+        )
+        db.execute("PRAGMA user_version = 5")
+    store.close()
+    store = Store(path)
+    assert store.schema_version == SCHEMA_VERSION
+    rules = store.get_artifact(job.id, "rules", RuleFindings)
+    assert [(f.rule_id, f.key) for f in rules.findings] == [
+        ("REG-01", "REG-01"), ("REG-02", "REG-02"), ("LEN-01", "LEN-01"),
+    ]  # fmt: skip
+    assert [e.rule_id for e in store.get_artifact(job.id, "draft", Draft).code_edits] == [
+        "REG-01", "LEX-01",
+    ]  # fmt: skip
+    store.close()

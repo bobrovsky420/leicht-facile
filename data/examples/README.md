@@ -22,11 +22,15 @@ drafts list while it is empty.
 | `reduction-primes-lettre.txt` | The same letter in French (réduction individuelle des primes) | French test runs, an example text in the New draft form |
 | `riduzione-premi-lettera.txt` | The same letter in Italian (riduzione individuale dei premi), from the invented municipality of Esempiopoli | Italian test runs, an example text in the New draft form |
 | `entscheid-beistandschaft-musterwil.txt` | A decision of an invented KESB: a deputyship (Vertretungsbeistandschaft mit Vermögensverwaltung) for an invented woman with a mild intellectual disability, who keeps deciding where she lives. Personal data (name, date of birth, address, AHV number), a case number, an IBAN, the operative part with dates and amounts, and the 30-day appeal period with the court's address | Decision mode (docs/use-case-decisions.md), tests, an example text in the New draft form |
+| `wohngeld-bescheid.txt` | Germany (29 October 2026): a Wohngeld-Bescheid of the invented Stadt Musterstadt (postcode 12345), the decision before the heading Begründung (286,00 Euro a month from 1 September 2026 to 31 August 2027, 572,00 Euro of back pay, August refused), the duties to report changes, a Rechtsbehelfsbelehrung "innerhalb eines Monats nach Bekanntgabe"; the IBAN has invalid check digits | Decision mode in an installation in Germany (`texts.region = "DE"`), tests, an example text in the New draft form there |
+| `familienbeihilfe-bescheid.txt` | Austria (29 October 2026): a Bescheid of the invented Finanzamt Musterhausen (postcode 9999) with the headings Spruch, Begründung and Rechtsmittelbelehrung: € 1.500,- to repay by 18. Jänner 2027, because the son's income exceeded the limit (§ 5 FLAG), an RSb mark, the address Gartengasse 3/2/5, the Beschwerde "binnen eines Monats nach Zustellung" (the BAO's period, § 245) | Decision mode in an installation in Austria (`texts.region = "AT"`), tests, an example text in the New draft form there |
 
 A JSON file next to a letter holds that example's job settings, any `JobConfig` field:
 `entscheid-beistandschaft-musterwil.json` runs the KESB decision in decision mode
 (`mode`), speaking to Lea Muster (`addressee`), with the KESB's fixed notice (`notice`).
-Letters without one run as standard P2 jobs at level A2.
+Letters without one run as standard P2 jobs at level A2. Since 29 October 2026 every
+JSON names the letter's `region` (CH, DE or AT): an installation offers the letters of
+its region and the French and Italian ones (docs/architecture.md §7).
 
 The KESB decision follows the layout of real ones: the header with the panel, the
 person and the subject, then I. Sachverhalt, II. Erwägungen, III. Entscheid and the

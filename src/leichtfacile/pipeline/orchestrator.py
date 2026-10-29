@@ -42,7 +42,7 @@ from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
 from leichtfacile.rules.medication import medication_names
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
-from leichtfacile.rules.swiss import apply_ss
+from leichtfacile.rules.swiss import apply_spelling
 from leichtfacile.rules.vocabulary import vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
@@ -339,7 +339,7 @@ class Orchestrator:
                 draft, _ = fill_glossary(draft)
             # P1 and P2 only; a baseline measures the prompt
             draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
-            draft, _ = apply_ss(draft)
+            draft, _ = apply_spelling(draft)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop(run, "write")
         rules = self._check(run, job, draft, source, factsheet)
@@ -559,7 +559,7 @@ class Orchestrator:
             new_draft, _ = fill_glossary(new_draft)
         # Before the check: one text for all.
         new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
-        new_draft, _ = apply_ss(new_draft)
+        new_draft, _ = apply_spelling(new_draft)
         self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
         self.store.put_artifact(job.id, "repair", record, new_draft.version)
         new_rules = self._check(run, job, new_draft, source, factsheet)

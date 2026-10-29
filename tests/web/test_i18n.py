@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import string
 from pathlib import Path
@@ -14,8 +15,10 @@ from leichtfacile.config import Documents, Location
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.rules import RULES
 from leichtfacile.rules.messages import MESSAGES, render_finding
+from leichtfacile.rules.vocabulary import standard_spelling
 from leichtfacile.schemas import (
     LANGS,
+    REGIONS,
     STOP_REASONS,
     Block,
     Condition,
@@ -29,8 +32,21 @@ from leichtfacile.schemas import (
     RuleFindings,
 )
 from leichtfacile.store import Store
+from leichtfacile.varieties import varieties
 from leichtfacile.web.app import create_app
-from leichtfacile.web.i18n import COOKIE, Translator, catalogs, pick_language, ui_languages
+from leichtfacile.web.i18n import (
+    COOKIE,
+    ENGLISH,
+    INHERITS,
+    LOCALES_DIR,
+    Translator,
+    catalogs,
+    overlay_chain,
+    overlays,
+    pick_language,
+    ui_languages,
+    variety_catalog,
+)
 from leichtfacile.web.jobs import Submission, SubmissionError, create_job
 from leichtfacile.web.views import (
     CORE_KEYS,
@@ -61,10 +77,119 @@ def test_every_catalog_has_the_english_keys_and_placeholders() -> None:
 
 
 def test_catalogs_use_plain_hyphens_and_swiss_spelling() -> None:
-    for code, catalog in catalogs().items():
+    for code, catalog in {**catalogs(), **overlays()}.items():
         for key, text in catalog.items():
             assert chr(0x2013) not in text and chr(0x2014) not in text, f"{code}: {key}"
     assert not [k for k, v in catalogs()["de"].items() if chr(0xDF) in v]  # ss, not sharp s
+
+
+def _texts(overlay: dict[str, str]) -> dict[str, str]:
+    return {k: v for k, v in overlay.items() if not k.startswith("_")}
+
+
+def test_the_overlays_hold_german_texts_whose_words_differ() -> None:
+    """de-DE.json and de-AT.json are no languages: each key is a key of de.json with the
+    same placeholders, and its text differs from what the variety would read without it
+    (de-AT inherits de-DE), in the standard spelling the overlays come after."""
+    german = catalogs()["de"]
+    assert set(overlays()) == {"de-DE", "de-AT"}
+    assert not set(overlays()) & set(ui_languages())  # the switcher shows one German
+    assert overlay_chain("de-AT") == ["de-AT", "de-DE"] and overlay_chain("de-DE") == ["de-DE"]
+    assert overlays()["de-AT"][INHERITS] == "de-DE"
+    for code, overlay in overlays().items():
+        texts = _texts(overlay)
+        assert texts and set(overlay) - set(texts) <= {INHERITS}, code
+        parent = overlay.get(INHERITS)
+        below = variety_catalog("de", parent.split("-")[1]) if parent else None
+        for key, text in texts.items():
+            assert key in german, f"{code}: {key}"
+            assert _fields(text) == _fields(german[key]), f"{code}: {key}"
+            inherited = below[key] if below else standard_spelling(german[key])
+            assert text != inherited, f"{code}: {key} says what it inherits"
+            assert standard_spelling(text) == text, f"{code}: {key}"
+
+
+# Entscheid as a noun, the Swiss word for the reviewer's decision and the decision
+# letter; the verb (Entscheiden Sie, entschieden) and Entscheidung are not.
+SWISS_DECISION = re.compile(r"\bEntscheid(?:e|s)?\b|\bEntscheiden\b(?! Sie)")
+
+
+def test_the_german_catalog_follows_the_installations_variety() -> None:
+    """Switzerland reads de.json as it is; Germany and Austria read it in their spelling,
+    with the ß of the vocabulary's table, and with the words of their overlays on top."""
+    swiss = variety_catalog("de", "CH")
+    assert swiss == json.loads((LOCALES_DIR / "de.json").read_text(encoding="utf-8"))
+    for region in ("DE", "AT"):
+        texts = variety_catalog("de", region)
+        assert set(texts) == set(swiss)
+        everything = "\n".join(texts.values())
+        for word in ("grösser", "Schliessen", "ausser", "Fusszeilen", "grösste"):
+            assert not re.search(rf"\b{word}\b", everything), (region, word)
+        for word in ("größer", "Schließen", "außer", "Fußzeilen", "größte"):
+            assert word in everything, (region, word)
+        assert not [k for k, v in texts.items() if standard_spelling(v) != v], region
+        assert not [k for k, v in texts.items() if SWISS_DECISION.search(v)], region
+        assert "Entscheidung" in texts["review.decision_for"]
+        assert texts["drafts.decision"] == texts["new.mode.decision"] == "Bescheid"
+        assert {k: _fields(v) for k, v in texts.items()} == {
+            k: _fields(v) for k, v in swiss.items()
+        }
+    assert SWISS_DECISION.search(swiss["review.decision_for"])  # the guard sees the Swiss
+    # Austria inherits Germany's words and keeps its own appeal instructions.
+    germany, austria = Translator("de", "DE"), Translator("de", "AT")
+    assert germany("finding.FACT-08.appeal", text="x").startswith("Die Rechtsbehelfsbelehrung")
+    assert austria("finding.FACT-08.appeal", text="x").startswith("Die Rechtsmittelbelehrung")
+    assert austria("review.decision_for", block="b001") == "Entscheidung für b001"
+    assert Translator("de")("review.decision_for", block="b001") == "Entscheid für b001"
+    # The other languages have no overlay: the region changes none of their texts.
+    for lang in ("en", "fr", "it"):
+        assert variety_catalog(lang, "DE") == variety_catalog(lang, "AT") == catalogs()[lang]
+
+
+def test_numbers_and_the_country_follow_the_region() -> None:
+    cases = {
+        ("en", "CH"): "1,960", ("en", "DE"): "1,960", ("fr", "AT"): "1,960",
+        ("de", "CH"): "1'960", ("it", "CH"): "1'960", ("it", "DE"): "1'960",
+        ("de", "DE"): "1.960", ("de", "AT"): "1.960",
+    }  # fmt: skip
+    for (lang, region), written in cases.items():
+        t = Translator(lang, region)
+        assert t.number(1960) == written and t.js()["thousands"] == written[1]
+        assert t.number(960) == "960" and t.number(1_234_567.4).count(written[1]) == 2
+    ch, de, at = Translator("de"), Translator("de", "DE"), Translator("de", "AT")
+    assert de("site.tagline", country=de.country).startswith(
+        "Entwürfe in leicht verständlicher Sprache für amtliche Texte in Deutschland."
+    )
+    assert "Texte in der Schweiz." in ch("site.tagline", country=ch.country)
+    assert "Daten, österreichische Rechtschreibung." in at("check.intro", spelling=at.spelling)
+    assert "Daten, Schweizer Rechtschreibung." in ch("check.intro", spelling=ch.spelling)
+    en = Translator("en", "AT")
+    assert en("site.tagline", country=en.country).startswith(
+        "Easy-language drafts of official texts in Austria."
+    )
+    assert "dates, Swiss spelling." in ENGLISH("check.intro", spelling=ENGLISH.spelling)
+
+
+def test_a_german_document_names_its_variety_outside_switzerland() -> None:
+    swiss, german = Translator("de"), Translator("de", "DE")
+    assert swiss.language("de") == "Deutsch"  # a Swiss installation reads as before
+    assert swiss.language("de", "AT") == "Deutsch (Österreich)"  # a job from another setup
+    assert german.language("de") == "Deutsch (Deutschland)"
+    assert german.language("de", "CH") == "Deutsch (Schweiz)"
+    assert german.language("fr") == swiss.language("fr") == "Französisch"
+    assert Translator("en", "AT").language("de") == "German (Austria)"
+    assert Translator("it", "DE").language("de", "DE") == "Tedesco (Germania)"
+    assert Translator("en").language("xx") == "xx"
+
+
+def test_the_variety_labels_match_the_varieties_table() -> None:
+    """lang.de-<region> in English is the label of the German variety's table in
+    varieties.toml, for every German variety that has a table."""
+    english = catalogs()["en"]
+    german = [v for v in varieties().values() if v.lang == "de"]
+    assert german
+    for table in german:
+        assert english[f"lang.de-{table.region}"] == table.label
 
 
 def _used_keys() -> set[str]:
@@ -100,6 +225,10 @@ def test_keys_built_from_data_exist() -> None:
         + [f"kind.{k}" for k in get_args(FactKind)]
         + [f"fact.{s}" for s in (*get_args(FactStatus), "unchecked")]
         + [f"lang.{lang}" for lang in LANGS]
+        # the installation's region (web/i18n.py): the variety, the country, the spelling
+        + [f"lang.de-{region}" for region in REGIONS]
+        + [f"{kind}.{region}" for kind in ("country", "spelling") for region in REGIONS]
+        + [f"mark.{table.compound_mark}" for table in varieties().values()]
         + [f"condition.{c}" for c in get_args(Condition)]
         + [f"condition.short.{c}" for c in get_args(Condition)]
         + [f"finding.{k}" for k in MESSAGES]

@@ -269,7 +269,7 @@ NUM-08:
     - "Appelez le 0848 35 45 55."
     - "Appelez le +41 22 123 45 67."
 
-CH-03:
+REG-03:
   positive:
     - "Il y a soixante-dix places."
     - "Le prix est de quatre-vingt-dix francs."

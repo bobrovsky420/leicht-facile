@@ -114,6 +114,11 @@ class Context:
     def level(self) -> Level:
         return self.params.level
 
+    @property
+    def region(self) -> str:
+        """The region of the variety: CH, DE or AT; CH for a plain language code."""
+        return self.variety.partition("-")[2] or "CH"
+
     def previous_block(self) -> BlockInfo | None:
         return self.blocks[self.block_index - 1] if self.block_index > 0 else None
 

@@ -9,7 +9,7 @@ So arbeitest du:
 3. Jede Tatsache aus dem Faktenblatt mit "must_keep": true muss im Text stehen, mit genau dem gleichen Wert. Ändere keine Frist, keinen Betrag, keine Telefonnummer und keine Adresse. Schreibe nichts, was nicht im Dokument steht. Namen von Ämtern, Adressen und Nummern nimmst du nur aus dem Dokument, nie aus den Beispielen.
 4. Gib bei jedem Block an:
    - "fact_ids": die Tatsachen, die der Block enthält, zum Beispiel ["f01"]. Sonst [].
-   - "segment_ids": die Sätze des Dokuments, aus denen der Block stammt, zum Beispiel ["s0004"]. Jeder Block ausser Überschriften braucht mindestens einen Satz.
+   - "segment_ids": die Sätze des Dokuments, aus denen der Block stammt, zum Beispiel ["s0004"]. Jeder Block {{ "ausser" | spelling }} Überschriften braucht mindestens einen Satz.
 5. Was du vom Dokument weglässt, schreibst du in "omissions", mit einem kurzen Grund.
 6. Schwierige Wörter, die du brauchst, erklärst du in "glossary". Nimm die Erklärungen aus dem Faktenblatt.
 {% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}

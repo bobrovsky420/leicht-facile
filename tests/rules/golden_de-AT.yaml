@@ -1,0 +1,93 @@
+# Golden sentences for Austrian German (de-AT): the rules with a check or a table of
+# their own for the variety (docs/rules.md, "German in Austria"). Austria keeps the
+# Swiss Spital and writes Jänner, the minutes after a dot and the euro before the number.
+
+REG-01:
+  positive:
+    - Die Strasse ist gesperrt.
+    - Das ist gemäss Plan.
+  negative:
+    - Die Straße ist gesperrt.
+    - Die Masse ist 5 Kilogramm.
+
+REG-02:
+  positive:
+    - Das heißt «Wohnbeihilfe».
+    - Klicken Sie auf ‚Senden‘.
+  negative:
+    - Klicken Sie auf „Senden“.
+    - Das heißt Wohnbeihilfe.
+
+REG-03:
+  positive:
+    - Sie fahren mit dem Velo.
+    - Das Amt ist im Januar geschlossen.
+    - Sie gehen über das Trottoir.
+  negative:
+    - Sie gehen ins Spital.
+    - Das Amt ist im Jänner geschlossen.
+    - Sie gehen über den Gehsteig.
+
+LEX-02:
+  positive:
+    - Das gilt z. B. für Kinder.
+    - Lesen Sie Art. 5 im Gesetz.
+  negative:
+    - Dr. Muster hilft Ihnen.
+    - Sie fahren mit der ÖBB nach Wien.
+    - Das AMS hilft Ihnen.
+
+LEX-07:
+  positive:
+    - Das Geld wird umgehend überwiesen.
+    - Sie müssen den Antrag fristgerecht einreichen.
+  negative:
+    - Sie schicken den Antrag bis Freitag.
+    - Das Geld kommt bald.
+
+NUM-02:
+  positive:
+    - Das kostet 1500 Euro.
+    - Die Stadt hat 20000 Einwohner.
+  negative:
+    - Das kostet 1.500 Euro.
+    - Die Stadt hat 20.000 Einwohner.
+
+NUM-03:
+  positive:
+    - Sie zahlen bis 31.12.2026.
+    - Der Termin ist am 2026-01-31.
+  negative:
+    - Sie zahlen bis 31. Jänner 2027.
+
+NUM-04:
+  positive:
+    - Kommen Sie um 9:30 Uhr.
+    - Kommen Sie um 9h.
+  negative:
+    - Kommen Sie um 9.30 Uhr.
+    - Kommen Sie um 9 Uhr.
+
+NUM-07:
+  positive:
+    - Das kostet € 330,-.
+    - Das kostet 1.500,00 €.
+  negative:
+    - Das kostet 330 Euro.
+    - Das kostet 1.500 Euro.
+
+NUM-08:
+  positive:
+    - Rufen Sie 01531150 an.
+    - Rufen Sie 05125087831 an.
+  negative:
+    - Rufen Sie 01 53115-0 an.
+    - Rufen Sie +43 512 508 7831 an.
+
+LEX-01:
+  positive:
+    - Die Krankenversicherungspolice kommt.
+    - Die Kranken·kasse zahlt.
+  negative:
+    - Die Kranken-Versicherungs-Police kommt.
+    - Die Kranken-Kasse zahlt.

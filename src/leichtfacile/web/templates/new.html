@@ -29,7 +29,7 @@
           <label class="label" for="text">{{ t('index.text.label') }}</label>
           <textarea id="text" name="text" rows="18" placeholder="{{ t('index.text.placeholder') }}" data-max="{{ max_chars }}">{{ form.text or "" }}</textarea>
           <div class="textmeta">
-            <span id="char-count">{{ t('js.chars', count=number(chars, ui_lang), max=number(max_chars, ui_lang)) }}</span>
+            <span id="char-count">{{ t('js.chars', count=t.number(chars), max=t.number(max_chars)) }}</span>
             <span id="lang-note">{{ t('js.lang_auto') }}</span>
           </div>
           {% if examples %}
@@ -67,8 +67,8 @@
           <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
           <select id="lang" name="lang">
             <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
-            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t('lang.' ~ code) }}</option>{% endfor %}
-            {% for code in coming_langs %}<option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t('lang.' ~ code)) }}</option>{% endfor %}
+            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t.language(code) }}</option>{% endfor %}
+            {% for code in coming_langs %}<option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t.language(code)) }}</option>{% endfor %}
           </select>
         </div>
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from spacy.tokens import Span
 
@@ -22,6 +22,7 @@ from leichtfacile.rules.values import (
     URL_RE,
     canonical_date,
     canonical_phone,
+    extract_values,
     format_date,
     format_phone,
     format_thousands,
@@ -32,6 +33,10 @@ from leichtfacile.rules.values import (
 from leichtfacile.rules.vocabulary import find_terms, office_words
 
 LANGS = ("de", "fr", "it")
+# The German varieties of Germany and Austria have tables of their own below and, where
+# the writer's instruction differs, a guide of their own.
+GERMAN = ("de", "de-DE", "de-AT")
+KEYS = (*GERMAN, "fr", "it")
 LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error
 RARE_PUNCTUATION_RE = re.compile(r"[;()\[\]{}&]")
 BIG_NUMBER_RE = re.compile(r"(?<![\d'.,:/+’])\d{4,}(?![\d'’])")
@@ -110,8 +115,23 @@ TABLES: dict[str, Table] = {
 }
 
 
+# Germany and Austria (29 October 2026): the German table with the euro, the file numbers
+# of a Bescheid before a number that is no amount, the amount styles NUM-07 flags there,
+# and hyphenated compounds counted as one word. format_thousands and format_date read the
+# variety (the thousands dot, Jänner).
+for _key in ("de-DE", "de-AT"):
+    TABLES[_key] = replace(
+        TABLES["de"],
+        word_count=de.word_count_joined,
+        currency_near_re=de.CURRENCY_NEAR_RE_DE,
+        identifier_before_re=de.IDENTIFIER_BEFORE_RE_DE,
+        amount_re=de.AMOUNT_STYLE_DE_RE,
+        currency_word="Euro",
+    )
+
+
 def table(ctx: Context) -> Table:
-    return TABLES[ctx.lang]
+    return TABLES.get(ctx.variety) or TABLES[ctx.lang]
 
 
 # -- sentence structure ------------------------------------------------------------
@@ -193,9 +213,13 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 
 @rule(
     "LEX-07",
-    lang=LANGS,
+    lang=KEYS,
     guide={
         "de": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
+        "nach statt gemäss, wenn nötig statt gegebenenfalls.",
+        "de-DE": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt binnen, "
+        "nach statt gemäss, wenn nötig statt gegebenenfalls.",
+        "de-AT": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt binnen, "
         "nach statt gemäss, wenn nötig statt gegebenenfalls.",
         "fr": "Prends les mots de tous les jours, pas les mots de l'administration (pas : "
         "émolument, moyennant, le cas échéant, dûment).",
@@ -205,7 +229,7 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 )
 def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
     # Words of rules/data/vocabulary_<lang>.toml; the role nouns are LEX-06's.
-    for m in office_words(find_terms(ctx.lang, sent), exclude=table(ctx).office_exclude_re):
+    for m in office_words(find_terms(ctx.variety, sent), exclude=table(ctx).office_exclude_re):
         easy = m.entry.easy or ""
         yield hit("LEX-07", found=m.text, easy=easy, evidence=m.text, suggestion=easy)
 
@@ -215,15 +239,23 @@ def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
 
 @rule(
     "NUM-02",
-    lang=LANGS,
+    lang=KEYS,
     guide={
         "de": "Grosse Zahlen schreibst du mit Apostroph: 1'500 Franken, 500'000.",
+        "de-DE": "Grosse Zahlen schreibst du mit Punkt: 1.500 Euro, 500.000.",
+        "de-AT": "Grosse Zahlen schreibst du mit Punkt: 1.500 Euro, 500.000.",
         "fr": "Les grands nombres s'écrivent avec une espace : 1 500 francs, 500 000.",
         "it": "I numeri grandi si scrivono con l'apostrofo: 1'500 franchi, 500'000.",
     },
 )
 def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask_numbers(block.text)
+    if ctx.region in ("DE", "AT"):
+        # Five-digit postcodes (51103 Köln) and the digits of the German phone shapes
+        # (0221 / 221-30700) are no big numbers; the Swiss masking knows neither
+        # (calibration on the Köln pages, 29 October 2026).
+        values = extract_values(block.text, ctx.variety)
+        text = mask(text, [(v.start, v.end) for v in values if v.kind in ("address", "phone")])
     for m in BIG_NUMBER_RE.finditer(text):
         digits = m.group(0)
         before, after = text[max(0, m.start() - 14) : m.start()], text[m.end() : m.end() + 12]
@@ -233,15 +265,17 @@ def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         currency = bool(near.search(before[-6:]) or near.search(after[:10]))
         if len(digits) == 4 and not currency:
             continue  # years, postal codes and form numbers have 4 digits
-        expected = format_thousands(digits, ctx.lang)
+        expected = format_thousands(digits, ctx.variety)
         yield hit("NUM-02", found=digits, expected=expected, evidence=digits, suggestion=expected)
 
 
 @rule(
     "NUM-03",
-    lang=LANGS,
+    lang=KEYS,
     guide={
         "de": "Ein Datum schreibst du so: 4. Februar 2026.",
+        "de-DE": "Ein Datum schreibst du so: 4. Februar 2026.",
+        "de-AT": "Ein Datum schreibst du so: 4. Jänner 2026.",
         "fr": "Une date s'écrit ainsi : 4 février 2026.",
         "it": "Una data si scrive così: 4 febbraio 2026.",
     },
@@ -254,7 +288,7 @@ def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             canonical = canonical_date(int(m.group(1)), int(m.group(2)), None)
             if canonical is not None:
                 found = m.group(0).split()[-1]
-                written = format_date(canonical, ctx.lang)
+                written = format_date(canonical, ctx.variety)
                 yield hit("NUM-03", found=found, evidence=found, suggestion=written)
     for regex, order in ((DATE_ISO_RE, "ymd"), (DATE_NUM_RE, "dmy"), (DATE_SLASH_RE, "dmy")):
         for m in regex.finditer(text):
@@ -269,7 +303,7 @@ def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
                 "NUM-03",
                 found=m.group(0).strip(),
                 evidence=m.group(0).strip(),
-                suggestion=format_date(canonical, ctx.lang),
+                suggestion=format_date(canonical, ctx.variety),
             )
 
 
@@ -310,9 +344,11 @@ def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 
 @rule(
     "NUM-07",
-    lang=LANGS,
+    lang=KEYS,
     guide={
         "de": "Geld·beträge schreibst du so: 500 Franken oder CHF 500.",
+        "de-DE": "Geld·beträge schreibst du so: 500 Euro.",
+        "de-AT": "Geld·beträge schreibst du so: 500 Euro.",
         "fr": "Les montants s'écrivent ainsi : 500 francs ou CHF 500.",
         "it": "Gli importi si scrivono così: 500 franchi o CHF 500.",
     },
@@ -320,7 +356,7 @@ def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in table(ctx).amount_re.finditer(block.text):
         number = re.sub(r"\D", "", next(g for g in m.groups() if g))
-        figure = format_thousands(number, ctx.lang) if len(number) > 3 else number
+        figure = format_thousands(number, ctx.variety) if len(number) > 3 else number
         amount = f"{figure} {table(ctx).currency_word}"
         yield hit(
             "NUM-07", found=m.group(0), expected=amount, evidence=m.group(0), suggestion=amount
@@ -329,14 +365,31 @@ def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 
 @rule(
     "NUM-08",
-    lang=LANGS,
+    lang=KEYS,
     guide={
         "de": "Telefon·nummern schreibst du mit Abständen: 044 123 45 67.",
+        "de-DE": "Telefon·nummern schreibst du mit Abständen: 0 55 44 33 22 11.",
+        "de-AT": "Telefon·nummern schreibst du mit Abständen: 0 55 44 33 22 11.",
         "fr": "Les numéros de téléphone s'écrivent avec des espaces : 022 123 45 67.",
         "it": "I numeri di telefono si scrivono con gli spazi: 091 123 45 67.",
     },
 )
 def num_08(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
+    if ctx.region in ("DE", "AT"):
+        # The German and Austrian shapes have no fixed grouping (rules/values.py); the
+        # official pages write slashes and hyphens, so only a run of glued digits is a
+        # finding, with the Netzwerk's pairs as the suggestion (29 October 2026).
+        for value in extract_values(block.text, ctx.variety):
+            if value.kind == "phone" and re.fullmatch(r"\+?\d{8,}", value.text):
+                grouped = format_phone(value.canonical, ctx.variety)
+                yield hit(
+                    "NUM-08.grouped",
+                    found=value.text,
+                    expected=grouped,
+                    evidence=value.text,
+                    suggestion=grouped,
+                )
+        return
     for m in PHONE_RE.finditer(block.text):
         number = m.group(0)
         if ACCEPTED_PHONE_RE.fullmatch(number):

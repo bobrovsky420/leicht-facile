@@ -17,6 +17,7 @@ from spacy.tokens import Span, Token
 from leichtfacile.rules.base import BlockInfo, Context, Hit, rule
 from leichtfacile.rules.lexicon import (
     MEDIOPUNKT,
+    hyphenated,
     is_common_compound,
     is_known,
     lowercase_after_mediopunkt,
@@ -33,9 +34,20 @@ from leichtfacile.rules.values import (
     mask,
     mask_numbers,
 )
-from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
+from leichtfacile.rules.vocabulary import (
+    covered_offsets,
+    easy_for,
+    find_terms,
+    office_words,
+    standard_spelling,
+)
+from leichtfacile.varieties import variety as variety_table
 
 DE = "de"
+# The German varieties (schemas.variety): Switzerland, Germany, Austria. A check or a
+# guide registered for all three differs by `ctx.region`.
+GERMAN = ("de", "de-DE", "de-AT")
+STANDARD = ("de-DE", "de-AT")  # the varieties of the standard spelling, with the sharp s
 SENTENCE_KINDS = ("sentence", "list_item")
 FINITE_TAGS = frozenset({"VVFIN", "VAFIN", "VMFIN", "VVIMP", "VAIMP"})
 INFINITIVE_TAGS = frozenset({"VVINF", "VAINF", "VMINF"})
@@ -58,6 +70,32 @@ def word_count(sent: Span) -> int:
         if not (is_num and previous_num):
             count += 1
         previous_num = is_num
+    return count
+
+
+_JOINING_HYPHENS = "-\u2010\u2011"
+
+
+def word_count_joined(sent: Span) -> int:
+    """`word_count` for the German of Germany and Austria, whose easy-language texts split
+    a long compound with a hyphen (Kranken-Kasse, Bundes-Gleichstellungs-Gesetz): spaCy
+    makes three tokens of it, and the parts joined by a hyphen without spaces count as
+    one word, as a Mediopunkt compound does in Switzerland (29 October 2026)."""
+    count = 0
+    previous_num = False
+    joined = False
+    for t in sent:
+        if t.is_space:
+            continue
+        if t.is_punct:
+            glued = t.i > sent.start and not sent.doc[t.i - 1].whitespace_
+            joined = t.text in _JOINING_HYPHENS and glued and not t.whitespace_
+            continue
+        is_num = t.like_num or t.tag_ == "CARD"
+        if not (is_num and previous_num) and not joined:
+            count += 1
+        previous_num = is_num
+        joined = False
     return count
 
 
@@ -613,12 +651,12 @@ SEPARABLE_PREFIXES = tuple(
 GLUED_ALLOWED = frozenset({"anerkennen"})  # Swiss usage keeps it in one word
 
 
-def separable_split(word: str) -> tuple[str, str] | None:
+def separable_split(word: str, glued_allowed: bool = True) -> tuple[str, str] | None:
     """(prefix, verb) when the lowercase word is a separable prefix plus a known verb
     infinitive (`mitschicken`: `mit`, `schicken`); None otherwise (`antworten`,
     `beinhalten`, `einigen`: what follows the prefix is no verb)."""
-    if word in GLUED_ALLOWED:
-        return None
+    if glued_allowed and word in GLUED_ALLOWED:
+        return None  # Swiss usage; Germany and Austria split anerkennen like any other verb
     for prefix in SEPARABLE_PREFIXES:
         if word.startswith(prefix):
             stem = word[len(prefix) :]
@@ -681,7 +719,7 @@ def gram_08(sent: Span, ctx: Context) -> Iterator[Hit]:
             continue  # a verb before it: not the main clause's verb
         if not any(x.is_alpha for x in tokens[n + 1 :]):
             continue  # at the end: an infinitive phrase, not a glued finite verb
-        split = separable_split(t.lower_)
+        split = separable_split(t.lower_, glued_allowed=ctx.region == "CH")
         if split is None:
             continue
         prefix, stem = split
@@ -761,17 +799,31 @@ def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
 
 @rule(
     "LEX-01",
-    lang=DE,
-    guide="Lange Wörter trennst du mit dem Medio·punkt: Prämien·verbilligung, "
-    "Kranken·kasse. Nach dem Punkt schreibst du klein weiter.",
+    lang=GERMAN,
+    guide={
+        "de": "Lange Wörter trennst du mit dem Medio·punkt: Prämien·verbilligung, "
+        "Kranken·kasse. Nach dem Punkt schreibst du klein weiter.",
+        # Rendered with the hyphen by the prompt (Binde-Strich, Kranken-Kasse).
+        "de-DE": "Lange Wörter trennst du mit einem Binde·strich: Prämien·verbilligung, "
+        "Kranken·kasse. Nach dem Bindestrich schreibst du gross weiter.",
+        "de-AT": "Lange Wörter trennst du mit einem Binde·strich: Prämien·verbilligung, "
+        "Kranken·kasse. Nach dem Bindestrich schreibst du gross weiter.",
+    },
 )
 def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     limit = ctx.params.max_word_letters
+    # Germany and Austria split with a hyphen and a capital (varieties.toml,
+    # `compound_mark`): the suggestion takes that form, and a Mediopunkt is a finding.
+    hyphen = variety_table(ctx.variety).compound_mark == "hyphen"
     for t in sent:
         if t.like_url or t.like_email or not any(ch.isalpha() for ch in t.text):
             continue
-        lowered = lowercase_after_mediopunkt(t.text)
-        if lowered:
+        if hyphen and "·" in t.text:
+            marked = hyphenated(lowercase_after_mediopunkt(t.text) or t.text)
+            yield hit(
+                "LEX-01.mark", found=t.text, expected=marked, evidence=t.text, suggestion=marked
+            )
+        elif lowered := lowercase_after_mediopunkt(t.text):
             yield hit("LEX-01.lowercase", found=t.text, evidence=t.text, suggestion=lowered)
         long_parts = [p for p in re.split(r"[·-]", t.text) if _alpha(p) > limit]
         if not long_parts:
@@ -783,12 +835,12 @@ def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
         split = mediopunkt_suggestion(t.text, limit)
         if split:
             yield hit(
-                "LEX-01",
+                "LEX-01.hyphen" if hyphen else "LEX-01",
                 found=t.text,
                 letters=_alpha(long_parts[0]),
                 limit=limit,
                 evidence=t.text,
-                suggestion=split,
+                suggestion=hyphenated(split) if hyphen else split,
             )
         elif not ctx.in_glossary(t.text):  # no compound: only a shorter word helps
             yield hit(
@@ -817,24 +869,40 @@ ACRONYM_RE = re.compile(
     r"(?<![\w-])(?:[A-ZÄÖÜ]{2,5}s?|[A-ZÄÖÜ][a-zäöü]{0,4}[A-ZÄÖÜ][A-Za-zÄÖÜäöü]{0,4})(?![\w-])"
 )  # KVG, EL, and law abbreviations in mixed case such as BehiG or SchKG
 ACRONYMS_ALLOWED = frozenset({"WC", "SBB", "PDF", "AHV", "IV", "CHF", "SMS", "TV", "ID"})
+# Germany: the Netzwerk Leichte Sprache's rule W6 names WC, LKW, Dr. and ICE as known;
+# Austria: the ÖBB and the AMS are everyday names. Dr. is allowed outside Switzerland.
+ACRONYMS_ALLOWED_REGION = {
+    "CH": ACRONYMS_ALLOWED,
+    "DE": frozenset({"WC", "LKW", "PKW", "ICE", "PDF", "EU", "SMS", "TV", "ID", "OK", "EC"}),
+    "AT": frozenset({"WC", "LKW", "PKW", "ÖBB", "AMS", "PDF", "EU", "SMS", "TV", "ID", "OK"}),
+}
 # Words in capitals for emphasis, as voting texts write them: "Sagen Sie JA".
 EMPHASIS_WORDS = frozenset({"JA", "NEIN", "NICHT", "KEIN", "UND", "ODER", "NUR", "AUCH", "NIE"})
 
 
 @rule(
     "LEX-02",
-    lang=DE,
-    guide="Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind CHF, AHV, IV, "
-    "SBB, WC und PDF. Andere Abkürzungen erklärst du.",
+    lang=GERMAN,
+    guide={
+        "de": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind CHF, AHV, IV, "
+        "SBB, WC und PDF. Andere Abkürzungen erklärst du.",
+        "de-DE": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind WC, LKW, "
+        "Dr., ICE und PDF. Andere Abkürzungen erklärst du.",
+        "de-AT": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind WC, ÖBB, "
+        "AMS, Dr. und PDF. Andere Abkürzungen erklärst du.",
+    },
 )
 def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask(block.text, [m.span() for m in URL_RE.finditer(block.text)])
     text = mask(text, [m.span() for m in EMAIL_RE.finditer(text)])
+    allowed = ACRONYMS_ALLOWED_REGION.get(ctx.region, ACRONYMS_ALLOWED)
     for m in ABBREVIATION_RE.finditer(text):
         if m.group(0) == "St." and text[m.end() :].lstrip().startswith("Gallen"):
             continue
+        if m.group(0) == "Dr." and ctx.region != "CH":
+            continue  # known everywhere in Germany and Austria (Netzwerk, rule W6)
         found = m.group(0)
-        yield hit("LEX-02", found=found, evidence=found, suggestion=easy_for(DE, found))
+        yield hit("LEX-02", found=found, evidence=found, suggestion=easy_for(ctx.variety, found))
     for m in WEEKDAY_RANGE_RE.finditer(text):
         yield hit(
             "LEX-02.weekdays",
@@ -847,7 +915,7 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         if acronym[-1] == "s" and acronym[:-1].isupper():
             acronym = acronym[:-1]  # plural s: die KVGs
         if (
-            acronym in ACRONYMS_ALLOWED
+            acronym in allowed
             or acronym in EMPHASIS_WORDS
             or (len(acronym) >= 4 and is_known(acronym.lower(), min_zipf=3.5))  # BITTE
             or re.fullmatch(r"[IVXLC]+", acronym)
@@ -857,7 +925,10 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             yield hit("LEX-02.explained", found=acronym, evidence=acronym, severity="info")
             continue
         yield hit(
-            "LEX-02.acronym", found=acronym, evidence=acronym, suggestion=easy_for(DE, acronym)
+            "LEX-02.acronym",
+            found=acronym,
+            evidence=acronym,
+            suggestion=easy_for(ctx.variety, acronym),
         )
 
 
@@ -949,6 +1020,8 @@ def num_01(sent: Span, ctx: Context) -> Iterator[Hit]:
                 suggestion=str(CARDINAL_WORDS[lower]),
             )
         elif m := ORDINAL_RE.match(lower):
+            if ctx.region != "CH":
+                continue  # Germany and Austria: ordinals as words are fine (DIN SPEC 33429)
             if t.pos_ in ("NOUN", "PROPN") or (lower.startswith("acht") and t.pos_ != "ADJ"):
                 continue  # "Dritte" (third parties) is no number
             yield hit(
@@ -965,6 +1038,14 @@ IDENTIFIER_BEFORE_RE = re.compile(
     re.IGNORECASE,
 )
 CURRENCY_NEAR_RE = re.compile(r"CHF|Fr\.|Franken|Rappen", re.IGNORECASE)
+# Germany and Austria (29 October 2026): the euro, and the file numbers of a Bescheid
+# before a number that is no amount.
+CURRENCY_NEAR_RE_DE = re.compile(r"EUR|€|Euro|Cent", re.IGNORECASE)
+IDENTIFIER_BEFORE_RE_DE = re.compile(
+    IDENTIFIER_BEFORE_RE.pattern[: -len(r")\s?$")]
+    + r"|Kassenzeichen|Geschäftszahl|GZ|Aktenzeichen|Az\.|Steuernummer|Steuer-ID)\s?$",
+    re.IGNORECASE,
+)
 
 
 TIME_RANGE_RE = re.compile(
@@ -975,20 +1056,32 @@ TIME_COLON_RE = re.compile(r"(?<![\d.:])(\d{1,2}):(\d{2})(?!\d)(?:\s?Uhr)?")
 TIME_H_RE = re.compile(r"(?<![\d.:])(\d{1,2})\s?h(?:\s?(\d{2}))?(?![\w])")
 
 
-def _time_text(hour: str, minute: str | None) -> str:
-    return f"{int(hour)} Uhr" if minute in (None, "00") else f"{int(hour)}.{minute} Uhr"
+def _time_text(hour: str, minute: str | None, colon: bool = False) -> str:
+    """9 Uhr, 9.30 Uhr; the German of Germany writes the minutes after a colon (9:30 Uhr),
+    Austria's easy-language pages after a dot like Switzerland."""
+    if minute in (None, "00"):
+        return f"{int(hour)} Uhr"
+    return f"{int(hour)}:{minute} Uhr" if colon else f"{int(hour)}.{minute} Uhr"
 
 
-def _range_text(m: re.Match[str]) -> str:
-    return f"{_time_text(m.group(1), m.group(2))} bis {_time_text(m.group(3), m.group(4))}"
+def _range_text(m: re.Match[str], colon: bool = False) -> str:
+    first = _time_text(m.group(1), m.group(2), colon)
+    return f"{first} bis {_time_text(m.group(3), m.group(4), colon)}"
 
 
 @rule(
     "NUM-04",
-    lang=DE,
-    guide="Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis 12 Uhr.",
+    lang=GERMAN,
+    guide={
+        "de": "Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis 12 Uhr.",
+        "de-DE": "Uhrzeiten schreibst du so: 9 Uhr oder 9:30 Uhr. Zeitspannen so: 9 Uhr bis "
+        "12 Uhr.",
+        "de-AT": "Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis "
+        "12 Uhr.",
+    },
 )
 def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
+    colon = ctx.region == "DE"  # 9:30 Uhr is the form there, so the colon is no finding
     text = mask_numbers(block.text)
     spans: list[tuple[int, int]] = []
     for m in TIME_RANGE_RE.finditer(text):
@@ -999,12 +1092,12 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         yield hit(
             "NUM-04.range",
             found=m.group(0).strip(),
-            expected=_range_text(m),
+            expected=_range_text(m, colon),
             evidence=m.group(0).strip(),
-            suggestion=_range_text(m),
+            suggestion=_range_text(m, colon),
         )
     text = mask(text, spans)
-    for regex in (TIME_COLON_RE, TIME_H_RE):
+    for regex in (TIME_H_RE,) if colon else (TIME_COLON_RE, TIME_H_RE):
         found = []
         for m in regex.finditer(text):
             minute = m.group(2)
@@ -1014,9 +1107,9 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             yield hit(
                 "NUM-04",
                 found=m.group(0).strip(),
-                expected=_time_text(m.group(1), minute),
+                expected=_time_text(m.group(1), minute, colon),
                 evidence=m.group(0).strip(),
-                suggestion=_time_text(m.group(1), minute),
+                suggestion=_time_text(m.group(1), minute, colon),
             )
         text = mask(text, found)
 
@@ -1033,21 +1126,30 @@ AMOUNT_STYLE_RE = re.compile(
 )
 
 
+# The amount styles of Germany and Austria the rule flags (NUM-07 asks for `500 Euro`):
+# the currency before the number (`€ 330,-`, `EUR 1.234,56`), decimals or dashes before
+# the currency (`1.500,00 €`, `500,00 Euro`), and `EUR` or `€` after the number.
+AMOUNT_STYLE_DE_RE = re.compile(
+    r"(?:EUR|€)\s?(\d[\d.]*)(?:,(?:\d{2}|[" + DASHES + r"]{1,2}))?"
+    r"|(\d[\d.]*),(?:\d{2}|[" + DASHES + r"]{1,2})\s?(?:€|EUR|Euro)"
+    r"|(\d[\d.]*)\s?(?:EUR|€)(?!\w)"
+)
+
 # A service number in either usual grouping (0800 123 456, 0848 35 45 55) is fine too.
 
 
-# -- Swiss spelling -----------------------------------------------------------------
+# -- the region: spelling, quotation marks, words (REG-01 to REG-03; Swiss checks) ----
 
 
 @rule(
-    "CH-01",
+    "REG-01",
     lang=DE,
     guide="Schweizer Recht·schreibung: immer ss, nie ß.",
 )
 def ch_01(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in re.finditer(rf"[{_LETTER}·]*ß[{_LETTER}·]*", block.text):
         yield hit(
-            "CH-01",
+            "REG-01",
             found=m.group(0),
             evidence=m.group(0),
             suggestion=m.group(0).replace("ß", "ss"),
@@ -1058,14 +1160,106 @@ QUOTE_RE = re.compile("[\u00ab\u00bb\u2039\u203a\u201e\u201c\u201d\u201a\u2018]"
 
 
 @rule(
-    "CH-02",
+    "REG-02",
     lang=DE,
     guide="Keine Anführungs·zeichen.",
 )
 def ch_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     found = sorted(set(QUOTE_RE.findall(block.text)))
     if found:
-        yield hit("CH-02", evidence=" ".join(found))
+        yield hit("REG-02", evidence=" ".join(found))
+
+
+@rule(
+    "REG-01",
+    lang=STANDARD,
+    guide={
+        "de-DE": "Recht·schreibung: ß, wo es hingehört: Straße, groß, außerdem.",
+        "de-AT": "Recht·schreibung: ß, wo es hingehört: Straße, groß, außerdem.",
+    },
+)
+def reg_01_standard(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
+    """Germany and Austria write ß where the standard spelling has it. A Swiss `ss` in a
+    word of the spelling table (rules/data/spelling_de.toml, the unambiguous stems the
+    vocabulary is rendered with) is a warning, and code writes the ß after the write
+    stage and every repair round (rules/swiss.py), as it writes ss in Switzerland."""
+    for m in re.finditer(rf"[{_LETTER}·]+", block.text):
+        word = m.group(0)
+        if "ss" not in word.lower():
+            continue
+        standard = standard_spelling(word)
+        if standard != word:
+            yield hit(
+                "REG-01.standard",
+                found=word,
+                expected=standard,
+                evidence=word,
+                suggestion=standard,
+                severity="warn",
+            )
+
+
+# Not the German „ “: guillemets and single low quotes.
+QUOTE_RE_STANDARD = re.compile("[\u00ab\u00bb\u2039\u203a\u201a\u2018]")
+
+
+@rule(
+    "REG-02",
+    lang=STANDARD,
+    guide={
+        "de-DE": "Anführungs·zeichen nur für wörtliche Rede, und dann so: „ “.",
+        "de-AT": "Anführungs·zeichen nur für wörtliche Rede, und dann so: „ “.",
+    },
+)
+def reg_02_standard(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
+    """Germany and Austria write „ “, for direct speech only (DIN SPEC 33429); guillemets
+    and single quotes are a note."""
+    found = sorted(set(QUOTE_RE_STANDARD.findall(block.text)))
+    if found:
+        yield hit("REG-02.standard", found=" ".join(found), evidence=" ".join(found))
+
+
+# The Swiss words a Swiss-trained writer puts into a German or Austrian text, with the
+# word of Germany and the word of Austria; None where that country uses the Swiss word.
+REGIONAL_WORDS: dict[str, tuple[str | None, str | None]] = {
+    "velo": ("Fahrrad", "Fahrrad"), "parkieren": ("parken", "parken"),
+    "trottoir": ("Gehweg", "Gehsteig"), "spital": ("Krankenhaus", None),
+    "billett": ("Fahrkarte", "Fahrkarte"), "tram": ("Straßenbahn", "Straßenbahn"),
+    "perron": ("Bahnsteig", "Bahnsteig"), "matura": ("Abitur", None),
+    "hauswart": ("Hausmeister", "Hausbesorger"), "grillieren": ("grillen", "grillen"),
+    "rahm": ("Sahne", "Obers"), "fahrausweis": ("Führerschein", "Führerschein"),
+    "identitätskarte": ("Personalausweis", "Personalausweis"), "natel": ("Handy", "Handy"),
+    "offerte": ("Angebot", "Angebot"), "unterbruch": ("Unterbrechung", "Unterbrechung"),
+    "januar": (None, "Jänner"),
+}  # fmt: skip
+
+
+@rule(
+    "REG-03",
+    lang=STANDARD,
+    guide={
+        "de-DE": "Nimm die Wörter, die in Deutschland üblich sind: Fahrrad, parken, Gehweg, "
+        "Krankenhaus.",
+        "de-AT": "Nimm die Wörter, die in Österreich üblich sind: Fahrrad, parken, Gehsteig, "
+        "Jänner.",
+    },
+)
+def reg_03_standard(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
+    """A warning, not a note as in Switzerland: the writer was trained on Swiss texts and
+    puts Velo and Spital into German drafts."""
+    index = 0 if ctx.region == "DE" else 1
+    for sent in block.sentences:
+        for t in sent:
+            words = REGIONAL_WORDS.get(t.lemma_.lower()) or REGIONAL_WORDS.get(t.lower_)
+            if words and words[index]:
+                yield hit(
+                    "REG-03.germany" if ctx.region == "DE" else "REG-03.austria",
+                    found=t.text,
+                    expected=words[index],
+                    evidence=t.text,
+                    suggestion=words[index],
+                    severity="warn",
+                )
 
 
 HELVETISMS = {
@@ -1079,7 +1273,7 @@ HELVETISMS = {
 
 
 @rule(
-    "CH-03",
+    "REG-03",
     lang=DE,
     guide="Nimm Schweizer Wörter: Velo, parkieren, Trottoir, Spital.",
 )
@@ -1088,4 +1282,4 @@ def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         for t in sent:
             swiss = HELVETISMS.get(t.lemma_.lower()) or HELVETISMS.get(t.lower_)
             if swiss:
-                yield hit("CH-03", found=t.text, swiss=swiss, evidence=t.text, suggestion=swiss)
+                yield hit("REG-03", found=t.text, swiss=swiss, evidence=t.text, suggestion=swiss)

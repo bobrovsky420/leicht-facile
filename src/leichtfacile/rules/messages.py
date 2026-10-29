@@ -68,6 +68,10 @@ MESSAGES: dict[str, str] = {
     # -- words
     "LEX-01": "'{found}' is long ({letters} letters, limit {limit}): split it with a Mediopunkt.",
     "LEX-01.lowercase": "After the Mediopunkt continue in lowercase: '{found}'.",
+    "LEX-01.hyphen": "'{found}' is long ({letters} letters, limit {limit}): split it with a "
+    "hyphen.",
+    "LEX-01.mark": "'{found}': in Germany and Austria a compound is split with a hyphen: "
+    "{expected}.",
     "LEX-01.no_compound": "'{found}' is long ({letters} letters): use a shorter word if "
     "there is one.",
     "LEX-02": "Abbreviation '{found}': write the word in full.",
@@ -98,10 +102,15 @@ MESSAGES: dict[str, str] = {
     "NUM-06": "Percent sign: write {expected}.",
     "NUM-07": "Amount '{found}': write {expected}.",
     "NUM-08": "Phone number '{found}': write it as {expected}.",
-    # -- Swiss usage
-    "CH-01": "'{found}': Swiss spelling uses ss.",
-    "CH-02": "Quotation marks: leave them out.",
-    "CH-03": "'{found}': Swiss texts write {swiss}.",
+    "NUM-08.grouped": "Phone number '{found}': write the digits in groups: {expected}.",
+    # -- the region: the Swiss checks, and those of Germany and Austria (29 October 2026)
+    "REG-01": "'{found}': Swiss spelling uses ss.",
+    "REG-01.standard": "'{found}': standard German spelling writes {expected}.",
+    "REG-02": "Quotation marks: leave them out.",
+    "REG-02.standard": "Quotation marks {found}: in German texts only „ “, for direct speech.",
+    "REG-03": "'{found}': Swiss texts write {swiss}.",
+    "REG-03.germany": "'{found}': in Germany one writes {expected}.",
+    "REG-03.austria": "'{found}': in Austria one writes {expected}.",
     # -- facts (every language)
     "FACT-01": "Fact {fact} is missing or changed: {text} (expected {expected}).",
     "FACT-02": "No block conveys fact {fact}: {text}",

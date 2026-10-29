@@ -40,7 +40,7 @@
       <label class="inline">{{ t('index.lang') }}
         <select name="lang" data-autosubmit>
           <option value="">{{ t('drafts.lang.all') }}</option>
-          {% for code in langs %}<option value="{{ code }}"{% if code == lang %} selected{% endif %}>{{ t.get('lang.' ~ code, code) }}</option>{% endfor %}
+          {% for code in langs %}<option value="{{ code }}"{% if code == lang %} selected{% endif %}>{{ t.language(code) }}</option>{% endfor %}
         </select>
       </label>
       {% endif %}
@@ -129,7 +129,7 @@
     {% else %}
     <div class="empty">
       <h2>{{ t('drafts.empty.title') }}</h2>
-      <p>{{ t('site.tagline') }}</p>
+      <p>{{ t('site.tagline', country=t.country) }}</p>
       <p>{{ t('drafts.empty.text') }}</p>
       <div class="actions">
         {% for e in examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}

@@ -12,6 +12,8 @@
 # hyphenation    pyphen's dictionary for the syllable count of the readability index
 # notice         the decision mode's default notice: the first and the last paragraph of
 #                the export when the job sets none (docs/use-case-decisions.md)
+# compound_mark  the mark that splits a long compound: mediopunkt (Kranken·kasse) or hyphen
+#                (Kranken-Kasse, a capital after it); German varieties, default mediopunkt
 # prompt         German varieties only: the facts the German prompt templates take as
 #                `v.prompt` (src/leichtfacile/pipeline/prompts.py), one template set for
 #                every German variety. Each variety sets every field:
@@ -33,6 +35,7 @@ label = "German (Switzerland)"
 setup_label = "Switzerland: ss, Mediopunkt, Franken"
 word_lang = "de-CH"
 hyphenation = "de_CH"
+compound_mark = "mediopunkt"
 notice = "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
 
 [de.prompt]
@@ -46,6 +49,57 @@ office_split = "Einwohner·kontrolle"
 office_article = "die"
 office_at = "bei der"
 phone = "031 987 65 43"
+
+# Germany: the decision letter is a Bescheid, the notice says so with the ß of standard
+# spelling; the dog-tax example's office is the Bürgeramt of a city, its number in the
+# DIN 5008 shape (area code, a space, the subscriber number).
+[de-DE]
+lang = "de"
+region = "DE"
+label = "German (Germany)"
+setup_label = "Germany: ß, hyphen, Euro"
+word_lang = "de-DE"
+hyphenation = "de_DE"
+compound_mark = "hyphen"
+notice = "Diese Erklärung hilft Ihnen, den Bescheid zu verstehen. Maßgebend ist der Bescheid."
+
+[de-DE.prompt]
+country_in = "in Deutschland"
+country_adjective = "deutsches"
+doc_types = "Brief, Bescheid, Formular, Merkblatt, Webseite"
+currency = "Euro"
+amount_spellings = "42.000 Euro statt 42.000,00 €"
+office = "Bürgeramt"
+office_split = "Bürger·amt"
+office_article = "das"
+office_at = "beim"
+phone = "030 9876543"
+
+# Austria: the decision letter is a Bescheid too (AVG § 56, § 58), and "maßgebend" is the
+# word of the Austrian procedural codes themselves (AVG § 37, the BAO), so the notice is
+# the German one. The amounts as the Austrian pages write them (€ 330,-), the office of a
+# municipality, a Viennese number.
+[de-AT]
+lang = "de"
+region = "AT"
+label = "German (Austria)"
+setup_label = "Austria: ß, hyphen, Euro, Jänner"
+word_lang = "de-AT"
+hyphenation = "de_AT"
+compound_mark = "hyphen"
+notice = "Diese Erklärung hilft Ihnen, den Bescheid zu verstehen. Maßgebend ist der Bescheid."
+
+[de-AT.prompt]
+country_in = "in Österreich"
+country_adjective = "österreichisches"
+doc_types = "Brief, Bescheid, Formular, Merkblatt, Webseite"
+currency = "Euro"
+amount_spellings = "42.000 Euro statt € 42.000,-"
+office = "Gemeindeamt"
+office_split = "Gemeinde·amt"
+office_article = "das"
+office_at = "beim"
+phone = "01 9876543"
 
 [fr]
 lang = "fr"

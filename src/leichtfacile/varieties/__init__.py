@@ -35,6 +35,9 @@ class Variety:
     hyphenation: str  # pyphen's dictionary
     notice: str  # the decision mode's default notice
     setup_label: str | None = None  # the choice setup offers; German varieties only
+    # How a long compound is split in the variety's texts: mediopunkt (Kranken·kasse) or
+    # hyphen (Kranken-Kasse), docs/rules.md LEX-01; the German varieties set it.
+    compound_mark: str = "mediopunkt"
     # The facts the German prompt templates take as `v.prompt` (pipeline/prompts.py);
     # French and Italian have none. Left out of the hash, so a Variety stays hashable.
     prompt: dict[str, str] = field(default_factory=dict, hash=False)

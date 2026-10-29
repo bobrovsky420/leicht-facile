@@ -22,6 +22,9 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
         p.add_argument("--manifest", type=Path, default=MANIFEST)
         p.add_argument("--role", default=role, choices=["dev", "eval", "all"])
         p.add_argument("--lang", choices=["de", "fr", "it"])
+        p.add_argument(
+            "--region", choices=["CH", "DE", "AT"], help="only the pairs of this variety"
+        )
         p.add_argument("--ids", nargs="*", help="only these pair ids")
 
     fetch = evsub.add_parser("fetch", help="download and cache the pairs (no model)")
@@ -137,7 +140,13 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:
 def _pairs(args: argparse.Namespace):
     from leichtfacile.eval.dataset import load_manifest, select
 
-    return select(load_manifest(args.manifest), role=args.role, lang=args.lang, ids=args.ids)
+    return select(
+        load_manifest(args.manifest),
+        role=args.role,
+        lang=args.lang,
+        ids=args.ids,
+        region=getattr(args, "region", None),
+    )
 
 
 def _fetch(args: argparse.Namespace) -> int:

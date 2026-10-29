@@ -75,7 +75,7 @@ and 21 (calibration of 28 October 2026, below).
 | LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, in the glossary or not (an entry explains the word, it does not make it shorter); the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`) and is written into the draft by code in P1 and P2 (nouns only, see "Edits made by code" below); a long word that is no compound is a note, none if it is in the glossary; an uppercase letter after the dot is flagged | warn |
 | LEX-02 | No abbreviations except common ones | a list of dotted abbreviations (`z. B.`, `bzw.`, `ggf.`, `ca.`, `Art. 5`, ...), abbreviated weekday ranges (`Mo-Fr`), capital clusters and mixed-case law abbreviations (`KVG`, `BehiG`); allowlist: `WC`, `SBB`, `PDF`, `AHV`, `IV`, `CHF`, `SMS`, `TV`; an abbreviation explained in the text (`(EL)` after the full term) or in the glossary is only `info`; the suggestion is the full word from the vocabulary (`z. B.`: `zum Beispiel`, `EL`: `Ergänzungsleistungen`) | warn |
 | LEX-03 | No foreign words, anglicisms, jargon | content word with a Zipf frequency below 2.5 (wordfreq, German), unless it is a compound of common words, in the glossary, or an office word LEX-07 names the everyday word for | info |
-| LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded); `%` is NUM-06, quotation marks are CH-02 | warn |
+| LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded); `%` is NUM-06, quotation marks are REG-02 | warn |
 | LEX-05 | Gender-fair, concrete forms | asterisk, colon, underscore and Binnen-I forms (`Mitarbeiter*innen`, `MitarbeiterInnen`), participle nouns (`Mitarbeitende`, `Studierende`). Generic masculine plurals are not detected | info |
 | LEX-06 | Direct address with `Sie` | role nouns for the reader (`Antragsteller`, `Gesuchsteller`, `Versicherte`, `Steuerpflichtige`, `Bezüger`, `die betroffene Person`, ...) | info |
 | LEX-07 | Everyday words instead of office words | a `replace` word of the vocabulary ("Vocabulary" below: `innert`, `gemäss`, `einreichen` also as `reichen ... ein`, `in Kraft treten` also as `tritt ... in Kraft`), with its everyday word as the suggestion; not the context-dependent words, not abbreviations (LEX-02), not the role nouns (LEX-06) | warn / info |
@@ -93,13 +93,20 @@ and 21 (calibration of 28 October 2026, below).
 | NUM-07 | Amounts as `500 Franken` or `CHF 500`, no decimals when zero | `CHF 500.00`, `Fr. 500.-`, `500.00 CHF` | info |
 | NUM-08 | Phone numbers spaced: `044 123 45 67` | `0041`, `044/123 45 67`, unspaced or oddly spaced digits; the spaced international format `+41 44 123 45 67` is accepted (calibration), and a service number in either usual grouping (`0800 123 456`, `0848 35 45 55`) | warn |
 
-### Swiss spelling
+### The region: spelling, quotation marks, words
+
+The three rules were CH-01 to CH-03 until 29 October 2026, when the German of Germany
+and Austria came in sight: one id each now, a check per variety (`rules/catalog.py`,
+docs/architecture.md §8); the Swiss checks below, the German and Austrian ones in
+their sections. A store opened by the new version rewrites the ids of its stored
+findings and code edits (`store.py`, migration 6), and the evaluation reads the old
+result rows' family `CH` as `REG`.
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| CH-01 | `ss`, never `ß` | `ß` anywhere; since 8 October 2026 code writes `ss` into the blocks and the glossary after the write stage and every repair round, like the Mediopunkt (`rules/swiss.py`, a `CodeEdit` per word, P1 and P2 only), so the rule fires on texts checked as they are | error |
-| CH-02 | No `« »` or `„ “`; use `"` sparingly or none | guillemets, low quotes | info |
-| CH-03 | Helvetisms where the official text uses them | German-German variants on a small map (`Fahrrad`→`Velo`, `parken`→`parkieren`, `Bürgersteig`→`Trottoir`, `Krankenhaus`→`Spital`) | info |
+| REG-01 | `ss`, never `ß` | `ß` anywhere; since 8 October 2026 code writes `ss` into the blocks and the glossary after the write stage and every repair round, like the Mediopunkt (`rules/swiss.py`, a `CodeEdit` per word, P1 and P2 only), so the rule fires on texts checked as they are | error |
+| REG-02 | No `« »` or `„ “`; use `"` sparingly or none | guillemets, low quotes | info |
+| REG-03 | Helvetisms where the official text uses them | German-German variants on a small map (`Fahrrad`→`Velo`, `parken`→`parkieren`, `Bürgersteig`→`Trottoir`, `Krankenhaus`→`Spital`) | info |
 
 ### Facts (the most important family)
 
@@ -182,8 +189,8 @@ conjunctions and verbs that require it.
 
 Not carried over from German: the genitive (GRAM-02; French has no genitive case, and
 `de` is the recommended form), the Mediopunkt (LEX-01; French has no long compounds),
-`ß` and quotation marks (CH-01, CH-02; guillemets are standard French), the
-Helvetisms map (CH-03, replaced by the Swiss numerals) and the word order rule
+`ß` and quotation marks (REG-01, REG-02; guillemets are standard French), the
+Helvetisms map (REG-03, replaced by the Swiss numerals) and the word order rule
 (ORD-01): French statements keep subject, verb, object, inversion is rare, and the
 parser cannot tell an inverted subject from an object.
 
@@ -216,7 +223,7 @@ parser cannot tell an inverted subject from an object.
 | NUM-06 | Percent written out | `%` → `pour cent` | warn |
 | NUM-07 | Amounts `500 francs` or `CHF 500` | `CHF 500.00`, `500.-`, `500,00 CHF`, `500 CHF` | info |
 | NUM-08 | Phone numbers spaced: `022 123 45 67` | as NUM-08, including the accepted `+41 22 123 45 67` | warn |
-| CH-03 | Swiss numerals `septante`, `huitante` or `octante`, `nonante` when numbers are written out | `soixante-dix` to `soixante-dix-neuf`, `quatre-vingt-dix` to `quatre-vingt-dix-neuf` | info |
+| REG-03 | Swiss numerals `septante`, `huitante` or `octante`, `nonante` when numbers are written out | `soixante-dix` to `soixante-dix-neuf`, `quatre-vingt-dix` to `quatre-vingt-dix-neuf` | info |
 
 Readability: Kandel-Moles (French adaptation of Flesch), syllables via `pyphen`
 (`fr`); reported, with no target yet. Rule source for the writer prompt: Inclusion
@@ -247,8 +254,8 @@ competence centre writes tu, Ticino's pages voi).
 
 Not carried over from German and French: the genitive (GRAM-02), the Mediopunkt (LEX-01
 is a note on long words, as in French), the word order rule (ORD-01), the separable
-verbs (GRAM-08), `ß` and quotation marks (CH-01, CH-02; guillemets are standard in
-Swiss Italian) and the Swiss variants (CH-03: Swiss Italian differs from Italy's in
+verbs (GRAM-08), `ß` and quotation marks (REG-01, REG-02; guillemets are standard in
+Swiss Italian) and the Swiss variants (REG-03: Swiss Italian differs from Italy's in
 words the vocabulary handles, not in numerals).
 
 | ID | Rule | Detection | Severity |
@@ -288,6 +295,73 @@ reported, with no target yet. Rule sources for the writer prompt: Inclusion Euro
 pubbliche" (UFPD, version 1.1, June 2026: digits, times as `09.30`, phone numbers with
 spaces, no special characters, no passive, no double negation, every sentence on its own
 line); the official pages of the BAG, the EBGB and Ticino's DASF used as examples.
+
+## German in Germany (DE-DE) and in Austria (DE-AT)
+
+Since 29 October 2026 (docs/architecture.md §8). The two varieties run the German checks
+under the German limits (12 and 15 words, 1 and 2 clauses, 13 and 16 letters); what
+differs is data in the shared checks' tables (`rules/shared.py`, the tables `de-DE` and
+`de-AT`), a check of its own for the three REG rules, and the variety's spelling in the
+style guide (the guides are written in the Swiss spelling and rendered with the ß table
+of `rules/data/spelling_de.toml`). The Swiss output is unchanged (`scripts/parity.py`).
+Sources: the Netzwerk Leichte Sprache's rules (2022 edition: W5, W6, Z8, Z9), DIN SPEC
+33429:2025-03, and what the official pages write (docs/sources.md, "Germany",
+"Austria").
+
+| ID | Germany | Austria |
+|----|---------|---------|
+| REG-01 | The sharp s where the standard spelling has it: a Swiss `ss` of a stem in the spelling table is a warning (`Strasse`: `Straße`), and code writes the ß after the write stage and every repair round (`rules/swiss.py`, `apply_sz`, the mirror of the Swiss `ss` step), so the rule fires on texts checked as they are | the same |
+| REG-02 | `„ “` for direct speech only (DIN SPEC 33429); guillemets `« »` and single low quotes `‚ ‘` are a note | the same |
+| REG-03 | The Swiss words a writer trained on Swiss texts leaves in a German draft, a warning with the country's word: `Velo` (Fahrrad), `Spital` (Krankenhaus), `Trottoir` (Gehweg), `Billett` (Fahrkarte), `parkieren` (parken), `Natel` (Handy), `Offerte` (Angebot), `Perron`, `Tram`, `Hauswart`, `Fahrausweis`, `Identitätskarte`, `Unterbruch`, ... (`rules/de.py`, `REGIONAL_WORDS`) | the Austrian word where it differs: `Gehsteig`, `Hausbesorger`, `Obers`; `Spital` and `Matura` stay; `Januar` becomes `Jänner` |
+| LEX-02 | Allowed: WC, LKW, PKW, ICE, PDF, EU, SMS, TV, ID, OK, EC, and `Dr.` (the Netzwerk's rule W6) | WC, LKW, PKW, ÖBB, AMS, PDF, EU, SMS, TV, ID, OK, and `Dr.` |
+| LEX-07 | The shared vocabulary and the country's own (`vocabulary_de-DE.toml`, "Vocabulary" below) | `vocabulary_de-AT.toml` |
+| NUM-01 | Ordinals as words are not flagged: the DIN SPEC avoids `1.`, `2.` in running text, the official pages write both | the same |
+| NUM-02 | The thousands dot: `1.500 Euro`, `500.000`; five-digit postcodes and the digits of the variety's phone numbers are no big numbers | the same |
+| NUM-03 | `4. Februar 2026` | `4. Jänner 2026` |
+| NUM-04 | `9 Uhr`, `9:30 Uhr`: the colon is the form, so it is no finding; `9h` and dash ranges are | `9 Uhr`, `9.30 Uhr` as in Switzerland (the Tirol pages); the colon is flagged |
+| NUM-07 | `500 Euro`; flagged: `1.500,00 €`, `EUR 500`, `500 EUR`, `€ 500` | the same, and so the Austrian pages' `€ 330,-` (a note, as everywhere) |
+| NUM-08 | The shapes of `rules/values.py` have no fixed grouping, and the official pages write slashes and hyphens, so only a glued run of eight or more digits is a finding, with the Netzwerk's pairs after the 0 as the suggestion (rule Z8: `0 55 44 33 22 11`) | the same |
+| GRAM-08 | `anerkennen` splits like every separable verb; the Swiss exception is Swiss | the same |
+| SEM-09, SEM-10 | Asked in the German decision partial (`prompts/de-DE/decision.md`): advice such as "Sie sollten Widerspruch einlegen"; a period without its start such as "nach Bekanntgabe", "ab Zustellung" | `prompts/de-AT/decision.md`: "Sie sollten Beschwerde erheben"; "nach Zustellung", "ab Erhalt" |
+| LEX-01 | The hyphen with a capital as the compound mark (`varieties.toml`, `compound_mark`): code writes `Kranken-Kasse` where Switzerland gets `Kranken·kasse` (`rules/mediopunkt.py`, the same split; the Netzwerk's rule W5, allowed by DIN SPEC 33429), and renders a Mediopunkt the model wrote the same way; the rule proposes that form (`LEX-01.hyphen`) and flags a Mediopunkt (`LEX-01.mark`); the prompts show the hyphen (the examples, the style guide and the office are written with the Mediopunkt and rendered with the variety's mark). A compound split at one joint only, as capito writes it (`Mindest-Versicherungsdauer`), gets its second hyphen | the same |
+| LEN-01 | A compound split with a hyphen counts as one word (`Kranken-Kasse`, `Bundes-Gleichstellungs-Gesetz`), as the German pages write them (`rules/de.py`, `word_count_joined`); spaCy makes three tokens of it | the same |
+
+Decision mode: a German `Bescheid` has no heading for its decision, which stands in the
+paragraphs between the salutation and the heading `Begründung` (`rules/decision.py`,
+`_before_reasons`, `found_by: reasons`); a court's judgment has a `Tenor`; the appeal
+instructions are the `Rechtsbehelfsbelehrung` or the sentence `Gegen diesen Bescheid
+können Sie innerhalb eines Monats nach Bekanntgabe Widerspruch erheben` (or `Klage`).
+An Austrian `Bescheid` has the headings `Spruch`, `Begründung` and
+`Rechtsmittelbelehrung`, and the `Beschwerde` goes `binnen vier Wochen nach Zustellung`
+to the Landesverwaltungsgericht (§ 7 Abs. 4 VwGVG). The Swiss variety reads neither
+fallback, so a German Bescheid in a Swiss installation is an ordinary letter.
+
+Calibration (29 October 2026, `eval calibrate --role all --region DE` and `--region AT`,
+the 12 easy-language pages of each country in the manifest, level A2, before any tuning):
+
+| Pages | Blocks | Errors / 100 blocks | Warnings / 100 blocks | Info / 100 blocks |
+|-------|--------|---------------------|-----------------------|-------------------|
+| Germany (BA, DRV, Familienportal, Bayern, Köln, München, Nürnberg) | 2,118 | 2.2 | 24.3 | 35.3 |
+| Austria (Tirol, Sozialministerium; both written by capito) | 870 | 10.7 | 66.8 | 49.9 |
+
+Germany lands where the Swiss pages are (2.0 errors): the errors are passives (GRAM-01,
+1.2: "Der Verdienst-Ausfall wird zum Teil ausgeglichen", "wird die Rente bezahlt"),
+sentences far over the limit (LEN-01, 0.8) and nested clauses (LEN-02, 0.1); the
+warnings are led by LEN-02 (10.5, the `wenn` and relative clauses the German pages use
+as freely as the Swiss ones) and LEX-07 (3.2). Not one REG finding: the German pages
+carry no Swiss spelling or word. What the first run flagged wrongly and the same day
+fixed: NUM-02 read the five-digit postcode `51103 Köln` and the digits of
+`0221 / 221-30700` as big numbers (23.4 warnings per 100 blocks after the fix). LEX-02 flags `NRW`, `BEEG` and the Aktenzeichen
+`12 IN 345/26`, which the pages explain or quote; left for the next calibration. The
+Austrian pages deviate from the rules the checker encodes as Ticino's do: capito's
+"Leicht Lesen" A2 keeps sentences of 13 to 19 words (LEN-01, 5.2 errors and 7.8
+warnings: "Die Kinderbeihilfe muss die Person bekommen, die die Förderung bekommt oder
+eine andere Person, die im selben Haushalt lebt"), passives (GRAM-01, 4.4), genitives
+(GRAM-02, 11.8: "Kopien der Geburtsurkunden der Mehrlinge") and long compounds without
+a mark (LEX-01, 18.0: `Kinderbeihilfe`, `Geburtsurkunden`, `Voraussetzungen`), and
+splits a compound at its main joint only (`Mindest-Versicherungsdauer`). capito's
+standard is not public, and two publishers are not Austria, so the Austrian limits stay
+the German ones; the numbers above are the baseline for the evaluation to decide on.
 
 ## Delegated to the judge (all languages)
 
@@ -522,7 +596,7 @@ the Mediopunkt splits.
   Zürich pages write them.
 - NUM-08 accepts the spaced international format (`+41 44 123 45 67`), which the
   Zürich pages use throughout.
-- CH-02 (quotation marks) and GRAM-06 (pronoun reference) are notes: Zürich uses
+- REG-02 (quotation marks) and GRAM-06 (pronoun reference) are notes: Zürich uses
   guillemets to introduce terms, and the pronoun heuristic is too rough for a warning;
   the judge checks references (SEM-03).
 - LEX-02 skips words in capitals for emphasis (`JA`, `NEIN`) and allows `ID`.

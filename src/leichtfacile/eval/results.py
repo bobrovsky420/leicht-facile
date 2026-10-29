@@ -64,6 +64,9 @@ def load_rows(results_dir: Path, pattern: str = "*.jsonl") -> list[Row]:
         for row in read_jsonl(path):
             row.setdefault("setup", path.stem.split("_")[0])
             row["setup"] = canonical_condition(row["setup"])
+            families = row.get("by_family_per_100")
+            if isinstance(families, dict) and "CH" in families:
+                families["REG"] = families.pop("CH")  # the family's name until 29 October 2026
             rows.append(row)
     return rows
 

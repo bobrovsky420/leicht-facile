@@ -13,7 +13,7 @@
     </div>
     <div class="pagehead-actions">
       {% if p.live %}
-      <span class="run-line" role="status"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=number(p.tokens, ui_lang)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
+      <span class="run-line" role="status"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
       <form method="post" action="/jobs/{{ job.id }}/cancel">
         <button type="submit" class="btn btn-danger">{{ t('job.stop') }}</button>
       </form>
@@ -25,7 +25,7 @@
     </div>
   </div>
   <div class="strip">
-    <span>{% if job.config.lang %}{{ t.get('lang.' ~ job.config.lang, job.config.lang) }} · {% endif %}{{ t('level.' ~ job.config.level) }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
+    <span>{% if job.config.lang %}{{ t.language(job.config.lang, job.config.region) }} · {% endif %}{{ t('level.' ~ job.config.level) }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
     {% if job.config.endpoint %}<span>{{ t('site.endpoint') }} <code>{{ job.config.endpoint }}</code></span>{% endif %}
     <span>{{ t('progress.writer') }} <code>{{ job.config.writer_model or job_llm.models.writer }}</code></span>
     {% if job.config.judge_model %}<span>{{ t('progress.judge') }} <code>{{ job.config.judge_model }}</code></span>{% endif %}
