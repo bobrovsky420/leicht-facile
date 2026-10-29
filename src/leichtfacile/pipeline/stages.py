@@ -74,7 +74,7 @@ from leichtfacile.schemas import (
     SemanticFinding,
     SourceDocument,
     Unsupported,
-    base_lang,
+    variety_chain,
 )
 from leichtfacile.varieties import variety as variety_table
 
@@ -187,7 +187,7 @@ COPY_LIMIT = 2  # sentences from the examples that make an answer a copy
 # about EL costs, with only 2 of 12 sentences verbatim (6 October 2026). Matched on
 # lowercased text without the Mediopunkt; "hundert" is not a dog.
 EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
-    "de": (
+    "de-CH": (
         r"\bhund(?:e|es|en|s)?\b",
         r"\bhundesteuer",
         r"\b(?:anwohner)?parkkarte",
@@ -222,7 +222,7 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
         r"\bwindschutzscheibe",
         r"\bchip\b",
     ),
-    "fr": (
+    "fr-CH": (
         r"\bchiens?\b",
         r"\bcarte de stationnement",
         r"\bpare-brise",
@@ -235,7 +235,7 @@ EXAMPLE_TOPIC_WORDS: dict[str, tuple[str, ...]] = {
     # The Italian examples (28 October 2026) are the French ones in Italian wording:
     # the dog and its tax, the parking permit, the office and the microchip of the
     # write example. Not measured on a model yet.
-    "it": (
+    "it-CH": (
         r"\bcan[ei]\b",
         r"\btassa sui cani",
         r"\b(?:carta|contrassegno) di parcheggio",
@@ -292,7 +292,9 @@ def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
 
 @lru_cache(maxsize=8)
 def _topic_patterns(lang: str) -> tuple[re.Pattern[str], ...]:
-    words = EXAMPLE_TOPIC_WORDS.get(lang) or EXAMPLE_TOPIC_WORDS.get(base_lang(lang), ())
+    words = next(
+        (EXAMPLE_TOPIC_WORDS[k] for k in variety_chain(lang) if k in EXAMPLE_TOPIC_WORDS), ()
+    )
     # The office of the variety's own dog-tax example (varieties.toml, `prompt.office`),
     # so a variety whose example names another office than the Swiss Einwohnerkontrolle
     # is guarded the same way.

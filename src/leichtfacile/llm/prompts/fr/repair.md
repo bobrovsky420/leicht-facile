@@ -11,7 +11,7 @@ Règles pour l'amélioration :
 {% if missing %}- Certains faits manquent dans le texte. C'est le plus important : pour chaque fait qui manque, écris 1 ou 2 nouvelles phrases dans "additions", avec exactement la valeur indiquée pour ce fait. Si le fait n'a pas de valeur, n'en invente pas. Dis après quel bloc elles viennent ("after") et donne le fait dans "fact_ids".
 - Change des blocs seulement s'ils sont plus bas sous "Les blocs à améliorer".
 {% endif %}
-{% if mode is defined and mode == "decision" %}{% include "fr/decision.md" %}{% endif %}
+{% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}
 Réponds seulement avec un objet JSON, sans autre texte. La forme est la suivante (les valeurs sont seulement un exemple) :
 
 {

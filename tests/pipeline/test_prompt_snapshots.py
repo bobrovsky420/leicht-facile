@@ -1,12 +1,13 @@
 """The rendered prompts, frozen: every template of every language, in every form a job
 can render it (level, decision mode, medication partial, missing facts), on one
-synthetic letter. The snapshots in tests/fixtures/prompts/<lang>.md are the rendered
-Swiss prompts byte for byte; a change in a template, a label, the style guide or the
-few-shot examples fails here first, and the response cache keys on these very texts.
+synthetic letter. The snapshots in tests/fixtures/prompts/<key>.md (de-CH.md, fr-CH.md,
+it-CH.md) are the rendered Swiss prompts byte for byte; a change in a template, a label,
+the style guide or the few-shot examples fails here first, and the response cache keys
+on these very texts.
 
 A deliberate change refreshes the snapshots: UPDATE_SNAPSHOTS=1 uv run pytest
 tests/pipeline/test_prompt_snapshots.py. On a failure the rendered text is written next
-to the snapshot as <lang>.actual.md for a diff.
+to the snapshot as <key>.actual.md for a diff.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from leichtfacile.pipeline.models import UnderstandOut
 from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, has_prompt, level_name, render
 from leichtfacile.pipeline.stages import mode_context, to_factsheet
 from leichtfacile.rules import style_guide
-from leichtfacile.schemas import LANGS, Block, Draft
+from leichtfacile.schemas import LANGS, Block, Draft, variety
 from tests.pipeline import fixtures as fx
 
 SNAPSHOTS = Path(__file__).resolve().parents[1] / "fixtures" / "prompts"
@@ -30,8 +31,8 @@ MARKER = "===== "
 
 
 def rendered_prompts(lang: str) -> dict[str, str]:
-    """Every prompt of a language on the synthetic letter, by a name that says the stage
-    and the form: `write A2`, `write A2 decision`, `understand A2 medication`, ..."""
+    """Every prompt of a variety key on the synthetic letter, by a name that says the
+    stage and the form: `write A2`, `write A2 decision`, `understand A2 medication`, ..."""
     source = fx.letter()
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), source.id)
     draft = Draft(doc_id=source.id, lang="de", level="A2", blocks=[
@@ -109,12 +110,12 @@ def _parse(text: str) -> dict[str, str]:
     return {name: body[:-1] for name, body in zip(names, bodies, strict=True)}
 
 
-@pytest.mark.parametrize("lang", [lang for lang in LANGS if (PROMPTS_DIR / lang).is_dir()])
-def test_rendered_prompts_match_the_snapshot(lang: str) -> None:
-    prompts = rendered_prompts(lang)
+@pytest.mark.parametrize("key", [variety(lang) for lang in LANGS if (PROMPTS_DIR / lang).is_dir()])
+def test_rendered_prompts_match_the_snapshot(key: str) -> None:
+    prompts = rendered_prompts(key)
     for name, text in prompts.items():
         assert "{{" not in text and "{%" not in text, name
-    path = SNAPSHOTS / f"{lang}.md"
+    path = SNAPSHOTS / f"{key}.md"
     if os.environ.get("UPDATE_SNAPSHOTS") == "1" or not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(_serialise(prompts), encoding="utf-8", newline="\n")
@@ -126,7 +127,7 @@ def test_rendered_prompts_match_the_snapshot(lang: str) -> None:
         changed = [n for n in prompts if expected.get(n) != prompts[n]]
         missing = [n for n in expected if n not in prompts]
         pytest.fail(
-            f"the rendered {lang} prompts differ from {path.name} in: {', '.join(changed)}"
+            f"the rendered {key} prompts differ from {path.name} in: {', '.join(changed)}"
             + (f"; gone: {', '.join(missing)}" if missing else "")
             + f". The rendering is in {actual.name}; UPDATE_SNAPSHOTS=1 refreshes the snapshot "
             "when the change is deliberate."

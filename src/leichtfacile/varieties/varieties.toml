@@ -1,8 +1,8 @@
 # The national varieties of the document languages (docs/architecture.md section 8):
-# one table per variety, keyed as the prompts, labels and rule checks are looked up
-# (schemas.variety): the language code alone for the Swiss varieties, `de-DE` and
-# `de-AT` for Germany and Austria. The facts of a variety live here, not in Python, so
-# that a convention can be corrected without touching the code; read by
+# one table per variety, keyed by the language and the region as the few-shot examples,
+# labels and rule checks are looked up (schemas.variety): `de-CH`, `de-DE`, `de-AT`,
+# `fr-CH`, `it-CH`. The facts of a variety live here, not in Python, so that a
+# convention can be corrected without touching the code; read by
 # src/leichtfacile/varieties/__init__.py.
 #
 # lang, region   the language and the region the table stands for
@@ -28,7 +28,7 @@
 #   office_at         "bei" with the office's article in the dative: bei der, beim
 #   phone             the dog-tax example's phone number, in the variety's format
 
-[de]
+[de-CH]
 lang = "de"
 region = "CH"
 label = "German (Switzerland)"
@@ -38,7 +38,7 @@ hyphenation = "de_CH"
 compound_mark = "mediopunkt"
 notice = "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
 
-[de.prompt]
+[de-CH.prompt]
 country_in = "in der Schweiz"
 country_adjective = "Schweizer"
 doc_types = "Brief, Verfügung, Formular, Merkblatt, Webseite"
@@ -101,7 +101,7 @@ office_article = "das"
 office_at = "beim"
 phone = "01 9876543"
 
-[fr]
+[fr-CH]
 lang = "fr"
 region = "CH"
 label = "French (Switzerland)"
@@ -109,7 +109,7 @@ word_lang = "fr-CH"
 hyphenation = "fr"
 notice = "Cette explication vous aide à comprendre la décision. Seule la décision fait foi."
 
-[it]
+[it-CH]
 lang = "it"
 region = "CH"
 label = "Italian (Switzerland)"

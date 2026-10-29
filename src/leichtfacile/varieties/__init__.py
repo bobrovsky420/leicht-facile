@@ -1,14 +1,14 @@
 """The national varieties of the document languages: Swiss German, French and Italian,
 and German for Germany and Austria (docs/architecture.md section 8).
 
-A variety is looked up by its key (`schemas.variety`: `de`, `de-DE`, `de-AT`, `fr`,
-`it`) and falls back to its language, so French and Italian, which are Swiss whatever
-the installation's region, resolve from a key such as `fr-DE` to the `fr` table. The
-facts come from varieties.toml next to this module, those the German prompt templates
-take among them (`prompt`); a variety is offered to the user (`leichtfacile setup`) only
-when its prompts exist, which `complete` decides from the prompt folders. This module
-imports nothing heavy: the settings and the setup command read it before any model or
-spaCy pipeline is loaded.
+A variety is looked up by its key (`schemas.variety`: `de-CH`, `de-DE`, `de-AT`,
+`fr-CH`, `it-CH`); a bare language code names its Swiss variety, and a key without a
+table of its own (`fr-DE`: French is Swiss whatever the installation's region) resolves
+to its language's Swiss table. The facts come from varieties.toml next to this module,
+those the German prompt templates take among them (`prompt`); a variety is offered to
+the user (`leichtfacile setup`) only when its prompts exist, which `complete` decides
+from the prompt folders. This module imports nothing heavy: the settings and the setup
+command read it before any model or spaCy pipeline is loaded.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-from leichtfacile.schemas import REGIONS, base_lang
+from leichtfacile.schemas import REGIONS, base_lang, canonical_variety
 from leichtfacile.schemas import variety as variety_key
 
 TABLE = Path(__file__).resolve().parent / "varieties.toml"
@@ -51,12 +51,13 @@ def varieties() -> dict[str, Variety]:
 
 
 def variety(key: str, region: str | None = None) -> Variety:
-    """The variety of a key (`de-AT`) or of a language and a region; a key without a
-    table of its own falls back to its language's (Swiss) table."""
+    """The variety of a key (`de-AT`; a bare `de` is `de-CH`) or of a language and a
+    region; a key without a table of its own falls back to its language's Swiss table."""
     if region is not None:
         key = variety_key(key, region)
+    key = canonical_variety(key)
     table = varieties()
-    found = table.get(key) or table.get(base_lang(key))
+    found = table.get(key) or table.get(variety_key(base_lang(key)))
     if found is None:
         raise KeyError(f"no variety {key!r}; known: {', '.join(table)}")
     return found
@@ -64,16 +65,15 @@ def variety(key: str, region: str | None = None) -> Variety:
 
 def complete(key: str) -> bool:
     """Whether the variety's prompts exist: a prompt folder of its own with the write
-    template, or, for a variety of a language that has one, a folder with its own
-    few-shot examples (the templates are the language's, parametrized)."""
+    template, or its language's templates (prompts/de/write.md, one set for every
+    variety of the language) with a folder of its own few-shot examples
+    (prompts/de-AT/examples)."""
+    key = canonical_variety(key)
     folder = PROMPTS_DIR / key
     if (folder / "write.md").exists():
         return True
-    base = PROMPTS_DIR / base_lang(key)
-    return (
-        key != base_lang(key)
-        and (base / "write.md").exists()
-        and any((folder / "examples").glob("*.md"))
+    return (PROMPTS_DIR / base_lang(key) / "write.md").exists() and any(
+        (folder / "examples").glob("*.md")
     )
 
 

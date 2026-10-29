@@ -1,7 +1,9 @@
 """Golden sentences: every rule fires on its positive and stays silent on its negative
-examples (tests/rules/golden_<key>.yaml), for German, French and Italian and for the
-German varieties of Germany and Austria, whose files hold the rules with a check or a
-table of their own; the German file runs under the varieties too for the other rules."""
+examples (tests/rules/golden_<key>.yaml), for the Swiss varieties of German, French and
+Italian, whose files hold every rule with a check of the language or the variety, and
+for the German varieties of Germany and Austria, whose files hold the rules with a check
+or a table of their own; the Swiss German file runs under the varieties too for the
+other rules."""
 
 from __future__ import annotations
 
@@ -13,7 +15,7 @@ import yaml
 from leichtfacile.rules import RULES, check_draft
 from leichtfacile.schemas import Block, Draft, GlossaryEntry, base_lang
 
-LANGS = ("de", "fr", "it", "de-DE", "de-AT")
+LANGS = ("de-CH", "fr-CH", "it-CH", "de-DE", "de-AT")
 VARIETIES = ("de-DE", "de-AT")
 # The rules whose check, table or guide differs by variety: the German golden sentences
 # of every other rule must give the same answer in Germany and Austria.
@@ -26,6 +28,12 @@ GOLDEN = {
     lang: yaml.safe_load((HERE / f"golden_{lang}.yaml").read_text(encoding="utf-8"))
     for lang in LANGS
 }
+
+
+def _own_checks(key: str) -> set[str]:
+    """The registry keys a golden file covers: the variety's own checks and, for a Swiss
+    variety, the language's, which every variety of the language runs."""
+    return {key, base_lang(key)} if key.endswith("-CH") else {key}
 
 
 def _cases(polarity: str) -> list[tuple[str, str, dict]]:
@@ -62,14 +70,14 @@ def test_rule_stays_silent(lang: str, rule_id: str, case: dict) -> None:
 
 @pytest.mark.parametrize("lang", LANGS)
 def test_every_sentence_and_block_rule_has_golden_cases(lang: str) -> None:
-    golden = GOLDEN[lang]
+    golden, own = GOLDEN[lang], _own_checks(lang)
     checked = {
-        r.id for r in RULES.values() if lang in r.checks and r.scope in ("sentence", "block")
+        r.id for r in RULES.values() if own & r.checks.keys() and r.scope in ("sentence", "block")
     }
     missing = checked - set(golden)
     assert not missing, f"rules without golden sentences: {sorted(missing)}"
     for rule_id, groups in golden.items():
-        assert lang in RULES[rule_id].checks, f"{rule_id} has no {lang} check"
+        assert own & RULES[rule_id].checks.keys(), f"{rule_id} has no {lang} check"
         assert len(groups.get("positive", [])) >= 2, f"{rule_id}: fewer than 2 positives"
         assert groups.get("negative"), f"{rule_id}: no negatives"
 
@@ -79,7 +87,7 @@ def test_the_swiss_golden_sentences_hold_in_the_other_german_varieties(variety: 
     """A rule without a check, table or guide of its own for the variety decides the
     German golden sentences exactly as in Switzerland."""
     mismatches = []
-    for rule_id, groups in GOLDEN["de"].items():
+    for rule_id, groups in GOLDEN["de-CH"].items():
         if rule_id in VARIETY_RULES:
             continue
         for polarity in ("positive", "negative"):

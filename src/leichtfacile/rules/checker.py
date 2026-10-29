@@ -35,6 +35,7 @@ from leichtfacile.schemas import (
     RuleFindings,
     SourceDocument,
     base_lang,
+    canonical_variety,
 )
 
 _SEGMENT_KINDS = {"heading": "heading", "list_item": "list_item"}
@@ -81,9 +82,10 @@ _INTRODUCED_RE = re.compile(r"\(([A-ZÄÖÜ][A-Za-zÄÖÜäöü]{1,7})\)")  # (E
 
 class RuleChecker:
     def __init__(self, lang: str) -> None:
-        """`lang`: a language or a variety key (schemas.variety, `de-AT`): the checks and
-        guides are the variety's where it has its own, the spaCy pipeline the language's."""
-        self.variety = lang
+        """`lang`: a language (its Swiss variety) or a variety key (schemas.variety,
+        `de-AT`): the checks and guides are the variety's where it has its own, the spaCy
+        pipeline the language's."""
+        self.variety = canonical_variety(lang)
         self.lang = base_lang(lang)
         self.nlp = pipeline(self.lang)
         # German and French: a full parse; Italian: the lexicon's lemma, part of speech
@@ -269,12 +271,13 @@ _CHECKERS_LOCK = threading.Lock()
 
 
 def get_checker(lang: str) -> RuleChecker:
-    """The checker of a language or variety key; the varieties of one language share
-    its spaCy pipeline (rules/nlp.py caches it)."""
+    """The checker of a language (its Swiss variety) or variety key, one per variety;
+    the varieties of one language share its spaCy pipeline (rules/nlp.py caches it)."""
+    key = canonical_variety(lang)
     with _CHECKERS_LOCK:  # two threads must not load the same model twice
-        if lang not in _CHECKERS:
-            _CHECKERS[lang] = RuleChecker(lang)
-        return _CHECKERS[lang]
+        if key not in _CHECKERS:
+            _CHECKERS[key] = RuleChecker(key)
+        return _CHECKERS[key]
 
 
 def check_draft(

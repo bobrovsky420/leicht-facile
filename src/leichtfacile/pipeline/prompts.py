@@ -1,13 +1,16 @@
-"""Prompt templates (llm/prompts/<lang>/*.md), rendered with Jinja2.
+"""Prompt templates, rendered with Jinja2: the stage templates of a language in
+llm/prompts/<lang>/ (one set for every variety of the language), what a variety has of
+its own in llm/prompts/<key>/ (`de-CH`, `de-DE`, `de-AT`, `fr-CH`, `it-CH`: the few-shot
+examples, the decision partial, Zurich's baseline for de-CH).
 
 Each rendered prompt carries the version of its template, a short hash of the file, so
 the audit bundle and the evaluation can say exactly which prompt produced an artifact.
 
 The German templates are one set for every German variety: they take the variety's
 facts (the country, the currency, the office and the phone number of the examples) as
-`v.prompt` from src/leichtfacile/varieties/varieties.toml, and they include the decision
-and medication partials by a path `render` chooses, the variety's own partial when it
-has one, else the language's.
+`v.prompt` from src/leichtfacile/varieties/varieties.toml, and the templates of every
+language include the decision and medication partials by a path `render` chooses, the
+variety's own partial when it has one, else the language's.
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, pass_context
 
 from leichtfacile.rules.lexicon import hyphenated
 from leichtfacile.rules.vocabulary import standard_spelling
-from leichtfacile.schemas import base_lang
+from leichtfacile.schemas import base_lang, variety_chain
 from leichtfacile.varieties import variety
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "llm" / "prompts"
@@ -64,10 +67,15 @@ INHERITED_STAGES = ("understand", "write", "judge", "repair", "recover", "baseli
 
 def _folder(lang: str, stage: str) -> str:
     """The folder of a stage's template for a language or a variety key (`de-AT`): the
-    variety's own when it has the template, else its language's."""
-    if (PROMPTS_DIR / lang / f"{stage}.md").exists() or stage not in INHERITED_STAGES:
-        return lang
-    return base_lang(lang)
+    first along `schemas.variety_chain` that has it (the variety's own, the language's
+    Swiss variety's, the language's); a stage outside INHERITED_STAGES is looked for in
+    the variety's own folder alone."""
+    folders = variety_chain(lang)
+    if stage in INHERITED_STAGES:
+        for folder in folders:
+            if (PROMPTS_DIR / folder / f"{stage}.md").exists():
+                return folder
+    return folders[0]
 
 
 def has_prompt(lang: str, stage: str) -> bool:
@@ -76,16 +84,20 @@ def has_prompt(lang: str, stage: str) -> bool:
     return (PROMPTS_DIR / _folder(lang, stage) / f"{stage}.md").exists()
 
 
-# The partials the German templates include by a path in the context
+# The partials the templates include by a path in the context
 # (`{% include decision_partial %}`), so that a variety can bring its own.
 PARTIALS = ("decision", "medication")
 
 
 def _partial(lang: str, name: str) -> str:
     """The path of a partial for a language or a variety key, as Jinja loads it: the
-    variety's own (`de-AT/decision.md`) when it exists, else its language's."""
-    folder = lang if (PROMPTS_DIR / lang / f"{name}.md").exists() else base_lang(lang)
-    return f"{folder}/{name}.md"
+    first along `schemas.variety_chain` that exists, the variety's own
+    (`de-AT/decision.md`), the language's Swiss variety's (`de-CH/decision.md`) or the
+    language's (`de/medication.md`)."""
+    for folder in variety_chain(lang):
+        if (PROMPTS_DIR / folder / f"{name}.md").exists():
+            return f"{folder}/{name}.md"
+    return f"{base_lang(lang)}/{name}.md"
 
 
 # The level as the prompts use it after "in": German needs the dative.
@@ -143,11 +155,12 @@ def prompt_versions(lang: str) -> dict[str, str]:
 @lru_cache(maxsize=8)
 def examples(lang: str) -> str:
     """Few-shot examples, written by the team (never texts from protected pages): the
-    variety's own folder, else its language's."""
-    folder = PROMPTS_DIR / lang / "examples"
-    if not folder.exists():
-        folder = PROMPTS_DIR / base_lang(lang) / "examples"
-    if not folder.exists():
+    variety's own folder (`de-AT/examples`), else its language's Swiss variety's."""
+    for key in variety_chain(lang):
+        folder = PROMPTS_DIR / key / "examples"
+        if folder.exists():
+            break
+    else:
         return ""
     parts = [p.read_text(encoding="utf-8").strip() for p in sorted(folder.glob("*.md"))]
     return "\n\n---\n\n".join(parts)

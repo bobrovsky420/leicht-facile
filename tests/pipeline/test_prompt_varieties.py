@@ -25,11 +25,11 @@ from leichtfacile.rules.lexicon import hyphenated
 from leichtfacile.varieties import varieties, variety
 from tests.pipeline.test_prompt_snapshots import rendered_prompts
 
-GERMAN = PROMPTS_DIR / "de"
+GERMAN = PROMPTS_DIR / "de"  # the stage templates, one set for every German variety
 # The Swiss facts the templates carried until 29 October 2026. Zurich's prompt
-# (baseline_zh.md) is Swiss and verbatim and the few-shot examples are a variety's own
-# (de/examples), so neither is scanned; the partials are, since every German variety
-# includes them until it brings its own.
+# (baseline_zh.md), the few-shot examples and the decision partial are the Swiss
+# variety's own (prompts/de-CH/), so none of them is in the German folder or scanned; the
+# medication partial is, since every German variety includes it.
 SWISS = ("Schweiz", "Franken", "Einwohnerkontrolle", "Einwohner·kontrolle", "031 987", "Verfügung")
 SMALL = {
     "understand": {"source": "[s0001] Der Text."},
@@ -61,7 +61,7 @@ AUSTRIAN = {
 
 
 def german_templates() -> list[Path]:
-    return [p for p in sorted(GERMAN.glob("*.md")) if p.name != "baseline_zh.md"]
+    return sorted(GERMAN.glob("*.md"))
 
 
 def small_context(stage: str, mode: str = "standard", medication: bool = False) -> dict:
@@ -78,7 +78,7 @@ def small_context(stage: str, mode: str = "standard", medication: bool = False) 
 def test_the_german_templates_carry_no_swiss_fact() -> None:
     templates = german_templates()
     stages = {"understand", "write", "judge", "repair", "recover", "baseline"}
-    assert {p.stem for p in templates} >= stages | {"decision", "medication"}
+    assert {p.stem for p in templates} >= stages | {"medication"}
     for path in templates:
         text = path.read_text(encoding="utf-8")
         assert not [token for token in SWISS if token in text], path.name
@@ -92,7 +92,7 @@ def test_every_german_variety_sets_the_fields_the_templates_use() -> None:
     # would render the method.
     assert used and not used & set(dir(dict))
     german = [v for v in varieties().values() if v.lang == "de"]
-    assert {v.key for v in german} == {"de", "de-DE", "de-AT"}
+    assert {v.key for v in german} == {"de-CH", "de-DE", "de-AT"}
     for v in german:
         assert set(v.prompt) == used, v.key
 
@@ -107,16 +107,16 @@ def test_a_variety_without_a_table_renders_as_its_language(
     # A key without a table or a prompt folder of its own (made up: there is no region
     # XX); Germany and Austria have both since 29 October 2026.
     context = small_context(stage, mode, medication)
-    swiss = render("de", stage, **context)
+    swiss = render("de-CH", stage, **context)
     assert render("de-XX", stage, **context) == swiss
-    assert "Einwohner" in swiss  # the Swiss facts, from the `de` table
+    assert "Einwohner" in swiss  # the Swiss facts, from the `de-CH` table
     assert ("Das Dokument ist ein Entscheid" in swiss) == (mode == "decision")
     assert ("Medikament" in swiss) == medication
 
 
 def test_a_variety_with_a_table_renders_its_own_facts(monkeypatch) -> None:
     austrian = dataclasses.replace(
-        variety("de"), key="de-AT", region="AT", prompt=AUSTRIAN, compound_mark="hyphen"
+        variety("de-CH"), key="de-AT", region="AT", prompt=AUSTRIAN, compound_mark="hyphen"
     )
     tables = {**varieties(), "de-AT": austrian}
     monkeypatch.setattr("leichtfacile.varieties.varieties", lambda: tables)
@@ -129,20 +129,21 @@ def test_a_variety_with_a_table_renders_its_own_facts(monkeypatch) -> None:
     assert "Rufen Sie das Gemeinde-Amt an: 01 987 65 43." in texts["repair"]
     for stage, text in texts.items():
         assert not [token for token in SWISS if token in text], stage
-    assert "Einwohnerkontrolle" in render("de", "understand", **small_context("understand"))
+    assert "Einwohnerkontrolle" in render("de-CH", "understand", **small_context("understand"))
 
 
 def test_a_variety_includes_its_own_partial_else_its_languages(tmp_path, monkeypatch) -> None:
-    # A copy of the German folder next to an Austrian decision partial, so that the
-    # package's prompt folders stay as they are.
+    # A copy of the German folders (the templates, the Swiss variety's partial) next to
+    # an Austrian decision partial, so that the package's prompt folders stay as they are.
     shutil.copytree(GERMAN, tmp_path / "de")
+    shutil.copytree(PROMPTS_DIR / "de-CH", tmp_path / "de-CH")
     (tmp_path / "de-AT").mkdir()
     (tmp_path / "de-AT" / "decision.md").write_text("\nDer österreichische Teil.\n", "utf-8")
     monkeypatch.setattr(prompts, "PROMPTS_DIR", tmp_path)
     monkeypatch.setattr(prompts, "_env", prompts._env.overlay(loader=FileSystemLoader(tmp_path)))
     context = small_context("understand", "decision", medication=True)
     austrian = render("de-AT", "understand", **context)
-    swiss = render("de", "understand", **context)
+    swiss = render("de-CH", "understand", **context)
     assert "Der österreichische Teil." in austrian
     assert "Der österreichische Teil." not in swiss
     assert "Das Dokument ist ein Entscheid" in swiss
@@ -196,20 +197,20 @@ def added(texts: dict[str, str], form: str, standard: str) -> str:
 def test_germany_and_austria_render_their_own_facts_and_law(key: str) -> None:
     offices, law = COUNTRIES[key]
     texts = rendered_prompts(key)  # every stage and form, on the synthetic letter
-    swiss = rendered_prompts("de")
+    swiss = rendered_prompts("de-CH")
     assert set(texts) == {name for name in swiss if not name.startswith("baseline_zh")}
     for name, text in texts.items():
         assert "{{" not in text and "{%" not in text, name
         found = SWISS_WORDS.findall(own_text(key, text))
         assert not found, (name, found)
-    assert SWISS_WORDS.search(own_text("de", swiss["write A2"]))  # the scan sees Swiss facts
+    assert SWISS_WORDS.search(own_text("de-CH", swiss["write A2"]))  # the scan sees Swiss facts
     # The office and the currency of the variety's table, its own few-shot examples.
     for stage in ("understand", "write", "judge", "repair"):
         assert any(office in texts[f"{stage} A2"] for office in offices), stage
     for stage in ("understand", "write", "judge"):
         assert "120 Euro" in texts[f"{stage} A2"], stage
     # The examples are written with the Mediopunkt and rendered with the variety's mark.
-    assert examples(key) != examples("de") and hyphenated(examples(key)) in texts["write A2"]
+    assert examples(key) != examples("de-CH") and hyphenated(examples(key)) in texts["write A2"]
     # The decision partial is the variety's own: a Bescheid and the country's appeal.
     assert prompts._partial(key, "decision") == f"{key}/decision.md"
     for stage in ("understand", "write", "judge", "repair"):

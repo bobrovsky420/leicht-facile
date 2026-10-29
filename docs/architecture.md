@@ -1189,12 +1189,17 @@ prompt folders) and takes `--region`. Every job, source and draft carries the re
 was created with (`JobConfig.region`, `SourceDocument.region`, `Draft.region`), so a
 later setup never alters a stored job, and an artifact stored before the field is Swiss.
 French and Italian are Swiss whatever the setting (`varieties.region_for`). The key of a
-variety (`schemas.variety`: `de`, `fr`, `it` for the Swiss varieties, the names of the
-prompt folders and rule tables since the start; `de-DE`, `de-AT`) is what the prompt
-templates and few-shot examples (`pipeline/prompts.py`), the labels, the rule checks and
-guides (`rules/base.py`), the checker (`get_checker`, one per variety, the spaCy pipeline
-shared per language) and the style guide are looked up by, each falling back to the
-language's; the Canton of Zurich's prompt is Swiss and is not inherited. The value
+variety is the language and the region (`schemas.variety`: `de-CH`, `de-DE`, `de-AT`,
+`fr-CH`, `it-CH`; the Swiss keys were the bare language codes until 29 October 2026, and
+a bare code still names the Swiss variety wherever a key is taken). It is what the
+variety tables, the few-shot examples and the decision partials (`llm/prompts/<key>/`,
+`pipeline/prompts.py`), the rule checks and guides (`rules/base.py`), the checker
+(`get_checker`, one per variety, the spaCy pipeline shared per language), the shared
+checks' tables, the vocabulary files and the style guide are looked up by, each
+resolving along `schemas.variety_chain`: the variety's own, then the language's Swiss
+variety's, then the language's (`llm/prompts/<lang>/`: the stage templates and the
+medication partial, one set per language, and the checks a language's varieties share).
+The Canton of Zurich's prompt is Swiss and is not inherited. The value
 parser reads the variety's conventions and writes a value back in them (`rules/values.py`,
 since 29 October 2026: the thousands dot and the decimal comma, the euro, the German
 and Austrian phone shapes, five-digit postcodes, Jänner; [rules.md](rules.md), "Value
@@ -1214,14 +1219,15 @@ only; it needs the fetched pages, so it runs on a developer's machine).
 **One German template set** (since 29 October 2026). The German prompt templates serve
 every German variety: what the varieties need differently in the standard templates
 are a few facts, not the instructions, and these are data, the `prompt` table of each
-German variety in `varieties.toml` (`[de.prompt]`: the country as `in der Schweiz` and
+German variety in `varieties.toml` (`[de-CH.prompt]`: the country as `in der Schweiz` and
 `Schweizer`, the kinds of document with `Verfügung`, the currency, the judge's two
 spellings of one amount, the office of the dog-tax example with its article and its
 dative after `bei`, and its phone number). `render` (`pipeline/prompts.py`) puts the
 variety into every rendering as `v` (the templates write `{{ v.prompt.currency }}`) and
 sets the paths of the decision and medication partials to the variety's own file when
-it has one (`prompts/de-AT/decision.md`), else the language's, so a variety brings its
-own partial where its law differs and inherits the rest. A variety without a table
+it has one (`prompts/de-AT/decision.md`), else the next along the chain
+(`prompts/de-CH/decision.md`, `prompts/de/medication.md`), so a variety brings its own
+partial where its law differs and inherits the rest. A variety without a table
 renders exactly as Swiss German; one with a table sets every field the templates use,
 and the template files carry no Swiss fact (`tests/pipeline/test_prompt_varieties.py`).
 The version a job records (`prompt_versions`) hashes the template and the table. French
@@ -1250,8 +1256,8 @@ Switzerland) and takes `--region`.
 The vocabulary follows the same pattern (since 29 October 2026): `rules/data/vocabulary_de.toml`
 holds the German entries the three countries share and `vocabulary_de-CH.toml`,
 `vocabulary_de-DE.toml` and `vocabulary_de-AT.toml` those of each country, which
-`rules/vocabulary.py` reads after the shared file for a variety key (the Swiss key `de`
-gives the list as before, entry for entry). All German files are written in the Swiss
+`rules/vocabulary.py` reads after the shared file for a variety key (`de-CH` gives the
+list as before, entry for entry). All German files are written in the Swiss
 spelling and rendered for Germany and Austria at load time with the ß table of
 `rules/data/spelling_de.toml` (`standard_spelling`, for the planned spelling check to
 reuse), and matching treats ß and ss alike ([rules.md](rules.md), "Vocabulary").
@@ -1742,10 +1748,11 @@ src/leichtfacile/
   presets/presets.toml      the known providers with their models tables and prices, and the presets on them
   varieties/                the national varieties (§8): varieties.toml, one table per variety, and its reader
   llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
-  llm/prompts/<lang>/       understand.md, write.md, judge.md, repair.md, baseline.md,
-                            recover.md, examples/; decision.md (the decision mode's partial,
-                            included by the four standard templates when mode is "decision");
-                            de/baseline_zh.md (Zurich's prompt, verbatim)
+  llm/prompts/<lang>/       the stage templates of a language, one set for its varieties: understand.md,
+                            write.md, judge.md, repair.md, baseline.md, recover.md, and medication.md
+  llm/prompts/<key>/        what a variety has of its own (de-CH, de-DE, de-AT, fr-CH, it-CH): examples/
+                            and decision.md (the decision mode's partial, included by the four standard
+                            templates when mode is "decision"); de-CH/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                   fetch.py (the safe URL download), html.py, pdf.py, text.py, segment.py,
                             normalize.py, detect.py, errors.py
   pipeline/                 models.py, prompts.py, render.py, stages.py, rounds.py (the plan of

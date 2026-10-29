@@ -78,7 +78,7 @@ def overlays() -> dict[str, dict[str, str]]:
 
 def overlay_chain(key: str) -> list[str]:
     """The overlays a variety reads, its own first: `de-AT`, `de-DE` for Austria; none
-    for a Swiss variety (`de`) or one without an overlay (`fr-DE`)."""
+    for a Swiss variety (`de-CH`) or one without an overlay (`fr-DE`)."""
     chain: list[str] = []
     while key in overlays() and key not in chain:
         chain.append(key)

@@ -2,7 +2,7 @@
 
 ## simply-simplify-language (Canton of Zurich)
 
-`src/leichtfacile/llm/prompts/de/baseline_zh.md` reproduces, verbatim, the Leichte
+`src/leichtfacile/llm/prompts/de-CH/baseline_zh.md` reproduces, verbatim, the Leichte
 Sprache prompt of the Canton of Zurich's app "simply-simplify-language": the system
 message, the user template, the rule list and the two completeness instructions
 (`SYSTEM_MESSAGE_LS`, `TEMPLATE_LS`, `RULES_LS`, `REWRITE_COMPLETE` and

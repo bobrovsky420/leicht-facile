@@ -32,7 +32,8 @@ from leichtfacile.rules.values import (
 )
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 
-FR = "fr"
+FR = "fr"  # the language: French has one variety, so its checks are the language's
+CH = "fr-CH"  # the Swiss variety: the REG check, which another variety would replace
 SENTENCE_KINDS = ("sentence", "list_item")
 APOSTROPHES = "'" + chr(0x2019)
 _APOS = "['" + chr(0x2019) + "]"
@@ -1213,7 +1214,7 @@ FRANCE_NUMERAL_RE = re.compile(
 
 @rule(
     "REG-03",
-    lang=FR,
+    lang=CH,
     guide="Si un nombre s'écrit en lettres, prends les mots suisses : septante, nonante.",
 )
 def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:

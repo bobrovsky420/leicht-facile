@@ -11,7 +11,7 @@ Controlla queste 3 cose:
    - SEM-04: il blocco presuppone conoscenze che la lettrice o il lettore forse non ha, per esempio una procedura, un ufficio o un concetto giuridico, e non le spiega.
    - SEM-05: una parola difficile senza spiegazione, che non è nel glossario della bozza.
    - SEM-08: un obbligo, una possibilità o una condizione è cambiata. "Dovere" non deve diventare "potere", e neanche il contrario. Una condizione con "se" resta una condizione: "forse" la trasforma in una supposizione, ed è sbagliato.
-{% if mode is defined and mode == "decision" %}{% include "it/decision.md" %}{% endif %}
+{% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}
 
 Segnala solo problemi veri. Una buona bozza ha poche osservazioni o nessuna. Scrivi le osservazioni in italiano.
 

@@ -25,19 +25,19 @@ from dataclasses import dataclass
 from leichtfacile.rules.base import Context, Hit, rule, sev
 from leichtfacile.rules.document import DocInput
 from leichtfacile.rules.messages import hit
-from leichtfacile.schemas import Fact, FactSheet, Segment, SourceDocument
+from leichtfacile.schemas import Fact, FactSheet, Segment, SourceDocument, variety_chain
 
 DECISION_MODE = "decision"
 _NUMBERED = r"(?:[IVX]+\.|[A-Z]\.|\d{1,2}\.)?\s*"  # "III. Entscheid", "4. Dispositiv"
 # A heading that opens the operative part: the word alone, a numeral in front at most.
 # "Entscheid vom 17. Oktober 2022" and "Entscheid über eine Beistandschaft" are titles.
 _OPERATIVE_HEADING = {
-    "de": re.compile(
+    "de-CH": re.compile(
         "^" + _NUMBERED + r"(?:Dispositiv|Entscheid|Urteil|Beschluss|Verfügung|Erkenntnis"
         r"|Rechtsspruch)\s*[:.]?$",
         re.IGNORECASE,
     ),
-    "fr": re.compile(
+    "fr-CH": re.compile(
         "^" + _NUMBERED + r"(?:Dispositif|Décision|Par ces motifs)\s*[:.]?$", re.IGNORECASE
     ),
 }
@@ -45,12 +45,12 @@ _OPERATIVE_HEADING = {
 # deciding, its subject before or after it ("Demnach erkennt das Verwaltungsgericht:",
 # "Die KESB verfügt:"), and a colon at the end.
 _OPERATIVE_TEXT = {
-    "de": re.compile(
+    "de-CH": re.compile(
         r"\b(?:erkennt|verfügt|beschliesst|beschließt|entscheidet"
         r"|wird (?:erkannt|verfügt|beschlossen|entschieden))\b[^:]{0,80}:$",
         re.IGNORECASE,
     ),
-    "fr": re.compile(
+    "fr-CH": re.compile(
         r"(?:^Par ces motifs\b.*|\b(?:prononce|décide|ordonne|arrête|statue)\b[^:]{0,80}):$",
         re.IGNORECASE,
     ),
@@ -72,11 +72,11 @@ _REASONS_HEADING = re.compile(
 )
 _SALUTATION = re.compile(r"^(?:Sehr geehrte|Guten Tag|Liebe[rs]?)\b")
 _APPEAL_HEADING = {
-    "de": re.compile(
+    "de-CH": re.compile(
         "^" + _NUMBERED + r"(?:Rechtsmittel(?:belehrung)?|Rechtsbehelf(?:sbelehrung)?)\s*[:.]?$",
         re.IGNORECASE,
     ),
-    "fr": re.compile(
+    "fr-CH": re.compile(
         "^" + _NUMBERED + r"(?:(?:Indication des )?voies? de (?:droit|recours)|Recours)\s*[:.]?$",
         re.IGNORECASE,
     ),
@@ -84,14 +84,14 @@ _APPEAL_HEADING = {
 # The sentence that opens the appeal instructions in a document without a heading for
 # them; a court's operative part carries them as one of its numbered items.
 _APPEAL_TEXT = {
-    "de": re.compile(
+    "de-CH": re.compile(
         r"^(?:\d{1,2}\.\s*)?Gegen (?:diesen|diese|dieses)\b.*\bkann\b"
         r".*\b(?:Beschwerde|Einsprache|Rekurs|Rechtsmittel|Verwaltungsgerichtsbeschwerde)\b"
         r"|\binnert \d+ Tagen\b.*\b(?:Beschwerde|Einsprache|Rekurs)\b"
         r"|\b(?:Beschwerde|Einsprache|Rekurs) (?:erhoben|eingereicht|geführt) werden\b",
         re.IGNORECASE,
     ),
-    "fr": re.compile(
+    "fr-CH": re.compile(
         r"\b(?:peut faire l'objet d'un recours|recours\b.*\bdans (?:les|un délai de) \d+ jours"
         r"|dans les \d+ jours (?:dès|à compter|suivant|qui suivent)\b.*\brecours\b)",
         re.IGNORECASE,
@@ -117,12 +117,12 @@ _APPEAL_TEXT["de-AT"] = re.compile(
 )
 # The distribution list closes the operative part.
 _DISTRIBUTION = {
-    "de": re.compile(
+    "de-CH": re.compile(
         r"^(?:\d{1,2}\.\s*)?(?:Zustellung|Zustellungen|Mitteilung|Mitteilungen|Eröffnung|Eröffnet"
         r"|Versand)\b",
         re.IGNORECASE,
     ),
-    "fr": re.compile(
+    "fr-CH": re.compile(
         r"^(?:\d{1,2}\.\s*)?(?:Communication|Notification|Expédition)\b", re.IGNORECASE
     ),
 }
@@ -164,13 +164,14 @@ class ProtectedSegments:
 
 
 def _lang(source: SourceDocument) -> str:
-    """The pattern set: French, or the German variety (`de`, `de-DE`, `de-AT`)."""
-    return "fr" if source.lang == "fr" else source.variety
+    """The pattern set: the source's variety (`fr-CH`, `de-CH`, `de-DE`, `de-AT`)."""
+    return source.variety
 
 
 def _pattern(table: dict[str, re.Pattern[str]], key: str) -> re.Pattern[str]:
-    """A variety's pattern, else its language's."""
-    return table.get(key) or table["de"]
+    """A variety's pattern, else its language's Swiss one; a language without patterns
+    (Italian) reads the German ones."""
+    return next((table[k] for k in variety_chain(key) if k in table), table["de-CH"])
 
 
 def _text(segments: list[Segment]) -> str:

@@ -29,10 +29,13 @@ from leichtfacile.schemas import Block, Draft, GlossaryEntry, base_lang
 
 DATA = resources.files("leichtfacile.rules") / "data"
 # The varieties: a language's shared file and the variety's own, as the loader reads them.
-KEYS = ("de", "de-DE", "de-AT", "fr", "it")
+KEYS = ("de-CH", "de-DE", "de-AT", "fr-CH", "it-CH")
 # Every file as written, with the variety it belongs to: the shared German file and the
-# Swiss one make the Swiss variety, de.
-FILES = {"de": "de", "de-CH": "de", "de-DE": "de-DE", "de-AT": "de-AT", "fr": "fr", "it": "it"}
+# Swiss one make the Swiss variety, de-CH.
+FILES = {
+    "de": "de-CH", "de-CH": "de-CH", "de-DE": "de-DE", "de-AT": "de-AT",
+    "fr": "fr-CH", "it": "it-CH",
+}  # fmt: skip
 GERMAN_FILES = ("de", "de-CH", "de-DE", "de-AT")
 # LEX-01 wants a Mediopunkt in long German words; code adds it to drafts at A2 only,
 # so the level-neutral list keeps the plain spelling.
@@ -190,7 +193,7 @@ def test_vocabulary_file_is_well_formed(name: str) -> None:
             assert text[-1] in ".?", e.term
 
 
-@pytest.mark.parametrize("key", ["de", "de-DE", "de-AT"])
+@pytest.mark.parametrize("key", ["de-CH", "de-DE", "de-AT"])
 def test_a_term_stands_in_one_file_of_a_variety(key: str) -> None:
     shared, own = (read_vocabulary(name) for name in vocabulary_files(key))
     assert {e.term.casefold() for e in shared} & {e.term.casefold() for e in own} == set()
@@ -255,10 +258,10 @@ def test_the_shared_german_file_has_no_swiss_marker() -> None:
 
 
 def test_a_variety_reads_the_shared_file_and_its_own() -> None:
-    assert vocabulary_files("de") == ("de", "de-CH")
+    assert vocabulary_files("de-CH") == vocabulary_files("de") == ("de", "de-CH")
     assert vocabulary_files("de-DE") == ("de", "de-DE")
     assert vocabulary_files("de-AT") == ("de", "de-AT")
-    assert vocabulary_files("fr") == ("fr",) and vocabulary_files("it") == ("it",)
+    assert vocabulary_files("fr-CH") == ("fr",) and vocabulary_files("it") == ("it",)
     swiss = {e.term: e for e in load_vocabulary("de")}
     german = {e.term: e for e in load_vocabulary("de-DE")}
     assert "innert" in swiss and "innert" not in german  # Swiss
@@ -274,7 +277,7 @@ def test_a_variety_reads_the_shared_file_and_its_own() -> None:
     assert len(set(versions.values())) == len(KEYS)
     # a key of one file keeps the hash of that file alone
     french = (DATA / "vocabulary_fr.toml").read_bytes()
-    assert versions["fr"] == hashlib.sha256(french).hexdigest()[:12]
+    assert versions["fr-CH"] == hashlib.sha256(french).hexdigest()[:12]
 
 
 @pytest.mark.parametrize(

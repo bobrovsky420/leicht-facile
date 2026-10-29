@@ -1,5 +1,5 @@
 {#- The decision mode's partial for Austria (docs/use-case-decisions.md): the Swiss
-    partial (de/decision.md) section by section, in the words of Austrian administrative
+    partial (de-CH/decision.md) section by section, in the words of Austrian administrative
     law. A Bescheid has the headings Spruch, Begründung and Rechtsmittelbelehrung (AVG
     § 58 to § 61); the Beschwerde to the Landesverwaltungsgericht is due within four
     weeks of the Zustellung (VwGVG § 7 Abs. 4) and is filed with the authority (VwGVG

@@ -31,11 +31,13 @@ from leichtfacile.rules.values import (
     mask_numbers,
 )
 from leichtfacile.rules.vocabulary import find_terms, office_words
+from leichtfacile.schemas import variety as variety_key
 
-LANGS = ("de", "fr", "it")
-# The German varieties of Germany and Austria have tables of their own below and, where
-# the writer's instruction differs, a guide of their own.
-GERMAN = ("de", "de-DE", "de-AT")
+LANGS = ("de", "fr", "it")  # a check registered by language serves every variety of it
+# The German varieties (schemas.variety) have tables of their own below and, where the
+# writer's instruction differs, a guide of their own; French and Italian have one variety
+# each, so their checks are the language's.
+GERMAN = ("de-CH", "de-DE", "de-AT")
 KEYS = (*GERMAN, "fr", "it")
 LEN_TOLERANCE = 3  # words over the limit that are a warning, not an error
 RARE_PUNCTUATION_RE = re.compile(r"[;()\[\]{}&]")
@@ -67,7 +69,7 @@ class Table:
 
 
 TABLES: dict[str, Table] = {
-    "de": Table(
+    "de-CH": Table(
         word_count=de.word_count,
         slash_re=de.SLASH_RE,
         slash_words=("und", "oder"),
@@ -82,7 +84,7 @@ TABLES: dict[str, Table] = {
         amount_re=de.AMOUNT_STYLE_RE,
         currency_word="Franken",
     ),
-    "fr": Table(
+    "fr-CH": Table(
         word_count=fr.word_count,
         slash_re=fr.SLASH_RE,
         slash_words=("et", "ou"),
@@ -97,7 +99,7 @@ TABLES: dict[str, Table] = {
         amount_re=fr.AMOUNT_STYLE_RE,
         currency_word="francs",
     ),
-    "it": Table(
+    "it-CH": Table(
         word_count=it.word_count,
         slash_re=it.SLASH_RE,
         slash_words=("e", "o"),
@@ -121,7 +123,7 @@ TABLES: dict[str, Table] = {
 # variety (the thousands dot, Jänner).
 for _key in ("de-DE", "de-AT"):
     TABLES[_key] = replace(
-        TABLES["de"],
+        TABLES["de-CH"],
         word_count=de.word_count_joined,
         currency_near_re=de.CURRENCY_NEAR_RE_DE,
         identifier_before_re=de.IDENTIFIER_BEFORE_RE_DE,
@@ -131,7 +133,9 @@ for _key in ("de-DE", "de-AT"):
 
 
 def table(ctx: Context) -> Table:
-    return TABLES.get(ctx.variety) or TABLES[ctx.lang]
+    """The table of the text's variety; a variety without one reads as its language's
+    Swiss variety."""
+    return TABLES.get(ctx.variety) or TABLES[variety_key(ctx.lang)]
 
 
 # -- sentence structure ------------------------------------------------------------
@@ -215,7 +219,7 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "LEX-07",
     lang=KEYS,
     guide={
-        "de": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
+        "de-CH": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt innert, "
         "nach statt gemäss, wenn nötig statt gegebenenfalls.",
         "de-DE": "Nimm Alltags·wörter statt Amts·wörtern: innerhalb von statt binnen, "
         "nach statt gemäss, wenn nötig statt gegebenenfalls.",
@@ -241,7 +245,7 @@ def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
     "NUM-02",
     lang=KEYS,
     guide={
-        "de": "Grosse Zahlen schreibst du mit Apostroph: 1'500 Franken, 500'000.",
+        "de-CH": "Grosse Zahlen schreibst du mit Apostroph: 1'500 Franken, 500'000.",
         "de-DE": "Grosse Zahlen schreibst du mit Punkt: 1.500 Euro, 500.000.",
         "de-AT": "Grosse Zahlen schreibst du mit Punkt: 1.500 Euro, 500.000.",
         "fr": "Les grands nombres s'écrivent avec une espace : 1 500 francs, 500 000.",
@@ -273,7 +277,7 @@ def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "NUM-03",
     lang=KEYS,
     guide={
-        "de": "Ein Datum schreibst du so: 4. Februar 2026.",
+        "de-CH": "Ein Datum schreibst du so: 4. Februar 2026.",
         "de-DE": "Ein Datum schreibst du so: 4. Februar 2026.",
         "de-AT": "Ein Datum schreibst du so: 4. Jänner 2026.",
         "fr": "Une date s'écrit ainsi : 4 février 2026.",
@@ -346,7 +350,7 @@ def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "NUM-07",
     lang=KEYS,
     guide={
-        "de": "Geld·beträge schreibst du so: 500 Franken oder CHF 500.",
+        "de-CH": "Geld·beträge schreibst du so: 500 Franken oder CHF 500.",
         "de-DE": "Geld·beträge schreibst du so: 500 Euro.",
         "de-AT": "Geld·beträge schreibst du so: 500 Euro.",
         "fr": "Les montants s'écrivent ainsi : 500 francs ou CHF 500.",
@@ -367,7 +371,7 @@ def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     "NUM-08",
     lang=KEYS,
     guide={
-        "de": "Telefon·nummern schreibst du mit Abständen: 044 123 45 67.",
+        "de-CH": "Telefon·nummern schreibst du mit Abständen: 044 123 45 67.",
         "de-DE": "Telefon·nummern schreibst du mit Abständen: 0 55 44 33 22 11.",
         "de-AT": "Telefon·nummern schreibst du mit Abständen: 0 55 44 33 22 11.",
         "fr": "Les numéros de téléphone s'écrivent avec des espaces : 022 123 45 67.",

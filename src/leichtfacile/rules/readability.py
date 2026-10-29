@@ -190,8 +190,9 @@ def _is_vowel(word: str, i: int) -> bool:
 
 
 def _mute_ending(word: str, lang: str) -> int:
-    """Where a French mute final e or es starts; len(word) if there is none."""
-    if lang == "fr":
+    """Where a French mute final e or es starts; len(word) if there is none. `lang`: a
+    language or a variety key (`fr-CH`)."""
+    if base_lang(lang) == "fr":
         for ending in ("es", "e"):
             start = len(word) - len(ending)
             if (

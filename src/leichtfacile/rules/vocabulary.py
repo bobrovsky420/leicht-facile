@@ -42,7 +42,7 @@ from typing import TYPE_CHECKING, Literal
 
 from leichtfacile.rules.lexicon import MEDIOPUNKT, zipf
 from leichtfacile.rules.nlp import pipeline
-from leichtfacile.schemas import base_lang
+from leichtfacile.schemas import base_lang, canonical_variety
 
 if TYPE_CHECKING:
     from spacy.tokens import Doc, Span, Token
@@ -107,9 +107,6 @@ _REFLEXIVE = ("s'", "se ")  # French verbs listed with their pronoun: s'acquitte
 _REFLEXIVE_IT = re.compile(r"^(\w{3,}[aei])rsi\b")  # Italian: the pronoun at the end, rivolgersi a
 _GERMAN_INFINITIVE = re.compile(r"[a-zäöüß]+(?:en|ern|eln)")
 _DATA = resources.files("leichtfacile.rules") / "data"
-# The Swiss variety's key is the bare language (schemas.variety); its own file is named
-# with the region, vocabulary_de-CH.toml.
-_SWISS = "CH"
 # The varieties that write sharp s: their vocabulary is rendered with the table of
 # rules/data/spelling_de.toml at load time.
 SHARP_S_VARIETIES = frozenset({"de-DE", "de-AT"})
@@ -159,11 +156,12 @@ def _vocabulary_path(name: str):
 @lru_cache
 def vocabulary_files(key: str) -> tuple[str, ...]:
     """The names of the files a language or variety key reads, in this order: the
-    language's, shared by its varieties (`de`), and the variety's own (`de-CH` for the
-    Swiss key `de`, `de-AT` for `de-AT`); French and Italian have the first alone."""
+    language's, shared by its varieties (`de`), and the variety's own (`de-CH`, also for
+    the bare `de`; `de-AT`); French and Italian have the first alone."""
     lang = base_lang(key)
-    own = key if key != lang else f"{lang}-{_SWISS}"
-    return tuple(name for name in (lang, own) if _vocabulary_path(name).is_file())
+    return tuple(
+        name for name in (lang, canonical_variety(key)) if _vocabulary_path(name).is_file()
+    )
 
 
 def has_vocabulary(key: str) -> bool:

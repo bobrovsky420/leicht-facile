@@ -43,10 +43,11 @@ from leichtfacile.rules.vocabulary import (
 )
 from leichtfacile.varieties import variety as variety_table
 
-DE = "de"
+DE = "de"  # the language: a check every German variety runs
+CH = "de-CH"  # the Swiss variety: a check of its own (the REG rules)
 # The German varieties (schemas.variety): Switzerland, Germany, Austria. A check or a
 # guide registered for all three differs by `ctx.region`.
-GERMAN = ("de", "de-DE", "de-AT")
+GERMAN = (CH, "de-DE", "de-AT")
 STANDARD = ("de-DE", "de-AT")  # the varieties of the standard spelling, with the sharp s
 SENTENCE_KINDS = ("sentence", "list_item")
 FINITE_TAGS = frozenset({"VVFIN", "VAFIN", "VMFIN", "VVIMP", "VAIMP"})
@@ -801,7 +802,7 @@ def neg_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     "LEX-01",
     lang=GERMAN,
     guide={
-        "de": "Lange Wörter trennst du mit dem Medio·punkt: Prämien·verbilligung, "
+        "de-CH": "Lange Wörter trennst du mit dem Medio·punkt: Prämien·verbilligung, "
         "Kranken·kasse. Nach dem Punkt schreibst du klein weiter.",
         # Rendered with the hyphen by the prompt (Binde-Strich, Kranken-Kasse).
         "de-DE": "Lange Wörter trennst du mit einem Binde·strich: Prämien·verbilligung, "
@@ -884,7 +885,7 @@ EMPHASIS_WORDS = frozenset({"JA", "NEIN", "NICHT", "KEIN", "UND", "ODER", "NUR",
     "LEX-02",
     lang=GERMAN,
     guide={
-        "de": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind CHF, AHV, IV, "
+        "de-CH": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind CHF, AHV, IV, "
         "SBB, WC und PDF. Andere Abkürzungen erklärst du.",
         "de-DE": "Keine Abkürzungen (nicht: z. B., bzw., ggf., Art.). Erlaubt sind WC, LKW, "
         "Dr., ICE und PDF. Andere Abkürzungen erklärst du.",
@@ -1073,7 +1074,8 @@ def _range_text(m: re.Match[str], colon: bool = False) -> str:
     "NUM-04",
     lang=GERMAN,
     guide={
-        "de": "Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis 12 Uhr.",
+        "de-CH": "Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis "
+        "12 Uhr.",
         "de-DE": "Uhrzeiten schreibst du so: 9 Uhr oder 9:30 Uhr. Zeitspannen so: 9 Uhr bis "
         "12 Uhr.",
         "de-AT": "Uhrzeiten schreibst du so: 9 Uhr oder 9.30 Uhr. Zeitspannen so: 9 Uhr bis "
@@ -1143,7 +1145,7 @@ AMOUNT_STYLE_DE_RE = re.compile(
 
 @rule(
     "REG-01",
-    lang=DE,
+    lang=CH,
     guide="Schweizer Recht·schreibung: immer ss, nie ß.",
 )
 def ch_01(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -1161,7 +1163,7 @@ QUOTE_RE = re.compile("[\u00ab\u00bb\u2039\u203a\u201e\u201c\u201d\u201a\u2018]"
 
 @rule(
     "REG-02",
-    lang=DE,
+    lang=CH,
     guide="Keine Anführungs·zeichen.",
 )
 def ch_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
@@ -1274,7 +1276,7 @@ HELVETISMS = {
 
 @rule(
     "REG-03",
-    lang=DE,
+    lang=CH,
     guide="Nimm Schweizer Wörter: Velo, parkieren, Trottoir, Spital.",
 )
 def ch_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:

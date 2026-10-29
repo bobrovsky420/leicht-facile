@@ -25,7 +25,7 @@ from leichtfacile.rules.values import (
     matches,
     parse_value_norm,
 )
-from leichtfacile.schemas import Draft, Fact, FactSheet, SourceDocument, base_lang
+from leichtfacile.schemas import Draft, Fact, FactSheet, SourceDocument, base_lang, variety_chain
 
 
 @dataclass
@@ -40,14 +40,14 @@ class DocInput:
 # -- facts ---------------------------------------------------------------------------
 
 
-# How amounts, percentages and times are written, per language or variety (the NUM
-# rules): the German varieties of Germany and Austria count in euros.
+# How amounts, percentages and times are written, per variety (the NUM rules): the
+# German varieties of Germany and Austria count in euros.
 _UNITS = {
-    "de": {"amount": "{} Franken", "percent": "{} Prozent"},
+    "de-CH": {"amount": "{} Franken", "percent": "{} Prozent"},
     "de-DE": {"amount": "{} Euro", "percent": "{} Prozent"},
     "de-AT": {"amount": "{} Euro", "percent": "{} Prozent"},
-    "fr": {"amount": "{} francs", "percent": "{} pour cent"},
-    "it": {"amount": "{} franchi", "percent": "{} per cento"},
+    "fr-CH": {"amount": "{} francs", "percent": "{} pour cent"},
+    "it-CH": {"amount": "{} franchi", "percent": "{} per cento"},
 }
 
 
@@ -55,7 +55,7 @@ def display_value(value: Value, lang: str) -> str:
     """A value as the draft should write it: 4. Februar 2026, 4 février 2026; `lang` is
     a language or a variety key (de-DE: 1.500 Euro, de-AT: 4. Jänner 2026)."""
     language = base_lang(lang)
-    units = _UNITS.get(lang) or _UNITS.get(language, _UNITS["de"])
+    units = next((_UNITS[k] for k in variety_chain(lang) if k in _UNITS), _UNITS["de-CH"])
     if value.kind == "date":
         return format_date(value.canonical, lang)
     if value.kind == "amount":

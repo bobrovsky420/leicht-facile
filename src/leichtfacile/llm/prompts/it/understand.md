@@ -19,8 +19,8 @@ Il tuo compito:
    - "must_keep": true se la lettrice o il lettore ha bisogno di questo fatto. false per una semplice informazione di contesto.
 4. Fai l'elenco delle parole difficili: termini tecnici, nomi di uffici, abbreviazioni. Spiega ogni parola in modo semplice, in 2 frasi brevi al massimo.
 5. Fai l'elenco dei passaggi che una versione in {{ level_name }} può tralasciare, per esempio articoli di legge, ripetizioni o osservazioni interne. Indica i numeri delle frasi e un motivo breve.
-{% if mode is defined and mode == "decision" %}{% include "it/decision.md" %}{% endif %}
-{% if medication is defined and medication %}{% include "it/medication.md" %}{% endif %}
+{% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}
+{% if medication is defined and medication %}{% include medication_partial %}{% endif %}
 
 Scrivi tutti i testi in italiano.
 

@@ -16,7 +16,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Literal
 
-from leichtfacile.schemas import LANGS, Level, Severity, base_lang
+from leichtfacile.schemas import LANGS, Level, Severity, base_lang, canonical_variety, variety_chain
 
 if TYPE_CHECKING:
     from spacy.tokens import Span
@@ -95,8 +95,8 @@ class Context:
 
     lang: str
     params: LevelParams
-    # The national variety the text is checked in (schemas.variety: `de`, `de-DE`, ...);
-    # the language's key when the checker is made for a language alone.
+    # The national variety the text is checked in (schemas.variety: `de-CH`, `de-DE`,
+    # ...); the language's Swiss variety when the checker is made for a language alone.
     variety: str = ""
     glossary: set[str] = field(default_factory=set)  # lowercased terms, without Mediopunkt
     blocks: list[BlockInfo] = field(default_factory=list)
@@ -108,7 +108,7 @@ class Context:
     notice: str | None = None
 
     def __post_init__(self) -> None:
-        self.variety = self.variety or self.lang
+        self.variety = canonical_variety(self.variety or self.lang)
 
     @property
     def level(self) -> Level:
@@ -151,9 +151,10 @@ class RuleSpec:
     severity: dict[str, Severity]  # per level
     scope: Scope
     kinds: tuple[str, ...] = ("sentence", "list_item", "heading")  # block kinds checked
-    # The checks by language or variety key (`de`, `de-AT`), or one under
-    # EVERY_LANGUAGE; a rule the judge decides or a metric reports has none. A variety
-    # without a check of its own takes its language's.
+    # The checks by language (`de`, shared by its varieties) or variety key (`de-CH`,
+    # `de-AT`), or one under EVERY_LANGUAGE; a rule the judge decides or a metric
+    # reports has none. A variety without a check of its own takes the first along
+    # `schemas.variety_chain`: its language's Swiss variety's, then its language's.
     checks: dict[str, CheckFn] = field(default_factory=dict)
     # The instruction for the writer prompt, by language or variety key; {max_words} and
     # the other LevelParams fields are filled in.
@@ -167,19 +168,16 @@ class RuleSpec:
 
     def check_for(self, lang: str) -> CheckFn | None:
         """The check for a language or a variety key, the variety's own first."""
-        return (
-            self.checks.get(lang)
-            or self.checks.get(base_lang(lang))
-            or self.checks.get(EVERY_LANGUAGE)
-        )
+        for key in variety_chain(lang):
+            if key in self.checks:
+                return self.checks[key]
+        return self.checks.get(EVERY_LANGUAGE)
 
     def severity_for(self, level: str) -> Severity:
         return self.severity[level]
 
     def guide_for(self, lang: str, level: str) -> str | None:
-        guide = self.guides.get(lang)
-        if guide is None:
-            guide = self.guides.get(base_lang(lang))
+        guide = next((self.guides[key] for key in variety_chain(lang) if key in self.guides), None)
         text = guide.get(level) if isinstance(guide, dict) else guide
         if text is None:
             return None

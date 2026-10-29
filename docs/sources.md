@@ -24,7 +24,8 @@ Rules for using reference pairs:
   a genuine deviation or a false positive to fix. The rate is recorded in
   [rules.md](rules.md) as the false-positive baseline.
 - **No leakage:** the few-shot examples in the writer prompt
-  (`llm/prompts/<lang>/examples/`) are written by the team, so no pair is used as an
+  (`llm/prompts/<key>/examples/`, one folder per variety) are written by the team, so no
+  pair is used as an
   example. The manifest splits the pairs into `dev` (prompt development and checker
   calibration) and `eval` (held out for the final numbers).
 

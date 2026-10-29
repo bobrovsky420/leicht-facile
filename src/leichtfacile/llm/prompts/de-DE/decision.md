@@ -1,5 +1,5 @@
 {#- The decision mode's partial for Germany (docs/use-case-decisions.md): the Swiss
-    partial (de/decision.md) section by section, in the words of German administrative
+    partial (de-CH/decision.md) section by section, in the words of German administrative
     law. A Bescheid states its decision in the sentences before the heading Begründung,
     without a heading of its own (a court's Beschluss before Gründe); its
     Rechtsbehelfsbelehrung names a Widerspruch, or a Klage at the Verwaltungsgericht,

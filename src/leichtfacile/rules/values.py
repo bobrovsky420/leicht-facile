@@ -775,7 +775,7 @@ def _split_decimal(number: str) -> tuple[str, str | None]:
 def _text_date(m: re.Match[str], lang: str) -> str | None:
     day_text = re.sub(r"\D", "", m.group(1)) or "1"
     month = None
-    for names in (MONTHS.get(lang, {}), *MONTHS.values()):
+    for names in (MONTHS.get(base_lang(lang), {}), *MONTHS.values()):
         month = names.get(m.group(2).lower().rstrip("."))
         if month:
             break

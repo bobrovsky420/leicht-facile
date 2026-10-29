@@ -71,16 +71,36 @@ LEVELS: tuple[Level, ...] = ("A2", "B1")
 
 
 def variety(lang: str, region: str = "CH") -> str:
-    """The key of a language's national variety: the language code alone for the Swiss
-    varieties (`de`, `fr`, `it`, the names of the prompt folders and rule tables since
-    the start), `de-DE` and `de-AT` for Germany and Austria. The prompts, labels, rule
-    checks and guides are looked up by this key and fall back to the language."""
-    return lang if region == "CH" else f"{lang}-{region}"
+    """The key of a language's national variety, the language and its region: `de-CH`,
+    `de-DE`, `de-AT`, `fr-CH`, `it-CH`. The variety tables, the few-shot examples, the
+    rule checks and guides and the vocabulary are looked up by this key and fall back
+    along `variety_chain`. The Swiss keys were the bare language codes until 29 October
+    2026; a bare code still names the Swiss variety wherever a key is taken."""
+    return f"{lang}-{region}"
+
+
+def canonical_variety(key: str) -> str:
+    """A variety key as the tables name it: a bare language code (`de`) is its Swiss
+    variety (`de-CH`), a key with a region is itself."""
+    return key if "-" in key else variety(key)
 
 
 def base_lang(key: str) -> str:
-    """The language of a variety key: `de` for `de-AT`; a plain language code as it is."""
+    """The language of a variety key: `de` for `de-AT` and `de-CH`; a plain language code
+    as it is."""
     return key.partition("-")[0]
+
+
+def variety_chain(key: str) -> tuple[str, ...]:
+    """The keys a lookup by a variety tries, in order: the key itself (`de-AT`), the
+    language's Swiss variety (`de-CH`, which every language has) and the language (`de`,
+    what the varieties share). The prompt folders, the rule checks and guides, the
+    shared checks' tables and the vocabulary files resolve along it, so a variety brings
+    its own where it differs and inherits the rest, and an unknown variety of a language
+    reads as its Swiss one."""
+    key = canonical_variety(key)
+    lang = base_lang(key)
+    return tuple(dict.fromkeys((key, variety(lang), lang)))
 
 
 SEVERITY_RANK: dict[str, int] = {"error": 0, "warn": 1, "info": 2}

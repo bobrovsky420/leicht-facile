@@ -135,7 +135,7 @@ other document gets the standard prompt word for word.
 
 **The varieties** (29 October 2026; docs/architecture.md §8). `extract_values`,
 `parse_value_norm`, the formatting helpers and `display_value` take the variety key the
-job carries (`de`, `de-DE`, `de-AT`, `fr`, `it`); the fact rules, the code completion of
+job carries (`de-CH`, `de-DE`, `de-AT`, `fr-CH`, `it-CH`); the fact rules, the code completion of
 the fact sheet, the repair and recover prompts, the export layout and the evaluation
 pass it. What is unambiguous is read in every variety (a German IBAN, `Jänner`, `€`, a
 `D-` address, the German file-number keywords), so a Swiss letter that cites a German

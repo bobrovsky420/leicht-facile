@@ -12,8 +12,8 @@ Il tuo metodo:
    - "segment_ids": le frasi del documento da cui viene il blocco, per esempio ["s0004"]. Ogni blocco, tranne i titoli, ha bisogno di almeno una frase.
 5. Quello che tralasci del documento, scrivilo in "omissions", con un motivo breve.
 6. Spiega le parole difficili di cui hai bisogno in "glossary". Prendi le spiegazioni dalla scheda dei fatti.
-{% if mode is defined and mode == "decision" %}{% include "it/decision.md" %}{% endif %}
-{% if medication is defined and medication %}{% include "it/medication.md" %}{% endif %}
+{% if mode is defined and mode == "decision" %}{% include decision_partial %}{% endif %}
+{% if medication is defined and medication %}{% include medication_partial %}{% endif %}
 
 Rispondi solo con un oggetto JSON, senza altro testo. La forma è questa. I valori sono solo un esempio preso da un altro documento (tassa sui cani); non riprendere nessuna frase di questo esempio:
 

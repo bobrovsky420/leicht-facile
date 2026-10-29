@@ -5,6 +5,8 @@ its own labels gets the German ones; it has no prompts either."""
 
 from __future__ import annotations
 
+from leichtfacile.schemas import base_lang
+
 LABELS: dict[str, dict[str, str]] = {
     "de": {
         "core_what": "Worum geht es?",
@@ -119,5 +121,7 @@ LABELS: dict[str, dict[str, str]] = {
 
 
 def label(lang: str, key: str, **values: object) -> str:
-    text = LABELS.get(lang, LABELS["de"])[key]
+    """`lang`: a language or a variety key (`fr-CH`, `de-AT`): the labels are the
+    language's, none of their words differs between the varieties."""
+    text = LABELS.get(base_lang(lang), LABELS["de"])[key]
     return text.format(**values) if values else text
