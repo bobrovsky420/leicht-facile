@@ -124,17 +124,18 @@
 "Zuzahlung" = "Für Medikamente und manche Behandlungen bezahlen Sie einen kleinen Teil selbst. Das ist die Zuzahlung. Kinder müssen nichts zuzahlen."  # SGB V § 61, § 31
 
 [explain.social]
-"Bürgergeld" = "Das Bürgergeld ist Geld vom Jobcenter. Es ist für Menschen mit zu wenig Geld zum Leben. Diese Menschen können aber arbeiten."  # SGB II § 19
+"Bürgergeld" = "Das Bürgergeld heisst seit Juli 2026 Grundsicherungsgeld. Es ist Geld vom Jobcenter. Es ist für Menschen mit zu wenig Geld zum Leben. Diese Menschen können aber arbeiten."  # SGB II § 19; renamed by the 13. SGB II-Änderungsgesetz, in force 1 July 2026
+"Grundsicherungsgeld" = "Das Grundsicherungsgeld ist Geld vom Jobcenter. Es ist für Menschen mit zu wenig Geld zum Leben. Diese Menschen können aber arbeiten. Der frühere Name ist Bürgergeld."  # SGB II § 19 (since 1 July 2026)
 "Grundsicherung" = "Die Grundsicherung ist Geld vom Staat für den Alltag. Sie ist für Menschen mit zu wenig Geld zum Leben. Zum Beispiel im Alter oder ohne Arbeit."  # SGB II § 19, SGB XII § 41
 "erwerbsfähig" = "Erwerbsfähig heisst: Sie können mindestens 3 Stunden am Tag arbeiten."  # SGB II § 8
 "Regelbedarf" = "Der Regelbedarf ist ein fester Betrag für den Alltag. Zum Beispiel für Essen und Kleidung. Der Staat legt den Betrag jedes Jahr fest."  # SGB II § 20
 "Mehrbedarf" = "Manche Menschen haben höhere Kosten im Alltag. Zum Beispiel Schwangere oder Alleinerziehende. Dann bekommen sie mehr Geld. Das ist der Mehrbedarf."  # SGB II § 21
 "Bedarfsgemeinschaft" = "Dazu gehören die Menschen in Ihrem Haushalt mit Pflichten füreinander. Zum Beispiel Paare und ihre Kinder. Das Jobcenter rechnet für sie zusammen."  # SGB II § 7
 "Kosten der Unterkunft" = "Das Jobcenter oder das Sozialamt bezahlt Ihre Miete und die Heizung. Die Wohnung darf aber nicht zu teuer sein."  # SGB II § 22
-"Jobcenter" = "Das Jobcenter zahlt das Bürgergeld. Es hilft auch bei der Suche nach Arbeit."  # SGB II § 6d
+"Jobcenter" = "Das Jobcenter zahlt das Grundsicherungsgeld, früher Bürgergeld. Es hilft auch bei der Suche nach Arbeit."  # SGB II § 6d
 "Kooperationsplan" = "Im Kooperationsplan schreiben Sie mit dem Jobcenter Ihre Ziele auf. Zum Beispiel eine neue Arbeit oder einen Kurs."  # SGB II § 15
-"Leistungsminderung" = "Sie halten sich nicht an eine Pflicht? Dann kann das Jobcenter Ihr Bürgergeld kürzen. Das ist eine Leistungsminderung."  # SGB II § 31a
-"Weiterbewilligungsantrag" = "Ihr Bürgergeld gilt nur für eine bestimmte Zeit. Danach brauchen Sie einen neuen Antrag. Das ist der Weiterbewilligungsantrag."  # SGB II § 37, § 41
+"Leistungsminderung" = "Sie halten sich nicht an eine Pflicht? Dann kann das Jobcenter Ihr Geld kürzen. Das ist eine Leistungsminderung."  # SGB II § 31a
+"Weiterbewilligungsantrag" = "Ihr Grundsicherungsgeld gilt nur für eine bestimmte Zeit. Danach brauchen Sie einen neuen Antrag. Das ist der Weiterbewilligungsantrag."  # SGB II § 37, § 41
 "Sozialamt" = "Das Sozialamt ist ein Amt in der Stadt oder im Kreis. Es zahlt zum Beispiel die Sozialhilfe und die Grundsicherung."  # SGB XII § 3
 "Wohngeld" = "Wohngeld ist Geld vom Staat für die Miete. Es ist für Menschen mit wenig Einkommen. Sie beantragen es bei der Wohngeldstelle."  # WoGG § 1
 "Wohnberechtigungsschein" = "Mit diesem Schein dürfen Sie eine Sozialwohnung mieten. Sie bekommen ihn bei wenig Einkommen. Das Wohnungsamt stellt ihn aus."  # WoFG § 27

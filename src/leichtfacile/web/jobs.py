@@ -57,6 +57,8 @@ class SubmissionError(ValueError):
 
     def text(self, t: Translator) -> str:
         params = dict(self.params)
+        if "max" in params:  # a count, with the thousands as the interface writes them
+            params["max"] = t.number(params["max"])  # type: ignore[arg-type]
         if "lang" in params:
             params["lang"] = t.get(f"lang.{params['lang']}", str(params["lang"]))
         if "langs" in params:  # language codes, written as "German and French"

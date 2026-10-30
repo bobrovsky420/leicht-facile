@@ -42,12 +42,16 @@ from pydantic import BaseModel
 
 from leichtfacile.llm.client import Usage
 from leichtfacile.schemas import (
+    LANGS,
+    REGIONS,
     Job,
     JobConfig,
     JobCounts,
     UsageRecord,
+    base_lang,
     canonical_condition,
     utcnow,
+    variety,
 )
 
 T = TypeVar("T", bound=BaseModel)
@@ -521,13 +525,21 @@ class Store:
         return {r["status"]: int(r["n"]) for r in rows}
 
     def langs(self) -> list[str]:
-        """The document languages of the stored jobs, sorted."""
+        """The varieties of the stored jobs (schemas.variety: `de-CH`, `de-DE`, `fr-CH`),
+        in the order of the languages and their regions; a job from before the region
+        field is Swiss. The drafts list filters by them (since 30 October 2026; by the
+        language before, which listed the Swiss German jobs under the installation's
+        variety)."""
         with self._connection() as conn:
             rows = conn.execute(
-                "SELECT DISTINCT json_extract(config, '$.lang') AS lang FROM jobs "
-                "WHERE lang IS NOT NULL ORDER BY lang"
+                "SELECT DISTINCT json_extract(config, '$.lang') AS lang, "
+                "COALESCE(json_extract(config, '$.region'), 'CH') AS region FROM jobs "
+                "WHERE lang IS NOT NULL"
             ).fetchall()
-        return [r["lang"] for r in rows]
+        keys = {variety(r["lang"], r["region"]) for r in rows}
+        return sorted(
+            keys, key=lambda k: (LANGS.index(base_lang(k)), REGIONS.index(k.partition("-")[2]))
+        )
 
     def update_job(self, job_id: str, **fields: object) -> None:
         with self._tx() as conn:
@@ -741,9 +753,13 @@ def _filters(status: str | None, lang: str | None) -> tuple[str, tuple]:
     if status is not None:
         clauses.append("status = ?")
         params.append(status)
-    if lang:
+    if lang:  # a language (`de`) or a variety key (`de-DE`; a job without a region is Swiss)
+        code, _, region = lang.partition("-")
         clauses.append("json_extract(config, '$.lang') = ?")
-        params.append(lang)
+        params.append(code)
+        if region:
+            clauses.append("COALESCE(json_extract(config, '$.region'), 'CH') = ?")
+            params.append(region)
     return (" WHERE " + " AND ".join(clauses) if clauses else ""), tuple(params)
 
 

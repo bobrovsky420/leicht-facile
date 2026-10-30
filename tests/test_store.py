@@ -216,7 +216,13 @@ def test_list_filters_counts_and_languages_in_sql(tmp_path) -> None:
     assert [j.id for j in store.list_jobs(lang="fr")] == [fr.id]
     assert store.status_counts() == {"queued": 2, "failed": 1}
     assert store.status_counts(lang="fr") == {"failed": 1}
-    assert store.langs() == ["de", "fr"]
+    assert store.langs() == ["de-CH", "fr-CH"]  # the varieties: a job without a region is Swiss
+    austrian = store.create_job(JobConfig(lang="de", region="AT"), title="at")
+    assert store.langs() == ["de-CH", "de-AT", "fr-CH"]
+    assert [j.id for j in store.list_jobs(lang="de-AT")] == [austrian.id]
+    assert [j.id for j in store.list_jobs(lang="de-CH")] == [de.id]
+    assert [j.id for j in store.list_jobs(lang="de")] == [austrian.id, de.id]  # the language
+    assert store.status_counts(lang="de-CH") == {"queued": 1}
     old = datetime.now(UTC) - timedelta(days=40)
     with sqlite3.connect(store.path) as db:  # back-dated behind the store's back
         db.execute("UPDATE jobs SET updated_at = ? WHERE id = ?", (old.isoformat(), de.id))

@@ -31,6 +31,27 @@ def findings(d: Draft) -> list[tuple[str, str | None, str | None]]:
     return [(f.rule_id, f.key, f.suggestion) for f in check_draft(d).findings]
 
 
+def test_long_words_that_are_no_nouns_get_a_note_and_no_split() -> None:
+    """The evaluation of 30 October 2026 saw unterschriebe-Nes and minder-Jährigen: the
+    splitter is for nouns, as the code splitting is (rules/mediopunkt.py)."""
+    for region in ("CH", "DE"):
+        found = findings(draft(region, "Sie bringen ein unterschriebenes Formular mit."))
+        lex = [(key, suggestion) for rule_id, key, suggestion in found if rule_id == "LEX-01"]
+        assert lex == [("LEX-01.no_compound", None)], region
+    swiss = findings(draft("CH", "Die Krankenversicherungspolice kommt per Post."))
+    assert ("LEX-01", "LEX-01", "Kranken·versicherungs·police") in swiss
+
+
+def test_the_passive_finding_carries_a_recipe_and_leaves_geboren_alone() -> None:
+    """A werden-passive gets the advice for the active voice as its suggestion, a
+    recipe, never a replacement (rules/recipes.py); "geboren wurden" is no finding."""
+    found = findings(draft("DE", "Die Kosten werden nicht erstattet."))
+    passives = [s for rule_id, _, s in found if rule_id == "GRAM-01"]
+    assert passives and all(s and s.startswith("Wer tut es?") for s in passives)
+    born = findings(draft("CH", "Ihr Kind wurde 2015 geboren."))
+    assert not [f for f in born if f[0] == "GRAM-01"]
+
+
 # -- the spelling written by code --------------------------------------------------
 
 

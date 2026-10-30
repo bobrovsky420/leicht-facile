@@ -1,5 +1,6 @@
 {
   "_inherits": "de-DE",
+  "index.url.placeholder": "https://www.oesterreich.gv.at/...",
 
   "finding.FACT-06.identifier": "Die Nummer {value} (Geschäftszahl, SV-Nummer, Konto) steht nicht in der Quelle. Entfernen Sie sie oder übernehmen Sie den Wert aus der Quelle.",
   "finding.FACT-08.appeal": "Die Rechtsmittelbelehrung steht in keinem Block: {text}",

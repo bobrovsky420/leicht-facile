@@ -213,10 +213,13 @@ class Translator:
         return self(f"spelling.{self.region}")
 
     def language(self, lang: str, region: str | None = None) -> str:
-        """The name of a document language (`lang.<code>`). German names its variety
-        (`lang.de-DE`: German (Germany)) when the document's region, by default the
-        installation's, or the installation's is not Swiss, so a Swiss installation
-        reads "German" as before; French and Italian have one variety."""
+        """The name of a document language (`lang.<code>`) or variety key (`de-DE`, the
+        drafts list's filter). German names its variety (`lang.de-DE`: German (Germany))
+        when the document's region, by default the installation's, or the installation's
+        is not Swiss, so a Swiss installation reads "German" as before; French and
+        Italian have one variety."""
+        if region is None and "-" in lang:
+            lang, _, region = lang.partition("-")
         region = region or self.region
         key = f"lang.{lang}-{region}"
         if (region != "CH" or self.region != "CH") and self.has(key):

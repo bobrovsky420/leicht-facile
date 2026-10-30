@@ -52,6 +52,8 @@ NUM-02:
   negative:
     - Das kostet 1.500 Euro.
     - Die Stadt hat 20.000 Einwohner.
+    - Er hat die SV-Nummer 1230 140104.
+    - Ihre SV-Nummer ist 1230140104.
 
 NUM-03:
   positive:

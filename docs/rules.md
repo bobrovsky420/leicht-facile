@@ -52,7 +52,7 @@ and 21 (calibration of 28 October 2026, below).
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| GRAM-01 | No passive | `werden` (aux) + past participle (`VVPP`), also with modals (`muss eingereicht werden`) and `worden`; `sein` + `zu` + infinitive (`ist einzureichen`), also behind coordinated participles (`ist ausgefüllt und unterzeichnet ... einzureichen`) | error (A2) / warn (B1) |
+| GRAM-01 | No passive | `werden` (aux) + past participle (`VVPP`), also with modals (`muss eingereicht werden`) and `worden`; `sein` + `zu` + infinitive (`ist einzureichen`), also behind coordinated participles (`ist ausgefüllt und unterzeichnet ... einzureichen`). `geboren wurden` is no finding (since 30 October 2026: no active form a reader wants, and the easy-language pages write it). The suggestion is the recipe for the active voice ("Wer tut es? Nenne die Person oder das Amt ..."), advice for the repair round and the reviewer, never a replacement | error (A2) / warn (B1) |
 | GRAM-02 | No genitive; use `von` + dative | noun or proper noun with morph `Case=Gen`, excluding fixed phrases (`Anfang des Jahres`, `Ende des Monats`, `eines Tages`) | warn (A2) / info (B1) |
 | GRAM-03 | No Konjunktiv | finite verb with morph `Mood=Sub`, or a form that is always Konjunktiv II (`wäre`, `hätte`, `würde`, `könnte`, `müsste`, `dürfte`); a sentence-initial `Sollten Sie ...` heading a fronted clause (a condition without `wenn`). `möchte` is allowed | warn |
 | GRAM-04 | Perfekt instead of Präteritum for full verbs | full verb with `Tense=Past`, excluding `sein`, `haben` and modals | warn |
@@ -72,7 +72,7 @@ and 21 (calibration of 28 October 2026, below).
 
 | ID | Rule | Detection | Severity |
 |----|------|-----------|----------|
-| LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, in the glossary or not (an entry explains the word, it does not make it shorter); the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`) and is written into the draft by code in P1 and P2 (nouns only, see "Edits made by code" below); a long word that is no compound is a note, none if it is in the glossary; an uppercase letter after the dot is flagged | warn |
+| LEX-01 | Long compounds get a Mediopunkt (`Sorge·recht`), lowercase after the dot | word or part longer than N letters (level) with no `·`, in the glossary or not (an entry explains the word, it does not make it shorter); the suggestion comes from a compound splitter built on word frequencies (`Prämien·verbilligung`) and is written into the draft by code in P1 and P2 (nouns only, see "Edits made by code" below; since 30 October 2026 the suggestion is for nouns only too, after the splitter offered `unterschriebe·nes` and `minder·jährigen` in the German and Austrian evaluation); a long word that is no compound, or no noun, is a note, none if it is in the glossary; an uppercase letter after the dot is flagged | warn |
 | LEX-02 | No abbreviations except common ones | a list of dotted abbreviations (`z. B.`, `bzw.`, `ggf.`, `ca.`, `Art. 5`, ...), abbreviated weekday ranges (`Mo-Fr`), capital clusters and mixed-case law abbreviations (`KVG`, `BehiG`); allowlist: `WC`, `SBB`, `PDF`, `AHV`, `IV`, `CHF`, `SMS`, `TV`; an abbreviation explained in the text (`(EL)` after the full term) or in the glossary is only `info`; the suggestion is the full word from the vocabulary (`z. B.`: `zum Beispiel`, `EL`: `Ergänzungsleistungen`) | warn |
 | LEX-03 | No foreign words, anglicisms, jargon | content word with a Zipf frequency below 2.5 (wordfreq, German), unless it is a compound of common words, in the glossary, or an office word LEX-07 names the everyday word for | info |
 | LEX-04 | Rare punctuation | `;`, `(` `)`, `[` `]`, `{` `}`, `&`, `/` between words (URLs and e-mail addresses excluded); `%` is NUM-06, quotation marks are REG-02 | warn |
@@ -316,7 +316,7 @@ Sources: the Netzwerk Leichte Sprache's rules (2022 edition: W5, W6, Z8, Z9), DI
 | LEX-02 | Allowed: WC, LKW, PKW, ICE, PDF, EU, SMS, TV, ID, OK, EC, and `Dr.` (the Netzwerk's rule W6) | WC, LKW, PKW, ÖBB, AMS, PDF, EU, SMS, TV, ID, OK, and `Dr.` |
 | LEX-07 | The shared vocabulary and the country's own (`vocabulary_de-DE.toml`, "Vocabulary" below) | `vocabulary_de-AT.toml` |
 | NUM-01 | Ordinals as words are not flagged: the DIN SPEC avoids `1.`, `2.` in running text, the official pages write both | the same |
-| NUM-02 | The thousands dot: `1.500 Euro`, `500.000`; five-digit postcodes and the digits of the variety's phone numbers are no big numbers | the same |
+| NUM-02 | The thousands dot: `1.500 Euro`, `500.000`; five-digit postcodes, the digits of the variety's phone numbers and the spaced insurance numbers (`SV-Nummer 1230 140104`, also "Die SV-Nummer ist 1230140104"; since 30 October 2026) are no big numbers | the same |
 | NUM-03 | `4. Februar 2026` | `4. Jänner 2026` |
 | NUM-04 | `9 Uhr`, `9:30 Uhr`: the colon is the form, so it is no finding; `9h` and dash ranges are | `9 Uhr`, `9.30 Uhr` as in Switzerland (the Tirol pages); the colon is flagged |
 | NUM-07 | `500 Euro`; flagged: `1.500,00 €`, `EUR 500`, `500 EUR`, `€ 500` | the same, and so the Austrian pages' `€ 330,-` (a note, as everywhere) |
@@ -366,11 +366,19 @@ The evaluation of 30 October 2026 (Apertus 1.5 70B on the Public AI gateway, 8 e
 pairs a variety, docs/evaluation-publicai.md) decided nothing against them: the drafts
 of P2 had 4.1 errors per 100 blocks in Germany and 4.7 in Austria under these limits,
 GRAM-01 passives and LEN-01 above all, the REG rules 0.5 and 0.0 per 100 blocks, NUM
-5.9 and 4.2; the official pages of that split measure 3.5 and 12.4. The limits stay,
-and the open items of the calibration are the identifiers (the Austrian SV-Nummer,
-`1230 140104`, which NUM-02 wants grouped) and the long adjectives LEX-01 offers to
-split (`unterschriebe-Nes`, `minder-Jährigen`; the Mediopunkt form in Switzerland
-hides the same splits).
+5.9 and 4.2; the official pages of that split measure 3.5 and 12.4. The limits stay.
+What the run changed the same week (30 October 2026): NUM-02 masks the spaced insurance
+numbers in de-DE and de-AT (the Austrian SV-Nummer `1230 140104`, which it wanted
+grouped); LEX-01 offers a split for nouns alone, in every variety (it offered
+`unterschriebe-Nes` and `minder-Jährigen`; the Mediopunkt form in Switzerland hid the
+same splits); GRAM-01 leaves `geboren wurden` alone and carries the recipe for the
+active voice as its suggestion, since the 24 passives of the 16 P2 drafts (all
+genuine, "werden nicht erstattet", "wird gefördert") survived every repair round with a
+message that said only what was wrong. What stays as it is: the facts round asks for
+at most ten missing facts (`pipeline.missing_per_facts_round`), so a page that lists
+thirteen regional offices with their numbers keeps part of the list in the omission
+log; an easy-language text should not reproduce such a directory, and the reader finds
+it on the letter.
 
 ## Delegated to the judge (all languages)
 
@@ -413,7 +421,7 @@ hard words of Swiss administrative letters, read by `rules/vocabulary.py`. Two k
 country. `rules/data/vocabulary_de.toml` keeps the entries that read correctly in
 Switzerland, Germany and Austria alike (305: 240 replace, 65 explain);
 `vocabulary_de-CH.toml` holds the Swiss ones (152: 20 replace, 132 explain),
-`vocabulary_de-DE.toml` (117: 30, 87) and `vocabulary_de-AT.toml` (116: 33, 83) those of
+`vocabulary_de-DE.toml` (118: 30, 88) and `vocabulary_de-AT.toml` (116: 33, 83) those of
 Germany and Austria. A variety reads the shared file and its own, a term stands in one
 of the two only, and French and Italian keep one file each. An entry is Swiss when it
 names an institution, a procedure or a word of Switzerland (`AHV`,
@@ -426,9 +434,12 @@ entry for entry, texts included. The country files were written for this project
 the authorities, procedures, benefits and office words of German and Austrian letters
 (`Bescheid`, `Widerspruch`, `Bürgergeld`, `Pflegegrad`, `zeitnah`; `Spruch`,
 `Bezirkshauptmannschaft`, `Meldezettel`, `RSa-Brief`, `ehestmöglich`), every explanation
-our own and cited to its act (`# SGB II § 7`, `# AVG § 58`); the German explanations
-avoid amounts and anything tied to the Bürgergeld reform of 2026, and a few Austrian
-citations name the act without its section. Every German file is written in the Swiss
+our own and cited to its act and section (`# SGB II § 7`, `# AVG § 58`; the Austrian
+citations completed on 30 October 2026); the German explanations avoid amounts, and
+since 30 October 2026 they name the reform of 2026: the Bürgergeld is the
+Grundsicherungsgeld since 1 July 2026 (13. SGB II-Änderungsgesetz), both terms have an
+entry, and the Jobcenter and the Weiterbewilligungsantrag speak of the new name, the
+old one in brackets where a letter from before may use it. Every German file is written in the Swiss
 spelling, so the tests check all explanations with the Swiss checker; for Germany and
 Austria the loader writes ß from `rules/data/spelling_de.toml`, a table of unambiguous
 stems that match inside words (`strasse` = `straße`, `gemäss` = `gemäß`; `Masse`,

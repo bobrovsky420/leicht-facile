@@ -111,6 +111,7 @@
   "index.examples": "Ein Beispiel ausprobieren:",
   "index.url.label": "Adresse einer öffentlichen Webseite",
   "index.url.hint": "Der Haupttext der Seite wird übernommen; Navigation und Fusszeilen fallen weg.",
+  "index.url.placeholder": "https://www.zh.ch/de/...",
   "index.file.label": "PDF mit Textebene, HTML oder reiner Text, bis 15 MB",
   "index.lang": "Sprache",
   "index.lang.auto": "Erkennen",

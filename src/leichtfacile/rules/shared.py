@@ -255,11 +255,13 @@ def lex_07(sent: Span, ctx: Context) -> Iterator[Hit]:
 def num_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask_numbers(block.text)
     if ctx.region in ("DE", "AT"):
-        # Five-digit postcodes (51103 Köln) and the digits of the German phone shapes
-        # (0221 / 221-30700) are no big numbers; the Swiss masking knows neither
-        # (calibration on the Köln pages, 29 October 2026).
+        # Five-digit postcodes (51103 Köln), the digits of the German phone shapes
+        # (0221 / 221-30700) and the spaced insurance numbers (SV-Nummer 1230 140104) are
+        # no big numbers; the Swiss masking knows none of them (calibration on the Köln
+        # pages, 29 October 2026; the Austrian Bescheid of the evaluation, 30 October).
         values = extract_values(block.text, ctx.variety)
-        text = mask(text, [(v.start, v.end) for v in values if v.kind in ("address", "phone")])
+        kinds = ("address", "phone", "identifier")
+        text = mask(text, [(v.start, v.end) for v in values if v.kind in kinds])
     for m in BIG_NUMBER_RE.finditer(text):
         digits = m.group(0)
         before, after = text[max(0, m.start() - 14) : m.start()], text[m.end() : m.end() + 12]

@@ -15,8 +15,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from spacy.tokens import Token
 
-# Rules whose suggestion is a recipe, not a text that replaces the evidence.
-RECIPE_RULES = frozenset({"LEN-02"})
+# Rules whose suggestion is a recipe, not a text that replaces the evidence (GRAM-01's
+# is `de.PASSIVE_RECIPE`, since 30 October 2026).
+RECIPE_RULES = frozenset({"LEN-02", "GRAM-01"})
 
 _DE = {
     "reason": "Mach 2 Sätze: zuerst der Grund, dann die Folge mit Deshalb. "

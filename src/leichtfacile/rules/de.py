@@ -25,6 +25,7 @@ from leichtfacile.rules.lexicon import (
     split_compound,
     zipf,
 )
+from leichtfacile.rules.mediopunkt import NOUN_TAGS
 from leichtfacile.rules.messages import hit
 from leichtfacile.rules.recipes import recipe_de
 from leichtfacile.rules.values import (
@@ -175,11 +176,29 @@ def clause_count(sent: Span) -> int:
     return max(1, by_verbs, 1 + len(subs))
 
 
+# A werden-passive the rule leaves alone: "geboren wurden" has no active form a reader
+# would want ("zur Welt kamen"), and the easy-language pages write it (3 of the 24
+# passives in the German and Austrian evaluation of 30 October 2026).
+PASSIVE_ALLOWED = frozenset({"geboren"})
+# The finding's advice for the repair round and the reviewer (rules/recipes.py: a recipe,
+# never a replacement text). The 70B left "werden nicht erstattet" and "wird gefördert"
+# standing through every repair round of that evaluation; the message alone said what
+# was wrong, not what to write.
+PASSIVE_RECIPE = (
+    "Wer tut es? Nenne die Person oder das Amt: Das Amt zahlt das Geld. "
+    "Oder: Sie bekommen das Geld."
+)
+
+
 def passive_constructions(sent: Span) -> list[str]:
     found = []
     for t in sent:
         if t.lemma_ == "werden" and t.tag_.startswith("VA"):
-            participles = [c for c in t.children if c.tag_ == "VVPP" and c.dep_ == "oc"]
+            participles = [
+                c
+                for c in t.children
+                if c.tag_ == "VVPP" and c.dep_ == "oc" and c.lower_ not in PASSIVE_ALLOWED
+            ]
             if participles:
                 found.append(_span_text(sent, t, participles[0]))
         zu_inf = t.tag_ == "VVIZU" or (
@@ -325,7 +344,7 @@ def ord_01(sent: Span, ctx: Context) -> Iterator[Hit]:
 )
 def gram_01(sent: Span, ctx: Context) -> Iterator[Hit]:
     for evidence in passive_constructions(sent):
-        yield hit("GRAM-01", found=evidence, evidence=evidence)
+        yield hit("GRAM-01", found=evidence, evidence=evidence, suggestion=PASSIVE_RECIPE)
 
 
 GENITIVE_ALLOWED = (
@@ -832,8 +851,12 @@ def lex_01(sent: Span, ctx: Context) -> Iterator[Hit]:
         # The same split the pipeline writes by code (rules/mediopunkt.py). A glossary
         # entry explains the word but does not make it shorter, so a compound is flagged
         # whether it is in the glossary or not; only a long word that cannot be split
-        # needs no note when it is explained.
-        split = mediopunkt_suggestion(t.text, limit)
+        # needs no note when it is explained. Nouns alone get a split, as the code
+        # splitting does (rules/mediopunkt.py): the splitter offered unterschriebe·nes and
+        # minder·jährigen for a participle and an adjective (the German and Austrian
+        # evaluation of 30 October 2026); a long word of another kind is the note below.
+        noun = t.pos_ in NOUN_TAGS and t.text[:1].isupper()
+        split = mediopunkt_suggestion(t.text, limit) if noun else None
         if split:
             yield hit(
                 "LEX-01.hyphen" if hyphen else "LEX-01",
@@ -1044,7 +1067,10 @@ CURRENCY_NEAR_RE = re.compile(r"CHF|Fr\.|Franken|Rappen", re.IGNORECASE)
 CURRENCY_NEAR_RE_DE = re.compile(r"EUR|€|Euro|Cent", re.IGNORECASE)
 IDENTIFIER_BEFORE_RE_DE = re.compile(
     IDENTIFIER_BEFORE_RE.pattern[: -len(r")\s?$")]
-    + r"|Kassenzeichen|Geschäftszahl|GZ|Aktenzeichen|Az\.|Steuernummer|Steuer-ID)\s?$",
+    + r"|Kassenzeichen|Geschäftszahl|GZ|Aktenzeichen|Az\.|Steuernummer|Steuer-ID"
+    # The Austrian insurance number, also written as a sentence: "Die SV-Nummer ist
+    # 1230140104" (the Bescheid of the evaluation, 30 October 2026).
+    + r"|SV-Nummer|SVNR|Versicherungsnummer)(?:\s+(?:ist|lautet))?\s?:?\s?$",
     re.IGNORECASE,
 )
 

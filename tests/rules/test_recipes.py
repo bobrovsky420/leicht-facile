@@ -103,7 +103,7 @@ def test_the_review_page_does_not_offer_a_recipe_as_a_replacement(tmp_path) -> N
     from leichtfacile.store import Store
     from leichtfacile.web.views import review_view
 
-    assert {"LEN-02"} == RECIPE_RULES
+    assert {"LEN-02", "GRAM-01"} == RECIPE_RULES
     from tests.pipeline import fixtures as fx
 
     store = Store(tmp_path / "r.sqlite")

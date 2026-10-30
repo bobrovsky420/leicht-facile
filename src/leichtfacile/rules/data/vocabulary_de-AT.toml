@@ -117,7 +117,7 @@
 "Sozialversicherung" = "Die Sozialversicherung hilft bei Krankheit oder Unfall. Sie hilft auch im Alter und ohne Arbeit. Bei Angestellten zieht der Arbeitgeber die Beiträge vom Lohn ab."  # ASVG § 1
 "e-card" = "Die e-card ist Ihre Karte von der Krankenkasse. Zeigen Sie sie beim Arzt oder im Krankenhaus."  # ASVG § 31a
 "ÖGK" = "Die ÖGK ist die Österreichische Gesundheitskasse. Sie ist die grösste Krankenkasse in Österreich. Bei ihr sind die meisten Angestellten versichert."  # ASVG § 23
-"Pensionsversicherungsanstalt" = "Die Pensionsversicherungsanstalt zahlt Ihre Pension im Alter. Sie zahlt auch das Pflegegeld für Menschen in Pension."  # ASVG
+"Pensionsversicherungsanstalt" = "Die Pensionsversicherungsanstalt zahlt Ihre Pension im Alter. Sie zahlt auch das Pflegegeld für Menschen in Pension."  # ASVG § 25
 "Pflegegeld" = "Sie brauchen viel Hilfe im Alltag? Dann bekommen Sie Pflegegeld. Es gibt 7 Stufen. Die Stufe hängt von den Stunden Pflege pro Monat ab."  # BPGG § 4, § 5
 "Arbeitslosengeld" = "Sie haben Ihre Arbeit verloren? Dann bekommen Sie Arbeitslosengeld vom AMS. Dafür müssen Sie vorher lange genug gearbeitet haben."  # AlVG § 7
 "Notstandshilfe" = "Ihr Arbeitslosengeld ist zu Ende? Dann bekommen Sie vielleicht Notstandshilfe vom AMS. Sie brauchen dieses Geld zum Leben."  # AlVG § 33
@@ -156,7 +156,7 @@
 "Staatsbürgerschaftsnachweis" = "Ein Papier vom Amt. Es zeigt: Sie sind Österreicherin oder Österreicher."  # StbG § 44
 "Aufenthaltstitel" = "Mit einem Aufenthaltstitel dürfen Sie in Österreich leben. Es gibt verschiedene Arten."  # NAG § 8
 "Einbürgerung" = "Sie werden Bürgerin oder Bürger von Österreich. Dann bekommen Sie den österreichischen Pass."  # StbG § 10
-"Standesamt" = "Dieses Amt schreibt wichtige Daten in ein Register. Zum Beispiel eine Geburt oder eine Heirat."  # PStG 2013
+"Standesamt" = "Dieses Amt schreibt wichtige Daten in ein Register. Zum Beispiel eine Geburt oder eine Heirat."  # PStG 2013 § 3
 
 [explain.vote]
 "Wahlkarte" = "Mit einer Wahlkarte wählen Sie mit der Post. Oder Sie wählen in einem anderen Wahllokal."  # NRWO § 38

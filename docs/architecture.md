@@ -454,7 +454,9 @@ contains (the check of FACT-06) is sent back once with the values named; the sec
 answer is used as it is, and FACT-06 flags what remains. A missing fact is listed with
 the fact sheet's value and, when that differs, the exact form the draft should write
 (`2026-03-31; schreibe: 31. März 2026`). A finding of LEN-02 carries the rewrite
-recipe for its conjunction as the suggestion (docs/rules.md). Every round is recorded
+recipe for its conjunction as the suggestion, a German GRAM-01 the recipe for the active
+voice (docs/rules.md; since 30 October 2026, after the 70B left the passives of the
+German pages standing through every repair round). Every round is recorded
 (`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
 every answered sentence code left out with its reason (a repeat, example content, a
 block the round had not flagged); `eval diagnose` reads these records.
@@ -1138,9 +1140,11 @@ list, the review strip, the job page and the forms, each job with its own region
 Swiss job kept after a setup change reads "Deutsch (Schweiz)"), and picks the sample
 letters (`examples.py`: those of its region, by the `region` in the JSON next to each,
 and the French and Italian ones). The review strip names the mark code split the
-compounds with in the draft's variety (`mark.mediopunkt`, `mark.hyphen`). Known gap: the
-drafts list's language filter works on the job's language, so after a change of the
-region it lists the Swiss German jobs under the new variety's name too.
+compounds with in the draft's variety (`mark.mediopunkt`, `mark.hyphen`). The drafts
+list's language filter offers the varieties the store holds (`store.langs`: `de-CH`,
+`de-DE`, `fr-CH`; a job from before the region field is Swiss), so after a change of
+the region the Swiss German jobs and the new variety's are two entries (since 30 October
+2026; before, the filter worked on the language and listed both under the new name).
 
 ### CLI
 

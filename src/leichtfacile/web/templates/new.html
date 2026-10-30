@@ -43,7 +43,7 @@
         </div>
         <div class="tab-panel" data-panel="url" id="panel-url" role="tabpanel" aria-labelledby="tab-url">
           <label class="label" for="url">{{ t('index.url.label') }}</label>
-          <input id="url" name="url" type="url" placeholder="https://www.zh.ch/de/..." value="{{ form.url or '' }}">
+          <input id="url" name="url" type="url" placeholder="{{ t('index.url.placeholder') }}" value="{{ form.url or '' }}">
           <p class="hint" style="margin-top: 8px">{{ t('index.url.hint') }} {{ t('new.private_note') }}</p>
         </div>
         <div class="tab-panel" data-panel="file" id="panel-file" role="tabpanel" aria-labelledby="tab-file">

@@ -11,7 +11,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 19,
      "GRAM-02 warn": 22,
      "GRAM-03 warn": 2,
@@ -25,8 +24,8 @@
      "LEN-02 error": 7,
      "LEN-02 warn": 12,
      "LEN-03 warn": 1,
-     "LEX-01 info": 15,
-     "LEX-01 warn": 52,
+     "LEX-01 info": 20,
+     "LEX-01 warn": 47,
      "LEX-02 info": 14,
      "LEX-02 warn": 13,
      "LEX-03 info": 23,
@@ -38,7 +37,8 @@
      "NUM-01 warn": 2,
      "NUM-06 warn": 2,
      "ORD-01 info": 35,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 77,
@@ -51,7 +51,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 19,
      "GRAM-02 info": 22,
      "GRAM-03 warn": 2,
@@ -64,8 +63,8 @@
      "LEN-01 warn": 9,
      "LEN-02 warn": 7,
      "LEN-03 warn": 1,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 42,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 40,
      "LEX-02 info": 14,
      "LEX-02 warn": 13,
      "LEX-03 info": 23,
@@ -77,7 +76,8 @@
      "NUM-01 warn": 2,
      "NUM-06 warn": 2,
      "ORD-01 info": 35,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 77,
@@ -164,7 +164,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 1,
      "GRAM-02 warn": 4,
      "GRAM-05 info": 10,
@@ -173,8 +172,8 @@
      "LEN-01 warn": 4,
      "LEN-02 warn": 2,
      "LEN-03 warn": 1,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 23,
+     "LEX-01 info": 11,
+     "LEX-01 warn": 16,
      "LEX-02 info": 1,
      "LEX-02 warn": 4,
      "LEX-03 info": 9,
@@ -185,7 +184,8 @@
      "NEG-02 info": 4,
      "NUM-03 warn": 1,
      "ORD-01 info": 8,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 67,
@@ -198,7 +198,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 1,
      "GRAM-02 info": 4,
      "GRAM-05 info": 10,
@@ -206,7 +205,8 @@
      "LEN-01 error": 3,
      "LEN-01 warn": 3,
      "LEN-03 warn": 1,
-     "LEX-01 warn": 14,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 11,
      "LEX-02 info": 1,
      "LEX-02 warn": 4,
      "LEX-03 info": 9,
@@ -217,7 +217,8 @@
      "NEG-02 info": 4,
      "NUM-03 warn": 1,
      "ORD-01 info": 8,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 67,
@@ -240,7 +241,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-02 warn": 1,
      "GRAM-05 info": 3,
      "GRAM-05 warn": 2,
@@ -250,7 +250,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 4,
      "LEN-03 warn": 1,
-     "LEX-01 warn": 10,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 9,
      "LEX-02 info": 1,
      "LEX-02 warn": 6,
      "LEX-03 info": 4,
@@ -258,7 +259,8 @@
      "LEX-05 info": 2,
      "NEG-02 info": 5,
      "ORD-01 info": 9,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 158,
@@ -271,7 +273,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-02 info": 1,
      "GRAM-05 info": 3,
      "GRAM-05 warn": 2,
@@ -287,7 +288,8 @@
      "LEX-05 info": 2,
      "NEG-02 info": 5,
      "ORD-01 info": 9,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 158,
@@ -324,8 +326,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 13,
      "LEN-03 warn": 2,
-     "LEX-01 info": 7,
-     "LEX-01 warn": 44,
+     "LEX-01 info": 13,
+     "LEX-01 warn": 38,
      "LEX-02 warn": 3,
      "LEX-03 info": 24,
      "LEX-04 warn": 7,
@@ -358,8 +360,8 @@
      "LEN-01 warn": 7,
      "LEN-02 warn": 1,
      "LEN-03 warn": 2,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 24,
+     "LEX-01 info": 6,
+     "LEX-01 warn": 22,
      "LEX-02 warn": 3,
      "LEX-03 info": 24,
      "LEX-04 warn": 7,
@@ -458,7 +460,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 1,
      "GRAM-02 warn": 5,
      "GRAM-04 warn": 1,
@@ -469,15 +470,16 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 10,
      "LEN-03 warn": 2,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 13,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 11,
      "LEX-02 info": 1,
      "LEX-03 info": 5,
      "LEX-04 warn": 1,
      "LEX-07 warn": 3,
      "NEG-02 info": 5,
      "ORD-01 info": 9,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 48,
@@ -490,7 +492,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 1,
      "GRAM-02 info": 5,
      "GRAM-04 warn": 1,
@@ -500,15 +501,16 @@
      "LEN-01 warn": 3,
      "LEN-02 error": 1,
      "LEN-03 warn": 2,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 9,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 8,
      "LEX-02 info": 1,
      "LEX-03 info": 5,
      "LEX-04 warn": 1,
      "LEX-07 info": 3,
      "NEG-02 info": 5,
      "ORD-01 info": 9,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 48,
@@ -531,13 +533,14 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 3,
      "GRAM-05 info": 4,
-     "LEX-01 warn": 2,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 1,
      "LEX-03 info": 2,
      "NEG-02 info": 8,
      "ORD-01 info": 13,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 3
     },
     "metrics": {
      "blocks": 95,
@@ -550,13 +553,14 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 3,
      "GRAM-05 info": 4,
-     "LEX-01 warn": 2,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 1,
      "LEX-03 info": 2,
      "NEG-02 info": 8,
      "ORD-01 info": 13,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 3
     },
     "metrics": {
      "blocks": 95,
@@ -584,7 +588,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 11,
      "GRAM-02 warn": 19,
      "GRAM-04 warn": 3,
@@ -595,8 +598,8 @@
      "LEN-01 warn": 12,
      "LEN-02 error": 3,
      "LEN-02 warn": 11,
-     "LEX-01 info": 10,
-     "LEX-01 warn": 33,
+     "LEX-01 info": 14,
+     "LEX-01 warn": 29,
      "LEX-02 warn": 3,
      "LEX-03 info": 36,
      "LEX-04 warn": 13,
@@ -607,7 +610,8 @@
      "NUM-04 warn": 2,
      "NUM-06 warn": 2,
      "ORD-01 info": 11,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 87,
@@ -620,7 +624,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 11,
      "GRAM-02 info": 19,
      "GRAM-04 warn": 3,
@@ -642,7 +645,8 @@
      "NUM-04 warn": 2,
      "NUM-06 warn": 2,
      "ORD-01 info": 11,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 87,
@@ -748,8 +752,8 @@
      "LEN-02 error": 3,
      "LEN-02 warn": 33,
      "LEN-03 warn": 4,
-     "LEX-01 info": 14,
-     "LEX-01 warn": 74,
+     "LEX-01 info": 20,
+     "LEX-01 warn": 68,
      "LEX-02 warn": 41,
      "LEX-03 info": 110,
      "LEX-04 warn": 1,
@@ -821,7 +825,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 1,
      "GRAM-02 warn": 3,
      "GRAM-03 warn": 1,
@@ -834,8 +837,8 @@
      "LEN-01 warn": 8,
      "LEN-02 warn": 22,
      "LEN-03 warn": 3,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 7,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 6,
      "LEX-02 warn": 64,
      "LEX-03 info": 98,
      "LEX-04 warn": 4,
@@ -843,7 +846,8 @@
      "NEG-02 info": 16,
      "NUM-01 warn": 3,
      "ORD-01 info": 29,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 303,
@@ -856,7 +860,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 1,
      "GRAM-02 info": 3,
      "GRAM-03 warn": 1,
@@ -876,7 +879,8 @@
      "NEG-02 info": 16,
      "NUM-01 warn": 3,
      "ORD-01 info": 29,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 303,
@@ -902,7 +906,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 error": 17,
      "GRAM-02 warn": 43,
      "GRAM-04 warn": 2,
@@ -915,8 +918,8 @@
      "LEN-02 error": 4,
      "LEN-02 warn": 27,
      "LEN-03 warn": 3,
-     "LEX-01 info": 32,
-     "LEX-01 warn": 89,
+     "LEX-01 info": 42,
+     "LEX-01 warn": 79,
      "LEX-02 info": 1,
      "LEX-02 warn": 9,
      "LEX-03 info": 19,
@@ -926,7 +929,8 @@
      "NEG-02 info": 26,
      "NUM-01 warn": 1,
      "ORD-01 info": 12,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 187,
@@ -939,7 +943,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 warn": 17,
      "GRAM-02 info": 43,
      "GRAM-04 warn": 2,
@@ -952,8 +955,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 3,
      "LEN-03 warn": 3,
-     "LEX-01 info": 5,
-     "LEX-01 warn": 32,
+     "LEX-01 info": 9,
+     "LEX-01 warn": 28,
      "LEX-02 info": 1,
      "LEX-02 warn": 9,
      "LEX-03 info": 19,
@@ -963,7 +966,8 @@
      "NEG-02 info": 26,
      "NUM-01 warn": 1,
      "ORD-01 info": 12,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 187,
@@ -992,8 +996,8 @@
      "LEN-02 error": 4,
      "LEN-02 warn": 11,
      "LEN-03 warn": 1,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 30,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 29,
      "LEX-02 info": 1,
      "LEX-02 warn": 1,
      "LEX-03 info": 6,
@@ -1055,7 +1059,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 12,
      "GRAM-02 warn": 26,
      "GRAM-03 warn": 1,
@@ -1069,8 +1072,8 @@
      "LEN-02 error": 7,
      "LEN-02 warn": 18,
      "LEN-03 warn": 2,
-     "LEX-01 info": 15,
-     "LEX-01 warn": 71,
+     "LEX-01 info": 36,
+     "LEX-01 warn": 50,
      "LEX-02 warn": 24,
      "LEX-03 info": 23,
      "LEX-04 warn": 18,
@@ -1079,7 +1082,8 @@
      "NEG-02 info": 9,
      "NUM-01 warn": 11,
      "ORD-01 info": 32,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 95,
@@ -1092,7 +1096,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 12,
      "GRAM-02 info": 26,
      "GRAM-03 warn": 1,
@@ -1106,7 +1109,8 @@
      "LEN-02 error": 3,
      "LEN-02 warn": 4,
      "LEN-03 warn": 2,
-     "LEX-01 warn": 30,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 25,
      "LEX-02 warn": 24,
      "LEX-03 info": 23,
      "LEX-04 warn": 18,
@@ -1115,7 +1119,8 @@
      "NEG-02 info": 9,
      "NUM-01 warn": 11,
      "ORD-01 info": 32,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 95,
@@ -1138,7 +1143,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 3,
      "GRAM-02 warn": 1,
      "GRAM-03 warn": 1,
      "GRAM-05 info": 2,
@@ -1151,14 +1155,15 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 12,
      "LEN-03 warn": 1,
-     "LEX-01 info": 5,
-     "LEX-01 warn": 6,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 4,
      "LEX-03 info": 17,
      "LEX-04 warn": 2,
      "LEX-07 warn": 2,
      "NEG-02 info": 6,
      "ORD-01 info": 21,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 3
     },
     "metrics": {
      "blocks": 117,
@@ -1171,7 +1176,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 3,
      "GRAM-02 info": 1,
      "GRAM-03 warn": 1,
      "GRAM-05 info": 2,
@@ -1188,7 +1192,8 @@
      "LEX-07 info": 2,
      "NEG-02 info": 6,
      "ORD-01 info": 21,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 3
     },
     "metrics": {
      "blocks": 117,
@@ -1214,7 +1219,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 error": 36,
      "GRAM-02 warn": 46,
      "GRAM-03 warn": 2,
@@ -1226,8 +1230,8 @@
      "LEN-02 error": 8,
      "LEN-02 warn": 44,
      "LEN-03 warn": 7,
-     "LEX-01 info": 39,
-     "LEX-01 warn": 150,
+     "LEX-01 info": 60,
+     "LEX-01 warn": 129,
      "LEX-02 warn": 22,
      "LEX-03 info": 38,
      "LEX-04 warn": 32,
@@ -1238,7 +1242,8 @@
      "NEG-02 info": 23,
      "NUM-01 warn": 9,
      "ORD-01 info": 43,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 154,
@@ -1251,7 +1256,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 warn": 36,
      "GRAM-02 info": 46,
      "GRAM-03 warn": 2,
@@ -1263,8 +1267,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 7,
      "LEN-03 warn": 7,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 83,
+     "LEX-01 info": 8,
+     "LEX-01 warn": 77,
      "LEX-02 warn": 22,
      "LEX-03 info": 38,
      "LEX-04 warn": 32,
@@ -1275,7 +1279,8 @@
      "NEG-02 info": 23,
      "NUM-01 warn": 9,
      "ORD-01 info": 43,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 154,
@@ -1305,8 +1310,8 @@
      "GRAM-07 info": 1,
      "LEN-01 warn": 4,
      "LEN-02 warn": 13,
-     "LEX-01 info": 16,
-     "LEX-01 warn": 2,
+     "LEX-01 info": 17,
+     "LEX-01 warn": 1,
      "LEX-03 info": 71,
      "LEX-04 warn": 2,
      "LEX-06 info": 2,
@@ -1364,7 +1369,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 2,
      "GRAM-02 warn": 32,
      "GRAM-05 info": 4,
@@ -1374,8 +1378,8 @@
      "LEN-01 warn": 11,
      "LEN-02 warn": 11,
      "LEN-03 warn": 4,
-     "LEX-01 info": 7,
-     "LEX-01 warn": 101,
+     "LEX-01 info": 10,
+     "LEX-01 warn": 98,
      "LEX-02 info": 3,
      "LEX-02 warn": 1,
      "LEX-03 info": 21,
@@ -1384,7 +1388,8 @@
      "NEG-02 info": 3,
      "NUM-01 warn": 6,
      "ORD-01 info": 15,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 133,
@@ -1397,7 +1402,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 2,
      "GRAM-02 info": 32,
      "GRAM-05 info": 4,
@@ -1406,8 +1410,8 @@
      "LEN-01 error": 4,
      "LEN-01 warn": 1,
      "LEN-03 warn": 4,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 59,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 58,
      "LEX-02 info": 3,
      "LEX-02 warn": 1,
      "LEX-03 info": 21,
@@ -1416,7 +1420,8 @@
      "NEG-02 info": 3,
      "NUM-01 warn": 6,
      "ORD-01 info": 15,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 133,
@@ -1439,7 +1444,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 1,
      "GRAM-02 warn": 3,
      "GRAM-03 warn": 1,
@@ -1447,15 +1451,16 @@
      "GRAM-07 info": 1,
      "LEN-01 warn": 1,
      "LEN-02 warn": 7,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 4,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 3,
      "LEX-02 warn": 6,
      "LEX-03 info": 12,
      "LEX-04 warn": 1,
      "LEX-07 warn": 2,
      "NEG-02 info": 1,
      "ORD-01 info": 9,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 159,
@@ -1468,7 +1473,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 1,
      "GRAM-02 info": 3,
      "GRAM-03 warn": 1,
@@ -1480,7 +1484,8 @@
      "LEX-07 info": 2,
      "NEG-02 info": 1,
      "ORD-01 info": 9,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 159,
@@ -1514,8 +1519,8 @@
      "LEN-01 warn": 2,
      "LEN-02 warn": 1,
      "LEN-03 warn": 16,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 35,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 32,
      "LEX-02 warn": 7,
      "LEX-03 info": 11,
      "LEX-04 warn": 15,
@@ -1543,7 +1548,8 @@
      "LEN-01 error": 2,
      "LEN-01 warn": 1,
      "LEN-03 warn": 16,
-     "LEX-01 warn": 12,
+     "LEX-01 info": 1,
+     "LEX-01 warn": 11,
      "LEX-02 warn": 7,
      "LEX-03 info": 11,
      "LEX-04 warn": 15,
@@ -1734,7 +1740,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 error": 26,
      "GRAM-02 warn": 26,
      "GRAM-03 warn": 1,
@@ -1748,8 +1753,8 @@
      "LEN-02 error": 2,
      "LEN-02 warn": 33,
      "LEN-03 warn": 5,
-     "LEX-01 info": 14,
-     "LEX-01 warn": 82,
+     "LEX-01 info": 24,
+     "LEX-01 warn": 72,
      "LEX-02 warn": 8,
      "LEX-03 info": 20,
      "LEX-04 warn": 35,
@@ -1760,7 +1765,8 @@
      "NUM-01 warn": 2,
      "NUM-04 warn": 2,
      "ORD-01 info": 40,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 168,
@@ -1773,7 +1779,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 warn": 26,
      "GRAM-02 info": 26,
      "GRAM-03 warn": 1,
@@ -1787,8 +1792,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 1,
      "LEN-03 warn": 5,
-     "LEX-01 info": 1,
-     "LEX-01 warn": 25,
+     "LEX-01 info": 6,
+     "LEX-01 warn": 20,
      "LEX-02 warn": 8,
      "LEX-03 info": 20,
      "LEX-04 warn": 35,
@@ -1799,7 +1804,8 @@
      "NUM-01 warn": 2,
      "NUM-04 warn": 2,
      "ORD-01 info": 40,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 168,
@@ -1825,7 +1831,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 3,
      "GRAM-05 info": 4,
      "GRAM-05 warn": 1,
@@ -1834,8 +1839,8 @@
      "LEN-01 error": 1,
      "LEN-01 warn": 3,
      "LEN-02 warn": 6,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 19,
+     "LEX-01 info": 7,
+     "LEX-01 warn": 16,
      "LEX-03 info": 14,
      "LEX-04 warn": 8,
      "LEX-05 info": 1,
@@ -1843,7 +1848,8 @@
      "NEG-02 info": 15,
      "NUM-04 warn": 2,
      "ORD-01 info": 36,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 257,
@@ -1856,14 +1862,14 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 3,
      "GRAM-05 info": 4,
      "GRAM-05 warn": 1,
      "GRAM-06 info": 1,
      "LAY-03 info": 1,
      "LEN-01 error": 1,
-     "LEX-01 warn": 8,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 6,
      "LEX-03 info": 14,
      "LEX-04 warn": 8,
      "LEX-05 info": 1,
@@ -1871,7 +1877,8 @@
      "NEG-02 info": 15,
      "NUM-04 warn": 2,
      "ORD-01 info": 36,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 257,
@@ -1970,7 +1977,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 9,
      "GRAM-02 warn": 1,
      "LAY-03 info": 1,
      "LEN-02 warn": 1,
@@ -1979,7 +1985,8 @@
      "LEX-03 info": 6,
      "NEG-02 info": 5,
      "ORD-01 info": 20,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 9
     },
     "metrics": {
      "blocks": 115,
@@ -1992,7 +1999,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 9,
      "GRAM-02 info": 1,
      "LAY-03 info": 1,
      "LEX-01 warn": 2,
@@ -2000,7 +2006,8 @@
      "LEX-03 info": 6,
      "NEG-02 info": 5,
      "ORD-01 info": 20,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 9
     },
     "metrics": {
      "blocks": 115,
@@ -2138,7 +2145,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 8,
      "GRAM-02 warn": 27,
      "GRAM-03 warn": 3,
@@ -2153,15 +2159,16 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 12,
      "LEN-03 warn": 5,
-     "LEX-01 info": 27,
-     "LEX-01 warn": 47,
+     "LEX-01 info": 35,
+     "LEX-01 warn": 39,
      "LEX-02 warn": 15,
      "LEX-03 info": 35,
      "LEX-04 warn": 15,
      "LEX-07 warn": 14,
      "NEG-02 info": 6,
      "ORD-01 info": 8,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 88,
@@ -2174,7 +2181,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 8,
      "GRAM-02 info": 27,
      "GRAM-03 warn": 3,
@@ -2188,15 +2194,16 @@
      "LEN-01 warn": 5,
      "LEN-02 warn": 1,
      "LEN-03 warn": 5,
-     "LEX-01 info": 3,
-     "LEX-01 warn": 22,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 21,
      "LEX-02 warn": 15,
      "LEX-03 info": 35,
      "LEX-04 warn": 15,
      "LEX-07 info": 14,
      "NEG-02 info": 6,
      "ORD-01 info": 8,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 88,
@@ -2268,7 +2275,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 error": 4,
      "GRAM-02 warn": 6,
      "GRAM-03 warn": 8,
@@ -2285,7 +2291,8 @@
      "NEG-02 info": 2,
      "NUM-01 warn": 1,
      "ORD-01 info": 4,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 22,
@@ -2298,7 +2305,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 warn": 4,
      "GRAM-02 info": 6,
      "GRAM-03 warn": 8,
@@ -2314,7 +2320,8 @@
      "NEG-02 info": 2,
      "NUM-01 warn": 1,
      "ORD-01 info": 4,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 22,
@@ -2398,7 +2405,7 @@
    },
    "A2": {
     "findings": {
-     "GRAM-01 error": 8,
+     "GRAM-01 error": 5,
      "GRAM-02 warn": 28,
      "GRAM-05 info": 5,
      "GRAM-05 warn": 5,
@@ -2408,8 +2415,8 @@
      "LEN-02 error": 5,
      "LEN-02 warn": 15,
      "LEN-03 warn": 2,
-     "LEX-01 info": 16,
-     "LEX-01 warn": 36,
+     "LEX-01 info": 17,
+     "LEX-01 warn": 35,
      "LEX-03 info": 12,
      "LEX-04 warn": 6,
      "LEX-07 warn": 25,
@@ -2423,14 +2430,14 @@
      "blocks": 69,
      "words": 717,
      "readability": 48.4,
-     "pct_passive": 14.8,
+     "pct_passive": 9.3,
      "pct_genitive": 42.6,
      "pct_subordinate": 27.8
     }
    },
    "B1": {
     "findings": {
-     "GRAM-01 warn": 8,
+     "GRAM-01 warn": 5,
      "GRAM-02 info": 28,
      "GRAM-05 info": 5,
      "GRAM-05 warn": 5,
@@ -2454,7 +2461,7 @@
      "blocks": 69,
      "words": 717,
      "readability": 48.4,
-     "pct_passive": 14.8,
+     "pct_passive": 9.3,
      "pct_genitive": 42.6,
      "pct_subordinate": 27.8
     }
@@ -2531,8 +2538,8 @@
      "LEN-01 warn": 4,
      "LEN-02 error": 1,
      "LEN-02 warn": 5,
-     "LEX-01 info": 1,
-     "LEX-01 warn": 23,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 21,
      "LEX-02 warn": 1,
      "LEX-03 info": 3,
      "LEX-04 warn": 1,
@@ -2643,7 +2650,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 error": 39,
      "GRAM-02 warn": 26,
      "GRAM-05 info": 14,
@@ -2654,8 +2660,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 25,
      "LEN-03 warn": 2,
-     "LEX-01 info": 7,
-     "LEX-01 warn": 76,
+     "LEX-01 info": 14,
+     "LEX-01 warn": 69,
      "LEX-02 warn": 14,
      "LEX-03 info": 16,
      "LEX-04 warn": 11,
@@ -2667,7 +2673,8 @@
      "NUM-02 warn": 4,
      "NUM-06 warn": 1,
      "ORD-01 info": 18,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 83,
@@ -2680,7 +2687,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 5,
      "GRAM-01 warn": 39,
      "GRAM-02 info": 26,
      "GRAM-05 info": 14,
@@ -2690,7 +2696,8 @@
      "LEN-01 warn": 7,
      "LEN-02 warn": 1,
      "LEN-03 warn": 2,
-     "LEX-01 warn": 44,
+     "LEX-01 info": 6,
+     "LEX-01 warn": 38,
      "LEX-02 warn": 14,
      "LEX-03 info": 16,
      "LEX-04 warn": 11,
@@ -2702,7 +2709,8 @@
      "NUM-02 warn": 4,
      "NUM-06 warn": 1,
      "ORD-01 info": 18,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 5
     },
     "metrics": {
      "blocks": 83,
@@ -2805,15 +2813,14 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 6,
      "GRAM-02 warn": 9,
      "GRAM-05 info": 4,
      "LEN-01 error": 5,
      "LEN-01 warn": 3,
      "LEN-02 warn": 5,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 16,
+     "LEX-01 info": 5,
+     "LEX-01 warn": 13,
      "LEX-02 info": 8,
      "LEX-03 info": 9,
      "LEX-04 warn": 2,
@@ -2821,7 +2828,8 @@
      "NEG-02 info": 1,
      "NUM-01 warn": 2,
      "ORD-01 info": 7,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 27,
@@ -2834,12 +2842,12 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 6,
      "GRAM-02 info": 9,
      "GRAM-05 info": 4,
      "LEN-01 error": 5,
-     "LEX-01 warn": 6,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 4,
      "LEX-02 info": 8,
      "LEX-03 info": 9,
      "LEX-04 warn": 2,
@@ -2847,7 +2855,8 @@
      "NEG-02 info": 1,
      "NUM-01 warn": 2,
      "ORD-01 info": 7,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 27,
@@ -2921,7 +2930,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 4,
      "GRAM-02 warn": 7,
      "GRAM-05 info": 8,
@@ -2938,7 +2946,8 @@
      "LEX-07 warn": 2,
      "NEG-02 info": 2,
      "ORD-01 info": 13,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 54,
@@ -2951,7 +2960,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 4,
      "GRAM-02 info": 7,
      "GRAM-05 info": 8,
@@ -2966,7 +2974,8 @@
      "LEX-07 info": 2,
      "NEG-02 info": 2,
      "ORD-01 info": 13,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 54,
@@ -3080,8 +3089,8 @@
      "LEN-02 error": 3,
      "LEN-02 warn": 19,
      "LEN-03 warn": 2,
-     "LEX-01 info": 14,
-     "LEX-01 warn": 79,
+     "LEX-01 info": 19,
+     "LEX-01 warn": 74,
      "LEX-02 info": 1,
      "LEX-02 warn": 9,
      "LEX-03 info": 16,
@@ -3226,7 +3235,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 19,
      "GRAM-02 warn": 37,
      "GRAM-03 warn": 1,
@@ -3240,8 +3248,8 @@
      "LEN-02 error": 8,
      "LEN-02 warn": 14,
      "LEN-03 warn": 9,
-     "LEX-01 info": 15,
-     "LEX-01 warn": 90,
+     "LEX-01 info": 25,
+     "LEX-01 warn": 80,
      "LEX-02 info": 12,
      "LEX-02 warn": 8,
      "LEX-03 info": 43,
@@ -3251,7 +3259,8 @@
      "NEG-02 info": 11,
      "NUM-01 warn": 1,
      "ORD-01 info": 14,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 103,
@@ -3264,7 +3273,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 19,
      "GRAM-02 info": 37,
      "GRAM-03 warn": 1,
@@ -3278,8 +3286,8 @@
      "LEN-02 error": 2,
      "LEN-02 warn": 6,
      "LEN-03 warn": 9,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 48,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 46,
      "LEX-02 info": 12,
      "LEX-02 warn": 8,
      "LEX-03 info": 43,
@@ -3289,7 +3297,8 @@
      "NEG-02 info": 11,
      "NUM-01 warn": 1,
      "ORD-01 info": 14,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 103,
@@ -3313,7 +3322,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 4,
      "GRAM-02 warn": 12,
      "GRAM-05 info": 10,
@@ -3322,15 +3330,16 @@
      "LAY-03 info": 3,
      "LEN-01 warn": 2,
      "LEN-02 warn": 7,
-     "LEX-01 info": 8,
-     "LEX-01 warn": 7,
+     "LEX-01 info": 10,
+     "LEX-01 warn": 5,
      "LEX-02 info": 24,
      "LEX-03 info": 16,
      "LEX-04 warn": 9,
      "LEX-07 warn": 6,
      "NEG-02 info": 11,
      "ORD-01 info": 22,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 163,
@@ -3343,7 +3352,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 4,
      "GRAM-02 info": 12,
      "GRAM-05 info": 10,
@@ -3358,7 +3366,8 @@
      "LEX-07 info": 6,
      "NEG-02 info": 11,
      "ORD-01 info": 22,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 163,
@@ -3395,8 +3404,8 @@
      "LEN-02 error": 3,
      "LEN-02 warn": 6,
      "LEN-03 warn": 3,
-     "LEX-01 info": 3,
-     "LEX-01 warn": 46,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 45,
      "LEX-02 info": 8,
      "LEX-02 warn": 6,
      "LEX-03 info": 14,
@@ -3472,8 +3481,8 @@
      "LEN-01 warn": 4,
      "LEN-02 warn": 7,
      "LEN-03 warn": 1,
-     "LEX-01 info": 3,
-     "LEX-01 warn": 17,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 16,
      "LEX-02 info": 12,
      "LEX-02 warn": 1,
      "LEX-03 info": 12,
@@ -3581,7 +3590,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 4,
      "GRAM-02 warn": 5,
      "GRAM-04 warn": 1,
@@ -3598,7 +3606,8 @@
      "LEX-07 warn": 2,
      "NEG-02 info": 10,
      "ORD-01 info": 14,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 101,
@@ -3611,7 +3620,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 4,
      "GRAM-02 info": 5,
      "GRAM-04 warn": 1,
@@ -3625,7 +3633,8 @@
      "LEX-07 info": 2,
      "NEG-02 info": 10,
      "ORD-01 info": 14,
-     "READ-01 info": 1
+     "READ-01 info": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 101,
@@ -3649,7 +3658,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 error": 7,
      "GRAM-02 warn": 9,
      "GRAM-03 warn": 1,
@@ -3659,8 +3667,8 @@
      "LEN-01 warn": 8,
      "LEN-02 error": 2,
      "LEN-02 warn": 10,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 34,
+     "LEX-01 info": 12,
+     "LEX-01 warn": 26,
      "LEX-02 warn": 13,
      "LEX-03 info": 19,
      "LEX-04 warn": 6,
@@ -3668,7 +3676,8 @@
      "NEG-02 info": 7,
      "NUM-01 warn": 2,
      "ORD-01 info": 11,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 50,
@@ -3681,7 +3690,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 2,
      "GRAM-01 warn": 7,
      "GRAM-02 info": 9,
      "GRAM-03 warn": 1,
@@ -3690,7 +3698,8 @@
      "LEN-01 error": 8,
      "LEN-01 warn": 2,
      "LEN-02 warn": 2,
-     "LEX-01 warn": 13,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 10,
      "LEX-02 warn": 13,
      "LEX-03 info": 19,
      "LEX-04 warn": 6,
@@ -3698,7 +3707,8 @@
      "NEG-02 info": 7,
      "NUM-01 warn": 2,
      "ORD-01 info": 11,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 2
     },
     "metrics": {
      "blocks": 50,
@@ -3773,7 +3783,6 @@
    },
    "A2": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 error": 3,
      "GRAM-02 warn": 37,
      "GRAM-04 warn": 1,
@@ -3784,8 +3793,8 @@
      "LEN-01 error": 24,
      "LEN-01 warn": 5,
      "LEN-02 warn": 8,
-     "LEX-01 info": 24,
-     "LEX-01 warn": 37,
+     "LEX-01 info": 31,
+     "LEX-01 warn": 30,
      "LEX-02 info": 9,
      "LEX-02 warn": 2,
      "LEX-03 info": 12,
@@ -3793,7 +3802,8 @@
      "LEX-07 warn": 20,
      "NEG-02 info": 4,
      "ORD-01 info": 20,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 41,
@@ -3806,7 +3816,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 4,
      "GRAM-01 warn": 3,
      "GRAM-02 info": 37,
      "GRAM-04 warn": 1,
@@ -3816,8 +3825,8 @@
      "LAY-03 info": 1,
      "LEN-01 error": 17,
      "LEN-01 warn": 7,
-     "LEX-01 info": 2,
-     "LEX-01 warn": 16,
+     "LEX-01 info": 4,
+     "LEX-01 warn": 14,
      "LEX-02 info": 9,
      "LEX-02 warn": 2,
      "LEX-03 info": 12,
@@ -3825,7 +3834,8 @@
      "LEX-07 info": 20,
      "NEG-02 info": 4,
      "ORD-01 info": 20,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 4
     },
     "metrics": {
      "blocks": 41,
@@ -3843,7 +3853,6 @@
    "values": {},
    "A2": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 error": 2,
      "GRAM-02 warn": 1,
      "GRAM-05 info": 2,
@@ -3858,7 +3867,8 @@
      "LEX-04 warn": 2,
      "NEG-02 info": 2,
      "ORD-01 info": 4,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 60,
@@ -3871,7 +3881,6 @@
    },
    "B1": {
     "findings": {
-     "REG-02 info": 1,
      "GRAM-01 warn": 2,
      "GRAM-02 info": 1,
      "GRAM-05 info": 2,
@@ -3882,7 +3891,8 @@
      "LEX-04 warn": 2,
      "NEG-02 info": 2,
      "ORD-01 info": 4,
-     "READ-01 warn": 1
+     "READ-01 warn": 1,
+     "REG-02 info": 1
     },
     "metrics": {
      "blocks": 60,
@@ -3916,8 +3926,8 @@
      "LEN-02 error": 1,
      "LEN-02 warn": 7,
      "LEN-03 warn": 4,
-     "LEX-01 info": 19,
-     "LEX-01 warn": 19,
+     "LEX-01 info": 23,
+     "LEX-01 warn": 15,
      "LEX-02 warn": 2,
      "LEX-03 info": 8,
      "LEX-04 warn": 6,
@@ -3948,8 +3958,8 @@
      "LEN-01 warn": 5,
      "LEN-02 warn": 1,
      "LEN-03 warn": 4,
-     "LEX-01 info": 1,
-     "LEX-01 warn": 4,
+     "LEX-01 info": 2,
+     "LEX-01 warn": 3,
      "LEX-02 warn": 2,
      "LEX-03 info": 8,
      "LEX-04 warn": 6,
@@ -4058,8 +4068,8 @@
      "LEN-02 error": 2,
      "LEN-02 warn": 2,
      "LEN-03 warn": 2,
-     "LEX-01 info": 4,
-     "LEX-01 warn": 55,
+     "LEX-01 info": 8,
+     "LEX-01 warn": 51,
      "LEX-02 info": 8,
      "LEX-02 warn": 6,
      "LEX-03 info": 20,
@@ -4092,7 +4102,8 @@
      "LEN-01 warn": 3,
      "LEN-02 warn": 2,
      "LEN-03 warn": 2,
-     "LEX-01 warn": 26,
+     "LEX-01 info": 3,
+     "LEX-01 warn": 23,
      "LEX-02 info": 8,
      "LEX-02 warn": 6,
      "LEX-03 info": 20,

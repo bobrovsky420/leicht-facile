@@ -106,7 +106,7 @@ def test_drafts_list_filters_by_status_search_and_language(env) -> None:
     store.update_job(failed.id, status="failed", error="LLMOutputError: " + "x" * 80)
 
     page = client.get("/").text
-    assert "3 drafts." in page and '<option value="fr">' in page
+    assert "3 drafts." in page and '<option value="fr-CH">' in page  # the varieties
     assert "LLMOutputError: " + "x" * 43 + "…" in page  # a long error is cut
 
     assert sorted(_titles(client)) == ["Beispiel", "Brief", "Lettre"]
