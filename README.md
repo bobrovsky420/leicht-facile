@@ -26,15 +26,16 @@ them, although the reader has only one question: do I get my money back?
 | *Es ist nicht unwesentlich, dass Kosten,<br>die nicht fristgerecht geltend gemacht werden,<br>nicht vergütet werden können.* | *Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst bekommen Sie kein Geld zurück.* |
 
 **The law asks for it.** Switzerland has ratified the UN Convention on the Rights of
-Persons with Disabilities, which counts plain language as a form of communication
-(art. 2), asks for accessible public information (art. 9 and 21) and for access to
-justice (art. 13). The Disability Equality Act asks authorities to take the needs of
-people with disabilities into account when they communicate with the public (art. 14
-BehiG). In Germany, federal authorities should explain decisions, forms and contracts in
-simple language on request, and in Leichte Sprache when that is not enough (§ 11 BGG),
-and every federal website explains itself in Leichte Sprache on its home page (§ 4 BITV
-2.0). Austria has been bound by the same UN Convention since 2008. The texts:
-[References](#references).
+Persons with Disabilities<sup>[2](#ref-2)</sup>, which counts plain language as a form of
+communication (art. 2), asks for accessible public information (art. 9 and 21) and for
+access to justice (art. 13). The Disability Equality Act<sup>[3](#ref-3)</sup> asks
+authorities to take the needs of people with disabilities into account when they
+communicate with the public (art. 14 BehiG). In Germany, federal authorities should
+explain decisions, forms and contracts in simple language on request, and in Leichte
+Sprache when that is not enough (§ 11 BGG<sup>[4](#ref-4)</sup>), and every federal
+website explains itself in Leichte Sprache on its home page
+(§ 4 BITV 2.0<sup>[5](#ref-5)</sup>). Austria has been bound by the same UN Convention
+since 2008<sup>[6](#ref-6)</sup>.
 
 Two use cases: a canton's letters and web pages
 ([use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
@@ -273,21 +274,21 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 
 ## References
 
-- Swiss Federal Statistical Office (FSO),
-  [first results of PIAAC 2022/2023](https://www.bfs.admin.ch/asset/fr/33346105),
-  Neuchâtel 2024, section 3.3: 1.25 million adults aged 16 to 65 (22 percent) with low
-  literacy, level 1 or below.
-- UN Convention on the Rights of Persons with Disabilities (SR 0.109), art. 2, 9, 13
-  and 21: <https://www.fedlex.admin.ch/eli/cc/2014/245/de>
-- Federal Act on the Elimination of Discrimination against People with Disabilities
-  (Disability Equality Act, BehiG, SR 151.3), art. 14:
-  <https://www.fedlex.admin.ch/eli/cc/2003/667/de>
-- Germany: Behindertengleichstellungsgesetz (BGG), § 11 Verständlichkeit und Leichte
-  Sprache: <https://www.gesetze-im-internet.de/bgg/__11.html>
-- Germany: Barrierefreie-Informationstechnik-Verordnung (BITV 2.0), § 4:
-  <https://www.gesetze-im-internet.de/bitv_2_0/__4.html>
-- Austria: UN Convention on the Rights of Persons with Disabilities, BGBl. III Nr.
-  155/2008: <https://www.ris.bka.gv.at/eli/bgbl/III/2008/155>
+1. <a id="ref-1"></a>Swiss Federal Statistical Office (FSO),
+   [first results of PIAAC 2022/2023](https://www.bfs.admin.ch/asset/fr/33346105),
+   Neuchâtel 2024, section 3.3: 1.25 million adults aged 16 to 65 (22 percent) with low
+   literacy, level 1 or below.
+2. <a id="ref-2"></a>UN Convention on the Rights of Persons with Disabilities (SR 0.109),
+   art. 2, 9, 13 and 21: <https://www.fedlex.admin.ch/eli/cc/2014/245/de>
+3. <a id="ref-3"></a>Federal Act on the Elimination of Discrimination against People with
+   Disabilities (Disability Equality Act, BehiG, SR 151.3), art. 14:
+   <https://www.fedlex.admin.ch/eli/cc/2003/667/de>
+4. <a id="ref-4"></a>Germany: Behindertengleichstellungsgesetz (BGG), § 11
+   Verständlichkeit und Leichte Sprache: <https://www.gesetze-im-internet.de/bgg/__11.html>
+5. <a id="ref-5"></a>Germany: Barrierefreie-Informationstechnik-Verordnung (BITV 2.0),
+   § 4: <https://www.gesetze-im-internet.de/bitv_2_0/__4.html>
+6. <a id="ref-6"></a>Austria: UN Convention on the Rights of Persons with Disabilities,
+   BGBl. III Nr. 155/2008: <https://www.ris.bka.gv.at/eli/bgbl/III/2008/155>
 
 ## Licence
 

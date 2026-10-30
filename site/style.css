@@ -160,6 +160,11 @@ td.lf { color: var(--ok); font-weight: 600; }
 pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 0 0 1em; }
 ul.plain { padding-left: 1.2em; margin: 0 0 1em; }
 ul.plain li { margin-bottom: 0.4em; }
+sup { line-height: 0; }
+sup a { text-decoration: none; padding: 0 0.1em; }
+ol.refs { padding-left: 1.6em; margin: 0; }
+ol.refs li { margin-bottom: 0.4em; }
+ol.refs li:target { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 /* a timeline: solid for what has shipped, dashed for what is planned; the label sits left of the line */
 ol.roadmap { list-style: none; margin: 32px 0 0; padding: 0 0 0 calc(11rem + 24px); max-width: 880px; }
