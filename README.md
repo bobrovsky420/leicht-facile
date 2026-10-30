@@ -15,6 +15,8 @@ assistant for the people who write official texts, from trained easy-language wr
 case workers, not a replacement for their review or for the test by readers from the
 target group.
 
+The project's page, in English, German, French and Italian: **[leichtfacile.ch](https://leichtfacile.ch)**
+
 > About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
 > skills ([Swiss Federal Statistical Office](#references)).
 
