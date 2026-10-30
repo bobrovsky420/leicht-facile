@@ -41,6 +41,10 @@ class Pair(BaseModel):
 
     id: str
     publisher: str = ""
+    # The publisher's jurisdiction: a Swiss canton by its code (`CH` for the
+    # Confederation); for Germany and Austria the Land or the city by name (`Bayern`,
+    # `Köln`, `Tirol`), `Bund` for the federal level (docs/sources.md). Read by nobody
+    # but the reader of the manifest; the reports group by language and variety.
     canton: str = ""
     lang: Literal["de", "fr", "it"]
     region: Literal["CH", "DE", "AT"] = "CH"  # the national variety the pair is written in

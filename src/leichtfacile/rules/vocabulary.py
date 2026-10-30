@@ -63,6 +63,30 @@ _ENDINGS = {
     "fr": ("e", "s", "es", "x"),
 }
 _MIN_STEM = 4  # shorter words match only as written or by their lemma
+# German weak verbs the lemmatiser leaves as they stand (urgiert, aufgerechnet: the
+# Austrian and German evaluation of 30 October 2026): the Partizip II with ge-, behind a
+# separable prefix or not, and the forms of the -ieren verbs, which take no ge-; the
+# infinitive they stand for is the term as the vocabulary writes it (aufrechnen,
+# urgieren). A form that is no verb gives a base no entry has (gesamt: samen).
+_PREFIXES_DE = (
+    "ab", "an", "auf", "aus", "bei", "ein", "fest", "fort", "frei", "her", "hin", "los",
+    "mit", "nach", "statt", "teil", "vor", "weiter", "wieder", "zu", "zurück", "zusammen",
+)  # fmt: skip
+_PARTICIPLE_DE = re.compile(
+    rf"^(?P<prefix>(?:{'|'.join(_PREFIXES_DE)})?)ge(?P<stem>[a-zäöü]{{3,}}?)e?t$"
+)
+_IEREN_DE = re.compile(r"^(?P<stem>[a-zäöü]{3,}ier)(?:t|te|ten|tet|st)$")
+
+
+def _verb_bases_de(word: str) -> set[str]:
+    bases = set()
+    if m := _PARTICIPLE_DE.fullmatch(word):
+        bases.add(m["prefix"] + m["stem"] + "en")
+    if m := _IEREN_DE.fullmatch(word):
+        bases.add(m["stem"] + "en")
+    return bases
+
+
 # Italian inflects by changing the ending: an inflected form's ending and the endings
 # of the base forms it may stand for (decisioni: decisione, premi: premio, rendite:
 # rendita, notifica and notificato: notificare, rivolgersi: rivolgere). Verb endings
@@ -403,6 +427,8 @@ class VocabularyMatcher:
         """A normalised word, its stems without a usual ending (Fristen: frist) and its
         base forms with the ending swapped (decisioni: decisione)."""
         forms = {word}
+        if self.lang == "de":
+            forms |= _verb_bases_de(word)
         for ending in _ENDINGS.get(self.lang, ()):
             if word.endswith(ending) and len(word) - len(ending) >= _MIN_STEM:
                 forms.add(word[: -len(ending)])

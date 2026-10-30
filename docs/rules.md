@@ -486,7 +486,9 @@ at A2 with no warning (LEX-01 excepted, since code adds the Mediopunkt), LEX-07
 included, so the explanations use no office word themselves.
 
 **Matching** (`rules/vocabulary.py`): a word matches as written, by its lemma or with a
-usual ending (`Verfügungen`, `versées`), with its Mediopunkt (`Prämien·verbilligung`),
+usual ending (`Verfügungen`, `versées`), as the ge-participle or -ieren form of a German
+weak verb the lemmatiser leaves as it stands (`aufgerechnet` for `aufrechnen`, `urgiert`
+for `urgieren`; since 30 October 2026), with its Mediopunkt (`Prämien·verbilligung`),
 as part of a hyphenated word (`Rente` in `IV-Rente`), as a German separable verb
 (`reichen ... ein` for `einreichen`) and as a German verbal phrase whose verb stands
 elsewhere in the sentence (`tritt ... in Kraft`); French contracted and elided forms

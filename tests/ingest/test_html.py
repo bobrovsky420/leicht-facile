@@ -285,3 +285,63 @@ def test_touching_inline_elements_get_a_space():
     assert "Telefon +43 512 508 7843" in texts
     assert "E-Mail amt@tirol.example" in texts
     assert "Praemienverbilligung gibt es in der Schweiz. Der Betrag ist in Franken." in texts
+
+
+def test_cookie_notices_are_dropped():
+    # parlament.gv.at keeps its cookie notice in a plain div.cookie without a role, and
+    # trafilatura took it for the page's first paragraph (30 October 2026).
+    page = """<html><body>
+    <div class="cookie svelte-jbaieu"><p>Die Webseite verwendet Cookies: Zum einen sind sie
+    erforderlich fuer die Herstellung der Funktionalitaet. Zum anderen werden sie fuer die
+    anonyme Analyse der Nutzung verarbeitet.</p>
+    <div class="cookie-button">Alle akzeptieren</div></div>
+    <main><h1>Einfache Sprache</h1>
+    <p>Texte in einfacher Sprache sind klar und einfach aufgebaut. Fremdwoerter werden
+    vermieden oder erklaert. Die Texte richten sich an alle Menschen, die lieber kurze
+    Saetze lesen. Sie erscheinen jede Woche neu.</p>
+    <p>Das Parlament erklaert so, was es beschliesst, und wer dort arbeitet. Die Texte
+    sind auf dem Niveau B1 geschrieben.</p></main></body></html>"""
+    _, units = extract_html(page)
+    texts = " ".join(u.text for u in units)
+    assert "Cookies" not in texts and "akzeptieren" not in texts
+    assert "Texte in einfacher Sprache sind klar und einfach aufgebaut." in texts
+
+
+def test_rescue_puts_back_the_sections_of_the_pages_jump_list():
+    # stadt.muenchen.de: the jump list names the sections, trafilatura dropped the short
+    # ones ("Dauer und Kosten", "Zustaendige Stelle"), in recall mode too (30 October 2026)
+    page = """<html><body><main>
+    <h1>Muenchen-Pass</h1>
+    <ul><li><a href="#k-1">Beschreibung</a></li><li><a href="#k-2">Dauer und Kosten</a></li>
+    <li><a href="#k-3">Links und Downloads</a></li></ul>
+    <div id="k-1"><h2>Beschreibung</h2>
+    <p>Mit dem Muenchen-Pass bekommen Menschen mit wenig Geld Ermaessigungen. Der Pass gilt
+    ein Jahr. Sie beantragen ihn im Sozialbuergerhaus. Bringen Sie Ihren Ausweis und den
+    Bescheid ueber Ihre Leistungen mit.</p></div>
+    <div id="k-2"><div><h2>Dauer und Kosten</h2></div><div><h3>Bearbeitungszeit</h3></div>
+    <div><p>In der Regel innerhalb von 3 bis zu 4 Wochen.</p></div>
+    <div><h3>Gebuehrenrahmen</h3></div><div><p>Es fallen keine Gebuehren an.</p></div></div>
+    <div id="k-3"><h2>Links und Downloads</h2><ul><li><a href="/a.pdf">Antrag</a></li></ul></div>
+    </main></body></html>"""
+    ids = html._jump_targets(html._parse(page))
+    tree = html._prepare(html._parse(page))
+    kept = [
+        Unit("heading", "Muenchen-Pass", heading_level=1),
+        Unit("heading", "Beschreibung", heading_level=2),
+        Unit("paragraph", "Mit dem Muenchen-Pass bekommen Menschen mit wenig Geld Ermaessigungen. "
+             "Der Pass gilt ein Jahr. Sie beantragen ihn im Sozialbuergerhaus. Bringen Sie Ihren "
+             "Ausweis und den Bescheid ueber Ihre Leistungen mit."),
+    ]  # fmt: skip
+    texts = [u.text for u in html._rescue_sections(tree, kept, ids)]
+    assert texts[:3] == [u.text for u in kept]
+    assert texts[3:] == [
+        "Dauer und Kosten",
+        "Bearbeitungszeit",
+        "In der Regel innerhalb von 3 bis zu 4 Wochen.",
+        "Gebuehrenrahmen",
+        "Es fallen keine Gebuehren an.",
+    ]  # the link list is no section of its own
+    # a target the extraction has is left alone
+    assert [
+        u.text for u in html._rescue_sections(tree, html._rescue_sections(tree, kept, ids), ids)
+    ] == texts

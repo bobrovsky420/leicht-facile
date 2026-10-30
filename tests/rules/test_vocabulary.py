@@ -257,6 +257,18 @@ def test_the_shared_german_file_has_no_swiss_marker() -> None:
     assert found == []
 
 
+def test_verb_forms_the_lemmatiser_misses_still_find_their_entry() -> None:
+    """spaCy leaves urgiert and aufgerechnet without a lemma (the evaluation of 30
+    October 2026): the ge-participle and the -ieren forms are read back to the term."""
+    austrian = matcher("de-AT").find_text("Das Amt hat die Zahlung urgiert.")
+    assert [m.entry.term for m in austrian] == ["urgieren"]
+    german = matcher("de-DE").find_text("Der Betrag wird mit der Nachzahlung aufgerechnet.")
+    assert "aufrechnen" in [m.entry.term for m in german]
+    # a word that is no verb gives a base no entry has
+    found = matcher("de-CH").find_text("Das gesamte Gebiet.")
+    assert not [m for m in found if m.entry.term in ("samen", "bieen")]
+
+
 def test_a_variety_reads_the_shared_file_and_its_own() -> None:
     assert vocabulary_files("de-CH") == vocabulary_files("de") == ("de", "de-CH")
     assert vocabulary_files("de-DE") == ("de", "de-DE")

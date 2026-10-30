@@ -32,6 +32,11 @@ trafilatura sees it:
   drops buttons). A disclosure button with plain text becomes a paragraph.
 - Screen-reader-only text (`visually-hidden`, `sr-only`, ...) is removed. It holds hints
   such as "Verwenden Sie die Akkordeon-Bedienelemente ..." and hidden headings.
+- Cookie notices are removed: an element whose class or id names cookies or consent
+  (parlament.gv.at keeps its notice in a plain `div.cookie`, which trafilatura took for
+  the first paragraph).
+- Two inline elements that touch without a space get one (the icon label and the value
+  of a contact box on tirol.gv.at read "AdresseMeinhardstraße 16").
 - Inline formatting (b, strong, em, ...) is unwrapped and block elements get spaces
   around them; otherwise trafilatura glues words ("zahlenjedes", "Schritt1").
 - Navigation widgets are removed: a heading followed only by links or buttons (language
@@ -46,6 +51,14 @@ be.ch, sg.ch, zg.ch), although phone numbers and e-mail addresses are exactly th
 the checker verifies. A compact block (at most 2000 characters, outside header, footer
 and navigation) that holds a phone number or e-mail address missing from the
 extraction is put back at its place in the document (see `_rescue_contacts`).
+
+Sections of the page's own jump list: stadt.muenchen.de names the sections of a service
+page in a list of in-page links and keeps each in nested divs with its heading in a
+wrapper of its own; trafilatura dropped the short ones ("Dauer und Kosten": the
+processing time and the fee), in recall mode too. The targets of the in-page links are
+noted before the list goes as a navigation widget, and a target with text of its own
+outside links that the extraction lacks is put back the same way (see
+`_rescue_sections`; 30 October 2026).
 
 If trafilatura finds nothing, a simple fallback converts the prepared page itself.
 """
@@ -105,7 +118,9 @@ def decode_bytes(content: bytes, *charsets: str | None) -> str:
 
 def extract_html(html: str, url: str | None = None) -> tuple[str | None, list[Unit]]:
     """Return the page title and the units of the main content."""
-    tree = _prepare(_parse(html))
+    tree = _parse(html)
+    sections = _jump_targets(tree)  # before _prepare drops the jump list as a widget
+    tree = _prepare(tree)
     title = _page_title(tree)
     xml = trafilatura.extract(
         copy.deepcopy(tree),  # trafilatura prunes the tree it gets
@@ -127,7 +142,7 @@ def extract_html(html: str, url: str | None = None) -> tuple[str | None, list[Un
     if not units or _flattened(units, tree):
         units = _fallback_units(tree)
     else:
-        units = _rescue_contacts(tree, _tidy(units))
+        units = _rescue_sections(tree, _rescue_contacts(tree, _tidy(units)), sections)
     return normalize_text(title or "") or None, _tidy(units)
 
 
@@ -235,6 +250,7 @@ def _prepare(tree: Any) -> Any:
         if element.getparent() is not None:
             element.drop_tree()
     _drop_screen_reader_text(tree)
+    _drop_cookie_notices(tree)
     _separate_touching_inlines(tree)
     _unwrap_contact_links(tree)
     _reveal_panels(tree)
@@ -254,6 +270,20 @@ def _elements(tree: Any) -> list[Any]:
 def _drop_screen_reader_text(tree: Any) -> None:
     for element in _elements(tree):
         if element.getparent() is not None and _SR_ONLY.search(element.get("class") or ""):
+            element.drop_tree()
+
+
+_COOKIE_RE = re.compile(r"(?:^|[\s_-])(?:cookies?|consent)(?:$|[\s_-])", re.IGNORECASE)
+
+
+def _drop_cookie_notices(tree: Any) -> None:
+    """A cookie notice is no content. parlament.gv.at keeps its notice in a plain
+    `div.cookie` without a role, which trafilatura took for the page's first paragraph
+    ("Die Webseite verwendet Cookies: ...", 30 October 2026): an element whose class or
+    id names cookies or consent goes, with what it holds."""
+    for element in _elements(tree):
+        attrs = f"{element.get('class') or ''} {element.get('id') or ''}"
+        if element.getparent() is not None and _COOKIE_RE.search(attrs):
             element.drop_tree()
 
 
@@ -642,9 +672,63 @@ def _rescue_contacts(tree: Any, units: list[Unit]) -> list[Unit]:
             visit(child)
 
     visit(root)
+    return _rescue_blocks(tree, units, blocks, "contact blocks")
+
+
+_SECTION_MIN_CHARS = 20
+
+
+def _jump_targets(tree: Any) -> list[str]:
+    """The ids the page's own in-page links point to, in document order: a jump list
+    names the sections of a service page (stadt.muenchen.de), and `_prepare` drops the
+    list itself as a navigation widget."""
+    ids: list[str] = []
+    for link in tree.iter("a"):
+        href = link.get("href") or ""
+        if href.startswith("#") and len(href) > 1 and href[1:] not in ids:
+            ids.append(href[1:])
+    return ids
+
+
+def _rescue_sections(tree: Any, units: list[Unit], ids: list[str]) -> list[Unit]:
+    """Put back the sections the page's own table of contents names and trafilatura
+    dropped.
+
+    stadt.muenchen.de lists the sections of a service page in a jump list
+    (`href="#k-sf18"`) and keeps each in nested `div`s with the heading in a wrapper of
+    its own; trafilatura dropped four of the eight, in recall mode too ("Dauer und
+    Kosten": the processing time and the fee; "Zuständige Stelle": the office; 30 October
+    2026). The target of an in-page link that has text of its own outside links, of a
+    block's size, is rescued like a contact block: its units go in at their place.
+    """
+    body = tree.find(".//body")
+    root = body if body is not None else tree
+    extracted = _key(" ".join(unit.text for unit in units))
+    blocks: list[Any] = []
+    for anchor in ids:
+        target = root.get_element_by_id(anchor, None)
+        if target is None or not isinstance(target.tag, str) or target.tag in _RESCUE_SKIP:
+            continue
+        if any(
+            target is b or b in target.iterancestors() or target in b.iterancestors()
+            for b in blocks
+        ):
+            continue
+        text = _key(_free_text(target))
+        if not _SECTION_MIN_CHARS <= len(text) <= _RESCUE_MAX_CHARS or text[:60] in extracted:
+            continue
+        blocks.append(target)
+    return _rescue_blocks(tree, units, blocks, "sections")
+
+
+def _rescue_blocks(tree: Any, units: list[Unit], blocks: list[Any], what: str) -> list[Unit]:
+    """The units of the blocks that the extraction lacks, inserted at their place: the
+    whole page is converted to units in document order, the extracted units are aligned
+    to them, and the unmatched units of the blocks go in between."""
     if not blocks:
         return units
-
+    body = tree.find(".//body")
+    root = body if body is not None else tree
     page: list[Unit] = []
     origins: list[int] = []
     marks = {id(block): i for i, block in enumerate(blocks)}
@@ -690,7 +774,7 @@ def _rescue_contacts(tree: Any, units: list[Unit]) -> list[Unit]:
                 continue
         kept.append(unit)
     if missing:
-        log.debug("rescued %d units from %d contact blocks", len(missing), len(blocks))
+        log.debug("rescued %d units from %d %s", len(missing), len(blocks), what)
     return kept
 
 
