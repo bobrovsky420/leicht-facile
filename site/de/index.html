@@ -43,25 +43,45 @@
 <main id="main">
 <section class="hero">
   <div class="wrap">
-    <h1>Entwürfe für Behördentexte in Leichter Sprache</h1>
-    <p class="tagline">Ein Sprachmodell schreibt, Code prüft, Sie entscheiden.</p>
-    <p class="lead">Leicht·Facile erstellt Entwürfe für Behördentexte aus der Schweiz, Deutschland
-    und Österreich in Leichter Sprache und prüft mit Code, dass keine Frist, kein Betrag und
-    keine Telefonnummer verloren geht. Das Werkzeug unterstützt die Fachleute, die
-    Behördentexte schreiben. Es ersetzt weder ihre eigene Prüfung noch die Prüfung durch
-    Menschen aus der Zielgruppe.</p>
-    <div class="actions">
-      <a class="button primary" href="#start">Jetzt starten</a>
-      <a class="button secondary" href="https://github.com/bobrovsky420/leicht-facile">Quellcode auf GitHub</a>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <h1>Entwürfe für Behördentexte in Leichter Sprache</h1>
+        <p class="tagline">Ein Sprachmodell schreibt, Code prüft, Sie entscheiden.</p>
+        <p class="lead">Leicht·Facile erstellt Entwürfe für Behördentexte aus der Schweiz, Deutschland
+        und Österreich in Leichter Sprache und prüft mit Code, dass keine Frist, kein Betrag und
+        keine Telefonnummer verloren geht. Das Werkzeug unterstützt die Fachleute, die
+        Behördentexte schreiben. Es ersetzt weder ihre eigene Prüfung noch die Prüfung durch
+        Menschen aus der Zielgruppe.</p>
+        <div class="actions">
+          <a class="button primary" href="#start">Jetzt starten</a>
+          <a class="button secondary" href="https://github.com/bobrovsky420/leicht-facile">Quellcode auf GitHub</a>
+        </div>
+        <p class="stat"><strong>1,25 Millionen</strong> <span>Erwachsene in der Schweiz im Alter
+        von 16 bis 65 Jahren (22 Prozent) haben eine geringe Lesekompetenz (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Bundesamt
+        für Statistik, PIAAC 2022/2023</a>).</span></p>
+      </div>
+      <div class="hero-demo">
+        <p class="demo-intro">Ein Satz aus einem amtlichen Schreiben, mit drei Verneinungen. Wer Mühe beim Lesen
+        hat, will nur eines wissen: Bekomme ich mein Geld zurück?</p>
+        <div class="compare">
+          <div class="card">
+            <h3>Vorher: der Brief</h3>
+            <blockquote>Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht
+            geltend gemacht werden, nicht vergütet werden können.</blockquote>
+          </div>
+          <div class="card after">
+            <h3>Nachher: in Leichter Sprache</h3>
+            <blockquote>Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst
+            bekommen Sie kein Geld zurück.</blockquote>
+          </div>
+        </div>
+      </div>
     </div>
     <ul class="varieties" aria-label="Sprachen und Länder">
       <li><b>Deutsch</b><span>Leichte Sprache und Einfache Sprache, in der Schreibweise des Landes</span><span class="where">Schweiz, Deutschland, Österreich</span></li>
       <li><b lang="fr">Français</b><span>FALC</span><span class="where">Schweiz</span></li>
       <li><b lang="it">Italiano</b><span>lingua facile</span><span class="where">Schweiz</span></li>
     </ul>
-    <p class="stat"><strong>1,25 Millionen</strong> <span>Erwachsene in der Schweiz im Alter
-    von 16 bis 65 Jahren (22 Prozent) haben eine geringe Lesekompetenz (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Bundesamt
-    für Statistik, PIAAC 2022/2023</a>).</span></p>
   </div>
 </section>
 
@@ -137,27 +157,6 @@ Ogni ufficio può usare il programma.</p>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <h2>Vorher und nachher</h2>
-    <p>Ein Satz aus einem amtlichen Schreiben: Behördensprache mit drei Verneinungen. Wer Mühe beim
-    Lesen hat, will nur eines wissen: Bekomme ich mein Geld zurück? Die Fassung in Leichter
-    Sprache gibt die Antwort in drei kurzen Sätzen.</p>
-    <div class="compare">
-      <div class="card">
-        <h3>Vorher: der Brief</h3>
-        <blockquote>Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht
-        geltend gemacht werden, nicht vergütet werden können.</blockquote>
-      </div>
-      <div class="card after">
-        <h3>Nachher: in Leichter Sprache</h3>
-        <blockquote>Das ist wichtig:<br>Melden Sie Ihre Kosten rechtzeitig.<br>Sonst
-        bekommen Sie kein Geld zurück.</blockquote>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section id="recht">
   <div class="wrap">
     <h2>Was das Recht von Behörden verlangt</h2>
@@ -186,27 +185,27 @@ Ogni ufficio può usare il programma.</p>
     <p class="quote">Das Sprachmodell übernimmt alles, wofür man Sprachverständnis braucht.
     Alles, was sich zählen lässt, erledigt klassischer Programmcode.</p>
     <ol class="steps">
-      <li><h3>Lesen <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+      <li><h3>Lesen <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>Modell</span></h3>
         <p>Aus dem Dokument entsteht ein Faktenblatt: die Kernfragen der Leserinnen und
         Leser, alle Fakten mit ihren genauen Werten und die schwierigen Wörter. Übersieht das
         Modell ein Datum, einen Betrag oder eine Kontaktangabe, ergänzt der Code die fehlende
         Angabe.</p></li>
-      <li><h3>Schreiben <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+      <li><h3>Schreiben <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>Modell</span></h3>
         <p>Ein Entwurf in Leichter Sprache: Jeder Satz verweist auf die Sätze im
         Ausgangstext, aus denen er stammt, und jede Auslassung wird begründet.</p></li>
-      <li><h3>Prüfen <span class="who" data-tip="Code"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg><span class="vh">(Code)</span></span></h3>
+      <li><h3>Prüfen <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg>Code</span></h3>
         <p>Der Code prüft 45 Regeln für Deutsch, 41 für Französisch und 41 für Italienisch aus
         den veröffentlichten Richtlinien der Schweiz, Deutschlands und Österreichs und gleicht
         alle Werte zwischen Ausgangstext und Entwurf ab, in beide Richtungen: Kein Wert geht
         verloren, keiner wird erfunden.</p></li>
-      <li><h3>Beurteilen <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+      <li><h3>Beurteilen <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>Modell</span></h3>
         <p>Ein Prüfmodell achtet nur auf die Bedeutung: verfälschte Fakten, erfundene
         Aussagen, Metaphern, unklare Bezüge.</p></li>
-      <li><h3>Überarbeiten <span class="who" data-tip="Sprachmodell"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg><span class="vh">(Modell)</span></span></h3>
+      <li><h3>Überarbeiten <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>Modell</span></h3>
         <p>Das Modell überarbeitet nur die markierten Sätze, bis kein blockierendes Problem
         mehr offen ist. Fehlt danach noch eine Pflichtangabe, schreibt es dafür einen eigenen
         Satz.</p></li>
-      <li><h3>Freigabe <span class="who" data-tip="Mensch"><svg class="icon" aria-hidden="true"><use href="#i-person"/></svg><span class="vh">(Mensch)</span></span></h3>
+      <li><h3>Freigabe <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-person"/></svg>Mensch</span></h3>
         <p>Ausgangstext und Entwurf stehen nebeneinander, dazu die Herkunft jedes Satzes und
         eine Checkliste der Fakten. Eine Person gibt jeden Block frei, bearbeitet ihn oder
         lehnt ihn ab; der Export enthält ein Prüfprotokoll.</p></li>
@@ -253,18 +252,20 @@ Ogni ufficio può usare il programma.</p>
     deutsche Texte, die Kantone und Bundesämter zusammen mit ihrer Fassung in Leichter
     Sprache veröffentlicht haben und die bei der Entwicklung nicht verwendet wurden.</p>
     <div class="table-scroll">
-      <table>
+      <table class="results">
         <thead><tr><th scope="col"></th><th scope="col">Ein einzelner starker Prompt</th><th scope="col">Leicht·Facile</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Pflichtangaben im Entwurf</th><td>82 %</td><td class="lf">100 %</td></tr>
-          <tr><th scope="row">Spurlos verlorene Werte wie Daten und Beträge</th><td>15 % (33 % im Standardmodus)</td><td class="lf">keine (jeder fehlende wird gemeldet)</td></tr>
-          <tr><th scope="row">Erfundene Werte pro 100 Blöcke</th><td>0,0</td><td class="lf">0,0</td></tr>
-          <tr><th scope="row">Regelverstösse pro 100 Blöcke</th><td>15,0</td><td class="lf">3,7</td></tr>
-          <tr><th scope="row">Zeit pro Seite</th><td>2 Sekunden</td><td>1 Minute</td></tr>
-          <tr><th scope="row">Kosten pro Seite</th><td>USD 0,0003</td><td>USD 0,016</td></tr>
+          <tr><th scope="row">Pflichtangaben im Entwurf</th><td data-label="Einzelner Prompt">82 %</td><td class="lf" data-label="Leicht·Facile">100 %</td></tr>
+          <tr><th scope="row">Spurlos verlorene Werte wie Daten und Beträge</th><td data-label="Einzelner Prompt"><span>15 %<sup>*</sup></span></td><td class="lf" data-label="Leicht·Facile">keine (jeder fehlende wird gemeldet)</td></tr>
+          <tr><th scope="row">Erfundene Werte pro 100 Blöcke</th><td data-label="Einzelner Prompt">0,0</td><td class="lf" data-label="Leicht·Facile">0,0</td></tr>
+          <tr><th scope="row">Regelverstösse pro 100 Blöcke</th><td data-label="Einzelner Prompt">15,0</td><td class="lf" data-label="Leicht·Facile">3,7</td></tr>
+          <tr><th scope="row">Zeit pro Seite</th><td data-label="Einzelner Prompt">2 Sekunden</td><td data-label="Leicht·Facile">1 Minute</td></tr>
+          <tr><th scope="row">Kosten pro Seite</th><td data-label="Einzelner Prompt">USD 0,0003</td><td data-label="Leicht·Facile">USD 0,016</td></tr>
         </tbody>
       </table>
     </div>
+    <p class="note">* In seinem Standardmodus, der nur das Wesentliche behält, verlor der einzelne
+    Prompt 33 % spurlos.</p>
     <p class="note">Zeit und Kosten sind Mittelwerte pro Seite mit Apertus 8B, die Kosten zu den
     Listenpreisen von Public AI: Der Ablauf liest, schreibt, beurteilt und überarbeitet und
     braucht darum rund 14-mal so viele Tokens wie ein einzelner Prompt. Alle Zahlen und die
@@ -335,38 +336,25 @@ Ogni ufficio può usare il programma.</p>
     darauf steht, <a href="#support">melden Sie sich</a>.</p>
     <ol class="roadmap">
       <li class="done">
-        <p class="when">0.5 und 0.6 <span>Oktober 2026</span></p>
-        <h3>Deutsch und Französisch</h3>
-        <p>Leichte Sprache, Einfache Sprache und FALC: das Faktenblatt, die Regelprüfung nach
-        den veröffentlichten Schweizer Richtlinien, das Prüfmodell, die Überarbeitung und die
-        Prüfseite; der Export als Markdown, HTML und Word mit Prüfprotokoll. Ein Modus für
-        Entscheide von KESB und Gerichten bewahrt das Dispositiv und die
-        Rechtsmittelbelehrung. Dazu die Evaluation mit 20 Textpaaren (Ergebnisse oben).</p>
-      </li>
-      <li class="done">
-        <p class="when">0.7 <span>Oktober 2026</span></p>
-        <h3>Jedes Modell, ein Befehl</h3>
-        <p>Auf PyPI: <code>uvx leichtfacile serve</code> lädt die App herunter und startet
-        sie. Sie funktioniert mit jedem OpenAI-kompatiblen Endpunkt, mit allen Einstellungen
-        in einer Datei und fertigen Voreinstellungen für Apertus und die grossen
-        Anbieter.</p>
-      </li>
-      <li class="done">
-        <p class="when">0.8 <span>Oktober 2026</span></p>
-        <h3>Italienisch</h3>
-        <p>Lingua facile mit 28 eigenen Regeln, einem Tagger aus dem Lexikon Morph-it!,
-        Wortschatz, Prompts, Oberfläche und einer Evaluation über Public AI. Auf der Seite
-        «KI-Modell» der App werden Endpunkt und API-Schlüssel eingerichtet.</p>
-      </li>
-      <li class="done">
-        <p class="when">0.9 <span>Oktober 2026</span></p>
-        <h3>Deutsch für Deutschland und Österreich</h3>
-        <p>Die Regeln des Netzwerks Leichte Sprache und der DIN SPEC 33429, die Schreibweise
-        jedes Landes mit ß und dem Bindestrich als Trennzeichen, seine Zahlen, Daten,
-        Telefonnummern und Adressen, der Bescheid im Entscheid-Modus, Prompts, Wortschatz,
-        Musterbriefe und eine Oberfläche mit den Wörtern seiner Behörden. Eine Installation
-        arbeitet in einer Varietät, gewählt bei der Einrichtung; die Schweizer Fassung ist
-        unverändert. Evaluiert auf 8 Behördenseiten pro Land mit Apertus 70B.</p>
+        <p class="when">0.5 bis 0.9 <span>Oktober 2026</span></p>
+        <h3>Erschienen</h3>
+        <ul class="shipped">
+          <li><b>0.5 und 0.6</b> Deutsch und Französisch: Leichte Sprache, Einfache Sprache und
+          FALC, das Faktenblatt, die Regelprüfung, das Prüfmodell, die Überarbeitung und die
+          Prüfseite; der Export als Markdown, HTML und Word mit Prüfprotokoll; der Modus für
+          Entscheide von KESB und Gerichten; die Evaluation mit 20 Textpaaren (Ergebnisse
+          oben).</li>
+          <li><b>0.7</b> Jedes Modell, ein Befehl: <code>uvx leichtfacile serve</code> von PyPI,
+          jeder OpenAI-kompatible Endpunkt, Voreinstellungen für Apertus und die grossen
+          Anbieter.</li>
+          <li><b>0.8</b> Italienisch: lingua facile mit 28 eigenen Regeln, einem Tagger aus dem
+          Lexikon Morph-it!, einer Evaluation über Public AI; die Seite «KI-Modell» der
+          App.</li>
+          <li><b>0.9</b> Deutsch für Deutschland und Österreich: die Regeln des Netzwerks
+          Leichte Sprache und der DIN SPEC 33429, die Schreibweise jedes Landes, seine Zahlen,
+          Daten, Telefonnummern und Adressen, der Bescheid im Entscheid-Modus; evaluiert auf 8
+          Behördenseiten pro Land.</li>
+        </ul>
       </li>
       <li class="planned">
         <p class="when">Geplant</p>
