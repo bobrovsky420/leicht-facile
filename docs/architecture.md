@@ -1529,9 +1529,11 @@ by default `%LOCALAPPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
 `$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
 is empty, it offers the example letters shipped with the package in
-`src/leichtfacile/letters/` (the premium-reduction letter in German and in French, the
-KESB decision) as one-click fills of the New draft form (§7); `data.examples_dir` names
-another folder of letters. A letter's job settings, such as the decision mode and the
+`src/leichtfacile/letters/` as one-click fills of the New draft form (§7):
+`data/examples/README.md` lists them, the premium-reduction letter in German, French
+and Italian, the KESB decision, the German and Austrian Bescheide, and since 30 October
+2026 two school letters in the three languages, to parents and, in the du form, to
+students; `data.examples_dir` names another folder of letters. A letter's job settings, such as the decision mode and the
 addressee, come from a JSON file next to it (`examples.py`).
 
 `leichtfacile check-llm` lists the endpoint's models and makes one short call; it is

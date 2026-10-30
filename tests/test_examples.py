@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,27 @@ from leichtfacile.schemas import JobConfig
 
 EXAMPLES = LETTERS_DIR
 # The French and Italian letters are Swiss, and offered by every installation.
-SWISS_EVERYWHERE = {"reduction-primes-lettre", "riduzione-premi-lettera"}
+SWISS_EVERYWHERE = {
+    "reduction-primes-lettre",
+    "riduzione-premi-lettera",
+    "camp-de-classe-lettre-parents",
+    "settimana-verde-lettera-genitori",
+    "semaine-de-stage-lettre-eleves",
+    "settimana-di-stage-lettera-allievi",
+}
+# The school letters (30 October 2026): a camp letter to parents and a letter about the
+# trial-apprenticeship week to students, each in German, French and Italian.
+SCHOOL_LETTERS = {
+    "klassenlager-elternbrief": ("de", "parents"),
+    "camp-de-classe-lettre-parents": ("fr", "parents"),
+    "settimana-verde-lettera-genitori": ("it", "parents"),
+    "schnupperwoche-schuelerbrief": ("de", "students"),
+    "semaine-de-stage-lettre-eleves": ("fr", "students"),
+    "settimana-di-stage-lettera-allievi": ("it", "students"),
+}
+# How each language addresses the reader: parents formally, students in the du form.
+FORMAL = {"de": r"\bSie\b", "fr": r"\bvous\b", "it": r"\b[Vv]i\b"}
+INFORMAL = {"de": r"\bdu\b", "fr": r"\btu\b", "it": r"\b[Tt]i\b"}
 
 
 def test_a_source_without_a_settings_file_has_none(tmp_path: Path) -> None:
@@ -61,7 +82,7 @@ def test_example_sources_carry_the_decision_settings() -> None:
 
 def test_every_shipped_letter_names_the_region_it_is_written_for() -> None:
     letters = sorted(EXAMPLES.glob("*.txt"))
-    assert len(letters) == 6
+    assert len(letters) == 12
     for path in letters:
         settings = example_config(path)
         assert settings.get("region") in ("CH", "DE", "AT"), path.name
@@ -72,7 +93,12 @@ def test_an_installation_offers_the_letters_of_its_region() -> None:
     def offered(region: str | None) -> set[str]:
         return {e["id"] for e in example_sources(EXAMPLES, region)}
 
-    swiss = {"entscheid-beistandschaft-musterwil", "praemienverbilligung-brief"}
+    swiss = {
+        "entscheid-beistandschaft-musterwil",
+        "praemienverbilligung-brief",
+        "klassenlager-elternbrief",
+        "schnupperwoche-schuelerbrief",
+    }
     assert offered("CH") == swiss | SWISS_EVERYWHERE
     assert offered("DE") == {"wohngeld-bescheid"} | SWISS_EVERYWHERE
     assert offered("AT") == {"familienbeihilfe-bescheid"} | SWISS_EVERYWHERE
@@ -126,3 +152,16 @@ def test_the_bescheide_follow_their_countrys_conventions() -> None:
     assert "18. Jänner 2027" in beihilfe and "€ 1.500,-" in beihilfe
     assert "9999 Musterhausen" in beihilfe and "Bundesfinanzgericht" in beihilfe
     assert "binnen eines Monats nach Zustellung" in beihilfe
+
+
+def test_the_school_letters_are_swiss_and_speak_to_parents_or_students() -> None:
+    by_id = {e["id"]: e for e in example_sources(EXAMPLES)}
+    for name, (lang, readers) in SCHOOL_LETTERS.items():
+        letter = by_id[name]
+        assert (letter["lang"], letter["region"]) == (lang, "CH"), name
+        assert "mode" not in letter  # a standard job, not a decision
+        text = letter["text"]
+        assert "CHF" in text and "ß" not in text, name
+        spoken, other = (FORMAL, INFORMAL) if readers == "parents" else (INFORMAL, FORMAL)
+        assert re.search(spoken[lang], text), name
+        assert not re.search(other[lang], text), name

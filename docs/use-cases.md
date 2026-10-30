@@ -2,7 +2,8 @@
 
 Status: overview, 6 October 2026; why Apertus fits (§2) and tax letters (§12)
 added 7 October 2026; §2 revised 23 October 2026: Apertus is the recommended model,
-not the only one the app runs with. The first two use cases are described step by step
+not the only one the app runs with; §8 extended 30 October 2026 by the everyday letters
+of schools. The first two use cases are described step by step
 in their own documents, [use-case-canton.md](use-case-canton.md) and
 [use-case-decisions.md](use-case-decisions.md). The others are sketched here: what the
 document is, which facts must survive, who reviews, and what the checker still needs.
@@ -23,7 +24,7 @@ checks built for them since are listed in
 | 5 | Criminal justice | Penal order (Strafbefehl) | 10 days to object | Public prosecutor's office | Official secrecy; criminal proceedings | Planned (§5) |
 | 6 | Debt collection | Payment order (Zahlungsbefehl) | 10 days to object | Debt collection office, debt counselling | Official secrecy; the adviser's client data | Planned (§6) |
 | 7 | Social assistance and social insurance | Decisions, conditions, sanctions | Appeal periods, duties to report | Case worker | Social insurance confidentiality; social assistance | Close to 1 and 2 (§7) |
-| 8 | Schools | Placement and special-education decisions | Appeal periods under cantonal law | School administration | Official secrecy; children's health | Planned (§8) |
+| 8 | Schools | Letters to parents and students; placement and special-education decisions | Camp and reply-slip dates; appeal periods under cantonal law | School administration, the class teacher | Nothing for a letter to all parents; official secrecy and children's health for a decision | Example letters shipped, decisions planned (§8) |
 | 9 | Research | Information for study participants | None; rights and risks must survive | Study team, ethics committee | Nothing for the information sheet itself | Planned (§9) |
 | 10 | Migration | Permit and asylum decisions | Appeal periods, some in working days | Migration office | Official secrecy; asylum proceedings | Partial fit (§10) |
 | 11 | Private sector | Letters of insurers, pension funds, utilities | Payment and cancellation dates | The company's writers | Customer data; health insurers' and pension funds' duty of confidentiality | As use case 1 (§11) |
@@ -245,6 +246,16 @@ with any model.
 
 ## 8. School and special-education decisions
 
+- **Everyday letters.** Most of what a school sends decides nothing: camp letters,
+  information evenings, trial-apprenticeship weeks, school rules. They reach the same
+  parents, and students, whom Swiss schools address in the du form. Since 30 October
+  2026 two such letters ship as examples in German, French and Italian
+  (`data/examples/README.md`): the Klassenlager letter to parents and the
+  Schnupperwoche letter to students. They run in the standard mode, and their dates,
+  times, amounts, periods, addresses and contacts are checked facts. The prompts still
+  call the source an official document, and the German and French rules expect Sie and
+  vous (LEX-06, GRAM-06); a sender option and a form-of-address option would change
+  that (planned, not specified yet).
 - **Document.** Decisions on school placement, special-education measures and
   disciplinary measures.
 - **Why.** They reach parents with low reading skills or still learning German or
@@ -256,7 +267,10 @@ with any model.
   development; the school administration is bound by official secrecy.
 - **Works today.** The start of the measure, the appeal period and the appeal
   authority's address are checked facts.
-- **Needs.** The decision mode.
+- **Needs.** The decision mode for the decisions. For the everyday letters: a sender
+  other than an authority and the du/tu form in the prompts and the rules, and the reply
+  slip and the packing list kept whole, as FACT-07 keeps the notice and FACT-09 a
+  medication block.
 
 ## 9. Information for study participants
 

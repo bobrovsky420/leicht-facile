@@ -113,8 +113,10 @@ lives in `data.dir`:
 
 `data.examples_dir` points the New draft form at another folder of letters (`.txt` or
 `.md`, each with an optional `.json` of job settings next to it); by default it offers
-the letters in `src/leichtfacile/letters/`: the premium-reduction letter in German and in
-French, and a KESB decision with its decision-mode settings.
+the letters in `src/leichtfacile/letters/` that fit the installation's region
+(`data/examples/README.md` lists them): the premium-reduction letter in German, French
+and Italian, decisions with their decision-mode settings, and two school letters in the
+three languages, to parents and to students.
 
 ### Thinking
 
