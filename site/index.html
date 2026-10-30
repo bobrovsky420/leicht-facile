@@ -13,11 +13,13 @@
 <link rel="canonical" href="https://leichtfacile.ch/">
 <link rel="alternate" hreflang="en" href="https://leichtfacile.ch/">
 <link rel="alternate" hreflang="de" href="https://leichtfacile.ch/de/">
+<link rel="alternate" hreflang="fr" href="https://leichtfacile.ch/fr/">
+<link rel="alternate" hreflang="it" href="https://leichtfacile.ch/it/">
 <link rel="alternate" hreflang="x-default" href="https://leichtfacile.ch/">
-<link rel="icon" href="data:,">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F4E8A'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23fff'/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://leichtfacile.ch/">
-<meta property="og:title" content="Leicht·Facile">
+<meta property="og:title" content="Leicht·Facile: easy-language drafts of official texts">
 <meta property="og:description" content="Easy-language drafts of official texts (Switzerland, Germany, Austria) with any language model; every fact checked by code, every draft reviewed by a person.">
 <meta property="og:image" content="https://leichtfacile.ch/images/review-page.png">
 <link rel="stylesheet" href="style.css">
@@ -37,9 +39,9 @@
         <li><a href="#authors">Authors</a></li>
         <li><a href="#support">Support</a></li>
         <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
-        <li><a href="de/" lang="de" hreflang="de">Deutsch</a></li>
       </ul>
     </nav>
+    <nav class="langs" aria-label="Language"><span aria-current="true" lang="en" title="English">EN</span><a href="de/" lang="de" hreflang="de" title="Deutsch">DE</a><a href="fr/" lang="fr" hreflang="fr" title="Français">FR</a><a href="it/" lang="it" hreflang="it" title="Italiano">IT</a></nav>
   </div>
 </header>
 
@@ -162,16 +164,27 @@ Ogni ufficio può usare il programma.</p>
 <section id="law">
   <div class="wrap">
     <h2>What the law asks of authorities</h2>
-    <p>Easy language is not a courtesy. Switzerland has ratified the UN Convention on the
-    Rights of Persons with Disabilities<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>, which counts plain language as a form
-    of communication (art. 2) and asks states to make public information accessible
-    (art. 9 and 21). The Swiss Disability Equality Act<sup><a href="#ref-2" aria-label="Reference 2">2</a></sup> asks authorities to take
-    the needs of people with disabilities into account when they communicate with the
-    public (art. 14 BehiG). In Germany, federal authorities should explain their decisions,
-    forms and contracts in simple language on request, and in Leichte Sprache when that is
-    not enough (§ 11 BGG<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>), and every federal website has to explain itself in
-    Leichte Sprache on its home page (§ 4 BITV 2.0<sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>). Austria has been bound by
-    the same UN Convention since 2008<sup><a href="#ref-5" aria-label="Reference 5">5</a></sup>.</p>
+    <p>Easy language is not a courtesy. All three countries have ratified the UN Convention on
+    the Rights of Persons with Disabilities, which counts plain language as a form of
+    communication (art. 2) and asks states to make public information accessible (art. 9
+    and 21).</p>
+    <ul class="countries">
+      <li><h3>Switzerland</h3>
+        <p>Bound by the Convention since 2014<sup><a href="#ref-1" aria-label="Reference 1">1</a></sup>. The Disability Equality Act asks
+        authorities to take the needs of people with disabilities into account when they
+        communicate with the public (art. 14 BehiG<sup><a href="#ref-2" aria-label="Reference 2">2</a></sup>).</p></li>
+      <li><h3>Germany</h3>
+        <p>Federal authorities should explain their decisions, forms and contracts in simple
+        language on request, and in Leichte Sprache when that is not enough
+        (§ 11 BGG<sup><a href="#ref-3" aria-label="Reference 3">3</a></sup>). Every federal website explains itself in Leichte Sprache on
+        its home page (§ 4 BITV 2.0<sup><a href="#ref-4" aria-label="Reference 4">4</a></sup>).</p></li>
+      <li><h3>Austria</h3>
+        <p>Bound by the Convention since 2008<sup><a href="#ref-5" aria-label="Reference 5">5</a></sup>. The Federal Disability Equality Act
+        counts systems of information processing among what must be accessible: usable by
+        people with disabilities in the usual way, without special difficulty and without
+        outside help (§ 6 BGStG<sup><a href="#ref-6" aria-label="Reference 6">6</a></sup>). No Austrian statute names Leichte Sprache
+        itself.</p></li>
+    </ul>
   </div>
 </section>
 
@@ -208,8 +221,11 @@ Ogni ufficio può usare il programma.</p>
         reject each block, export with an audit trail.</p></li>
     </ol>
     <figure>
-      <img src="images/review-page.png" width="1280" height="820" loading="lazy"
-        alt="The review page: the source on the left, the easy-language draft in the middle, the must-keep facts on the right">
+      <picture>
+        <source srcset="images/review-page.webp" type="image/webp">
+        <img src="images/review-page.png" width="1280" height="820" loading="lazy"
+          alt="The review page: the source on the left, the easy-language draft in the middle, the must-keep facts on the right">
+      </picture>
       <figcaption>The review page with the German example letter: the source with what was
       left out and why, the draft with its versions and findings, and the must-keep
       facts.</figcaption>
@@ -262,7 +278,7 @@ Ogni ufficio può usare il programma.</p>
     <p class="note">Time and cost are means per page on Apertus 8B, the cost at Public AI's list
     prices: the pipeline reads, writes, judges and repairs, so it takes about 14 times the
     tokens of one prompt. All numbers and the method:
-    <a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/evaluation.md">evaluation.md</a>.</p>
+    <a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/evaluation.md">the full evaluation</a>.</p>
   </div>
 </section>
 
@@ -283,7 +299,7 @@ Ogni ufficio può usare il programma.</p>
       where the organisation controls it, with open weights and open training data.
       Apertus, by EPFL, ETH Zurich and CSCS, meets all of that, and Leicht·Facile
       was built and evaluated with it
-      (<a href="https://github.com/bobrovsky420/leicht-facile#why-apertus-for-confidential-texts">why</a>).</p>
+      (<a href="https://github.com/bobrovsky420/leicht-facile#why-apertus-for-confidential-texts">why Apertus</a>).</p>
     </div>
   </div>
 </section>
@@ -442,6 +458,7 @@ Ogni ufficio può usare il programma.</p>
       <li id="ref-3"><a href="https://www.gesetze-im-internet.de/bgg/__11.html">§ 11 BGG</a>: Verständlichkeit und Leichte Sprache (Germany)</li>
       <li id="ref-4"><a href="https://www.gesetze-im-internet.de/bitv_2_0/__4.html">§ 4 BITV 2.0</a>: Leichte Sprache on federal websites (Germany)</li>
       <li id="ref-5"><a href="https://www.ris.bka.gv.at/eli/bgbl/III/2008/155">UN Convention on the Rights of Persons with Disabilities</a> (BGBl. III Nr. 155/2008, Austria)</li>
+      <li id="ref-6"><a href="https://www.jusline.at/gesetz/bgstg/paragraf/6">Bundes-Behindertengleichstellungsgesetz</a> (BGStG, BGBl. I Nr. 82/2005), § 6 (Austria)</li>
     </ol>
   </div>
 </section>
@@ -449,13 +466,17 @@ Ogni ufficio può usare il programma.</p>
 
 <footer>
   <div class="wrap">
-    <p>Leicht·Facile is open source under the Apache License 2.0.</p>
     <ul>
       <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
       <li><a href="https://github.com/bobrovsky420/leicht-facile/releases">Releases</a></li>
       <li><a href="https://github.com/bobrovsky420/leicht-facile/issues">Issues</a></li>
       <li><a href="mailto:leichtfacile@gmx.ch">Contact</a></li>
+      <li><a href="legal/">Legal notice</a></li>
     </ul>
+    <p>Leicht·Facile 0.9.1, open source under the Apache License 2.0. Page updated 30 October
+    2026.</p>
+    <p>This page sets no cookies, runs no scripts and loads nothing from third parties. GitHub
+    Pages serves it and keeps the usual server logs (<a href="legal/">details</a>).</p>
   </div>
 </footer>
 </body>
