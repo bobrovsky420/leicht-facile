@@ -49,7 +49,9 @@ Rules for using reference pairs:
 from Switzerland, plus 12 German from Germany (`"region": "DE"`, 8 `eval`, 4 `dev`)
 and 12 German from Austria (`"region": "AT"`, 8 `eval`, 4 `dev`), checked on
 29 October 2026. Rows without `region` are Swiss. The German and Austrian publishers are
-listed under [Germany](#germany) and [Austria](#austria) below.
+listed under [Germany](#germany) and [Austria](#austria) below; the candidates for France
+and Italy (30 October 2026, not in the manifest yet) under [France](#france) and
+[Italy](#italy).
 Swiss publishers: Zürich 13, Bern 8 (6 German, 2 French), Ticino 8 (Italian), St. Gallen 3,
 Luzern 2, Basel-Stadt, Graubünden and Zug 1 each, the federal offices BAG (1 German, 4
 Italian), BWL (German and French) and EBGB (German and Italian, the Italian standard
@@ -229,6 +231,192 @@ only, like the Swiss ones.
 - **Address and quotes:** Sie on every easy page; „ “ on Tirol and Sozialministerium
   pages, ASCII quotes in the parliament's B1 news.
 - **Words:** Jänner, Meldezettel, Obsorge, Kinderbeihilfe and Ansuchen on easy pages.
+
+### France
+
+Research for a planned French of France (`fr-FR`), 30 October 2026; nothing is in the
+manifest yet. service-public.gouv.fr has no FALC pages (a site search for "FALC" finds
+nothing) but is the best standard side: its content is under the Licence Ouverte
+(etalab-2.0). French FALC is almost all PDF, with no mirror pages like Köln's or
+Tirol's. Several state hosts (info.gouv.fr, elections.interieur.gouv.fr,
+legifrance.gouv.fr, caf.fr) answer 403 to scripted fetches.
+
+| Id (proposed) | Publisher | Topic | Easy (FALC) | Standard | Why |
+|---------------|-----------|-------|-------------|----------|-----|
+| `cnsa-adult-disability-allowance-fr` | CNSA | Allocation aux adultes handicapés (AAH) | [PDF](https://www.cnsa.fr/sites/default/files/2024-03/FALC_cnsa_ffalc_aah_05_def_accessible_.pdf), 1,510 words, February 2024 | [service-public F12242](https://www.service-public.gouv.fr/particuliers/vosdroits/F12242) | 80 and 50 percent, age 20 (16), durations of 1-2, 5 and 10 years, renewal 6 months ahead on both; the ceilings on the standard only; 6 named co-writers |
+| `cnsa-child-disability-allowance-fr` | CNSA | Allocation d'éducation de l'enfant handicapé (AEEH) | [PDF](https://www.cnsa.fr/sites/default/files/2024-07/FALC_AEEH_version-acessible-juin-2024.pdf), 1,830 words, June 2024 | [service-public F14809](https://www.service-public.gouv.fr/particuliers/vosdroits/F14809) | Under 20, the rate thresholds, the durations, a certificate under 1 year; the amounts (153,01 €) on the standard only |
+| `cnsa-disabled-worker-status-fr` | CNSA | Reconnaissance de la qualité de travailleur handicapé (RQTH) | [PDF](https://www.cnsa.fr/sites/default/files/2025-12/FALC_cnsa_25-12_RQTH_accessible.pdf), 1,264 words, December 2025 | [service-public F1650](https://www.service-public.gouv.fr/particuliers/vosdroits/F1650) | Recent; 1-10 years or for life, 6 months, ages 15-20 |
+| `cnsa-disability-compensation-fr` | CNSA | Prestation de compensation du handicap (PCH) | [PDF](https://www.monparcourshandicap.gouv.fr/sites/default/files/2023-02/Fiche_FALC_PCH.pdf), 2,826 words | [monparcourshandicap PCH](https://www.monparcourshandicap.gouv.fr/aides/la-prestation-de-compensation-du-handicap-pch) | Age 60, 1-10 years, 30 and 50 hours a month; long |
+| `versailles-identity-card-fr` | Ville de Versailles | Identity card and passport | [PDF](https://www.versailles.fr/fileadmin/www.versailles.fr/MEDIA/solidarites_sante/handicap/FALC/PDF/Faire_une_demande_de_piece_identite_ou_de_passeport_Falc.pdf), 861 words | [demarches.versailles.fr/demarche/101/2](https://demarches.versailles.fr/demarche/101/2), about 1,900 words with page chrome | The city case: 86, 42 and 17 €, a phone, opening hours, a photo under 6 months and 3 months to collect on both |
+| `versailles-host-certificate-fr` (reserve) | Ville de Versailles | Attestation d'accueil | PDF, 583 words | [demarches.versailles.fr/demarche/136/2](https://demarches.versailles.fr/demarche/136/2), about 314 words | The standard is shorter than the easy text; a 30 € stamp, 3 months |
+| `caf-rsa-quarterly-return-fr` (reserve) | CNAF | RSA quarterly return | [PDF](https://caf.fr/sites/default/files/medias/cnaf/Aides_et_demarches/Mes-demarches/Fiches-pratiques/DTRSA_FALC.pdf), 1,321 words | Not found (caf.fr blocks fetches) | A click-by-click tutorial with few facts; transcribed by Com'access, checked by the CAP'acité group |
+
+Rejected: the CNSA fiche on the majoration pour la vie autonome (2020, outdated
+amounts), sante.fr's FALC section (the SantéBD content is images; 275-310 words of
+boilerplate), the caf.fr AEEH fiche (the same file as the CNSA one), and the Versailles
+fiches on deaths and the census (too short).
+
+| Pool | Size | How to pair | Notes |
+|------|------|-------------|-------|
+| CNSA | About 43 PDFs on [monparcourshandicap.gouv.fr](https://www.monparcourshandicap.gouv.fr/documentation/facile-lire-et-comprendre): AAH, AEEH, CMI, PCH, MDPH, appeals, schooling, employment | The twin on service-public or monparcourshandicap, by title | 6 of 10 links sampled answered 404. Four pairs proposed. |
+| CNAF | 9 PDFs on [caf.fr](https://caf.fr/allocataires/caf-du-nord/offre-de-service/handicap/les-fiches-d-aide-en-falc) | By hand | Mostly tutorials for the online account. |
+| Versailles | 15 FALC documents in the [list](https://www.versailles.fr/1794/solidarites/handicap/les-documents-facile-a-lire-et-a-comprendre-falc.htm): vote, the Améthyste card, CCAS, legal aid, Pass Local 2026 | The twin on demarches.versailles.fr | One or two pairs. |
+| Elections | The Interior Ministry says the permanent pages of elections.interieur.gouv.fr are in FALC | By page | Not verified: the site blocks scripted fetches; check from a browser. |
+
+Terms: [service-public.gouv.fr](https://www.service-public.gouv.fr/P10000) etalab-2.0,
+the one open licence found; [cnsa.fr](https://www.cnsa.fr/mentions-legales) public
+information reusable under loi 78-753, with a request to contact the CNSA;
+monparcourshandicap.gouv.fr no reuse clause;
+[versailles.fr](https://www.versailles.fr/20/mentions-legales.htm) collective
+reproduction forbidden; caf.fr not read. The rows stay manifest only.
+
+#### Rule sources and legal hooks
+
+- **A2:** Unapei and Inclusion Europe, "L'information pour tous" (2009,
+  [PDF](https://www.unapei.org/wp-content/uploads/2018/11/L%E2%80%99information-pour-tous-Re%CC%80gles-europe%CC%81ennes-pour-une-information-facile-a%CC%80-lire-et-a%CC%80-comprendre.pdf)),
+  the source the French rules already cite. Explain initials (12), avoid percentages and
+  big numbers (13, the example written `1 758 625`), short sentences, `vous` (14-15),
+  simple punctuation and no `\ & < § #` (written rules 14-15), no `par ex.` or `etc.`
+  (16), one idea a sentence on one line (19), `page 2 sur 4` (33); the French part:
+  numbers in digits, never Roman (41), dates in full, `Mardi 13 octobre 2008`, never
+  `13/10/2008` (42). No rule on times or phone numbers. The logo needs only the credit
+  "© European Easy-to-Read Logo: Inclusion Europe"
+  ([Inclusion Europe](https://www.inclusion-europe.eu/easy-to-read/)). No national FALC
+  standard or certification was found; the State's communicators have their own
+  derivative, "L'information pour tous" of the SIG with the CNCPH (not read: info.gouv.fr
+  answers 403).
+- **B1:** the DITP and DILA kit "Un formulaire simple à remplir, compréhensible et
+  accessible pour tous" (2024,
+  [PDF](https://www.modernisation.gouv.fr/files/2024-03/guide_kit-formulaires.pdf)), its
+  "Fiche langage clair": sentences under 20 words, active voice, one idea a sentence,
+  no abbreviations or acronyms except very well known ones (`etc.`, `Mme`, `SNCF`), an
+  acronym defined at first mention, numbers in digits, dates in full (`8 octobre
+  2022`). It cites ISO 24495-1 (NF ISO 24495-1:2023).
+- **Law:** France ratified the CRPD on 18 February 2010
+  ([UN Treaty Collection](https://treaties.un.org/Pages/ViewDetails.aspx?src=TREATY&mtdsg_no=IV-15&chapter=4&clang=_en)).
+  The one hard easy-language duty found is in elections: art. R. 38-1 of the Code
+  électoral (décret of 22 December 2021) requires candidates to file an easy version of
+  their profession de foi, and the ministry has its pages in FALC (the ministry's answer
+  to [question 17-13334](https://www.assemblee-nationale.fr/dyn/17/questions/QANR5L17QE13334),
+  August 2026). Loi 2005-102 and the RGAA ask for no FALC. The Prime Minister's circular
+  of 21 November 2017 asks official texts not to use écriture inclusive (read in a
+  summary, not at the source).
+
+#### What the French pages write
+
+- **Address:** `vous` (CNSA), but the CNAF tutorials and every Versailles fiche write
+  in the first person (`Je dois prendre un rendez-vous`).
+- **Money:** `86 €`, `30 €` with a space before the sign, once `100 euros`; no decimals
+  in the easy texts; standard pages `153,01 €`, `1 026,86 €` (comma decimals, space
+  thousands).
+- **Percent:** digits kept, `80 %` and `80%` in the same fiche, against the Swiss rule's
+  `pour cent`.
+- **Times:** `de 8h30 à 17h00`, `9h00 à 12h30` (Versailles): no spaces, minutes always
+  written.
+- **Dates:** `1er janvier 2023`; no numeric dates; the 2009 weekday style not used.
+- **Phones:** ten digits in pairs, `01 30 97 80 00`; no `+33` seen.
+- **Numerals and ordinals:** every number in digits, so `soixante-dix` never shows;
+  `1er`, `1ère`.
+- **Abbreviations:** CAF, MSA and MDPH explained in a sentence; AAH, RQTH and PCH used
+  as the topic names.
+- **Quotes and inclusive forms:** `«AAH»` (CNSA), `« montant net social »` (CNAF); no
+  point médian anywhere.
+- **Level and checking:** no CEFR level claimed. CNSA and CNAF print the Inclusion
+  Europe logo credit; CNSA names its co-writers, CNAF its transcriber and reader group;
+  Versailles prints "Ce document est écrit en FALC" on every page.
+- **Words and identifiers** (not yet checked against sources): mairie, département and
+  préfecture, Sécurité sociale, CPAM and carte Vitale, CAF, RSA, MDPH, France Travail,
+  avis d'imposition, the commissaire de justice (since 1 July 2022, in place of the
+  huissier), `soixante-dix` and `quatre-vingt-dix`. Letters carry the numéro de sécurité
+  sociale (13 digits and a 2-digit key; the CNAF fiche verifies "les 13 premiers
+  chiffres"), the numéro fiscal and the avis reference (13 characters each), the CAF
+  numéro allocataire, an `FR` IBAN and a five-digit code postal.
+
+### Italy
+
+Research for a planned Italian of Italy (`it-IT`), 30 October 2026; nothing is in the
+manifest yet. Italy has few official easy-to-read pages: none were found at INPS, the
+Ministero per le disabilità, the Ministero dell'Interno, or the regions and large comuni
+searched (Trentino, Emilia-Romagna, Toscana, Roma, Milano, Bologna, Torino). The one
+institutional pool is the Province of Bolzano; Anffas, the Italian member of Inclusion
+Europe, publishes easy PDFs as an association. A set of 3-5 pairs is realistic, not 12.
+
+| Candidate | Publisher | Topic | Easy | Standard | Verdict |
+|-----------|-----------|-------|------|----------|---------|
+| Invalidità civile | Provincia di Bolzano | Civil invalidity | [/it/invalidita-civile](https://lingua-facile.provincia.bz.it/it/invalidita-civile), about 900 words: 46 and 74 percent, under 67 years, 441 euro a month, 4 offices | [civis.bz.it service 1029184](https://civis.bz.it/it/servizi/servizio.html?id=1029184), redirects to mycivis, not read | The best easy page; the standard is still to be read |
+| Assegno di cura | Provincia di Bolzano | Care allowance | [/it/assegno-cura](https://lingua-facile.provincia.bz.it/it/assegno-cura): 4 levels by hours, a decision within a month | [sociale.provincia.bz.it](https://sociale.provincia.bz.it/it/servizi-sociali/assegno-di-cura), about 700 words, phones and office hours, links the easy page | Usable, few shared numbers |
+| Elezioni europee | Provincia di Bolzano | European elections | [/it/elezioni-europee](https://lingua-facile.provincia.bz.it/it/elezioni-europee), about 850 words: 76 MEPs, 5 constituencies, 18 years | [europa.provincia.bz.it](https://europa.provincia.bz.it/it/elezioni-europee-2024-cose-da-sapere), not read | Candidate |
+| Referendum 2025 | Anffas | The abrogative referendum of 8 and 9 June 2025 | [PDF](https://www.anffas.net/dld/files/Il%20Referendum%20abrogativo%208%20e%209%20giugno%202025_ETR.pdf), 9 pages: polls 7-23 and 7-15, 5 ballots, 50 percent quorum | A Camera dossier ([D25027](https://documenti.camera.it/leg19/dossier/pdf/D25027.pdf)) or the Interior Ministry's page, not read | A good pair once the standard is chosen; not an official text |
+
+Rejected: Bolzano DURP (one phone number), Contrassegno parcheggio and Eliminazione
+barriere (no amounts, no standard page found), Rimborsi trasporto and Esenzione ticket
+(no numbers); the Comune di Firenze ISEE guide (a leaflet for migrants, not easy to
+read).
+
+| Pool | Size | How to pair | Notes |
+|------|------|-------------|-------|
+| Provincia di Bolzano | About 60 pages in 13 areas ([sitemap](https://lingua-facile.provincia.bz.it/it/sitemap); 78 pages at the launch in 2020) | The easy pages link only the provincial home page; some standard pages link back ("Vai alla pagina internet in lingua facile"); pair by hand | Written with the University of Hildesheim's method and checked by readers of the "Okay" office and People First. The pages render by JavaScript (a plain fetch returns "Loading..."), so the ingest needs a renderer. South Tyrolean Italian: DURP instead of ISEE, provincial benefits. Most easy pages carry no amounts. |
+| Anffas | A [list of easy PDFs](https://www.anffas.net/it/linguaggio-facile-da-leggere/documenti-facili-da-leggere/): referendums 2020, 2022 and 2025, elections 2018 and 2022, the amministratore di sostegno, public offices, train and consumer rights | A standard counterpart chosen by hand | Association texts with the Inclusion Europe logo; no certification found. |
+
+Terms: [provincia.bz.it](https://home.provincia.bz.it/it/note-legali) speaks of images
+only, with no licence for the texts, so manifest only; Anffas not checked.
+
+#### Rule sources and legal hooks
+
+- **A2:** Inclusion Europe, "Informazioni per tutti", with Anffas
+  ([PDF](https://www.inclusion-europe.eu/wp-content/uploads/2017/06/IT_Information_for_all.pdf),
+  layout 2012). Avoid abbreviations and explain acronyms (rules 12, 16), avoid big
+  numbers and percentages (13, the example written `1.758.625`), address the reader
+  with tu, voi or lei (15), no special characters (15), short sentences of one idea,
+  each on its own line (17-19); the Italian part: no Roman numerals (41), present and
+  passato prossimo (42), indicative and imperative only (43), dates written out,
+  `mercoledì 18 aprile 2012` (44). No rule on digits, times or phone numbers.
+- **B1:** the Direttiva Frattini of 8 May 2002 on the language of administrative texts
+  (sentences over 25 words are hard, one piece of information a sentence, few acronyms);
+  the "Guida alla redazione degli atti amministrativi" of ITTIG-CNR and the Accademia
+  della Crusca (2011, [PDF](https://www.asi.it/wp-content/uploads/2020/03/guidaattiamministrativi.pdf),
+  CC BY-ND 2.5): thousands dot and decimal comma (`7.250 euro`, `14,02`), `3 milioni`,
+  ordinals in words, `12 giugno 2010`, hours in words, `per cento` written out, `€` only
+  in tables; Designers Italia's [Linguaggio](https://designers.italia.it/design-system/fondamenti/linguaggio/)
+  (April 2025): the thousands dot from 10.000 (`8700`, `11.800`), times `23:59`, phones
+  with `+39` (`+39 06 123 456 78`), acronyms avoided. The Direttiva Baccini of 2005 is
+  cited but was not read.
+- **Law:** d.lgs. 222/2023 (accessibility in public administration, art. 1 c. 2) names
+  information "in formati facilmente leggibili e comprensibili", citing CRPD art. 9,
+  ratified by Legge 18/2009; the clearest hook. d.lgs. 62/2024 (progetto di vita) does
+  not mention easy language (art. 21 asks for tools that make the procedure easier to
+  understand, within available resources). Legge 227/2021 speaks of simplifying the
+  language of laws only.
+
+#### What the Italian pages write
+
+- **Money:** `441 euro al mese` (Bolzano); `€` only in tables (Guida 2011).
+- **Big numbers:** the thousands dot (Inclusion Europe, Guida 2011); the Swiss
+  apostrophe (`1'500`) does not occur.
+- **Times:** no common style: `dalle ore 7 alle ore 23, cioè fino alle undici di sera`
+  (Anffas), `dalle ore 9:00 alle ore 12:00` (a Bolzano standard page), `23:59` (Designers
+  Italia), words (Guida 2011). The colon is current web practice, unlike the Swiss
+  `9.00`.
+- **Dates:** written out, `domenica 8 giugno` (Anffas); `1° maggio` for the first only.
+- **Phones:** `0471 41 87 40` (Bolzano easy page), `+39 0471 41 82 92` and `848 800 277`
+  (Bolzano standard); the leading 0 stays after `+39`.
+- **Percent:** `50%`, `46%`, `74%` on easy pages, against `per cento` in the B1 guides.
+- **Address:** tu on the Bolzano and Anffas easy pages (with an impersonal `si` and a
+  boilerplate voi line); no Lei seen on an Italian easy page.
+- **Compounds:** the Bolzano pages split long words with a middle dot
+  (`auto∙certificazione`, `euro∙parlamentari`), as German Leichte Sprache does; which
+  code point is not verified.
+- **Quotes and inclusive forms:** curly `“ ”`, no guillemets; doubling (`le elettrici e
+  gli elettori`), no schwa or asterisk.
+- **Level:** none claimed; Anffas shows the Inclusion Europe logo, Bolzano a Leichte
+  Sprache logo.
+- **Words and identifiers:** the Federal Chancellery's list of Swiss Italian terms
+  ([Pandolfi and Casoni 2009](https://www4.ti.ch/fileadmin/DECS/DCSU/OLSI/documenti/Pubblicazioni_Online/Pandolfi_Casoni_Cancelleria_federale_31-03e30-04-2009.pdf))
+  gives the pairs: `attinenza` (cittadinanza di un comune), `azione` (offerta speciale),
+  `trattanda` (punto all'ordine del giorno), `fuoco` (nucleo familiare), `Natel`
+  (cellulare), `foglio ufficiale` (gazzetta ufficiale). Letters in Italy carry a codice
+  fiscale (16 characters), a partita IVA (11 digits), a pagoPA codice avviso (18 digits),
+  an `IT` IBAN and a five-digit CAP.
 
 ## 3. Demo documents (no easy-language version)
 
