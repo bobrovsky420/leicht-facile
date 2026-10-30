@@ -90,7 +90,7 @@ header.top .wrap { display: flex; align-items: center; gap: 16px 24px; min-heigh
 header.top nav:not(.langs) { margin-left: auto; }
 /* the language switch: a group of codes, the current one set in */
 nav.langs { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; }
-nav.langs a, nav.langs span { padding: 4px 9px; color: var(--text-2); text-decoration: none; }
+nav.langs a, nav.langs span { display: inline-block; padding: 4px 9px; font-size: 0.8rem; line-height: 1.5; color: var(--text-2); text-decoration: none; }
 nav.langs a:hover { background: var(--accent-weak); color: var(--accent); text-decoration: none; }
 nav.langs span { background: var(--sunken); color: var(--ink); }
 nav.langs a + a, nav.langs a + span, nav.langs span + a { border-left: 1px solid var(--border); }
