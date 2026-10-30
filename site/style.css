@@ -41,11 +41,10 @@
   --ok-weak: #E8F3EC;
   --error: #B42318;
   --error-weak: #FDEEEC;
-  /* the site's own: a wash of the accent behind the header and the hero, the wash at 82 percent
-     for the fixed header to frost, and the hero's glow */
-  --wash: #E1E9F4;
-  --glass: rgba(225, 233, 244, 0.82);
-  --glow: rgba(106, 144, 194, 0.24);
+  /* the site's own: a wash of the accent behind the header and the hero, and the wash at
+     82 percent for the fixed header to frost */
+  --wash: #EAF0F7;
+  --glass: rgba(234, 240, 247, 0.82);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -68,7 +67,6 @@
     --error-weak: #33191A;
     --wash: #1D2A3C;
     --glass: rgba(29, 42, 60, 0.82);
-    --glow: rgba(143, 177, 222, 0.12);
   }
 }
 
@@ -76,7 +74,8 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  background: var(--app);
+  /* the wash behind the header too: the fixed header, frosted, then shows the colour the hero starts with */
+  background: linear-gradient(var(--wash), var(--wash)) top / 100% 200px no-repeat var(--app);
   color: var(--ink);
   font: 17px/1.6 "Atkinson Hyperlegible Next", system-ui, sans-serif;
 }
@@ -101,7 +100,7 @@ header.top { background: var(--wash); border-bottom: 1px solid var(--border); }
   html { scroll-padding-top: 76px; }
   header.top { position: sticky; top: 0; z-index: 1; }
   @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    header.top { background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6); }
+    header.top { background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   }
 }
 @media (min-width: 821px) and (max-width: 960px) and (min-height: 500px) {
@@ -128,18 +127,13 @@ section:last-of-type { border-bottom: 0; }
 /* the sections alternate: white, grey, white ...; cards on a white section sit on the sunken grey */
 main > section:nth-of-type(odd) { background: var(--surface); }
 main > section:nth-of-type(odd):not(.hero) :is(.card, ol.steps li, ul.missing li, ul.services li, ul.countries li, .author, pre) { background: var(--sunken); }
-/* the top of the page: the header's wash fades into white, a glow behind the example; the cards stay white */
-main > section.hero {
-  background:
-    radial-gradient(720px 440px at 85% 0, var(--glow), transparent),
-    linear-gradient(var(--wash), var(--surface) 640px);
-}
+/* the top of the page: the header's wash fades into white; the cards stay white */
+main > section.hero { background: linear-gradient(var(--wash), var(--surface) 640px); }
 .hero { padding: 64px 0 56px; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 48px; align-items: start; }
 .hero-demo { padding-top: 10px; }
 .hero-demo .compare { grid-template-columns: 1fr; gap: 12px; }
-/* --text-2, not --muted: on the glow --muted falls below 4.5:1 */
-.demo-intro { margin: 0 0 12px; color: var(--text-2); font-size: 0.92rem; }
+.demo-intro { margin: 0 0 12px; color: var(--muted); font-size: 0.92rem; }
 .hero .stat { margin-top: 28px; }
 .hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); max-width: 30ch; letter-spacing: -0.01em; text-wrap: balance; }
 .tagline { font-size: clamp(1.2rem, 2.6vw, 1.45rem); font-weight: 600; color: var(--accent); margin: 0 0 0.5em; max-width: 40ch; }
