@@ -33,7 +33,8 @@ people with disabilities into account when they communicate with the public (art
 BehiG). In Germany, federal authorities should explain decisions, forms and contracts in
 simple language on request, and in Leichte Sprache when that is not enough (§ 11 BGG),
 and every federal website explains itself in Leichte Sprache on its home page (§ 4 BITV
-2.0). The texts: [References](#references).
+2.0). Austria has been bound by the same UN Convention since 2008. The texts:
+[References](#references).
 
 Two use cases: a canton's letters and web pages
 ([use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
@@ -285,6 +286,8 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
   Sprache: <https://www.gesetze-im-internet.de/bgg/__11.html>
 - Germany: Barrierefreie-Informationstechnik-Verordnung (BITV 2.0), § 4:
   <https://www.gesetze-im-internet.de/bitv_2_0/__4.html>
+- Austria: UN Convention on the Rights of Persons with Disabilities, BGBl. III Nr.
+  155/2008: <https://www.ris.bka.gv.at/eli/bgbl/III/2008/155>
 
 ## Licence
 
