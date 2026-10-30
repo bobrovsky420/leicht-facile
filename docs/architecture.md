@@ -1747,6 +1747,8 @@ publiccode.yml              the entry for public-sector software catalogues
 site/index.html             the project's page (https://leichtfacile.ch); pages.yml adds the app's fonts and a screenshot
 site/{de,fr,it}/index.html  the same page in German, French and Italian (https://leichtfacile.ch/de/, /fr/, /it/)
 site/style.css              the styles of every page in site/
+site/robots.txt             every page may be crawled; names the sitemap
+site/sitemap.xml            the site's pages for search engines (each page links its language versions)
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key

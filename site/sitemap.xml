@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The site's pages for search engines (named in robots.txt); each page links its language
+     versions itself (hreflang). Add a page here when site/ gets one. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://leichtfacile.ch/</loc></url>
+  <url><loc>https://leichtfacile.ch/de/</loc></url>
+  <url><loc>https://leichtfacile.ch/fr/</loc></url>
+  <url><loc>https://leichtfacile.ch/it/</loc></url>
+  <url><loc>https://leichtfacile.ch/legal/</loc></url>
+</urlset>

@@ -1,6 +1,6 @@
 # The project's page at https://leichtfacile.ch: site/ (the English page, the German, French
 # and Italian ones in site/de, site/fr and site/it, the legal notice in site/legal, the
-# shared style.css, images) with the app's fonts and the review screenshots in English and
+# shared style.css, images, robots.txt and sitemap.xml) with the app's fonts and the review screenshots in English and
 # German (PNG and WebP) copied next to it, published on GitHub Pages. The repository's Pages
 # settings take "GitHub Actions" as the source and leichtfacile.ch as the custom domain (a
 # deployment by this workflow needs no CNAME file). Every action is pinned to a commit; the
