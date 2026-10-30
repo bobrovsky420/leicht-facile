@@ -1,6 +1,7 @@
 <!doctype html>
-<!-- https://leichtfacile.ch/it/: the project's page in Italian, the essentials of
-     site/index.html (keep it in step with the English page); styles in site/style.css. -->
+<!-- https://leichtfacile.ch/it/: the project's page in Italian, the counterpart of
+     site/index.html (keep both in step); styles in site/style.css. The reader is addressed
+     with Lei; a no-break space before %. -->
 <html lang="it">
 <head>
 <meta charset="utf-8">
@@ -32,6 +33,8 @@
         <li><a href="#how">Come funziona</a></li>
         <li><a href="#results">Risultati</a></li>
         <li><a href="#start">Per iniziare</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#authors">Autori</a></li>
         <li><a href="#support">Sostegno</a></li>
         <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
       </ul>
@@ -43,19 +46,35 @@
 <main id="main">
 <section class="hero">
   <div class="wrap">
-    <h1>Bozze in lingua facile di testi ufficiali</h1>
-    <p class="tagline">Un modello linguistico scrive, il codice controlla, Lei decide.</p>
-    <p class="lead">Leicht·Facile redige versioni in lingua facile di testi ufficiali svizzeri e dimostra con il codice che nessuna scadenza, nessun importo e nessun numero di telefono è andato perso. È uno strumento di supporto per chi scrive testi ufficiali; non sostituisce né la loro revisione né la prova con lettrici e lettori del gruppo di destinazione.</p>
-    <div class="actions">
-      <a class="button primary" href="#start">Per iniziare</a>
-      <a class="button secondary" href="https://github.com/bobrovsky420/leicht-facile">Codice sorgente su GitHub</a>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <h1>Bozze in lingua facile di testi ufficiali</h1>
+        <p class="tagline">Un modello linguistico scrive, il codice controlla, Lei decide.</p>
+        <p class="lead">Leicht·Facile redige versioni in lingua facile di testi ufficiali svizzeri e dimostra con il codice che nessuna scadenza, nessun importo e nessun numero di telefono è andato perso. È uno strumento di supporto per chi scrive testi ufficiali; non sostituisce né la loro revisione né la prova con lettrici e lettori del gruppo di destinazione.</p>
+        <div class="actions">
+          <a class="button primary" href="#start">Per iniziare</a>
+          <a class="button secondary" href="https://github.com/bobrovsky420/leicht-facile">Codice sorgente su GitHub</a>
+        </div>
+        <p class="stat"><strong>1,25 milioni</strong> <span>di adulti in Svizzera tra i 16 e i 65 anni (22 per cento) hanno scarse competenze di lettura<sup><a href="#ref-1" aria-label="Fonte 1">1</a></sup>.</span></p>
+      </div>
+      <div class="hero-demo">
+        <p class="demo-intro">Una frase di una lettera ufficiale, con due negazioni. Chi la legge ha una sola domanda: riavrò i miei soldi?</p>
+        <div class="compare">
+          <div class="card">
+            <h3>Prima: la lettera</h3>
+            <blockquote>Occorre rilevare che le spese non annunciate entro i termini non potranno essere rimborsate.</blockquote>
+          </div>
+          <div class="card after">
+            <h3>Dopo: in lingua facile</h3>
+            <blockquote>È importante:<br>Comunichi le Sue spese in tempo.<br>Altrimenti non riceve i soldi.</blockquote>
+          </div>
+        </div>
+      </div>
     </div>
-    <p class="stat"><strong>1,25 milioni</strong> <span>di adulti in Svizzera tra i 16 e i 65 anni (22 per cento) hanno scarse competenze di lettura (<a href="https://www.bfs.admin.ch/asset/fr/33346105">Ufficio federale di statistica, PIAAC 2022/2023</a>).</span></p>
-    <p class="note">Questa pagina riassume l’essenziale. La pagina completa, con il quadro giuridico, la roadmap e gli autori, esiste in <a href="../" hreflang="en">inglese</a> e in <a href="../de/" hreflang="de">tedesco</a>.</p>
     <ul class="varieties" aria-label="Lingue e paesi">
       <li><b lang="de">Deutsch</b><span>Leichte Sprache e Einfache Sprache, nell’ortografia di ogni paese</span><span class="where">Svizzera, Germania, Austria</span></li>
       <li><b lang="fr">Français</b><span>FALC</span><span class="where">Svizzera</span></li>
-      <li><b lang="it">Italiano</b><span>lingua facile</span><span class="where">Svizzera</span></li>
+      <li><b>Italiano</b><span>lingua facile</span><span class="where">Svizzera</span></li>
     </ul>
   </div>
 </section>
@@ -63,9 +82,9 @@
 <section id="easy" class="easy">
   <div class="wrap">
     <h2>Questa pagina in lingua facile</h2>
-    <p>Che cos’è Leicht·Facile, in italiano facile. Il team ha scritto questo testo secondo le regole e lo ha verificato con il controllo delle regole dell’applicazione: nessun errore.</p>
-    <div class="easy-texts one">
-      <article>
+    <p>Che cos’è Leicht·Facile, in lingua facile, in Leichte Sprache e in FALC. Il team ha scritto i tre testi secondo le regole e li ha verificati con il controllo delle regole dell’applicazione: nessuno dei tre contiene errori.</p>
+    <div class="easy-texts">
+      <article lang="it">
         <p class="easy-lang">Italiano: lingua facile</p>
         <h3>Che cos&#x27;è Leicht·Facile?</h3>
         <p>Gli uffici pubblici scrivono lettere e pagine internet.<br>
@@ -85,7 +104,63 @@ Questa persona decide: il testo va bene?</p>
         <p>Leicht·Facile è gratuito.<br>
 Ogni ufficio può usare il programma.</p>
       </article>
+      <article lang="de">
+        <p class="easy-lang">Deutsch: Leichte Sprache</p>
+        <h3>Was ist Leicht·Facile?</h3>
+        <p>Behörden schreiben Briefe und Internet·seiten.<br>
+Viele von diesen Texten sind schwer.<br>
+Viele Menschen haben Mühe mit diesen Texten.<br>
+Leicht·Facile ist ein Programm für Behörden.<br>
+Das Programm hilft beim Schreiben in Leichter Sprache.</p>
+        <h3>Wie geht das?</h3>
+        <p>Ein Mensch gibt einen schweren Text ein.<br>
+Ein Sprach·modell schreibt den Text neu in Leichter Sprache.<br>
+Ein Sprach·modell ist ein Programm. Es kann Texte schreiben.<br>
+Der Computer prüft dann den neuen Text.<br>
+Der Computer prüft: Sind alle Zahlen noch da? Sind alle Termine noch da? Sind alle Telefon·nummern noch da?<br>
+Ein Mensch prüft den Text zum Schluss.<br>
+Der Mensch entscheidet: Ist der Text gut?</p>
+        <h3>Was kostet das?</h3>
+        <p>Leicht·Facile ist gratis.<br>
+Jede Behörde kann das Programm benutzen.</p>
+      </article>
+      <article lang="fr">
+        <p class="easy-lang">Français : FALC</p>
+        <h3>Qu&#x27;est-ce que Leicht·Facile ?</h3>
+        <p>Les administrations écrivent des lettres et des pages internet.<br>
+Beaucoup de ces textes sont difficiles.<br>
+Beaucoup de personnes ont de la peine à les comprendre.<br>
+Leicht·Facile est un programme pour les administrations.<br>
+Le programme aide à écrire des textes faciles à lire et à comprendre.<br>
+On dit aussi : des textes en FALC.</p>
+        <h3>Comment ça marche ?</h3>
+        <p>Une personne donne un texte difficile au programme.<br>
+Un modèle de langage écrit le texte en langage facile.<br>
+Un modèle de langage est un programme. Ce programme sait écrire des textes.<br>
+Ensuite, l&#x27;ordinateur contrôle le nouveau texte.<br>
+L&#x27;ordinateur contrôle : tous les chiffres sont-ils encore là ? Toutes les dates ? Tous les numéros de téléphone ?<br>
+À la fin, une personne contrôle le texte.<br>
+Cette personne décide : le texte est-il bon ?</p>
+        <h3>Combien ça coûte ?</h3>
+        <p>Leicht·Facile est gratuit.<br>
+Chaque administration peut utiliser le programme.</p>
+      </article>
     </div>
+  </div>
+</section>
+
+<section id="law">
+  <div class="wrap">
+    <h2>Che cosa chiede la legge alle autorità</h2>
+    <p>La lingua facile non è una concessione. I tre paesi hanno ratificato la Convenzione dell’ONU sui diritti delle persone con disabilità, che annovera il linguaggio semplificato tra le forme di comunicazione (art. 2) e chiede agli Stati di rendere accessibili le informazioni pubbliche (art. 9 e 21).</p>
+    <ul class="countries">
+      <li><h3>Svizzera</h3>
+        <p>Vincolata dalla Convenzione dal 2014<sup><a href="#ref-2" aria-label="Fonte 2">2</a></sup>. La legge sui disabili chiede alle autorità di tenere conto delle esigenze delle persone con disabilità nei rapporti con la popolazione (art. 14 LDis<sup><a href="#ref-3" aria-label="Fonte 3">3</a></sup>).</p></li>
+      <li><h3>Germania</h3>
+        <p>Le autorità federali devono, su richiesta, spiegare le loro decisioni, i moduli e i contratti in modo semplice e comprensibile, e in Leichte Sprache se ciò non basta (§ 11 BGG<sup><a href="#ref-4" aria-label="Fonte 4">4</a></sup>). Ogni sito web federale si presenta in Leichte Sprache sulla pagina iniziale (§ 4 BITV 2.0<sup><a href="#ref-5" aria-label="Fonte 5">5</a></sup>).</p></li>
+      <li><h3>Austria</h3>
+        <p>Vincolata dalla Convenzione dal 2008<sup><a href="#ref-6" aria-label="Fonte 6">6</a></sup>. La legge federale sulla parità di trattamento delle persone con disabilità annovera i sistemi di informazione tra ciò che deve essere accessibile alle persone con disabilità senza particolari difficoltà (§ 6 BGStG<sup><a href="#ref-7" aria-label="Fonte 7">7</a></sup>). Nessuna legge nomina la Leichte Sprache in quanto tale.</p></li>
+    </ul>
   </div>
 </section>
 
@@ -104,7 +179,7 @@ Ogni ufficio può usare il programma.</p>
       <li><h3>Scrivere <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>modello</span></h3>
         <p>Una bozza in lingua facile; ogni frase è collegata alle frasi di origine da cui proviene, ogni omissione è spiegata.</p></li>
       <li><h3>Controllare <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg>codice</span></h3>
-        <p>41 regole deterministiche per l’italiano, tratte dalle guide pubblicate, e un controllo esatto di ogni valore in entrambe le direzioni: nessun valore perso, nessun valore inventato.</p></li>
+        <p>Regole deterministiche tratte dalle guide pubblicate di Svizzera, Germania e Austria, 45 per il tedesco, 41 per il francese e 41 per l’italiano, e un controllo esatto di ogni valore in entrambe le direzioni: nessun valore perso, nessun valore inventato.</p></li>
       <li><h3>Giudicare <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>modello</span></h3>
         <p>Solo il significato: fatti distorti, affermazioni inventate, metafore, riferimenti poco chiari.</p></li>
       <li><h3>Correggere <span class="who"><svg class="icon" aria-hidden="true"><use href="#i-model"/></svg>modello</span></h3>
@@ -119,6 +194,24 @@ Ogni ufficio può usare il programma.</p>
       </picture>
       <figcaption>La pagina di revisione (interfaccia in inglese) con la lettera di esempio tedesca: il testo di origine con ciò che è stato omesso e perché, la bozza con le sue versioni e i suoi rilievi, e i fatti obbligatori.</figcaption>
     </figure>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <h2>Perché non un semplice prompt a un chatbot?</h2>
+    <p>Chieda a un chatbot di «riscrivere questo testo in lingua facile» e otterrà un testo, niente di più.</p>
+    <ul class="missing">
+      <li><h3>Nessun contratto sui fatti</h3>
+        <p>Niente stabilisce quali scadenze, importi e contatti vanno conservati.</p></li>
+      <li><h3>Nessuna provenienza</h3>
+        <p>Nessuna frase rimanda alla frase di origine da cui proviene.</p></li>
+      <li><h3>Nessun registro delle omissioni</h3>
+        <p>Ciò che è stato tralasciato, e perché, non viene annotato.</p></li>
+      <li><h3>Nessun controllo indipendente</h3>
+        <p>Solo il modello stesso esamina il risultato.</p></li>
+    </ul>
+    <p>I chatbot più diffusi girano inoltre su cloud esteri. Leicht·Facile aggiunge questi quattro elementi, un flusso di revisione e una traccia di audit, e gira su un’infrastruttura che l’organizzazione controlla. La sezione seguente misura la differenza, e quanto costa.</p>
   </div>
 </section>
 
@@ -152,7 +245,7 @@ Ogni ufficio può usare il programma.</p>
     </div>
     <div>
       <h2>Perché Apertus per i testi riservati</h2>
-      <p>Una lettera che nomina una persona è coperta dal segreto d’ufficio, una lettera medica dal segreto medico, una lettera fiscale dal segreto fiscale. Questi testi richiedono un modello che gira dove l’organizzazione lo controlla, con pesi aperti e dati di addestramento aperti. Apertus, dell’EPFL, dell’ETH di Zurigo e del CSCS, soddisfa queste condizioni, e Leicht·Facile è stato sviluppato e valutato con esso (<a href="https://github.com/bobrovsky420/leicht-facile#why-apertus-for-confidential-texts">perché Apertus</a>, in inglese).</p>
+      <p>Una lettera che nomina una persona è coperta dal segreto d’ufficio, una lettera medica dal segreto medico, una lettera fiscale dal segreto fiscale. Questi testi richiedono un modello che gira dove l’organizzazione lo controlla, con pesi aperti e dati di addestramento aperti. Apertus<sup><a href="#ref-10" aria-label="Fonte 10">10</a></sup>, dell’EPFL, dell’ETH di Zurigo e del CSCS, soddisfa queste condizioni, e Leicht·Facile è stato sviluppato e valutato con esso (<a href="https://github.com/bobrovsky420/leicht-facile#why-apertus-for-confidential-texts">perché Apertus</a>, in inglese).</p>
     </div>
   </div>
 </section>
@@ -180,6 +273,74 @@ Ogni ufficio può usare il programma.</p>
   </div>
 </section>
 
+<section id="roadmap">
+  <div class="wrap">
+    <h2>Roadmap</h2>
+    <p>Che cosa è stato pubblicato dall’inizio dei lavori nell’ottobre 2026, e che cosa viene dopo. Idee e richieste sono benvenute come <a href="https://github.com/bobrovsky420/leicht-facile/issues">issue su GitHub</a>. Se la Sua amministrazione ha bisogno prima di qualcosa della lista, o di qualcosa che non c’è, <a href="#support">ce lo dica</a>.</p>
+    <ol class="roadmap">
+      <li class="done">
+        <p class="when">Da 0.5 a 0.9 <span>ottobre 2026</span></p>
+        <h3>Pubblicato</h3>
+        <ul class="shipped">
+          <li><b>0.5 e 0.6</b> Tedesco e francese: Leichte Sprache, Einfache Sprache e FALC, la scheda dei fatti, i controlli delle regole, il modello giudice, il ciclo di correzione e la pagina di revisione; le esportazioni in Markdown, HTML e Word con traccia di audit; la modalità per le decisioni dell’APMA e dei tribunali; la valutazione su 20 coppie di testi (risultati qui sopra).</li>
+          <li><b>0.7</b> Qualsiasi modello, un solo comando: <code>uvx leichtfacile serve</code> da PyPI, qualsiasi punto di accesso compatibile con OpenAI, preimpostazioni per Apertus e i grandi fornitori.</li>
+          <li><b>0.8</b> Italiano: la lingua facile con 28 regole proprie, un tagger morfologico basato sul lessico Morph-it!, una valutazione tramite Public AI; la pagina «Modello IA» dell’applicazione.</li>
+          <li><b>0.9</b> Tedesco per la Germania e l’Austria: le regole del Netzwerk Leichte Sprache e della DIN SPEC 33429, l’ortografia, i numeri, le date, i numeri di telefono e gli indirizzi di ogni paese, il Bescheid nella modalità per le decisioni; valutato su 8 pagine ufficiali per paese.</li>
+        </ul>
+      </li>
+      <li class="planned">
+        <p class="when">Previsto</p>
+        <h3>Il francese per la Francia e l’italiano per l’Italia</h3>
+        <p>FALC e lingua facile come li scrivono i due paesi, costruiti come le varietà tedesche: le fonti delle regole di ogni paese, i suoi numeri, importi in euro, date, numeri di telefono, indirizzi e codici identificativi, le parole delle sue autorità, prompt, lettere di esempio e una valutazione su pagine ufficiali. Il francese e l’italiano svizzeri restano invariati.</p>
+      </li>
+      <li class="planned">
+        <p class="when">Previsto</p>
+        <h3>Lettere scritte da altri</h3>
+        <p>Chi ha ricevuto una lettera la carica nell’applicazione, anche con l’aiuto di un’altra persona. Il codice elenca ogni scadenza, importo e contatto con le parole stesse della lettera, un avviso fisso ricorda che fa fede solo la lettera, e la spiegazione non dà consigli.</p>
+      </li>
+      <li class="planned">
+        <p class="when">Previsto</p>
+        <h3>Decisioni: riconoscimento e motivazioni lunghe</h3>
+        <p>L’applicazione riconosce il tipo di documento invece di chiedere la modalità, e un’ulteriore modalità riassume le lunghe motivazioni giuridiche ed elenca ogni omissione.</p>
+      </li>
+      <li class="planned">
+        <p class="when">Previsto</p>
+        <h3>Altri tipi di documenti</h3>
+        <p>Lettere di dimissione dall’ospedale, disdette di contratti di locazione, decreti d’accusa, precetti esecutivi, decisioni scolastiche e informazioni per chi partecipa a uno studio, ognuno con i termini e i valori che chi lo legge non deve perdere (<a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/use-cases.md">casi d’uso</a>, in inglese).</p>
+      </li>
+      <li class="planned">
+        <p class="when">Ricerca</p>
+        <h3>Lettere scansionate e foto</h3>
+        <p>Apertus 1.5 legge le immagini, ma sulle pagine intere ha sostituito IBAN e scadenze con altri numeri plausibili. Con le pagine inviate a strisce alla risoluzione della scansione, ha conservato ogni cifra di due lettere di prova. Per ora, per un PDF senza livello di testo l’applicazione mostra un messaggio d’errore chiaro.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="authors">
+  <div class="wrap">
+    <h2>Autori</h2>
+    <div class="authors">
+      <div class="author">
+        <img src="../images/authors/ab.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Alexander Bobrovsky</h3>
+          <p>Oltre 25 anni nell’informatica, di cui oltre 15 nella gestione di prodotti e programmi, con particolare attenzione alla progettazione di sistemi e all’intelligenza artificiale. Ha progettato e realizzato sistemi con una disponibilità del 99,999 % che elaborano centinaia di milioni di eventi al giorno.</p>
+          <a href="https://github.com/bobrovsky420">github.com/bobrovsky420</a>
+        </div>
+      </div>
+      <div class="author">
+        <img src="../images/authors/ik.jpg" width="56" height="56" alt="" loading="lazy">
+        <div>
+          <h3>Ivan Kuzmych</h3>
+          <p>Oltre 15 anni di sviluppo software sul campo in Java, Python e JavaScript/TypeScript: sistemi di produzione realizzati e messi in esercizio dall’inizio alla fine, DevOps e CI/CD compresi.</p>
+          <a href="https://github.com/ikzmch">github.com/ikzmch</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="support">
   <div class="wrap">
     <h2>Sostegno alle amministrazioni pubbliche</h2>
@@ -199,6 +360,23 @@ Ogni ufficio può usare il programma.</p>
       <a class="button primary" href="mailto:leichtfacile@gmx.ch?subject=Leicht%C2%B7Facile%3A%20richiesta%20di%20sostegno&amp;body=Amministrazione%3A%0D%0ATesti%20e%20lingue%3A%0D%0ADove%20deve%20girare%20l%27applicazione%20%28server%20propri%2C%20cloud%2C%20punto%20di%20accesso%29%3A%0D%0ADi%20che%20cosa%20abbiamo%20bisogno%3A%0D%0A">Ci scriva</a>
     </div>
     <p class="note">Oppure scriva direttamente a <a href="mailto:leichtfacile@gmx.ch">leichtfacile@gmx.ch</a>.</p>
+  </div>
+</section>
+<section id="references">
+  <div class="wrap">
+    <h2>Fonti</h2>
+    <ol class="refs">
+      <li id="ref-1"><a href="https://www.bfs.admin.ch/asset/it/33346106">Ufficio federale di statistica</a>: primi risultati dell’indagine PIAAC 2022/2023 (Svizzera)</li>
+      <li id="ref-2"><a href="https://www.fedlex.admin.ch/eli/cc/2014/245/it">Convenzione sui diritti delle persone con disabilità</a> (RS 0.109), art. 2, 9, 13 e 21</li>
+      <li id="ref-3"><a href="https://www.fedlex.admin.ch/eli/cc/2003/667/it">Legge sui disabili</a> (LDis, RS 151.3), art. 14</li>
+      <li id="ref-4"><a href="https://www.gesetze-im-internet.de/bgg/__11.html">§ 11 BGG</a>: Verständlichkeit und Leichte Sprache (Germania)</li>
+      <li id="ref-5"><a href="https://www.gesetze-im-internet.de/bitv_2_0/__4.html">§ 4 BITV 2.0</a>: la Leichte Sprache sui siti web federali (Germania)</li>
+      <li id="ref-6"><a href="https://www.ris.bka.gv.at/eli/bgbl/III/2008/155">Convenzione sui diritti delle persone con disabilità</a> (BGBl. III Nr. 155/2008, Austria)</li>
+      <li id="ref-7"><a href="https://www.jusline.at/gesetz/bgstg/paragraf/6">Bundes-Behindertengleichstellungsgesetz</a> (BGStG, BGBl. I Nr. 82/2005), § 6 (Austria)</li>
+      <li id="ref-8"><a href="https://doi.org/10.31244/9783830999652">GESIS</a>: PIAAC 2023, die wichtigsten Ergebnisse im Überblick (Germania)</li>
+      <li id="ref-9"><a href="https://www.statistik.at/fileadmin/publications/PIAAC_1_Web-barrierefrei.pdf">Statistik Austria</a>: PIAAC 2022/23, Grundkompetenzen von Erwachsenen, rapporto nazionale, volume 1 (Austria)</li>
+      <li id="ref-10"><a href="https://www.apertus-ai.org/">Apertus</a>: il modello aperto della Swiss AI Initiative (EPFL, ETH di Zurigo, CSCS)</li>
+    </ol>
   </div>
 </section>
 </main>
