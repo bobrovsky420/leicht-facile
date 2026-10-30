@@ -447,7 +447,11 @@ class VocabularyMatcher:
         for sent in sentences:
             forms = [self._forms(t) for t in sent]
             for i, token_forms in enumerate(forms):
-                candidates = {id(p): p for f in token_forms for p in self._patterns.get(f, ())}
+                # In a fixed order: the order of a set changes with the hash seed, and
+                # of two matches alike the first found is kept (see _longest).
+                candidates = {
+                    id(p): p for f in sorted(token_forms) for p in self._patterns.get(f, ())
+                }
                 for pattern in candidates.values():
                     match = self._match_at(pattern, sent, forms, i, offset)
                     if match is not None:
@@ -617,13 +621,18 @@ def _phrase_pattern(phrase: str) -> re.Pattern[str]:
 
 def _longest(matches: list[Match]) -> list[Match]:
     """Of overlapping matches the one with the most matched characters; the words
-    between the parts of a separated verb do not count as covered."""
+    between the parts of a separated verb do not count as covered. Of two as long, the
+    term as it stands in the text wins over a base form read from it (eingelangt over
+    einlangen)."""
     kept: list[Match] = []
 
     def size(m: Match) -> int:
         return sum(b - a for a, b in m.parts)
 
-    for m in sorted(matches, key=lambda m: (-size(m), m.start)):
+    def as_written(m: Match) -> bool:
+        return _norm(m.text) == _norm(m.entry.term)
+
+    for m in sorted(matches, key=lambda m: (-size(m), m.start, not as_written(m))):
         if any(a < d and c < b for k in kept for a, b in m.parts for c, d in k.parts):
             continue
         kept.append(m)
