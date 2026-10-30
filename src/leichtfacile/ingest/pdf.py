@@ -27,7 +27,8 @@ Words come with font size and font name (`extract_words(extra_attrs=...)`). Step
 6. List items start with a bullet character, a dash, a Symbol-font bullet, or an "o"
    that is set in another size or font than the text or starts several lines of the
    column. Following lines at the indentation of the item text continue the item.
-7. Hyphenated line breaks are joined (`join_lines`).
+7. Hyphenated line breaks are joined (`join_lines`); a soft hyphen in the text layer
+   counts as a drawn hyphen before that (`hyphens_of_text_layer`).
 
 A PDF without any extractable text raises `NoTextLayerError`: scans need the model's
 image input, which is not available yet.
@@ -156,6 +157,18 @@ def extract_pdf(data: bytes) -> tuple[str | None, list[Unit]]:
 # -- reading -------------------------------------------------------------------------
 
 
+SOFT_HYPHEN = "­"
+
+
+def hyphens_of_text_layer(text: str) -> str:
+    """A soft hyphen in a PDF's text layer is a drawn hyphen: InDesign and Word map the
+    hyphen glyph to U+00AD, so the normaliser, which drops soft hyphens as invisible,
+    read the DRV brochure's Martin-Luther-Straße 2-4 as MartinLutherStraße 24 and its
+    Telefon 06232 17-0 as 170 (30 October 2026). As a plain hyphen it goes through the
+    line-end dehyphenation of `join_lines` like any other."""
+    return text.replace(SOFT_HYPHEN, "-")
+
+
 def _read(data: bytes) -> tuple[str | None, list[_Page]]:
     try:
         pdf = pdfplumber.open(io.BytesIO(data))
@@ -169,7 +182,7 @@ def _read(data: bytes) -> tuple[str | None, list[_Page]]:
                 raw = page.extract_words(extra_attrs=["size", "fontname"])
                 words = [
                     _Word(
-                        w["text"],
+                        hyphens_of_text_layer(w["text"]),
                         float(w["x0"]),
                         float(w["x1"]),
                         float(w["top"]),

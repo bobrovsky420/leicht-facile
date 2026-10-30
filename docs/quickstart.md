@@ -252,6 +252,11 @@ uv run leichtfacile eval compare      # docs/model-comparison.md: every run side
 uv run leichtfacile eval reference --role all --lang it --results eval/results-publicai
 uv run leichtfacile eval run --cache --condition P2 --lang it --preset publicai-apertus --results eval/results-publicai
 uv run leichtfacile eval report --results eval/results-publicai --role eval --out docs/evaluation-publicai.md
+# Germany and Austria (30 October 2026): the pairs of one variety (--region), the same
+# preset and folder; the rows carry the region and the report gives each variety its own
+# section. eval reference keeps the rows of the other pairs in REF.jsonl.
+uv run leichtfacile eval reference --role all --lang de --region DE --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang de --region DE --preset publicai-apertus --results eval/results-publicai
 # the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
 uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs

@@ -15,7 +15,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from leichtfacile.eval.report import Group, render_tables
-from leichtfacile.eval.results import LABELS, LANGUAGES, Row, for_role, languages, read_jsonl
+from leichtfacile.eval.results import (
+    LABELS,
+    LANGUAGES,
+    Row,
+    for_role,
+    languages,
+    read_jsonl,
+    variety_of,
+)
 
 RUNS = ("<!-- runs:start -->", "<!-- runs:end -->")
 TABLES = ("<!-- tables:start -->", "<!-- tables:end -->")
@@ -92,11 +100,11 @@ def render_runs(runs: list[Run], *, root: Path = Path("."), role: str = "eval") 
     for code in languages([r for rows in data.values() for r in rows]):
         groups = []
         for setup in ("SOURCE", "REF"):
-            rows = [r for r in reference if r.get("setup") == setup and r.get("lang", "de") == code]
+            rows = [r for r in reference if r.get("setup") == setup and variety_of(r) == code]
             if rows:
                 groups.append(Group(LABELS[setup], LABELS[setup], rows))
         groups += [
-            Group(run.label, run.label, [r for r in data[run.label] if r.get("lang", "de") == code])
+            Group(run.label, run.label, [r for r in data[run.label] if variety_of(r) == code])
             for run in runs
         ]
         tables = render_tables(groups, role=role, column="Run")

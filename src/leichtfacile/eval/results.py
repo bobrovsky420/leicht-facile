@@ -32,7 +32,15 @@ ORDER = {
     "P1": 5,
     "P2": 6,
 }
-LANGUAGES = {"de": "German", "fr": "French", "it": "Italian"}
+# The section keys of the reports, in their order: a language stands for its Swiss variety,
+# the German of Germany and Austria are sections of their own (`variety_of`).
+LANGUAGES = {
+    "de": "German",
+    "de-DE": "German (Germany)",
+    "de-AT": "German (Austria)",
+    "fr": "French",
+    "it": "Italian",
+}
 LABELS = {
     "SOURCE": "Original (standard language)",
     "REF": "Official easy-language version",
@@ -119,6 +127,16 @@ def fmt(found: float | None, digits: int = 1, pct: bool = False) -> str:
     return f"{100 * found:.0f} %" if pct else f"{found:.{digits}f}"
 
 
+def variety_of(row: Row) -> str:
+    """The key a row's numbers are grouped under: its language (`de`, the Swiss variety;
+    a row without a region is Swiss) or, for a pair of Germany or Austria, its variety
+    (`de-DE`, `de-AT`), whose numbers are not comparable with the Swiss ones (other
+    conventions in the checks, other pages). Since 30 October 2026."""
+    lang, region = row.get("lang", "de"), row.get("region", "CH")
+    return lang if region == "CH" else f"{lang}-{region}"
+
+
 def languages(rows: list[Row]) -> list[str]:
-    """The languages of the rows, the known ones first in their order."""
-    return sorted({r.get("lang", "de") for r in rows}, key=lambda c: (c not in LANGUAGES, c))
+    """The languages and varieties of the rows, the known ones first in their order."""
+    order = {code: i for i, code in enumerate(LANGUAGES)}
+    return sorted({variety_of(r) for r in rows}, key=lambda c: (order.get(c, len(order)), c))

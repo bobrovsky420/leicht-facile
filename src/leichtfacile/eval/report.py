@@ -25,6 +25,7 @@ from leichtfacile.eval.results import (
     languages,
     load_rows,
     mean,
+    variety_of,
 )
 from leichtfacile.eval.score import LANGUAGE_FAMILIES
 
@@ -71,7 +72,7 @@ def render_report(results_dir: Path, *, role: str | None = "eval", lang: str | N
         return render_tables(groups_of(rows), role=role or "all")
     sections = []
     for code in langs:
-        part = [r for r in rows if r.get("lang", "de") == code]
+        part = [r for r in rows if variety_of(r) == code]
         tables = render_tables(groups_of(part), role=role or "all")
         sections.append(f"## {LANGUAGES.get(code, code)}\n\n{tables}")
     return "\n\n".join(sections)

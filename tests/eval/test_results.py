@@ -14,6 +14,7 @@ from leichtfacile.eval.results import (
     load_rows,
     mean,
     value,
+    variety_of,
 )
 
 
@@ -41,6 +42,18 @@ def test_rows_get_the_current_condition_names_and_the_filters_agree(tmp_path: Pa
     assert [r["pair_id"] for r in completed_rows(tmp_path, "P2", "dev")] == ["c"]
     assert languages(rows) == ["de", "fr"]
     assert load_rows(tmp_path / "nowhere") == []
+
+
+def test_the_rows_of_germany_and_austria_group_as_varieties_of_their_own() -> None:
+    rows = [
+        {"lang": "de"},  # a row from before the region: Swiss
+        {"lang": "de", "region": "CH"},
+        {"lang": "de", "region": "AT"},
+        {"lang": "de", "region": "DE"},
+        {"lang": "fr", "region": "CH"},
+    ]
+    assert [variety_of(r) for r in rows] == ["de", "de", "de-AT", "de-DE", "fr"]
+    assert languages(rows) == ["de", "de-DE", "de-AT", "fr"]
 
 
 def test_the_mean_skips_missing_values_and_derives_silent_losses_without_a_checklist() -> None:

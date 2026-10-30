@@ -1562,6 +1562,55 @@ Spruch once ("verringert die Familien-Beihilfe um 1.500 Euro" for a repayment) a
 "Sie mitschicken", which GRAM-08 rightly flagged. Not a measurement: four jobs, read by
 hand.
 
+### Germany and Austria on the eval pairs (Public AI, Apertus 1.5 70B, 30 October 2026)
+
+P0, P1 and P2 on the 8 German and the 8 Austrian eval pairs (docs/sources.md, "Germany",
+"Austria"; `eval run --region DE|AT --preset publicai-apertus --results
+eval/results-publicai`), the 70B at every stage without thinking, as the Italian run of
+28 October: the 1.5 8B is listed on the gateway but refused for the key, so the
+8B-writer tier of the Swiss numbers could not be run. The tables are in
+docs/evaluation-publicai.md, one section per variety; the whole run cost USD 0.67 at
+the list prices (48 jobs and one rerun), 1.9 cents per German and 4.3 cents per
+Austrian P2 page (the Tirol pages are long: 38,000 tokens a page against 17,000).
+
+| | Germany, P2 | Austria, P2 | Italian, P2 (28 Oct) | Switzerland, P2 (CSCS, 8B writes) |
+|---|---|---|---|---|
+| Must-keep facts found | 95 % | 96 % | 100 % | 99 % |
+| Hard facts kept | 87 % | 96 % | 82 % | 94 % |
+| Silent losses | 0 % | 0 % | 0 % | 0 % |
+| Errors / warnings per 100 blocks | 4.1 / 37.8 | 4.7 / 42.2 | 0.5 / 35.3 | 3.0 / - |
+| Words per sentence, readability | 7.6, 59 | 7.5, 61 | 7.8, 78 | - |
+| Official easy-language pages: hard facts kept, errors | 47 %, 3.5 | 65 %, 12.4 | 31 %, 13.1 | - |
+
+What the numbers say. The pipeline does for the two varieties what it does for the Swiss
+ones: P2 finds 95 and 96 percent of the must-keep facts where the single prompt finds
+74 and 69 and loses a quarter of the hard facts in silence, and it writes at 7.6 words a
+sentence with no silent loss. The rule errors are higher than on the Italian and Swiss
+70B drafts (4.1 and 4.7 against 0.5): almost all of them are GRAM-01 passives ("werden
+nicht erstattet", "Erstattet werden") and LEN-01, the Behördensprache of the German
+pages that the 70B carries over, not the varieties' own rules, which barely fire (REG
+0.5 and 0.0 per 100 blocks, NUM 5.9 and 4.2, the ß written by code). Code split 34 and
+26 compounds per 100 blocks with the hyphen (LEX by code). The judge found 0.2 and 1.8
+unsupported statements per 100 blocks and 2 and 5 percent distorted facts on the
+fact-rich subset. Two pages pull the German hard-fact number down: the DRV brochure
+(`drv-contribution-refund-de`, a PDF with 45 hard values, 13 of them the addresses and
+numbers of regional offices; P2 kept 17, since the facts round takes at most five
+missing facts a round, the bucket the Swiss diagnosis of 7 October knows) and the
+Austrian pension page (`bmasgpk-old-age-pension-de`, 20 of 31). Without the brochure
+Germany keeps 94 percent. P1 scores below P0 on the hard facts in Germany (60 against 74
+percent) because its drafts are shorter and omit with a note where P0 keeps and
+paraphrases; P2 recovers them.
+
+Found on the way and fixed: the DRV brochure encodes every hyphen glyph as a soft
+hyphen (U+00AD), which the normaliser dropped as invisible, so its addresses read
+`MartinLutherStraße 24` and its numbers `Telefon 0681 30930`; the PDF ingest now treats a
+soft hyphen of the text layer as a drawn hyphen (`ingest/pdf.py`), and the pair was
+fetched and run again. For the calibration (WP8) the run leaves: the passives of
+German administrative prose (GRAM-01 is the error family on both varieties), the
+facts-round cap on pages that list offices, and the items of the smoke run above. Not
+a comparison between the varieties and Switzerland: other pages, another model tier
+than the published Swiss run, and 8 pairs a variety.
+
 ## Change log
 
 | Version | Date | Change |

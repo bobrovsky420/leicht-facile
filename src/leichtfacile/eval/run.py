@@ -69,14 +69,20 @@ def _write_row(path: Path, row: dict[str, Any]) -> None:
 
 
 def reference_rows(pairs: list[Pair], results_dir: Path = RESULTS) -> Path:
-    """REF and SOURCE rows: no model involved, so they run without a key."""
+    """REF and SOURCE rows: no model involved, so they run without a key. The rows of
+    pairs outside the selection (another language or variety, written by an earlier
+    call) stay in the file; the selected pairs' rows are written anew."""
     results_dir.mkdir(parents=True, exist_ok=True)
     path = results_dir / "REF.jsonl"
+    ids = {pair.id for pair in pairs}
+    kept = [r for r in read_jsonl(path) if r.get("pair_id") not in ids] if path.exists() else []
     with path.open("w", encoding="utf-8") as fh:
+        for row in kept:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         for pair in pairs:
             standard, easy = load_pair(pair)
             for row in (score_source(standard), score_reference(standard, easy)):
-                row.update(pair_id=pair.id, role=pair.role, lang=pair.lang)
+                row.update(pair_id=pair.id, role=pair.role, lang=pair.lang, region=pair.region)
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
     return path
 
@@ -135,6 +141,7 @@ def run_condition(
             "pair_id": pair.id,
             "role": pair.role,
             "lang": pair.lang,
+            "region": pair.region,  # the variety: Germany and Austria report apart
             "writer": writer_name,
             **({"understand": reader_name} if reader_name else {}),
             "job_id": job.id,

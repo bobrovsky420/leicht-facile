@@ -4,7 +4,7 @@ import pytest
 
 from leichtfacile.ingest import ingest_pdf
 from leichtfacile.ingest.errors import ExtractionError, NoTextLayerError
-from leichtfacile.ingest.pdf import extract_pdf
+from leichtfacile.ingest.pdf import extract_pdf, hyphens_of_text_layer
 from tests.ingest import pdfs
 
 
@@ -75,3 +75,17 @@ def test_pdf_without_text_layer():
 def test_not_a_pdf():
     with pytest.raises(ExtractionError, match="not a readable PDF"):
         extract_pdf(b"Dies ist keine PDF-Datei.")
+
+
+def test_soft_hyphens_of_the_text_layer_are_drawn_hyphens():
+    # The DRV brochure (deutsche-rentenversicherung.de, 30 October 2026) maps every hyphen
+    # glyph to U+00AD; dropped as invisible, its addresses read "MartinLutherStrasse 24".
+    # fpdf cannot write such a PDF (its core fonts decode the glyph as a space), so the
+    # text function is tested on the brochure's strings.
+    shy = "\N{SOFT HYPHEN}"
+    text = f"Martin{shy}Luther{shy}Straße 2{shy}4, 66111 Saarbrücken Telefon 0681 3093{shy}0"
+    assert (
+        hyphens_of_text_layer(text)
+        == "Martin-Luther-Straße 2-4, 66111 Saarbrücken Telefon 0681 3093-0"
+    )
+    assert hyphens_of_text_layer(f"Rheinland{shy}Pfalz") == "Rheinland-Pfalz"

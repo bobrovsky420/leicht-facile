@@ -157,7 +157,7 @@ a failure resumes from the last good stage.
 | Input | Method | Output |
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at; 29 October 2026); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
-| PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
+| PDF with text layer | `pdfplumber`, page by page; a soft hyphen in the text layer counts as a drawn hyphen (InDesign and Word map the hyphen glyph to U+00AD: the DRV brochure's Martin-Luther-Straße 2-4 read MartinLutherStraße 24 until 30 October 2026); words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
 | PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Endpoint check 4 (§12) passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
@@ -1370,6 +1370,20 @@ blocks and a Gulpease readability of 78; the single prompt found 56 percent and 
 49, with 18.3 errors; the official easy-language pages keep 31 percent of the hard
 facts (they are summaries of their originals) at 13.1 errors. The whole Italian
 evaluation cost USD 0.64 at Public AI's list prices, about 2 cents per P2 page.
+
+Germany and Austria (30 October 2026) run the same way, on the same gateway and preset
+(`--region DE`, `--region AT`; the 1.5 8B is listed there but refused for the key, so
+the 8B-writer tier of the Swiss numbers could not be measured). A result row carries the
+pair's region since that day, and the report and the comparison group a row by its
+variety (`eval/results.variety_of`: `de` for the Swiss pairs and for rows from before the
+field, `de-DE`, `de-AT`), so the German of Germany and Austria get sections of their own
+and never enter a Swiss mean; `eval reference` rewrites the rows of the selected pairs
+alone and keeps the others in `REF.jsonl`. Result (8 eval pairs a variety, the tables in
+docs/evaluation-publicai.md): P2 finds 95 percent of the must-keep facts in Germany and
+96 in Austria and keeps 87 and 96 percent of the hard facts without a silent loss, at
+4.1 and 4.7 rule errors per 100 blocks, almost all of them passives (GRAM-01) and long
+sentences carried over from the pages; the varieties' own rules barely fire. The whole
+run cost USD 0.67; docs/prompts.md ("Tested so far") reads the numbers.
 
 P0-ZH runs with the settings of P0 (no thinking, temperature 0.3, 6000 tokens) and
 with the post-processing of Zurich's app: the text between the `<leichtesprache>` tags

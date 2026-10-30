@@ -362,6 +362,15 @@ a mark (LEX-01, 18.0: `Kinderbeihilfe`, `Geburtsurkunden`, `Voraussetzungen`), a
 splits a compound at its main joint only (`Mindest-Versicherungsdauer`). capito's
 standard is not public, and two publishers are not Austria, so the Austrian limits stay
 the German ones; the numbers above are the baseline for the evaluation to decide on.
+The evaluation of 30 October 2026 (Apertus 1.5 70B on the Public AI gateway, 8 eval
+pairs a variety, docs/evaluation-publicai.md) decided nothing against them: the drafts
+of P2 had 4.1 errors per 100 blocks in Germany and 4.7 in Austria under these limits,
+GRAM-01 passives and LEN-01 above all, the REG rules 0.5 and 0.0 per 100 blocks, NUM
+5.9 and 4.2; the official pages of that split measure 3.5 and 12.4. The limits stay,
+and the open items of the calibration are the identifiers (the Austrian SV-Nummer,
+`1230 140104`, which NUM-02 wants grouped) and the long adjectives LEX-01 offers to
+split (`unterschriebe-Nes`, `minder-Jährigen`; the Mediopunkt form in Switzerland
+hides the same splits).
 
 ## Delegated to the judge (all languages)
 
