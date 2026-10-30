@@ -1,10 +1,11 @@
 <!doctype html>
 <!-- https://leichtfacile.ch: the project's page, published by .github/workflows/pages.yml
      with the rest of site/ (the German, French and Italian pages in de/, fr/ and it/, the
-     legal notice, style.css, images, robots.txt, sitemap.xml), the app's fonts
+     legal notice, style.css, favicon.svg, images, robots.txt, sitemap.xml), the app's fonts
      (src/leichtfacile/web/static/fonts) and the review screenshot
-     (docs/images/review-page.png) copied next to it. No script, no external asset; a
-     no-break space after §. Keep de/, fr/ and it/index.html in step with this page. -->
+     (docs/images/review-page.png) copied next to it. No JavaScript (the JSON-LD block at the
+     end of the head is data for search engines: the site's name and the app), no external
+     asset; a no-break space after §. Keep de/, fr/ and it/index.html in step with this page. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -17,13 +18,43 @@
 <link rel="alternate" hreflang="fr" href="https://leichtfacile.ch/fr/">
 <link rel="alternate" hreflang="it" href="https://leichtfacile.ch/it/">
 <link rel="alternate" hreflang="x-default" href="https://leichtfacile.ch/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F4E8A'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://leichtfacile.ch/">
 <meta property="og:title" content="Leicht·Facile: easy-language drafts of official texts">
 <meta property="og:description" content="Easy-language drafts of official texts (Switzerland, Germany, Austria) with any language model; every fact checked by code, every draft reviewed by a person.">
 <meta property="og:image" content="https://leichtfacile.ch/images/review-page.png">
 <link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "Leicht·Facile",
+      "alternateName": ["Leicht-Facile", "LeichtFacile"],
+      "url": "https://leichtfacile.ch/",
+      "inLanguage": ["en", "de", "fr", "it"]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Leicht·Facile",
+      "url": "https://leichtfacile.ch/",
+      "description": "Drafts easy-language versions of official texts from Switzerland, Germany and Austria (Leichte Sprache, FALC, lingua facile) with a language model, and proves with code that no deadline, amount or phone number got lost.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "isAccessibleForFree": true,
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "CHF"},
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sameAs": "https://github.com/bobrovsky420/leicht-facile",
+      "author": [
+        {"@type": "Person", "name": "Alexander Bobrovsky", "url": "https://github.com/bobrovsky420"},
+        {"@type": "Person", "name": "Ivan Kuzmych", "url": "https://github.com/ikzmch"}
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
