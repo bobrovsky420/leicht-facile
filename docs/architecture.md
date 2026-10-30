@@ -1183,6 +1183,7 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 | Checker rules | 32 of the language families + 13 for every language; Germany and Austria the same, 11 rules with a check or a table of their own (29 October 2026) | 28 + 13 | 28 + 13 |
 | Prompts and few-shot examples | yes; Germany and Austria since 29 October 2026 | yes | yes (28 October 2026) |
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks; Germany 12 pages, 2.2; Austria 12 pages, 10.7 (29 October 2026, before tuning) | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
+| Evaluation of the varieties | Switzerland: the published run (§9); Germany and Austria: 8 eval pairs each on Apertus 70B via Public AI (30 October 2026), P2 95 and 96 percent of the must-keep facts, 87 and 96 of the hard facts, docs/evaluation-publicai.md | Switzerland only | Switzerland only |
 
 **National varieties** (since 29 October 2026; the German of Germany and Austria the same
 day, their sources in docs/sources.md). A language has national

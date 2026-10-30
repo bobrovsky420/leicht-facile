@@ -1,6 +1,6 @@
 [project]
 name = "leichtfacile"
-version = "0.8.0"
+version = "0.9.0"
 description = "Drafts easy-language versions of Swiss official texts with a large language model."
 # README.md with absolute links for pypi.org (the hook below)
 dynamic = ["readme"]

@@ -5,8 +5,9 @@
 [![PyPI package](https://badgen.net/pypi/v/leichtfacile?label=pypi%20package)](https://pypi.org/project/leichtfacile/)
 [![Python](https://badgen.net/pypi/python/leichtfacile)](https://pypi.org/project/leichtfacile/)
 
-Leicht·Facile drafts easy-language versions of Swiss official texts (German Leichte
-Sprache and Einfache Sprache, French FALC, Italian lingua facile) with a large language model,
+Leicht·Facile drafts easy-language versions of official texts from Switzerland, Germany
+and Austria (German Leichte Sprache and Einfache Sprache in each country's spelling and
+conventions, Swiss French FALC, Swiss Italian lingua facile) with a large language model,
 and proves with code that no deadline, amount or phone number got lost. It works with any
 OpenAI-compatible endpoint (a provider's API, a gateway or a model server of your own)
 and was built and evaluated with Apertus, the open Swiss model. It is a drafting
@@ -44,8 +45,9 @@ run where the organisation controls it, and **Apertus fits best**
 2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
 3. **Check** (code): 45 deterministic rules for German, 41 for French and 41 for Italian
-   from the published Swiss guidelines (sentence length, passive, genitive, numbers,
-   Swiss spelling, Mediopunkt, ...) and an exact check of every fact value in both
+   from the published guidelines of Switzerland, Germany and Austria (sentence length,
+   passive, genitive, numbers, the country's spelling and compound mark, ...) and an
+   exact check of every fact value in both
    directions (no value lost, no value invented), in milliseconds, without a model.
 4. **Judge** (a second model, ideally a larger one): meaning only: distorted facts, invented
    statements, metaphors, unclear references.
@@ -178,13 +180,29 @@ judges (when the provider serves it; otherwise the writer judges).
 `models = { understand = "swiss-ai/Apertus-v1.5-70B" }` lets the 70B read (the fact
 sheet) and the 8B write. [evaluation.md](docs/evaluation.md) compares the three.
 
+**German for Germany and Austria** (since 0.9.0). One installation works in one national
+variety of German: `leichtfacile setup` asks once whether the texts are Swiss, German or
+Austrian (`setup --region DE` changes it alone); French and Italian stay Swiss. In
+Germany and Austria code writes the ß and splits long compounds with a hyphen
+(Kranken-Kasse) instead of the Mediopunkt, the values read euros, the thousands dot,
+the countries' phone and address shapes and Jänner, the decision mode knows the
+Bescheid (the decision before `Begründung`, the Spruch, the Rechtsbehelfsbelehrung), the
+vocabulary, the sample letters and the interface use the countries' words (Bescheid,
+Entscheidung), and the checker runs the German rules under the German limits
+([rules.md](docs/rules.md#german-in-germany-de-de-and-in-austria-de-at)). Measured on 8
+held-out official pages a country with Apertus 70B on Public AI (30 October 2026): the
+pipeline found 95 and 96 percent of the must-keep facts and lost none silently, where the
+single prompt found 74 and 69 and lost a quarter of the hard facts
+([evaluation-publicai.md](docs/evaluation-publicai.md)).
+
 ### Your first draft
 
 The interface speaks English, German, French or Italian (switch at the top right).
 
 **1. Start a draft.** Before the first draft, the start page offers the example
 letters: a municipality's letter about premium reduction in German, French and Italian,
-and a decision of a child and adult protection authority (team-written, described in the
+and a decision of a child and adult protection authority (in Germany a Wohngeld-Bescheid
+and in Austria a Familienbeihilfe-Bescheid instead; all team-written, described in the
 examples' [README.md](data/examples/README.md)). Click one to open the New draft form
 with it filled in, or click **New draft** and paste a text, enter a web address or
 upload a file (PDF, HTML, text or Markdown). Choose the language (or let it be

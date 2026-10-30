@@ -3,7 +3,7 @@ publiccodeYmlVersion: "0.4"
 name: "Leicht·Facile"
 url: "https://github.com/bobrovsky420/leicht-facile"
 landingURL: "https://leichtfacile.ch"
-softwareVersion: "0.8.0"
+softwareVersion: "0.9.0"
 platforms:
   - web
   - linux
@@ -18,16 +18,18 @@ softwareType: standalone/web
 description:
   en:
     shortDescription: >-
-      Easy-language drafts of Swiss official texts with any LLM (tested with Apertus);
-      every fact checked by code, every draft reviewed by a person.
+      Easy-language drafts of official texts (Switzerland; Germany and Austria for
+      German) with any LLM (tested with Apertus); every fact checked by code, every
+      draft reviewed by a person.
     longDescription: >-
-      Leicht·Facile helps cantonal and municipal writers turn an official text (a web
+      Leicht·Facile helps the writers of cantons, municipalities and other authorities in
+      Switzerland, Germany and Austria turn an official text (a web
       page, a letter, a decision) into Leichte Sprache or FALC. A fact sheet lists what
       must survive: deadlines, amounts, phone numbers, addresses, case numbers, periods.
       The draft is written by a language model the organisation chooses (any
       OpenAI-compatible endpoint; built and evaluated with Apertus, the open Swiss
       model) and then checked twice: by deterministic rules (sentence length, passive, genitive, numbers, dates,
-      Swiss spelling, every fact value of the fact sheet present and no value the source lacks)
+      the country's spelling and compound mark, every fact value of the fact sheet present and no value the source lacks)
       and by a second model that judges meaning. A repair loop fixes what the checks
       find; what cannot be fixed goes to the reviewer with the finding next to the block.
       Every sentence of the draft names the source sentences it comes from, and the
@@ -39,25 +41,26 @@ description:
       provider), and no text goes anywhere else.
     features:
       - Fact sheet with the reader's core questions and every hard value of the source
-      - Deterministic checks for easy-language rules, fact values and Swiss spelling
+      - Deterministic checks for easy-language rules, fact values and the country's spelling
       - A second model judges meaning; a repair loop fixes what the checks find
       - Every draft sentence linked to its source sentences; omissions listed
       - Review workbench with keyboard shortcuts; Markdown, HTML, Word and audit-bundle export
-      - German, French and Italian; decision mode for letters that go out with a decision
+      - German (Switzerland, Germany, Austria), French and Italian; decision mode for letters that go out with a decision
   de:
     shortDescription: >-
-      Leichte-Sprache-Fassungen von Behördentexten mit einem Sprachmodell nach Wahl
+      Leichte-Sprache-Fassungen von Behördentexten aus der Schweiz, Deutschland und Österreich mit einem Sprachmodell nach Wahl
       (geprüft mit Apertus); Code prüft jeden Wert, ein Mensch gibt frei.
     longDescription: >-
-      Leicht·Facile hilft Schreibenden in Kantonen und Gemeinden, einen Behördentext
+      Leicht·Facile hilft Schreibenden in Kantonen, Gemeinden und anderen Behörden der
+      Schweiz, Deutschlands und Österreichs, einen Behördentext
       (eine Webseite, einen Brief, einen Entscheid) in Leichte Sprache oder FALC zu
       bringen. Ein Faktenblatt hält fest, was erhalten bleiben muss: Fristen, Beträge,
       Telefonnummern, Adressen, Geschäftsnummern, Zeiträume. Den Entwurf schreibt ein
       Sprachmodell nach Wahl der Organisation (jeder OpenAI-kompatible Endpunkt;
       entwickelt und geprüft mit Apertus, dem offenen Schweizer Sprachmodell). Danach
       prüfen ihn zwei Instanzen:
-      deterministische Regeln (Satzlänge, Passiv, Genitiv, Zahlen, Daten, Schweizer
-      Rechtschreibung, jeder Wert des Faktenblatts vorhanden, kein Wert, den die
+      deterministische Regeln (Satzlänge, Passiv, Genitiv, Zahlen, Daten, die
+      Rechtschreibung und der Trennstrich des Landes, jeder Wert des Faktenblatts vorhanden, kein Wert, den die
       Quelle nicht hat) und ein zweites Modell, das den Sinn beurteilt. Eine
       Reparaturschlaufe behebt, was die Prüfungen finden; was sich nicht beheben lässt,
       geht mit dem Befund neben dem Block an die Person, die freigibt. Jeder Satz des
@@ -70,17 +73,19 @@ description:
       Text geht anderswohin.
     features:
       - Faktenblatt mit den Kernfragen der Leserin oder des Lesers und jedem harten Wert der Quelle
-      - Deterministische Prüfung der Regeln für Leichte Sprache, der Faktenwerte und der Schweizer Rechtschreibung
+      - Deterministische Prüfung der Regeln für Leichte Sprache, der Faktenwerte und der Rechtschreibung des Landes
       - Ein zweites Modell beurteilt den Sinn; eine Reparaturschlaufe behebt die Befunde
       - Jeder Satz des Entwurfs mit seinen Quellensätzen verknüpft; Weglassungen aufgeführt
       - Freigabe-Arbeitsplatz mit Tastaturkürzeln; Export als Markdown, HTML, Word und Prüfpaket
-      - Deutsch, Französisch und Italienisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
+      - Deutsch (Schweiz, Deutschland, Österreich), Französisch und Italienisch; Entscheid-Modus für Briefe, die mit einem Entscheid verschickt werden
   fr:
     shortDescription: >-
-      Versions FALC de textes officiels suisses avec un modèle au choix (testé avec
+      Versions FALC de textes officiels (Suisse ; Allemagne et Autriche pour l'allemand)
+      avec un modèle au choix (testé avec
       Apertus) ; le code vérifie chaque valeur, une personne relit.
     longDescription: >-
-      Leicht·Facile aide les rédactrices et rédacteurs des cantons et des communes à
+      Leicht·Facile aide les rédactrices et rédacteurs des cantons, des communes et
+      d'autres autorités en Suisse, en Allemagne et en Autriche à
       mettre un texte officiel (une page web, une lettre, une décision) en langage FALC
       ou en Leichte Sprache. Une fiche de faits retient ce qui doit rester : délais,
       montants, numéros de téléphone, adresses, numéros de dossier, périodes. Le brouillon
@@ -88,7 +93,7 @@ description:
       compatible OpenAI ; développé et évalué avec Apertus, le modèle ouvert suisse),
       puis vérifié deux fois :
       par des règles déterministes (longueur des phrases, passif, nombres, dates,
-      orthographe suisse, chaque valeur de la fiche présente et aucune valeur absente de la
+      l'orthographe et le trait de séparation du pays, chaque valeur de la fiche présente et aucune valeur absente de la
       source) et par un second modèle qui juge le sens. Une boucle de réparation corrige
       ce que les vérifications trouvent ; ce qui ne peut pas être corrigé va à la personne
       qui relit, avec le constat à côté du bloc. Chaque phrase du brouillon nomme les
@@ -101,24 +106,26 @@ description:
       aucun texte ne va ailleurs.
     features:
       - Fiche de faits avec les questions principales du lecteur et chaque valeur dure de la source
-      - Vérification déterministe des règles FALC, des valeurs des faits et de l'orthographe suisse
+      - Vérification déterministe des règles FALC, des valeurs des faits et de l'orthographe du pays
       - Un second modèle juge le sens ; une boucle de réparation corrige les constats
       - Chaque phrase du brouillon liée à ses phrases source ; les omissions listées
       - Poste de relecture avec raccourcis clavier ; export Markdown, HTML, Word et dossier d'audit
-      - Allemand, français et italien ; mode décision pour les lettres qui accompagnent une décision
+      - Allemand (Suisse, Allemagne, Autriche), français et italien ; mode décision pour les lettres qui accompagnent une décision
   it:
     shortDescription: >-
-      Versioni in lingua facile di testi ufficiali svizzeri con un modello a scelta
+      Versioni in lingua facile di testi ufficiali (Svizzera; Germania e Austria per il
+      tedesco) con un modello a scelta
       (testato con Apertus); il codice verifica ogni valore, una persona rivede.
     longDescription: >-
-      Leicht·Facile aiuta chi scrive nei cantoni e nei comuni a portare un testo
+      Leicht·Facile aiuta chi scrive nei cantoni, nei comuni e in altre autorità in
+      Svizzera, Germania e Austria a portare un testo
       ufficiale (una pagina web, una lettera, una decisione) in lingua facile, Leichte
       Sprache o FALC. Una scheda dei fatti trattiene ciò che deve restare: termini,
       importi, numeri di telefono, indirizzi, numeri di incarto, periodi. La bozza è
       scritta da un modello linguistico scelto dall'organizzazione (qualsiasi endpoint
       compatibile con OpenAI; sviluppato e valutato con Apertus, il modello aperto
       svizzero), poi verificata due volte: da regole deterministiche (lunghezza delle
-      frasi, passivo, numeri, date, ortografia svizzera, ogni valore della scheda
+      frasi, passivo, numeri, date, l'ortografia e il trattino di divisione del paese, ogni valore della scheda
       presente e nessun valore assente dalla fonte) e da un secondo modello che giudica
       il senso. Un ciclo di riparazione corregge ciò che le verifiche trovano; ciò che
       non si può correggere va alla persona che rivede, con la segnalazione accanto al
@@ -131,11 +138,11 @@ description:
       piattaforma Swiss AI CSCS o un altro fornitore), e nessun testo va altrove.
     features:
       - Scheda dei fatti con le domande principali di chi legge e ogni valore duro della fonte
-      - Verifica deterministica delle regole della lingua facile, dei valori dei fatti e dell'ortografia svizzera
+      - Verifica deterministica delle regole della lingua facile, dei valori dei fatti e dell'ortografia del paese
       - Un secondo modello giudica il senso; un ciclo di riparazione corregge le segnalazioni
       - Ogni frase della bozza collegata alle sue frasi della fonte; le omissioni elencate
       - Postazione di revisione con scorciatoie da tastiera; esportazione Markdown, HTML, Word e fascicolo di audit
-      - Tedesco, francese e italiano; modo decisione per le lettere che accompagnano una decisione
+      - Tedesco (Svizzera, Germania, Austria), francese e italiano; modo decisione per le lettere che accompagnano una decisione
 
 legal:
   license: Apache-2.0
@@ -166,6 +173,8 @@ intendedAudience:
     - justice
   countries:
     - ch
+    - de
+    - at
 
 dependsOn:
   open:

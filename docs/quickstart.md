@@ -52,7 +52,9 @@ There are three ways to make one ready:
   key (hidden input, saved in the `.env` next to the user's config file) and which of
   the provider's presets to use, or any model the provider lists (`GET /models`), saved
   as a preset of your own; `setup <preset>` asks for the key alone. A server of your
-  own becomes a provider with its address.
+  own becomes a provider with its address. It also asks once which German the texts
+  use, Switzerland (the default), Germany or Austria; `setup --region DE` changes that
+  alone ([configuration.md](configuration.md#texts)).
 
 `setup` uses the preset it set up. `leichtfacile preset list` shows every preset,
 whether it is ready (else what it lacks) and the one in use; `leichtfacile preset use
@@ -162,7 +164,7 @@ uvx leichtfacile serve publicai-apertus
 
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
   ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
-  is quick. `uvx leichtfacile@0.8.0 serve` runs that version.
+  is quick. `uvx leichtfacile@0.9.0 serve` runs that version.
 - Nothing lands on the PATH or in the current folder: uv unpacks the app with its
   dependencies into its cache, a Python it downloads goes to its Python folder.
   `uv cache dir` and `uv python dir` print both; by default:
@@ -277,7 +279,7 @@ pip install leichtfacile
 
 Every release's wheel is also on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.8.0/leichtfacile-0.8.0-py3-none-any.whl`.
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.9.0/leichtfacile-0.9.0-py3-none-any.whl`.
 
 ```bash
 leichtfacile serve        # opens http://127.0.0.1:8000/model
