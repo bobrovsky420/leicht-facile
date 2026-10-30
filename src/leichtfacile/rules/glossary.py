@@ -36,12 +36,12 @@ MAX_GLOSSARY = 10  # code adds nothing to a glossary this long
 def explained_terms(draft: Draft) -> set[str]:
     """The vocabulary terms the glossary already explains: named by an entry as a
     whole (Prämien·verbilligung, Invalidenversicherung (IV)) or inside its term."""
-    if not has_vocabulary(draft.lang):
+    if not has_vocabulary(draft.variety):
         return set()
     terms: set[str] = set()
-    m = matcher(draft.lang)
+    m = matcher(draft.variety)
     for g in draft.glossary:
-        entry = explained_term(g.term, draft.lang)
+        entry = explained_term(g.term, draft.variety)
         if entry is not None:
             terms.add(entry.term)
         terms |= {match.entry.term for match in m.find_text(g.term)}
@@ -50,18 +50,18 @@ def explained_terms(draft: Draft) -> set[str]:
 
 def unexplained_terms(draft: Draft) -> list[VocabularyEntry]:
     """The hard terms the blocks use and the glossary does not explain, in text order."""
-    if not has_vocabulary(draft.lang):
+    if not has_vocabulary(draft.variety):
         return []
     explained = explained_terms(draft)
     seen: dict[str, VocabularyEntry] = {}
-    for matches in matcher(draft.lang).find_texts(b.text for b in draft.blocks):
+    for matches in matcher(draft.variety).find_texts(b.text for b in draft.blocks):
         for match in matches:
             entry = match.entry
             if (
                 entry.kind == "explain"
                 and not entry.context
                 and entry.term not in explained
-                and is_hard(entry, draft.lang)
+                and is_hard(entry, draft.variety)
             ):
                 seen.setdefault(entry.term, entry)
     return list(seen.values())
@@ -75,7 +75,7 @@ def fill_glossary(draft: Draft) -> tuple[Draft, list[CodeEdit]]:
     if not missing:
         return draft, []
     order = {entry.term: i for i, entry in enumerate(missing)}
-    chosen = sorted(missing, key=lambda e: rarity(e, draft.lang))[:room]
+    chosen = sorted(missing, key=lambda e: rarity(e, draft.variety))[:room]
     chosen.sort(key=lambda e: order[e.term])  # the reader meets them in text order
     entries = [
         GlossaryEntry(term=e.term, explanation=e.explanation or "", origin="vocabulary")

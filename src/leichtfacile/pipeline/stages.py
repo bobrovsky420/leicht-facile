@@ -581,7 +581,7 @@ def vocabulary_terms(fs: FactSheet, source: SourceDocument) -> FactSheet:
     model did not list are added, the rarest first, up to MAX_VOCABULARY_TERMS and
     MAX_HARD_TERMS in all. The write prompt shows the hard terms and asks the writer to
     take the glossary explanations from them."""
-    lang = source.lang
+    lang = source.variety  # the vocabulary of the variety: Bescheid and Beschwerde in Austria
     if not has_vocabulary(lang):
         return fs
     terms: list[HardTerm] = []

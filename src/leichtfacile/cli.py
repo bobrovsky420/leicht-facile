@@ -456,7 +456,7 @@ def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.pipeline.orchestrator import Orchestrator
     from leichtfacile.schemas import Draft, JobConfig, PipelineSummary
     from leichtfacile.store import Store
-    from leichtfacile.varieties import region_for
+    from leichtfacile.varieties import region_for, variety
 
     settings = settings_or_exit()
     try:
@@ -467,6 +467,11 @@ def _simplify(args: argparse.Namespace) -> int:
     # The installation's variety (texts.region, set by setup) on the source and the job.
     region = region_for(source.lang, settings.texts.region)
     source = source.model_copy(update={"region": region})
+    # Decision mode without --notice: the variety's default notice, as the web form
+    # fills it (web/jobs.py), so the export begins and ends with the authority's text.
+    notice = (args.notice or "").strip() or None
+    if args.mode == "decision" and notice is None:
+        notice = variety(source.lang, region).notice
     store = Store(settings.data.dir / "leichtfacile.sqlite")
     rounds = settings.pipeline
     if args.no_repair:  # no repair rounds, and so none of the rounds after them
@@ -484,7 +489,7 @@ def _simplify(args: argparse.Namespace) -> int:
         pipeline=rounds,
         mode=args.mode,
         addressee=args.addressee,
-        notice=args.notice,
+        notice=notice,
     )
     job = store.create_job(config, title=source.title or args.input)
     store.put_artifact(job.id, "source", source)

@@ -1530,6 +1530,38 @@ second. German means over the 20 eval pairs:
   (60.0) and the baselines; P1 took every answer from the cache (not measured) and the
   hybrid its Understand answers from the 70B row's cache (31.8 s undercounts).
 
+### Germany and Austria: the first jobs on a model (Public AI, Apertus 70B, 29 October 2026)
+
+Four P2 jobs of an installation set to DE and to AT (`texts.region`, here through the
+environment so the developer's settings stayed Swiss), on the `publicai-apertus` preset
+(Apertus 1.5 70B at every stage, no thinking): the two sample Bescheide in decision mode
+(`wohngeld-bescheid.txt`, `familienbeihilfe-bescheid.txt`) and one official page each
+(Köln's Anmeldung des Wohnsitzes, Tirol's Kindergeld Plus). All four ended in
+`needs_review` after 13 to 19 model calls. What the varieties promise held on the model:
+the drafts split long compounds with the hyphen and a capital (Personal-Ausweis,
+Wohngeld-Stelle, Rechtsbehelfs-Belehrung, Familien-Beihilfe) and carried no Mediopunkt,
+code wrote the ß (heisst to heißt) and left no Swiss ss, the amounts read 286 Euro and
+1.500 Euro, the Austrian letter kept Jänner, no Swiss word appeared, the Word files carry
+de-DE and de-AT, the Bescheid finder found the German decision before Begründung
+(`found_by reasons`, three items and the Rechtsbehelfsbelehrung) and the Austrian Spruch
+(`found_by heading`), and the interface read Bescheid, Entscheidung and
+Rechtsbehelfsbelehrung in the standard spelling. Four slips of the integration, fixed
+the same evening and confirmed on a second Austrian run: the command line's decision mode
+had no default notice (the web form had), so the exports ended without "Maßgebend ist der
+Bescheid."; the glossary (`rules/glossary.py`) and the fact sheet's hard terms
+(`stages.vocabulary_terms`) read the Swiss vocabulary for every German draft, and the
+Austrian glossary explained the Beschwerde with an Entscheid and an Einsprache; the
+contact boxes of tirol.gv.at glued the icon label to its value (`AdresseMeinhardstraße
+16`, `E-Mailgesellschaft.arbeit@...`), now separated in the HTML ingest; and a glossary
+term the model copied with the hyphen (Familien-Beihilfe) was not recognised as the
+vocabulary's compound and added a second time. Left for the calibration (WP8): LEX-01
+splits long adjectives and participles in every variety (unterschriebe-Nes,
+minder-Jährigen; the Mediopunkt form hides it), the Austrian SV-Nummer (`1230 140104`)
+is no identifier yet and NUM-02 wants a thousands dot in it, the 70B distorted the
+Spruch once ("verringert die Familien-Beihilfe um 1.500 Euro" for a repayment) and wrote
+"Sie mitschicken", which GRAM-08 rightly flagged. Not a measurement: four jobs, read by
+hand.
+
 ## Change log
 
 | Version | Date | Change |

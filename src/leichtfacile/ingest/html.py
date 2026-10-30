@@ -235,6 +235,7 @@ def _prepare(tree: Any) -> Any:
         if element.getparent() is not None:
             element.drop_tree()
     _drop_screen_reader_text(tree)
+    _separate_touching_inlines(tree)
     _unwrap_contact_links(tree)
     _reveal_panels(tree)
     _unwrap_disclosure_buttons(tree)
@@ -254,6 +255,24 @@ def _drop_screen_reader_text(tree: Any) -> None:
     for element in _elements(tree):
         if element.getparent() is not None and _SR_ONLY.search(element.get("class") or ""):
             element.drop_tree()
+
+
+def _separate_touching_inlines(tree: Any) -> None:
+    """A space between two inline elements that touch with nothing between them, when a
+    letter or digit stands on both sides: the icon label and the value of a contact box
+    (`<span>Adresse</span><a>Meinhardstraße 16</a>` on tirol.gv.at, 29 October 2026) read
+    as one word otherwise, and trafilatura joins them before the walker sees them. A word
+    split by markup (`Prä<b>mien</b>`) has text, not an element, on one side and stays
+    whole; a punctuation mark after an element stays glued to it."""
+    for element in _elements(tree):
+        following = element.getnext()
+        if element.tail or following is None or not isinstance(following.tag, str):
+            continue
+        if element.tag in _BLOCK_TAGS or following.tag in _BLOCK_TAGS:
+            continue
+        left, right = element.text_content(), following.text_content()
+        if left[-1:].isalnum() and (right[:1].isalnum() or right[:1] in "+("):
+            element.tail = " "
 
 
 def _unwrap_contact_links(tree: Any) -> None:

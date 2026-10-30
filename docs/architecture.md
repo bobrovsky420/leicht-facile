@@ -156,7 +156,7 @@ a failure resumes from the last good stage.
 
 | Input | Method | Output |
 |-------|--------|--------|
-| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped; then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
+| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at; 29 October 2026); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
 | PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Endpoint check 4 (§12) passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
@@ -281,7 +281,14 @@ under every heading it answers (the deadline under "What must you do?" and again
 
 Code then completes the glossary (`rules/glossary.py`): a hard term of the vocabulary
 that a block uses and the glossary does not explain gets the vocabulary's entry, at most
-6 per version and up to 10 entries in all, the rarest first. The writer is asked to take
+6 per version and up to 10 entries in all, the rarest first. The vocabulary is the
+draft's variety's (`draft.variety`, as the fact sheet's hard terms in
+`stages.vocabulary_terms` are the source's variety's): until the smoke run of 29 October
+2026 both read the Swiss files for every German draft, and an Austrian glossary explained
+the Beschwerde with an Entscheid and an Einsprache. A glossary term the model copied from
+the hyphenated draft (Familien-Beihilfe) names the vocabulary's compound as the Mediopunkt
+form does (`vocabulary.explained_term`), so the entry is not added a second time. The
+writer is asked to take
 the explanations from the fact sheet but leaves many out: on the dev run of 7 October the
 fact sheet of `sg-el-costs-de` listed Franchise, Selbstbehalt and Spitex, and the final
 glossary had none of them. The entries are marked (`origin: vocabulary`, a muted note on

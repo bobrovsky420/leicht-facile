@@ -5,6 +5,7 @@ line breaks, de-CH and fr-CH); these tests pin what it saw."""
 from __future__ import annotations
 
 import io
+import json
 import zipfile
 from datetime import date
 from xml.etree import ElementTree
@@ -21,6 +22,7 @@ from leichtfacile.schemas import (
     PipelineSummary,
     ReviewState,
 )
+from leichtfacile.varieties import variety
 from tests.conftest import MODEL, chat_response, make_settings
 from tests.pipeline import fixtures as fx
 
@@ -255,3 +257,33 @@ def test_simplify_writes_the_word_export_next_to_the_others(
     assert ("Heading2", ["Was müssen Sie tun?"]) in paragraphs(package["word/document.xml"])
     [(_, [footer])] = paragraphs(package["word/footer1.xml"])
     assert footer.startswith(f"Leicht·Facile {__version__} · Entwurf v1 · ") and MODEL in footer
+
+
+def test_simplify_in_decision_mode_takes_the_varietys_notice(
+    tmp_path, endpoint, sleeps, monkeypatch
+) -> None:
+    """A decision job without --notice carries the default notice of the installation's
+    variety, as the web form does; the smoke run of 29 October 2026 exported an Austrian
+    Bescheid without any notice."""
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0, texts__region="AT")
+    monkeypatch.setattr("leichtfacile.config.get_settings", lambda: settings)
+    monkeypatch.setattr(
+        LLMClient,
+        "from_settings",
+        lambda s: LLMClient(s, http_client=endpoint.http_client(), sleep=sleeps.append),
+    )
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    letter = tmp_path / "bescheid.txt"
+    letter.write_text(LETTER, encoding="utf-8")
+    out = tmp_path / "out"
+    args = ["simplify", str(letter), "--condition", "P1", "--mode", "decision"]
+    assert cli.main([*args, "--addressee", "Maria Exempel", "--out", str(out)]) == 0
+    (folder,) = out.iterdir()
+    notice = variety("de", "AT").notice
+    assert notice.endswith("Maßgebend ist der Bescheid.")
+    bundle = json.loads((folder / "bundle.json").read_text(encoding="utf-8"))
+    assert bundle["job"]["config"]["region"] == "AT"
+    assert bundle["job"]["config"]["notice"] == notice
+    text = (folder / "draft.md").read_text(encoding="utf-8").replace(" \\\n", " ").strip()
+    paragraphs = text.split("\n\n")  # the title, the draft banner, then the notice
+    assert paragraphs[2] == notice and paragraphs[-1] == notice

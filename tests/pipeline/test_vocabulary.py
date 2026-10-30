@@ -13,7 +13,7 @@ from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.rounds import build_request
 from leichtfacile.pipeline.stages import RepairRequest, apply_repairs
 from leichtfacile.rules.glossary import MAX_ADDED, fill_glossary, unexplained_terms
-from leichtfacile.rules.vocabulary import OFFICE_RULES, load_vocabulary
+from leichtfacile.rules.vocabulary import OFFICE_RULES, explained_term, load_vocabulary
 from leichtfacile.schemas import (
     Block,
     Draft,
@@ -42,9 +42,11 @@ def _explanation(lang: str, term: str) -> str | None:
     return next(e.explanation for e in load_vocabulary(lang) if e.term == term)
 
 
-def _draft(*texts: str, glossary: list[GlossaryEntry] | None = None) -> Draft:
+def _draft(*texts: str, glossary: list[GlossaryEntry] | None = None, region: str = "CH") -> Draft:
     blocks = [Block(id=f"b{i:03d}", kind="sentence", text=t) for i, t in enumerate(texts, 1)]
-    return Draft(doc_id="d", lang="de", level="A2", blocks=blocks, glossary=glossary or [])
+    return Draft(
+        doc_id="d", lang="de", region=region, level="A2", blocks=blocks, glossary=glossary or []
+    )  # type: ignore[arg-type]
 
 
 def test_the_fact_sheet_gets_the_checked_explanations_and_the_terms_of_the_source() -> None:
@@ -87,6 +89,38 @@ def test_the_glossary_gets_the_missing_hard_terms_once() -> None:
     assert out.code_edits == edits
     assert fill_glossary(out) == (out, [])  # a second run changes nothing
     assert unexplained_terms(out) == []
+
+
+def test_the_glossary_and_the_fact_sheet_take_the_varietys_vocabulary() -> None:
+    """Austria explains the aufschiebende Wirkung with a Bescheid, Switzerland with an
+    Entscheid: the smoke run of 29 October 2026 gave an Austrian draft the Swiss words."""
+    sentence = "Die Beschwerde hat aufschiebende Wirkung."
+    swiss, _ = fill_glossary(_draft(sentence))
+    austrian, _ = fill_glossary(_draft(sentence, region="AT"))
+    term = "aufschiebende Wirkung"
+    assert term in [g.term for g in swiss.glossary] and term in [g.term for g in austrian.glossary]
+    explained = {g.term: g.explanation for g in austrian.glossary}[term]
+    assert explained == _explanation("de-AT", term)
+    assert "Bescheid" in explained and "Entscheid" not in explained.replace("Entscheidung", "")
+    assert "Entscheid" in {g.term: g.explanation for g in swiss.glossary}[term]
+    source = fx.letter().model_copy(update={"region": "AT"})
+    fs = FactSheet(doc_id=source.id, hard_terms=[HardTerm(term=term, explanation="Ein Recht.")])
+    out = stages.vocabulary_terms(fs, source)
+    assert out.hard_terms[0].explanation == _explanation("de-AT", term)
+    assert out.hard_terms[0].origin == "vocabulary"
+
+
+def test_a_glossary_term_with_the_hyphen_mark_counts_as_explained() -> None:
+    """The model copies Familien-Beihilfe from the hyphenated draft into its glossary
+    term; the smoke run of 29 October 2026 then got the vocabulary's entry a second time."""
+    draft = _draft(
+        "Sie bekommen Familien-Beihilfe für Ihren Sohn.",
+        glossary=[GlossaryEntry(term="Familien-Beihilfe", explanation="Geld für Kinder.")],
+        region="AT",
+    )
+    assert explained_term("Familien-Beihilfe", "de-AT").term == "Familienbeihilfe"
+    assert explained_term("E-Mail", "de-AT") is None  # a hyphen of the word, not the mark
+    assert unexplained_terms(draft) == [] and fill_glossary(draft) == (draft, [])
 
 
 def test_code_adds_a_few_entries_per_version() -> None:

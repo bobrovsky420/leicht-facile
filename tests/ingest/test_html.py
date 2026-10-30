@@ -259,3 +259,29 @@ def test_decode_html():
 def test_contact_facts_read_the_bracketed_zero_as_the_trunk_prefix():
     # "+41 (0)44 123 45 67" and "044 123 45 67" are one number (rules/values.canonical_phone).
     assert html._facts("Tel. +41 (0)44 123 45 67 oder 044 123 45 67") == {"0441234567"}
+
+
+def test_touching_inline_elements_get_a_space():
+    # tirol.gv.at's contact boxes: the icon label and the value are two inline elements
+    # with nothing between them and read "AdresseMeinhardstrasse 16" (29 October 2026);
+    # a word split by markup and a punctuation mark after an element stay as they are.
+    page = """<html><body><main><h1>Kindergeld Plus</h1>
+    <p>Das Land unterstuetzt Familien mit geringem Einkommen. Der Antrag ist bis zum
+    31. Dezember des Jahres zu stellen. Die Foerderung betraegt bis zu 550 Euro pro Kind.</p>
+    <h2>Ansprechpersonen</h2>
+    <div class="contact-box"><h5>Carmen Muster</h5>
+    <p><span class="icon icon-pin" title="Adresse">Adresse</span><a
+      href="https://maps.example/?q=1"><span>Musterstrasse 16, 6020 Innsbruck</span></a></p>
+    <p><span class="icon icon-phone" title="Telefon">Telefon</span><a
+      href="tel:+43-512-5087843"><span>+43 512 508 7843</span></a></p>
+    <p><span class="icon icon-mail" title="E-Mail">E-Mail</span><a
+      href="mailto:amt@tirol.example">amt@tirol.example</a></p></div>
+    <p>Prae<b>mien</b>verbilligung gibt es in der <b>Schweiz</b>.
+    Der Betrag ist in <b>Franken</b>.</p>
+    </main></body></html>"""
+    _, units = extract_html(page)
+    texts = [u.text for u in units]
+    assert "Adresse Musterstrasse 16, 6020 Innsbruck" in texts
+    assert "Telefon +43 512 508 7843" in texts
+    assert "E-Mail amt@tirol.example" in texts
+    assert "Praemienverbilligung gibt es in der Schweiz. Der Betrag ist in Franken." in texts

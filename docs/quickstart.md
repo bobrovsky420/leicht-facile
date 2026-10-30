@@ -309,7 +309,9 @@ leichtfacile check-llm                                             # lists the m
   `--condition` (P0, P1 or P2; default P2, the full pipeline), `--writer`, `--understand`
   and `--judge` (models other than the settings'), and `--mode decision` with
   `--addressee` and `--notice` for the letter that goes out with a decision
-  ([docs/use-case-decisions.md](use-case-decisions.md)):
+  ([docs/use-case-decisions.md](use-case-decisions.md)); without `--notice` the export
+  carries the default notice of the installation's variety (`varieties.toml`), as the
+  web form does:
 
   ```bash
   leichtfacile simplify entscheid.txt --mode decision --addressee "Lea Muster" \

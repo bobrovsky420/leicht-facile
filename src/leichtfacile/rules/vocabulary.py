@@ -283,10 +283,17 @@ _ARTICLE = re.compile(
 )
 
 
+# The hyphen as the compound mark of Germany and Austria (Familien-Beihilfe, docs/rules.md
+# LEX-01): a small letter, the hyphen, a capital and a small letter; never E-Mail, IV-Rente.
+_HYPHEN_MARK_RE = re.compile(r"(?<=[a-zäöüß])-(?=[A-ZÄÖÜ][a-zäöüß])")
+
+
 def explained_term(term: str, key: str) -> VocabularyEntry | None:
     """The explain entry a hard term or glossary term names as a whole: Franchise,
     die Prämien·verbilligung, Invalidenversicherung (IV) through its IV. None for any
-    other term and for the context-dependent entries."""
+    other term and for the context-dependent entries. The compound mark does not count:
+    the matcher drops the Mediopunkt, and a glossary term the model copied from a
+    hyphenated draft (Familien-Beihilfe, Austria) is tried without the hyphen too."""
     if not has_vocabulary(key):
         return None
     main = re.sub(r"\s*\([^)]*\)", "", term).strip()
@@ -294,11 +301,12 @@ def explained_term(term: str, key: str) -> VocabularyEntry | None:
         text = _ARTICLE.sub("", text.strip())
         if not text:
             continue
-        for m in matcher(key).find_text(text):
-            entry = m.entry
-            whole = m.start == 0 and m.end == len(text) and not m.partial
-            if whole and entry.kind == "explain" and not entry.context:
-                return entry
+        for candidate in dict.fromkeys((text, _HYPHEN_MARK_RE.sub("", text))):
+            for m in matcher(key).find_text(candidate):
+                entry = m.entry
+                whole = m.start == 0 and m.end == len(candidate) and not m.partial
+                if whole and entry.kind == "explain" and not entry.context:
+                    return entry
     return None
 
 
