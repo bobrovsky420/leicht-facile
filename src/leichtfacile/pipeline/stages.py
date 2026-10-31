@@ -105,12 +105,26 @@ def thinking_for(llm: LLMClient, stage: str, model: str | None = None) -> bool:
     return stage in settings.for_model(model or settings.models.writer).thinking_stages
 
 
-def mode_context(stage: str, mode: str = "standard", addressee: str | None = None) -> dict:
-    """The job mode in a prompt's context. The standard templates carry one line each,
-    `{% if mode is defined and mode == "decision" %}{% include %}{% endif %}`, which
-    renders to nothing for a standard job (same prompt, same cache key) and pulls in the
-    section of the decision partial for this stage (docs/use-case-decisions.md)."""
-    return {"mode": mode, "stage_name": stage, "addressee": addressee or ""}
+def mode_context(
+    stage: str,
+    mode: str = "standard",
+    addressee: str | None = None,
+    sender: str = "authority",
+    address: str = "formal",
+) -> dict:
+    """The job's options in a prompt's context. The standard templates carry one line
+    each, `{% if mode is defined and mode == "decision" %}{% include %}{% endif %}`,
+    which renders to nothing for a standard job (same prompt, same cache key) and pulls
+    in the section of the decision partial for this stage (docs/use-case-decisions.md).
+    `sender` and `address` become the sender's phrases and the form's note in
+    `prompts.render`; their defaults render the templates as before (31 October 2026)."""
+    return {
+        "mode": mode,
+        "stage_name": stage,
+        "addressee": addressee or "",
+        "sender": sender,
+        "address": address,
+    }
 
 
 log = logging.getLogger(__name__)
@@ -444,11 +458,12 @@ def understand(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
+    sender: str = "authority",
 ) -> tuple[FactSheet, list[LLMResult]]:
     prompt = render(
         source.variety,
         "understand",
-        **mode_context("understand", mode, addressee),
+        **mode_context("understand", mode, addressee, sender),
         medication=has_doses(source),
         level_name=level_name(source.variety, level),
         source=r.source_text(source),
@@ -786,6 +801,8 @@ def write(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
+    sender: str = "authority",
+    address: str = "formal",
 ) -> tuple[Draft, list[LLMResult]]:
     lang = source.lang
     variety = source.variety  # the prompts, the style guide and the examples are the variety's
@@ -809,11 +826,11 @@ def write(
         prompt = render(
             variety,
             "write",
-            **mode_context("write", mode, addressee),
+            **mode_context("write", mode, addressee, sender, address),
             medication=names_medication(factsheet),
             level_name=level_name(variety, level),
             level=level,
-            style_guide=style_guide(variety, level),
+            style_guide=style_guide(variety, level, address),
             examples=examples(variety),
             section=title if sectioned else "",
             factsheet=r.factsheet_text(factsheet, fact_ids, lang),
@@ -873,6 +890,7 @@ def write(
         lang=lang,
         region=source.region,
         level=level,
+        address=address,  # type: ignore[arg-type]
         version=1,
         origin="write",
         blocks=drop_repeats(blocks),
@@ -1075,6 +1093,7 @@ def judge(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
+    sender: str = "authority",
 ) -> tuple[JudgeReport, list[LLMResult]]:
     cited = {s for b in draft.blocks for s in b.segment_ids}
     cited |= {s for f in factsheet.facts for s in f.segment_ids}
@@ -1082,7 +1101,7 @@ def judge(
     prompt = render(
         draft.variety,
         "judge",
-        **mode_context("judge", mode, addressee),
+        **mode_context("judge", mode, addressee, sender, draft.address),
         level_name=level_name(draft.variety, draft.level),
         factsheet=r.factsheet_text(factsheet, lang=draft.lang),
         source=excerpt,
@@ -1218,6 +1237,7 @@ def repair(
     model: str | None = None,
     mode: str = "standard",
     addressee: str | None = None,
+    sender: str = "authority",
     kind: str = "repair",
     version: int | None = None,
 ) -> tuple[Draft, list[LLMResult], RepairRecord]:
@@ -1248,10 +1268,10 @@ def repair(
     prompt = render(
         variety,
         "repair",
-        **mode_context("repair", mode, addressee),
+        **mode_context("repair", mode, addressee, sender, draft.address),
         level_name=level_name(variety, draft.level),
         level=draft.level,
-        style_guide=style_guide(variety, draft.level),
+        style_guide=style_guide(variety, draft.level, draft.address),
         flagged="\n\n".join(flagged_lines) or label(lang, "none"),
         missing="\n".join(missing_lines),
         factsheet=r.factsheet_text(factsheet, lang=lang),
@@ -1399,42 +1419,42 @@ def apply_repairs(
                 return "no_value"
         return None
 
-    # A sentence that says in other words what the draft says at its place is a repeat
-    # too: every content word of it stands in the blocks around it (the block it
-    # follows and that block's neighbours, the blocks that cite one of its source
-    # sentences, the blocks that carry one of its facts), and every value as well. The
-    # 70B adds "Ruf den Betrieb und das Schulsekretariat an." after the sentence that
-    # says so, whatever fact ids it gives the addition, and "Bis spätestens 7.30 Uhr."
-    # far from the sentence that says so (31 October 2026). Words are compared by their
-    # first four letters (Tage, Tagen), values by `matches`. A repaired block's own
-    # texts are measured against the other blocks only.
+    # A volunteered sentence that says in other words what one block near its place
+    # already says is a repeat too: every content word of it and every value stands in
+    # that one block (the block it follows, that block's neighbours, a block that cites
+    # one of its source sentences or carries one of its facts). The 70B adds "Ruf den
+    # Betrieb und das Schulsekretariat an." after the sentence that says so, whatever
+    # fact ids it gives the addition (31 October 2026). Words are compared by their
+    # first four letters (Tage, Tagen), values by `matches`. One block, not the words of
+    # several, and never a sentence asked for: easy language reuses its words, and the
+    # first form of this check, against the words of all the blocks around and on
+    # repair texts too, dropped rewrites that said something new in known words, so the
+    # loop stopped on "no progress" and the eval pairs kept 1 to 2 more errors per 100
+    # blocks (the Public AI rerun of the same day).
     content = [b for b in draft.blocks if b.kind != "heading"]
     position = {b.id: i for i, b in enumerate(content)}
 
-    def restates(
-        text: str,
-        anchor_id: str | None,
-        segment_ids: list[str],
-        fact_ids: list[str],
-        skip: str = "",
-    ) -> bool:
+    def restates(text: str, anchor_id: str | None, add) -> bool:
+        if {f for f in add.fact_ids if f in known_facts} & requested.keys():
+            return False
         stems = {s[:4] for s in _stems(text, draft.lang)}
         values = extract_values(text, draft.variety)
-        if not stems and not values:
+        if len(stems) < 2 and not values:
             return False
         i = position.get(anchor_id)
         around = content[max(0, i - 1) : i + 2] if i is not None else content[-2:]
         around += [
             b
             for b in content
-            if set(b.segment_ids) & set(segment_ids) or set(b.fact_ids) & set(fact_ids)
+            if set(b.segment_ids) & set(add.segment_ids) or set(b.fact_ids) & set(add.fact_ids)
         ]
-        around = [b for b in around if b.id != skip]
-        known_stems = {s[:4] for b in around for s in _stems(b.text, draft.lang)}
-        known_values = [v for b in around for v in extract_values(b.text, draft.variety)]
-        return stems <= known_stems and all(
-            any(matches(v, k) or matches(k, v) for k in known_values) for v in values
-        )
+        for b in around:
+            known_values = extract_values(b.text, draft.variety)
+            if stems <= {s[:4] for s in _stems(b.text, draft.lang)} and all(
+                any(matches(v, k) or matches(k, v) for k in known_values) for v in values
+            ):
+                return True
+        return False
 
     blocks: list[Block] = []
 
@@ -1450,7 +1470,7 @@ def apply_repairs(
                 if (
                     key(text) in kept
                     or any(key(text) == key(x.text) for x in blocks)
-                    or restates(text, anchor_id, add.segment_ids, add.fact_ids)
+                    or restates(text, anchor_id, add)
                 ):
                     dropped.append(
                         DroppedText(
@@ -1489,13 +1509,6 @@ def apply_repairs(
             ]
             dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
             texts = [t for t in texts if t not in parts] or texts[:1]
-            # A text of the answer that says what another block says, unless nothing
-            # would be left (the 70B put a sentence another block says before the
-            # block's own text).
-            said = [t for t in texts if restates(t, b.id, b.segment_ids, b.fact_ids, skip=b.id)]
-            if len(said) < len(texts):
-                dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in said]
-                texts = [t for t in texts if t not in said]
             fresh = [t for t in texts if key(t) not in kept] or texts[:1]
             dropped += [
                 DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
@@ -1525,7 +1538,7 @@ def apply_repairs(
             if (
                 key(text) in kept
                 or any(key(text) == key(x.text) for x in blocks)
-                or restates(text, None, add.segment_ids, add.fact_ids)
+                or restates(text, None, add)
             ):
                 dropped.append(DroppedText(text=text, reason="repeat", fact_ids=add.fact_ids))
                 continue

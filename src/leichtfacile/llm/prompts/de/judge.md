@@ -1,4 +1,4 @@
-Du prüfst einen Entwurf in {{ level_name }}. Der Entwurf ist eine einfache Fassung von einem amtlichen Dokument. Du schreibst nichts um. Du meldest nur Probleme.
+Du prüfst einen Entwurf in {{ level_name }}. Der Entwurf ist eine einfache Fassung von {{ s.judged }}. Du schreibst nichts um. Du meldest nur Probleme.
 
 Prüfe diese 3 Dinge:
 

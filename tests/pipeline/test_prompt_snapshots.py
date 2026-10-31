@@ -43,11 +43,19 @@ def rendered_prompts(lang: str) -> dict[str, str]:
     decision = ("decision", "Frau Muster")
     out: dict[str, str] = {}
 
-    def add(name: str, stage: str, level: str = "A2", mode=("standard", None), **context) -> None:
+    def add(
+        name: str,
+        stage: str,
+        level: str = "A2",
+        mode=("standard", None),
+        sender: str = "authority",
+        address: str = "formal",
+        **context,
+    ) -> None:
         # The four standard stages always render with the job's mode (stages.py); the
         # recover and baseline prompts have no mode.
         with_mode = stage in ("understand", "write", "judge", "repair")
-        extra = mode_context(stage, *mode) if with_mode else {}
+        extra = mode_context(stage, *mode, sender, address) if with_mode else {"address": address}
         out[name] = render(
             lang, stage, level_name=level_name(lang, level), level=level, **extra, **context
         )
@@ -90,6 +98,18 @@ def rendered_prompts(lang: str) -> dict[str, str]:
                    blocks="[b001] Das kostet 20 Franken.\n[b002] Rufen Sie an.")  # fmt: skip
     add("recover A2 value", "recover", value="044 123 45 67", **recover)
     add("recover A2 no value", "recover", value="", **recover)
+    # The sender and the form of address (31 October 2026): a school writing to students.
+    add("understand A2 school", "understand", sender="school", source=source_text,
+        medication=False)  # fmt: skip
+    add("write A2 school informal", "write", sender="school", address="informal",
+        style_guide=style_guide(lang, "A2", "informal"), examples=examples(lang), section="",
+        medication=False, factsheet=r.factsheet_text(fs, lang=lang),
+        source=source_text)  # fmt: skip
+    add("judge A2 school", "judge", sender="school", **judge)
+    add("repair A2 plural", "repair", address="plural", missing="",
+        **{**repair, "style_guide": style_guide(lang, "A2", "plural")})  # fmt: skip
+    add("recover A2 informal", "recover", address="informal", value="044 123 45 67",
+        **{**recover, "style_guide": style_guide(lang, "A2", "informal")})  # fmt: skip
     if has_prompt(lang, "baseline_zh"):
         for variant in ("complete", "condensed"):
             for part in ("system", "user"):

@@ -2,6 +2,10 @@ Du ergänzt einen Text in {{ level_name }} (Niveau {{ level }}). Im Text fehlt e
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Regeln:
 
 - Schreibe nur, was im Absatz des Originals unten steht. Erfinde nichts.

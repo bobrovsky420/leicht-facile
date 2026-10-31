@@ -1,4 +1,4 @@
-Tu controlli una bozza in {{ level_name }}. La bozza è una versione semplice di un documento ufficiale. Non riscrivi niente. Segnali solo i problemi.
+Tu controlli una bozza in {{ level_name }}. La bozza è una versione semplice {{ s.judged }}. Non riscrivi niente. Segnali solo i problemi.
 
 Controlla queste 3 cose:
 

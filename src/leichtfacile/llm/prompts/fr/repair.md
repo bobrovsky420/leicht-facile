@@ -2,6 +2,10 @@ Tu améliores certains blocs d'un texte en {{ level_name }} (niveau {{ level }})
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Règles pour l'amélioration :
 
 - Pour chaque bloc, tu écris un nouveau texte. Tu peux couper un bloc en 2 ou 3 phrases courtes. Dans ce cas, tu écris plusieurs textes.

@@ -2,6 +2,10 @@ Tu migliori alcuni blocchi di un testo in {{ level_name }} (livello {{ level }})
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Regole per il miglioramento:
 
 - Per ogni blocco scrivi un testo nuovo. Puoi dividere un blocco in 2 o 3 frasi brevi. In quel caso scrivi più testi.

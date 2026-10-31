@@ -2,6 +2,10 @@ Tu completi un testo in {{ level_name }} (livello {{ level }}). Al testo manca u
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Regole:
 
 - Scrivi solo quello che c'è nel paragrafo dell'originale più sotto. Non inventare niente.

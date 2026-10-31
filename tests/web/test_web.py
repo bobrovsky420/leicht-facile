@@ -500,3 +500,25 @@ def test_a_job_carries_the_installations_variety(tmp_path, endpoint, sleeps) -> 
         )  # fmt: skip
         assert client.get(f"/api/jobs/{french}").json()["config"]["region"] == "CH"
     store.close()
+
+
+def test_the_sender_and_the_form_of_address_reach_the_job_and_the_prompts(app_env) -> None:
+    """The form's two selects become JobConfig.sender and .address; the prompts name the
+    school and ask for the du form; an unknown value is refused; an example letter's
+    sidecar fills the selects."""
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Brief", sender="school",
+                     address="informal")  # fmt: skip
+    config = client.get(f"/api/jobs/{job_id}").json()["config"]
+    assert config["sender"] == "school" and config["address"] == "informal"
+    understand, write = [b["messages"][0]["content"] for b in endpoint.chat_bodies()]
+    assert "ein Dokument einer Schule in der Schweiz" in understand
+    assert write.startswith("Du schreibst Texte einer Schule in Leichter Sprache")
+    assert "mit du an, nicht mit Sie" in write
+    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1", "sender": "club"})
+    assert response.status_code == 400 and "Unknown sender 'club'" in response.text
+    page = client.get("/new?example=schnupperwoche-schuelerbrief").text
+    assert '<option value="school" selected>' in page
+    assert '<option value="informal" selected>' in page
+    assert '<option value="formal" selected>' in client.get("/new").text

@@ -254,6 +254,8 @@
           reveal();
         }
         if ($("#addressee")) $("#addressee").value = example.addressee || "";
+        if ($("#sender")) $("#sender").value = example.sender || "authority";
+        if ($("#address")) $("#address").value = example.address || "formal";
         if (notice) notice.value = example.notice || "";
         recount();
         if (note) note.textContent = example.lang_name ? t("lang_detected", { lang: example.lang_name }) : t("lang_auto");

@@ -22,6 +22,7 @@ from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, render
 from leichtfacile.pipeline.stages import mode_context
 from leichtfacile.rules import style_guide
 from leichtfacile.rules.lexicon import hyphenated
+from leichtfacile.senders import senders
 from leichtfacile.varieties import varieties, variety
 from tests.pipeline.test_prompt_snapshots import rendered_prompts
 
@@ -88,6 +89,10 @@ def test_every_german_variety_sets_the_fields_the_templates_use() -> None:
     used: set[str] = set()
     for path in german_templates():
         used |= set(re.findall(r"\bv\.prompt\.(\w+)", path.read_text(encoding="utf-8")))
+    # The senders' German phrases take the facts too (senders.toml: {country_adjective}).
+    for profile in senders().values():
+        for phrase in profile.phrases["de"].values():
+            used |= set(re.findall(r"\{(\w+)\}", phrase))
     # Jinja looks up an attribute of the dict before its key: a field named `items`
     # would render the method.
     assert used and not used & set(dir(dict))

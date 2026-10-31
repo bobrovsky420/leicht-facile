@@ -1,4 +1,4 @@
-Tu prépares une version en {{ level_name }}. Pour cela, tu lis un document officiel suisse et tu fais une fiche de faits. Tu ne réécris encore rien.
+Tu prépares une version en {{ level_name }}. Pour cela, tu lis {{ s.document }} et tu fais une fiche de faits. Tu ne réécris encore rien.
 
 Le document est plus bas. Chaque ligne est une phrase avec son numéro entre crochets. Les lignes avec # sont des titres, les lignes avec - sont des points de liste.
 

@@ -1,4 +1,4 @@
-Du bereitest eine Fassung in {{ level_name }} vor. Dafür liest du ein amtliches {{ v.prompt.country_adjective }} Dokument und erstellst ein Faktenblatt. Du schreibst noch nichts um.
+Du bereitest eine Fassung in {{ level_name }} vor. Dafür liest du {{ s.document }} und erstellst ein Faktenblatt. Du schreibst noch nichts um.
 
 Das Dokument steht unten. Jede Zeile ist ein Satz mit seiner Nummer in eckigen Klammern. Zeilen mit # sind Überschriften, Zeilen mit - sind Listenpunkte.
 

@@ -102,6 +102,7 @@ class Context:
     blocks: list[BlockInfo] = field(default_factory=list)
     block_index: int = 0  # index of the block being checked
     addresses_reader: bool = False  # Sie or du, vous or tu, Lei or voi in the text
+    address: str = "formal"  # the form the text addresses its reader in (schemas.Address)
     introduced: set[str] = field(default_factory=set)  # abbreviations explained in the text
     # Decision mode, export checks: the authority's fixed text, which the export must
     # begin and end with (FACT-07) and which the layout rules leave alone.

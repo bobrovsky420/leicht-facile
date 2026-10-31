@@ -2,6 +2,10 @@ Tu complètes un texte en {{ level_name }} (niveau {{ level }}). Il manque au te
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Règles :
 
 - Écris seulement ce qui est dans le paragraphe de l'original plus bas. N'invente rien.

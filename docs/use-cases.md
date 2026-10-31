@@ -252,10 +252,12 @@ with any model.
   2026 two such letters ship as examples in German, French and Italian
   (`data/examples/README.md`): the Klassenlager letter to parents and the
   Schnupperwoche letter to students. They run in the standard mode, and their dates,
-  times, amounts, periods, addresses and contacts are checked facts. The prompts still
-  call the source an official document, and the German and French rules expect Sie and
-  vous (LEX-06, GRAM-06); a sender option and a form-of-address option would change
-  that (planned, not specified yet).
+  times, amounts, periods, addresses and contacts are checked facts. Since 31 October
+  2026 a job names its sender (authority, school or organisation) and the form of
+  address (Sie, du or ihr), as data in `src/leichtfacile/senders/senders.toml`
+  ([architecture.md §4.3](architecture.md#43-plan-and-write-model)): the prompts then
+  call the source a school's document, and the style guide and the checker ask for du.
+  The school letters' sidecars set both; the students' letters run in the du form.
 - **Document.** Decisions on school placement, special-education measures and
   disciplinary measures.
 - **Why.** They reach parents with low reading skills or still learning German or
@@ -267,10 +269,9 @@ with any model.
   development; the school administration is bound by official secrecy.
 - **Works today.** The start of the measure, the appeal period and the appeal
   authority's address are checked facts.
-- **Needs.** The decision mode for the decisions. For the everyday letters: a sender
-  other than an authority and the du/tu form in the prompts and the rules, and the reply
-  slip and the packing list kept whole, as FACT-07 keeps the notice and FACT-09 a
-  medication block.
+- **Needs.** The decision mode for the decisions. For the everyday letters: the packing
+  list kept whole, as FACT-07 keeps the notice and FACT-09 a medication block (the reply
+  slip survived every run on its own).
 
 ## 9. Information for study participants
 

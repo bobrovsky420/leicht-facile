@@ -45,6 +45,16 @@ JobStatus = Literal["queued", "running", "needs_review", "done", "failed"]
 # carries the authority's fixed notice. A job option, never an evaluation condition.
 JobMode = Literal["standard", "decision"]
 JOB_MODES: tuple[str, ...] = get_args(JobMode)
+# The sender a job names (senders/senders.toml): the prompts call the source an official
+# text, a school's or an organisation's. authority renders the prompts as before the
+# option existed (31 October 2026).
+Sender = Literal["authority", "school", "organisation"]
+SENDERS: tuple[str, ...] = get_args(Sender)
+# The form in which the text addresses its reader: formal (Sie, vous, Lei), informal
+# (du, tu) or plural (ihr, vous, voi). The style guide's line for LEX-06, the checker's
+# hint and a note in the write, repair and recover prompts follow it.
+Address = Literal["formal", "informal", "plural"]
+ADDRESS_FORMS: tuple[str, ...] = get_args(Address)
 # P as in pipeline: the letter C would read as a CEFR level next to A2 and B1.
 Condition = Literal["P0", "P0-ZH-complete", "P0-ZH-condensed", "P1", "P2"]
 CONDITIONS: tuple[str, ...] = get_args(Condition)
@@ -302,6 +312,7 @@ class Draft(Artifact):
     lang: Lang
     region: Region = "CH"  # the national variety the draft is written and checked in
     level: Level
+    address: Address = "formal"  # the form of address the text is written and checked in
     version: int = 1
     parent_version: int | None = None
     origin: DraftOrigin = "write"
@@ -590,6 +601,8 @@ class JobConfig(Artifact):
     mode: JobMode = "standard"
     addressee: str | None = None  # decision mode: the person the letter speaks to
     notice: str | None = None  # decision mode: the authority's fixed notice in the export
+    sender: Sender = "authority"  # who writes: the prompts' name for the source
+    address: Address = "formal"  # how the text addresses its reader
 
 
 class UsageRecord(Artifact):

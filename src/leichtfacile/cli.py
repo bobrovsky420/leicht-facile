@@ -146,6 +146,18 @@ def main(argv: list[str] | None = None) -> int:
     simplify.add_argument("--addressee", help="decision mode: the person the letter speaks to")
     simplify.add_argument("--notice", help="decision mode: the authority's fixed notice")
     simplify.add_argument(
+        "--sender",
+        choices=["authority", "school", "organisation"],
+        default="authority",
+        help="who writes: an authority, a school or another organisation (the prompts say so)",
+    )
+    simplify.add_argument(
+        "--address",
+        choices=["formal", "informal", "plural"],
+        default="formal",
+        help="how the text addresses its reader: Sie, du or ihr (vous or tu; Lei, tu or voi)",
+    )
+    simplify.add_argument(
         "--stop-after", choices=["understand", "write", "check", "judge"], help="stop early"
     )
     with_preset(simplify)
@@ -490,6 +502,8 @@ def _simplify(args: argparse.Namespace) -> int:
         mode=args.mode,
         addressee=args.addressee,
         notice=notice,
+        sender=args.sender,
+        address=args.address,
     )
     job = store.create_job(config, title=source.title or args.input)
     store.put_artifact(job.id, "source", source)

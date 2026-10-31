@@ -329,6 +329,26 @@ style guide and the office are written with the Mediopunkt and rendered with the
 variety's mark), and the spelling step writes the sharp s instead of `ss`
 (`apply_spelling`, `apply_sz`); the Swiss text keeps the Mediopunkt and `ss`.
 
+**Sender and form of address** (since 31 October 2026). A job names who writes
+(`JobConfig.sender`: `authority`, `school` or `organisation`) and how the text addresses
+its reader (`JobConfig.address`: `formal` for Sie, vous and Lei, `informal` for du and
+tu, `plural` for ihr, vous and voi). Both are data in `src/leichtfacile/senders/senders.toml`
+(read by `senders/__init__.py`, like the varieties): the sender's phrases fill the first
+lines of the understand, write and judge templates (`s.writes`, `s.document`,
+`s.judged`: "Du schreibst Texte einer Schule in Leichter Sprache", "ein Dokument einer
+Schule in der Schweiz"), the form's note goes after the style guide of the write,
+repair and recover prompts (du instead of Sie, with a word that the few-shot examples
+stay in the Sie form), and the form's guide line replaces LEX-06's in the style guide
+while the checker's hint names its pronoun (`rules/styleguide.py`, `rules/shared.py`).
+The draft records its form (`Draft.address`), so every round and every later check
+reads it from the draft. The defaults, authority and formal, render every prompt byte
+for byte as before the options existed (the response cache keys on the text, and the
+evaluations ran on it; `tests/pipeline/test_prompt_snapshots.py`). The New draft form,
+`POST /api/jobs` and `leichtfacile simplify` take both options; the school letters'
+sidecars set them (`data/examples/README.md`). Why: on the school letters the 70B wrote
+the same student letter in Sie twice and in du once, and the Italian parents' letter
+mixed Lei, tu and voi (docs/prompts.md, version 20).
+
 ### 4.4 Rule check (code)
 
 Runs on every block, in milliseconds, no model. Produces `RuleFindings`: per-block
@@ -470,14 +490,16 @@ there in other words, and every round added a paraphrase, one sentence three tim
 the end (docs/prompts.md). Since the same day the value extractor reads a range of two
 days in one month as both dates (`vom 7. bis 11. Juni 2027`), so FACT-01 no longer asks
 for the first day next to the range, which the rounds had answered with the source
-sentence beside it. Follow-ups of the same day: an added sentence that says in other
-words what the draft says at its place is a repeat (every content word of it stands in
-the blocks around it: the block it follows and that block's neighbours, the blocks that
-cite one of its source sentences, the blocks that carry one of its facts; and every
-value too), and so is a second text of a repair answer that says what a neighbouring
-block says (the 70B adds "Ruf den Betrieb und das Schulsekretariat an." after the
-sentence that says so, and "Bis spätestens 7.30 Uhr." far from it); a repair or
-addition text without final punctuation joins the next text when that
+sentence beside it. Follow-ups of the same day: a volunteered sentence that says in
+other words what one block near its place already says is a repeat (every content
+word of it and every value stands in that one block: the block it follows, that
+block's neighbours, a block that cites one of its source sentences or carries one of
+its facts; the 70B adds "Ruf den Betrieb und das Schulsekretariat an." after the
+sentence that says so). One block, and never a sentence asked for: the first form of
+the check, against the words of all the blocks around and on repair texts too, dropped
+rewrites that said something new in known words, the loop then stopped on "no
+progress", and the eval pairs kept 1 to 2 more errors per 100 blocks (the Public AI
+rerun of the same day). A repair or addition text without final punctuation joins the next text when that
 starts in lower case, and a text of several sentences is split into them (the 70B split
 a sentence at its comma into two texts and wrote three sentences as one); and the fact
 sheet carries one fact per statement (§4.2). Asking for a missing value on the block
@@ -958,7 +980,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, and for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice` |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3) |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
@@ -1817,6 +1839,7 @@ src/leichtfacile/
   letters/                  the example letters shipped with the package
   presets/presets.toml      the known providers with their models tables and prices, and the presets on them
   varieties/                the national varieties (§8): varieties.toml, one table per variety, and its reader
+  senders/                  the senders and the forms of address (§4.3): senders.toml and its reader
   llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
   llm/prompts/<lang>/       the stage templates of a language, one set for its varieties: understand.md,
                             write.md, judge.md, repair.md, baseline.md, recover.md, and medication.md

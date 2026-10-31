@@ -111,6 +111,22 @@
             <option value="decision"{% if form.mode == 'decision' %} selected{% endif %}>{{ t('new.mode.decision') }}</option>
           </select>
         </div>
+        {# The sender and the form of address (docs/architecture.md section 4.3): a school
+           or another organisation instead of an authority, du or ihr instead of Sie. #}
+        <div class="fields">
+          <div><label class="label" for="sender">{{ t('new.sender') }}</label>
+            <select id="sender" name="sender">
+              <option value="authority"{% if (form.sender or 'authority') == 'authority' %} selected{% endif %}>{{ t('new.sender.authority') }}</option>
+              <option value="school"{% if form.sender == 'school' %} selected{% endif %}>{{ t('new.sender.school') }}</option>
+              <option value="organisation"{% if form.sender == 'organisation' %} selected{% endif %}>{{ t('new.sender.organisation') }}</option>
+            </select></div>
+          <div><label class="label" for="address">{{ t('new.address') }}</label>
+            <select id="address" name="address">
+              <option value="formal"{% if (form.address or 'formal') == 'formal' %} selected{% endif %}>{{ t('new.address.formal') }}</option>
+              <option value="informal"{% if form.address == 'informal' %} selected{% endif %}>{{ t('new.address.informal') }}</option>
+              <option value="plural"{% if form.address == 'plural' %} selected{% endif %}>{{ t('new.address.plural') }}</option>
+            </select></div>
+        </div>
         {# Decision mode: the person the letter speaks to and the authority's notice, the
            first and last paragraph of the export. The script hides them for a standard
            text; without it they stay in view. #}

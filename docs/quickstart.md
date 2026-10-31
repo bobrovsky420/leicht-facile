@@ -327,6 +327,11 @@ leichtfacile check-llm                                             # lists the m
     --notice "Diese Erklärung hilft Ihnen, den Entscheid zu verstehen. Massgebend ist der Entscheid."
   ```
 
+  `--sender school` (or `organisation`) and `--address informal` (or `plural`) make the
+  prompts call the text a school's or an organisation's and let it address the reader
+  with du or ihr (tu; tu or voi), as the two selects of the New draft form do
+  ([docs/architecture.md §4.3](architecture.md#43-plan-and-write-model)).
+
 ## 5. On a server
 
 Install as in way 3 (or way 6 without internet) and run the app as a service of the

@@ -121,6 +121,7 @@ class RuleChecker:
             glossary=glossary_keys(terms),
             blocks=infos,
             addresses_reader=bool(self.lang in _ADDRESS_RE and _ADDRESS_RE[self.lang].search(text)),
+            address=draft.address,
             introduced=introduced,
         )
 

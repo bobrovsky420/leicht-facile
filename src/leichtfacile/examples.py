@@ -24,7 +24,7 @@ from leichtfacile.schemas import JobConfig
 from leichtfacile.varieties import region_for
 
 # The settings of a letter that go with it into the form and the page.
-FIELDS = ("mode", "addressee", "notice", "region")
+FIELDS = ("mode", "addressee", "notice", "region", "sender", "address")
 
 
 def examples_dir() -> Path:

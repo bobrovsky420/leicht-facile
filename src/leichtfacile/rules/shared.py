@@ -32,6 +32,7 @@ from leichtfacile.rules.values import (
 )
 from leichtfacile.rules.vocabulary import find_terms, office_words
 from leichtfacile.schemas import variety as variety_key
+from leichtfacile.senders import address_form
 
 LANGS = ("de", "fr", "it")  # a check registered by language serves every variety of it
 # The German varieties (schemas.variety) have tables of their own below and, where the
@@ -210,7 +211,7 @@ def lex_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         yield hit(
             "LEX-06" if ctx.addresses_reader else "LEX-06.no_address",
             found=m.group(0),
-            address=table(ctx).address,
+            address=address_form(ctx.address).pronoun(ctx.lang),
             evidence=m.group(0),
         )
 

@@ -2,6 +2,10 @@ Du verbesserst einzelne Blöcke von einem Text in {{ level_name }} (Niveau {{ le
 
 {{ style_guide }}
 
+{% if address_note %}
+{{ address_note }}
+
+{% endif %}
 Regeln für die Verbesserung:
 
 - Für jeden Block schreibst du einen neuen Text. Du darfst einen Block in 2 oder 3 kurze Sätze teilen. Dann schreibst du mehrere Texte.

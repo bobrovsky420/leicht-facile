@@ -1,4 +1,4 @@
-Tu contrôles un brouillon en {{ level_name }}. Le brouillon est une version simple d'un document officiel. Tu ne réécris rien. Tu signales seulement des problèmes.
+Tu contrôles un brouillon en {{ level_name }}. Le brouillon est une version simple {{ s.judged }}. Tu ne réécris rien. Tu signales seulement des problèmes.
 
 Contrôle ces 3 choses :
 

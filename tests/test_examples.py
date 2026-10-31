@@ -160,6 +160,9 @@ def test_the_school_letters_are_swiss_and_speak_to_parents_or_students() -> None
         letter = by_id[name]
         assert (letter["lang"], letter["region"]) == (lang, "CH"), name
         assert "mode" not in letter  # a standard job, not a decision
+        # The sidecars name the school as the sender and, for the students, the du form.
+        assert letter["sender"] == "school"
+        assert letter.get("address") == ("informal" if readers == "students" else None)
         text = letter["text"]
         assert "CHF" in text and "ß" not in text, name
         spoken, other = (FORMAL, INFORMAL) if readers == "parents" else (INFORMAL, FORMAL)

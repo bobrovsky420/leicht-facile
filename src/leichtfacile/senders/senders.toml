@@ -1,0 +1,140 @@
+# The senders a job can name and the forms in which a text addresses its reader
+# (docs/architecture.md section 4.3, "Sender and form of address"): data, not code, like
+# the varieties. Read by src/leichtfacile/senders/__init__.py; the prompt templates take a
+# sender's phrases as `s` and a form's note as `address_note` (pipeline/prompts.py), the
+# style guide and the checker take a form's guide line and pronoun (rules/styleguide.py,
+# rules/shared.py, LEX-06).
+#
+# [senders.<key>]      one table per sender. `authority` is the default and renders the
+#                      prompts word for word as before the option existed (the response
+#                      cache keys on the prompt text, the evaluations ran on it).
+#   label              the sender's name in the interface's English
+#   <lang>.writes      "Du schreibst ___ in Leichter Sprache": what the writer writes
+#   <lang>.document    "Dafür liest du ___": the document the Understand stage reads. The
+#                      German phrases take {country_adjective} and {country_in} from the
+#                      variety's prompt facts (varieties.toml): Schweizer, in Deutschland
+#   <lang>.judged      "eine einfache Fassung von ___": the judge's name for the source
+#
+# [address.<key>]      the forms of address: formal (Sie, vous, Lei), informal (du, tu)
+#                      and plural (ihr, vous, voi). `formal` is the default and adds
+#                      nothing to the prompts; its lines equal the rules' own.
+#   label              the form's name in the interface's English
+#   <lang>.pronoun     the pronoun, for the checker's hint (LEX-06)
+#   <lang>.guide       the style guide's line for LEX-06 in this form
+#   <lang>.note        the paragraph the write, repair and recover prompts add after the
+#                      style guide; empty for the formal form
+
+[senders.authority]
+label = "Authority"
+
+[senders.authority.de]
+writes = "amtliche Texte"
+document = "ein amtliches {country_adjective} Dokument"
+judged = "einem amtlichen Dokument"
+
+[senders.authority.fr]
+writes = "des textes officiels"
+document = "un document officiel suisse"
+judged = "d'un document officiel"
+
+[senders.authority.it]
+writes = "testi ufficiali"
+document = "un documento ufficiale svizzero"
+judged = "di un documento ufficiale"
+
+# A school writing to parents or students: camp letters, information evenings, the
+# trial-apprenticeship week (docs/use-cases.md section 8).
+[senders.school]
+label = "School"
+
+[senders.school.de]
+writes = "Texte einer Schule"
+document = "ein Dokument einer Schule {country_in}"
+judged = "einem Dokument einer Schule"
+
+[senders.school.fr]
+writes = "des textes d'une école"
+document = "un document d'une école en Suisse"
+judged = "d'un document d'une école"
+
+[senders.school.it]
+writes = "testi di una scuola"
+document = "un documento di una scuola in Svizzera"
+judged = "di un documento di una scuola"
+
+# Any other organisation that is no authority: a club, a daycare centre, a parish, a
+# charity, a company writing to its customers.
+[senders.organisation]
+label = "Organisation"
+
+[senders.organisation.de]
+writes = "Texte einer Organisation"
+document = "ein Dokument einer Organisation {country_in}"
+judged = "einem Dokument einer Organisation"
+
+[senders.organisation.fr]
+writes = "des textes d'une organisation"
+document = "un document d'une organisation en Suisse"
+judged = "d'un document d'une organisation"
+
+[senders.organisation.it]
+writes = "testi di un'organizzazione"
+document = "un documento di un'organizzazione in Svizzera"
+judged = "di un documento di un'organizzazione"
+
+[address.formal]
+label = "Formal (Sie, vous, Lei)"
+
+[address.formal.de]
+pronoun = "Sie"
+guide = "Sprich die Leserin oder den Leser direkt mit Sie an."
+note = ""
+
+[address.formal.fr]
+pronoun = "vous"
+guide = "Parle directement à la lectrice ou au lecteur avec vous."
+note = ""
+
+[address.formal.it]
+pronoun = "Lei"
+guide = "Rivolgiti direttamente alla lettrice o al lettore con Lei."
+note = ""
+
+# One reader addressed informally: a student, a child, a club member.
+[address.informal]
+label = "Informal singular (du, tu)"
+
+[address.informal.de]
+pronoun = "du"
+guide = "Sprich die Leserin oder den Leser direkt mit du an, nicht mit Sie."
+note = "Der Text spricht die Leserin oder den Leser mit du an, nicht mit Sie: du machst, dein, dir. Die Überschriften fragen mit du: Was musst du tun? Die Beispiele weiter unten sind mit Sie geschrieben; sie zeigen nur den Stil. Schreibe deinen Text mit du."
+
+[address.informal.fr]
+pronoun = "tu"
+guide = "Parle directement à la lectrice ou au lecteur avec tu, pas avec vous."
+note = "Le texte parle à la lectrice ou au lecteur avec tu, pas avec vous : tu fais, ton, te. Les titres posent les questions avec tu : Que dois-tu faire ? Les exemples plus bas sont écrits avec vous ; ils montrent seulement le style. Écris ton texte avec tu."
+
+[address.informal.it]
+pronoun = "tu"
+guide = "Rivolgiti direttamente alla lettrice o al lettore con tu, non con Lei."
+note = "Il testo si rivolge alla lettrice o al lettore con tu, non con Lei: tu fai, tuo, ti. I titoli fanno le domande con tu: Che cosa devi fare? Gli esempi più sotto sono scritti con Lei; mostrano solo lo stile. Scrivi il tuo testo con tu."
+
+# Several readers addressed informally: a class, a team. French has no form of its own:
+# vous serves one reader formally and several readers alike.
+[address.plural]
+label = "Informal plural (ihr, vous, voi)"
+
+[address.plural.de]
+pronoun = "ihr"
+guide = "Sprich die Leserinnen und Leser direkt mit ihr an, nicht mit Sie."
+note = "Der Text spricht die Leserinnen und Leser mit ihr an, nicht mit Sie: ihr macht, euer, euch. Die Überschriften fragen mit ihr: Was müsst ihr tun? Die Beispiele weiter unten sind mit Sie geschrieben; sie zeigen nur den Stil. Schreibe deinen Text mit ihr."
+
+[address.plural.fr]
+pronoun = "vous"
+guide = "Parle directement aux lectrices et aux lecteurs avec vous."
+note = "Le texte parle à plusieurs lectrices et lecteurs à la fois, avec vous au pluriel : vous faites, votre. Les titres posent les questions avec vous : Que devez-vous faire ?"
+
+[address.plural.it]
+pronoun = "voi"
+guide = "Rivolgiti direttamente alle lettrici e ai lettori con voi, non con Lei."
+note = "Il testo si rivolge alle lettrici e ai lettori con voi, non con Lei: voi fate, vostro, vi. I titoli fanno le domande con voi: Che cosa dovete fare? Gli esempi più sotto sono scritti con Lei; mostrano solo lo stile. Scrivi il tuo testo con voi."

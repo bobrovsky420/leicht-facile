@@ -25,6 +25,8 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, pass_context
 from leichtfacile.rules.lexicon import hyphenated
 from leichtfacile.rules.vocabulary import standard_spelling
 from leichtfacile.schemas import base_lang, variety_chain
+from leichtfacile.senders import TABLE as SENDERS_TABLE
+from leichtfacile.senders import address_form, sender
 from leichtfacile.varieties import variety
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "llm" / "prompts"
@@ -124,6 +126,14 @@ def render(lang: str, stage: str, **context: object) -> str:
         )
     v = variety(lang)
     context.setdefault("v", v)
+    # The sender's phrases (`s`: writes, document, judged) and the form of address's
+    # note, from senders/senders.toml (31 October 2026); the job's options come in as
+    # `sender` and `address` (stages.mode_context), whose defaults render the templates
+    # word for word as before the options existed.
+    profile = sender(str(context.pop("sender", "authority")))
+    context.setdefault("s", profile.for_prompt(lang, v.prompt))
+    form = address_form(str(context.pop("address", "formal")))
+    context.setdefault("address_note", form.note(lang))
     for name in PARTIALS:
         context.setdefault(f"{name}_partial", _partial(lang, name))
     text = _env.get_template(f"{folder}/{stage}.md").render(**context).strip() + "\n"
@@ -145,6 +155,7 @@ def prompt_version(lang: str, stage: str) -> str:
     table = variety(lang).prompt
     if table:
         digest.update(json.dumps(table, sort_keys=True, ensure_ascii=False).encode("utf-8"))
+    digest.update(SENDERS_TABLE.read_bytes())  # the senders' phrases fill the templates too
     return digest.hexdigest()[:12]
 
 

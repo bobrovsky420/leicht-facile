@@ -285,7 +285,8 @@ def _endpoint_options(state) -> list[dict[str, str]]:
 def _example_form(example: dict[str, str]) -> dict[str, str]:
     """The New draft form filled in with an example letter: its text and the decision
     mode's settings from the file next to it, if any."""
-    settings = {k: example[k] for k in ("mode", "addressee", "notice") if example.get(k)}
+    keys = ("mode", "addressee", "notice", "sender", "address")
+    settings = {k: example[k] for k in keys if example.get(k)}
     return {"text": example["text"], **settings}
 
 

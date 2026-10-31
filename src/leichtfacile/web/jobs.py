@@ -25,9 +25,11 @@ from leichtfacile.ingest.errors import IngestError, PrivateAddressError, Unknown
 from leichtfacile.lifecycle import source_counts
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
+    ADDRESS_FORMS,
     JOB_MODES,
     LANGS,
     LEVELS,
+    SENDERS,
     Job,
     JobConfig,
     SourceDocument,
@@ -41,7 +43,7 @@ MAX_FILE_BYTES = 15_000_000
 # The fields of the New draft form, which the page shows again after a refusal.
 FORM_FIELDS = (
     "text", "url", "lang", "level", "condition", "endpoint", "title", "writer_model",
-    "understand_model", "judge_model", "mode", "addressee", "notice",
+    "understand_model", "judge_model", "mode", "addressee", "notice", "sender", "address",
 )  # fmt: skip
 
 
@@ -110,6 +112,8 @@ class Submission:
     mode: str = "standard"  # or "decision" (docs/use-case-decisions.md)
     addressee: str | None = None
     notice: str | None = None
+    sender: str = "authority"  # or "school", "organisation" (schemas.Sender)
+    address: str = "formal"  # or "informal", "plural" (schemas.Address)
 
     def form(self) -> dict[str, str]:
         """The fields as the New draft form shows them again after a refusal."""
@@ -135,6 +139,8 @@ async def submission_form(
     mode: Annotated[str, Form()] = "standard",
     addressee: Annotated[str | None, Form()] = None,
     notice: Annotated[str | None, Form()] = None,
+    sender: Annotated[str, Form()] = "authority",
+    address: Annotated[str, Form()] = "formal",
 ) -> Submission:
     """The multipart form of `POST /jobs` and `POST /api/jobs` as one submission; FastAPI
     fills it for both routes (`Depends`). `endpoint` runs the job on another ready
@@ -157,6 +163,8 @@ async def submission_form(
         mode=mode,
         addressee=addressee,
         notice=notice,
+        sender=sender,
+        address=address,
     )
 
 
@@ -244,6 +252,10 @@ def create_job(
         raise SubmissionError("unknown_condition", condition=sub.condition)
     if sub.mode not in JOB_MODES:
         raise SubmissionError("unknown_mode", mode=sub.mode)
+    if sub.sender not in SENDERS:
+        raise SubmissionError("unknown_sender", sender=sub.sender)
+    if sub.address not in ADDRESS_FORMS:
+        raise SubmissionError("unknown_address", address=sub.address)
     endpoint = (sub.endpoint or "").strip() or None
     if presets is not None and (endpoint or settings.llm.preset) not in presets:
         if endpoint is None or endpoint == settings.llm.preset:
@@ -276,6 +288,8 @@ def create_job(
         judge_model=sub.judge_model or None,
         pipeline=settings.pipeline,
         mode=sub.mode,  # type: ignore[arg-type]
+        sender=sub.sender,  # type: ignore[arg-type]
+        address=sub.address,  # type: ignore[arg-type]
         addressee=(sub.addressee or "").strip() or None,
         notice=notice,
     )

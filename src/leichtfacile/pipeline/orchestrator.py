@@ -313,6 +313,7 @@ class Orchestrator:
                 model=self._understand_model(run, cfg),
                 mode=cfg.mode,
                 addressee=cfg.addressee,
+                sender=cfg.sender,
             )
             factsheet = stages.complete_factsheet(factsheet, source)
             if cfg.mode == "decision":
@@ -333,6 +334,8 @@ class Orchestrator:
                 model=cfg.writer_model,
                 mode=cfg.mode,
                 addressee=cfg.addressee,
+                sender=cfg.sender,
+                address=cfg.address,
             )
             draft = stages.link_facts(draft, factsheet, source)
             if cfg.pipeline.vocabulary:  # before the Mediopunkt: it splits the terms too
@@ -463,6 +466,7 @@ class Orchestrator:
                 model=cfg.writer_model,
                 mode=cfg.mode,
                 addressee=cfg.addressee,
+                sender=cfg.sender,
                 kind=kind,
                 version=version,
             )
@@ -610,6 +614,7 @@ class Orchestrator:
                 model=model,
                 mode=job.config.mode,
                 addressee=job.config.addressee,
+                sender=job.config.sender,
             )
         except (LLMError, LLMOutputError) as exc:
             # Without the judge the draft still has its rule and fact checks.

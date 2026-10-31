@@ -625,20 +625,30 @@ def test_an_addition_that_restates_its_neighbours_is_dropped() -> None:
     out = RepairOut.model_validate({"repairs": [], "additions": [{"after": "b002", "texts": [
         "Ruf den Betrieb und das Schul·sekretariat an.",  # says b002 again
         "Telefon: 044 123 45 67.",  # a new value
-        "Du rufst bis spätestens 7.30 Uhr an.",  # says b003 again
+        "Bis spätestens 7.30 Uhr.",  # says b003 again
+        "Du rufst den Betrieb bis spätestens 7.30 Uhr an.",  # words of b002 and b003: no one block
         "Bei Krankheit bleibst du zu Hause.",  # a new word
     ]}]})  # fmt: skip
     dropped: list = []
     new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
     assert [b.text for b in new.blocks][1:] == [
         "Bei Krankheit oder Unfall rufst du den Betrieb und das Schul·sekretariat an.",
-        "Telefon: 044 123 45 67.", "Bei Krankheit bleibst du zu Hause.",
-        "Ruf bis spätestens 7.30 Uhr an.",
+        "Telefon: 044 123 45 67.", "Du rufst den Betrieb bis spätestens 7.30 Uhr an.",
+        "Bei Krankheit bleibst du zu Hause.", "Ruf bis spätestens 7.30 Uhr an.",
     ]  # fmt: skip
     assert [(d.reason, d.text) for d in dropped] == [
         ("repeat", "Ruf den Betrieb und das Schul·sekretariat an."),
-        ("repeat", "Du rufst bis spätestens 7.30 Uhr an."),
+        ("repeat", "Bis spätestens 7.30 Uhr."),
     ]
+    # A sentence asked for (here for a fact without a value) is never a repeat, however
+    # its words stand around it.
+    duty = Fact(id="f09", kind="obligation", text="Ruf den Betrieb an.", segment_ids=["s0013"])
+    fs = fs.model_copy(update={"facts": [*fs.facts, duty]})
+    out = RepairOut.model_validate({"repairs": [], "additions": [{"after": "b002", "texts": [
+        "Ruf den Betrieb und das Schul·sekretariat an.",
+    ], "fact_ids": ["f09"]}]})  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({}, [duty]), fs)
+    assert "Ruf den Betrieb und das Schul·sekretariat an." in [b.text for b in new.blocks]
 
 
 def test_a_restatement_far_from_its_sentence_is_found_by_the_source_sentence() -> None:
@@ -661,50 +671,6 @@ def test_a_restatement_far_from_its_sentence_is_found_by_the_source_sentence() -
     new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
     assert [b.text for b in new.blocks][-1] == "Bis spätestens 7.30 Uhr beim Betrieb."
     assert [(d.reason, d.text) for d in dropped] == [("repeat", "Bis spätestens 7.30 Uhr.")]
-
-
-def test_a_repair_text_that_says_what_a_neighbour_says_is_dropped() -> None:
-    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
-    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
-        Block(id="b001", kind="sentence",
-              text="Sie schicken den Bericht bis spätestens 2. April 2027 ein."),
-        Block(id="b002", kind="sentence", text="Der Bericht muss innert zwei Wochen dort sein."),
-    ])  # fmt: skip
-    out = RepairOut.model_validate({"additions": [], "repairs": [{"id": "b002", "texts": [
-        "Der Bericht muss innerhalb von zwei Wochen dort sein.",
-        "Das ist bis spätestens 2. April 2027.",
-    ]}]})  # fmt: skip
-    dropped: list = []
-    new = apply_repairs(draft, out, RepairRequest({"b002": ["x"]}, []), fs, dropped=dropped)
-    assert [b.text for b in new.blocks] == [
-        "Sie schicken den Bericht bis spätestens 2. April 2027 ein.",
-        "Der Bericht muss innerhalb von zwei Wochen dort sein.",
-    ]
-    assert [(d.reason, d.text) for d in dropped] == [
-        ("repeat", "Das ist bis spätestens 2. April 2027."),
-    ]
-
-
-def test_a_repair_text_that_says_what_another_block_says_goes_unless_nothing_is_left() -> None:
-    """The 70B put a sentence another block already says before the block's own text;
-    a repair whose only text restates another block keeps it."""
-    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
-    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
-        Block(id="b001", kind="sentence", text="Sie suchen einen Platz.", fact_ids=["f02"]),
-        Block(id="b002", kind="sentence", text="Sie geben die Bestätigung ab."),
-        Block(id="b003", kind="sentence", text="Die Gebühr ist 20 Franken.", fact_ids=["f02"]),
-    ])  # fmt: skip
-    out = RepairOut.model_validate({"additions": [], "repairs": [
-        {"id": "b001", "texts": ["Die Gebühr: 20 Franken.", "Sie suchen selbst einen Platz."]},
-        {"id": "b002", "texts": ["Gebühr: 20 Franken."]},
-    ]})  # fmt: skip
-    dropped: list = []
-    request = RepairRequest({"b001": ["x"], "b002": ["x"]}, [])
-    new = apply_repairs(draft, out, request, fs, dropped=dropped)
-    assert [b.text for b in new.blocks] == [
-        "Sie suchen selbst einen Platz.", "Gebühr: 20 Franken.", "Die Gebühr ist 20 Franken.",
-    ]  # fmt: skip
-    assert [(d.reason, d.text) for d in dropped] == [("repeat", "Die Gebühr: 20 Franken.")]
 
 
 def test_the_recover_round_skips_a_value_the_draft_has_meanwhile() -> None:

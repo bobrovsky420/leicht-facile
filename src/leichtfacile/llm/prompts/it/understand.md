@@ -1,4 +1,4 @@
-Tu prepari una versione in {{ level_name }}. Per questo leggi un documento ufficiale svizzero e fai una scheda dei fatti. Non riscrivi ancora niente.
+Tu prepari una versione in {{ level_name }}. Per questo leggi {{ s.document }} e fai una scheda dei fatti. Non riscrivi ancora niente.
 
 Il documento è più sotto. Ogni riga è una frase con il suo numero tra parentesi quadre. Le righe con # sono titoli, le righe con - sono punti di un elenco.
 

@@ -37,16 +37,17 @@ A JSON file next to a letter holds that example's job settings, any `JobConfig` 
 (`mode`), speaking to Lea Muster (`addressee`), with the KESB's fixed notice (`notice`).
 Letters without one run as standard P2 jobs at level A2. Since 29 October 2026 every
 JSON names the letter's `region` (CH, DE or AT): an installation offers the letters of
-its region and the French and Italian ones (docs/architecture.md §7).
+its region and the French and Italian ones (docs/architecture.md §7). The school
+letters' JSON names the school as the sender (`sender`), and the three letters to
+students the du form (`address: informal`), the two options of 31 October 2026
+(docs/architecture.md §4.3); the New draft form's selects follow the sidecar.
 
 The six school letters are the first examples of a sender that is no authority. They
 run as standard jobs. The camp letter follows the usual shape of a Swiss Elternbrief: a
 compulsory school event, the parents' share limited to the food costs (as the Federal
 Supreme Court ruled in 2017), the Talon to sign and return, the packing list. The
 Schnupperwoche letter speaks to the student in the du form, as Swiss lower secondary
-schools do, and the French and Italian versions in the tu form. The prompts still call
-the source an official document and the German and French rules expect Sie and vous
-(docs/use-cases.md §8).
+schools do, and the French and Italian versions in the tu form (docs/use-cases.md §8).
 
 The KESB decision follows the layout of real ones: the header with the panel, the
 person and the subject, then I. Sachverhalt, II. Erwägungen, III. Entscheid and the
