@@ -212,7 +212,17 @@ sentence by sentence before, which completed such an address without its street)
 percentage is stored as `10%`, the form the prompt asks for; as a bare number it
 parsed as a plain number and never matched again. Values in passages the model marked as
 droppable become background facts; all others must be kept. The first local test run
-showed why: the model listed 3 facts for a letter with 11 checkable values.
+showed why: the model listed 3 facts for a letter with 11 checkable values. One fact
+per statement (since 31 October 2026): before code adds its facts, two of the model's
+facts that cite a common sentence, are of one kind, both to keep or both not, and agree
+in their values (the normalised value, else the hard values in the fact's text) become
+one, the one with the normalised value, else the first, with the sentences of both; and
+a hard value of the source that a fact of the model holds in its text, without a
+normalised value, becomes that fact's value instead of a fact of its own beside it (the
+70B listed the Italian camp letter's "deve essere pagata entro 30 giorni" without a
+value, code added the period again, and a repair round then wrote both). Code's own
+facts take their ids after the highest one, so none repeats an id a merge left
+standing.
 
 **The vocabulary completes the hard terms.** The project's vocabulary of hard words
 (`rules/data/vocabulary_<lang>.toml`, `rules/vocabulary.py`; [rules.md](rules.md),
@@ -454,12 +464,26 @@ drops an addition for facts the draft already conveys (the links of §4.4), none
 asked for, and an addition asked for a value that brings none of it; a heading carries
 nothing, whatever fact ids the writer gave it. A fact the judge calls missing while a
 content block carries it is asked for on that block ("say it clearly here"), not as new
-sentences: on the school letters the 70B had called obligations missing that stood
+sentences, and of several carrying blocks on the one whose words overlap the fact's
+most, since the writer's fact ids are loose: on the school letters the 70B had called obligations missing that stood
 there in other words, and every round added a paraphrase, one sentence three times in
 the end (docs/prompts.md). Since the same day the value extractor reads a range of two
 days in one month as both dates (`vom 7. bis 11. Juni 2027`), so FACT-01 no longer asks
 for the first day next to the range, which the rounds had answered with the source
-sentence beside it. The judge's meaning findings
+sentence beside it. Follow-ups of the same day: an added sentence that says in other
+words what the draft says at its place is a repeat (every content word of it stands in
+the blocks around it: the block it follows and that block's neighbours, the blocks that
+cite one of its source sentences, the blocks that carry one of its facts; and every
+value too), and so is a second text of a repair answer that says what a neighbouring
+block says (the 70B adds "Ruf den Betrieb und das Schulsekretariat an." after the
+sentence that says so, and "Bis spätestens 7.30 Uhr." far from it); a repair or
+addition text without final punctuation joins the next text when that
+starts in lower case, and a text of several sentences is split into them (the 70B split
+a sentence at its comma into two texts and wrote three sentences as one); and the fact
+sheet carries one fact per statement (§4.2). Asking for a missing value on the block
+that cites its sentence, instead of as new sentences, was tried the same day and not
+taken: the 70B left the block as it was and added the value in new sentences beside it
+anyway, with the restatements the filter above now removes (docs/prompts.md). The judge's meaning findings
 on headings are not sent for repair: a small model turns the question heading into a
 statement. A repair answer with a value that neither the source nor the fact sheet
 contains (the check of FACT-06) is sent back once with the values named; the second
@@ -524,7 +548,9 @@ best version after the facts rounds, the most important kinds first and at most 
 many, are asked for one by one through `stages.recover_fact`, the call behind the
 review page's "Suggest a sentence" (§4.7): the fact's paragraph, the blocks at its
 place, the value and its sentence named. Each call sees the sentences accepted before
-it. The accepted sentences go after their blocks, or after the list a block belongs
+it, and a value one of them brought is not asked for again (since 31 October 2026: the
+70B's sentence for the departure time named the return time too, and the next call then
+wrote the return time twice more). The accepted sentences go after their blocks, or after the list a block belongs
 to, as new blocks carrying the fact
 (`stages.add_sentences`), in one new version with the next free number and the best
 version as its parent; code's edits, the rule check and the judge follow as after a

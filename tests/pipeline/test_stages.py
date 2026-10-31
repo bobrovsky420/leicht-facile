@@ -12,8 +12,10 @@ from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, level_name, ren
 from leichtfacile.pipeline.stages import (
     RepairRequest,
     apply_repairs,
+    complete_factsheet,
     drop_repeats,
     link_facts,
+    merge_twin_facts,
     split_sections,
     text_to_blocks,
     to_factsheet,
@@ -564,6 +566,182 @@ def test_a_repair_text_that_is_part_of_another_of_the_same_answer_is_dropped() -
     assert [(d.reason, d.text) for d in dropped] == [
         ("repeat", "nach der Woche bei der Lehrperson sein."),
     ]
+
+
+def test_repair_texts_are_sentences_fragments_joined_and_several_split() -> None:
+    """The 70B split a sentence at its comma into two texts and wrote three sentences
+    as one text (31 October 2026)."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="sentence", text="Alt zwei."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [{"id": "b001", "texts": ["Wenn du nicht entschuldigt fehlst",
+                                             "werden die Absenzen im Zeugnis vermerkt."]}],
+        "additions": [{"after": "b002", "texts": [
+            "Das BIZ hilft dir. Die Adresse ist Bahnhofstrasse 10 in Musterwil. "
+            "Es ist bis 17.30 Uhr offen."
+        ]}],
+    })  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({"b001": ["x"]}, []), fs)
+    assert [b.text for b in new.blocks] == [
+        "Wenn du nicht entschuldigt fehlst werden die Absenzen im Zeugnis vermerkt.",
+        "Alt zwei.", "Das BIZ hilft dir.", "Die Adresse ist Bahnhofstrasse 10 in Musterwil.",
+        "Es ist bis 17.30 Uhr offen.",
+    ]  # fmt: skip
+
+
+def test_two_facts_for_one_statement_become_one() -> None:
+    """The model listed the deadline twice, with its value and in other words; another
+    value or another sentence is another fact."""
+    facts = [
+        Fact(id="f01", kind="deadline", text="Das Gesuch muss bis 31. März 2026 dort sein.",
+             value_norm="2026-03-31", segment_ids=["s0003"]),
+        Fact(id="f02", kind="deadline", text="Abgabe bis am 31. März 2026.",
+             segment_ids=["s0003", "s0004"]),
+        Fact(id="f03", kind="amount", text="Die Gebühr ist 20 Franken.", value_norm="20",
+             segment_ids=["s0003"]),
+        Fact(id="f04", kind="deadline", text="Bis 31. März 2026.", value_norm="2026-03-31",
+             segment_ids=["s0009"]),
+    ]  # fmt: skip
+    merged = merge_twin_facts(facts, "de")
+    assert [f.id for f in merged] == ["f01", "f03", "f04"]
+    assert merged[0].segment_ids == ["s0003", "s0004"]
+    # The fact with the normalised value stays, whichever comes first.
+    assert [f.id for f in merge_twin_facts(facts[1::-1], "de")] == ["f01"]
+
+
+def test_an_addition_that_restates_its_neighbours_is_dropped() -> None:
+    """The 70B adds the sentence again in other words next to the one that says so;
+    a sentence that brings a new value or a new word stays."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Was ist bei Krankheit?"),
+        Block(id="b002", kind="sentence",
+              text="Bei Krankheit oder Unfall rufst du den Betrieb und das Schul·sekretariat an."),
+        Block(id="b003", kind="sentence", text="Ruf bis spätestens 7.30 Uhr an."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"repairs": [], "additions": [{"after": "b002", "texts": [
+        "Ruf den Betrieb und das Schul·sekretariat an.",  # says b002 again
+        "Telefon: 044 123 45 67.",  # a new value
+        "Du rufst bis spätestens 7.30 Uhr an.",  # says b003 again
+        "Bei Krankheit bleibst du zu Hause.",  # a new word
+    ]}]})  # fmt: skip
+    dropped: list = []
+    new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
+    assert [b.text for b in new.blocks][1:] == [
+        "Bei Krankheit oder Unfall rufst du den Betrieb und das Schul·sekretariat an.",
+        "Telefon: 044 123 45 67.", "Bei Krankheit bleibst du zu Hause.",
+        "Ruf bis spätestens 7.30 Uhr an.",
+    ]  # fmt: skip
+    assert [(d.reason, d.text) for d in dropped] == [
+        ("repeat", "Ruf den Betrieb und das Schul·sekretariat an."),
+        ("repeat", "Du rufst bis spätestens 7.30 Uhr an."),
+    ]
+
+
+def test_a_restatement_far_from_its_sentence_is_found_by_the_source_sentence() -> None:
+    """The 70B adds "Bis spätestens 7.30 Uhr." at the end, far from the sentence that
+    says so; both cite the same source sentence. A sentence with a new word stays."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Ruf bis spätestens 7.30 Uhr an.",
+              segment_ids=["s0013"]),
+        Block(id="b002", kind="sentence", text="Du suchst dir selbst einen Platz."),
+        Block(id="b003", kind="sentence", text="Du führst das Tagebuch."),
+        Block(id="b004", kind="sentence", text="Frag deine Lehrperson."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"repairs": [], "additions": [
+        {"after": "b004", "texts": ["Bis spätestens 7.30 Uhr."], "segment_ids": ["s0013"]},
+        {"after": "b004", "texts": ["Bis spätestens 7.30 Uhr beim Betrieb."],
+         "segment_ids": ["s0013"]},
+    ]})  # fmt: skip
+    dropped: list = []
+    new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
+    assert [b.text for b in new.blocks][-1] == "Bis spätestens 7.30 Uhr beim Betrieb."
+    assert [(d.reason, d.text) for d in dropped] == [("repeat", "Bis spätestens 7.30 Uhr.")]
+
+
+def test_a_repair_text_that_says_what_a_neighbour_says_is_dropped() -> None:
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence",
+              text="Sie schicken den Bericht bis spätestens 2. April 2027 ein."),
+        Block(id="b002", kind="sentence", text="Der Bericht muss innert zwei Wochen dort sein."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"additions": [], "repairs": [{"id": "b002", "texts": [
+        "Der Bericht muss innerhalb von zwei Wochen dort sein.",
+        "Das ist bis spätestens 2. April 2027.",
+    ]}]})  # fmt: skip
+    dropped: list = []
+    new = apply_repairs(draft, out, RepairRequest({"b002": ["x"]}, []), fs, dropped=dropped)
+    assert [b.text for b in new.blocks] == [
+        "Sie schicken den Bericht bis spätestens 2. April 2027 ein.",
+        "Der Bericht muss innerhalb von zwei Wochen dort sein.",
+    ]
+    assert [(d.reason, d.text) for d in dropped] == [
+        ("repeat", "Das ist bis spätestens 2. April 2027."),
+    ]
+
+
+def test_a_repair_text_that_says_what_another_block_says_goes_unless_nothing_is_left() -> None:
+    """The 70B put a sentence another block already says before the block's own text;
+    a repair whose only text restates another block keeps it."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Sie suchen einen Platz.", fact_ids=["f02"]),
+        Block(id="b002", kind="sentence", text="Sie geben die Bestätigung ab."),
+        Block(id="b003", kind="sentence", text="Die Gebühr ist 20 Franken.", fact_ids=["f02"]),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"additions": [], "repairs": [
+        {"id": "b001", "texts": ["Die Gebühr: 20 Franken.", "Sie suchen selbst einen Platz."]},
+        {"id": "b002", "texts": ["Gebühr: 20 Franken."]},
+    ]})  # fmt: skip
+    dropped: list = []
+    request = RepairRequest({"b001": ["x"], "b002": ["x"]}, [])
+    new = apply_repairs(draft, out, request, fs, dropped=dropped)
+    assert [b.text for b in new.blocks] == [
+        "Sie suchen selbst einen Platz.", "Gebühr: 20 Franken.", "Die Gebühr ist 20 Franken.",
+    ]  # fmt: skip
+    assert [(d.reason, d.text) for d in dropped] == [("repeat", "Die Gebühr: 20 Franken.")]
+
+
+def test_the_recover_round_skips_a_value_the_draft_has_meanwhile() -> None:
+    from leichtfacile.pipeline.stages import value_present
+
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    phone = next(f for f in fs.facts if f.id == "f03")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Rufen Sie an."),
+    ])  # fmt: skip
+    assert not value_present(phone, draft)
+    with_number = draft.model_copy(update={"blocks": [
+        *draft.blocks, Block(id="b002", kind="sentence", text="Die Nummer ist 044 123 45 67."),
+    ]})  # fmt: skip
+    assert value_present(phone, with_number)
+
+
+def test_a_value_the_models_fact_holds_becomes_its_value_not_a_second_fact() -> None:
+    """The model's fact says the deadline without a normalised value; the source's
+    date goes into that fact instead of a fact of its own beside it."""
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id="f01", kind="deadline", text="Das Gesuch muss bis 31. März 2026 dort sein.",
+             segment_ids=["s0003"]),
+    ])  # fmt: skip
+    facts = complete_factsheet(fs, fx.letter()).facts
+    assert facts[0].value_norm == "2026-03-31" and facts[0].origin != "code"
+    assert not [f for f in facts[1:] if f.value_norm == "2026-03-31"]
+
+
+def test_code_facts_get_ids_after_the_highest_one() -> None:
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id="f01", kind="deadline", text="x", value_norm="2026-03-31", segment_ids=["s0003"]),
+        Fact(id="f05", kind="amount", text="y", value_norm="20", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    ids = [f.id for f in complete_factsheet(fs, fx.letter()).facts]
+    assert ids[:2] == ["f01", "f05"] and len(ids) > 2  # the phone number at least
+    assert len(set(ids)) == len(ids) and all(int(i[1:]) > 5 for i in ids[2:])
 
 
 def test_a_repeated_sentence_is_dropped_with_its_empty_heading() -> None:

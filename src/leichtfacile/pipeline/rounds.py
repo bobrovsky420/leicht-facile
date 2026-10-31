@@ -33,7 +33,7 @@ from typing import Literal
 
 from leichtfacile.pipeline import render
 from leichtfacile.pipeline.labels import label
-from leichtfacile.pipeline.stages import RepairRequest
+from leichtfacile.pipeline.stages import RepairRequest, shared_stems
 from leichtfacile.rules.vocabulary import OFFICE_RULES
 from leichtfacile.schemas import (
     Draft,
@@ -182,10 +182,14 @@ def build_request(
                 # then added a paraphrase of the block (the school letters, 31 October
                 # 2026). A repair replaces the block, so it cannot repeat it. A heading
                 # carries nothing, whatever fact ids the writer gave it: the 70B hangs
-                # the facts of a section on its question heading.
-                carrying = [
-                    b for b in draft.blocks if c.fact_id in b.fact_ids and b.kind != "heading"
-                ]
+                # the facts of a section on its question heading. Its fact ids are loose
+                # elsewhere too (the Teilnahme fact on the sentence about finding a
+                # place), so of several carrying blocks the one whose words overlap the
+                # fact's most is asked, in document order at a tie.
+                carrying = sorted(
+                    (b for b in draft.blocks if c.fact_id in b.fact_ids and b.kind != "heading"),
+                    key=lambda b: -shared_stems(b.text, fact.text, lang),
+                )
                 if carrying:
                     unclear = label(
                         lang, "judge_missing", fact_id=c.fact_id, note=c.note, fact=fact.text

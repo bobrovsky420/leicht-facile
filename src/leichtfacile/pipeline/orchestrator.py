@@ -504,6 +504,8 @@ class Orchestrator:
         )
         current = draft
         for fact in wanted:
+            if stages.value_present(fact, current):
+                continue  # a recovery before it in this round brought the value
             try:
                 rec, _ = stages.recover_fact(
                     run.llm, source, factsheet, current, fact.id, model=job.config.writer_model

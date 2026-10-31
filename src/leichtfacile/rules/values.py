@@ -419,7 +419,15 @@ _PLACE = (
 )
 ADDRESS_RE = re.compile(
     r"(?<![\w·'’-])"
-    r"(?:(?P<street>" + _STREET_DE + r"|" + _STREET_FR_IT + r")" + _SP + _HOUSE + _SP + r"*,?\s*)?"
+    r"(?:(?P<street>"
+    + _STREET_DE
+    + r"|"
+    + _STREET_FR_IT
+    + r")"
+    + _SP
+    + _HOUSE
+    + _SP
+    + r"*(?:,|[ ](?:in|à|a))?\s*)?"  # a word may stand between the street and the postcode
     r"(?:" + _POBOX + _SP + r"*,?\s*)?"
     r"(?P<ch>(?:CH|D|A)[- ])?(?<!\d)(?P<plz>[1-9]\d{3}|\d{5})"
     + _SP
@@ -940,6 +948,7 @@ def _address(m: re.Match[str], german: bool = False) -> str | None:
     street = ""
     if m.group("street"):
         street = _clean(f"{m.group('street')} {m.group('house')}")
+        street = re.sub(r"[ ](?:in|à|a)$", "", street)  # the word before the postcode
         street = re.sub(r"(?i)str\.(?=[ ])", "straße" if german else "strasse", street)
     pobox = _clean(m.group("pobox")) if m.group("pobox") else ""
     return f"{street}|{pobox}|{plz} {_clean(place)}"

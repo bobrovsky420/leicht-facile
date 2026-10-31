@@ -289,9 +289,11 @@ def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
 
 
 def test_a_fact_the_judge_misses_in_a_block_that_carries_it_is_repaired_there() -> None:
-    """A "missing" verdict on a fact a block already carries flags that block; only a
-    fact no block carries is asked for as new sentences, and a heading carries nothing.
-    A facts-only round, which flags no block, leaves the carried fact alone."""
+    """A "missing" verdict on a fact a block already carries flags that block, and of
+    several carrying blocks the one whose words overlap the fact's most (the writer's
+    fact ids are loose); only a fact no block carries is asked for as new sentences, and
+    a heading carries nothing. A facts-only round, which flags no block, leaves the
+    carried fact alone."""
     from leichtfacile.pipeline.models import UnderstandOut
     from leichtfacile.pipeline.rounds import build_request
     from leichtfacile.pipeline.stages import to_factsheet
@@ -301,7 +303,9 @@ def test_a_fact_the_judge_misses_in_a_block_that_carries_it_is_repaired_there() 
     fs = to_factsheet(UnderstandOut.model_validate(UNDERSTAND), "d")
     draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
         Block(id="b001", kind="heading", text="Was kostet es?", fact_ids=["f03"]),
-        Block(id="b002", kind="sentence", text="Sie bezahlen 20 Franken.", fact_ids=["f02"]),
+        Block(id="b002", kind="sentence", text="Sie schicken das Gesuch.", fact_ids=["f02"]),
+        Block(id="b003", kind="sentence", text="Die Gebühr beträgt 20 Franken.",
+              fact_ids=["f02"]),
     ])  # fmt: skip
     rules = RuleFindings(draft_version=1, level="A2", findings=[])
     judge = JudgeReport(draft_version=1, model="m", fact_checks=[
@@ -310,7 +314,8 @@ def test_a_fact_the_judge_misses_in_a_block_that_carries_it_is_repaired_there() 
     ])  # fmt: skip
     request = build_request(draft, rules, judge, fs)
     assert [f.id for f in request.missing] == ["f03"]
-    (line,) = request.problems["b002"]
+    assert set(request.problems) == {"b003"}  # not b002, which the writer linked loosely
+    (line,) = request.problems["b003"]
     assert line.startswith("  - Tatsache f02 ist hier nicht deutlich: Die Gebühr fehlt.")
     assert line.endswith("Sag sie in diesem Block klar: Die Gebühr ist 20 Franken.")
     facts_only = build_request(draft, rules, judge, fs, facts_only=True)

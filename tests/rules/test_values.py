@@ -156,3 +156,15 @@ def test_a_range_of_days_in_one_month_gives_both_dates(text: str, expected) -> N
 )
 def test_a_range_without_a_month_is_no_date(text: str) -> None:
     assert not [v for v in extract_values(text) if v.kind == "date"]
+
+
+@pytest.mark.parametrize(
+    ("text", "canonical"),
+    [
+        ("BIZ, Bahnhofstrasse 10 in 9999 Musterwil, hilft", "Bahnhofstrasse 10||9999 Musterwil"),
+        ("Rue de la Gare 10 à 1999 Exempleville, aide", "Rue de la Gare 10||1999 Exempleville"),
+        ("Via Roma 10 a 6899 Esempiopoli, aperto", "Via Roma 10||6899 Esempiopoli"),
+    ],
+)
+def test_a_word_may_stand_between_the_street_and_the_postcode(text: str, canonical: str) -> None:
+    assert [v.canonical for v in extract_values(text) if v.kind == "address"] == [canonical]

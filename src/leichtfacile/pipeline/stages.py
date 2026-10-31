@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from leichtfacile.ingest.detect import STOPWORDS
+from leichtfacile.ingest.segment import split_sentences
 from leichtfacile.llm.client import LLMClient, LLMResult
 from leichtfacile.llm.json_out import LLMOutputError, complete_json
 from leichtfacile.pipeline import render as r
@@ -519,16 +520,73 @@ def _value_norm(value: Value, lang: str) -> str:
     return value.canonical
 
 
+def _fact_values(fact: Fact, lang: str) -> list[Value]:
+    """A fact's values: its normalised value, else the hard values in its text."""
+    if value := parse_value_norm(fact.value_norm, fact.kind, lang):
+        return [value]
+    return [v for v in extract_values(fact.text, lang) if v.kind in HARD_KINDS]
+
+
+def _values_agree(a: list[Value], b: list[Value]) -> bool:
+    """Whether every value of the smaller list has its match in the other."""
+    if not a or not b:
+        return False
+    small, large = (a, b) if len(a) <= len(b) else (b, a)
+    return all(any(matches(x, y) or matches(y, x) for y in large) for x in small)
+
+
+def merge_twin_facts(facts: list[Fact], lang: str) -> list[Fact]:
+    """One fact for one statement. The model sometimes lists a statement twice, once
+    with its value and once without it in other words ("La fattura ... entro 30 giorni"
+    as f04 and f15 in the school letters, 31 October 2026), and a round then adds it
+    twice. Two of the model's facts that cite a common sentence, are of one kind, both
+    to keep or both not, and agree in their values are one fact: the one with the
+    normalised value stays, else the first, with the sentences of both."""
+    kept: list[Fact] = []
+    values = {f.id: _fact_values(f, lang) for f in facts}
+    for fact in facts:
+        twin = next(
+            (
+                k
+                for k in kept
+                if fact.origin != "code"
+                and k.origin != "code"
+                and k.kind == fact.kind
+                and k.must_keep == fact.must_keep
+                and set(k.segment_ids) & set(fact.segment_ids)
+                and _values_agree(values[k.id], values[fact.id])
+            ),
+            None,
+        )
+        if twin is None:
+            kept.append(fact)
+            continue
+        first, second = (twin, fact) if twin.value_norm or not fact.value_norm else (fact, twin)
+        segments = list(dict.fromkeys([*first.segment_ids, *second.segment_ids]))
+        kept[kept.index(twin)] = first.model_copy(update={"segment_ids": segments})
+    return kept
+
+
+def _only_value(text: str, lang: str, value: Value) -> bool:
+    """Whether the value is the one hard value the text holds."""
+    held = [v for v in extract_values(text, lang) if v.kind in HARD_KINDS]
+    return len(held) == 1 and (matches(value, held[0]) or matches(held[0], value))
+
+
 def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     """Code makes sure no hard value is forgotten: every date, amount, phone number,
     e-mail address, web address, percentage, time, period (`innert 30 Tagen`),
     identifier (case number, AHV number, IBAN) and postal address in the source that
-    no fact carries becomes a fact of its own. Values in passages the model marked as
-    droppable become background facts; the rest must be kept."""
+    no fact carries becomes a fact of its own, or the value of the model's fact that
+    holds it in its text without a normalised value. Values in passages the model
+    marked as droppable become background facts; the rest must be kept. Before that,
+    two of the model's facts for one statement become one (`merge_twin_facts`)."""
     lang = source.variety  # the values are read in the source's variety (de-DE: 1.500,00 €)
-    covered = [v for f in fs.facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
+    facts = merge_twin_facts(list(fs.facts), lang)
+    covered = [v for f in facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
     omitted = {s for o in fs.omit_candidates for s in o.segment_ids}
-    facts = list(fs.facts)
+    # New ids follow the highest one, so none repeats an id a merge left standing.
+    next_id = 1 + max((int(f.id[1:]) for f in facts if f.id[1:].isdigit()), default=0)
     # The values are taken from the document text as the evaluation's "hard facts
     # kept" takes them, not sentence by sentence: an address over two sentences
     # (`Gerichtsstrasse 12` / `8000 Musterwil`) is one value, found in neither alone
@@ -551,13 +609,33 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
         if not segments:
             continue
         covered.append(value)
+        # The model's fact that holds this value in its text and cites its sentence
+        # becomes the fact for it, not a second fact beside it: the 70B listed "deve
+        # essere pagata entro 30 giorni" without a value, code added the period again
+        # as a fact of its own, and the rounds then wrote both (31 October 2026).
+        holder = next(
+            (
+                f
+                for f in facts
+                if f.origin != "code"
+                and not f.value_norm
+                and set(f.segment_ids) & {s.id for s in segments}
+                and _only_value(f.text, lang, value)
+            ),
+            None,
+        )
+        if holder is not None:
+            facts[facts.index(holder)] = holder.model_copy(
+                update={"value_norm": _value_norm(value, lang)}
+            )
+            continue
         kind = _VALUE_KIND.get(value.kind, "other")
         cited = " ".join(seg.text for seg in segments)
         if value.kind in ("date", "period") and _DEADLINE_WORDS.search(cited):
             kind = "deadline"
         facts.append(
             Fact(
-                id=f"f{len(facts) + 1:02d}",
+                id=f"f{next_id:02d}",
                 kind=kind,  # type: ignore[arg-type]
                 text=cited if len(cited) <= 200 else cited[:197] + "...",
                 value_norm=_value_norm(value, lang),
@@ -566,6 +644,7 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
                 origin="code",
             )
         )
+        next_id += 1
     return fs.model_copy(update={"facts": facts})
 
 
@@ -860,6 +939,12 @@ def _stems(text: str, lang: str) -> dict[str, int]:
             stem = word[:_STEM_LETTERS]
             stems[stem] = max(stems.get(stem, 0), len(word))
     return stems
+
+
+def shared_stems(text: str, other: str, lang: str) -> int:
+    """How many word stems two texts share (`_stems`): which of several blocks that
+    carry a fact states it (rounds.build_request)."""
+    return len(_stems(text, lang).keys() & _stems(other, lang).keys())
 
 
 def wording_source(text: str, source: SourceDocument) -> str | None:
@@ -1222,6 +1307,27 @@ def repair(
     return new_draft, results, record
 
 
+_SENTENCE_END = (".", "!", "?", ":")
+
+
+def _sentences(texts: list[str], lang: str) -> list[str]:
+    """The answer's texts as sentences: a text without final punctuation joins the next
+    one when that starts in lower case (the 70B split a sentence at its comma into two
+    texts, "Wenn du nicht entschuldigt fehlst" and "werden die Absenzen im Zeugnis
+    vermerkt."), and a text of several sentences is split into them (it wrote three as
+    one; 31 October 2026)."""
+    joined: list[str] = []
+    for text in (t.strip() for t in texts if t.strip()):
+        if joined and not joined[-1].endswith(_SENTENCE_END) and text[:1].islower():
+            joined[-1] = f"{joined[-1]} {text}"
+        else:
+            joined.append(text)
+    out: list[str] = []
+    for text in joined:
+        out += split_sentences(text, lang) or [text]
+    return out
+
+
 def apply_repairs(
     draft: Draft,
     out: RepairOut,
@@ -1234,6 +1340,8 @@ def apply_repairs(
     has several texts), additions placed after their blocks. `dropped`, when given,
     collects every answered sentence code leaves out, with its reason."""
     dropped = [] if dropped is None else dropped
+    for item in (*out.repairs, *out.additions):  # the answer's texts as sentences
+        item.texts = _sentences(item.texts, draft.lang)
     repairs = {item.id: item.texts for item in out.repairs if item.id in request.problems}
     for item in out.repairs:
         if item.id not in request.problems:  # the prompt says: only the flagged blocks
@@ -1291,6 +1399,43 @@ def apply_repairs(
                 return "no_value"
         return None
 
+    # A sentence that says in other words what the draft says at its place is a repeat
+    # too: every content word of it stands in the blocks around it (the block it
+    # follows and that block's neighbours, the blocks that cite one of its source
+    # sentences, the blocks that carry one of its facts), and every value as well. The
+    # 70B adds "Ruf den Betrieb und das Schulsekretariat an." after the sentence that
+    # says so, whatever fact ids it gives the addition, and "Bis spätestens 7.30 Uhr."
+    # far from the sentence that says so (31 October 2026). Words are compared by their
+    # first four letters (Tage, Tagen), values by `matches`. A repaired block's own
+    # texts are measured against the other blocks only.
+    content = [b for b in draft.blocks if b.kind != "heading"]
+    position = {b.id: i for i, b in enumerate(content)}
+
+    def restates(
+        text: str,
+        anchor_id: str | None,
+        segment_ids: list[str],
+        fact_ids: list[str],
+        skip: str = "",
+    ) -> bool:
+        stems = {s[:4] for s in _stems(text, draft.lang)}
+        values = extract_values(text, draft.variety)
+        if not stems and not values:
+            return False
+        i = position.get(anchor_id)
+        around = content[max(0, i - 1) : i + 2] if i is not None else content[-2:]
+        around += [
+            b
+            for b in content
+            if set(b.segment_ids) & set(segment_ids) or set(b.fact_ids) & set(fact_ids)
+        ]
+        around = [b for b in around if b.id != skip]
+        known_stems = {s[:4] for b in around for s in _stems(b.text, draft.lang)}
+        known_values = [v for b in around for v in extract_values(b.text, draft.variety)]
+        return stems <= known_stems and all(
+            any(matches(v, k) or matches(k, v) for k in known_values) for v in values
+        )
+
     blocks: list[Block] = []
 
     def append_additions(anchor_id: str, adds: list) -> None:
@@ -1302,7 +1447,11 @@ def apply_repairs(
                 )
                 continue
             for text in add.texts:
-                if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
+                if (
+                    key(text) in kept
+                    or any(key(text) == key(x.text) for x in blocks)
+                    or restates(text, anchor_id, add.segment_ids, add.fact_ids)
+                ):
                     dropped.append(
                         DroppedText(
                             text=text, reason="repeat", block_id=anchor_id, fact_ids=add.fact_ids
@@ -1340,6 +1489,13 @@ def apply_repairs(
             ]
             dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
             texts = [t for t in texts if t not in parts] or texts[:1]
+            # A text of the answer that says what another block says, unless nothing
+            # would be left (the 70B put a sentence another block says before the
+            # block's own text).
+            said = [t for t in texts if restates(t, b.id, b.segment_ids, b.fact_ids, skip=b.id)]
+            if len(said) < len(texts):
+                dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in said]
+                texts = [t for t in texts if t not in said]
             fresh = [t for t in texts if key(t) not in kept] or texts[:1]
             dropped += [
                 DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
@@ -1366,7 +1522,11 @@ def apply_repairs(
             ]
             continue
         for text in add.texts:
-            if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
+            if (
+                key(text) in kept
+                or any(key(text) == key(x.text) for x in blocks)
+                or restates(text, None, add.segment_ids, add.fact_ids)
+            ):
                 dropped.append(DroppedText(text=text, reason="repeat", fact_ids=add.fact_ids))
                 continue
             base = blocks[-1].id if blocks else "b000"
@@ -1400,6 +1560,20 @@ def apply_repairs(
 
 
 # -- recover (one missing fact, asked for from the review page) ----------------------
+
+
+def value_present(fact: Fact, draft: Draft) -> bool:
+    """Whether a block of the draft carries the fact's value, FACT-01's question for one
+    fact: the recover round asks for a value only while the draft lacks it, since a
+    recovery before it in the same round may have brought it (the 70B's sentence for
+    the departure time named the return time too, and the next call then wrote the
+    return time twice more; 31 October 2026)."""
+    target = parse_value_norm(fact.value_norm, fact.kind, draft.variety)
+    if target is None:
+        return False
+    return any(
+        contains(target, b.text, extract_values(b.text, draft.variety)) for b in draft.blocks
+    )
 
 
 @dataclass
