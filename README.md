@@ -71,7 +71,10 @@ run where the organisation controls it, and **Apertus fits best**
 6. **Review** (human): source and draft side by side, provenance, fact checklist,
    approve, edit or reject each block, export with an audit trail.
 
-![The review page: the source on the left, the easy-language draft in the middle, the must-keep facts on the right](docs/images/review-page.png)
+<picture>
+  <source srcset="docs/images/review-page-dark.png" media="(prefers-color-scheme: dark)">
+  <img src="docs/images/review-page.png" width="1280" alt="The review page: the source on the left, the easy-language draft in the middle, the must-keep facts on the right">
+</picture>
 
 *The review page with the German example letter (team-written): the source with what
 was left out and why, the draft with its versions and findings, and the must-keep

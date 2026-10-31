@@ -1,7 +1,7 @@
 # The project's page at https://leichtfacile.ch: site/ (the English page, the German, French
 # and Italian ones in site/de, site/fr and site/it, the legal notice in site/legal, the
 # shared style.css, favicon.svg, images, robots.txt and sitemap.xml) with the app's fonts and the review screenshots in English and
-# German (PNG and WebP) copied next to it, published on GitHub Pages. The repository's Pages
+# German, light and dark (PNG and WebP), copied next to it, published on GitHub Pages. The repository's Pages
 # settings take "GitHub Actions" as the source and leichtfacile.ch as the custom domain (a
 # deployment by this workflow needs no CNAME file). Every action is pinned to a commit; the
 # comment after the hash names the release.
@@ -13,10 +13,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
-      - "docs/images/review-page.png"
-      - "docs/images/review-page-de.png"
-      - "docs/images/review-page.webp"
-      - "docs/images/review-page-de.webp"
+      - "docs/images/review-page*"
       - "src/leichtfacile/web/static/fonts/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -45,7 +42,7 @@ jobs:
           mkdir -p _site/fonts _site/images
           cp -r site/. _site/
           cp src/leichtfacile/web/static/fonts/*.woff2 src/leichtfacile/web/static/fonts/OFL-*.txt _site/fonts/
-          cp docs/images/review-page.png docs/images/review-page-de.png docs/images/review-page.webp docs/images/review-page-de.webp _site/images/
+          cp docs/images/review-page*.png docs/images/review-page*.webp _site/images/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site

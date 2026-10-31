@@ -67,42 +67,50 @@ CSS custom properties on `:root` in `app.css`, prefixed `--lf-`.
 
 ### 3.1 Colour
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `--lf-ink` | `#1A1E23` | Text, headings, icons |
-| `--lf-text-2` | `#49515C` | Labels, descriptions (8.0:1 on white) |
-| `--lf-muted` | `#646C78` | IDs, captions, counts (5.3:1 on white, 5.0:1 on `--lf-sunken`) |
-| `--lf-border-input` | `#808893` | Outline of text fields, selects and the selected segment (3.6:1 on white, 3.1:1 on the segmented tracks, WCAG 1.4.11) |
-| `--lf-border-strong` | `#BCC3CC` | Outline of buttons (their label identifies them) |
-| `--lf-border` | `#D7DBE0` | Edges of panes, cards and the app bar |
-| `--lf-hairline` | `#E6E9ED` | Strip borders, chip borders, list frames |
-| `--lf-divider` | `#EDEFF2` | Rows inside panes and tables |
-| `--lf-track` | `#EEF0F3` | Track of a segmented control on white |
-| `--lf-track-sunken` | `#EAEDF0` | The same on `--lf-sunken` |
-| `--lf-app` | `#F1F3F5` | Page background behind the surfaces |
-| `--lf-sunken` | `#F7F8FA` | Pane headers, table heads, footers, row hover |
-| `--lf-hover` | `#F1F3F6` | Hover of buttons and menu items |
-| `--lf-surface` | `#FFFFFF` | Panes, cards, fields |
-| `--lf-accent` | `#1F4E8A` | Primary buttons, links, selection bar, focus ring, the running state (8.3:1 against white, both ways) |
-| `--lf-accent-hover` | `#163B6A` | Hover of primary buttons and links |
-| `--lf-accent-weak` | `#E9EDF3` | Selected block, linked source sentence, pressed Edit, current version |
-| `--lf-accent-tint` | `#F2F4F8` | Checked option of a radio list, the running stage |
-| `--lf-accent-faint` | `#F4F6F9` | Blocks that carry the selected fact |
-| `--lf-accent-line` | `#A5B8D0` | Border of pressed Edit and of the current version pill |
-| `--lf-error` | `#B42318` | Error icons and counts, missing and distorted facts, pressed Reject, danger buttons (6.6:1) |
-| `--lf-error-weak` | `#FDEEEC` | Pressed Reject |
-| `--lf-error-line` | `#F1B8B2` | Border of pressed Reject and of danger buttons |
-| `--lf-warn` | `#B26B00` | Warning icons, the "Needs review" dot (graphics only, 4.2:1) |
-| `--lf-warn-text` | `#8A5300` | Warning counts, the "Not explained" tag (6.3:1) |
-| `--lf-warn-weak` | `#FFF4E0` | Fill of the "Not explained" tag |
-| `--lf-warn-bar` | `#D99A2B` | Bar of a source sentence nobody explained |
-| `--lf-ok` | `#1E6B3A` | Present facts, approved blocks, done jobs and stages (6.5:1) |
-| `--lf-ok-weak` | `#E8F3EC` | Pressed Approve |
-| `--lf-ok-line` | `#9CCBAE` | Border of pressed Approve |
-| `--lf-keycap` | `#C9CED6` | Border of keycaps |
+| Token | Light | Dark | Use |
+|-------|-------|------|-----|
+| `--lf-ink` | `#1A1E23` | `#E6E9ED` | Text, headings, icons |
+| `--lf-text-2` | `#49515C` | `#BCC3CC` | Labels, descriptions (8.0:1 on white) |
+| `--lf-muted` | `#646C78` | `#9AA2AD` | IDs, captions, counts (5.3:1 on white, 5.0:1 on `--lf-sunken`) |
+| `--lf-border-input` | `#808893` | `#6B7380` | Outline of text fields, selects and the selected segment (3.6:1 on white, 3.1:1 on the segmented tracks, WCAG 1.4.11) |
+| `--lf-border-strong` | `#BCC3CC` | `#4A525D` | Outline of buttons (their label identifies them) |
+| `--lf-border` | `#D7DBE0` | `#333A44` | Edges of panes, cards and the app bar |
+| `--lf-hairline` | `#E6E9ED` | `#2A3038` | Strip borders, chip borders, list frames |
+| `--lf-divider` | `#EDEFF2` | `#252A31` | Rows inside panes and tables |
+| `--lf-track` | `#EEF0F3` | `#262B32` | Track of a segmented control on white |
+| `--lf-track-sunken` | `#EAEDF0` | `#22272D` | The same on `--lf-sunken` |
+| `--lf-app` | `#F1F3F5` | `#121519` | Page background behind the surfaces |
+| `--lf-sunken` | `#F7F8FA` | `#15181C` | Pane headers, table heads, footers, row hover |
+| `--lf-hover` | `#F1F3F6` | `#242930` | Hover of buttons and menu items |
+| `--lf-surface` | `#FFFFFF` | `#1A1E23` | Panes, cards, fields |
+| `--lf-accent` | `#1F4E8A` | `#8FB1DE` | Primary buttons, links, selection bar, focus ring, the running state (8.3:1 against white, both ways) |
+| `--lf-accent-hover` | `#163B6A` | `#B3CBEA` | Hover of primary buttons and links |
+| `--lf-accent-weak` | `#E9EDF3` | `#1E2B3D` | Selected block, linked source sentence, pressed Edit, current version |
+| `--lf-accent-tint` | `#F2F4F8` | `#1C2533` | Checked option of a radio list, the running stage |
+| `--lf-accent-faint` | `#F4F6F9` | `#1B222C` | Blocks that carry the selected fact |
+| `--lf-accent-line` | `#A5B8D0` | `#3D5578` | Border of pressed Edit and of the current version pill |
+| `--lf-error` | `#B42318` | `#F19A90` | Error icons and counts, missing and distorted facts, pressed Reject, danger buttons (6.6:1) |
+| `--lf-error-weak` | `#FDEEEC` | `#33191A` | Pressed Reject |
+| `--lf-error-line` | `#F1B8B2` | `#6B2E2A` | Border of pressed Reject and of danger buttons |
+| `--lf-warn` | `#B26B00` | `#E0A33A` | Warning icons, the "Needs review" dot (graphics only, 4.2:1) |
+| `--lf-warn-text` | `#8A5300` | `#EBB667` | Warning counts, the "Not explained" tag (6.3:1) |
+| `--lf-warn-weak` | `#FFF4E0` | `#33270F` | Fill of the "Not explained" tag |
+| `--lf-warn-bar` | `#D99A2B` | `#C98A1F` | Bar of a source sentence nobody explained |
+| `--lf-ok` | `#1E6B3A` | `#7CC596` | Present facts, approved blocks, done jobs and stages (6.5:1) |
+| `--lf-ok-weak` | `#E8F3EC` | `#15291C` | Pressed Approve |
+| `--lf-ok-line` | `#9CCBAE` | `#2F5E40` | Border of pressed Approve |
+| `--lf-keycap` | `#C9CED6` | `#4A525D` | Border of keycaps |
+| `--lf-on-accent` | `#FFFFFF` | `#10161F` | Label of primary buttons |
+| `--lf-spinner` | `#BCCADC` | `#3D5578` | Track of the running stage's spinner |
 
 The four accent tints are the accent mixed with white (90, 94, 95 and 60 percent).
 An installation that changes `--lf-accent` recomputes them (§14).
+
+The dark set follows the system setting (`prefers-color-scheme: dark`); there is no
+switch in the app. It uses the dark values of the project page (`site/style.css`) for
+the same roles. Every text pair is at least 5.5:1, the field outline 3.0:1 on the tracks.
+Status icons take their colours from these tokens through classes (`.i-ok`, `.i-error`,
+`.i-warn`, ...), the glyph in `--lf-surface`. The reader view's paper stays white.
 
 Rules:
 

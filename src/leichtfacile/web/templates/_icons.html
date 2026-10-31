@@ -10,24 +10,24 @@
    unchecked, and "none" for a count of zero (grey circle). #}
 {% macro sev(kind, label="", size=14) -%}
 {%- if kind in ("error", "missing", "none") -%}
-<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="{{ '#BCC3CC' if kind == 'none' else '#B42318' }}"/><path d="M8 4.4v4.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.4" r="1.05" fill="#fff"/></svg>
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" class="{{ 'i-none' if kind == 'none' else 'i-error' }}"/><path d="M8 4.4v4.4" class="i-glyph-line" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="11.4" r="1.05" class="i-glyph"/></svg>
 {%- elif kind in ("warn", "distorted", "doubted") -%}
-<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><path d="M8 1.2 15.3 14.3H.7Z" fill="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke="{{ '#B42318' if kind == 'distorted' else '#B26B00' }}" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 5.6v4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="12" r="1" fill="#fff"/></svg>
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><path d="M8 1.2 15.3 14.3H.7Z" class="{{ 'i-distorted' if kind == 'distorted' else 'i-warn' }}" stroke-width="1.2" stroke-linejoin="round"/><path d="M8 5.6v4.2" class="i-glyph-line" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="12" r="1" class="i-glyph"/></svg>
 {%- elif kind == "present" -%}
-<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" fill="#1E6B3A"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="7.2" class="i-ok"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" class="i-glyph-line" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
 {%- elif kind == "unchecked" -%}
-<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" stroke="#646C78" stroke-width="1.5" stroke-dasharray="2.4 2"/></svg>
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" class="i-muted" stroke-width="1.5" stroke-dasharray="2.4 2"/></svg>
 {%- else -%}
-<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" stroke="#646C78" stroke-width="1.5"/><path d="M8 7.3v4" stroke="#646C78" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r="1" fill="#646C78"/></svg>
+<svg class="ico" width="{{ size }}" height="{{ size }}" viewBox="0 0 16 16" {{ _a11y(label) }}><circle cx="8" cy="8" r="6.6" fill="none" class="i-muted" stroke-width="1.5"/><path d="M8 7.3v4" class="i-muted" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r="1" class="i-muted-fill"/></svg>
 {%- endif -%}
 {%- endmacro %}
 
 {# The decision column of a block: all four icons, CSS shows the one that applies. #}
 {% macro decision_states() -%}
 <span class="st st-undecided" role="img" aria-label="{{ t('review.decision.undecided') }}"></span>
-<svg class="st st-approved" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.approved') }}"><circle cx="8" cy="8" r="7.5" fill="#1E6B3A"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<svg class="st st-edited" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.edited') }}"><circle cx="8" cy="8" r="7.5" fill="#1F4E8A"/><path d="M9.7 4.4l1.9 1.9-4.7 4.7-2.4.5.5-2.4z" fill="#fff"/></svg>
-<svg class="st st-rejected" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.rejected') }}"><circle cx="8" cy="8" r="7.5" fill="#B42318"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+<svg class="st st-approved" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.approved') }}"><circle cx="8" cy="8" r="7.5" class="i-ok"/><path d="M4.7 8.3 7 10.5l4.3-4.8" fill="none" class="i-glyph-line" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg class="st st-edited" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.edited') }}"><circle cx="8" cy="8" r="7.5" class="i-accent"/><path d="M9.7 4.4l1.9 1.9-4.7 4.7-2.4.5.5-2.4z" class="i-glyph"/></svg>
+<svg class="st st-rejected" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="{{ t('review.decision.rejected') }}"><circle cx="8" cy="8" r="7.5" class="i-error"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" class="i-glyph-line" stroke-width="1.7" stroke-linecap="round"/></svg>
 {%- endmacro %}
 
 {# Line icons in the text colour. #}

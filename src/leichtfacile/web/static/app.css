@@ -75,10 +75,53 @@
   --lf-ok-weak: #E8F3EC;
   --lf-ok-line: #9CCBAE;
   --lf-keycap: #C9CED6;
+  --lf-on-accent: #FFFFFF;
+  --lf-spinner: #BCCADC;
   --lf-shadow-menu: 0 8px 24px rgba(16, 24, 40, 0.12);
   --lf-sans: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
   --lf-mono: "Atkinson Hyperlegible Mono", ui-monospace, Consolas, monospace;
   --lf-reader: "Atkinson Hyperlegible Next", Arial, Helvetica, sans-serif;
+  color-scheme: light dark;
+}
+/* the same roles for a dark system setting (docs/ui-design.md §3.1); the reader view's
+   paper stays white */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lf-ink: #E6E9ED;
+    --lf-text-2: #BCC3CC;
+    --lf-muted: #9AA2AD;
+    --lf-border-input: #6B7380;
+    --lf-border-strong: #4A525D;
+    --lf-border: #333A44;
+    --lf-hairline: #2A3038;
+    --lf-divider: #252A31;
+    --lf-track: #262B32;
+    --lf-track-sunken: #22272D;
+    --lf-app: #121519;
+    --lf-sunken: #15181C;
+    --lf-hover: #242930;
+    --lf-surface: #1A1E23;
+    --lf-accent: #8FB1DE;
+    --lf-accent-hover: #B3CBEA;
+    --lf-accent-weak: #1E2B3D;
+    --lf-accent-tint: #1C2533;
+    --lf-accent-faint: #1B222C;
+    --lf-accent-line: #3D5578;
+    --lf-error: #F19A90;
+    --lf-error-weak: #33191A;
+    --lf-error-line: #6B2E2A;
+    --lf-warn: #E0A33A;
+    --lf-warn-text: #EBB667;
+    --lf-warn-weak: #33270F;
+    --lf-warn-bar: #C98A1F;
+    --lf-ok: #7CC596;
+    --lf-ok-weak: #15291C;
+    --lf-ok-line: #2F5E40;
+    --lf-keycap: #4A525D;
+    --lf-on-accent: #10161F;
+    --lf-spinner: #3D5578;
+    --lf-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* -- base -- */
@@ -151,14 +194,25 @@ input[type=checkbox], input[type=radio] { width: 16px; height: 16px; margin: 0; 
 
 /* -- icons -- */
 .ico { display: inline-block; vertical-align: -2px; }
+/* status icons (_icons.html): a shape in the status colour, the glyph in the surface colour */
+.i-ok { fill: var(--lf-ok); }
+.i-error { fill: var(--lf-error); }
+.i-warn { fill: var(--lf-warn); stroke: var(--lf-warn); }
+.i-distorted { fill: var(--lf-error); stroke: var(--lf-error); }
+.i-none { fill: var(--lf-border-strong); }
+.i-accent { fill: var(--lf-accent); }
+.i-glyph { fill: var(--lf-surface); }
+.i-glyph-line { stroke: var(--lf-surface); }
+.i-muted { stroke: var(--lf-muted); }
+.i-muted-fill { fill: var(--lf-muted); }
 
 /* -- buttons -- */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px;
        border: 1px solid var(--lf-border-strong); border-radius: 6px; background: var(--lf-surface); color: var(--lf-ink);
        font: 500 14px/1 var(--lf-sans); text-decoration: none; white-space: nowrap; cursor: pointer; }
 .btn:hover { background: var(--lf-hover); color: var(--lf-ink); }
-.btn-primary { border-color: var(--lf-accent); background: var(--lf-accent); color: #fff; }
-.btn-primary:hover { border-color: var(--lf-accent-hover); background: var(--lf-accent-hover); color: #fff; }
+.btn-primary { border-color: var(--lf-accent); background: var(--lf-accent); color: var(--lf-on-accent); }
+.btn-primary:hover { border-color: var(--lf-accent-hover); background: var(--lf-accent-hover); color: var(--lf-on-accent); }
 .btn-quiet { border-color: transparent; background: transparent; color: var(--lf-text-2); }
 .btn-quiet:hover { background: var(--lf-hover); color: var(--lf-ink); }
 .btn-danger { border-color: var(--lf-error-line); color: var(--lf-error); }
@@ -410,7 +464,7 @@ ol.steps { padding: 6px 0; list-style: none; }
 .step-done .step-icon::after { background: var(--lf-ok); }
 .ring { display: block; width: 20px; height: 20px; border: 2px solid var(--lf-border-strong); border-radius: 50%; background: var(--lf-surface); }
 .step-skipped .ring { border-style: dashed; }
-.ring.spin { border-color: #BCCADC; border-top-color: var(--lf-accent); animation: lf-spin 1s linear infinite; }
+.ring.spin { border-color: var(--lf-spinner); border-top-color: var(--lf-accent); animation: lf-spin 1s linear infinite; }
 @keyframes lf-spin { to { transform: rotate(360deg); } }
 .step-body { flex: 1; min-width: 0; }
 .step-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

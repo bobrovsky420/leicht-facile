@@ -193,7 +193,6 @@ ol.steps p { margin: 0; color: var(--text-2); font-size: 0.95rem; }
 figure { margin: 40px 0 0; }
 figure img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 10px; display: block; }
 figcaption { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
-@media (prefers-color-scheme: dark) { figure img { filter: brightness(0.86); } }
 
 .table-scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 0.97rem; }

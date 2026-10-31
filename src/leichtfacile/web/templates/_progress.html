@@ -12,7 +12,7 @@
     {% for s in p.steps %}
       <li class="step step-{{ s.state }} who-{{ s.who }}"{% if s.state == 'running' %} aria-current="step"{% endif %}>
         <span class="step-icon">
-          {% if s.state == 'done' %}<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.5" fill="#1E6B3A"/><path d="M6 10.3 8.8 13l5.2-5.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {% if s.state == 'done' %}<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.5" class="i-ok"/><path d="M6 10.3 8.8 13l5.2-5.8" fill="none" class="i-glyph-line" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           {% elif s.state == 'running' %}<span class="ring spin" aria-hidden="true"></span>
           {% elif s.state == 'failed' %}{{ icons.sev('error', '', 20) }}
           {% else %}<span class="ring" aria-hidden="true"></span>{% endif %}
