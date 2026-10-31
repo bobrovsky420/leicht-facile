@@ -267,7 +267,7 @@
 "passaggio in giudicato" = "Nessuno può più fare ricorso contro la decisione. La decisione vale ora per sempre."  # TERMDAT 217436
 "termine" = "Un termine è il tempo per un compito. Lei deve fare il compito prima della fine del termine."
 "proroga" = "Con una proroga Lei riceve più tempo per un compito. Lei la chiede all'ufficio prima della fine del termine."
-"domanda" = "Con una domanda Lei chiede qualcosa a un ufficio. Per esempio dei soldi o un permesso."
+"domanda" = "Con una domanda Lei chiede qualcosa a un ufficio o a una scuola. Per esempio dei soldi o un permesso."
 "avere diritto a" = "Avere diritto a una cosa vuol dire: Lei può ricevere questa cosa. La legge lo dice."
 "non entrata nel merito" = "L'ufficio non esamina la Sua domanda. Per esempio mancano dei documenti. Oppure Lei ha mandato la domanda troppo tardi."
 "allegato" = "Un allegato è un foglio nella stessa lettera. Per esempio un formulario o una copia."  # TERMDAT 193810
@@ -357,7 +357,8 @@
 "assicurazione contro la disoccupazione" = "Lei ha perso il lavoro? Allora questa assicurazione Le dà dei soldi. La aiuta anche a cercare un nuovo lavoro."  # TERMDAT 106572
 "AD" = "L'AD è un'assicurazione. Lei ha perso il lavoro? Allora l'AD Le dà dei soldi. La aiuta anche a cercare un nuovo lavoro."
 "URC" = "L'URC è un ufficio. Aiuta le persone senza lavoro a trovare un nuovo impiego."  # TERMDAT 477888
-"assicurazione contro gli infortuni" = "Paga le spese dopo un infortunio. Per esempio il medico. Paga anche dei soldi durante il tempo senza lavoro."  # TERMDAT 37634
+"assicurazione contro gli infortuni" = "Paga le spese dopo un infortunio. Per esempio il medico. I dipendenti dopo l'infortunio non possono lavorare? Allora ricevono anche dei soldi."  # TERMDAT 37634
+"responsabilità civile" = "La responsabilità civile è un'assicurazione. Lei o Suo figlio rompete una cosa di un'altra persona? Allora questa assicurazione paga il danno."
 "assegni familiari" = "Soldi per i genitori, per ogni figlio. Di solito Lei li riceve con il salario."  # TERMDAT 41628
 "fornitore di prestazioni" = "Un fornitore di prestazioni La cura. Per esempio un medico o un ospedale. Manda la fattura a Lei o alla cassa malati."  # TERMDAT 37415
 "modello medico di famiglia" = "Con questo modello Lei va prima dal Suo medico di famiglia. In cambio il Suo premio è più basso."  # TERMDAT 37543
@@ -461,6 +462,22 @@
 "Costituzione" = "La Costituzione è la legge più importante del Paese o del Cantone. Contiene le regole di base e i Suoi diritti."  # TERMDAT 56853
 "Confederazione" = "È il nome dello Stato svizzero. Le leggi federali valgono in tutta la Svizzera."  # TERMDAT 109472
 "Pretura" = "La Pretura è un tribunale del Cantone Ticino. Decide per esempio nelle cause civili. Per esempio per l'affitto o per i debiti."
+
+# School letters to parents and students (docs/use-cases.md section 8): the
+# explanations address nobody, since the reader is a parent (Lei, voi) or a student (tu).
+[explain.school]
+"riunione dei genitori" = "Alla riunione dei genitori i genitori incontrano la docente o il docente. Ricevono informazioni sulla classe e sull'anno scolastico."
+"direzione scolastica" = "La direzione scolastica dirige la scuola. Decide per esempio sulle dispense e sulle richieste dei genitori."
+"direzione dell'istituto" = "La direzione dell'istituto dirige la scuola. Decide per esempio sulle dispense e sulle richieste dei genitori."
+"docente di classe" = "La docente o il docente di classe è responsabile della classe. I genitori parlano prima di tutto con lei o con lui."
+"pagella" = "La pagella è un documento della scuola. Mostra le note dell'allieva o dell'allievo. Arriva alla fine del semestre o dell'anno scolastico."
+"dispensa" = "Una dispensa è un permesso: una persona non deve fare una cosa. Per esempio l'allievo non deve venire a scuola per una visita dal medico. I genitori fanno una richiesta alla scuola."
+"esonero" = "Un esonero è un permesso di non pagare o di non fare una cosa. Per esempio i genitori con pochi soldi non pagano il contributo per la settimana verde."
+"tagliando" = "Il tagliando è la parte in basso della lettera. I genitori lo compilano e lo riportano alla scuola."
+"settimana verde" = "La settimana verde è una settimana lontano da casa. La classe vive e impara insieme, per esempio in montagna. Fa parte della scuola."
+"stage" = "Uno stage è un periodo di lavoro in un'azienda. Così si impara un mestiere. Per esempio alcuni giorni durante la scuola."
+"stage di orientamento" = "Durante uno stage di orientamento l'allieva o l'allievo lavora alcuni giorni in un'azienda. Così conosce un mestiere."
+"orientamento scolastico e professionale" = "L'orientamento scolastico e professionale aiuta gli allievi a scegliere una scuola o un mestiere. In Ticino c'è un ufficio per questo."
 
 [explain.context]
 # Terms with a second, everyday sense (prestazione in sport, contributo to a cause,

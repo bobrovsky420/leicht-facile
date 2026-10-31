@@ -410,7 +410,8 @@ hard words of Swiss administrative letters, read by `rules/vocabulary.py`. Two k
   Groups: connectors, adverbs, verbs, nouns, abbreviations.
 - `explain`: a term that has to stay, because the reader meets it again on forms and
   letters (`Verfügung`, `Franchise`, `commandement de payer`), with a glossary
-  explanation. Groups: law, debt, insurance, health, social, tax, residence, vote.
+  explanation. Groups: law, debt, insurance, health, social, tax, residence, vote,
+  school.
   The false friends of `docs/hard-texts.md` §2 are in it.
 - `context` (a group of either kind): words with a second, everyday sense
   (`Schreiben` a letter or to write, `Leistung` in a school report, `consultation` at
@@ -418,10 +419,32 @@ hard words of Swiss administrative letters, read by `rules/vocabulary.py`. Two k
   them on its own.
 - `[not_in]`: phrases in which a term does not count (`zur Verfügung` is no decision).
 
+**School letters** (31 October 2026; docs/use-cases.md §8). The group `school` holds the
+words of letters from schools to parents and students: in the shared German file the
+terms of all three countries (`Elternabend`, `Schulleitung`, `Zeugnis`, `DaZ`), in the
+Swiss file the Swiss ones (`Klassenlehrperson`, `Klassenlager`, `Schnupperlehre`,
+`Berufswahl`, `BIZ`, `Dispensation`, `Absenz`, `Jokertag`, `Talon`), and their French
+and Italian counterparts (`enseignant titulaire`, `coupon-réponse`, `camp de classe`,
+`stage d'observation`; `docente di classe`, `tagliando`, `settimana verde`, `esonero`).
+The explanations address nobody, since a parent reads Sie and a student du. The
+liability insurance joined the insurance group, and three explanations stopped
+assuming an authority or an employee: a `Gesuch` (`demande`, `domanda`) asks an
+office or a school, and the accident insurance pays wages to employees, not to the
+reader; the 70B had put the office's explanation under a school letter and the
+employee's under a child's camp (the school letters of docs/use-cases.md §8 on Public AI, 30 and 31 October 2026). Phrases
+that start with a capitalised adjective (`Schulpsychologischer Dienst`) are not
+listed: the matcher reads the adjective as a noun and misses its other forms. On the six
+school letters (Public AI 70B, 31 October 2026) the glossaries took 40 of their 54
+explanations from the vocabulary, 36 from the new entries; in the runs before, it had
+supplied only Gesuch, Krankenkasse, Arztzeugnis, allegato, cassa malati and the accident
+insurance. The explanations of the vocabulary address the reader as Sie, vous and Lei
+where they address anybody, also in a letter to a student (Arztzeugnis in the
+Schnupperwoche letter): an open point of the form of address.
+
 **Varieties** (29 October 2026; docs/architecture.md §8). The German list is split by
 country. `rules/data/vocabulary_de.toml` keeps the entries that read correctly in
-Switzerland, Germany and Austria alike (305: 240 replace, 65 explain);
-`vocabulary_de-CH.toml` holds the Swiss ones (152: 20 replace, 132 explain),
+Switzerland, Germany and Austria alike (310: 240 replace, 70 explain);
+`vocabulary_de-CH.toml` holds the Swiss ones (161: 20 replace, 141 explain),
 `vocabulary_de-DE.toml` (118: 30, 88) and `vocabulary_de-AT.toml` (116: 33, 83) those of
 Germany and Austria. A variety reads the shared file and its own, a term stands in one
 of the two only, and French and Italian keep one file each. An entry is Swiss when it

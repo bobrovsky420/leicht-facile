@@ -273,7 +273,9 @@ with any model.
   more since 31 October 2026: the packing list is kept whole by FACT-10, which turns
   every item of a list in the source into a fact the draft must carry
   ([rules.md](rules.md#facts-the-most-important-family)); the reply slip survived
-  every run on its own.
+  every run on its own; the vocabulary explains the school words (`Klassenlager`,
+  `Dispensation`, `Talon`, `coupon-réponse`, `tagliando`; [rules.md](rules.md#vocabulary),
+  "School letters") and no longer explains a Gesuch as a request to an office.
 
 ## 9. Information for study participants
 
