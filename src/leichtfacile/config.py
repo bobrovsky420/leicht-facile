@@ -558,6 +558,12 @@ class Server(Section):
         ge=0,
         description="Writes (POST, PUT, PATCH, DELETE) per client address and minute; 0: no limit.",
     )
+    api_docs: bool = Field(
+        False,
+        description="The API documentation pages /docs and /redoc, which load Swagger UI and "
+        "ReDoc from a CDN; off, so the app loads nothing from the internet. /openapi.json "
+        "is always served.",
+    )
 
     @property
     def bound_to_loopback(self) -> bool:

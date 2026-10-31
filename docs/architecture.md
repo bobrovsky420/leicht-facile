@@ -1748,8 +1748,8 @@ at runtime.
   `172.16.0.0/12`).
 - Every response carries a Content-Security-Policy (scripts from this server only,
   the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
-  plug-ins; the API docs pages, which load Swagger UI from a CDN, get the other
-  headers only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, a
+  plug-ins; the API docs pages, which load Swagger UI from a CDN and are off unless
+  `server.api_docs` says so, get the other headers only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, a
   `Referrer-Policy` that keeps job addresses on the site and a `Permissions-Policy`.
   HTTPS and `Strict-Transport-Security` belong to the proxy that ends TLS.
 - A request body over 16 MB is refused with 413 by its `Content-Length` before a byte
@@ -1817,6 +1817,48 @@ at runtime.
   (`lifecycle.py`). A test fails a job on purpose and checks the job row, the page and
   the captured log for a sentinel word.
 
+### Supply chain
+
+What runs for an organisation is the code that was reviewed, at every hop, and the
+repository keeps that checkable:
+
+- **Dependencies.** `uv.lock` pins every package with its hashes, and every install,
+  CI and the image among them, runs `uv sync --frozen`. `[tool.uv] exclude-newer =
+  "7 days"` in pyproject.toml keeps a release out of `uv lock --upgrade` and `uv add`
+  until it has been public for a week, the window in which most hijacked packages are
+  caught; the project's own language packages are exempt (pinned to an exact version,
+  published right before the pin), and any other exception names a release and the date
+  after which the window admits it by itself, from which day `tests/test_supply_chain.py`
+  asks for its removal. The language packages are built from spaCy's wheels and the
+  Morph-it! archive pinned by SHA-256 (§10, "Starting the app").
+- **Updates.** `.github/dependabot.yml` opens one grouped pull request a week for the
+  Python packages, one for the actions and one for the images, each under the same
+  seven-day window; CI gates them like any change.
+- **Workflows and publishing.** Every action is pinned to a commit, the workflows start
+  from read-only permissions, PyPI and ghcr.io take the artifacts by the workflow's own
+  identity (trusted publishing, `packages: write`), no long-lived token exists, and the
+  one download in CI, gitleaks, is pinned by its checksum.
+- **Secrets.** CI scans every commit of the history with gitleaks on every change
+  (`.gitleaks.toml` allows the project's own shapes that look like keys: the message
+  keys of findings in audit bundles and tests, and one test fixture); the hook in
+  `scripts/hooks/pre-commit` scans the staged changes before a commit when gitleaks is
+  installed. The keys themselves live in the `.env` next to the config file, never in
+  the repository.
+- **Vulnerabilities.** Trivy scans `uv.lock` on every change and the image once built,
+  under one policy: a high or critical finding with a fix fails the job, one without a
+  fix is reported; the fix is a lockfile update or a rebuild of the image, which carries
+  Debian's updates from the day it is built.
+- **At runtime.** The app downloads nothing: the UI assets and the fonts are in the
+  package, and the API documentation pages, the one place that would load Swagger UI
+  and ReDoc from a CDN, are off unless `server.api_docs` says so.
+- **Reporting.** `SECURITY.md` names the private channels, the scope and the response
+  times.
+
+Settings of the repository on GitHub that go with this, outside the code: branch
+protection on `main` with CI required, secret scanning with push protection, Dependabot
+alerts, and private vulnerability reporting switched on. Open: provenance attestations
+for the wheel and the image, and a software bill of materials with each release.
+
 #### Data lifecycle
 
 What the service stores, where, for how long, and how it leaves:
@@ -1859,7 +1901,11 @@ What the service stores, where, for how long, and how it leaves:
 
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
-                            the container image built, started the same way with a token and scanned (Trivy)
+                            the container image built, started the same way with a token and scanned (Trivy),
+                            the history scanned for secrets (gitleaks), uv.lock scanned (Trivy)
+.github/dependabot.yml      weekly grouped updates of uv.lock, the actions and the images, a week after a release
+.gitleaks.toml              the secret scanner's configuration: the default rules and the project's own allowlist
+SECURITY.md                 how to report a vulnerability, the scope, the response times
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release;
                             the image built, checked and pushed to ghcr.io/bobrovsky420/leichtfacile
 Dockerfile, .dockerignore   the container image: the environment from uv.lock in a build stage, a slim Python image
@@ -1930,6 +1976,7 @@ src/leichtfacile/
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
 scripts/                    config_reference.py (the settings reference in configuration.md), print_letters.py,
+                            hooks/pre-commit (ruff and gitleaks on the staged changes; `git config core.hooksPath scripts/hooks`),
                             parity.py (the Swiss parity check against tests/fixtures/parity/swiss.json, §8),
                             model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),
                             lexicon_package.py and morphit.py (the Italian pipeline leichtfacile-model-it

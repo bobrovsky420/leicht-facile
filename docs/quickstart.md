@@ -226,6 +226,8 @@ The development tasks run with uv:
 | `uv run leichtfacile check-llm` | lists the provider's models and makes one short call |
 | `uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke` | the smoke run: the German example letter through the whole pipeline against the live endpoint; it succeeds when the job reaches review |
 | `uv run python scripts/config_reference.py` | writes the settings reference in [configuration.md](configuration.md#reference) again after a change of the settings |
+| `git config core.hooksPath scripts/hooks` | once per checkout: before each commit, ruff on the staged Python files and, with [gitleaks](https://github.com/gitleaks/gitleaks) installed, a scan of the staged changes for secrets; CI scans the whole history in any case |
+| `uv lock --upgrade` | newer dependencies, a release only once it is a week old (`[tool.uv] exclude-newer` in pyproject.toml); Dependabot opens the same as a pull request every week |
 
 ### The evaluation
 

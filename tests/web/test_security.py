@@ -81,10 +81,24 @@ def test_every_response_carries_the_security_headers(app_env) -> None:
         response = client.get(path)
         assert "content-security-policy" in response.headers, path
         assert response.headers["x-content-type-options"] == "nosniff", path
-    docs = client.get("/docs")
-    assert docs.status_code == 200
-    assert "content-security-policy" not in docs.headers, "Swagger UI comes from a CDN"
-    assert docs.headers["x-frame-options"] == "SAMEORIGIN"
+    assert client.get("/docs").status_code == 404, "the documentation pages are off by default"
+    assert "content-security-policy" in client.get("/openapi.json").headers
+
+
+def test_the_api_docs_pages_load_from_a_cdn_only_when_switched_on(make_app) -> None:
+    """server.api_docs: off by default, so the app loads nothing from the internet;
+    on, the pages get the security headers without the policy, which their inline
+    scripts and the CDN would break."""
+    off = make_app()
+    assert off.get("/docs").status_code == 404
+    assert off.get("/redoc").status_code == 404
+    assert off.get("/openapi.json").status_code == 200
+    on = make_app(server__api_docs=True)
+    for path in ("/docs", "/redoc"):
+        docs = on.get(path)
+        assert docs.status_code == 200, path
+        assert "content-security-policy" not in docs.headers, "Swagger UI comes from a CDN"
+        assert docs.headers["x-frame-options"] == "SAMEORIGIN"
 
 
 # -- 5. Body limit (the audit's probe 7) ----------------------------------------------------

@@ -68,7 +68,16 @@ def create_app(
         yield
         runner.stop()
 
-    app = FastAPI(title="Leicht·Facile", version=__version__, lifespan=lifespan)
+    # The documentation pages load Swagger UI and ReDoc from a CDN, the only download the
+    # app would ever make: off unless server.api_docs says so; /openapi.json stays.
+    docs = settings.server.api_docs
+    app = FastAPI(
+        title="Leicht·Facile",
+        version=__version__,
+        lifespan=lifespan,
+        docs_url="/docs" if docs else None,
+        redoc_url="/redoc" if docs else None,
+    )
     app.state.settings = settings  # replaced when the model page changes the settings
     app.state.registry = registry
     app.state.store = store

@@ -464,6 +464,7 @@ The web application (`leichtfacile serve`).
 | `ui_lang` | `"auto"` | Interface language for visitors who have not picked one: en, de, fr, it, or auto (the browser's). |
 | `allow_private_urls` | `false` | Let users submit URLs of the internal network (an intranet). |
 | `rate_limit_per_minute` | `120` | Writes (POST, PUT, PATCH, DELETE) per client address and minute; 0: no limit. |
+| `api_docs` | `false` | The API documentation pages /docs and /redoc, which load Swagger UI and ReDoc from a CDN; off, so the app loads nothing from the internet. /openapi.json is always served. |
 
 ### `[auth]`
 

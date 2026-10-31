@@ -7,8 +7,9 @@ sees a request first and a response last):
    in base.html (`request.state.csp_nonce`), `frame-ancestors 'self'`, no plug-ins, no
    script from anywhere but this server; `X-Content-Type-Options`, `X-Frame-Options`,
    `Referrer-Policy` (nothing about a job's address leaves the site),
-   `Permissions-Policy`. The API documentation pages load Swagger UI from a CDN with
-   inline scripts and get the headers without the policy. HTTPS and its
+   `Permissions-Policy`. The API documentation pages (`server.api_docs`, off by
+   default) load Swagger UI from a CDN with inline scripts and get the headers without
+   the policy. HTTPS and its
    `Strict-Transport-Security` belong to the reverse proxy that ends TLS.
 2. `RateLimitGuard`: at most `server.rate_limit_per_minute` writes (POST, PUT, PATCH, DELETE:
    submissions, model calls, saves, deletions) per client address in any minute, 429
@@ -67,7 +68,8 @@ MAX_BODY_BYTES = MAX_FILE_BYTES + 1_000_000
 AUTH_FAILURES_PER_MINUTE = 10
 OPEN_PATHS = frozenset({"/healthz", "/readyz"})  # the probes: no login
 OPEN_PREFIXES = ("/static/",)  # the interface's own files: no login, no data
-DOCS_PATHS = frozenset({"/docs", "/docs/oauth2-redirect", "/redoc"})  # Swagger UI from a CDN
+# Swagger UI and ReDoc from a CDN, served when server.api_docs is on (web/app.py).
+DOCS_PATHS = frozenset({"/docs", "/docs/oauth2-redirect", "/redoc"})
 REALM = 'Basic realm="Leicht-Facile", charset="UTF-8"'
 
 CONTENT_SECURITY_POLICY = (

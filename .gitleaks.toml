@@ -1,0 +1,24 @@
+# gitleaks, the secret scanner: CI runs it over the whole history on every change
+# (.github/workflows/ci.yml, the secrets job) and the local hook over the staged changes
+# (scripts/hooks/pre-commit). The default rules, and the project's own shapes that look
+# like keys and are none, allowed by the whole line: a message key is the identifier of a
+# checker finding (rules/messages.py), written as "message_key" in audit bundles and
+# tests, the fixture of tests/llm/test_json_out.py plays a secret that must not reach the
+# logs, the replay files of October 2026 (no longer in the tree) hold the SHA-256 keys of
+# cached model answers, and the CI job of the container image sent its dummy token in a
+# curl header once.
+title = "Leicht·Facile"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Message keys of checker findings, and the test fixture that plays a secret"
+regexTarget = "line"
+regexes = [
+  '''"message_key": "[A-Za-z0-9._-]+"''',
+  '''message_key == "[A-Za-z0-9._-]+"''',
+  '''secret = "Zebrastreifen4711"''',
+  '''"key": "[0-9a-f]{64}"''',
+  '''Authorization: Bearer ci-token''',
+]

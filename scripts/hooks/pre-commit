@@ -1,0 +1,19 @@
+#!/bin/sh
+# The repository's pre-commit hook (docs/quickstart.md way 2): ruff on the staged Python
+# files, and gitleaks on the staged changes when gitleaks is installed (CI scans the
+# whole history in any case). Activate it once per checkout:
+#
+#     git config core.hooksPath scripts/hooks
+set -eu
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.py')
+if [ -n "$staged" ]; then
+    # shellcheck disable=SC2086
+    uv run ruff check $staged
+    # shellcheck disable=SC2086
+    uv run ruff format --check $staged
+fi
+if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks git --pre-commit --staged --redact --no-banner --config .gitleaks.toml .
+else
+    echo "pre-commit: gitleaks is not installed, so the staged changes were not scanned for secrets (CI scans the whole history)." >&2
+fi

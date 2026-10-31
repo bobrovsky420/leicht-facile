@@ -103,6 +103,22 @@ readme = "hfst-it-morph-morph-it/morph-it/readme-morph-it.txt"
 lgpl = "hfst-it-morph-morph-it/morph-it/lgpl.txt"
 license = "CC-BY-SA-2.0 OR LGPL-2.1-or-later"
 
+# A release has to be public for a week before `uv lock --upgrade` or `uv add` may pick
+# it (docs/architecture.md §10, "Supply chain"): most hijacked packages are caught within
+# days of the upload. A security fix that must come sooner gets an exception for its
+# package alone, removed once the release is a week old:
+# exclude-newer-package = { certifi = false }. The project's own language packages
+# (leichtfacile-model-de, -fr, -it: spaCy's models and the Morph-it! pipeline, built and
+# published by models.yml from inputs pinned by SHA-256) are exempt: they are pinned to
+# an exact version here, and a new version is published right before it is pinned.
+# A dated exception admits one release ahead of the window and is removed once the
+# window has passed it (tests/test_supply_chain.py fails on the day): spaCy 3.8.18 of 26
+# October 2026, which leichtfacile-model-it 1.0.1 requires, with the confection and weasel
+# releases of the same week it depends on; remove the three after 2 November 2026.
+[tool.uv]
+exclude-newer = "7 days"
+exclude-newer-package = { leichtfacile-model-de = false, leichtfacile-model-fr = false, leichtfacile-model-it = false, spacy = "2026-11-03T00:00:00Z", confection = "2026-11-03T00:00:00Z", weasel = "2026-11-03T00:00:00Z" }
+
 [build-system]
 requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]
 build-backend = "hatchling.build"

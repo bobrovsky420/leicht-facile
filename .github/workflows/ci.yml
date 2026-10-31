@@ -7,8 +7,11 @@
 # login through the published port, starts it again published on the loopback interface
 # alone (server.published_on), where no login is asked, and scans the image for
 # vulnerabilities that have a fix (Trivy, high and critical; one without a fix is reported
-# and does not fail the job). Every action is pinned to a commit; the comment after the
-# hash names the release.
+# and does not fail the job). The secrets job scans every commit of the history with
+# gitleaks, and the dependencies job scans uv.lock with Trivy under the same policy as
+# the image, without building it (docs/architecture.md §10, "Supply chain"). Every action
+# is pinned to a commit; the comment after the hash names the release; gitleaks, a
+# download, is pinned by its checksum.
 
 name: CI
 
@@ -132,13 +135,15 @@ jobs:
           docker logs leichtfacile
           exit 1
       - name: The probes answer, the login holds and the app runs unprivileged
+        env:
+          LEICHTFACILE_AUTH__TOKEN: ci-token
         run: |
           curl -fsS http://127.0.0.1:8000/healthz
           curl -fsS http://127.0.0.1:8000/readyz -o readyz.json
           cat readyz.json
           grep -q '"reachable": *false' readyz.json
           test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/)" = 401
-          test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer ci-token' http://127.0.0.1:8000/)" = 200
+          test "$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $LEICHTFACILE_AUTH__TOKEN" http://127.0.0.1:8000/)" = 200
           test "$(docker exec leichtfacile id -u)" = 10001
       - name: Published on this machine alone, it runs without a login
         env:
@@ -176,3 +181,36 @@ jobs:
       - name: Stop it
         if: always()
         run: docker rm --force leichtfacile
+
+  secrets:
+    name: No secret in the whole history (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # every commit: a key committed and removed again is still in the history
+      - name: Scan every commit, with the project's allowlist (.gitleaks.toml)
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -fsSL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks git --redact --no-banner --config .gitleaks.toml --exit-code 1 .
+
+  dependencies:
+    name: The lockfile has no fixable high or critical vulnerability (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Scan uv.lock under the policy of the image scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
