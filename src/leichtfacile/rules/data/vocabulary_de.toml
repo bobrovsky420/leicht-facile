@@ -292,7 +292,7 @@
 
 [explain.law]
 "Frist" = "Eine Frist ist die Zeit für eine Aufgabe. Bis zum letzten Tag von der Frist müssen Sie etwas tun."
-"Gesuch" = "Mit einem Gesuch bitten Sie ein Amt um etwas. Zum Beispiel um Geld oder um eine Erlaubnis."
+"Gesuch" = "Mit einem Gesuch bitten Sie ein Amt oder eine Schule um etwas. Zum Beispiel um Geld oder um eine Erlaubnis."
 "Anspruch" = "Sie haben einen Anspruch heisst: Sie haben ein Recht darauf. Zum Beispiel auf Geld."
 "Beilage" = "Eine Beilage ist ein Blatt im gleichen Brief. Zum Beispiel ein Formular oder eine Kopie."
 "Vollmacht" = "Mit einer Vollmacht erlauben Sie einer anderen Person: Sie darf etwas für Sie erledigen."
@@ -326,7 +326,8 @@
 "Rente" = "Eine Rente ist Geld für jeden Monat. Sie bekommen es zum Beispiel im Alter. Oder bei einer Behinderung."
 "Hilfsmittel" = "Hilfsmittel sind Dinge für Menschen mit Behinderung. Sie helfen im Alltag. Zum Beispiel ein Rollstuhl oder ein Hörgerät."
 "Arbeitslosenversicherung" = "Sie haben Ihre Arbeit verloren? Dann zahlt die Arbeitslosenversicherung Ihnen Geld. Sie hilft auch bei der Suche nach Arbeit."
-"Unfallversicherung" = "Die Unfallversicherung bezahlt Kosten nach einem Unfall. Zum Beispiel den Arzt. Sie zahlt auch Geld für die Zeit ohne Arbeit."
+"Unfallversicherung" = "Die Unfallversicherung bezahlt Kosten nach einem Unfall. Zum Beispiel den Arzt. Angestellte können nach dem Unfall nicht arbeiten? Dann bekommen sie von ihr auch Geld."
+"Haftpflichtversicherung" = "Sie oder Ihr Kind machen bei anderen Personen etwas kaputt? Dann bezahlt die Haftpflichtversicherung den Schaden."
 "Generikum" = "Ein Generikum ist ein günstigeres Medikament. Es wirkt gleich wie das Original."  # TERMDAT 37534
 "Arbeitsunfähigkeit" = "Sie können wegen Krankheit oder Unfall nicht arbeiten. Oder Sie können nur weniger arbeiten."  # TERMDAT 37485
 "Erwerbsunfähigkeit" = "Sie können wegen Ihrer Gesundheit nicht mehr genug verdienen. Das gilt für lange Zeit."  # TERMDAT 37525
@@ -365,6 +366,14 @@
 [explain.vote]
 "Abstimmung" = "Bei einer Abstimmung sagen die Stimmberechtigten Ja oder Nein zu einer Frage."
 "Urne" = "Die Urne ist eine Box für die Stimmzettel. An die Urne gehen heisst: im Wahllokal abstimmen."
+
+# School letters to parents and students (docs/use-cases.md section 8): the
+# explanations address nobody, since the reader is a parent (Sie) or a student (du).
+[explain.school]
+"Elternabend" = "Am Elternabend treffen sich die Eltern mit der Lehrerin oder dem Lehrer. Sie bekommen Informationen zur Klasse und zum Schuljahr."
+"Schulleitung" = "Die Schulleitung leitet die Schule. Sie ist die Chefin oder der Chef von allen Lehrerinnen und Lehrern."
+"Zeugnis" = "Ein Zeugnis ist ein Papier von der Schule. Darin stehen die Noten vom Kind. Das Kind bekommt es am Ende vom Schuljahr oder vom Halbjahr."
+"DaZ" = "DaZ heisst Deutsch als Zweitsprache. Das ist Unterricht für Kinder mit wenig Deutsch. Dort lernen sie Deutsch."
 
 [explain.context]
 # Terms with a second, everyday sense (Leistung in a school report, Forderung

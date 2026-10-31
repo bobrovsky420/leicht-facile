@@ -39,11 +39,14 @@ website explains itself in Leichte Sprache on its home page
 (§ 4 BITV 2.0<sup>[5](#ref-5)</sup>). Austria has been bound by the same UN Convention
 since 2008<sup>[6](#ref-6)</sup>.
 
-Two use cases: a canton's letters and web pages
-([use-case-canton.md](docs/use-case-canton.md)), and easy-language letters that
+Three use cases: a canton's letters and web pages
+([use-case-canton.md](docs/use-case-canton.md)), easy-language letters that
 accompany decisions of child and adult protection authorities (KESB) and courts, texts
 that may never leave the authority (decision mode v1;
-[use-case-decisions.md](docs/use-case-decisions.md)). Further use cases, from patient letters and lease terminations to
+[use-case-decisions.md](docs/use-case-decisions.md)), and the letters of schools and other
+organisations to parents, students and members, with the sender and the form of address
+as job options ([use-case-schools.md](docs/use-case-schools.md)). Further use cases, from
+patient letters and lease terminations to
 penal orders, payment orders and tax letters, are sketched in
 [use-cases.md](docs/use-cases.md). Most of them are under official, medical or
 tax secrecy and may not go to a chatbot on a foreign cloud: for them, the model has to
@@ -274,6 +277,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [sources.md](docs/sources.md): reference pairs, demo documents, licences
 - [use-case-canton.md](docs/use-case-canton.md): a walkthrough for a cantonal administration
 - [use-case-decisions.md](docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
+- [use-case-schools.md](docs/use-case-schools.md): letters from schools and other organisations to parents, students and members
 - [use-cases.md](docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
 - [image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
 - [hard-texts.md](docs/hard-texts.md): hard words and sentences for tests

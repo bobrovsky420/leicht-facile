@@ -1,7 +1,7 @@
 # Leicht·Facile - design and architecture
 
 Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12); since 23 October 2026 a Python package that works with any OpenAI-compatible model endpoint, without Docker (§10); since 31 October 2026 also a container image, `ghcr.io/bobrovsky420/leichtfacile` (§10).
-Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
+Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-case-schools.md](use-case-schools.md) (letters from schools and other organisations to parents, students and members), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
 
 ## 1. What it is
 
@@ -76,8 +76,13 @@ the person the letter speaks to; a document type "decision" whose operative part
 appeal instructions are must-keep facts; a fixed notice in the export that the
 decision prevails; judge checks for neutrality and advice.
 
+Third user, built ([use-case-schools.md](use-case-schools.md)): the secretariat of a
+school, or of any organisation that is no authority, whose letters to parents, students
+and members name the sender and the form of address (§4.3), keep their lists whole
+(FACT-10, §4.4) and take the school's words from the vocabulary.
+
 Further users, sketched in [use-cases.md](use-cases.md): physicians (patient letters),
-public prosecutors' and debt collection offices, social services, schools, study teams,
+public prosecutors' and debt collection offices, social services, study teams,
 and helpers such as tenants' associations and debt counselling services, who explain
 letters someone else wrote (a planned received-letter mode). The
 fact checks they need are in
@@ -1883,7 +1888,7 @@ docs/
   evaluation-publicai.md    the Italian tables from the Public AI gateway, written by `eval report`
   model-comparison.md       every run on every endpoint side by side, tables written by `eval compare`
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
-  sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, hard-texts.md
+  sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, use-case-schools.md, hard-texts.md
 src/leichtfacile/
   __main__.py, cli.py       setup, preset, config, serve, check-llm, ingest, check, simplify, eval
   config.py                 the settings: defaults, providers and presets, TOML files, LEICHTFACILE_ variables, keys from .env

@@ -196,6 +196,19 @@
 "Vernehmlassung" = "Vor einem neuen Gesetz fragt die Regierung viele Gruppen nach ihrer Meinung. Das heisst Vernehmlassung."
 "Verfassung" = "Die Verfassung ist das wichtigste Gesetz vom Land oder vom Kanton. Darin stehen die Grundregeln und Ihre Rechte."
 
+# School letters (docs/use-cases.md section 8); the shared file has the terms of all
+# three countries. The explanations address nobody: parents read Sie, students du.
+[explain.school]
+"Klassenlehrperson" = "Die Klassenlehrperson ist die Lehrerin oder der Lehrer von der Klasse. Sie ist für die Klasse verantwortlich. Die Eltern wenden sich zuerst an sie."
+"Klassenlager" = "Das Klassenlager ist eine Woche weg von zu Hause. Die Klasse wohnt und lernt zusammen. Zum Beispiel in den Bergen. Das Lager gehört zum Unterricht."
+"Schnupperlehre" = "In einer Schnupperlehre arbeiten Schülerinnen und Schüler einige Tage in einem Betrieb. So lernen sie einen Beruf kennen."
+"Berufswahl" = "Die Berufswahl ist die Suche nach dem passenden Beruf. Die Schule hilft dabei. Zum Beispiel mit Schnupperlehren."
+"BIZ" = "Das BIZ ist das Berufsinformationszentrum. Dort gibt es Informationen zu Berufen und Lehrstellen. Es hilft bei der Berufswahl."
+"Dispensation" = "Eine Dispensation ist eine Erlaubnis: Jemand muss etwas nicht tun. Zum Beispiel muss das Kind nicht in die Schule. Die Eltern stellen dafür ein Gesuch."
+"Absenz" = "Eine Absenz heisst: Das Kind fehlt in der Schule. Zum Beispiel wegen Krankheit. Die Eltern melden das bei der Schule."
+"Jokertag" = "An einem Jokertag darf das Kind ohne Grund zu Hause bleiben. Die Eltern melden das der Schule vorher. Es gibt nur wenige Jokertage pro Schuljahr."
+"Talon" = "Der Talon ist der untere Teil von einem Brief. Die Eltern füllen ihn aus und geben ihn der Schule zurück."
+
 [explain.context]
 # Terms with a second, everyday sense (Wartezeit at the doctor's, Beitrag in
 # a newspaper). Kept for the writer and the termbase; code never adds them.

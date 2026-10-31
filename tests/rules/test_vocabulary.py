@@ -134,7 +134,7 @@ SWISS_BEFORE_SPLIT = {
         "Rahmenfrist|Beitragslücke|Mutterschaftsentschädigung|Familienzulage|Kinderzulage|"
         "Ausbildungszulage|anrechenbare Einnahmen|anerkannte Ausgaben|Vermögensverzehr|"
         "Verzichtsvermögen|Durchschnittsprämie|Prämienregion|Richtprämie|Sozialversicherung|"
-        "Lebensbedarf|Freibetrag|Entschädigung"
+        "Lebensbedarf|Freibetrag|Entschädigung|Haftpflichtversicherung"
     ),
     "explain.health": (
         "ambulant|stationär|Spitex|Arztzeugnis|Bedarfsabklärung|Opferhilfe|Gebärdensprache|"
@@ -160,6 +160,10 @@ SWISS_BEFORE_SPLIT = {
         "Abstimmung|Stimmrecht|stimmberechtigt|Volksinitiative|Referendum|Gegenvorschlag|"
         "Stimmrechtsausweis|Urne|Kantonsrat|Regierungsrat|Gemeindeversammlung|Vernehmlassung|"
         "Verfassung"
+    ),
+    "explain.school": (
+        "Elternabend|Schulleitung|Zeugnis|DaZ|Klassenlehrperson|Klassenlager|Schnupperlehre|"
+        "Berufswahl|BIZ|Dispensation|Absenz|Jokertag|Talon"
     ),
     "explain.context": "Eröffnung|Wartezeit|Beitrag|Leistung|solidarisch|Forderung|Verordnung",
 }

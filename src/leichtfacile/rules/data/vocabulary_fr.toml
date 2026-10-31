@@ -272,7 +272,7 @@
 "entrée en force" = "Personne ne peut plus se défendre contre la décision. La décision vaut maintenant pour de bon."
 "délai" = "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai."
 "prolongation de délai" = "Vous recevez plus de temps pour une tâche. Demandez-le à l'office avant la fin du délai."
-"demande" = "Avec une demande, vous demandez quelque chose à un office. Par exemple de l'argent ou une permission."
+"demande" = "Avec une demande, vous demandez quelque chose à un office ou à une école. Par exemple de l'argent ou une permission."
 "avoir droit à" = "Avoir droit à quelque chose veut dire : la loi dit que vous pouvez le recevoir."
 "non-entrée en matière" = "L'office n'examine pas votre demande. Par exemple, il manque des documents. Ou le délai est passé."
 "annexe" = "Une annexe est une feuille dans la même lettre. Par exemple un formulaire ou une copie."
@@ -357,7 +357,8 @@
 "pilier 3a" = "Le pilier 3a est un compte d'épargne pour la retraite. Pour cet argent, vous payez moins d'impôts. En général, vous le recevez peu avant la retraite."
 "assurance-chômage" = "Vous avez perdu votre travail ? Alors l'assurance-chômage vous donne de l'argent. Elle vous aide aussi dans la recherche d'un travail."
 "ORP" = "L'ORP est un office. Il aide les personnes sans travail à trouver un nouvel emploi."
-"assurance-accidents" = "L'assurance-accidents paie les frais après un accident. Par exemple le médecin. Elle paie aussi de l'argent pendant l'arrêt de travail."
+"assurance-accidents" = "L'assurance-accidents paie les frais après un accident. Par exemple le médecin. Les employés ne peuvent pas travailler après l'accident ? Alors ils reçoivent aussi de l'argent."
+"responsabilité civile" = "La responsabilité civile est une assurance. Vous ou votre enfant cassez quelque chose à une autre personne ? Alors cette assurance paie le dommage."
 "allocations familiales" = "De l'argent pour les parents, pour chaque enfant. Vous le recevez en général avec le salaire."
 "fournisseur de prestations" = "Un fournisseur de prestations vous soigne. Par exemple une médecin ou un hôpital. Il envoie la facture à vous ou à la caisse-maladie."  # TERMDAT 37415
 "modèle du médecin de famille" = "Avec ce modèle, vous allez d'abord chez votre médecin de famille. En échange, votre prime est plus basse."  # TERMDAT 37543
@@ -458,6 +459,25 @@
 "Conseil d'État" = "Le Conseil d'État est le gouvernement du canton. Il a 5 ou 7 membres."
 "assemblée communale" = "Les électeurs et électrices de la commune se réunissent. Ensemble, ils décident des affaires de la commune."
 "Constitution" = "La Constitution est la loi la plus importante du pays ou du canton. Elle contient les règles de base et vos droits."
+
+# School letters to parents and students (docs/use-cases.md section 8): the
+# explanations address nobody, since the reader is a parent (vous) or a student (tu).
+[explain.school]
+"réunion de parents" = "À la réunion de parents, les parents rencontrent l'enseignante ou l'enseignant. Ils reçoivent des informations sur la classe et l'année scolaire."
+"soirée de parents" = "À la soirée de parents, les parents rencontrent l'enseignante ou l'enseignant. Ils reçoivent des informations sur la classe et l'année scolaire."
+"direction de l'école" = "La direction de l'école dirige l'école. Elle est la cheffe ou le chef des enseignantes et des enseignants."
+"direction de l'établissement" = "La direction de l'établissement dirige l'école. Elle est la cheffe ou le chef des enseignantes et des enseignants."
+"enseignant titulaire" = "L'enseignante ou l'enseignant titulaire est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui."
+"maître de classe" = "Le maître ou la maîtresse de classe est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui."
+"maîtresse de classe" = "La maîtresse ou le maître de classe est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui."
+"bulletin scolaire" = "Le bulletin scolaire est un papier de l'école. Il montre les notes de l'enfant. L'enfant le reçoit à la fin de l'année ou du semestre."
+"dispense" = "Une dispense est une permission de ne pas faire une chose obligatoire. Par exemple ne pas venir à l'école pour un rendez-vous chez le médecin. Les parents font une demande."
+"coupon-réponse" = "Le coupon-réponse est la partie en bas de la lettre. Les parents le remplissent et le rendent à l'école."
+"talon-réponse" = "Le talon-réponse est la partie en bas de la lettre. Les parents le remplissent et le rendent à l'école."
+"camp de classe" = "Le camp de classe est une semaine loin de la maison. La classe vit et apprend ensemble, par exemple à la montagne. Le camp fait partie de l'école."
+"stage" = "Un stage est un temps de travail dans une entreprise pour apprendre. Par exemple quelques jours pendant l'école."
+"stage d'observation" = "Pendant un stage d'observation, l'élève travaille quelques jours dans une entreprise. Elle ou il découvre un métier."
+"orientation scolaire et professionnelle" = "L'orientation scolaire et professionnelle aide les élèves à choisir un métier ou une école. Chaque canton a un office pour ça."
 
 [explain.context]
 # Terms with a second, everyday sense (Leistung in a school report, Wartezeit at
