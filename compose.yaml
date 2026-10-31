@@ -1,0 +1,127 @@
+# The app as a service, with the model server next to it when the organisation runs one
+# (docs/quickstart.md way 7). `docker compose up -d` starts the published image
+# (ghcr.io/bobrovsky420/leichtfacile, the release LEICHTFACILE_VERSION names or the
+# latest) on http://localhost:8000, its data in the volume leichtfacile_data;
+# `docker compose up -d --build` builds the image from this checkout instead.
+#
+# The settings and the keys come from a .env next to this file: the variables of
+# docs/configuration.md (LEICHTFACILE_<SECTION>__<KEY>) and the providers' key variables
+# (CSCS_API_KEY, ...); compose reads the same file for the ${...} below. The app listens
+# on every interface of its container (the Dockerfile), so it needs a login and refuses
+# to start without one: LEICHTFACILE_AUTH__TOKEN=<secret> (browsers ask for it, scripts
+# send it as a bearer token), or the reverse proxy's user header
+# (LEICHTFACILE_AUTH__PROXY_HEADER=X-Forwarded-User with LEICHTFACILE_AUTH__PROXY_FROM=
+# 172.16.0.0/12, the proxy's address as the container sees it). By default the port is
+# published on this machine alone (127.0.0.1), for a reverse proxy on it;
+# LEICHTFACILE_PUBLISH=0.0.0.0 in .env publishes it on every interface, for the token
+# login inside a trusted network.
+#
+# Two profiles add a model server on one NVIDIA GPU of this machine (Docker with the
+# NVIDIA Container Toolkit). The app reaches it on the compose network, where the shipped
+# providers vllm and local are pointed below; one `setup` inside the app's container
+# then saves the preset into the volume:
+#
+# - `docker compose --profile vllm up -d`: Apertus 1.5 8B on vLLM, the Swiss AI team's
+#   official image and weights (gated: accept their terms on Hugging Face once and put
+#   HF_TOKEN=... into .env), on a GPU with 24 GB or more, with the flags measured on an
+#   NVIDIA L4 (docs/hardware/aws-l4-2026-10-10/). The first start downloads about 18 GB of
+#   weights into the volume leichtfacile_huggingface, and the server takes minutes to
+#   start. Then, once:
+#   `docker compose run --rm app leichtfacile setup vllm --model swiss-ai/Apertus-v1.5-8B`
+# - `docker compose --profile llamacpp up -d`: a community 4-bit, text-only conversion of
+#   Apertus 1.5 8B on llama.cpp (unofficial, no image input), on a GPU with 8 GB, for
+#   development and small offices; 5 GB of weights on the first start. Then, once:
+#   `docker compose run --rm app leichtfacile setup local --name llamacpp --model apertus-v1.5-8b-q4-llamacpp`
+
+name: leichtfacile
+
+services:
+  app:
+    image: ghcr.io/bobrovsky420/leichtfacile:${LEICHTFACILE_VERSION:-latest}
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # The model servers of the profiles, by their names on the compose network. Without
+      # a profile the two providers point at nothing, as on a machine without a server.
+      LEICHTFACILE_PROVIDERS__VLLM__URL: http://vllm:8000/v1
+      LEICHTFACILE_PROVIDERS__LOCAL__URL: http://llamacpp:8080/v1
+    ports:
+      - "${LEICHTFACILE_PUBLISH:-127.0.0.1}:8000:8000"
+    volumes:
+      - data:/data
+    restart: unless-stopped
+
+  vllm:
+    profiles: ["vllm"]
+    image: ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64
+    entrypoint: ["vllm", "serve"]
+    command:
+      - swiss-ai/Apertus-v1.5-8B
+      - --served-model-name=swiss-ai/Apertus-v1.5-8B
+      - --chat-template-content-format=string
+      - --reasoning-parser=apertus
+      - --max-model-len=32768      # the stages ask for up to 16,000 output tokens on top of the prompt
+      - --gpu-memory-utilization=0.9
+      - --kv-cache-dtype=fp8       # the 32k context fits a 24 GB GPU (L4: 38,752 tokens)
+      - --max-num-seqs=16          # smaller CUDA graphs and sampler warm-up, so it all fits
+      - --host=0.0.0.0
+      - --port=8000
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - huggingface:/root/.cache/huggingface
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  llamacpp:
+    profiles: ["llamacpp"]
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    command:
+      - -hf
+      - Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF
+      - -ngl
+      - "99"
+      - -c
+      - "16384"
+      - -fa
+      - "on"
+      - -ctk
+      - q8_0
+      - -ctv
+      - q8_0
+      - --jinja
+      - -sp                        # keep the reasoning markers, the client strips them
+      - -np
+      - "1"
+      - --alias
+      - apertus-v1.5-8b-q4-llamacpp
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    environment:
+      LLAMA_CACHE: /models
+    volumes:
+      - llamacpp:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  data:
+  huggingface:
+  llamacpp:

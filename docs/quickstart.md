@@ -397,6 +397,9 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
 - `data.retention_days` deletes jobs after so many days, `log.format = "json"` writes one
   JSON object per line for a log collector, and `jobs.workers` runs jobs side by side when
   the provider serves parallel requests ([configuration.md](configuration.md#reference)).
+- The container image (way 7) brings the service user, the data folder and the login
+  requirement with it; the service is then `docker compose up -d` in the folder of
+  `compose.yaml`.
 
 ## 6. Offline install (air-gapped)
 
@@ -420,6 +423,65 @@ The model server runs inside the network too, with its weights carried over the 
 (llama-server takes a local file with `-m <file>.gguf` instead of `-hf`). Point the app at
 it with `leichtfacile setup local` and run it as in way 5.
 
+## 7. In a container
+
+The image `ghcr.io/bobrovsky420/leichtfacile` holds the app with every dependency, the
+language packages of the checker among them, so a container needs no network but the
+model endpoint. One tag per release (`:0.9.1`) and `:latest`, x86-64, built from the
+`Dockerfile` of the checkout and published by a release. The app runs as a user of its
+own, keeps everything it writes in `/data` (the config file, the `.env` with the key, the
+database) and listens on every interface of its container, so it needs a login, as any
+app published beyond one machine does
+([Reaching the app from other machines](#reaching-the-app-from-other-machines)):
+
+```bash
+docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
+  -e LEICHTFACILE_AUTH__TOKEN=<secret> -e CSCS_API_KEY=<key> \
+  ghcr.io/bobrovsky420/leichtfacile:0.9.1
+```
+
+- `-p 127.0.0.1:8000:8000` publishes the app on this machine alone, for a reverse proxy
+  on it; `-p 8000:8000` on every interface, for the token login inside a trusted network.
+  Behind the proxy its user header counts as the login instead of the token:
+  `-e LEICHTFACILE_AUTH__PROXY_HEADER=X-Forwarded-User -e LEICHTFACILE_AUTH__PROXY_FROM=172.16.0.0/12`,
+  the proxy's address as the container sees it (Docker's bridge networks). Without a
+  login the container stops at once and `docker logs leichtfacile` says what it lacks.
+- Any setting is a variable, `LEICHTFACILE_<SECTION>__<KEY>`
+  ([configuration.md](configuration.md#environment-variables)); a provider's key is its
+  variable (`CSCS_API_KEY`, `PUBLICAI_API_KEY`, ...), and the first preset whose key is set
+  is in use. Or run setup inside the container once, which writes the preset and the key
+  into the volume: `docker run --rm -it -v leichtfacile:/data
+  ghcr.io/bobrovsky420/leichtfacile:0.9.1 leichtfacile setup`. The model page is
+  read-only on a published server, as in way 5.
+- The named volume `leichtfacile` holds `config.toml`, `.env` and the database (a folder
+  of the host does too, when the user 10001 may write to it). `/healthz` and `/readyz`
+  answer without a login, and the image's own health check asks `/healthz`.
+
+`compose.yaml` in the repository does the same with `docker compose up -d`: the settings
+and the keys in a `.env` next to it (`LEICHTFACILE_AUTH__TOKEN=...`, `CSCS_API_KEY=...`;
+`LEICHTFACILE_PUBLISH=0.0.0.0` publishes on every interface, `LEICHTFACILE_VERSION=0.9.1`
+pins the tag), the data in the volume `leichtfacile_data`. It also starts the model server
+of way (a) on one NVIDIA GPU of the same machine (Docker with the NVIDIA Container
+Toolkit): `--profile vllm` runs Apertus 1.5 8B on vLLM with the official image and the
+flags measured on an L4 ([Apertus 1.5 8B on vLLM](#apertus-15-8b-on-vllm-one-24-gb-gpu);
+`HF_TOKEN=...` in `.env` for the gated weights, about 18 GB downloaded on the first start),
+`--profile llamacpp` the 4-bit conversion on llama.cpp for an 8 GB GPU. The app reaches
+the server on the compose network, and one `setup` points it there:
+
+```bash
+docker compose --profile vllm up -d
+docker compose run --rm app leichtfacile setup vllm --model swiss-ai/Apertus-v1.5-8B
+```
+
+(`setup local --name llamacpp --model apertus-v1.5-8b-q4-llamacpp` for the other
+profile.) Air-gapped, as way 6 for containers: on a connected machine
+`docker save ghcr.io/bobrovsky420/leichtfacile:0.9.1 | gzip > leichtfacile-0.9.1.tar.gz`,
+carry it over, `docker load < leichtfacile-0.9.1.tar.gz`; the model server's image and its
+weights the same way. A build from a checkout: `docker build -t leichtfacile .` (or
+`docker compose up -d --build`). CI builds the image, starts it with a token against an
+unreachable endpoint, checks the probes and the login and scans it for vulnerabilities
+that have a fix (`.github/workflows/ci.yml`).
+
 ## Updates
 
 Only way 1 gets a newer release by itself; the others are updated by hand. An update
@@ -434,6 +496,7 @@ to date on its first start. A running app stays on its version until it starts a
 | 3. `pip install leichtfacile` | never by itself | `pip install -U leichtfacile` |
 | 5. On a server | never by itself | `sudo /opt/leichtfacile/bin/pip install -U leichtfacile`, then `sudo systemctl restart leichtfacile` |
 | 6. Offline | never by itself | a new wheelhouse from a connected machine, then `/opt/leichtfacile/bin/pip install -U --no-index --find-links wheelhouse leichtfacile` |
+| 7. A container | never by itself | `docker compose pull && docker compose up -d` (or `docker run` with the new tag); the volume keeps the config file, the key and the data |
 
 With the command installed (way 3), `uvx leichtfacile` runs the installed version, not
 the newest one; `uvx leichtfacile@latest` runs the newest and leaves the installed one as
@@ -475,6 +538,8 @@ leichtfacile setup vllm --base-url http://<model server>:8000/v1 --model swiss-a
   with `thinking_stages = ["understand"]`.
 - vLLM listens on port 8000 by default, as the app does: on one machine, start one of
   them on another port.
+- `compose.yaml` starts the same server next to the app's container, with these flags:
+  `docker compose --profile vllm up -d` (way 7).
 
 ### Apertus 1.5 8B on llama.cpp, one 8 GB GPU
 

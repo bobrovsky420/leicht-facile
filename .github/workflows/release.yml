@@ -1,13 +1,17 @@
 # Release: for every version tag (v0.1.0, ...) the wheel goes to a GitHub release and
-# to PyPI.
+# to PyPI, and the container image to ghcr.io/bobrovsky420/leichtfacile, tagged with the
+# version and as latest.
 #
 # PyPI takes it by trusted publishing: pypi.org trusts this workflow (the project's
 # publisher settings name the repository and release.yml), so no token is stored. The
 # spaCy models come as the dependencies leichtfacile-model-de and -fr, published
 # beforehand by models.yml. The tag must match the version in
 # pyproject.toml; tests/test_release.py keeps that version, the package's
-# __version__, publiccode.yml and the install commands (docs/quickstart.md) in step.
-# Every action is pinned to a commit; the comment after the hash names the release.
+# __version__, publiccode.yml and the install commands (docs/quickstart.md) in step. The
+# image job runs after the wheel's, so a release whose tests fail publishes no image; it
+# pushes with the workflow's own token (packages: write), and the package's visibility is
+# set once by hand on GitHub (a package starts private). Every action is pinned to a
+# commit; the comment after the hash names the release.
 
 name: Release
 
@@ -62,3 +66,37 @@ jobs:
             --title "Leicht·Facile ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
       - name: Publish to PyPI
         run: uv publish --trusted-publishing always dist/*.whl
+
+  image:
+    name: Build and publish the container image
+    runs-on: ubuntu-latest
+    needs: wheel
+    permissions:
+      contents: read
+      packages: write  # ghcr.io, with the workflow's own token
+    env:
+      IMAGE: ghcr.io/bobrovsky420/leichtfacile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The wheel job has checked that the tag names the project version.
+      - name: Build the image, tagged with the version and as latest
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          docker build --tag "$IMAGE:$version" --tag "$IMAGE:latest" \
+            --label "org.opencontainers.image.version=$version" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" .
+      # As the wheel job does in its clean environment: the version, and the checker
+      # with the language packages the image carries.
+      - name: The image runs the version of the tag and its checker
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          test "$(docker run --rm "$IMAGE:$version" leichtfacile --version)" = "$version"
+          docker run --rm "$IMAGE:$version" sh -c \
+            "printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > /tmp/text.txt && leichtfacile check /tmp/text.txt --lang de"
+      - name: Publish to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          echo "$GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker push --all-tags "$IMAGE"

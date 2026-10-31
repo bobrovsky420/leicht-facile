@@ -298,7 +298,10 @@ file, not in a variable. In a container or a CI job, five variables make a prese
 without any file: `LEICHTFACILE_LLM__PRESET=ci`, the provider's
 `LEICHTFACILE_PROVIDERS__CI__URL` and `LEICHTFACILE_PROVIDERS__CI__API_KEY`, and the
 preset's `LEICHTFACILE_PRESETS__CI__PROVIDER=ci` and
-`LEICHTFACILE_PRESETS__CI__MODELS__WRITER`.
+`LEICHTFACILE_PRESETS__CI__MODELS__WRITER`. The container image sets three for every run,
+`LEICHTFACILE_CONFIG=/data/config.toml`, `LEICHTFACILE_DATA__DIR=/data` and
+`LEICHTFACILE_SERVER__HOST=0.0.0.0`; `docker run -e` or the `.env` next to `compose.yaml`
+adds the rest ([quickstart.md](quickstart.md#7-in-a-container)).
 
 ## In a checkout
 
