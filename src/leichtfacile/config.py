@@ -533,6 +533,12 @@ class Server(Section):
         description="The interface the app is published on (0.0.0.0: every interface); "
         "anything but this machine needs a login ([auth]).",
     )
+    published_on: str | None = Field(
+        None,
+        description="In a container: the address the runtime publishes the port on "
+        "(docker run -p <address>:8000:8000), judged instead of host for the login; "
+        "127.0.0.1 needs none.",
+    )
     port: int = Field(8000, ge=1, le=65535, description="The port.")
     open_browser: bool = Field(
         True,
@@ -555,8 +561,10 @@ class Server(Section):
 
     @property
     def bound_to_loopback(self) -> bool:
-        """True when the host reaches this machine alone (127.0.0.1, ::1, localhost)."""
-        host = self.host.strip().strip("[]").lower()
+        """True when the app is reachable from this machine alone: by `published_on` when
+        that is set (a container binds every interface of its own, and the runtime
+        publishes the port), else by `host` (127.0.0.1, ::1, localhost)."""
+        host = (self.published_on or self.host).strip().strip("[]").lower()
         if host == "localhost":
             return True
         try:
@@ -687,10 +695,18 @@ class Settings(Section):
                 "so that nobody else can send the header"
             )
         if not self.server.bound_to_loopback and auth.mode == "none":
+            published = self.server.published_on
+            where = (
+                f"server.published_on = {published!r}"
+                if published
+                else f"server.host = {self.server.host!r}"
+            )
             raise ValueError(
-                f"server.host = {self.server.host!r} publishes the app beyond this machine: "
+                f"{where} publishes the app beyond this machine: "
                 "set auth.token (a shared secret) or auth.proxy_header and auth.proxy_from "
-                '(the reverse proxy\'s user header), or keep server.host = "127.0.0.1"'
+                '(the reverse proxy\'s user header), or keep server.host = "127.0.0.1" (in a '
+                "container, whose port the runtime publishes on this machine alone: "
+                'server.published_on = "127.0.0.1")'
             )
         return self
 

@@ -6,8 +6,9 @@ user's own on the chosen provider.
 
 Plain forms: every action is a POST to `/model` with an `action` field, so the page
 works without JavaScript. The page changes the settings only on the machine the app
-runs on (`server.host` bound to loopback): on a published server everyone shares one
-login, so there it shows the choice and nothing else. A source that wins over the
+runs on (`server.host`, or `server.published_on` in a container, bound to loopback): on
+a published server everyone shares one login, so there it shows the choice and nothing
+else. A source that wins over the
 config file (`leichtfacile.toml`, a variable) locks the choice too. A key goes into
 the `.env` next to the config file (`configure.save_secret`) and is never shown again.
 """

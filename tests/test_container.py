@@ -35,6 +35,15 @@ def test_the_image_listens_on_the_default_port() -> None:
     assert f':{port}:{port}"' in _read("compose.yaml")
 
 
+def test_compose_tells_the_app_where_the_port_is_published() -> None:
+    """One variable drives the port mapping and server.published_on, so the login rule
+    follows the mapping: none on 127.0.0.1 (the default), a login on every interface."""
+    compose = _read("compose.yaml")
+    port = Server().port
+    assert f'"${{LEICHTFACILE_PUBLISH:-127.0.0.1}}:{port}:{port}"' in compose
+    assert "LEICHTFACILE_SERVER__PUBLISHED_ON: ${LEICHTFACILE_PUBLISH:-127.0.0.1}" in compose
+
+
 def test_the_build_context_holds_the_package_alone() -> None:
     """.dockerignore is an allowlist, and the Dockerfile copies from it alone."""
     lines = [line for line in _read(".dockerignore").splitlines() if line and line[0] != "#"]
@@ -66,7 +75,8 @@ def test_ci_starts_the_image_as_the_serve_job_does() -> None:
     """The container job runs the image with the same provider and preset variables as
     the native serve job, plus the login the image demands, and scans it."""
     ci = _read(".github/workflows/ci.yml")
-    assert ci.count("LEICHTFACILE_PRESETS__CI__MODELS__WRITER: any-model") == 2
+    assert ci.count("LEICHTFACILE_PRESETS__CI__MODELS__WRITER: any-model") == 3
     assert "LEICHTFACILE_AUTH__TOKEN: ci-token" in ci
+    assert "LEICHTFACILE_SERVER__PUBLISHED_ON: 127.0.0.1" in ci
     assert "docker build --tag leichtfacile:ci ." in ci
     assert re.search(r"uses: aquasecurity/trivy-action@[0-9a-f]{40} # v\d", ci)

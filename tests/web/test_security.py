@@ -245,6 +245,19 @@ def test_the_app_refuses_to_start_published_without_a_login() -> None:
     assert exposed.auth.mode == "token" and not exposed.server.bound_to_loopback
     assert make_settings(server__host="0.0.0.0", **PROXY).auth.mode == "proxy"
     assert make_settings(auth__token="").auth.mode == "none", "an empty token is none"
+    # In a container the app binds every interface of its own, and the runtime publishes
+    # the port: server.published_on names that address and is judged instead of host.
+    local = make_settings(server__host="0.0.0.0", server__published_on="127.0.0.1")
+    assert local.server.bound_to_loopback and local.auth.mode == "none"
+    assert make_settings(
+        server__host="0.0.0.0", server__published_on="localhost"
+    ).server.bound_to_loopback
+    with pytest.raises(ValidationError, match="server.published_on = '0.0.0.0' publishes"):
+        make_settings(server__host="0.0.0.0", server__published_on="0.0.0.0")
+    with pytest.raises(ValidationError, match="server.published_on = '192.168.1.20'"):
+        make_settings(server__published_on="192.168.1.20")
+    with pytest.raises(ValidationError, match="server.host = '0.0.0.0'"):
+        make_settings(server__host="0.0.0.0", server__published_on="")  # empty: not set
 
 
 # -- 2. Rate limit -------------------------------------------------------------------------

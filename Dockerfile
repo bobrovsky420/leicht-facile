@@ -63,9 +63,13 @@ COPY --from=build /opt/leichtfacile /opt/leichtfacile
 
 # Everything the app writes goes to /data, the volume: the config file and the .env that
 # `leichtfacile setup` writes, the database and the caches. The port is published by the
-# container runtime, so the app listens on every interface of its container; beyond the
-# loopback interface it refuses to start without a login (auth.token, or the reverse
-# proxy's user header: docs/quickstart.md way 7).
+# container runtime, so the app listens on every interface of its container and judges
+# from server.published_on, the address the runtime publishes the port on, whether it is
+# reachable beyond this machine: `docker run -p 127.0.0.1:8000:8000 -e
+# LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1` runs without a login, like the native app
+# (compose.yaml passes the address it publishes on). Without the setting the app takes
+# its bind address, every interface, as published and refuses to start without a login
+# (auth.token, or the reverse proxy's user header: docs/quickstart.md way 7).
 ENV PATH=/opt/leichtfacile/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     LEICHTFACILE_CONFIG=/data/config.toml \

@@ -24,7 +24,8 @@ sees a request first and a response last):
      403, one without the header 401. The user lands in `request.state.user`.
    The probes `/healthz` and `/readyz` and the static files need no login.
    `Settings` refuses to start the app published beyond the loopback interface
-   (`server.host`) without one of the two.
+   (`server.host`, or `server.published_on` in a container, where the runtime publishes
+   the port) without one of the two.
 4. `CrossSiteGuard`: a state-changing request from a page on another site is refused
    with 403 (cross-site request forgery), see its docstring.
 5. `BodyLimit`: a request body over `MAX_BODY_BYTES` is refused with 413, by its

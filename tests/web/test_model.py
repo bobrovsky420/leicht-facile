@@ -217,6 +217,20 @@ def test_the_fine_tune_panel_saves_a_preset_of_ones_own(app, home) -> None:
     assert "needs a key" in client.get("/model").text  # of its own, still without the key
 
 
+def test_the_choice_is_editable_in_a_container_published_on_this_machine(
+    home, fake, monkeypatch
+) -> None:
+    """A container binds every interface of its own, and the runtime publishes the port:
+    with server.published_on = 127.0.0.1 the app is reachable from this machine alone,
+    without a login, and the page may change the choice."""
+    monkeypatch.setenv("LEICHTFACILE_SERVER__HOST", "0.0.0.0")
+    monkeypatch.setenv("LEICHTFACILE_SERVER__PUBLISHED_ON", "127.0.0.1")
+    with TestClient(create_app(store=Store(home.parent / "c.sqlite"))) as client:
+        page = client.get("/model")
+        assert page.status_code == 200 and "only on the machine the app runs on" not in page.text
+        assert "Use this model" in page.text
+
+
 def test_the_choice_is_locked_on_a_published_server_or_by_another_source(
     home, fake, monkeypatch
 ) -> None:

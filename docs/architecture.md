@@ -1599,7 +1599,9 @@ opens it in the default browser as soon as `/healthz` answers (`cli.open_when_re
 only for a loopback host, and on Linux only with a desktop (`DISPLAY` or
 `WAYLAND_DISPLAY`), since Python would otherwise start a text browser in the terminal
 (`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `server.host`: beyond
-the loopback interface the app needs a login (below). The database goes to `data.dir`,
+the loopback interface the app needs a login (below); in a container, which binds every
+interface of its own while the runtime publishes the port, `server.published_on` names
+the published address and is judged instead. The database goes to `data.dir`,
 by default `%LOCALAPPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
 `$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
@@ -1630,16 +1632,20 @@ lands in an image). The image runs as a system user of its own (uid 10001), writ
 `/data` alone, where it puts the config file, the `.env` that `setup` writes and the
 database (`LEICHTFACILE_CONFIG=/data/config.toml`, `LEICHTFACILE_DATA__DIR=/data`), and
 listens on every interface of its container (`LEICHTFACILE_SERVER__HOST=0.0.0.0`), since
-the runtime publishes the port: so it needs one of the two logins, as any published
-server does, and stops at once without one. Its health check asks `/healthz`.
-`compose.yaml` starts the image with a named volume, the port published on the loopback
-interface of the host by default, and, as profiles, the model servers of (a) below next
+the runtime publishes the port. Whether that makes it a published server is decided by
+`server.published_on`, the address the runtime publishes the port on: on `127.0.0.1` the
+app runs without a login, as it does natively; on any other address, or without the
+setting, it needs one of the two logins and stops at once without one. Its health check
+asks `/healthz`. `compose.yaml` starts the image with a named volume, the port published
+on the loopback interface of the host by default and the app told so through the one
+variable `LEICHTFACILE_PUBLISH`, and, as profiles, the model servers of (a) below next
 to it (`vllm`: the official Apertus image with the flags measured on the L4; `llamacpp`:
 the 4-bit conversion), pointing the shipped providers `vllm` and `local` at them on the
 compose network. CI builds the image on every change, starts it with a token against the
 unreachable endpoint, checks the probes, the login (401 without the token, 200 with it)
-and the user, and scans it for vulnerabilities that have a fix (Trivy, high and
-critical); `release.yml` builds it again for a tag, checks the version and the checker
+and the user, starts it again published on the loopback interface alone, where the page
+answers without a login, and scans it for vulnerabilities that have a fix (Trivy, high
+and critical); `release.yml` builds it again for a tag, checks the version and the checker
 inside it and pushes it to ghcr.io (`tests/test_container.py` keeps the Python version,
 the port, the image's name and the tag the docs name in step).
 
@@ -1713,7 +1719,9 @@ at runtime.
   (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
   the user lands in `request.state.user`). The probes and the static files need no
   login. `server.host` (which `serve --host` sets) names the interface the app listens
-  on; beyond the loopback interface the app refuses to start without one of the two.
+  on; beyond the loopback interface the app refuses to start without one of the two. In
+  a container, `server.published_on` names the address the runtime publishes the port
+  on and is judged instead of the bind address.
   No accounts or roles of its own: that limitation stays, every logged-in user sees
   every job.
 - On a server the app runs as a system service (a systemd unit, for example) under a
@@ -1726,11 +1734,13 @@ at runtime.
   organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
   users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
 - In a container the same holds (above): the image runs as its own unprivileged user,
-  `/data` is its one writable folder, and because it listens on every interface of the
-  container it refuses to start without one of the two logins; the runtime publishes the
-  port, on the host's loopback interface by default in `compose.yaml`. Behind a reverse
-  proxy on the host, `auth.proxy_from` names the proxy as the container sees it (the
-  bridge network, `172.16.0.0/12`).
+  `/data` is its one writable folder, and the login rule judges `server.published_on`,
+  the address the runtime publishes the port on, since the app binds every interface of
+  the container: `compose.yaml` publishes on the host's loopback interface by default and
+  passes that address, so no login is asked there; on any other address the app refuses
+  to start without one of the two logins. Behind a reverse proxy on the host,
+  `auth.proxy_from` names the proxy as the container sees it (the bridge network,
+  `172.16.0.0/12`).
 - Every response carries a Content-Security-Policy (scripts from this server only,
   the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
   plug-ins; the API docs pages, which load Swagger UI from a CDN, get the other

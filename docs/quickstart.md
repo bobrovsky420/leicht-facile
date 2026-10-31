@@ -397,9 +397,9 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
 - `data.retention_days` deletes jobs after so many days, `log.format = "json"` writes one
   JSON object per line for a log collector, and `jobs.workers` runs jobs side by side when
   the provider serves parallel requests ([configuration.md](configuration.md#reference)).
-- The container image (way 7) brings the service user, the data folder and the login
-  requirement with it; the service is then `docker compose up -d` in the folder of
-  `compose.yaml`.
+- The container image (way 7) brings the service user and the data folder with it, and
+  its login rule follows the address the port is published on; the service is then
+  `docker compose up -d` in the folder of `compose.yaml`.
 
 ## 6. Offline install (air-gapped)
 
@@ -429,23 +429,28 @@ The image `ghcr.io/bobrovsky420/leichtfacile` holds the app with every dependenc
 language packages of the checker among them, so a container needs no network but the
 model endpoint. One tag per release (`:0.9.1`) and `:latest`, x86-64, built from the
 `Dockerfile` of the checkout and published by a release. The app runs as a user of its
-own, keeps everything it writes in `/data` (the config file, the `.env` with the key, the
-database) and listens on every interface of its container, so it needs a login, as any
-app published beyond one machine does
-([Reaching the app from other machines](#reaching-the-app-from-other-machines)):
+own and keeps everything it writes in `/data` (the config file, the `.env` with the key,
+the database). On this machine, for the browser on it, as with `leichtfacile serve`:
 
 ```bash
 docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
-  -e LEICHTFACILE_AUTH__TOKEN=<secret> -e CSCS_API_KEY=<key> \
+  -e LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1 -e CSCS_API_KEY=<key> \
   ghcr.io/bobrovsky420/leichtfacile:0.9.1
 ```
 
-- `-p 127.0.0.1:8000:8000` publishes the app on this machine alone, for a reverse proxy
-  on it; `-p 8000:8000` on every interface, for the token login inside a trusted network.
-  Behind the proxy its user header counts as the login instead of the token:
+- The app listens on every interface of its container, and `-p` says where Docker
+  publishes the port; `server.published_on` tells the app the same, and the login rule
+  judges it instead of the bind address
+  ([Reaching the app from other machines](#reaching-the-app-from-other-machines)).
+  `-p 127.0.0.1:8000:8000` with `LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1` reaches
+  this machine alone, for the browser on it or a reverse proxy on it, and no login is
+  needed. `-p 8000:8000` publishes the app on every interface; then it needs a login, as
+  any app published beyond one machine does: `-e LEICHTFACILE_AUTH__TOKEN=<secret>` for
+  the token login inside a trusted network, or, behind the proxy, its user header
   `-e LEICHTFACILE_AUTH__PROXY_HEADER=X-Forwarded-User -e LEICHTFACILE_AUTH__PROXY_FROM=172.16.0.0/12`,
-  the proxy's address as the container sees it (Docker's bridge networks). Without a
-  login the container stops at once and `docker logs leichtfacile` says what it lacks.
+  the proxy's address as the container sees it (Docker's bridge networks). Without
+  `published_on` the app takes its bind address as published; without a login it then
+  stops at once, and `docker logs leichtfacile` says what it lacks.
 - Any setting is a variable, `LEICHTFACILE_<SECTION>__<KEY>`
   ([configuration.md](configuration.md#environment-variables)); a provider's key is its
   variable (`CSCS_API_KEY`, `PUBLICAI_API_KEY`, ...), and the first preset whose key is set
@@ -458,9 +463,11 @@ docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   answer without a login, and the image's own health check asks `/healthz`.
 
 `compose.yaml` in the repository does the same with `docker compose up -d`: the settings
-and the keys in a `.env` next to it (`LEICHTFACILE_AUTH__TOKEN=...`, `CSCS_API_KEY=...`;
-`LEICHTFACILE_PUBLISH=0.0.0.0` publishes on every interface, `LEICHTFACILE_VERSION=0.9.1`
-pins the tag), the data in the volume `leichtfacile_data`. It also starts the model server
+and the keys in a `.env` next to it (`CSCS_API_KEY=...`; `LEICHTFACILE_VERSION=0.9.1` pins
+the tag), the data in the volume `leichtfacile_data`, the port published on this machine
+alone and the app told so, without a login; `LEICHTFACILE_PUBLISH=0.0.0.0` in `.env`
+publishes it on every interface, and the app then needs its login there too
+(`LEICHTFACILE_AUTH__TOKEN=...`). It also starts the model server
 of way (a) on one NVIDIA GPU of the same machine (Docker with the NVIDIA Container
 Toolkit): `--profile vllm` runs Apertus 1.5 8B on vLLM with the official image and the
 flags measured on an L4 ([Apertus 1.5 8B on vLLM](#apertus-15-8b-on-vllm-one-24-gb-gpu);
@@ -596,6 +603,10 @@ other address, it needs one of two logins and refuses to start without one.
   `Authorization: Bearer <secret>`. Without TLS the token crosses the network readable, so
   use this inside a trusted network. A secret:
   `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+- **In a container.** The app binds every interface of its container, and the runtime
+  publishes the port: `server.published_on` names the address it is published on
+  (`-p 127.0.0.1:8000:8000`: `127.0.0.1`), and the login rule judges it instead of
+  `--host`. Without it a container counts as published everywhere (way 7).
 
 `auth.token` and `auth.proxy_header` exclude each other. `/healthz`, `/readyz` and the
 static files need no login. Details:
@@ -613,7 +624,7 @@ static files need no login. Details:
 | setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |
 | setup says `The provider's model list could not be read` | the address or the key is wrong, or the server is not running; setup goes on, and `leichtfacile check-llm` (or the model page's Check the key) checks again later |
 | settings seem to be ignored | `leichtfacile config show` names the source of each setting: a `leichtfacile.toml` in the current folder, a `LEICHTFACILE_` variable or a flag wins over the config file |
-| `server.host = '0.0.0.0' publishes the app beyond this machine` | set `auth.token` (or `auth.token_env`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1 |
+| `server.host = '0.0.0.0' publishes the app beyond this machine` | set `auth.token` (or `auth.token_env`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1; in a container whose port is published on this machine alone, `server.published_on = "127.0.0.1"` (way 7) |
 | `auth.proxy_header needs auth.proxy_from` | set the proxy's addresses or networks |
 | `set auth.token or auth.proxy_header, not both` | keep one of them |
 | the browser does not open | it opens only for an app on this machine and, on Linux, with a desktop; open <http://127.0.0.1:8000> yourself |

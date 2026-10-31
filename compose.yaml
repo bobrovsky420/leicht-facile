@@ -7,14 +7,16 @@
 # The settings and the keys come from a .env next to this file: the variables of
 # docs/configuration.md (LEICHTFACILE_<SECTION>__<KEY>) and the providers' key variables
 # (CSCS_API_KEY, ...); compose reads the same file for the ${...} below. The app listens
-# on every interface of its container (the Dockerfile), so it needs a login and refuses
-# to start without one: LEICHTFACILE_AUTH__TOKEN=<secret> (browsers ask for it, scripts
-# send it as a bearer token), or the reverse proxy's user header
-# (LEICHTFACILE_AUTH__PROXY_HEADER=X-Forwarded-User with LEICHTFACILE_AUTH__PROXY_FROM=
-# 172.16.0.0/12, the proxy's address as the container sees it). By default the port is
-# published on this machine alone (127.0.0.1), for a reverse proxy on it;
-# LEICHTFACILE_PUBLISH=0.0.0.0 in .env publishes it on every interface, for the token
-# login inside a trusted network.
+# on every interface of its container (the Dockerfile), and LEICHTFACILE_PUBLISH names
+# the address the port is published on, 127.0.0.1 by default: this machine alone, for
+# the browser on it or a reverse proxy on it, and no login is needed, as with
+# `leichtfacile serve`. The same variable goes to the app as server.published_on, so the
+# login rule follows it: LEICHTFACILE_PUBLISH=0.0.0.0 in .env publishes the app on every
+# interface, and then it needs a login and refuses to start without one:
+# LEICHTFACILE_AUTH__TOKEN=<secret> (browsers ask for it, scripts send it as a bearer
+# token), or the reverse proxy's user header (LEICHTFACILE_AUTH__PROXY_HEADER=
+# X-Forwarded-User with LEICHTFACILE_AUTH__PROXY_FROM=172.16.0.0/12, the proxy's address
+# as the container sees it).
 #
 # Two profiles add a model server on one NVIDIA GPU of this machine (Docker with the
 # NVIDIA Container Toolkit). The app reaches it on the compose network, where the shipped
@@ -43,6 +45,9 @@ services:
       - path: .env
         required: false
     environment:
+      # Where the port is published (ports below), so that the app knows whether it is
+      # reachable beyond this machine: no login on 127.0.0.1, a login on 0.0.0.0.
+      LEICHTFACILE_SERVER__PUBLISHED_ON: ${LEICHTFACILE_PUBLISH:-127.0.0.1}
       # The model servers of the profiles, by their names on the compose network. Without
       # a profile the two providers point at nothing, as on a machine without a server.
       LEICHTFACILE_PROVIDERS__VLLM__URL: http://vllm:8000/v1

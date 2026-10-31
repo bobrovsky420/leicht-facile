@@ -4,9 +4,11 @@
 # the serve job starts the app against an unreachable endpoint (llm.url) to show that
 # the service and its liveness check do not depend on it. The container job builds the
 # image (Dockerfile), starts it the same way with a token, checks the probes and the
-# login through the published port and scans the image for vulnerabilities that have a
-# fix (Trivy, high and critical; one without a fix is reported and does not fail the
-# job). Every action is pinned to a commit; the comment after the hash names the release.
+# login through the published port, starts it again published on the loopback interface
+# alone (server.published_on), where no login is asked, and scans the image for
+# vulnerabilities that have a fix (Trivy, high and critical; one without a fix is reported
+# and does not fail the job). Every action is pinned to a commit; the comment after the
+# hash names the release.
 
 name: CI
 
@@ -138,6 +140,30 @@ jobs:
           test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/)" = 401
           test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer ci-token' http://127.0.0.1:8000/)" = 200
           test "$(docker exec leichtfacile id -u)" = 10001
+      - name: Published on this machine alone, it runs without a login
+        env:
+          LEICHTFACILE_LLM__PRESET: ci
+          LEICHTFACILE_PROVIDERS__CI__URL: http://127.0.0.1:9/v1
+          LEICHTFACILE_PROVIDERS__CI__API_KEY: none
+          LEICHTFACILE_PRESETS__CI__PROVIDER: ci
+          LEICHTFACILE_PRESETS__CI__MODELS__WRITER: any-model
+          # The address the port is published on, judged instead of the bind address.
+          LEICHTFACILE_SERVER__PUBLISHED_ON: 127.0.0.1
+        run: |
+          docker rm --force leichtfacile
+          docker run --detach --name leichtfacile --publish 127.0.0.1:8000:8000 \
+            --env LEICHTFACILE_LLM__PRESET --env LEICHTFACILE_PROVIDERS__CI__URL \
+            --env LEICHTFACILE_PROVIDERS__CI__API_KEY --env LEICHTFACILE_PRESETS__CI__PROVIDER \
+            --env LEICHTFACILE_PRESETS__CI__MODELS__WRITER --env LEICHTFACILE_SERVER__PUBLISHED_ON \
+            leichtfacile:ci
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8000/healthz; then
+              break
+            fi
+            sleep 2
+          done
+          test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/)" = 200 \
+            || { docker logs leichtfacile; exit 1; }
       - name: Scan the image for vulnerabilities with a fix (high and critical)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
