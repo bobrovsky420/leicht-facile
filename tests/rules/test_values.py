@@ -130,3 +130,29 @@ def test_formatting() -> None:
     # Regional codes starting with 08 or 09 are no service numbers (Graubünden, Ticino).
     assert format_phone("0812345678") == "081 234 56 78"
     assert format_phone("0912345678") == "091 234 56 78"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("vom 7. bis 11. Juni 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("7.-11. Juni", [("date", "--06-07"), ("date", "--06-11")]),
+        ("am 15. und 16. März", [("date", "--03-15"), ("date", "--03-16")]),
+        ("du 7 au 11 juin 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("les 1er et 2 juin", [("date", "--06-01"), ("date", "--06-02")]),
+        ("dal 7 all'11 giugno 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("dal 7 al 11 giugno", [("date", "--06-07"), ("date", "--06-11")]),
+    ],
+)
+def test_a_range_of_days_in_one_month_gives_both_dates(text: str, expected) -> None:
+    assert kinds(text) == expected
+    first = parse_value_norm("2027-06-07", "deadline")
+    if expected[0][1].endswith("06-07"):
+        assert find_value(first, text)  # FACT-01 finds the first day of the range
+
+
+@pytest.mark.parametrize(
+    "text", ["von 8 bis 11 Uhr", "2 bis 3 Wochen", "Kinder von 6 bis 12 Jahren", "Art. 5 und 7"]
+)
+def test_a_range_without_a_month_is_no_date(text: str) -> None:
+    assert not [v for v in extract_values(text) if v.kind == "date"]

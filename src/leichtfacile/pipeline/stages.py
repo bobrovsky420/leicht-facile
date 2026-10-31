@@ -59,6 +59,7 @@ from leichtfacile.schemas import (
     CoreQuestions,
     Draft,
     DroppedText,
+    DropReason,
     Fact,
     FactCheck,
     FactSheet,
@@ -1259,10 +1260,47 @@ def apply_repairs(
 
     # A repair must not repeat a sentence that is already in the draft elsewhere.
     kept = {key(b.text) for b in draft.blocks if b.id not in repairs}
+    # Nor say again, in other words, what the draft already says: an addition whose
+    # facts the draft's content blocks all carry (by the links of `link_facts`; a
+    # heading carries nothing, whatever fact ids the writer gave it), none of them asked
+    # for, is left out. The model volunteers such sentences next to the ones asked for:
+    # 35 of the 80 sentences the rounds added to the six school letters (Apertus 70B,
+    # 31 October 2026) were of this kind, and the repeat check above sees only the same
+    # wording. And an addition asked for a value that brings none of it is not what was
+    # asked for: the 70B hung the requested fact id on six sentences that restated the
+    # packing list. A fact FACT-01 asks for is never carried: its value is nowhere.
+    conveyed = {
+        f for b in draft.blocks if b.id not in repairs and b.kind != "heading" for f in b.fact_ids
+    }
+    requested = {f.id: f for f in request.missing}
+    targets = {
+        fact_id: target
+        for fact_id, fact in requested.items()
+        if (target := parse_value_norm(fact.value_norm, fact.kind, draft.variety)) is not None
+    }
+
+    def left_out(add) -> DropReason | None:
+        """Why an addition stays out of the version, None when it goes in."""
+        ids = {f for f in add.fact_ids if f in known_facts}
+        asked = ids & requested.keys()
+        if ids and not asked and ids <= conveyed:
+            return "conveyed"
+        if asked and asked <= targets.keys():
+            values = [(t, extract_values(t, draft.variety)) for t in add.texts]
+            if not any(contains(targets[f], t, v) for f in asked for t, v in values):
+                return "no_value"
+        return None
+
     blocks: list[Block] = []
 
     def append_additions(anchor_id: str, adds: list) -> None:
         for add in adds:
+            if reason := left_out(add):
+                dropped.extend(
+                    DroppedText(text=t, reason=reason, block_id=anchor_id, fact_ids=add.fact_ids)
+                    for t in add.texts
+                )
+                continue
             for text in add.texts:
                 if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
                     dropped.append(
@@ -1291,6 +1329,17 @@ def apply_repairs(
             pending.clear()
         texts = repairs.get(b.id)
         if texts:
+            # A text that ends another text of the same answer goes (the 70B wrote a
+            # sentence and then its tail once more, 31 October 2026); so does one the
+            # draft has elsewhere, unless nothing would be left.
+            keys = [key(t) for t in texts]
+            parts = [
+                t
+                for i, t in enumerate(texts)
+                if any(k != keys[i] and k.endswith(keys[i]) for k in keys)
+            ]
+            dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
+            texts = [t for t in texts if t not in parts] or texts[:1]
             fresh = [t for t in texts if key(t) not in kept] or texts[:1]
             dropped += [
                 DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
@@ -1311,6 +1360,11 @@ def apply_repairs(
     for anchor_id, adds in pending:  # a list at the end of the draft
         append_additions(anchor_id, adds)
     for add in additions.get(None, []):
+        if reason := left_out(add):
+            dropped += [
+                DroppedText(text=t, reason=reason, fact_ids=add.fact_ids) for t in add.texts
+            ]
+            continue
         for text in add.texts:
             if key(text) in kept or any(key(text) == key(x.text) for x in blocks):
                 dropped.append(DroppedText(text=text, reason="repeat", fact_ids=add.fact_ids))

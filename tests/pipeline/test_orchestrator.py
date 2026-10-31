@@ -288,6 +288,35 @@ def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
     assert "Suggestion : 31 mars 2027" in lines and "Ce n'est pas dans l'original." in lines
 
 
+def test_a_fact_the_judge_misses_in_a_block_that_carries_it_is_repaired_there() -> None:
+    """A "missing" verdict on a fact a block already carries flags that block; only a
+    fact no block carries is asked for as new sentences, and a heading carries nothing.
+    A facts-only round, which flags no block, leaves the carried fact alone."""
+    from leichtfacile.pipeline.models import UnderstandOut
+    from leichtfacile.pipeline.rounds import build_request
+    from leichtfacile.pipeline.stages import to_factsheet
+    from leichtfacile.schemas import Block, Draft, FactCheck, JudgeReport, RuleFindings
+    from tests.pipeline.fixtures import UNDERSTAND
+
+    fs = to_factsheet(UnderstandOut.model_validate(UNDERSTAND), "d")
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Was kostet es?", fact_ids=["f03"]),
+        Block(id="b002", kind="sentence", text="Sie bezahlen 20 Franken.", fact_ids=["f02"]),
+    ])  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=[])
+    judge = JudgeReport(draft_version=1, model="m", fact_checks=[
+        FactCheck(fact_id="f02", status="missing", note="Die Gebühr fehlt."),
+        FactCheck(fact_id="f03", status="missing", note="Die Telefonnummer fehlt."),
+    ])  # fmt: skip
+    request = build_request(draft, rules, judge, fs)
+    assert [f.id for f in request.missing] == ["f03"]
+    (line,) = request.problems["b002"]
+    assert line.startswith("  - Tatsache f02 ist hier nicht deutlich: Die Gebühr fehlt.")
+    assert line.endswith("Sag sie in diesem Block klar: Die Gebühr ist 20 Franken.")
+    facts_only = build_request(draft, rules, judge, fs, facts_only=True)
+    assert facts_only.problems == {} and [f.id for f in facts_only.missing] == ["f03"]
+
+
 def test_a_facts_round_asks_for_the_missing_facts_alone(store, endpoint, sleeps) -> None:
     """The loop stops on "no progress"; a round for the missing facts alone follows,
     with no block flagged, and is measured by the FACT-01 count."""

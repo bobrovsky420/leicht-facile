@@ -100,6 +100,19 @@ DATE_TEXT_RE = re.compile(
     r"(?<!\d)(1er|1°|1º|\d{1,2})\.?[ ]?(" + _MONTH_RE + r")(?:[ ](\d{4}))?(?!\w)",
     re.IGNORECASE,
 )
+# Two days of one month with the month (and the year) written once: `vom 7. bis 11.
+# Juni 2027`, `7.-11. Juni`, `15. und 16. März`, `du 7 au 11 juin 2027`, `les 1er et 2
+# juin`, `dal 7 al 11 giugno`, `dal 7 all'11 giugno`. The first day is a date of that
+# month too (31 October 2026: FACT-01 had asked for 7 June 2027 next to such a range in
+# the school letters, and the rounds then added the source sentence beside it).
+DATE_RANGE_RE = re.compile(
+    r"(?<!\d)(1er|\d{1,2})\.?(?:[ ](?:bis|und|au|et|al|e)[ ]|[ ]?all[\u2019']|[ ]?["
+    + DASHES
+    + r"/][ ]?)(1er|1°|1º|\d{1,2})\.?[ ]?("
+    + _MONTH_RE
+    + r")(?:[ ](\d{4}))?(?!\w)",
+    re.IGNORECASE,
+)
 TIME_RE = re.compile(
     r"(?<![\d.:'])(?:"
     # 9.00 Uhr, 09:00; Italian ore 9.00, alle 9.00, dalle 8.00 (a dotted time counts
@@ -716,6 +729,19 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
         DATE_ISO_RE,
         lambda m: canonical_date(int(m.group(3)), int(m.group(2)), int(m.group(1))),
     )
+    spans = []
+    for m in DATE_RANGE_RE.finditer(masked):  # before the single dates, which it holds
+        month = _month(m.group(3), language)
+        if month is None:
+            continue
+        year = int(m.group(4)) if m.group(4) else None
+        for group in (1, 2):
+            canonical = canonical_date(int(re.sub(r"\D", "", m.group(group)) or "1"), month, year)
+            if canonical is not None:
+                start, end = m.start(group), m.end() if group == 2 else m.end(group)
+                found.append(Value("date", canonical, text[start:end], start, end))
+        spans.append(m.span())
+    masked = mask(masked, spans)
     take("date", DATE_TEXT_RE, lambda m: _text_date(m, language))
     take("date", DATE_NUM_RE, _numeric_date)
     take(
@@ -772,13 +798,17 @@ def _split_decimal(number: str) -> tuple[str, str | None]:
     return integer, decimals or None
 
 
+def _month(name: str, lang: str) -> int | None:
+    """The number of a month name: the language's names first, then every language's."""
+    for names in (MONTHS.get(base_lang(lang), {}), *MONTHS.values()):
+        if month := names.get(name.lower().rstrip(".")):
+            return month
+    return None
+
+
 def _text_date(m: re.Match[str], lang: str) -> str | None:
     day_text = re.sub(r"\D", "", m.group(1)) or "1"
-    month = None
-    for names in (MONTHS.get(base_lang(lang), {}), *MONTHS.values()):
-        month = names.get(m.group(2).lower().rstrip("."))
-        if month:
-            break
+    month = _month(m.group(2), lang)
     if month is None:
         return None
     year = int(m.group(3)) if m.group(3) else None

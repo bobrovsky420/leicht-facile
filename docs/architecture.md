@@ -447,7 +447,19 @@ October 2026). A round first asks only for what blocks the draft (rule
 errors, missing fact values, the judge's problems), with at most 5 missing facts at a
 time, the most important kinds first; the warnings get one round once nothing blocking
 is left. Code drops a repaired or added sentence that repeats one already in the draft,
-also when an addition lands before the block it repeats. The judge's meaning findings
+also when an addition lands before the block it repeats, and a repair text that ends
+another text of the same answer (the 70B wrote a sentence and then its tail once
+more). Since 31 October 2026 it also
+drops an addition for facts the draft already conveys (the links of §4.4), none of them
+asked for, and an addition asked for a value that brings none of it; a heading carries
+nothing, whatever fact ids the writer gave it. A fact the judge calls missing while a
+content block carries it is asked for on that block ("say it clearly here"), not as new
+sentences: on the school letters the 70B had called obligations missing that stood
+there in other words, and every round added a paraphrase, one sentence three times in
+the end (docs/prompts.md). Since the same day the value extractor reads a range of two
+days in one month as both dates (`vom 7. bis 11. Juni 2027`), so FACT-01 no longer asks
+for the first day next to the range, which the rounds had answered with the source
+sentence beside it. The judge's meaning findings
 on headings are not sent for repair: a small model turns the question heading into a
 statement. A repair answer with a value that neither the source nor the fact sheet
 contains (the check of FACT-06) is sent back once with the values named; the second
@@ -459,7 +471,8 @@ voice (docs/rules.md; since 30 October 2026, after the 70B left the passives of 
 German pages standing through every repair round). Every round is recorded
 (`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
 every answered sentence code left out with its reason (a repeat, example content, a
-block the round had not flagged); `eval diagnose` reads these records.
+block the round had not flagged, facts the draft already conveys, a value asked for and
+not brought); `eval diagnose` reads these records.
 Then:
 
 - code completes the glossary and writes the Mediopunkt into the new version as after
@@ -724,7 +737,7 @@ RepairRecord  (one per repair round, under the version it produced)
   requested_blocks[], requested_facts[]
   repairs[]: {block_id, texts[]}            the answer as given
   additions[]: {after?, texts[], fact_ids[]}
-  dropped[]: {text, reason (repeat|example|not_flagged), block_id?, fact_ids[]}
+  dropped[]: {text, reason (repeat|example|not_flagged|conveyed|no_value), block_id?, fact_ids[]}
 
 ReviewState
   draft_version, completed, saved_at (when the server stored it; a save names the

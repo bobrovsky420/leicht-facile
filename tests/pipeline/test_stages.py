@@ -260,12 +260,13 @@ def test_additions_after_a_list_item_land_after_the_list() -> None:
     ])  # fmt: skip
     out = RepairOut.model_validate({
         "repairs": [],
-        "additions": [{"after": "b002", "texts": ["Neu nach der Liste."], "fact_ids": ["f03"]}],
+        "additions": [{"after": "b002", "texts": ["Neu nach der Liste: 044 123 45 67."],
+                       "fact_ids": ["f03"]}],  # the value asked for, else it stays out
     })  # fmt: skip
     new = apply_repairs(draft, out, RepairRequest({}, [fs.facts[2]]), fs)
     assert [(b.id, b.text) for b in new.blocks] == [
         ("b001", "Alt eins."), ("b002", "das Formular"), ("b003", "eine Kopie"),
-        ("b002.1", "Neu nach der Liste."), ("b004", "Alt vier."),
+        ("b002.1", "Neu nach der Liste: 044 123 45 67."), ("b004", "Alt vier."),
     ]  # fmt: skip
 
 
@@ -495,6 +496,74 @@ def test_an_addition_that_repeats_a_later_repaired_block_is_dropped() -> None:
     new = apply_repairs(draft, out, RepairRequest({"b002": ["x"]}, []), fs)
     assert [b.text for b in new.blocks].count("Écrivez à rip@exempleville.example.") == 1
     assert [b.id for b in new.blocks] == ["b001", "b001.1"]  # ids stay stable
+
+
+def test_an_addition_for_facts_the_draft_already_conveys_is_dropped() -> None:
+    """The model volunteers a paraphrase of a block for a fact nobody asked for: left
+    out as `conveyed`. An addition for a fact that was asked for stays, and so does one
+    for a fact only a heading names: a heading carries nothing."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b000", kind="heading", text="Bis wann?", fact_ids=["f01"]),
+        Block(id="b001", kind="sentence", text="Sie zahlen 20 Franken.", fact_ids=["f02"]),
+        Block(id="b002", kind="sentence", text="Rufen Sie an.", fact_ids=["f03"]),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"repairs": [], "additions": [
+        {"after": "b000", "texts": ["Bis zum 31. März 2026."], "fact_ids": ["f01"]},
+        {"after": "b001", "texts": ["Die Gebühr beträgt 20 Franken."], "fact_ids": ["f02"]},
+        {"after": "b002", "texts": ["Die Nummer ist 044 123 45 67."], "fact_ids": ["f03"]},
+        {"texts": ["Sie zahlen die Gebühr."], "fact_ids": ["f02"]},  # no block named
+    ]})  # fmt: skip
+    dropped: list = []
+    asked = next(f for f in fs.facts if f.id == "f03")
+    new = apply_repairs(draft, out, RepairRequest({}, [asked]), fs, dropped=dropped)
+    assert [b.text for b in new.blocks] == [
+        "Bis wann?", "Bis zum 31. März 2026.", "Sie zahlen 20 Franken.", "Rufen Sie an.",
+        "Die Nummer ist 044 123 45 67.",
+    ]  # fmt: skip
+    assert [(d.reason, d.text, d.fact_ids) for d in dropped] == [
+        ("conveyed", "Die Gebühr beträgt 20 Franken.", ["f02"]),
+        ("conveyed", "Sie zahlen die Gebühr.", ["f02"]),
+    ]
+
+
+def test_an_addition_asked_for_a_value_must_bring_it() -> None:
+    """The fact asked for is a date: a sentence that claims it without the date is left
+    out as `no_value`; a pair whose second sentence has the date stays whole."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Sie schicken das Gesuch."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"repairs": [], "additions": [
+        {"after": "b001", "texts": ["Das Gesuch ist Pflicht."], "fact_ids": ["f01"]},
+        {"after": "b001", "texts": ["Es gibt eine Frist.", "Sie endet am 31. März 2026."],
+         "fact_ids": ["f01"]},
+    ]})  # fmt: skip
+    dropped: list = []
+    asked = next(f for f in fs.facts if f.id == "f01")
+    new = apply_repairs(draft, out, RepairRequest({}, [asked]), fs, dropped=dropped)
+    assert [b.text for b in new.blocks] == [
+        "Sie schicken das Gesuch.", "Es gibt eine Frist.", "Sie endet am 31. März 2026.",
+    ]  # fmt: skip
+    assert [(d.reason, d.text) for d in dropped] == [("no_value", "Das Gesuch ist Pflicht.")]
+
+
+def test_a_repair_text_that_is_part_of_another_of_the_same_answer_is_dropped() -> None:
+    """The polish round returned a sentence and then its tail once more."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    whole = "Der Bericht muss innerhalb von zwei Wochen nach der Woche bei der Lehrperson sein."
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Der Bericht muss innert zwei Wochen dort sein."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"additions": [], "repairs": [
+        {"id": "b001", "texts": [whole, "nach der Woche bei der Lehrperson sein."]},
+    ]})  # fmt: skip
+    dropped: list = []
+    new = apply_repairs(draft, out, RepairRequest({"b001": ["x"]}, []), fs, dropped=dropped)
+    assert [b.text for b in new.blocks] == [whole]
+    assert [(d.reason, d.text) for d in dropped] == [
+        ("repeat", "nach der Woche bei der Lehrperson sein."),
+    ]
 
 
 def test_a_repeated_sentence_is_dropped_with_its_empty_heading() -> None:

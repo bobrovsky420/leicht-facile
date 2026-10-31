@@ -175,7 +175,24 @@ def build_request(
                     wrong = label(lang, "distorted", fact_id=c.fact_id, note=c.note, fact=fact.text)
                     problems[block_id].append(f"  - {wrong}")
             elif c.status == "missing" and fact.must_keep:
-                missing.add(c.fact_id)
+                # A fact a block already carries by code's links (a value it contains, a
+                # sentence it cites: stages.link_facts) is asked for on that block, not
+                # as new sentences: the 70B called obligations missing that stood there
+                # in other words ("Papier vom Arzt" for the Arztzeugnis), and every round
+                # then added a paraphrase of the block (the school letters, 31 October
+                # 2026). A repair replaces the block, so it cannot repeat it. A heading
+                # carries nothing, whatever fact ids the writer gave it: the 70B hangs
+                # the facts of a section on its question heading.
+                carrying = [
+                    b for b in draft.blocks if c.fact_id in b.fact_ids and b.kind != "heading"
+                ]
+                if carrying:
+                    unclear = label(
+                        lang, "judge_missing", fact_id=c.fact_id, note=c.note, fact=fact.text
+                    )
+                    problems[carrying[0].id].append(f"  - {unclear}")
+                else:
+                    missing.add(c.fact_id)
     # A few missing facts per round, the most important kinds first (a dropped part of a
     # decision before any value): a small model adds some of a long list and drops the
     # rest; the next round takes the next ones.

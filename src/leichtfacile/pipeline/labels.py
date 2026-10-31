@@ -33,6 +33,9 @@ LABELS: dict[str, dict[str, str]] = {
         "missing_value_exact": " (Wert: {value}; schreibe: {exact})",
         "unsupported": "Das steht nicht im Original.",
         "distorted": "Tatsache {fact_id} ist falsch: {note} Richtig ist: {fact}",
+        # The judge calls a fact missing that this block carries (rounds.build_request).
+        "judge_missing": "Tatsache {fact_id} ist hier nicht deutlich: {note} "
+        "Sag sie in diesem Block klar: {fact}",
         "section": "die Sätze {first} bis {last}",
         "copied_example": "Die Antwort enthält {count} Sätze aus dem Beispiel in der Anleitung "
         "(Hunde·steuer). Das Beispiel zeigt nur die Form. Schreibe über das Dokument "
@@ -70,6 +73,8 @@ LABELS: dict[str, dict[str, str]] = {
         "missing_value_exact": " (valeur : {value} ; écris : {exact})",
         "unsupported": "Ce n'est pas dans l'original.",
         "distorted": "Le fait {fact_id} est faux : {note} Correct : {fact}",
+        "judge_missing": "Le fait {fact_id} n'est pas clair ici : {note} "
+        "Dis-le clairement dans ce bloc : {fact}",
         "section": "les phrases {first} à {last}",
         "copied_example": "La réponse contient {count} phrases de l'exemple dans les "
         "instructions (taxe des chiens). L'exemple montre seulement la forme. Écris sur le "
@@ -106,6 +111,8 @@ LABELS: dict[str, dict[str, str]] = {
         "missing_value_exact": " (valore: {value}; scrivi: {exact})",
         "unsupported": "Questo non è nell'originale.",
         "distorted": "Il fatto {fact_id} è sbagliato: {note} Corretto: {fact}",
+        "judge_missing": "Il fatto {fact_id} non è chiaro qui: {note} "
+        "Dillo chiaramente in questo blocco: {fact}",
         "section": "le frasi da {first} a {last}",
         "copied_example": "La risposta contiene {count} frasi dell'esempio nelle istruzioni "
         "(tassa sui cani). L'esempio mostra solo la forma. Scrivi sul documento qui "

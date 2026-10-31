@@ -410,13 +410,15 @@ class JudgeReport(Artifact):
 # -- repair rounds -------------------------------------------------------------------
 
 
-DropReason = Literal["repeat", "example", "not_flagged"]
+DropReason = Literal["repeat", "example", "not_flagged", "conveyed", "no_value"]
 
 
 class DroppedText(Artifact):
     """A sentence of a repair answer that code left out of the new version: a repeat of
-    a sentence the draft already has, a sentence about the prompt's examples, or the
-    repair of a block the round had not flagged."""
+    a sentence the draft already has, a sentence about the prompt's examples, the
+    repair of a block the round had not flagged, an addition for facts the draft
+    already conveys, none of them asked for (`conveyed`), or an addition asked for a
+    value that brings none of it (`no_value`; both since 31 October 2026)."""
 
     text: str
     reason: DropReason
