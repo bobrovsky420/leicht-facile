@@ -52,9 +52,10 @@ from leichtfacile.schemas import (
 # FACT-05) and layout go to the reviewer instead.
 REPAIRABLE = ("LEN", "ORD", "GRAM", "NEG", "LEX", "NUM", "CH")
 REPAIRABLE_RULES = ("FACT-06", "FACT-09")
-# Findings that name a fact the draft lacks: a missing must-keep value, and in decision
-# mode a dropped part of the operative part or the appeal instructions (rules/decision.py).
-MISSING_RULES = ("FACT-01", "FACT-08")
+# Findings that name a fact the draft lacks: a missing must-keep value, in decision mode
+# a dropped part of the operative part or the appeal instructions (rules/decision.py),
+# and a dropped item of a list of the source (rules/lists.py).
+MISSING_RULES = ("FACT-01", "FACT-08", "FACT-10")
 MAX_MISSING_PER_ROUND = 5
 MISSING_PRIORITY = {
     kind: rank
@@ -82,8 +83,9 @@ def repairable(finding: Finding) -> bool:
 
 
 def missing_count(rules: RuleFindings) -> int:
-    """Must-keep values the draft still lacks (FACT-01), and in decision mode the parts
-    of the decision it dropped (FACT-08): the measure of a facts round."""
+    """Must-keep values the draft still lacks (FACT-01), in decision mode the parts of
+    the decision it dropped (FACT-08) and the items of a list it dropped (FACT-10): the
+    measure of a facts round."""
     return sum(1 for f in rules.findings if f.rule_id in MISSING_RULES)
 
 

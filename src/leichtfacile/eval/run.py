@@ -22,6 +22,7 @@ from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.orchestrator import Orchestrator, understand_model
 from leichtfacile.pipeline.prompts import has_prompt
 from leichtfacile.pipeline.rounds import blocking_count, version_key
+from leichtfacile.rules.lists import protect_lists
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     ZH_CONDITIONS,
@@ -220,7 +221,7 @@ def _reference_factsheet(
     )
     # Completed by code as in the pipeline, so a baseline scored before any P1 or P2 job
     # exists is held to the same facts as one scored after them.
-    fs = stages.complete_factsheet(fs, standard)
+    fs = protect_lists(stages.complete_factsheet(fs, standard), standard)
     store.put_artifact(job_id, "score_factsheet", fs)
     return fs
 

@@ -40,6 +40,7 @@ from leichtfacile.pipeline.stages import RepairRequest
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
+from leichtfacile.rules.lists import protect_lists
 from leichtfacile.rules.medication import medication_names
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.rules.swiss import apply_spelling
@@ -318,6 +319,7 @@ class Orchestrator:
             factsheet = stages.complete_factsheet(factsheet, source)
             if cfg.mode == "decision":
                 factsheet = protect_factsheet(factsheet, source)
+            factsheet = protect_lists(factsheet, source)  # after the decision's parts
             if cfg.pipeline.vocabulary:
                 factsheet = stages.vocabulary_terms(factsheet, source)
             self.store.put_artifact(job.id, "factsheet", factsheet)

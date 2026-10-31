@@ -610,6 +610,8 @@
   "finding.FACT-08.appeal": "L'indicazione dei rimedi giuridici non è in nessun blocco: {text}",
   "finding.FACT-08.appeal_omitted": "L'indicazione dei rimedi giuridici è elencata come omessa: {text}",
   "finding.FACT-09": "{name} è nominato qui senza {values}, che un altro blocco ha. Scriva il medicamento con dose, schema e durata in un solo blocco, un elemento dell'elenco per medicamento.",
+  "finding.FACT-10": "L'elemento dell'elenco non è in nessun blocco: {text}",
+  "finding.FACT-10.omitted": "L'elemento dell'elenco è elencato come omesso: {text}",
   "finding.LAY-01": "La riga {line} ha più di una frase.",
   "finding.LAY-02": "La riga {line} ha {chars} caratteri; al massimo {limit}.",
   "finding.LAY-03": "Titolo di {words} parole; al massimo {limit}.",
@@ -676,5 +678,6 @@
   "rule.FACT-08": "Niente del dispositivo o dell'indicazione dei rimedi giuridici va perso",
   "rule.LAY-01": "Una frase per riga",
   "rule.LAY-02": "Righe di al massimo 85 caratteri",
-  "rule.FACT-09": "Un medicamento resta in un solo blocco con dose, schema e durata"
+  "rule.FACT-09": "Un medicamento resta in un solo blocco con dose, schema e durata",
+  "rule.FACT-10": "Ogni elemento di un elenco dell'originale è conservato"
 }

@@ -27,6 +27,7 @@ RULES_DIR = Path(rules_package.__file__).parent
 MODULES = (
     "de.py", "fr.py", "it.py", "shared.py", "document.py", "decision.py", "medication.py",
     "layout.py",
+    "lists.py",
 )  # fmt: skip
 # Keyword arguments of hit() that are fields of the Hit, not placeholders.
 HIT_FIELDS = {"evidence", "suggestion", "severity", "fact_id", "segment_ids", "block_id"}

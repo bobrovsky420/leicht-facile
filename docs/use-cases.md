@@ -269,9 +269,11 @@ with any model.
   development; the school administration is bound by official secrecy.
 - **Works today.** The start of the measure, the appeal period and the appeal
   authority's address are checked facts.
-- **Needs.** The decision mode for the decisions. For the everyday letters: the packing
-  list kept whole, as FACT-07 keeps the notice and FACT-09 a medication block (the reply
-  slip survived every run on its own).
+- **Needs.** The decision mode for the decisions. For the everyday letters nothing
+  more since 31 October 2026: the packing list is kept whole by FACT-10, which turns
+  every item of a list in the source into a fact the draft must carry
+  ([rules.md](rules.md#facts-the-most-important-family)); the reply slip survived
+  every run on its own.
 
 ## 9. Information for study participants
 

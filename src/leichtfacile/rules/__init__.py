@@ -14,6 +14,7 @@ from leichtfacile.rules import (  # noqa: F401  (registers the rules, in this or
     document,
     fr,
     layout,
+    lists,
     medication,
     shared,
 )

@@ -58,7 +58,7 @@ run where the organisation controls it, and **Apertus fits best**
    Code adds every date, amount and contact the model missed.
 2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
-3. **Check** (code): 45 deterministic rules for German, 41 for French and 41 for Italian
+3. **Check** (code): 46 deterministic rules for German, 42 for French and 42 for Italian
    from the published guidelines of Switzerland, Germany and Austria (sentence length,
    passive, genitive, numbers, the country's spelling and compound mark, ...) and an
    exact check of every fact value in both

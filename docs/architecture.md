@@ -222,7 +222,21 @@ normalised value, becomes that fact's value instead of a fact of its own beside 
 70B listed the Italian camp letter's "deve essere pagata entro 30 giorni" without a
 value, code added the period again, and a repair round then wrote both). Code's own
 facts take their ids after the highest one, so none repeats an id a merge left
-standing.
+standing. Then `rules/lists.py` adds one fact without a value per item of every list
+of the source that no code fact cites yet (`protect_lists`, since 31 October 2026,
+after the decision mode's protected parts): the writer sees the items among the facts
+it must keep, a block that cites an item carries its fact, and FACT-10 (§4.4) fires
+when a must-keep item is cited by no block or listed as omitted, like FACT-08 for a
+decision's parts, so a repair round asks for it like a missing value. The 70B had kept
+2 of 7 items of the camp letter's packing list in German and none in French. An item a
+code fact already cites (the pocket money's amount), an item in a passage the model
+marked as droppable (a background fact), a list of more than 20 items, an item that
+ends in a colon or is a question (an intro line, a teaser, a table of contents) and an
+item that repeats a heading or an earlier line of the source are left out; an item
+worded by a block that cites the same list counts as kept, since the 70B cites a label
+as its neighbour's line. On the 25 Public AI evaluation pairs the final drafts cite 208
+of the 321 list items instead of 146, with the value facts and the style errors level
+and 4 to 10 blocks more per draft ([prompts.md](prompts.md), row 20).
 
 **The vocabulary completes the hard terms.** The project's vocabulary of hard words
 (`rules/data/vocabulary_<lang>.toml`, `rules/vocabulary.py`; [rules.md](rules.md),
@@ -539,7 +553,7 @@ they start from, what measures their progress and how often they run:
 | Kind | Starts from | Asks for | Goes on while | Rounds at most |
 |------|-------------|----------|---------------|----------------|
 | repair | the latest version | the rule errors, the missing values and the judge's problems; the warnings when nothing blocks | the blocking findings fall | `pipeline.repair_rounds` (3) |
-| facts | the latest | the missing must-keep values alone (FACT-01, FACT-08) | the missing values fall | `pipeline.facts_rounds` (1) |
+| facts | the latest | the missing must-keep values alone (FACT-01, FACT-08, FACT-10) | the missing values fall | `pipeline.facts_rounds` (1) |
 | recover | the best | each missing value, with its source paragraph (§4.7) | - | once, for `pipeline.recover_facts` (10) values |
 | polish | the best | the rule errors, else the warnings; no fact, no judge's problem | - | `pipeline.polish_rounds` (1) |
 | vocabulary | the best | the office words (LEX-07) | - | once, with `pipeline.vocabulary` |
