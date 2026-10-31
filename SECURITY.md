@@ -30,11 +30,36 @@ to their projects, and findings that need an attacker on the machine the app run
 The latest release, on PyPI and on ghcr.io. `uvx leichtfacile` runs it; the other ways
 of installing update by hand ([docs/quickstart.md](docs/quickstart.md#updates)).
 
+## Verifying a release
+
+Every release made after 31 October 2026 carries signed provenance, a statement that the
+artifact was built by this repository's release workflow at the tagged commit, and a bill
+of materials in CycloneDX of what it contains. The signature comes from the workflow's own
+identity through Sigstore; no key is kept anywhere. With the GitHub CLI, for the wheel of
+the GitHub release and for the image:
+
+```bash
+gh attestation verify leichtfacile-<version>-py3-none-any.whl --owner bobrovsky420
+gh attestation verify oci://ghcr.io/bobrovsky420/leichtfacile:<version> --owner bobrovsky420
+```
+
+For the wheel as PyPI serves it, with the attestation PyPI holds for it:
+
+```bash
+pypi-attestations verify pypi --repository https://github.com/bobrovsky420/leicht-facile pypi:leichtfacile-<version>-py3-none-any.whl
+```
+
+The bills of materials are on the release page next to the wheel, one for the locked
+dependencies and one for the image, each attested the same way: `gh attestation verify
+<file> --owner bobrovsky420` checks them like any artifact, and the image's travels with
+it in ghcr.io.
+
 ## How the repository guards its supply chain
 
 Pinned, hashed dependencies installed frozen; actions pinned to commits; trusted
 publishing to PyPI; a one-week cooldown on new releases; weekly dependency updates;
 a secret scan of the whole history and a vulnerability scan of the lockfile and the
-image on every change; no download at runtime. The details and the repository settings
+image on every change; no download at runtime; provenance and a bill of materials with
+every release. The details and the repository settings
 that go with them: [docs/architecture.md §10](docs/architecture.md#10-deployment-and-sovereignty),
 "Supply chain".

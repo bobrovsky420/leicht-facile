@@ -1851,13 +1851,20 @@ repository keeps that checkable:
 - **At runtime.** The app downloads nothing: the UI assets and the fonts are in the
   package, and the API documentation pages, the one place that would load Swagger UI
   and ReDoc from a CDN, are off unless `server.api_docs` says so.
+- **Provenance and bills of materials.** The release workflow attests the wheel and the
+  image with GitHub's build-provenance action: a Sigstore signature by the workflow's own
+  identity that binds the artifact's digest to this repository, the tagged commit and
+  the workflow, which `gh attestation verify` checks against a download. uv uploads the
+  PyPI attestation (PEP 740) under trusted publishing, and the job fails if pypi.org does
+  not hold it afterwards. Trivy writes a CycloneDX bill of materials of the locked
+  dependencies and one of the image; both go on the GitHub release and are attested the
+  same way (`SECURITY.md`, "Verifying a release").
 - **Reporting.** `SECURITY.md` names the private channels, the scope and the response
   times.
 
 Settings of the repository on GitHub that go with this, outside the code: branch
 protection on `main` with CI required, secret scanning with push protection, Dependabot
-alerts, and private vulnerability reporting switched on. Open: provenance attestations
-for the wheel and the image, and a software bill of materials with each release.
+alerts, and private vulnerability reporting switched on.
 
 #### Data lifecycle
 
@@ -1907,7 +1914,8 @@ What the service stores, where, for how long, and how it leaves:
 .gitleaks.toml              the secret scanner's configuration: the default rules and the project's own allowlist
 SECURITY.md                 how to report a vulnerability, the scope, the response times
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release;
-                            the image built, checked and pushed to ghcr.io/bobrovsky420/leichtfacile
+                            the image built, checked and pushed to ghcr.io/bobrovsky420/leichtfacile; both
+                            attested (provenance) with a CycloneDX bill of materials each
 Dockerfile, .dockerignore   the container image: the environment from uv.lock in a build stage, a slim Python image
                             with that environment alone; the build context is the package, its metadata and the lockfile
 compose.yaml                the image as a service with a volume, and the model servers (vLLM, llama.cpp) as profiles

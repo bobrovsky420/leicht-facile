@@ -73,3 +73,20 @@ def test_the_security_policy_names_the_contact_and_the_scanners_are_configured()
     hook = ROOT / "scripts" / "hooks" / "pre-commit"
     assert hook.stat().st_mode & 0o111, "the hook is executable"
     assert "gitleaks git --pre-commit --staged" in hook.read_text(encoding="utf-8")
+
+
+def test_the_release_attests_its_artifacts_and_ships_their_bills_of_materials() -> None:
+    """release.yml attests the wheel and the image with GitHub's provenance action, checks
+    that PyPI holds the wheel's own attestation, and attaches a CycloneDX bill of materials
+    for each, attested too; SECURITY.md tells a reader how to verify a download."""
+    release = _read(".github/workflows/release.yml")
+    assert release.count("uses: actions/attest-build-provenance@") == 2, "the wheel and the image"
+    assert release.count("uses: actions/attest-sbom@") == 2, "one bill of materials each"
+    assert release.count("attestations: write") == 2, "both jobs may write attestations"
+    assert release.count("format: cyclonedx") == 2
+    assert "https://pypi.org/integrity/leichtfacile/" in release
+    assert "push-to-registry: true" in release, "the image's attestations live in ghcr.io too"
+    assert "gh release upload" in release, "the image's bill of materials joins the release"
+    policy = _read("SECURITY.md")
+    assert "gh attestation verify" in policy
+    assert "pypi-attestations verify pypi" in policy

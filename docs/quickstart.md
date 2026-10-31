@@ -284,6 +284,10 @@ pip install leichtfacile
 Every release's wheel is also on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
 `uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.9.1/leichtfacile-0.9.1-py3-none-any.whl`.
+Every release made after 31 October 2026 carries signed provenance and a bill of
+materials, for the wheel and for the container image;
+[SECURITY.md](../SECURITY.md#verifying-a-release) has the commands that verify a
+download against this repository.
 
 ```bash
 leichtfacile serve        # opens http://127.0.0.1:8000/model
