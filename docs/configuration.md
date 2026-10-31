@@ -298,7 +298,11 @@ file, not in a variable. In a container or a CI job, five variables make a prese
 without any file: `LEICHTFACILE_LLM__PRESET=ci`, the provider's
 `LEICHTFACILE_PROVIDERS__CI__URL` and `LEICHTFACILE_PROVIDERS__CI__API_KEY`, and the
 preset's `LEICHTFACILE_PRESETS__CI__PROVIDER=ci` and
-`LEICHTFACILE_PRESETS__CI__MODELS__WRITER`.
+`LEICHTFACILE_PRESETS__CI__MODELS__WRITER`. The container image sets three for every run,
+`LEICHTFACILE_CONFIG=/data/config.toml`, `LEICHTFACILE_DATA__DIR=/data` and
+`LEICHTFACILE_SERVER__HOST=0.0.0.0`; `LEICHTFACILE_SERVER__PUBLISHED_ON` names the address
+the runtime publishes the port on (`compose.yaml` passes it), and `docker run -e` or the
+`.env` next to `compose.yaml` adds the rest ([quickstart.md](quickstart.md#7-in-a-container)).
 
 ## In a checkout
 
@@ -454,6 +458,7 @@ The web application (`leichtfacile serve`).
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `host` | `"127.0.0.1"` | The interface the app is published on (0.0.0.0: every interface); anything but this machine needs a login ([auth]). |
+| `published_on` |  | In a container: the address the runtime publishes the port on (docker run -p &lt;address>:8000:8000), judged instead of host for the login; 127.0.0.1 needs none. |
 | `port` | `8000` | The port. |
 | `open_browser` | `true` | Open the browser at the start, on this machine and, on Linux, with a desktop. |
 | `ui_lang` | `"auto"` | Interface language for visitors who have not picked one: en, de, fr, it, or auto (the browser's). |

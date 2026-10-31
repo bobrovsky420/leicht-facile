@@ -256,6 +256,10 @@ without storing it.
 | b) Air-gapped | As (a), and the app installed offline, the spaCy models among its dependencies, from a folder of wheels collected on a connected machine ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
 | c) Sovereign Swiss cloud | Point the endpoint's `url` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
 
+**As a container.** The image `ghcr.io/bobrovsky420/leichtfacile` carries the app with
+every dependency; `compose.yaml` starts it with the model server of (a) on one GPU, and
+`docker save` carries both into (b) ([quickstart.md §7](docs/quickstart.md#7-in-a-container)).
+
 Documents and review records stay in a SQLite database in a folder the organisation
 controls (`data.dir`). At runtime the app contacts only the model endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider

@@ -1,6 +1,6 @@
 # Leicht·Facile - design and architecture
 
-Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12); since 23 October 2026 a Python package that works with any OpenAI-compatible model endpoint, without Docker (§10).
+Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12); since 23 October 2026 a Python package that works with any OpenAI-compatible model endpoint, without Docker (§10); since 31 October 2026 also a container image, `ghcr.io/bobrovsky420/leichtfacile` (§10).
 Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-case-schools.md](use-case-schools.md) (letters from schools and other organisations to parents, students and members), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
 
 ## 1. What it is
@@ -1604,7 +1604,9 @@ opens it in the default browser as soon as `/healthz` answers (`cli.open_when_re
 only for a loopback host, and on Linux only with a desktop (`DISPLAY` or
 `WAYLAND_DISPLAY`), since Python would otherwise start a text browser in the terminal
 (`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `server.host`: beyond
-the loopback interface the app needs a login (below). The database goes to `data.dir`,
+the loopback interface the app needs a login (below); in a container, which binds every
+interface of its own while the runtime publishes the port, `server.published_on` names
+the published address and is judged instead. The database goes to `data.dir`,
 by default `%LOCALAPPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
 `$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
@@ -1624,6 +1626,34 @@ natively with `leichtfacile serve --no-browser` against an unreachable endpoint 
 `/healthz` answers and `/readyz` reports the endpoint unreachable
 (`.github/workflows/ci.yml`).
 
+The same app comes as a container image, `ghcr.io/bobrovsky420/leichtfacile`, one tag
+per release and `latest`, x86-64 ([quickstart.md](quickstart.md#7-in-a-container) way 7).
+The `Dockerfile` has two stages: uv installs the environment from `uv.lock` (the versions
+of every other install of the commit, the language packages among them) into a build
+stage, and a slim Python image of the version `.python-version` pins carries that
+environment alone, without uv, pip or the build context (`.dockerignore` is an allowlist:
+the package, its metadata and the lockfile, nothing else, so a checkout's `.env` never
+lands in an image). The image runs as a system user of its own (uid 10001), writes to
+`/data` alone, where it puts the config file, the `.env` that `setup` writes and the
+database (`LEICHTFACILE_CONFIG=/data/config.toml`, `LEICHTFACILE_DATA__DIR=/data`), and
+listens on every interface of its container (`LEICHTFACILE_SERVER__HOST=0.0.0.0`), since
+the runtime publishes the port. Whether that makes it a published server is decided by
+`server.published_on`, the address the runtime publishes the port on: on `127.0.0.1` the
+app runs without a login, as it does natively; on any other address, or without the
+setting, it needs one of the two logins and stops at once without one. Its health check
+asks `/healthz`. `compose.yaml` starts the image with a named volume, the port published
+on the loopback interface of the host by default and the app told so through the one
+variable `LEICHTFACILE_PUBLISH`, and, as profiles, the model servers of (a) below next
+to it (`vllm`: the official Apertus image with the flags measured on the L4; `llamacpp`:
+the 4-bit conversion), pointing the shipped providers `vllm` and `local` at them on the
+compose network. CI builds the image on every change, starts it with a token against the
+unreachable endpoint, checks the probes, the login (401 without the token, 200 with it)
+and the user, starts it again published on the loopback interface alone, where the page
+answers without a login, and scans it for vulnerabilities that have a fix (Trivy, high
+and critical); `release.yml` builds it again for a tag, checks the version and the checker
+inside it and pushes it to ghcr.io (`tests/test_container.py` keeps the Python version,
+the port, the image's name and the tag the docs name in step).
+
 ### The three target architectures
 
 In each, Leicht·Facile is the same Python service (above), on a workstation or on a
@@ -1633,8 +1663,8 @@ the app.
 
 | Architecture | Where the model runs and how Leicht·Facile meets it |
 |--------------|-----------------------------------------------------|
-| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. |
-| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the two spaCy model packages among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs them ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. |
+| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. `compose.yaml` starts the vLLM server next to the app's container with these flags (`docker compose --profile vllm up -d`). |
+| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the two spaCy model packages among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs them ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. Or the container image and the model server's image, carried over with `docker save` and `docker load`. |
 | c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
@@ -1694,7 +1724,9 @@ at runtime.
   (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
   the user lands in `request.state.user`). The probes and the static files need no
   login. `server.host` (which `serve --host` sets) names the interface the app listens
-  on; beyond the loopback interface the app refuses to start without one of the two.
+  on; beyond the loopback interface the app refuses to start without one of the two. In
+  a container, `server.published_on` names the address the runtime publishes the port
+  on and is judged instead of the bind address.
   No accounts or roles of its own: that limitation stays, every logged-in user sees
   every job.
 - On a server the app runs as a system service (a systemd unit, for example) under a
@@ -1706,6 +1738,14 @@ at runtime.
   (`setup` writes the two files so on POSIX systems; `data.dir`'s permissions are the
   organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
   users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
+- In a container the same holds (above): the image runs as its own unprivileged user,
+  `/data` is its one writable folder, and the login rule judges `server.published_on`,
+  the address the runtime publishes the port on, since the app binds every interface of
+  the container: `compose.yaml` publishes on the host's loopback interface by default and
+  passes that address, so no login is asked there; on any other address the app refuses
+  to start without one of the two logins. Behind a reverse proxy on the host,
+  `auth.proxy_from` names the proxy as the container sees it (the bridge network,
+  `172.16.0.0/12`).
 - Every response carries a Content-Security-Policy (scripts from this server only,
   the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
   plug-ins; the API docs pages, which load Swagger UI from a CDN, get the other
@@ -1818,8 +1858,13 @@ What the service stores, where, for how long, and how it leaves:
 ## 11. Repository layout
 
 ```text
-.github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint
-.github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release
+.github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
+                            the container image built, started the same way with a token and scanned (Trivy)
+.github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release;
+                            the image built, checked and pushed to ghcr.io/bobrovsky420/leichtfacile
+Dockerfile, .dockerignore   the container image: the environment from uv.lock in a build stage, a slim Python image
+                            with that environment alone; the build context is the package, its metadata and the lockfile
+compose.yaml                the image as a service with a volume, and the model servers (vLLM, llama.cpp) as profiles
 .github/workflows/pages.yml    on a change of site/: the project's page published on GitHub Pages at https://leichtfacile.ch
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 README.md                   project overview, quick start, documentation list
