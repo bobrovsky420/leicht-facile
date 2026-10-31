@@ -3,9 +3,10 @@
 Status: overview, 6 October 2026; why Apertus fits (§2) and tax letters (§12)
 added 7 October 2026; §2 revised 23 October 2026: Apertus is the recommended model,
 not the only one the app runs with; §8 extended 30 October 2026 by the everyday letters
-of schools. The first two use cases are described step by step
-in their own documents, [use-case-canton.md](use-case-canton.md) and
-[use-case-decisions.md](use-case-decisions.md). The others are sketched here: what the
+of schools, written out on 31 October 2026. Three use cases are described step by step
+in their own documents, [use-case-canton.md](use-case-canton.md),
+[use-case-decisions.md](use-case-decisions.md) and [use-case-schools.md](use-case-schools.md)
+(the everyday letters of §8). The others are sketched here: what the
 document is, which facts must survive, who reviews, and what the checker still needs.
 The value kinds `period`, `identifier` and `address` they share exist since 7 October
 2026 ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"); the
@@ -24,7 +25,7 @@ checks built for them since are listed in
 | 5 | Criminal justice | Penal order (Strafbefehl) | 10 days to object | Public prosecutor's office | Official secrecy; criminal proceedings | Planned (§5) |
 | 6 | Debt collection | Payment order (Zahlungsbefehl) | 10 days to object | Debt collection office, debt counselling | Official secrecy; the adviser's client data | Planned (§6) |
 | 7 | Social assistance and social insurance | Decisions, conditions, sanctions | Appeal periods, duties to report | Case worker | Social insurance confidentiality; social assistance | Close to 1 and 2 (§7) |
-| 8 | Schools | Letters to parents and students; placement and special-education decisions | Camp and reply-slip dates; appeal periods under cantonal law | School administration, the class teacher | Nothing for a letter to all parents; official secrecy and children's health for a decision | Example letters shipped, decisions planned (§8) |
+| 8 | Schools | Letters to parents and students; placement and special-education decisions | Camp and reply-slip dates; appeal periods under cantonal law | School administration, the class teacher | Nothing for a letter to all parents; official secrecy and children's health for a decision | Built for the everyday letters ([use-case-schools.md](use-case-schools.md)), decisions planned (§8) |
 | 9 | Research | Information for study participants | None; rights and risks must survive | Study team, ethics committee | Nothing for the information sheet itself | Planned (§9) |
 | 10 | Migration | Permit and asylum decisions | Appeal periods, some in working days | Migration office | Official secrecy; asylum proceedings | Partial fit (§10) |
 | 11 | Private sector | Letters of insurers, pension funds, utilities | Payment and cancellation dates | The company's writers | Customer data; health insurers' and pension funds' duty of confidentiality | As use case 1 (§11) |
@@ -258,6 +259,7 @@ with any model.
   ([architecture.md §4.3](architecture.md#43-plan-and-write-model)): the prompts then
   call the source a school's document, and the style guide and the checker ask for du.
   The school letters' sidecars set both; the students' letters run in the du form.
+  The use case is written out in [use-case-schools.md](use-case-schools.md).
 - **Document.** Decisions on school placement, special-education measures and
   disciplinary measures.
 - **Why.** They reach parents with low reading skills or still learning German or
