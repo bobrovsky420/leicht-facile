@@ -225,6 +225,7 @@ The development tasks run with uv:
 | `uv run ruff check .`, `uv run ruff format --check .` | the checks CI runs; `uv run ruff format .` and `uv run ruff check --fix .` fix what they can |
 | `uv run leichtfacile check-llm` | lists the provider's models and makes one short call |
 | `uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke` | the smoke run: the German example letter through the whole pipeline against the live endpoint; it succeeds when the job reaches review |
+| `make run` | builds the image from the checkout, starts it with `compose.yaml` and the checkout's `.env` in the background, waits until it answers and opens the web UI ([way 7](#7-in-a-container)); `make logs` follows its log, `make stop` stops it (the data stays in the volume). Needs Docker, and make with Git for Windows' shell on Windows |
 | `uv run python scripts/config_reference.py` | writes the settings reference in [configuration.md](configuration.md#reference) again after a change of the settings |
 | `git config core.hooksPath scripts/hooks` | once per checkout: before each commit, ruff on the staged Python files and, with [gitleaks](https://github.com/gitleaks/gitleaks) installed, a scan of the staged changes for secrets; CI scans the whole history in any case |
 | `uv lock --upgrade` | newer dependencies, a release only once it is a week old (`[tool.uv] exclude-newer` in pyproject.toml); Dependabot opens the same as a pull request every week |
@@ -491,7 +492,7 @@ profile.) Air-gapped, as way 6 for containers: on a connected machine
 `docker save ghcr.io/bobrovsky420/leichtfacile:0.10.2 | gzip > leichtfacile-0.10.2.tar.gz`,
 carry it over, `docker load < leichtfacile-0.10.2.tar.gz`; the model server's image and its
 weights the same way. A build from a checkout: `docker build -t leichtfacile .` (or
-`docker compose up -d --build`). CI builds the image, starts it with a token against an
+`docker compose up -d --build`; `make run` does that and opens the web UI). CI builds the image, starts it with a token against an
 unreachable endpoint, checks the probes and the login and scans it for vulnerabilities
 that have a fix (`.github/workflows/ci.yml`).
 

@@ -5,6 +5,13 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Added
+
+- `make run` in a checkout builds the container image, starts it with `compose.yaml` and
+  opens the web UI once it answers; `make stop` stops it and `make logs` follows its log.
+
 ## [0.10.2] - 2026-11-01
 
 ### Fixed
@@ -238,6 +245,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.2...HEAD
 [0.10.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.9.1...v0.10.0

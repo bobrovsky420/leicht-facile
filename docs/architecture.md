@@ -1919,6 +1919,7 @@ SECURITY.md                 how to report a vulnerability, the scope, the respon
 Dockerfile, .dockerignore   the container image: the environment from uv.lock in a build stage, a slim Python image
                             with that environment alone; the build context is the package, its metadata and the lockfile
 compose.yaml                the image as a service with a volume, and the model servers (vLLM, llama.cpp) as profiles
+Makefile                    `make run`: the image built from the checkout and started with compose.yaml, the web UI opened; `make stop`, `make logs`
 .github/workflows/pages.yml    on a change of site/: the project's page published on GitHub Pages at https://leichtfacile.ch
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 README.md                   project overview, quick start, documentation list
