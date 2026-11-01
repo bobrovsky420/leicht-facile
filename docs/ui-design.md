@@ -229,7 +229,10 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
   keeps the answer for 5 minutes in `sessionStorage`, so moving between pages does not
   call the provider's model list each time. The main nav has a fourth entry, **AI
   model**, unless an organisation offers one preset alone (`llm.offer`).
-- The language switch (EN | DE, as today) and the API link.
+- The language switch (EN | DE, as today), the guide link and the API link. The guide
+  link (`site.guide_url`) opens the user's guide on the project's site in a new tab:
+  the German one for the German interface, the English one for the others
+  (docs/user-guide.md is its source).
 - First focusable element: a "Skip to content" link.
 - The tagline leaves the header (it opens the empty state, §5.2); the footer leaves
   every page (the disclaimer moves under the drafts list and into the reader view's

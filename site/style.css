@@ -244,6 +244,23 @@ ul.services p, ul.missing p, ul.countries p { margin: 0; color: var(--text-2); f
 ul.countries { grid-template-columns: repeat(3, 1fr); }
 ul.services + p, ul.missing + p, ul.countries + p { margin-top: 28px; }
 
+/* the user's guide (site/guide/, site/de/guide/): one column of text with the app's
+   screenshots, its sections numbered by hand like docs/user-guide.md */
+.guide .wrap { max-width: 920px; }
+.guide .hero { padding: 48px 0 40px; }
+.guide .hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.5rem); }
+.guide .hero .note { margin-top: 0; }
+.guide section { padding: 44px 0; }
+.guide h3 { margin: 1.4em 0 0.4em; }
+.guide ul { padding-left: 1.2em; margin: 0 0 1em; }
+.guide li { margin-bottom: 0.4em; }
+.guide figure { margin: 8px 0 24px; }
+.guide .table-scroll { margin: 0 0 1em; }
+.guide tbody th { font-weight: 600; white-space: nowrap; }
+ol.toc { columns: 2; column-gap: 32px; padding-left: 1.6em; margin: 24px 0 0; }
+ol.toc li { margin-bottom: 0.3em; break-inside: avoid; }
+kbd { font-family: "Atkinson Hyperlegible Mono", ui-monospace, monospace; font-size: 0.85em; padding: 1px 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--surface); }
+
 footer { background: var(--surface); border-top: 1px solid var(--border); padding: 28px 0; color: var(--muted); font-size: 0.92rem; }
 footer .wrap { display: grid; gap: 8px; }
 footer p { margin: 0; max-width: 72ch; }
@@ -285,6 +302,8 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
   table.results tbody th { font-weight: 600; margin-bottom: 6px; }
   table.results td { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; }
   table.results td::before { content: attr(data-label); color: var(--muted); font-weight: 400; flex: none; }
+  ol.toc { columns: 1; }
+  .guide tbody th { white-space: normal; }
   ol.roadmap { padding-left: 8px; }
   ol.roadmap .when { position: static; width: auto; text-align: left; margin-bottom: 4px; }
   nav ul { gap: 6px 14px; }

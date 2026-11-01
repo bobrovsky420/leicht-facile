@@ -218,35 +218,21 @@ single prompt found 74 and 69 and lost a quarter of the hard facts
 ### Your first draft
 
 The interface speaks English, German, French or Italian (switch at the top right).
+Before the first draft, the start page offers the example letters: a municipality's
+letter about premium reduction in German, French and Italian, a decision of a child and
+adult protection authority (in Germany a Wohngeld-Bescheid and in Austria a
+Familienbeihilfe-Bescheid instead) and letters of a school (all team-written, described
+in the examples' [README.md](data/examples/README.md)). Click one, then **Create draft**:
+the model reads, writes, checks, judges and repairs in a few minutes, and the review
+page opens. Approve, edit or reject each block, save the review and export the text as
+Markdown, HTML or Word. **Check my text** runs the rule checker on any text you paste,
+without a model and without storing it.
 
-**1. Start a draft.** Before the first draft, the start page offers the example
-letters: a municipality's letter about premium reduction in German, French and Italian,
-and a decision of a child and adult protection authority (in Germany a Wohngeld-Bescheid
-and in Austria a Familienbeihilfe-Bescheid instead; all team-written, described in the
-examples' [README.md](data/examples/README.md)). Click one to open the New draft form
-with it filled in, or click **New draft** and paste a text, enter a web address or
-upload a file (PDF, HTML, text or Markdown). Choose the language (or let it be
-detected), the level (A2 Leichte Sprache or FALC, B1 Einfache Sprache or langage clair;
-the level names the rule set, not a measured reader level) and the pipeline (P2 full by
-default), and click **Create draft**. The model answers live: a run takes a few minutes.
+The [user's guide](docs/user-guide.md) walks through every page with screenshots, for
+the people who review the drafts; it is also on the site in
+[English](https://leichtfacile.ch/guide/) and [German](https://leichtfacile.ch/de/guide/).
 
-![The start page before the first draft: the three example letters and New draft](docs/images/first-draft-start.png)
-
-![The New draft form with the German example letter pasted, and the settings: language, level and pipeline](docs/images/first-draft-new.png)
-
-**2. Follow the stages.** The page updates by itself: Read, Write, Check, Judge and
-Repair, each with its result as soon as it is done (the fact sheet, then each draft
-version). When the pipeline is done, the review page opens.
-
-**3. Review and export.** The review page (screenshot above, below "How it works")
-shows the source, the draft and the must-keep facts. Click a block or a fact to see
-where it comes from. Approve, edit or reject each block (or **Approve all undecided**),
-tick **Review complete** and click **Save review**. **Reader view** shows the text as a
-reader gets it; **Export** writes it as Markdown, HTML or Word, or the whole job as an
-audit bundle (JSON).
-
-**Check my text** runs the rule checker on any text you paste, without a model and
-without storing it.
+![The start page before the first draft: the example letters and New draft](docs/images/guide/en/01-start.png)
 
 ## Sovereign deployment
 
@@ -269,6 +255,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md): what each release changed, from 0.5.0 on
+- [user-guide.md](docs/user-guide.md): the illustrated guide for the people who review the drafts, from the source text to the export
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture

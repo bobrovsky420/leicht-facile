@@ -14,6 +14,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - The Markdown, HTML and Word exports can carry the original text after the easy-language
   text, on a new page in Word and in print: "Add the original text" in the reader view's
   export panel, "... with original" in the Export menus, `original=1` on the API.
+- An illustrated user's guide for the people who review the drafts, from the source text
+  to the export: docs/user-guide.md, and on the site in English and German. The app bar
+  links to it (Guide, Anleitung).
 
 ## [0.10.2] - 2026-11-01
 

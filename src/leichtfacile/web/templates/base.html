@@ -37,6 +37,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
     {% endfor %}
   </nav>
   {% endif %}
+  <a class="api" href="{{ t('site.guide_url') }}" title="{{ t('site.guide_title') }}" target="_blank" rel="noopener">{{ t('site.guide') }}</a>
   <a class="api" href="/docs">API</a>
 </header>
 <main id="main" tabindex="-1">

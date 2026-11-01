@@ -1,0 +1,462 @@
+<!doctype html>
+<!-- https://leichtfacile.ch/de/guide/: die Anleitung auf Deutsch, die Schwester von
+     site/guide/index.html (Englisch) und docs/user-guide.md; Bilder mit der deutschen
+     Oberfläche aus scripts/guide_screenshots.py. Die drei im Gleichschritt halten. -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leicht·Facile: Anleitung</title>
+<meta name="description" content="So erstellen und prüfen Sie mit Leicht·Facile Entwürfe in Leichter Sprache, Seite für Seite mit Bildern: Entwurf starten, Schritte verfolgen, jeden Block und jeden Fakt prüfen, exportieren.">
+<link rel="canonical" href="https://leichtfacile.ch/de/guide/">
+<link rel="alternate" hreflang="en" href="https://leichtfacile.ch/guide/">
+<link rel="alternate" hreflang="de" href="https://leichtfacile.ch/de/guide/">
+<link rel="alternate" hreflang="x-default" href="https://leichtfacile.ch/guide/">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://leichtfacile.ch/de/guide/">
+<meta property="og:title" content="Leicht·Facile: Anleitung">
+<meta property="og:description" content="Entwürfe für Behördentexte in Leichter Sprache erstellen und prüfen, Seite für Seite mit Bildern.">
+<meta property="og:image" content="https://leichtfacile.ch/images/guide/de/05-review.png">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="../">Leicht<span>·</span>Facile</a>
+    <nav aria-label="Abschnitte">
+      <ul>
+        <li><a href="#start">Start</a></li>
+        <li><a href="#review">Prüfen</a></li>
+        <li><a href="#facts">Fakten</a></li>
+        <li><a href="#export">Export</a></li>
+        <li><a href="#check">Text prüfen</a></li>
+      </ul>
+    </nav>
+    <nav class="langs" aria-label="Sprache"><a href="../../guide/" lang="en" hreflang="en" title="English">EN</a><span aria-current="true" lang="de" title="Deutsch">DE</span></nav>
+  </div>
+</header>
+
+<main id="main" class="guide">
+<section class="hero">
+  <div class="wrap">
+    <h1>Anleitung</h1>
+    <p class="lead">Für alle, die mit Leicht·Facile Texte in Leichter Sprache schreiben und
+    prüfen: in einer Behörde, einer Schule oder einer anderen Organisation. Die Anleitung
+    begleitet einen Brief vom Ausgangstext bis zur exportierten Fassung in Leichter Sprache.
+    Technisches Wissen braucht es nicht.</p>
+    <p>Leicht·Facile ist ein Schreibassistent. Ein Sprachmodell schreibt den Entwurf, Code
+    prüft ihn, und Sie entscheiden, was hinausgeht. Jeder Entwurf braucht Ihre Prüfung und
+    vor der Veröffentlichung eine Prüfung durch Lesende aus der Zielgruppe. Zur Installation:
+    der <a href="https://github.com/bobrovsky420/leicht-facile/blob/main/docs/quickstart.md">Schnellstart</a>
+    (auf Englisch).</p>
+    <p class="note">Die Bilder zeigen den deutschen Beispielbrief, der mit der App kommt (die
+    Prämienverbilligung der erfundenen Gemeinde Musterwil), mit der deutschen Oberfläche. Die
+    Oberfläche gibt es auch auf Englisch, Französisch und Italienisch.</p>
+    <ol class="toc">
+      <li><a href="#screen">Die Oberfläche</a></li>
+      <li><a href="#start">Einen Entwurf starten</a></li>
+      <li><a href="#progress">Während das Modell arbeitet</a></li>
+      <li><a href="#drafts">Die Liste der Entwürfe</a></li>
+      <li><a href="#review">Den Entwurf prüfen</a></li>
+      <li><a href="#facts">Die Fakten prüfen</a></li>
+      <li><a href="#more">Weggelassenes, Glossar, neu starten</a></li>
+      <li><a href="#export">Leseansicht und Export</a></li>
+      <li><a href="#check">Einen eigenen Text prüfen</a></li>
+      <li><a href="#model">Das KI-Modell</a></li>
+      <li><a href="#good-to-know">Gut zu wissen</a></li>
+      <li><a href="#words">Wörter in der App</a></li>
+    </ol>
+  </div>
+</section>
+
+<section id="screen">
+  <div class="wrap">
+    <h2>1. Die Oberfläche</h2>
+    <p>Die Leiste oben ist auf jeder Seite gleich:</p>
+    <ul>
+      <li><b>Entwürfe</b>: die Liste aller Entwürfe. Die Zahl daneben zählt die Entwürfe, die
+      auf Ihre Prüfung warten.</li>
+      <li><b>Neuer Entwurf</b>: einen Entwurf aus einem amtlichen Text erstellen.</li>
+      <li><b>Text prüfen</b>: einen selbst geschriebenen Text prüfen, ohne Modell.</li>
+      <li><b>KI-Modell</b>: welches Modell die Entwürfe schreibt. Die Seite erscheint, wenn
+      mehr als ein Modell angeboten wird.</li>
+      <li><b>Modell</b> mit einem Punkt: das Modell in Gebrauch. Grün heisst, es antwortet;
+      orange, der Anbieter antwortet, führt das Modell aber nicht auf; rot, es ist nicht
+      erreichbar. Ohne Modell entstehen keine Entwürfe, die Prüfung und der Textprüfer
+      funktionieren aber weiter.</li>
+      <li><b>EN DE FR IT</b>: die Sprache der Oberfläche. Die Sprache Ihrer Dokumente stellen
+      Sie pro Entwurf ein. <b>Anleitung</b> öffnet diese Seite.</li>
+    </ul>
+    <p>Vor dem ersten Entwurf bietet die Startseite die Beispielbriefe an. Ein Klick öffnet
+    das Formular «Neuer Entwurf» mit dem Brief darin.</p>
+    <figure>
+      <a href="../../images/guide/de/01-start.png"><img src="../../images/guide/de/01-start.png" width="1280" height="820"
+        alt="Die Startseite vor dem ersten Entwurf: die Beispielbriefe und die Schaltfläche Neuer Entwurf"></a>
+    </figure>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>2. Einen Entwurf starten</h2>
+    <p>Klicken Sie auf <b>Neuer Entwurf</b>. Links geben Sie den Ausgangstext ein, rechts die
+    Einstellungen.</p>
+    <figure>
+      <a href="../../images/guide/de/02-new-draft.png"><img src="../../images/guide/de/02-new-draft.png" width="1280" height="820" loading="lazy"
+        alt="Das Formular Neuer Entwurf mit dem eingefügten deutschen Beispielbrief und den Einstellungen: Sprache, Stufe, Ablauf, Dokumentart, Absender und Anrede"></a>
+    </figure>
+    <p><b>Das Ausgangsdokument.</b> Es gibt drei Wege:</p>
+    <ul>
+      <li><b>Text einfügen</b>: den Text aus Ihrem Dokument kopieren, mit den Überschriften,
+      bis zur Zahl der Zeichen, die unter dem Feld steht.</li>
+      <li><b>Webadresse</b>: die Adresse einer öffentlichen Webseite. Die App übernimmt den
+      Haupttext der Seite, Menüs und Fusszeilen fallen weg. Seiten in einem privaten Netz
+      werden abgelehnt.</li>
+      <li><b>Datei hochladen</b>: ein PDF mit Textebene, eine HTML-Seite, eine Text- oder
+      eine Markdown-Datei, bis 15 MB. Ein gescannter Brief ohne Textebene wird mit einer
+      Meldung abgelehnt: Bilder liest die App noch nicht.</li>
+    </ul>
+    <p><b>Die Einstellungen.</b> Die Vorgaben passen für die meisten Briefe.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Einstellung</th><th scope="col">Was Sie wählen</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Sprache des Dokuments</th><td><b>Erkennen</b> funktioniert für Deutsch, Französisch und Italienisch.</td></tr>
+          <tr><th scope="row">Stufe</th><td><b>A2</b> für Leichte Sprache (auch FALC, lingua facile): kurze Sätze, eine Aussage pro Satz, schwere Wörter erklärt. <b>B1</b> für Einfache Sprache (langage clair, linguaggio chiaro), für Lesende mit etwas Leseübung. Die Stufe benennt die Regeln, nicht ein gemessenes Leseniveau.</td></tr>
+          <tr><th scope="row">Ablauf</th><td><b>P2 vollständig</b> beibehalten. P1 lässt die Beurteilung weg, P0 ist ein einziger Prompt zum Vergleich.</td></tr>
+          <tr><th scope="row">Dokumentart</th><td><b>Normaler Text</b>, oder <b>Entscheid-Brief</b> für einen Entscheid einer Behörde oder eines Gerichts: dann die Adressatin oder den Adressaten und den festen Hinweis angeben, der den Text eröffnet und schliesst.</td></tr>
+          <tr><th scope="row">Absender</th><td><b>Behörde</b>, <b>Schule</b> oder <b>Andere Organisation</b>: Der Entwurf spricht mit der Stimme des Absenders.</td></tr>
+          <tr><th scope="row">Anrede</th><td><b>Sie (formell)</b>, <b>du (eine Person)</b> oder <b>ihr (mehrere Personen)</b>.</td></tr>
+          <tr><th scope="row">Titel</th><td>Freiwillig: der Name in der Liste der Entwürfe. Ohne ihn gilt der Titel des Dokuments.</td></tr>
+          <tr><th scope="row">KI-Modell</th><td>Nur wenn mehrere angeboten werden: das Modell für diesen Entwurf allein.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>Modelle</b> bleibt zu; es dient zum Testen anderer Modelle. Klicken Sie auf
+    <b>Entwurf erstellen</b>.</p>
+  </div>
+</section>
+
+<section id="progress">
+  <div class="wrap">
+    <h2>3. Während das Modell arbeitet</h2>
+    <p>Die Seite des Entwurfs zeigt jeden Schritt, während er läuft. Ein Brief von ein bis
+    zwei Seiten dauert einige Minuten. Die Seite aktualisiert sich selbst; Sie können sie
+    verlassen und über die Liste der Entwürfe zurückkehren.</p>
+    <figure>
+      <a href="../../images/guide/de/03-progress.png"><img src="../../images/guide/de/03-progress.png" width="1280" height="820" loading="lazy"
+        alt="Die Seite mit dem Fortschritt: Lesen, Schreiben, Prüfen und Beurteilen fertig, Überarbeiten läuft; rechts das Faktenblatt und Entwurf v1 mit seinen Befunden"></a>
+    </figure>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Schritt</th><th scope="col">Wer</th><th scope="col">Was geschieht</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Lesen</th><td>Modell</td><td>Das Modell liest das Dokument und schreibt das Faktenblatt: die Kernfragen der Lesenden und jeden Fakt mit seinem genauen Wert (Fristen, Beträge, Kontakte). Code ergänzt jedes Datum, jeden Betrag und jeden Kontakt, den das Modell übersehen hat.</td></tr>
+          <tr><th scope="row">Schreiben</th><td>Modell</td><td>Der erste Entwurf in Leichter Sprache. Jeder Satz verweist auf die Sätze der Quelle, aus denen er stammt; alles Weggelassene hat eine Begründung.</td></tr>
+          <tr><th scope="row">Prüfen</th><td>Code</td><td>Die Regeln der veröffentlichten Richtlinien und eine genaue Prüfung jedes Werts aus den Fakten: nichts verloren, nichts erfunden.</td></tr>
+          <tr><th scope="row">Beurteilen</th><td>Modell</td><td>Ein zweites Modell, das Prüfmodell, prüft die Bedeutung: verfälschte Fakten, Aussagen, die nicht in der Quelle stehen, Bilder und Vergleiche, unklare Bezüge.</td></tr>
+          <tr><th scope="row">Überarbeiten</th><td>Modell</td><td>Nur die markierten Blöcke werden neu geschrieben, in Runden, bis kein blockierendes Problem übrig ist. Danach ein Satz für jeden Wert, der erhalten bleiben muss und noch fehlt.</td></tr>
+          <tr><th scope="row">Freigabe</th><td>Sie</td><td>Jeden Block freigeben, bearbeiten oder ablehnen, dann exportieren.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Unter <b>Bisherige Ergebnisse</b> sehen Sie das Faktenblatt und die neueste Version,
+    sobald es sie gibt. <b>Stoppen</b> beendet den Lauf. Schlägt ein Lauf fehl, bleiben die
+    fertigen Schritte erhalten: Klicken Sie auf <b>Von vorne neu starten</b>. Ist der Ablauf
+    fertig, öffnet sich die Prüfung.</p>
+  </div>
+</section>
+
+<section id="drafts">
+  <div class="wrap">
+    <h2>4. Die Liste der Entwürfe</h2>
+    <p><b>Entwürfe</b> zeigt alle Entwürfe, die neuesten zuerst.</p>
+    <figure>
+      <a href="../../images/guide/de/04-drafts.png"><img src="../../images/guide/de/04-drafts.png" width="1280" height="820" loading="lazy"
+        alt="Die Liste der Entwürfe mit zwei Briefen, die zu prüfen sind: ihre Prüfungen, die gefundenen Fakten und der Stand der Freigabe"></a>
+    </figure>
+    <ul>
+      <li><b>Status</b>: Wartet, Läuft (mit dem Schritt), Zu prüfen, Erledigt (Prüfung
+      abgeschlossen) oder Fehlgeschlagen.</li>
+      <li><b>Prüfungen</b>: die Fehler und Warnungen der finalen Version und wie viele der
+      Fakten, die erhalten bleiben müssen, darin stehen.</li>
+      <li><b>Freigabe</b>: wie viele Blöcke Sie entschieden haben.</li>
+      <li>Das Menü am Ende einer Zeile: <b>Öffnen</b>, <b>Leseansicht</b>, die Exporte und
+      <b>Löschen</b>.</li>
+    </ul>
+    <p>Suchen Sie nach Titel, filtern Sie nach Status oder Sprache. Das Feld <b>So funktioniert
+    es</b> über der Liste schliesst das Kreuz. Je nach den Einstellungen Ihrer Installation
+    werden Entwürfe, die eine Weile niemand geändert hat, nach einigen Tagen gelöscht; fragen
+    Sie, wer die App betreibt.</p>
+  </div>
+</section>
+
+<section id="review">
+  <div class="wrap">
+    <h2>5. Den Entwurf prüfen</h2>
+    <p>Die Prüfseite hat drei Spalten: die <b>Quelle</b> links, den <b>Entwurf</b> in der
+    Mitte und die <b>Prüfungen</b> rechts. Klicken Sie auf einen Block im Entwurf: Er öffnet
+    sich, und links leuchten die Sätze der Quelle auf, aus denen er stammt.</p>
+    <figure>
+      <a href="../../images/guide/de/05-review.png"><img src="../../images/guide/de/05-review.png" width="1280" height="820" loading="lazy"
+        alt="Die Prüfseite: In der Mitte ist ein Block mit Befunden geöffnet, links ist sein Satz in der Quelle markiert, rechts stehen die Fakten"></a>
+    </figure>
+    <p><b>Die Zeile unter dem Titel</b> zeigt Sprache, Stufe und Ablauf, dann die
+    <b>Versionen</b> des Entwurfs: v1 ist der erste Entwurf, jede Überarbeitungsrunde fügt
+    eine hinzu, und eine ist als <b>final</b> markiert. Jede Version zeigt ihre blockierenden
+    Probleme. Sie prüfen die finale Version; ein Klick auf eine andere vergleicht. Rechts: die
+    Fehler, die Warnungen und die gefundenen Fakten der Version, die Sie sehen.</p>
+    <p><b>Die Quelle</b> zeigt das Dokument Satz für Satz, nummeriert. Ein Satz mit
+    <b>Weggelassen</b> wurde absichtlich weggelassen, die Begründung steht daneben. <b>Nicht
+    erklärt</b> markiert einen Satz der Quelle, auf den sich kein Block bezieht: Lesen Sie
+    ihn, vielleicht steht darin etwas, das dem Entwurf fehlt.</p>
+    <p><b>Ein Block</b> ist eine Überschrift, eine Gruppe von Sätzen oder ein
+    Aufzählungspunkt des Entwurfs. Das Zeichen links eines Blocks zeigt seinen schwersten
+    Befund: rot für einen Fehler, orange für eine Warnung. Im geöffneten Block sehen Sie:</p>
+    <ul>
+      <li><b>Bearbeiteter Text</b>: das Feld, in dem Sie den Block ändern.</li>
+      <li><b>Die Befunde</b>, jeder mit der Regel und mit dem, der ihn gefunden hat:
+      <b>Code</b> (eine Regelprüfung) oder <b>Prüfmodell</b> (das zweite Modell). Manche
+      bringen einen Vorschlag mit; <b>Übernehmen</b> setzt ihn in den bearbeiteten Text.</li>
+      <li><b>Enthält</b>: die Fakten, die dieser Block enthält.</li>
+      <li><b>Der Entscheid</b>: <b>Freigeben</b>, <b>Bearbeiten</b> oder <b>Ablehnen</b>, und
+      <b>Nächster offener</b>.</li>
+    </ul>
+    <h3>So entscheiden Sie</h3>
+    <p>Lesen Sie den Block neben seinen Sätzen in der Quelle.</p>
+    <ul>
+      <li><b>Freigeben</b>, wenn er stimmt und leicht zu lesen ist.</li>
+      <li><b>Bearbeiten</b>, wenn er eine Änderung braucht: Bearbeiten wählen und den Text im
+      Feld ändern.</li>
+      <li><b>Ablehnen</b>, wenn er nicht in den Text gehört. Ein abgelehnter Block fehlt im
+      Export.</li>
+    </ul>
+    <p>Über den Blöcken filtern <b>Alle</b>, <b>Mit Befunden</b> und <b>Offen</b> die Liste.
+    Die Einträge des Glossars am Ende des Entwurfs entscheiden Sie wie Blöcke: Sie kommen in
+    den Export.</p>
+    <p><b>Tasten</b> (wenn die Spalte des Entwurfs den Fokus hat): <kbd>J</kbd> und
+    <kbd>K</kbd> oder die Pfeiltasten wechseln den Block, <kbd>A</kbd>, <kbd>E</kbd> und
+    <kbd>R</kbd> geben frei, bearbeiten und lehnen ab, <kbd>N</kbd> springt zum nächsten
+    offenen Block, <kbd>Strg</kbd>+<kbd>S</kbd> speichert.</p>
+    <h3>Speichern</h3>
+    <p>Ihre Entscheide bleiben erst erhalten, wenn Sie auf <b>Prüfung speichern</b> klicken
+    (oben rechts). Daneben steht, wann Sie zuletzt gespeichert haben. <b>Alle offenen
+    freigeben</b> unten gibt jeden Block frei, den Sie noch nicht entschieden haben. Wenn Sie
+    fertig sind, setzen Sie das Häkchen bei <b>Prüfung abgeschlossen</b> und speichern: Der
+    Status des Entwurfs wird Erledigt. Hat eine Kollegin oder ein Kollege dieselbe Prüfung
+    inzwischen gespeichert, lehnt die App Ihr Speichern ab und bittet Sie, die Seite neu zu
+    laden: So überschreibt niemand den anderen.</p>
+  </div>
+</section>
+
+<section id="facts">
+  <div class="wrap">
+    <h2>6. Die Fakten prüfen</h2>
+    <p>Die rechte Spalte hat vier Reiter. <b>Fakten</b> zeigt die Fakten, die erhalten bleiben
+    müssen, und wie viele davon vorhanden sind.</p>
+    <figure>
+      <a href="../../images/guide/de/06-facts.png"><img src="../../images/guide/de/06-facts.png" width="1280" height="820" loading="lazy"
+        alt="Der Reiter Fakten: Ein Fakt ist gewählt, links ist sein Satz in der Quelle markiert, in der Mitte der Block, der ihn enthält"></a>
+    </figure>
+    <p>Ein Klick auf einen Fakt zeigt links seinen Satz in der Quelle und in der Mitte die
+    Blöcke, die ihn enthalten. Code prüft jeden Wert genau (ein Datum, einen Betrag, eine
+    Telefonnummer); das Prüfmodell prüft die Bedeutung. Ein Fakt kann sein:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Status</th><th scope="col">Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">vorhanden</th><td>Der Fakt steht im Entwurf: Code findet seinen Wert, oder das Prüfmodell findet die Aussage.</td></tr>
+          <tr><th scope="row">fehlt</th><td>Der Fakt steht nicht im Entwurf. Rot markiert die Blöcke, in die er gehört.</td></tr>
+          <tr><th scope="row">verfälscht</th><td>Das Prüfmodell findet die Aussage verändert.</td></tr>
+          <tr><th scope="row">Prüfmodell zweifelt</th><td>Code findet den Wert, aber das Prüfmodell bezweifelt die Aussage: Lesen Sie die Blöcke, die ihn enthalten.</td></tr>
+          <tr><th scope="row">ungeprüft</th><td>Ein Fakt ohne Wert, den Code prüfen kann, und kein Prüfmodell ist gelaufen (Ablauf P1): Lesen Sie selbst.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Bei einem fehlenden Fakt bittet <b>Satz vorschlagen</b> das Modell um einen Satz aus dem
+    Absatz der Quelle. Code sagt, ob der Satz den Wert enthält. <b>Zu Block … hinzufügen</b>
+    setzt ihn als Bearbeitung in den Block; lesen Sie ihn und speichern Sie dann die
+    Prüfung.</p>
+    <p>Die anderen Reiter:</p>
+    <ul>
+      <li><b>Befunde</b>: Befunde zum ganzen Dokument, etwa ein fehlender Fakt. Befunde zu
+      einem einzelnen Block stehen im Entwurf.</li>
+      <li><b>Fragen</b>: die fünf Kernfragen der Lesenden (Worum geht es? Was müssen Sie tun?
+      Bis wann? Was kostet es? Wen können Sie fragen?), beantwortet aus dem Faktenblatt. Ein
+      Klick auf eine Antwort zeigt, woher sie stammt.</li>
+      <li><b>Mehr</b>: siehe den nächsten Abschnitt.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="more">
+  <div class="wrap">
+    <h2>7. Weggelassenes, Glossar, neu starten</h2>
+    <figure>
+      <a href="../../images/guide/de/07-more.png"><img src="../../images/guide/de/07-more.png" width="1280" height="820" loading="lazy"
+        alt="Der Reiter Mehr: was weggelassen wurde, mit den Begründungen, und das Glossar"></a>
+    </figure>
+    <p>Der Reiter <b>Mehr</b> zeigt:</p>
+    <ul>
+      <li><b>Weggelassen, mit Begründung</b>: was der Entwurf weglässt und warum. Ein Klick auf
+      einen Eintrag zeigt die Sätze der Quelle.</li>
+      <li><b>Glossar</b>: die schweren Wörter und ihre Erklärungen. Was mit <b>aus dem
+      Vokabular</b> markiert ist, hat Code aus einer geprüften Liste ergänzt, nicht das
+      Modell geschrieben.</li>
+      <li><b>Kennzahlen</b>: Sätze, Wörter pro Satz, ein Lesbarkeitswert, der Anteil der Sätze
+      im Passiv und die Fakten, die Code findet.</li>
+      <li><b>Lauf</b>: was der Lauf verbraucht hat (Tokens, Zeit) und welche Modelle
+      geschrieben und beurteilt haben.</li>
+      <li><b>Neu starten ab</b>: <b>Neu schreiben</b>, <b>Neu lesen und schreiben</b> oder
+      <b>Neu beurteilen und überarbeiten</b>. Ein neuer Lauf ersetzt den Entwurf und verwirft
+      Ihre Prüfung dazu.</li>
+      <li><b>Löschen</b>: entfernt den Entwurf und alles, was dazu entstanden ist.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="export">
+  <div class="wrap">
+    <h2>8. Leseansicht und Export</h2>
+    <p><b>Leseansicht</b> (oben auf der Prüfseite) zeigt den Text, wie ihn die Lesenden
+    bekommen, mit Ihren Entscheiden: abgelehnte Blöcke fehlen, Änderungen sind eingesetzt.</p>
+    <figure>
+      <a href="../../images/guide/de/08-reader.png"><img src="../../images/guide/de/08-reader.png" width="1280" height="820" loading="lazy"
+        alt="Die Leseansicht: links der Brief in Leichter Sprache, rechts die Wahl für den Export"></a>
+    </figure>
+    <p>Rechts wählen Sie den Export:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Format</th><th scope="col">Wofür</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Markdown (.md)</th><td>Reiner Text mit Überschriften, ein Satz pro Zeile, für ein Redaktionssystem.</td></tr>
+          <tr><th scope="row">HTML (.html)</th><td>Eine Webseite im Leselayout, zum Drucken oder Veröffentlichen.</td></tr>
+          <tr><th scope="row">Word (.docx)</th><td>Ein Word-Dokument im Leselayout, zum Weiterbearbeiten und Gestalten.</td></tr>
+          <tr><th scope="row">Prüfprotokoll (.json)</th><td>Der ganze Auftrag: die Quelle, das Faktenblatt, jede Version des Entwurfs, die Befunde und Ihre Entscheide. Bewahren Sie es auf als Nachweis, wie der Text entstanden ist.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>Originaltext anhängen</b> fügt den Ausgangstext an, in Word und im Druck auf einer
+    neuen Seite. <b>Drucken oder als PDF speichern</b> druckt die Leseansicht auf A4; für ein
+    PDF wählen Sie als Drucker «Als PDF speichern».</p>
+    <p>Der Export nimmt die <b>zuletzt gespeicherte Prüfung</b>: Speichern Sie vor dem Export.
+    Offene Blöcke bleiben so drin, wie sie geschrieben sind. Die Liste <b>Vor der
+    Veröffentlichung</b> unter dem Export zeigt, wie viele Blöcke entschieden sind, welche
+    blockierenden Probleme die Version noch hat und ob die Prüfung abgeschlossen ist. Das Menü
+    einer Zeile in der Liste der Entwürfe bietet dieselben Exporte.</p>
+  </div>
+</section>
+
+<section id="check">
+  <div class="wrap">
+    <h2>9. Einen eigenen Text prüfen</h2>
+    <p><b>Text prüfen</b> wendet die Regelprüfung auf einen Text an, den Sie selbst
+    geschrieben haben: Satzlänge, Grammatik, Wörter, Zahlen, Daten und Schreibweise. Das
+    dauert Millisekunden, ruft kein Modell auf und speichert nichts.</p>
+    <figure>
+      <a href="../../images/guide/de/09-check.png"><img src="../../images/guide/de/09-check.png" width="1280" height="820" loading="lazy"
+        alt="Text prüfen: die Befunde zu einem eingefügten Text, ein langer Satz mit Fehlern und Warnungen"></a>
+    </figure>
+    <p>Fügen Sie den Text mit den Überschriften ein, wählen Sie Sprache und Stufe und klicken
+    Sie auf <b>Prüfen</b>. Die Befunde stehen pro Block, mit Vorschlägen, wo die Regel einen
+    hat. Die Zeile oben zählt Fehler, Warnungen und Hinweise pro 100 Blöcke, damit sich Texte
+    verschiedener Länge vergleichen lassen.</p>
+    <p>Die Prüfung kennt die Regeln, nicht den Sinn: Ob Ihr Text jeden Fakt eines Originals
+    behält, zeigt nur ein Entwurf unter <b>Neuer Entwurf</b>.</p>
+  </div>
+</section>
+
+<section id="model">
+  <div class="wrap">
+    <h2>10. Das KI-Modell</h2>
+    <p>Meist wählt das Modell, wer die App betreibt, und Sie können diesen Abschnitt
+    überspringen. Die Seite <b>KI-Modell</b> zeigt die angebotenen Modelle, nach ihrem
+    Standort gruppiert.</p>
+    <figure>
+      <a href="../../images/guide/de/10-model.png"><img src="../../images/guide/de/10-model.png" width="1280" height="820" loading="lazy"
+        alt="Die Seite KI-Modell: die Modelle nach Standort gruppiert, jedes mit seinem Status"></a>
+    </figure>
+    <ul>
+      <li><b>Schweiz</b> und <b>Dieser Computer</b>: Modelle, die in der Schweiz oder auf
+      Ihrem eigenen Rechner laufen. Sie dürfen jedes Dokument bekommen, auch vertrauliche
+      Briefe.</li>
+      <li><b>Clouds: nur öffentliche Dokumente</b>: Modelle von Anbietern im Ausland. Schicken
+      Sie ihnen nur Texte, die ohnehin öffentlich sind, etwa eine Webseite.</li>
+    </ul>
+    <p>Jedes Modell zeigt seinen Status: <b>bereit</b>, <b>braucht einen Schlüssel</b>,
+    <b>läuft nicht</b> oder was ihm fehlt. Um eines zu verwenden, wählen Sie es, fügen einmal
+    seinen Schlüssel ein und klicken auf <b>Dieses Modell verwenden</b>. <b>Schlüssel
+    prüfen</b> fragt den Anbieter, ob er den Schlüssel kennt; <b>Testaufruf machen</b> schickt
+    eine kurze Anfrage. <b>Feinabstimmung</b> speichert eine Variante des gewählten Modells mit
+    anderen Einstellungen. Ist das Modell in den Einstellungen der Installation festgelegt,
+    sagt die Seite das und ändert nichts.</p>
+  </div>
+</section>
+
+<section id="good-to-know">
+  <div class="wrap">
+    <h2>11. Gut zu wissen</h2>
+    <ul>
+      <li><b>Sie entscheiden.</b> Die App findet, was Code zählen kann und was einem zweiten
+      Modell auffällt. Ob ein Text für seine Lesenden funktioniert, kann sie nicht sagen: Dafür
+      braucht es Ihre Prüfung und vor der Veröffentlichung eine Prüfung durch Lesende aus der
+      Zielgruppe.</li>
+      <li><b>Vertrauliche Texte</b> (ein Brief, der eine Person nennt, ein Arzt- oder ein
+      Steuerbrief) gehören nur zu einem Modell, das dort läuft, wo Ihre Organisation es
+      kontrolliert: die Gruppen Schweiz und Dieser Computer auf der Seite KI-Modell.</li>
+      <li><b>Sprachen</b>: Deutsch, wie es in der Schweiz, in Deutschland oder in Österreich
+      geschrieben wird (die Installation legt das Land fest), Französisch und Italienisch, wie
+      sie in der Schweiz geschrieben werden.</li>
+      <li><b>Noch nicht</b>: gescannte Briefe und Fotos. Geben Sie der App ein PDF mit
+      Textebene, oder fügen Sie den Text ein.</li>
+      <li><b>Die Stufe ist ein Satz Regeln.</b> A2 und B1 benennen die Regeln, denen der
+      Entwurf folgt; sie messen nicht, wie gut eine Leserin oder ein Leser ihn versteht.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="words">
+  <div class="wrap">
+    <h2>Wörter in der App</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Wort</th><th scope="col">Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Block</th><td>Eine Überschrift, eine Gruppe von Sätzen oder ein Aufzählungspunkt des Entwurfs: die Einheit, über die Sie entscheiden.</td></tr>
+          <tr><th scope="row">Faktenblatt</th><td>Was das Modell aus der Quelle gelesen hat: die Kernfragen und jeden Fakt mit seinem Wert.</td></tr>
+          <tr><th scope="row">Fakt, der erhalten bleiben muss</th><td>Eine Frist, ein Betrag, ein Recht, eine Pflicht oder ein Kontakt, den der Text in Leichter Sprache behalten muss.</td></tr>
+          <tr><th scope="row">Befund</th><td>Etwas, das eine Prüfung bemerkt hat: ein <b>Fehler</b> (verhindert die Veröffentlichung), eine <b>Warnung</b> (lesen) oder ein <b>Hinweis</b>.</td></tr>
+          <tr><th scope="row">Code</th><td>Die Regelprüfung: gewöhnlicher Programmcode, kein Modell, jedes Mal dasselbe Ergebnis.</td></tr>
+          <tr><th scope="row">Prüfmodell</th><td>Das zweite Modell, das die Bedeutung des Entwurfs mit der Quelle vergleicht.</td></tr>
+          <tr><th scope="row">Überarbeitungsrunde</th><td>Ein Durchgang, in dem das Modell nur die markierten Blöcke neu schreibt; jeder ergibt eine neue Version.</td></tr>
+          <tr><th scope="row">Blockierendes Problem</th><td>Ein Fehler, ein fehlender oder verfälschter Fakt: was die Überarbeitungsrunden zu beseitigen versuchen.</td></tr>
+          <tr><th scope="row">Version</th><td>Ein Stand des Entwurfs: v1 ist der erste, jede Überarbeitungsrunde fügt einen hinzu, einer ist final.</td></tr>
+          <tr><th scope="row">Prüfprotokoll</th><td>Der ganze Auftrag in einer Datei, als Nachweis.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Fragen, oder möchte Ihre Verwaltung Hilfe?
+    <a href="mailto:hello@leichtfacile.ch">hello@leichtfacile.ch</a>, oder siehe
+    <a href="../#support">Unterstützung für Verwaltungen</a>.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <ul>
+      <li><a href="../">Startseite</a></li>
+      <li><a href="https://github.com/bobrovsky420/leicht-facile">GitHub</a></li>
+      <li><a href="https://github.com/bobrovsky420/leicht-facile/issues">Issues</a></li>
+      <li><a href="mailto:hello@leichtfacile.ch">Kontakt</a></li>
+      <li><a href="../../legal/#de">Impressum</a></li>
+    </ul>
+    <p>Leicht·Facile 0.10.2, Open Source unter der Apache License 2.0. Seite aktualisiert am
+    1. November 2026.</p>
+    <p>Diese Seite setzt keine Cookies, führt keine Skripte aus und lädt nichts von Dritten.</p>
+  </div>
+</footer>
+</body>
+</html>
