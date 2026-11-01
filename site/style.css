@@ -265,7 +265,7 @@ ul.services + p, ul.missing + p, ul.countries + p { margin-top: 28px; }
 ol.flow { list-style: none; margin: 4px 0 28px; padding: 0; display: flex; flex-wrap: wrap; align-items: center; row-gap: 10px; }
 ol.flow li { display: flex; align-items: center; }
 ol.flow li + li::before { content: "→" / ""; color: var(--muted); padding: 0 5px; }
-ol.flow a { display: inline-block; padding: 5px 10px; border: 1px solid var(--accent-line); border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 600; font-size: 0.9rem; text-decoration: none; }
+ol.flow a { display: inline-block; padding: 5px 15px; border: 1px solid var(--accent-line); border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 600; font-size: 0.9rem; text-decoration: none; }
 ol.flow a:hover { border-color: var(--accent); color: var(--accent); }
 ol.flow li.model a { border-style: dashed; background: transparent; }
 ol.toc { columns: 2; column-gap: 32px; padding-left: 1.6em; margin: 24px 0 0; }
