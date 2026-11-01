@@ -7,7 +7,7 @@ installed the app for you and given you its address, or you started it yourself
 ([quickstart.md](quickstart.md)).
 
 **Your steps:** [Start a draft](#2-start-a-draft) → [wait a few minutes](#3-while-the-model-works)
-(the model works) → [review each block](#5-review-the-draft) →
+→ [review each block](#5-review-the-draft) →
 [check the facts](#6-check-the-facts) → [export](#8-reader-view-and-export).
 
 Leicht·Facile is a drafting assistant. A language model writes the draft, code checks it,
