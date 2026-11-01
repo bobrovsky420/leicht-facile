@@ -41,9 +41,10 @@ The bar at the top is the same on every page:
 - **Check my text**: check a text you wrote yourself, without a model.
 - **AI model**: which model writes the drafts. The page appears when more than one model
   is offered.
-- **Model** with a dot: the model in use. Green means it answers, amber that the provider
-  answers but does not list the model, red that it cannot be reached. Without a model the
-  app makes no drafts, but the review and the text check still work.
+- **Model**: the model in use. The dot in front of it is green when the model answers,
+  amber when the provider answers but does not list the model, red when it cannot be
+  reached. Without a model the app makes no drafts, but the review and the text check
+  still work.
 - **EN DE FR IT**: the language of the interface. The language of your documents is set
   per draft.
 - **Guide**: opens this guide on the project's site, in a new tab.
@@ -51,13 +52,13 @@ The bar at the top is the same on every page:
 Before the first draft, the start page offers the example letters. Click one to open the
 New draft form with the letter filled in.
 
-![The start page before the first draft: the example letters and the New draft button](images/guide/en/01-start.png)
+![The start page before the first draft: the example letters and the New draft button](images/guide/en/01-start.webp)
 
 ## 2. Start a draft
 
 Click **New draft**. On the left you give the source text, on the right the settings.
 
-![The New draft form with the German example letter pasted and the settings: language, level, pipeline, document type, sender and form of address](images/guide/en/02-new-draft.png)
+![The New draft form with the German example letter pasted and the settings: language, level, pipeline, document type, sender and form of address](images/guide/en/02-new-draft.webp)
 
 **The source.** Choose one of three ways:
 
@@ -90,7 +91,7 @@ The draft page shows each stage as it runs. A letter of one or two pages takes a
 minutes. The page updates by itself; you can leave it and come back through the list of
 drafts.
 
-![The progress page: Read, Write and Check done, Judge done, Repair running; on the right the fact sheet and draft version 1 with its findings](images/guide/en/03-progress.png)
+![The progress page: Read, Write and Check done, Judge done, Repair running; on the right the fact sheet and draft version 1 with its findings](images/guide/en/03-progress.webp)
 
 | Stage | Who | What happens |
 |-------|-----|--------------|
@@ -109,7 +110,7 @@ exist. **Stop** ends the run. If a run fails, the stages that finished are kept:
 
 **Drafts** lists every draft, the newest first.
 
-![The list of drafts with two letters that need review: their checks, the facts found and the review progress](images/guide/en/04-drafts.png)
+![The list of drafts with two letters that need review: their checks, the facts found and the review progress](images/guide/en/04-drafts.webp)
 
 - **Status**: Queued, Running (with the stage), Needs review, Done (review complete) or
   Failed.
@@ -128,7 +129,7 @@ The review page has three columns: the **Source** on the left, the **Draft** in 
 middle and the **Checks** on the right. Click a block in the draft: it opens, and the
 source sentences it comes from light up on the left.
 
-![The review page: a block with a finding is open in the middle, its source sentences are marked on the left, the facts on the right](images/guide/en/05-review.png)
+![The review page: a block with a finding is open in the middle, its source sentences are marked on the left, the facts on the right](images/guide/en/05-review.webp)
 
 **The strip under the title** shows the language, the level and the pipeline, then the
 **Versions** of the draft: v1 is the first draft, every repair round adds one, and one is
@@ -176,7 +177,7 @@ the app refuses your save and asks you to reload the page, so nobody overwrites 
 The right column has four tabs. **Facts** lists the facts that must survive, with the
 count of those present.
 
-![The Facts tab: a fact is selected, its source sentence is marked on the left and the block that carries it in the middle](images/guide/en/06-facts.png)
+![The Facts tab: a fact is selected, its source sentence is marked on the left and the block that carries it in the middle](images/guide/en/06-facts.webp)
 
 Click a fact to see its source sentence on the left and the blocks that carry it in the
 middle. Code checks every value exactly (a date, an amount, a phone number); the judge
@@ -205,7 +206,7 @@ The other tabs:
 
 ## 7. What was left out, the glossary, running again
 
-![The More tab: what was left out with the reasons, and the glossary](images/guide/en/07-more.png)
+![The More tab: what was left out with the reasons, and the glossary](images/guide/en/07-more.webp)
 
 The **More** tab shows:
 
@@ -225,7 +226,7 @@ The **More** tab shows:
 **Reader view** (top of the review page) shows the text as a reader gets it, with your
 decisions: rejected blocks left out, edits in place.
 
-![The reader view: the easy-language letter on the left, the export options on the right](images/guide/en/08-reader.png)
+![The reader view: the easy-language letter on the left, the export options on the right](images/guide/en/08-reader.webp)
 
 On the right you choose the export:
 
@@ -252,7 +253,7 @@ The menu of a row in the list of drafts offers the same exports.
 grammar, words, numbers, dates and spelling. It takes milliseconds, calls no model and
 stores nothing.
 
-![Check my text: the findings for a pasted text, one long sentence marked with errors](images/guide/en/09-check.png)
+![Check my text: the findings for a pasted text, one long sentence marked with errors](images/guide/en/09-check.webp)
 
 Paste the text, headings included, choose the language and the level and click **Check**.
 The findings show per block, with suggestions where the rule has one. The line on top
@@ -267,7 +268,7 @@ original needs a draft under **New draft**.
 Usually whoever runs the app chooses the model, and you can skip this page. The **AI
 model** page lists the models on offer, grouped by where they run.
 
-![The AI model page: the models grouped by where they run, each with its status](images/guide/en/10-model.png)
+![The AI model page: the models grouped by where they run, each with its status](images/guide/en/10-model.webp)
 
 - **Switzerland** and **This computer**: models that run in Switzerland or on your own
   machine. They may receive any document, confidential letters included.

@@ -3,10 +3,11 @@
 Usage: uv run python scripts/guide_screenshots.py [--work data/cache/guide]
        [--preset publicai-apertus] [--langs en de] [--out docs/images/guide] [--redo]
 
-Writes docs/images/guide/<lang>/<name>.png, 1280x820 each, one set per interface
-language. The app runs from a work folder of its own (git-ignored under data/cache/): its
-own config file and data, no leichtfacile.toml and no key but the preset's, so the
-pictures show the shipped presets and nothing of this checkout. Two servers run, one on an
+Writes docs/images/guide/<lang>/<name>.webp (lossless), 1280 px wide and at most 820 high
+(an empty strip at the bottom is trimmed), one set per interface language. The app runs
+from a work folder of its own (git-ignored under data/cache/): its own config file and
+data, no leichtfacile.toml and no key but the preset's, so the pictures show the shipped
+presets and nothing of this checkout. Two servers run, one on an
 empty store (the start page before the first draft) and one with the guide's drafts.
 
 The first run makes the drafts with a live model: the German premium reduction letter and
@@ -56,6 +57,7 @@ LETTER = "praemienverbilligung-brief"  # the guide's letter, followed from start
 SECOND = "klassenlager-elternbrief"  # a second draft, so the list is a list
 DEMO_ID = "guide0running"  # the running copy on the progress picture
 LOCAL_PROVIDERS = ("local", "ollama", "vllm")  # the shipped providers on this computer
+MARGIN = 24  # px of page background kept below the content when a picture is trimmed
 APPROVED = 6  # the first blocks of the guide's letter, approved, so the list shows progress
 
 # A text with findings for the Check my text picture: one long sentence with a passive and
@@ -247,6 +249,14 @@ def make_demo(db: Path, job_id: str) -> None:
 # -- the browser -------------------------------------------------------------------------
 
 
+# The state of the app bar's model dot (app.js): "" until /readyz answers, "none" on a page
+# without the app bar.
+READY = """(() => {
+  const dot = document.getElementById('endpoint-status');
+  return dot ? dot.dataset.state || '' : 'none';
+})()"""
+
+
 class Browser:
     """One headless page, driven through the DevTools protocol."""
 
@@ -296,17 +306,35 @@ class Browser:
         self.call("Page.navigate", url=url)
         time.sleep(0.3)
         self.settle(seconds)
+        # the app bar's model dot stays grey until /readyz has answered: wait for its colour
+        for _ in range(100):
+            if self.js(READY) in ("none", "ok", "warn", "bad"):
+                break
+            time.sleep(0.1)
 
     def shoot(self, path: Path) -> None:
         data = self.call("Page.captureScreenshot", format="png")  # the viewport
         path.parent.mkdir(parents=True, exist_ok=True)
-        # 256 colours without dithering: the UI's flat colours and text stay as they are,
-        # and a picture takes about 40 percent of the bytes
-        image = Image.open(io.BytesIO(base64.b64decode(data["data"]))).convert("RGB")
-        image.quantize(256, Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(
-            path, optimize=True
-        )
+        image = trim(Image.open(io.BytesIO(base64.b64decode(data["data"]))).convert("RGB"))
+        # lossless WebP: every pixel as captured, at about 40 percent of a PNG's bytes (a
+        # 256-colour PNG is as small, but lost the green model dot or tinted flat areas)
+        image.save(path, lossless=True, method=6)
         print(f"  {path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT) else path}")
+
+
+def trim(image: Image.Image) -> Image.Image:
+    """Without the empty page background below the content (the start page, a short list),
+    keeping MARGIN of it; a picture that is full to the bottom stays as it is."""
+    background = image.getpixel((image.width - 1, image.height - 1))
+    rows = image.height
+    while rows > 0:
+        line = image.crop((0, rows - 1, image.width, rows))
+        if line.getcolors(1) is None or line.getpixel((0, 0)) != background:
+            break  # more than one colour, or another one: content
+        rows -= 1
+    if image.height - rows <= 2 * MARGIN:
+        return image
+    return image.crop((0, 0, image.width, rows + MARGIN))
 
 
 @contextmanager
@@ -469,7 +497,7 @@ def main() -> None:
                         make_demo(db, job_id)
                     try:
                         shots[name](b)
-                        b.shoot(args.out / lang / f"{name}.png")
+                        b.shoot(args.out / lang / f"{name}.webp")
                     finally:
                         drop_demo(db)
     store.close()

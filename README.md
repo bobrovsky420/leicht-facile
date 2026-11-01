@@ -232,7 +232,7 @@ The [user's guide](docs/user-guide.md) walks through every page with screenshots
 the people who review the drafts; it is also on the site in
 [English](https://leichtfacile.ch/guide/) and [German](https://leichtfacile.ch/de/guide/).
 
-![The start page before the first draft: the example letters and New draft](docs/images/guide/en/01-start.png)
+![The start page before the first draft: the example letters and New draft](docs/images/guide/en/01-start.webp)
 
 ## Sovereign deployment
 
