@@ -85,6 +85,9 @@ def test_the_release_attests_its_artifacts_and_ships_their_bills_of_materials() 
     assert release.count("attestations: write") == 2, "both jobs may write attestations"
     assert release.count("format: cyclonedx") == 2
     assert "https://pypi.org/integrity/leichtfacile/" in release
+    # uv publish uploads an attestation but creates none: the wheel is signed first.
+    sign, publish = release.index("pypi-attestations sign dist/"), release.index("run: uv publish")
+    assert sign < publish, "the wheel is signed before the upload"
     assert "push-to-registry: true" in release, "the image's attestations live in ghcr.io too"
     assert "gh release upload" in release, "the image's bill of materials joins the release"
     policy = _read("SECURITY.md")

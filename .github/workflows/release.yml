@@ -84,8 +84,14 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.whl leichtfacile-*-dependencies.cdx.json \
             --title "Leicht·Facile ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
-      # uv uploads the PyPI attestation (PEP 740) with the wheel under trusted publishing.
-      - name: Publish to PyPI
+      # The PyPI attestation (PEP 740): uv publish uploads a `<file>.publish.attestation`
+      # it finds next to the wheel, but creates none (0.10.0 reached PyPI without one).
+      # pypi-attestations signs with this workflow's identity token through Sigstore, the
+      # identity PyPI's trusted publisher names; the version is pinned and resolved under
+      # the same week's cooldown as the lockfile.
+      - name: Sign the wheel for PyPI
+        run: uvx --exclude-newer "7 days" --from "pypi-attestations==0.0.30" pypi-attestations sign dist/*.whl
+      - name: Publish to PyPI, the attestation with the wheel
         run: uv publish --trusted-publishing always dist/*.whl
       - name: Attest the wheel's provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2

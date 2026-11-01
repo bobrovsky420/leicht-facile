@@ -5,6 +5,14 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [0.10.1] - 2026-11-01
+
+### Fixed
+
+- The release signs the wheel before it uploads it to PyPI, so the wheel on PyPI
+  carries its signed provenance (PEP 740). The wheel of 0.10.0 on PyPI has none, and
+  0.10.0 has no container image; its GitHub release is complete.
+
 ## [0.10.0] - 2026-11-01
 
 ### Added
@@ -214,6 +222,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[0.10.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.8.0...v0.9.0
