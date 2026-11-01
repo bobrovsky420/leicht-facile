@@ -45,7 +45,8 @@ The bar at the top is the same on every page:
   answers but does not list the model, red that it cannot be reached. Without a model the
   app makes no drafts, but the review and the text check still work.
 - **EN DE FR IT**: the language of the interface. The language of your documents is set
-  per draft. **Guide** opens this guide on the project's site.
+  per draft.
+- **Guide**: opens this guide on the project's site, in a new tab.
 
 Before the first draft, the start page offers the example letters. Click one to open the
 New draft form with the letter filled in.
