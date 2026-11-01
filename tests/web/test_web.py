@@ -19,6 +19,7 @@ from leichtfacile.ingest.fetch import FetchedResource
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
+from leichtfacile.web.jobs import Submission, SubmissionError, ingest_submission
 from tests.conftest import chat_response, make_settings
 from tests.pipeline import fixtures as fx
 
@@ -281,6 +282,38 @@ def test_a_redirect_into_the_private_network_is_refused(app_env, monkeypatch) ->
     assert response.status_code == 400
     assert "private network (127.0.0.1)" in response.json()["detail"]
     assert client.get("/api/jobs").json() == []
+
+
+def test_the_text_limit_holds_for_pasted_text_files_and_pages(app_env, monkeypatch) -> None:
+    """texts.max_chars: a pasted text as the form's counter counts it (a line break is
+    one character), a file and a web page by the text read from them."""
+    client, _, _ = app_env
+    response = client.post("/api/jobs", data={"text": "x" * 10_001})  # the default limit
+    assert response.status_code == 400
+    assert response.json()["detail"] == "The text is longer than 10,000 characters."
+
+    limit = len(LETTER)
+    crlf = LETTER.replace("\n", "\r\n")  # as the browser sends the form
+    assert ingest_submission(Submission(text=crlf), max_chars=limit).segments
+    with pytest.raises(SubmissionError, match=f"longer than {limit} characters"):
+        ingest_submission(Submission(text=crlf + "x"), max_chars=limit)
+
+    upload = Submission(file_name="brief.txt", file_data=LETTER.encode())
+    chars = len(ingest_submission(upload, max_chars=limit).text())
+    with pytest.raises(SubmissionError, match=f"has {chars} characters of text; the limit is 99"):
+        ingest_submission(upload, max_chars=99)
+
+    def fetch(url: str, **kwargs) -> FetchedResource:
+        return FetchedResource(
+            content=LETTER.encode(), content_type="text/plain", final_url=url,
+            fetched_at=datetime.now(UTC),
+        )  # fmt: skip
+
+    monkeypatch.setattr(ingest, "fetch_url", fetch)
+    page = Submission(url="https://public.example/brief")
+    assert ingest_submission(page, max_chars=limit).segments
+    with pytest.raises(SubmissionError, match="characters of text; the limit is 99"):
+        ingest_submission(page, max_chars=99)
 
 
 def test_a_slow_fetch_does_not_stop_other_requests(app_env, monkeypatch) -> None:

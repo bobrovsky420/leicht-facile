@@ -38,8 +38,7 @@ from leichtfacile.store import Store
 from leichtfacile.varieties import region_for, variety
 from leichtfacile.web.i18n import ENGLISH, Translator
 
-MAX_TEXT_CHARS = 200_000
-MAX_FILE_BYTES = 15_000_000
+MAX_FILE_BYTES = 15_000_000  # the text's own limit is texts.max_chars
 # The fields of the New draft form, which the page shows again after a refusal.
 FORM_FIELDS = (
     "text", "url", "lang", "level", "condition", "endpoint", "title", "writer_model",
@@ -59,8 +58,9 @@ class SubmissionError(ValueError):
 
     def text(self, t: Translator) -> str:
         params = dict(self.params)
-        if "max" in params:  # a count, with the thousands as the interface writes them
-            params["max"] = t.number(params["max"])  # type: ignore[arg-type]
+        for count in ("max", "chars"):  # with the thousands as the interface writes them
+            if count in params:
+                params[count] = t.number(params[count])  # type: ignore[arg-type]
         if "lang" in params:
             params["lang"] = t.get(f"lang.{params['lang']}", str(params["lang"]))
         if "langs" in params:  # language codes, written as "German and French"
@@ -186,7 +186,18 @@ async def start_job(state: Any, sub: Submission) -> Job:
     return job
 
 
-def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> SourceDocument:
+def text_chars(text: str) -> int:
+    """A pasted text's length as the form's counter shows it: the browser sends each
+    line break as CR LF but counts it as one character."""
+    return len(text.replace("\r\n", "\n"))
+
+
+def ingest_submission(
+    sub: Submission, *, max_chars: int, allow_private_urls: bool = False
+) -> SourceDocument:
+    """The submission's document. A pasted text longer than `max_chars`
+    (`texts.max_chars`) is refused before it is read, a file or a web page once its
+    text is known."""
     from leichtfacile import ingest
 
     lang = None if sub.lang in (None, "", "auto") else sub.lang
@@ -201,8 +212,8 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
         raise SubmissionError("one_source")
     try:
         if sub.text and sub.text.strip():
-            if len(sub.text) > MAX_TEXT_CHARS:
-                raise SubmissionError("text_too_long", max=MAX_TEXT_CHARS)
+            if text_chars(sub.text) > max_chars:
+                raise SubmissionError("text_too_long", max=max_chars)
             return ingest.ingest_text(sub.text, lang=lang, title=sub.title or None)
         if sub.url and sub.url.strip():
             url = sub.url.strip()
@@ -212,25 +223,31 @@ def ingest_submission(sub: Submission, *, allow_private_urls: bool = False) -> S
                 raise SubmissionError("no_host")
             # The fetch refuses every hop into the private network, redirects included,
             # and connects to the address it checked (ingest/fetch.py).
-            return ingest.ingest_url(url, lang=lang, allow_private=allow_private_urls)
-        data = sub.file_data or b""
-        if len(data) > MAX_FILE_BYTES:
-            raise SubmissionError("file_too_large", mb=MAX_FILE_BYTES // 1_000_000)
-        name = (sub.file_name or "upload").lower()
-        if name.endswith(".pdf") or data[:5] == b"%PDF-":
-            return ingest.ingest_pdf(data, filename=sub.file_name, lang=lang)
-        text = data.decode("utf-8", errors="replace")
-        if name.endswith((".html", ".htm")) or text.lstrip()[:15].lower().startswith(
-            ("<!doctype", "<html")
-        ):
-            return ingest.ingest_html(text, url=None, lang=lang)
-        return ingest.ingest_text(text, lang=lang, title=sub.title or sub.file_name)
+            source = ingest.ingest_url(url, lang=lang, allow_private=allow_private_urls)
+        else:
+            data = sub.file_data or b""
+            if len(data) > MAX_FILE_BYTES:
+                raise SubmissionError("file_too_large", mb=MAX_FILE_BYTES // 1_000_000)
+            name = (sub.file_name or "upload").lower()
+            if name.endswith(".pdf") or data[:5] == b"%PDF-":
+                source = ingest.ingest_pdf(data, filename=sub.file_name, lang=lang)
+            else:
+                text = data.decode("utf-8", errors="replace")
+                if name.endswith((".html", ".htm")) or text.lstrip()[:15].lower().startswith(
+                    ("<!doctype", "<html")
+                ):
+                    source = ingest.ingest_html(text, url=None, lang=lang)
+                else:
+                    source = ingest.ingest_text(text, lang=lang, title=sub.title or sub.file_name)
     except PrivateAddressError as exc:
         raise SubmissionError("private_url", host=exc.host) from exc
     except UnknownHostError as exc:
         raise SubmissionError("unknown_host", host=exc.host) from exc
     except IngestError as exc:
         raise SubmissionError("ingest", detail=str(exc)) from exc
+    if (chars := len(source.text())) > max_chars:
+        raise SubmissionError("document_too_long", chars=chars, max=max_chars)
+    return source
 
 
 def create_job(
@@ -263,7 +280,11 @@ def create_job(
         raise SubmissionError("unknown_endpoint", name=endpoint)
     # server.allow_private_urls: an intranet that needs internal pages
     with ingest_slot(slots):
-        source = ingest_submission(sub, allow_private_urls=settings.server.allow_private_urls)
+        source = ingest_submission(
+            sub,
+            max_chars=settings.texts.max_chars,
+            allow_private_urls=settings.server.allow_private_urls,
+        )
     if not source.segments:
         raise SubmissionError("no_text")
     if source.lang not in available_languages():

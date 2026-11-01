@@ -428,6 +428,7 @@
   "error.unknown_lang": "Unknown language '{lang}'; use de, fr or it.",
   "error.one_source": "Give exactly one of: pasted text, a URL or a file.",
   "error.text_too_long": "The text is longer than {max} characters.",
+  "error.document_too_long": "The document has {chars} characters of text; the limit is {max}. Shorten it or split it into parts.",
   "error.url_scheme": "The URL must start with http:// or https://.",
   "error.file_too_large": "The file is larger than {mb} MB.",
   "error.ingest": "{detail}",

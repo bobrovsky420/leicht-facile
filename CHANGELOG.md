@@ -18,6 +18,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   to the export: docs/user-guide.md, and on the site in English and German. The app bar
   links to it (Guide, Anleitung).
 
+### Changed
+
+- The web app takes texts of up to 10,000 characters (about 1,400 words), now also when
+  the text comes from a file or a web page; before, pasted text could have 200,000
+  characters and files and pages had no limit. `leichtfacile setup --max-chars` or
+  `[texts] max_chars` in the config file changes it, with a warning below 1,000 or above
+  200,000 characters.
+
 ## [0.10.2] - 2026-11-01
 
 ### Fixed

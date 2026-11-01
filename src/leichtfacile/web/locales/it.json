@@ -403,6 +403,7 @@
   "error.unknown_lang": "Lingua sconosciuta '{lang}'; usi de, fr o it.",
   "error.one_source": "Indichi esattamente una fonte: un testo incollato, un URL o un file.",
   "error.text_too_long": "Il testo supera {max} caratteri.",
+  "error.document_too_long": "Il documento ha {chars} caratteri di testo, il limite è {max}. Lo accorci o lo divida in più parti.",
   "error.url_scheme": "L'URL deve iniziare con http:// o https://.",
   "error.file_too_large": "Il file supera {mb} MB.",
   "error.ingest": "{detail}",

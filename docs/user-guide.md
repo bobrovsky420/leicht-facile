@@ -70,6 +70,9 @@ Click **New draft**. On the left you give the source text, on the right the sett
   to 15 MB. A scanned letter without a text layer is refused with a message: the app
   does not read images yet.
 
+The text of a web page or a file has the same limit as pasted text. A longer one is
+refused with its length: split it and make a draft of each part, one chapter at a time.
+
 **The settings.** The defaults fit most letters.
 
 | Setting | What to choose |

@@ -1246,7 +1246,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. |
+| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region] [--max-chars]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. `--max-chars N` sets the longest text the web app takes (`texts.max_chars`, 10,000 by default; pasted, or read from a file or a page), alone too; below 1,000 or above 200,000 setup, `config set`, `config edit`, `config show` and `serve` warn (`config.unusual`). |
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
@@ -1588,7 +1588,8 @@ set), then one of the provider's presets or any model it lists, saved as
 `[presets.<name>]`, a server of one's own as `[providers.<name>]` too; `--name`,
 `--base-url`, `--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` answer the
 questions in advance, and `--region` the question for the texts' variety (`[texts]`,
-§8), which setup alone sets; the app reads it at its start. A preset is ready when its provider has an address and a key and
+§8), which setup alone sets; `--max-chars` sets the longest text the web app takes
+(`texts.max_chars`, never asked); the app reads both at its start. A preset is ready when its provider has an address and a key and
 it names a writer; nothing is guessed from the keys in the shell (since 25 October
 2026). `leichtfacile preset` lists every preset with what it lacks, switches and
 removes, `leichtfacile config` shows and changes every setting (§7). The settings come
@@ -1763,8 +1764,9 @@ at runtime.
   `Referrer-Policy` that keeps job addresses on the site and a `Permissions-Policy`.
   HTTPS and `Strict-Transport-Security` belong to the proxy that ends TLS.
 - A request body over 16 MB is refused with 413 by its `Content-Length` before a byte
-  is read, else as soon as the count passes the limit; the 15 MB file limit, the
-  200,000 characters of text and the bounds on the review fields (§7) hold inside it.
+  is read, else as soon as the count passes the limit; the 15 MB file limit, the length
+  of the text (`texts.max_chars`, 10,000 characters by default, pasted or read from a
+  file or a page) and the bounds on the review fields (§7) hold inside it.
   Writes (POST, PUT, PATCH, DELETE) are limited to `server.rate_limit_per_minute` (120) per
   client address and minute, 429 with `Retry-After` beyond; behind the trusted proxy
   the client is the address it forwards. In memory, per process.

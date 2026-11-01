@@ -480,7 +480,7 @@ Pipeline = PipelineOptions
 
 class Texts(Section):
     """The texts the installation works on (docs/architecture.md section 8). Set by
-    `leichtfacile setup`; a job keeps the value it was created with."""
+    `leichtfacile setup`; a job keeps the variety it was created with."""
 
     region: Region = Field(
         "CH",
@@ -488,11 +488,23 @@ class Texts(Section):
         "(Germany) or AT (Austria); `leichtfacile setup --region` sets it. French and Italian "
         "texts are Swiss whatever the value.",
     )
+    max_chars: int = Field(
+        10_000,
+        ge=1,
+        description="The longest text the web app takes, in characters: pasted for a draft "
+        "or the Check page, or read from a file or a web page; `leichtfacile setup "
+        "--max-chars` sets it. The longer the text, the more facts the drafts lose; below "
+        "1,000 or above 200,000 the commands warn.",
+    )
 
     @field_validator("region", mode="before")
     @classmethod
     def _region_code(cls, value: object) -> object:
         return value.strip().upper() if isinstance(value, str) else value
+
+
+# texts.max_chars outside this range is taken, with a warning (`unusual`).
+USUAL_MAX_CHARS = (1_000, 200_000)
 
 
 class Jobs(Section):
@@ -715,6 +727,26 @@ class Settings(Section):
                 'server.published_on = "127.0.0.1")'
             )
         return self
+
+
+def unusual(settings: Settings) -> dict[str, str]:
+    """Values that are valid but probably not meant, by key, with why: `setup`, `config
+    set`, `config edit`, `config show` and `serve` warn about them."""
+    found: dict[str, str] = {}
+    chars = settings.texts.max_chars
+    low, high = USUAL_MAX_CHARS
+    if chars < low:
+        found["texts.max_chars"] = (
+            f"texts.max_chars = {chars} is unusually low (under {low:,} characters): most "
+            "letters are longer and would be refused."
+        )
+    elif chars > high:
+        found["texts.max_chars"] = (
+            f"texts.max_chars = {chars} is unusually high (over {high:,} characters): the "
+            "longer the text, the more facts the drafts lose, and a long one may run past "
+            "jobs.time_budget_s."
+        )
+    return found
 
 
 # -- where the settings come from -------------------------------------------------------

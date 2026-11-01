@@ -155,10 +155,10 @@ def test_new_draft_page_offers_the_examples(env) -> None:
     assert "Individuelle Prämienverbilligung 2027" in page.text
     assert 'name="condition" value="P2" checked' in page.text
     assert settings.llm.models.writer in page.text
-    empty_area = 'data-max="200000"></textarea>'
+    empty_area = 'data-max="10000"></textarea>'
     assert empty_area in page.text
     filled = client.get("/new", params={"example": "praemienverbilligung-brief"})
-    assert 'data-max="200000"># Individuelle Prämienverbilligung 2027' in filled.text
+    assert 'data-max="10000"># Individuelle Prämienverbilligung 2027' in filled.text
     assert empty_area in client.get("/new?example=nope").text
 
 
@@ -558,14 +558,14 @@ def test_an_installation_in_germany_writes_as_germany_does(germany) -> None:
     new = client.get("/new").text
     assert '<option value="decision">Bescheid</option>' in new
     assert "Navigation und Fußzeilen fallen weg" in new  # the spelling of Germany
-    assert "0 von 200.000 Zeichen" in new and '"thousands": "."' in new
+    assert "0 von 10.000 Zeichen" in new and '"thousands": "."' in new
     assert '<option value="de">Deutsch (Deutschland)</option>' in new
     assert '"lang_name": "Deutsch (Deutschland)"' in new  # the example's language
     filled = client.get("/new", params={"example": "wohngeld-bescheid"}).text
     assert '<option value="decision" selected>' in filled and 'value="Erika Beispiel"' in filled
     assert "Maßgebend ist der Bescheid." in filled
     swiss = client.get("/new", params={"example": "praemienverbilligung-brief"}).text
-    assert 'data-max="200000"></textarea>' in swiss  # not offered here: the form stays empty
+    assert 'data-max="10000"></textarea>' in swiss  # not offered here: the form stays empty
     assert "Daten, deutsche Rechtschreibung." in client.get("/check").text
 
     job = queued_job(store, settings, title="Brief")
@@ -605,8 +605,8 @@ def test_a_swiss_installation_reads_as_before(env) -> None:
     new = client.get("/new").text
     assert '<option value="decision">Entscheid-Brief</option>' in new
     assert "Navigation und Fusszeilen fallen weg" in new and "ß" not in new
-    assert "0 von 200&#39;000 Zeichen" in new and '<option value="de">Deutsch</option>' in new
+    assert "0 von 10&#39;000 Zeichen" in new and '<option value="de">Deutsch</option>' in new
     assert "(Schweiz)" not in new and "(Deutschland)" not in new
-    assert 'data-max="200000"></textarea>' in client.get("/new?example=wohngeld-bescheid").text
+    assert 'data-max="10000"></textarea>' in client.get("/new?example=wohngeld-bescheid").text
     queued_job(store, settings, title="Brief")
     assert "<td>Deutsch <span" in client.get("/").text

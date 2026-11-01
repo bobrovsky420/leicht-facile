@@ -420,3 +420,45 @@ def test_the_region_is_set_by_setup_alone_and_only_for_a_variety_that_ships(
     # With the preset, the flag writes the key in the same run.
     assert run_setup(preset="publicai-apertus", api_key="k", region="CH", **quiet) == 0
     assert toml(home)["texts"] == {"region": "CH"}
+
+
+def test_the_text_limit_is_set_by_setup_or_the_file_with_a_warning_when_unusual(
+    home, capsys, monkeypatch
+) -> None:
+    quiet = {"ask": never, "ask_secret": never}
+    assert load(strict=False).settings.texts.max_chars == 10_000
+    # --max-chars alone changes the limit and nothing else; a usual one says no warning.
+    said: list[str] = []
+    assert run_setup(max_chars=30_000, say=said.append, **quiet) == 0
+    assert toml(home) == {"texts": {"max_chars": 30_000}}
+    assert any("up to 30,000 characters" in line for line in said)
+    assert not any(line.startswith("Warning") for line in said)
+    # Below 1,000 and above 200,000 the value is taken, with a warning.
+    said.clear()
+    assert run_setup(max_chars=500, say=said.append, **quiet) == 0
+    assert "Warning: texts.max_chars = 500 is unusually low (under 1,000 characters)" in said[1]
+    said.clear()
+    set_value(home, "texts.max_chars", "250000", say=said.append)
+    assert said[1].startswith("Warning: texts.max_chars = 250000 is unusually high (over 200,000")
+    set_value(home, "server.port", "8001", say=said.append)  # another key: no warning
+    assert said[-1] == f"server.port set in {home}."
+    # Not a single character is no limit at all: refused, the file kept.
+    with pytest.raises(ConfigError, match="texts.max_chars"):
+        run_setup(max_chars=0, say=said.append, **quiet)
+    assert toml(home)["texts"] == {"max_chars": 250_000}
+    # A limit written into the file by hand: show and serve warn as well.
+    said.clear()
+    show(say=said.append)
+    assert any(line.startswith("Warning: texts.max_chars = 250000") for line in said)
+    import uvicorn
+
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: None)
+    capsys.readouterr()
+    assert main(["serve", "--no-browser"]) == 0
+    assert "Warning: texts.max_chars = 250000 is unusually high" in capsys.readouterr().out
+    # With a preset, the flag writes the key in the same run.
+    assert run_setup(preset="publicai-apertus", api_key="k", max_chars=12_000, say=said.append,
+                     **quiet) == 0  # fmt: skip
+    assert toml(home)["texts"] == {"max_chars": 12_000} and toml(home)["llm"]["preset"]
+    assert main(["setup", "--max-chars", "8000"]) == 0
+    assert load(strict=False).settings.texts.max_chars == 8_000

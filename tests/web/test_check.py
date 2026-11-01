@@ -32,8 +32,21 @@ def test_the_check_page_refuses_an_empty_text_and_an_unchecked_language(app_env)
     assert empty.status_code == 400 and "Paste a text first." in empty.text
     romansh = client.post("/check", data={"text": "Il termin scada ils 31 da mars.", "lang": "rm"})
     assert romansh.status_code == 400 and "No checker rules for rm yet" in romansh.text
-    too_long = client.post("/check", data={"text": "x" * 200_001})
-    assert too_long.status_code == 400
+    too_long = client.post("/check", data={"text": "x" * 10_001})
+    assert too_long.status_code == 400 and "longer than 10,000 characters" in too_long.text
+
+
+def test_the_check_page_takes_the_installations_limit_and_counts_a_line_break_once(
+    app_env,
+) -> None:
+    client, app, endpoint = app_env
+    app.state.settings.texts.max_chars = limit = len(TEXT)
+    page = client.get("/check").text
+    assert f'data-max="{limit}"' in page and f"0 of {limit} characters" in page
+    crlf = TEXT.replace("\n", "\r\n")  # as the browser sends the form
+    assert client.post("/check", data={"text": crlf}).status_code == 200
+    too_long = client.post("/check", data={"text": TEXT + "x"})
+    assert too_long.status_code == 400 and f"longer than {limit} characters" in too_long.text
 
 
 def test_the_check_page_checks_italian(app_env) -> None:

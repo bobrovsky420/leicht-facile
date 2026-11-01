@@ -28,12 +28,12 @@ from leichtfacile.varieties import region_for, variety
 from leichtfacile.web import api
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import (
-    MAX_TEXT_CHARS,
     ServerBusy,
     Submission,
     SubmissionError,
     start_job,
     submission_form,
+    text_chars,
 )
 from leichtfacile.web.views import (
     EXPORT_FORMATS,
@@ -242,8 +242,8 @@ def _new(
         coming_langs=[lang for lang in LANGS if lang not in written],
         pipelines=_pipelines(t),
         endpoints=_endpoint_options(request.app.state),
-        max_chars=MAX_TEXT_CHARS,
-        chars=len(form.get("text") or ""),
+        max_chars=request.app.state.settings.texts.max_chars,
+        chars=text_chars(form.get("text") or ""),
         # Decision mode: the authority's notice, prefilled per document language, in the
         # installation's variety (texts.region).
         notice_defaults={
@@ -327,8 +327,8 @@ def _check(
         form=form,
         view=view,
         doc_langs=check_langs(),
-        max_chars=MAX_TEXT_CHARS,
-        chars=len(form.get("text") or ""),
+        max_chars=request.app.state.settings.texts.max_chars,
+        chars=text_chars(form.get("text") or ""),
         rules=rule_count(),
         section="check",
     )
@@ -358,8 +358,8 @@ def check_text(
     form = {"text": text, "lang": lang, "level": level}
     if not text.strip():
         return _check(request, form, error=t("check.error.empty"), status_code=400)
-    if len(text) > MAX_TEXT_CHARS:
-        error = SubmissionError("text_too_long", max=MAX_TEXT_CHARS).text(t)
+    if text_chars(text) > (limit := request.app.state.settings.texts.max_chars):
+        error = SubmissionError("text_too_long", max=limit).text(t)
         return _check(request, form, error=error, status_code=400)
     if level not in LEVELS:
         return _check(

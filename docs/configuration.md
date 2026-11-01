@@ -247,7 +247,7 @@ readable by its owner only where the system supports it, under the provider's va
 
 | Command | Does |
 |---------|------|
-| `leichtfacile setup [name]` | sets a preset up and uses it: asks for the provider (or takes a preset's name, which names its provider, or a provider's), its key (nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists, saved as a preset of the user's own; for a server of the user's own asks its address and a name and saves it as a provider too; a preset saved already is updated with `--force`, its other keys kept. The variety of the texts (`[texts] region`: CH, DE or AT) is asked once more than one German variety ships, and set by `--region`; `setup --region AT` alone changes it and nothing else |
+| `leichtfacile setup [name]` | sets a preset up and uses it: asks for the provider (or takes a preset's name, which names its provider, or a provider's), its key (nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists, saved as a preset of the user's own; for a server of the user's own asks its address and a name and saves it as a provider too; a preset saved already is updated with `--force`, its other keys kept. The variety of the texts (`[texts] region`: CH, DE or AT) is asked once more than one German variety ships, and set by `--region`; `setup --region AT` alone changes it and nothing else. `--max-chars` sets the longest text the web app takes (`[texts] max_chars`), alone too |
 | `leichtfacile preset list` | every preset, shipped or the user's own, with its label, its provider, its writer model and whether it is ready (else what it lacks), the one in use marked `*` |
 | `leichtfacile preset use <name>` | uses that preset from now on |
 | `leichtfacile preset remove <name>` | removes a preset of the user's own, or the user's table that extends a shipped preset (the shipped one stays) |
@@ -273,6 +273,32 @@ leichtfacile setup local --model apertus-v1.5-8b-q4-llamacpp --name laptop
 leichtfacile setup gpu --base-url http://gpu:8000/v1 --model swiss-ai/Apertus-v1.5-8B
 leichtfacile check-llm                            # lists the provider's models, one short call
 ```
+
+## The longest text
+
+The web app takes texts of up to 10,000 characters, about 1,400 words or six pages:
+pasted for a draft or the Check page, or read from a file or a web page (the file
+itself may have up to 15 MB). A long text is hard to keep complete: with Apertus 70B,
+the draft of a source of 2,400 words kept 17 of its 45 hard facts. The limit is
+`[texts] max_chars`; the interface cannot change it, the command line and the file can:
+
+```bash
+leichtfacile setup --max-chars 20000              # alone, it changes the limit and nothing else
+leichtfacile config set texts.max_chars 20000     # the same
+```
+
+or in the config file:
+
+```toml
+[texts]
+max_chars = 20000
+```
+
+A value below 1,000 or above 200,000 characters is taken, with a warning from `setup`,
+`config set`, `config edit`, `config show` and `serve`: below it most letters are
+refused, above it the drafts lose many facts and a job may run past
+`jobs.time_budget_s`. The command line (`leichtfacile simplify`, `check`, `eval`) has
+no limit.
 
 `--api-key` ends up in the shell history; leave it out to be asked. A value of
 `config set` is read as TOML (`8001`, `true`, `["understand"]`), else taken as text.
@@ -421,11 +447,12 @@ A provider with the models that write, read and check: what the user picks. Any 
 
 ### `[texts]`
 
-The texts the installation works on (docs/architecture.md section 8). Set by `leichtfacile setup`; a job keeps the value it was created with.
+The texts the installation works on (docs/architecture.md section 8). Set by `leichtfacile setup`; a job keeps the variety it was created with.
 
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `region` | `"CH"` | The national variety of German the drafts follow: CH (Switzerland), DE (Germany) or AT (Austria); `leichtfacile setup --region` sets it. French and Italian texts are Swiss whatever the value. |
+| `max_chars` | `10000` | The longest text the web app takes, in characters: pasted for a draft or the Check page, or read from a file or a web page; `leichtfacile setup --max-chars` sets it. The longer the text, the more facts the drafts lose; below 1,000 or above 200,000 the commands warn. |
 
 ### `[pipeline]`
 

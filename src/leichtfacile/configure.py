@@ -88,6 +88,7 @@ def run_setup(
     judge: str | None = None,
     force: bool = False,
     region: str | None = None,
+    max_chars: int | None = None,
     ask: Callable[[str], str] = input,
     ask_secret: Callable[[str], str] = getpass.getpass,
     models: Callable[..., list[str]] = list_models,
@@ -100,8 +101,9 @@ def run_setup(
     its address. The key goes into the .env next to the config file, the preset into
     use. The variety of the texts (`texts.region`, docs/architecture.md section 8)
     is asked once, when more than one German variety ships its prompts and the file
-    names none yet; `region` answers it, and alone it changes the variety and nothing
-    else. 0 when it is saved."""
+    names none yet; `region` answers it. `max_chars` sets the longest text the web app
+    takes (`texts.max_chars`), never asked. Alone, `region` and `max_chars` change the
+    texts' settings and nothing else. 0 when it is saved."""
     path = config.config_file()
     doc = read_document(path)
     flat = config.collect()
@@ -118,14 +120,22 @@ def run_setup(
             raise ConfigError(
                 f"German for {region} is not available yet; available: {', '.join(offered_regions)}"
             )
-        if provider is None and preset is None and base_url is None and model is None:
+    texts_only = provider is None and preset is None and base_url is None and model is None
+    if texts_only and (region is not None or max_chars is not None):
+        if region is not None:
             set_key(doc, ["texts", "region"], region)
-            check(path, doc)
-            write_document(path, doc)
+        if max_chars is not None:
+            set_key(doc, ["texts", "max_chars"], max_chars)
+        loaded = check(path, doc)
+        write_document(path, doc)
+        if region is not None:
             say(f"The texts follow {variety('de', region).label}: {path}.")
-            say("It applies to the drafts created from now on; a running app takes it at its "
-                "next start.")  # fmt: skip
-            return 0
+        if max_chars is not None:
+            say(f"The web app takes texts of up to {max_chars:,} characters: {path}.")
+            _limit_notes(loaded.settings, path, say)
+        say("It applies to the drafts created from now on; a running app takes it at its "
+            "next start.")  # fmt: skip
+        return 0
 
     # The provider: from the preset, named, a new server (--base-url), or asked.
     if preset is not None:
@@ -239,8 +249,12 @@ def run_setup(
         index = _pick(ask, say, "Which German do your texts use?", labels, "Variety")
         set_key(doc, ["texts", "region"], offered_regions[index])
         written.append("[texts]")
+    if max_chars is not None:
+        set_key(doc, ["texts", "max_chars"], max_chars)
+        if "[texts]" not in written:
+            written.append("[texts]")
 
-    check(path, doc)
+    loaded = check(path, doc)
     secrets = path.parent / ".env"
     if store:
         save_secret(secrets, variable, store)
@@ -253,8 +267,18 @@ def run_setup(
         say(f"Its key comes from the variable {variable}.")
     if use and (other := overridden("llm.preset", path)):
         say(f"Note: {other} picks another preset and wins over the config file.")
+    if max_chars is not None:
+        _limit_notes(loaded.settings, path, say)
     say("Check it with `leichtfacile check-llm`; start the app with `leichtfacile serve`.")
     return 0
+
+
+def _limit_notes(settings: config.Settings, path: Path, say: Callable[[str], None]) -> None:
+    """After `--max-chars`: the warning about an unusual limit, and the source that wins
+    over the config file, if any."""
+    warn_unusual(settings, say, "texts.max_chars")
+    if other := overridden("texts.max_chars", path):
+        say(f"Note: {other} sets texts.max_chars too and wins over the config file.")
 
 
 def _provider_label(flat: config.Flat, name: str) -> str:
@@ -445,6 +469,9 @@ def show(*, say: Callable[[str], None] = print) -> int:
     say("")
     for key, value, source in rows:
         say(f"{key:<{keys}}  {value:<{shown}}  {source}")
+    if config.unusual(loaded.settings):
+        say("")
+        warn_unusual(loaded.settings, say)
     if loaded.problems:
         say("")
         say("Not ready to call the model:")
@@ -453,18 +480,29 @@ def show(*, say: Callable[[str], None] = print) -> int:
     return 0
 
 
+def warn_unusual(
+    settings: config.Settings, say: Callable[[str], None], key: str | None = None
+) -> None:
+    """Say each value that is valid but probably not meant (`config.unusual`), or only
+    `key`'s."""
+    for name, message in config.unusual(settings).items():
+        if key is None or name == key:
+            say(f"Warning: {message}")
+
+
 def set_value(path: Path, key: str, raw: str, *, say: Callable[[str], None] = print) -> int:
     """Set a key to a value as TOML reads it (8001, true, ["understand"]), else to the
     text as it is."""
     parts = _parts(key)
     value = parse_value(raw)
     try:
-        save(path, _with(path, parts, value))
+        loaded = save(path, _with(path, parts, value))
     except ConfigError:
         if isinstance(value, str):
             raise
-        save(path, _with(path, parts, raw))  # a model named 8 or true is still a name
+        loaded = save(path, _with(path, parts, raw))  # a model named 8 or true is still a name
     say(f"{key} set in {path}.")
+    warn_unusual(loaded.settings, say, key)
     if other := overridden(key, path):
         say(f"Note: {other} sets it too and wins over {path}.")
     return 0
@@ -500,13 +538,14 @@ def edit(
     while True:
         run([*editor(), str(path)])
         try:
-            config.load(strict=False)
+            loaded = config.load(strict=False)
         except ConfigError as exc:
             say(str(exc))
             if _no(ask("Edit again? [Y/n] ")):
                 return 1
             continue
         say(f"{path}: valid.")
+        warn_unusual(loaded.settings, say)
         return 0
 
 
@@ -540,14 +579,16 @@ def read_document(path: Path) -> tomlkit.TOMLDocument:
         raise ConfigError(f"{path}: {exc}") from None
 
 
-def check(path: Path, doc: tomlkit.TOMLDocument) -> None:
-    """Refuse a file that would leave the settings invalid, with every other source."""
-    config.load(strict=False, replace={path: doc.unwrap()})
+def check(path: Path, doc: tomlkit.TOMLDocument) -> config.Loaded:
+    """Refuse a file that would leave the settings invalid, with every other source;
+    else the settings it gives."""
+    return config.load(strict=False, replace={path: doc.unwrap()})
 
 
-def save(path: Path, doc: tomlkit.TOMLDocument) -> None:
-    check(path, doc)
+def save(path: Path, doc: tomlkit.TOMLDocument) -> config.Loaded:
+    loaded = check(path, doc)
     write_document(path, doc)
+    return loaded
 
 
 def write_document(path: Path, doc: tomlkit.TOMLDocument) -> None:

@@ -310,7 +310,7 @@ them into local time and "Today" or "Yesterday".
   segmented control (`role=tablist`; the existing tab logic in `app.js`; without
   JavaScript all three panels show, as today):
   - Paste text: label, text area (15/23, at least 420 px high, resizable), under it
-    "1,960 of 200,000 characters" (`MAX_TEXT_CHARS`) and a language note: "Detected:
+    "1,960 of 10,000 characters" (`texts.max_chars`) and a language note: "Detected:
     German" only after an example was loaded (the server detects the language);
     otherwise "The language is detected when the draft is created". Then a row "Try
     an example" with the example letters as link buttons, and "Clear".

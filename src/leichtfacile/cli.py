@@ -65,6 +65,13 @@ def main(argv: list[str] | None = None) -> int:
         help="the German variety of the texts: CH (Switzerland, the default), DE (Germany) "
         "or AT (Austria); alone, it changes the variety and nothing else",
     )
+    setup.add_argument(
+        "--max-chars",
+        type=int,
+        metavar="N",
+        help="the longest text the web app takes, in characters (default 10000; a warning "
+        "below 1000 or above 200000); alone, it changes the limit and nothing else",
+    )
 
     preset = sub.add_parser("preset", help="list the presets, pick one, remove one of your own")
     preset_sub = preset.add_subparsers(dest="preset_command", required=True)
@@ -203,6 +210,7 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
                 provider=provider, preset=preset, name=name, base_url=args.base_url,
                 api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
                 judge=args.judge, force=args.force, region=args.region,
+                max_chars=args.max_chars,
             )  # fmt: skip
         except (EOFError, KeyboardInterrupt):
             print("\nSetup cancelled.", file=sys.stderr)
@@ -293,6 +301,7 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
     if (source := loaded.flat["llm.preset"].source).startswith("the key in"):
         print(f"Model: {settings.llm.preset}, picked by {source}; the model page or "
               "`leichtfacile preset use` changes it.")  # fmt: skip
+    configure.warn_unusual(settings, print)
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
         address = f"[{host}]" if ":" in host else host
