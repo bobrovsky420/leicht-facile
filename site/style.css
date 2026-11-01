@@ -256,6 +256,9 @@ ul.services + p, ul.missing + p, ul.countries + p { margin-top: 28px; }
 .guide li { margin-bottom: 0.4em; }
 .guide figure { margin: 8px 0 24px; }
 .guide .table-scroll { margin: 0 0 1em; }
+/* separate borders: a collapsed table's outer border disappears under its rounded corners;
+   the rows keep their hairlines, the columns get none */
+.guide table { border-collapse: separate; border-spacing: 0; }
 .guide tbody th { font-weight: 600; white-space: nowrap; }
 ol.toc { columns: 2; column-gap: 32px; padding-left: 1.6em; margin: 24px 0 0; }
 ol.toc li { margin-bottom: 0.3em; break-inside: avoid; }
