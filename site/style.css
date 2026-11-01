@@ -99,15 +99,31 @@ header.top { background: var(--wash); border-bottom: 1px solid var(--border); }
 @media (min-width: 821px) and (min-height: 500px) {
   html { scroll-padding-top: 76px; }
   header.top { position: sticky; top: 0; z-index: 1; }
+  /* the guide: its header scrolls away and the step bar stays at the top in its place, as a
+     band like the header's; a section's target lands below the bar (63 px high) */
+  html:has(.guide-page) { scroll-padding-top: 63px; }
+  .guide-page header.top { position: static; }
+  .stepbar { position: sticky; top: 0; z-index: 1; background: var(--wash); border-bottom-color: var(--border); }
   @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    header.top { background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+    header.top, .stepbar { background: var(--glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   }
+  /* where scroll-driven animations work, the band appears only once the bar sticks: it fades
+     in over the first 16 px of the intro scrolling under it (the intro's view starts below
+     the bar, 63 px). Elsewhere the band stays, so no text scrolls under a bare bar */
+  @supports (timeline-scope: none) {
+    .guide .intro { view-timeline-name: --intro; view-timeline-axis: block; view-timeline-inset: 63px 0px; }
+    .stepbar { animation: bar-stuck 1ms linear both; animation-timeline: --intro; animation-range: exit-crossing 0% exit-crossing 16px; }
+  }
+}
+@keyframes bar-stuck {
+  from { background-color: var(--surface); border-bottom-color: transparent; }
+  to { background-color: var(--glass); border-bottom-color: var(--border); }
 }
 @media (min-width: 821px) and (max-width: 1040px) and (min-height: 500px) {
   html { scroll-padding-top: 100px; }
 }
 header.top .wrap { display: flex; align-items: center; gap: 16px 24px; min-height: 60px; flex-wrap: wrap; }
-header.top nav:not(.langs) { margin-left: auto; }
+header.top nav:not(.langs), header.top .mark + nav.langs { margin-left: auto; }
 /* the language switch: a group of codes, the current one set in */
 nav.langs { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; }
 nav.langs a, nav.langs span { display: inline-block; padding: 4px 9px; font-size: 0.8rem; line-height: 1.5; color: var(--text-2); text-decoration: none; }
@@ -247,9 +263,14 @@ ul.services + p, ul.missing + p, ul.countries + p { margin-top: 28px; }
 /* the user's guide (site/guide/, site/de/guide/): one column of text with the app's
    screenshots, its sections numbered by hand like docs/user-guide.md */
 .guide .wrap { max-width: 920px; }
-.guide .hero { padding: 48px 0 40px; }
+/* the top in three parts: the title and the lead; the step bar, a band of its own so that it
+   can stick for the whole page (a sticky element stays within its parent); the intro with
+   the contents */
+.guide .hero { padding: 48px 0 12px; background: linear-gradient(var(--wash), var(--surface)); border-bottom: 0; }
 .guide .hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.5rem); }
-.guide .hero .note { margin-top: 0; }
+.guide .hero .lead { margin-bottom: 0; }
+.guide .intro { background: var(--surface); padding: 18px 0 44px; border-bottom: 1px solid var(--hairline); }
+.guide .intro .note { margin-top: 0; }
 .guide section { padding: 44px 0; }
 .guide h3 { margin: 1.4em 0 0.4em; }
 .guide ul { padding-left: 1.2em; margin: 0 0 1em; }
@@ -262,12 +283,34 @@ ul.services + p, ul.missing + p, ul.countries + p { margin-top: 28px; }
 .guide tbody th { font-weight: 600; white-space: nowrap; }
 /* the reader's path through the guide: five actions, each a link to its section; the
    model's step dashed, since only that one is not yours */
-ol.flow { list-style: none; margin: 4px 0 28px; padding: 0; display: flex; flex-wrap: wrap; align-items: center; row-gap: 10px; }
+.stepbar { background: var(--surface); border-bottom: 1px solid transparent; padding: 10px 0; }
+ol.flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; row-gap: 10px; }
 ol.flow li { display: flex; align-items: center; }
 ol.flow li + li::before { content: "→" / ""; color: var(--muted); padding: 0 5px; }
 ol.flow a { display: inline-block; padding: 5px 15px; border: 1px solid var(--accent-line); border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 600; font-size: 0.9rem; text-decoration: none; }
-ol.flow a:hover { border-color: var(--accent); color: var(--accent); }
+ol.flow a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
 ol.flow li.model a { border-style: dashed; background: transparent; }
+/* the step being read is marked: its section crosses a line 30 percent down the window.
+   Scroll-driven animations, no script (the site runs none); a browser without them shows
+   the steps unmarked. Firefox needs a duration, 1 ms stands for the whole section. */
+@keyframes step-current {
+  from, to { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+}
+@supports (timeline-scope: none) {
+  .guide { timeline-scope: --intro, --step-start, --step-progress, --step-review, --step-facts, --step-export; }
+  .guide :is(#start, #progress, #review, #facts, #export) { view-timeline-axis: block; view-timeline-inset: 30% 70%; }
+  .guide #start { view-timeline-name: --step-start; }
+  .guide #progress { view-timeline-name: --step-progress; }
+  .guide #review { view-timeline-name: --step-review; }
+  .guide #facts { view-timeline-name: --step-facts; }
+  .guide #export { view-timeline-name: --step-export; }
+  ol.flow a { animation: step-current 1ms linear; }
+  ol.flow a[href="#start"] { animation-timeline: --step-start; }
+  ol.flow a[href="#progress"] { animation-timeline: --step-progress; }
+  ol.flow a[href="#review"] { animation-timeline: --step-review; }
+  ol.flow a[href="#facts"] { animation-timeline: --step-facts; }
+  ol.flow a[href="#export"] { animation-timeline: --step-export; }
+}
 ol.toc { columns: 2; column-gap: 32px; padding-left: 1.6em; margin: 24px 0 0; }
 ol.toc li { margin-bottom: 0.3em; break-inside: avoid; }
 kbd { font-family: "Atkinson Hyperlegible Mono", ui-monospace, monospace; font-size: 0.85em; padding: 1px 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--surface); }
@@ -291,13 +334,11 @@ footer ul { list-style: none; display: flex; gap: 18px; margin: 0; padding: 0; f
   header.top nav.langs { margin-left: auto; }
   nav ul { row-gap: 6px; }
 }
-/* the guide's steps no longer fit in one row: one under the other */
-@media (max-width: 960px) {
+@media (max-width: 820px) {
+  /* the guide's steps where the bar does not stick: one under the other */
   ol.flow { flex-direction: column; align-items: flex-start; row-gap: 0; }
   ol.flow li { flex-direction: column; align-items: flex-start; }
   ol.flow li + li::before { content: "↓" / ""; padding: 4px 0 4px 20px; }
-}
-@media (max-width: 820px) {
   /* the menu in its own row: the phones' spacing, so seven entries keep to one line */
   nav ul { column-gap: 12px; }
   .hero-grid, .compare, .two, .authors, .easy-texts, ul.services, ul.missing, ul.countries { grid-template-columns: 1fr; }
