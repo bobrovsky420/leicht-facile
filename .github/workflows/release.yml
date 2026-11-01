@@ -84,15 +84,23 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" dist/*.whl leichtfacile-*-dependencies.cdx.json \
             --title "Leicht·Facile ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
-      # The PyPI attestation (PEP 740): uv publish uploads a `<file>.publish.attestation`
-      # it finds next to the wheel, but creates none (0.10.0 reached PyPI without one).
-      # pypi-attestations signs with this workflow's identity token through Sigstore, the
-      # identity PyPI's trusted publisher names; the version is pinned and resolved under
-      # the same week's cooldown as the lockfile.
+      # The PyPI attestation (PEP 740): uv publish creates none (0.10.0 reached PyPI
+      # without one), and it uploads a `<file>.publish.attestation` only when that file is
+      # among the files it is given, so the glob is dist/*, not dist/*.whl (0.10.1 reached
+      # PyPI without one too; uv-publish, group_files). pypi-attestations signs with this
+      # workflow's identity token through Sigstore, the identity PyPI's trusted publisher
+      # names; the version is pinned and resolved under the same week's cooldown as the
+      # lockfile. The dry run against an address nothing listens on proves the pairing
+      # offline, before the upload that cannot be repeated.
       - name: Sign the wheel for PyPI
         run: uvx --exclude-newer "7 days" --from "pypi-attestations==0.0.30" pypi-attestations sign dist/*.whl
+      - name: uv pairs the attestation with the wheel
+        run: |
+          uv publish -v --dry-run --publish-url http://127.0.0.1:9/legacy/ \
+            --username dry-run --password dry-run dist/* 2>&1 | tee dry-run.log
+          grep -q "Found attestation for distribution: .*\.whl\.publish\.attestation" dry-run.log
       - name: Publish to PyPI, the attestation with the wheel
-        run: uv publish --trusted-publishing always dist/*.whl
+        run: uv publish --trusted-publishing always dist/*
       - name: Attest the wheel's provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:

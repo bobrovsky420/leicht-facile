@@ -5,13 +5,29 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [0.10.2] - 2026-11-01
+
+### Fixed
+
+- The release uploads the wheel's signed provenance (PEP 740) to PyPI together with the
+  wheel, and stops before the upload when the two are not paired. The wheels of 0.10.0
+  and 0.10.1 on PyPI have none, and neither version has a container image; their GitHub
+  releases are complete. The app is the same in all three.
+
+### Security
+
+- The locked dependencies take opentelemetry-api 1.45.1 (unbounded parsing of the
+  tracestate header) and setuptools 84.2.1 (a path escape when installing legacy wheels
+  on Windows). This matters for the container image, which installs the locked
+  versions.
+
 ## [0.10.1] - 2026-11-01
 
 ### Fixed
 
-- The release signs the wheel before it uploads it to PyPI, so the wheel on PyPI
-  carries its signed provenance (PEP 740). The wheel of 0.10.0 on PyPI has none, and
-  0.10.0 has no container image; its GitHub release is complete.
+- The release signs the wheel before it uploads it to PyPI. The upload still left the
+  signature behind, so the wheel of 0.10.1 on PyPI has no provenance either, and
+  0.10.1 has no container image; its GitHub release is complete.
 
 ## [0.10.0] - 2026-11-01
 
@@ -222,6 +238,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[0.10.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.9.0...v0.9.1
