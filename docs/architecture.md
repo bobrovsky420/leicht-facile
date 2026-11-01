@@ -1922,6 +1922,7 @@ compose.yaml                the image as a service with a volume, and the model 
 .github/workflows/pages.yml    on a change of site/: the project's page published on GitHub Pages at https://leichtfacile.ch
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 README.md                   project overview, quick start, documentation list
+CHANGELOG.md                what each release changed, from 0.5.0 on
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues

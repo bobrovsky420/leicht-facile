@@ -268,6 +268,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 
 ## Documentation
 
+- [CHANGELOG.md](CHANGELOG.md): what each release changed, from 0.5.0 on
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture

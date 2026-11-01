@@ -1,6 +1,6 @@
 [project]
 name = "leichtfacile"
-version = "0.9.1"
+version = "0.10.0"
 description = "Drafts easy-language versions of official texts from Switzerland, Germany and Austria with a large language model."
 # README.md with absolute links for pypi.org (the hook below)
 dynamic = ["readme"]
@@ -52,6 +52,7 @@ Homepage = "https://leichtfacile.ch"
 Documentation = "https://github.com/bobrovsky420/leicht-facile/blob/main/docs/quickstart.md"
 Source = "https://github.com/bobrovsky420/leicht-facile"
 Issues = "https://github.com/bobrovsky420/leicht-facile/issues"
+Changelog = "https://github.com/bobrovsky420/leicht-facile/blob/main/CHANGELOG.md"
 
 [project.scripts]
 leichtfacile = "leichtfacile.cli:main"
