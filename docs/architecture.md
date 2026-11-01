@@ -727,6 +727,15 @@ Export formats:
   (`summary.prompt_versions`). Arial, not the reader font: a DOCX names a single font,
   and Word replaces a missing one with its own choice. Built with the standard
   library (a few XML parts in a ZIP file), no new dependency.
+- With the original text (since 1 November 2026, `original=1` on the export and the
+  preview): Markdown, HTML and Word append the source after the text, after a decision
+  job's closing notice too, under "Originaltext" ("Texte original", "Testo originale").
+  The source's segments are grouped back into its paragraphs (`Segment.para`): a
+  heading, a list item or a paragraph each becomes one item, cleaned but not broken
+  into lines, since no rule applies to it (`original_section`, not part of
+  `plain_lines`). Word starts it on a new page (style Original Title, its headings
+  Heading 3), the HTML in a section that starts a new page in print, the Markdown after
+  a thematic break. The audit bundle holds the source anyway and takes no such option.
 
 ### 4.8 Learning from edits (stretch)
 
@@ -1004,7 +1013,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
 | `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at` |
-| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle |
+| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle; `original=1` appends the source text to the first three (§4.7) |
 | `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
 | `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
@@ -1157,7 +1166,8 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 - **Reader view**: replaces the panes with the HTML export of the decisions on screen,
   unsaved ones included (`POST /jobs/{id}/preview` renders it and stores nothing; `GET
   /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
-  next to an export panel: the format (Markdown, HTML, Word, audit bundle), the
+  next to an export panel: the format (Markdown, HTML, Word, audit bundle), "Add the
+  original text" (not for the audit bundle; the reader view then shows it too), the
   download of the saved review, "Print or save as PDF" (prints the reader view on A4
   with the export's print styles, unsaved decisions included; the frame's sandbox
   allows `print()` but no scripts), and a "Before publication" list (blocks decided,

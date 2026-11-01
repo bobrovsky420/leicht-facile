@@ -113,6 +113,51 @@ def test_submit_review_and_export(app_env) -> None:
     assert bundle["factsheet"]["facts"][0]["id"] == "f01"
 
 
+def test_an_export_with_the_original_appends_the_source_text(app_env) -> None:
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = run_job(client, app, text=LETTER, condition="P1", title="Brief")
+    first = (
+        "Personen mit geringem Einkommen haben Anspruch auf eine Prämienverbilligung. "
+        "Das Gesuch ist bis spätestens 31. März 2026 bei der Gemeinde einzureichen."
+    )  # one source paragraph, its two sentences on one line
+    export = f"/api/jobs/{job_id}/export"
+
+    md = client.get(export, params={"format": "md", "original": 1})
+    assert md.headers["content-disposition"] == (
+        f'attachment; filename="{job_id}-with-original.md"'
+    )
+    assert "\n---\n\n## Originaltext\n\n### Prämienverbilligung 2026\n\n" + first in md.text
+    assert md.text.index("Das kostet 20 Franken.") < md.text.index("## Originaltext")
+    assert "Originaltext" not in client.get(export, params={"format": "md"}).text
+
+    html = client.get(export, params={"format": "html", "original": "true"}).text
+    assert '<section class="original">\n<h2>Originaltext</h2>' in html
+    assert f"<h3>Prämienverbilligung 2026</h3>\n<p>{first}</p>" in html
+    assert ".original { break-before: page;" in html
+
+    docx = client.get(export, params={"format": "docx", "original": 1})
+    assert docx.headers["content-disposition"].endswith(f'"{job_id}-with-original.docx"')
+    assert 'w:val="OriginalTitle"' in docx_document(docx.content)
+    assert first in docx_document(docx.content)
+
+    bundle = client.get(export, params={"format": "json", "original": 1})  # holds it anyway
+    assert bundle.headers["content-disposition"].endswith(f'"{job_id}-audit.json"')
+
+    # The menus link it, the reader view offers it and shows what the file gets.
+    page = client.get(f"/jobs/{job_id}").text
+    assert f"{export}?format=docx&amp;version=1&amp;original=1" in page
+    assert "Word with original" in page and 'id="export-original"' in page
+    assert f"{export}?format=md&amp;original=1" in client.get("/").text
+    assert "format=json&amp;original" not in page
+    assert "Originaltext" in client.get(f"/jobs/{job_id}/preview?original=1").text
+    assert "Originaltext" not in client.get(f"/jobs/{job_id}/preview").text
+    unsaved = client.post(
+        f"/jobs/{job_id}/preview?original=1", json={"draft_version": 1, "decisions": []}
+    )
+    assert first in unsaved.text
+
+
 def test_bad_submissions_are_rejected(app_env) -> None:
     client, _, _ = app_env
     assert client.post("/api/jobs", data={}).status_code == 400

@@ -20,7 +20,6 @@ from fastapi.templating import Jinja2Templates
 from leichtfacile import __version__
 from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
-from leichtfacile.export.layout import build_layout
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES, checked_languages
@@ -468,7 +467,9 @@ def _reader_page(html: str) -> HTMLResponse:
 
 
 @router.get("/jobs/{job_id}/preview", response_class=HTMLResponse)
-def preview(request: Request, job_id: str, version: int | None = None) -> HTMLResponse:
+def preview(
+    request: Request, job_id: str, version: int | None = None, original: bool = False
+) -> HTMLResponse:
     """The draft as a reader gets it: the HTML export shown in the browser."""
     job = _job_or_404(request, job_id)
     store = request.app.state.store
@@ -479,15 +480,17 @@ def preview(request: Request, job_id: str, version: int | None = None) -> HTMLRe
     if draft is None:
         raise HTTPException(404, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
-    return _reader_page(to_html(layout))
+    return _reader_page(to_html(api.export_layout(store, job, draft, review, original=original)))
 
 
 @router.post("/jobs/{job_id}/preview", response_class=HTMLResponse)
-def preview_unsaved(request: Request, job_id: str, body: api.ReviewIn) -> HTMLResponse:
+def preview_unsaved(
+    request: Request, job_id: str, body: api.ReviewIn, original: bool = False
+) -> HTMLResponse:
     """The reader view of the decisions on screen, saved or not. Nothing is stored."""
     job = _job_or_404(request, job_id)
-    draft = request.app.state.store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
+    store = request.app.state.store
+    draft = store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
     if draft is None:
         raise HTTPException(404, f"no draft version {body.draft_version}")
     review = None
@@ -497,7 +500,7 @@ def preview_unsaved(request: Request, job_id: str, body: api.ReviewIn) -> HTMLRe
             decisions=[Decision(**d.model_dump()) for d in body.decisions],
             completed=body.completed,
         )
-    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
+    layout = api.export_layout(store, job, draft, review, original=original)
     return _reader_page(to_html(layout))
 
 

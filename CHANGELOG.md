@@ -11,6 +11,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 - `make run` in a checkout builds the container image, starts it with `compose.yaml` and
   opens the web UI once it answers; `make stop` stops it and `make logs` follows its log.
+- The Markdown, HTML and Word exports can carry the original text after the easy-language
+  text, on a new page in Word and in print: "Add the original text" in the reader view's
+  export panel, "... with original" in the Export menus, `original=1` on the API.
 
 ## [0.10.2] - 2026-11-01
 

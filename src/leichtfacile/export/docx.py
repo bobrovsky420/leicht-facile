@@ -10,6 +10,8 @@ Word's own styles (Heading 1 and 2, List Bullet), so a writer can restyle the do
 and the navigation pane shows its outline; the language tag (de-CH, fr-CH, it-CH) gives
 the spell checker Swiss spelling. The footer names the tool, the draft version, the day
 of the export, the model that wrote the text and the hash of its prompt template.
+With the original text (`Layout.original`), it follows on a new page under its own
+heading, the source's headings in Heading 3.
 
 Arial is the HTML export's fallback: a DOCX names a single font, and Word replaces
 a missing one with a font of its own choosing. Written with the standard library, since
@@ -24,7 +26,7 @@ from xml.sax.saxutils import escape
 
 from leichtfacile import __version__
 from leichtfacile.export import LABELS
-from leichtfacile.export.layout import Layout
+from leichtfacile.export.layout import Item, Layout
 from leichtfacile.schemas import ZH_CONDITIONS, PipelineSummary
 from leichtfacile.varieties import variety
 
@@ -135,6 +137,16 @@ def _styles(lang: str) -> str:
     <w:pPr><w:keepNext/><w:spacing w:before="480" w:after="160"/><w:outlineLvl w:val="1"/></w:pPr>
     <w:rPr><w:b/><w:bCs/><w:sz w:val="34"/><w:szCs w:val="34"/></w:rPr>
   </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading3">
+    <w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/>
+    <w:uiPriority w:val="9"/><w:unhideWhenUsed/><w:qFormat/>
+    <w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:outlineLvl w:val="2"/></w:pPr>
+    <w:rPr><w:b/><w:bCs/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="OriginalTitle">
+    <w:name w:val="Original Title"/><w:basedOn w:val="Heading2"/><w:next w:val="Normal"/>
+    <w:pPr><w:pageBreakBefore/><w:spacing w:before="0"/></w:pPr>
+  </w:style>
   <w:style w:type="paragraph" w:styleId="ListBullet">
     <w:name w:val="List Bullet"/><w:basedOn w:val="Normal"/><w:uiPriority w:val="99"/>
     <w:unhideWhenUsed/>
@@ -209,16 +221,7 @@ def to_docx(
         body.append(_paragraph([layout.note], "DraftNote"))
     if layout.notice:
         body.append(_paragraph([layout.notice], "Notice"))
-    items = layout.items
-    for i, item in enumerate(items):
-        if item.kind == "heading":
-            body.append(_paragraph(item.lines, "Heading2"))
-        elif item.kind == "list_item":
-            # The list's last item gets a paragraph's space below it.
-            last = i + 1 == len(items) or items[i + 1].kind != "list_item"
-            body.append(_paragraph(item.lines, "ListBullet", after=_AFTER if last else None))
-        else:
-            body.append(_paragraph(item.lines))
+    body += _items(layout.items, "Heading2")
     if layout.glossary:
         body.append(_paragraph([layout.glossary_title], "Heading2"))
         for entry in layout.glossary:
@@ -226,6 +229,9 @@ def to_docx(
             body.append(_paragraph(entry.lines))
     if layout.notice:
         body.append(_paragraph([layout.notice], "Notice"))
+    if layout.original:
+        body.append(_paragraph([layout.original.title], "OriginalTitle"))
+        body += _items(layout.original.items, "Heading3")
     lang = variety(layout.variety).word_lang  # the spell checker's variety (varieties.toml)
     footer = _paragraph([footer_line(layout, summary, today)], "Footer")
     return _package(
@@ -241,6 +247,20 @@ def to_docx(
             "word/footer1.xml": f"<w:ftr {_W}>{footer}</w:ftr>\n",
         }
     )
+
+
+def _items(items: list[Item], heading: str) -> list[str]:
+    body = []
+    for i, item in enumerate(items):
+        if item.kind == "heading":
+            body.append(_paragraph(item.lines, heading))
+        elif item.kind == "list_item":
+            # The list's last item gets a paragraph's space below it.
+            last = i + 1 == len(items) or items[i + 1].kind != "list_item"
+            body.append(_paragraph(item.lines, "ListBullet", after=_AFTER if last else None))
+        else:
+            body.append(_paragraph(item.lines))
+    return body
 
 
 def _document(body: list[str]) -> str:

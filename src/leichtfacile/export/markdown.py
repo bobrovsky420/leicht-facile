@@ -2,7 +2,9 @@
 the glossary at the end. Lines inside a paragraph end with a backslash, the CommonMark
 hard line break, so every sentence keeps its own line when the Markdown is rendered.
 The no-break spaces inside values become plain spaces: Markdown is for editing, and a
-no-break space would be an invisible character in an editor."""
+no-break space would be an invisible character in an editor. With the original text
+(`Layout.original`), it follows after a thematic break, one Markdown paragraph per source
+paragraph, the source's headings as ###."""
 
 from __future__ import annotations
 
@@ -51,4 +53,17 @@ def to_markdown(layout: Layout) -> str:
             out += [f"**{entry.term}**  ", *entry.lines, ""]
     if layout.notice:
         out += [layout.notice, ""]
+    if layout.original:
+        out += ["---", "", f"## {layout.original.title}", ""]
+        previous = None
+        for item in layout.original.items:
+            if previous == "list_item" and item.kind != "list_item":
+                out.append("")
+            if item.kind == "heading":
+                out += [f"### {item.lines[0]}", ""]
+            elif item.kind == "list_item":
+                out.append(f"- {item.lines[0]}")
+            else:
+                out += [item.lines[0], ""]
+            previous = item.kind
     return ("\n".join(out).rstrip() + "\n").replace("\xa0", " ")

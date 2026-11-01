@@ -800,7 +800,9 @@
     if (name !== "reader") return;
     updateExportNote();
     try {
-      const res = await fetch(`/jobs/${form.dataset.job}/preview`, {
+      const original = $("#export-original");
+      const query = original && original.checked ? "?original=1" : "";
+      const res = await fetch(`/jobs/${form.dataset.job}/preview${query}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(currentReview()),
@@ -822,15 +824,27 @@
     })
   );
 
-  // export panel: the chosen format builds the download link
+  // export panel: the chosen format and the original text build the download link; the
+  // audit bundle holds the source anyway, and the reader view shows what the file gets
   const download = $("#export-download");
-  $$("input[name=export-format]").forEach((radio) => {
-    radio.addEventListener("change", () => {
-      const version = radio.value === "json" ? "" : `&version=${download.dataset.version}`;
-      download.href = `/api/jobs/${download.dataset.job}/export?format=${radio.value}${version}`;
-      $("#export-label").textContent = t("download", { ext: radio.dataset.ext });
+  const withOriginal = $("#export-original");
+  const updateDownload = () => {
+    const radio = $("input[name=export-format]:checked");
+    if (!download || !radio) return;
+    const bundle = radio.value === "json";
+    withOriginal.disabled = bundle;
+    const original = !bundle && withOriginal.checked ? "&original=1" : "";
+    const version = bundle ? "" : `&version=${download.dataset.version}${original}`;
+    download.href = `/api/jobs/${download.dataset.job}/export?format=${radio.value}${version}`;
+    $("#export-label").textContent = t("download", { ext: radio.dataset.ext });
+  };
+  $$("input[name=export-format]").forEach((radio) => radio.addEventListener("change", updateDownload));
+  if (withOriginal) {
+    withOriginal.addEventListener("change", () => {
+      updateDownload();
+      if (view === "reader") showView("reader");
     });
-  });
+  }
 
   // print what the reader view shows (A4, the export's print styles); "Save as PDF"
   // as the printer gives the PDF

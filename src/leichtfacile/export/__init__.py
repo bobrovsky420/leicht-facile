@@ -16,16 +16,19 @@ LABELS = {
         "glossary": "Wörterbuch",
         "draft_note": "Entwurf: noch nicht geprüft.",
         "version": "Entwurf v{version}",
+        "original": "Originaltext",
     },
     "fr": {
         "glossary": "Lexique",
         "draft_note": "Brouillon : pas encore relu.",
         "version": "Brouillon v{version}",
+        "original": "Texte original",
     },
     "it": {
         "glossary": "Glossario",
         "draft_note": "Bozza: non ancora rivista.",
         "version": "Bozza v{version}",
+        "original": "Testo originale",
     },
 }
 

@@ -9,6 +9,11 @@ breaks each block at sense units into lines of at most `LINE_CHARS` characters
 (markdown.py, html.py, docx.py) only serialise the layout, so every export prints the
 same lines, and the audit bundle checks these very lines with the layout rules and
 FACT-07 (`plain_lines`).
+
+On request the layout also carries the original text (`original_section`), which the
+writers append after the easy text, on a new page: one item per source paragraph,
+heading or list item, cleaned but not broken into lines, since it is the text as it
+came in and no rule applies to it.
 """
 
 from __future__ import annotations
@@ -20,7 +25,7 @@ from typing import Literal
 from leichtfacile.export import LABELS, FinalText, final_blocks
 from leichtfacile.rules.layout import wrap_sentence
 from leichtfacile.rules.values import extract_values
-from leichtfacile.schemas import Draft, ReviewState
+from leichtfacile.schemas import Draft, ReviewState, SourceDocument
 
 # Within LAY-02's 85: a line this long fits the HTML export's column at any common font
 # and an A4 page at 14 points, so neither the browser nor Word breaks it a second time.
@@ -47,6 +52,14 @@ class Entry:
 
 
 @dataclass(frozen=True)
+class Original:
+    """The source as it came in: each item one line, a paragraph's sentences joined."""
+
+    title: str
+    items: list[Item]
+
+
+@dataclass(frozen=True)
 class Layout:
     lang: str
     variety: str  # the national variety (schemas.variety): the Word export's language tag
@@ -58,6 +71,7 @@ class Layout:
     glossary_title: str
     glossary: list[Entry]
     final: FinalText  # the review applied: what the audit bundle reports
+    original: Original | None = None  # the source, after the easy text
 
 
 def clean(text: str) -> str:
@@ -89,9 +103,11 @@ def build_layout(
     title: str | None = None,
     notice: str | None = None,
     width: int = LINE_CHARS,
+    original: SourceDocument | None = None,
 ) -> Layout:
     """The layout of a draft with the review applied; `notice` is the authority's fixed
-    text of a decision (the first and the last paragraph, unwrapped)."""
+    text of a decision (the first and the last paragraph, unwrapped), `original` the
+    source to append after the text."""
     labels = LABELS.get(draft.lang, LABELS["de"])
     final = final_blocks(draft, review)
     items = []
@@ -116,7 +132,23 @@ def build_layout(
             for g in final.glossary
         ],
         final=final,
+        original=original_section(original, labels["original"]) if original else None,
     )
+
+
+def original_section(source: SourceDocument, title: str) -> Original:
+    """The source's segments grouped back into its paragraphs (`Segment.para`): a heading,
+    a list item or a paragraph (a table cell too) each becomes one item of one line."""
+    items: list[Item] = []
+    para: int | None = None
+    for seg in source.segments:
+        text = clean(seg.text)
+        if items and seg.para == para:
+            items[-1].lines[0] += f" {text}"
+        else:
+            items.append(Item(_ITEM_KINDS.get(seg.kind, "paragraph"), [text]))
+        para = seg.para
+    return Original(title=title, items=items)
 
 
 def plain_lines(layout: Layout) -> list[str]:

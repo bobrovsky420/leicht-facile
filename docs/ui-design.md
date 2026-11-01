@@ -274,7 +274,7 @@ The table is a real `<table>`; column widths at 1440 px:
 | Checks (200) | Error icon and count, warning icon and count, "Facts 9/14"; "Not yet" before the first draft | the counts on the job row (`review.py`, written by `lifecycle.job_counts`) |
 | Review (150) | A 56 px meter and "4 of 21", with ", complete" once the review is complete; "Not yet" | decisions on the final version, its blocks, `ReviewState.completed` |
 | Created (150) | "Today", "Yesterday" or "05.10.2026", the time below; the full UTC time in `title` | `Job.created_at`; `app.js` makes the day relative, as today |
-| Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML, Word (since 11 October 2026) or audit bundle, Delete (asks first) | existing routes |
+| Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML, Word (since 11 October 2026) or audit bundle, the three text formats with the original text (since 1 November 2026), Delete (asks first) | existing routes |
 
 Rows highlight on hover; the title is the link, the rest of the row has no click
 handler.
@@ -399,7 +399,8 @@ status badge ("Needs review" or "Done"). On the right:
 - the view switch "Review | Reader view" (segmented; links as today, `app.js`
   switches in place);
 - the "Export" menu (Markdown, HTML, Word since 11 October 2026, audit bundle; links
-  as today);
+  as today), and below a rule the three text formats once more with the original
+  text appended ("Word with original", since 1 November 2026);
 - the save state (`role=status`): "Saved 10:42" from the newest `Decision.at` of the
   stored review, "No decisions saved yet", "Unsaved changes" with an amber dot,
   "Saving...", "Not saved: {detail}";
@@ -572,8 +573,12 @@ markup only.
     2026: "A Word document in the reader layout, to edit and lay out further in
     Word."), audit bundle `.json` ("Source, fact sheet, every draft version, the
     findings and your decisions.").
+  - "Content" (since 1 November 2026): one checkbox, "Add the original text" ("The
+    original follows the text, on a new page in Word and in print."), disabled for the
+    audit bundle, which holds the source anyway. Ticked, the page above shows the
+    original too, as the file will.
   - "Download .html" (primary, full width): the existing export URL with the chosen
-    format and version.
+    format and version, and `original=1` when ticked.
   - "Exports use the last saved review. Decisions you have not saved are left out."
     With unsaved decisions on screen, the existing `js.reader_unsaved` text instead.
   - "Print or save as PDF" (secondary, full width, JavaScript only, since 8 October

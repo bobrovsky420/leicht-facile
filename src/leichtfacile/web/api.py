@@ -14,7 +14,7 @@ from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.docx import DOCX_TYPE, to_docx
 from leichtfacile.export.html import to_html
-from leichtfacile.export.layout import build_layout
+from leichtfacile.export.layout import Layout, build_layout
 from leichtfacile.export.markdown import to_markdown
 from leichtfacile.lifecycle import job_counts, remove_job
 from leichtfacile.llm.client import LLMError
@@ -26,11 +26,13 @@ from leichtfacile.schemas import (
     Decision,
     Draft,
     FactSheet,
+    Job,
     PipelineSummary,
     ReviewState,
     SourceDocument,
     utcnow,
 )
+from leichtfacile.store import Store
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language
 from leichtfacile.web.jobs import (
     ServerBusy,
@@ -194,7 +196,10 @@ def export(
     job_id: str,
     format: Annotated[Literal["md", "html", "docx", "json"], Query()] = "md",
     version: int | None = None,
+    original: bool = False,
 ) -> Response:
+    """`original` appends the source text to Markdown, HTML and Word; the audit bundle
+    holds it anyway."""
     job = _job_or_404(request, job_id)
     store = _state(request).store
     if format == "json":
@@ -207,12 +212,22 @@ def export(
     if draft is None:
         raise HTTPException(409, "the job has no draft yet")
     review = store.get_artifact(job_id, "review", ReviewState)
-    layout = build_layout(draft, review, title=job.title, notice=job.config.notice)
+    layout = export_layout(store, job, draft, review, original=original)
+    name = f"{job_id}-with-original" if original else job_id
     if format == "md":
-        return _download(to_markdown(layout), "text/markdown", f"{job_id}.md")
+        return _download(to_markdown(layout), "text/markdown", f"{name}.md")
     if format == "docx":
-        return _download(to_docx(layout, summary=summary), DOCX_TYPE, f"{job_id}.docx")
-    return _download(to_html(layout), "text/html", f"{job_id}.html")
+        return _download(to_docx(layout, summary=summary), DOCX_TYPE, f"{name}.docx")
+    return _download(to_html(layout), "text/html", f"{name}.html")
+
+
+def export_layout(
+    store: Store, job: Job, draft: Draft, review: ReviewState | None, *, original: bool = False
+) -> Layout:
+    """The layout the exports and the reader view print: the job's title and notice, and
+    with `original` the source after the text."""
+    source = store.get_artifact(job.id, "source", SourceDocument) if original else None
+    return build_layout(draft, review, title=job.title, notice=job.config.notice, original=source)
 
 
 @router.post("/jobs/{job_id}/facts/{fact_id}/recover")

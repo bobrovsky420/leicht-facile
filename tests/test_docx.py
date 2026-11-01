@@ -21,6 +21,7 @@ from leichtfacile.schemas import (
     GlossaryEntry,
     PipelineSummary,
     ReviewState,
+    Segment,
 )
 from leichtfacile.varieties import variety
 from tests.conftest import MODEL, chat_response, make_settings
@@ -174,6 +175,34 @@ def test_the_review_applies_and_a_decision_job_opens_and_ends_with_the_notice() 
     assert "Sie haben wenig Geld." not in texts and "Wörterbuch" not in texts
     standard = paragraphs(parts(docx(draft(), review))["word/document.xml"])
     assert "Notice" not in [s for s, _ in standard]
+
+
+def test_the_original_follows_the_text_on_a_new_page_one_paragraph_per_source_paragraph() -> None:
+    source = fx.letter()
+    item = Segment(id="s0007", kind="list_item", text="eine Kopie\nder Police", para=5)
+    source = source.model_copy(update={"segments": [*source.segments, item]})
+    layout = build_layout(draft(), title="Entscheid", notice=NOTICE, original=source)
+    package = parts(to_docx(layout, today=DAY))
+    found = paragraphs(package["word/document.xml"])
+    start = [s for s, _ in found].index("OriginalTitle")
+    assert found[start - 1] == ("Notice", [NOTICE])  # after the text's closing notice
+    assert found[start:] == [
+        ("OriginalTitle", ["Originaltext"]),
+        ("Heading3", ["Prämienverbilligung 2026"]),
+        (None, ["Personen mit geringem Einkommen haben Anspruch auf eine Prämienverbilligung. "
+                "Das Gesuch ist bis spätestens 31. März 2026 bei der Gemeinde einzureichen."]),
+        (None, ["Für die Bearbeitung wird eine Gebühr von CHF 20.- erhoben."]),
+        (None, ["Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67."]),
+        (None, ["Rechtsgrundlage ist Art. 5 des Einführungsgesetzes."]),
+        ("ListBullet", ["eine Kopie der Police"]),
+    ]  # fmt: skip
+    title = style(package["word/styles.xml"], "OriginalTitle")
+    assert title.find(f"{W}pPr/{W}pageBreakBefore") is not None
+    assert title.find(f"{W}basedOn").get(f"{W}val") == "Heading2"
+    without = paragraphs(parts(docx(draft()))["word/document.xml"])
+    assert "OriginalTitle" not in [s for s, _ in without]
+    french = build_layout(draft("fr"), original=source.model_copy(update={"lang": "fr"}))
+    assert french.original.title == "Texte original"
 
 
 def test_the_footer_names_the_tool_draft_day_model_and_the_prompt_that_wrote_the_text() -> None:

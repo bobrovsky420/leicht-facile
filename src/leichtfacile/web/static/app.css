@@ -421,6 +421,8 @@ html:not(.js) .tab-panel + .tab-panel { margin-top: 20px; padding-top: 16px; bor
 .opt:hover { background: var(--lf-sunken); }
 .opt:has(input:checked) { background: var(--lf-accent-tint); }
 .opt input { margin-top: 2px; }
+.opt:has(input:disabled) { cursor: default; opacity: .55; }
+.opt:has(input:disabled):hover { background: var(--lf-surface); }
 .opt-text { flex: 1; min-width: 0; }
 .opt-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .opt-desc { display: block; color: var(--lf-text-2); font-size: 13px; line-height: 18px; }
