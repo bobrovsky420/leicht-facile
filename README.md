@@ -249,7 +249,9 @@ every dependency; `compose.yaml` starts it with the model server of (a) on one G
 Documents and review records stay in a SQLite database in a folder the organisation
 controls (`data.dir`). At runtime the app contacts only the model endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider
-([architecture.md](docs/architecture.md) §10). Which texts need this, and why Apertus
+([architecture.md](docs/architecture.md) §10). Several teams on one server can each
+keep their own drafts list behind a workspace link (`server.workspaces`,
+[configuration.md](docs/configuration.md)). Which texts need this, and why Apertus
 fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidential-texts).
 
 ## Documentation

@@ -328,6 +328,8 @@ details.menu > summary::-webkit-details-marker { display: none; }
 a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .appbar .api { color: var(--lf-text-2); font-size: 13px; text-decoration: none; }
 .appbar .api:hover { color: var(--lf-ink); text-decoration: underline; }
+/* The installation's notice under the app bar on every page (server.notice). */
+.site-notice { padding: 8px 20px; border-bottom: 1px solid var(--lf-border); background: var(--lf-sunken); color: var(--lf-ink); font-size: 13px; line-height: 18px; }
 
 /* -- page frames -- */
 .page { max-width: 1440px; margin: 0 auto; padding: 20px 24px 32px; }
@@ -359,6 +361,13 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .intro li { display: flex; align-items: center; gap: 6px; }
 .stepno { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--lf-track); color: var(--lf-ink); font-size: 11px;
           line-height: 18px; font-weight: 600; text-align: center; }
+/* The workspace strip (server.workspaces): the link, Copy link, New link. Not
+   `.workspace`, which is the review page's pane layout. */
+.ws-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 16px; padding: 10px 12px 10px 16px;
+            border: 1px solid var(--lf-border); border-radius: 8px; background: var(--lf-surface); color: var(--lf-text-2); font-size: 13px; }
+.ws-strip .ws-text { flex: 1 1 320px; }
+.ws-strip .ws-link { font-size: 12px; word-break: break-all; }
+.ws-strip form { margin: 0; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--lf-border); }
 .search { position: relative; flex: 0 1 300px; min-width: 200px; }
 .search .ico { position: absolute; left: 10px; top: 8px; color: var(--lf-muted); pointer-events: none; }

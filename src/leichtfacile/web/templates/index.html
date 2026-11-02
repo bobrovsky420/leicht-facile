@@ -24,6 +24,17 @@
   </section>
   {% endif %}
 
+  {# server.workspaces: the list belongs to this browser's workspace; the link opens it anywhere. #}
+  {% if workspace_token %}
+  <section class="ws-strip" aria-labelledby="workspace-title">
+    <span class="intro-title" id="workspace-title">{{ t('workspace.title') }}</span>
+    <span class="ws-text">{{ t('workspace.text') }}</span>
+    <code class="ws-link"><a href="/w/{{ workspace_token }}" data-workspace-link>{{ request.base_url }}w/{{ workspace_token }}</a></code>
+    <button type="button" class="btn btn-sm js-only" data-copy-link>{{ t('workspace.copy') }}</button>
+    <form method="post" action="/w/new" data-confirm="{{ t('js.confirm_new_link') }}"><button type="submit" class="btn btn-sm">{{ t('workspace.new_link') }}</button></form>
+  </section>
+  {% endif %}
+
   <div class="card">
     {% if total %}
     <form class="toolbar" method="get" action="/" role="search">

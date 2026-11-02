@@ -9,9 +9,10 @@ else makes one. The id is on `request.state.request_id`, in the response header 
 for the time the request is handled, in `logs.request_id`, so every line written
 meanwhile carries it. When the response is out it writes one line to
 `leichtfacile.web.access`: method, path, status, duration and the client address,
-never the query string (the drafts list's search is what a reviewer typed), and counts
-the request for `/metrics`. uvicorn's own access log, whose line has the query string,
-is off (`leichtfacile serve`).
+never the query string (the drafts list's search is what a reviewer typed) and never a
+workspace link's token (`/w/[token]`, web/workspaces.py), and counts the request for
+`/metrics`. uvicorn's own access log, whose line has the query string, is off
+(`leichtfacile serve`).
 
 `GET /metrics` answers in the Prometheus text format from three sources: the jobs
 table (jobs by status, the queue depth), the runner (workers, busy workers, the
@@ -52,6 +53,8 @@ if TYPE_CHECKING:
 access_log = logging.getLogger("leichtfacile.web.access")
 router = APIRouter()
 TOKEN = re.compile(r"[A-Za-z0-9._-]{1,64}")
+# The workspace link carries its secret in the path (`/w/new` is the New link form).
+WORKSPACE_LINK = re.compile(r"^/w/(?!new$)[^/]+")
 CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8"
 REQUEST_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
 JOB_BUCKETS = (30.0, 60.0, 120.0, 300.0, 600.0, 1200.0, 1800.0, 3600.0, 7200.0)
@@ -144,7 +147,7 @@ class RequestContext:
             await self.app(scope, receive, send_with_id)
         finally:
             seconds = self.clock() - started
-            method, path = scope["method"], scope["path"]
+            method, path = scope["method"], public_path(scope["path"])
             client = scope.get("client")
             self.metrics.observe_request(method, status, seconds)
             access_log.info(
@@ -167,6 +170,11 @@ class RequestContext:
 def request_id_for(header: str | None) -> str:
     """The client's id when it is a plain token, else a new one."""
     return header if header and TOKEN.fullmatch(header) else secrets.token_hex(8)
+
+
+def public_path(path: str) -> str:
+    """The path as the access line writes it: a workspace link without its token."""
+    return WORKSPACE_LINK.sub("/w/[token]", path)
 
 
 # -- /metrics ---------------------------------------------------------------------------

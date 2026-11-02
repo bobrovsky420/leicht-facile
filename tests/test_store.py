@@ -79,6 +79,9 @@ def test_an_older_database_gets_the_new_columns_on_open(tmp_path) -> None:
     assert store.get_job("old1").counts.errors == 2
     store.add_usage("old1", Usage("write", "m", 1, 2, 3, cache_key="abc"))
     assert store.cache_keys("old1") == ["abc"]
+    mine = store.create_job(JobConfig(), workspace="h1")  # the workspace column, group 7
+    assert [j.id for j in store.list_jobs(workspace="h1")] == [mine.id]
+    assert store.get_job("old1", workspace="h1") is None  # the old job is in no workspace
     store.close()
     assert Store(path).schema_version == SCHEMA_VERSION  # opening again changes nothing
 
@@ -228,6 +231,33 @@ def test_list_filters_counts_and_languages_in_sql(tmp_path) -> None:
         db.execute("UPDATE jobs SET updated_at = ? WHERE id = ?", (old.isoformat(), de.id))
     cutoff = datetime.now(UTC) - timedelta(days=30)
     assert [j.id for j in store.jobs_older_than(cutoff)] == [de.id]
+    store.close()
+
+
+def test_workspaces_scope_the_reads_and_a_new_link_moves_the_jobs(tmp_path) -> None:
+    """A job carries the hash of its workspace (web/workspaces.py): a read with a
+    workspace sees that workspace alone, one without sees everything, and a move takes
+    every job of a workspace along without touching `updated_at`."""
+    store = Store(tmp_path / "w.sqlite")
+    mine = store.create_job(JobConfig(lang="de"), title="Meins", workspace="h1")
+    theirs = store.create_job(JobConfig(lang="fr"), title="Leur", workspace="h2")
+    nobody = store.create_job(JobConfig(lang="it"), title="Nessuno")  # the command line's
+    assert store.get_job(mine.id, workspace="h1").id == mine.id
+    assert store.get_job(mine.id, workspace="h2") is None
+    assert store.get_job(nobody.id, workspace="h1") is None
+    assert store.get_job(nobody.id).id == nobody.id
+    assert [j.id for j in store.list_jobs(workspace="h1")] == [mine.id]
+    assert len(store.list_jobs()) == 3
+    assert store.count_jobs(workspace="h2") == 1 and store.count_jobs() == 3
+    assert store.count_jobs("queued", workspace="h1") == 1
+    assert store.status_counts(workspace="h1") == {"queued": 1}
+    assert store.langs(workspace="h2") == ["fr-CH"]
+    assert store.langs() == ["de-CH", "fr-CH", "it-CH"]
+    before = store.get_job(theirs.id).updated_at
+    assert store.move_workspace("h2", "h3") == 1
+    assert store.get_job(theirs.id, workspace="h3").updated_at == before
+    assert store.list_jobs(workspace="h2") == []
+    assert store.move_workspace("h2", "h4") == 0  # nothing left there
     store.close()
 
 

@@ -237,6 +237,10 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
 - The tagline leaves the header (it opens the empty state, §5.2); the footer leaves
   every page (the disclaimer moves under the drafts list and into the reader view's
   export panel).
+- Under the app bar, on every page, the installation's notice when it has one
+  (`server.notice`, since 2 November 2026): one line on `--lf-sunken` with a bottom
+  border, 13 px, the text escaped, in the interface language when the setting is a
+  table by language (`.site-notice`, `role="note"`).
 - Server side: `_render` adds `review_count` for the badge
   (`Store.count_jobs("needs_review")`, one count query).
 
@@ -258,6 +262,14 @@ Layout, at most 1440 px wide with 24 px gutters:
    with counts, language select), the table, a footer line ("10 drafts",
    "Newest first").
 4. Under the card: the version and the disclaimer (`site.footer`).
+
+With workspaces (`server.workspaces`, since 2 November 2026) a strip under the intro,
+built like it (`.ws-strip`; `.workspace` is the review page's pane layout): "Your
+workspace", one sentence (anyone with the link sees
+and edits its drafts; open it in another browser to continue there), the link as `code`
+(`/w/<token>`, written out with the site's address), **Copy link** (JavaScript only,
+"Copied" for two seconds) and **New link** (a form to `POST /w/new`, which asks first:
+the drafts stay, the old link then opens an empty workspace).
 
 Filters are GET parameters, so they work without JavaScript and survive a reload:
 `/?status=needs_review&q=prämien&lang=de`. Status: all (default), `needs_review`,
@@ -696,7 +708,11 @@ New or changed:
    - reader view: the format choice builds the download link; the "Before
      publication" lines follow the decisions on screen.
 6. Everything destructive asks first: `data-confirm` on the delete forms, one handler
-   (`js.confirm_delete`).
+   (`js.confirm_delete`); the New link form of the workspace strip uses it too
+   (`js.confirm_new_link`).
+7. The workspace strip's Copy link (§5.2) puts the link's absolute address on the
+   clipboard (`navigator.clipboard`; without it the button is hidden and the link is
+   selected by hand) and shows "Copied" (`js.copied`) for two seconds.
 
 ## 7. Server side
 
@@ -716,6 +732,11 @@ New or changed:
   without `-DE` or `-FR`), like `finding.<key>`; the other catalogs translate them.
 - `export/html.py`: only the reader typeface in the font stack (§14).
 - No change to the API, the schemas, the store layout or the pipeline.
+- `workspaces.py` (2 November 2026): the middleware that reads or issues the workspace
+  cookie, `GET /w/{token}` and `POST /w/new`; `pages.py` and `api.py` scope every read
+  by `request.state.workspace`; `store.py` takes `workspace` on its reads and
+  `create_job`, and moves a workspace's jobs (`move_workspace`); `_render` adds the
+  notice (`server.notice`) for every page (docs/architecture.md §7).
 
 ## 8. Interface texts
 
@@ -896,6 +917,10 @@ Existing keys used again: `site.tagline` (empty state), `site.footer`, `site.dra
 `review.reader.hint`, `review.export*`, `status.*`, `condition.short.*`, `level.*`,
 `who.*`, `step.*`, `detail.*`, `fact.*`, `kind.*`, `core.*`, `js.endpoint.*`,
 `js.reader_unsaved`.
+
+Since 2 November 2026, for the workspace strip (§5.2): `workspace.title`,
+`workspace.text`, `workspace.copy`, `workspace.new_link`, `js.copied` and
+`js.confirm_new_link`.
 
 Since 23 October 2026 the interface names no model family, because the endpoint can
 serve any model. The who tag of the model stages is `who.model`: "Model", "Modell",

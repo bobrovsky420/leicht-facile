@@ -332,6 +332,17 @@ def _rewrite_region_ids(conn: sqlite3.Connection) -> None:
     _rewrite_json(conn, "artifacts", "data", _region_edits, "WHERE name = 'draft'")
 
 
+def _add_workspace(conn: sqlite3.Connection) -> None:
+    """2 November 2026: the workspace a job belongs to, the hash of its token
+    (web/workspaces.py), and the index the scoped drafts list reads. The column is added
+    only when it is missing, so the groups can be replayed on a database set back to an
+    earlier version (the rewrite test does that)."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(jobs)")}
+    if "workspace" not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN workspace TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS jobs_workspace ON jobs(workspace, created_at)")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -347,6 +358,7 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_rewrite_finding_keys,),  # 4 (25 October 2026): findings as key and values
     (_rewrite_rule_ids,),  # 5 (25 October 2026): one rule id whatever the language
     (_rewrite_region_ids,),  # 6 (29 October 2026): CH-01 to CH-03 became REG-01 to REG-03
+    (_add_workspace,),  # 7 (2 November 2026): the workspace column and its index
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.
@@ -466,12 +478,15 @@ class Store:
         title: str | None = None,
         job_id: str | None = None,
         counts: JobCounts | None = None,
+        workspace: str | None = None,
     ) -> Job:
+        """`workspace` is the hash of the workspace the job belongs to (web/workspaces.py);
+        None for a job outside every workspace (the command line, an app without them)."""
         job = Job(id=job_id or uuid.uuid4().hex[:12], title=title, config=config, counts=counts)
         with self._tx() as conn:
             conn.execute(
                 "INSERT INTO jobs (id, status, stage, title, created_at, updated_at, config, "
-                "counts) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "counts, workspace) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     job.id,
                     job.status,
@@ -481,13 +496,20 @@ class Store:
                     job.updated_at.isoformat(),
                     job.config.model_dump_json(),
                     counts.model_dump_json() if counts else None,
+                    workspace,
                 ),
             )
         return job
 
-    def get_job(self, job_id: str) -> Job | None:
+    def get_job(self, job_id: str, workspace: str | None = None) -> Job | None:
+        """The job; with `workspace` (a hash) only when it belongs to that workspace, as
+        the web routes ask, so a job of another workspace is as good as none."""
+        sql, params = "SELECT * FROM jobs WHERE id = ?", [job_id]
+        if workspace is not None:
+            sql += " AND workspace = ?"
+            params.append(workspace)
         with self._connection() as conn:
-            row = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+            row = conn.execute(sql, params).fetchone()
             if row is None:
                 return None
             calls = conn.execute(
@@ -498,48 +520,67 @@ class Store:
         return _job(row, [UsageRecord(**dict(c)) for c in calls])
 
     def list_jobs(
-        self, limit: int = 50, *, status: str | None = None, lang: str | None = None
+        self,
+        limit: int = 50,
+        *,
+        status: str | None = None,
+        lang: str | None = None,
+        workspace: str | None = None,
     ) -> list[Job]:
-        """The newest jobs first, filtered in SQL by status and document language."""
-        where, params = _filters(status, lang)
+        """The newest jobs first, filtered in SQL by status, document language and
+        workspace (a hash; None: every job, whatever its workspace)."""
+        where, params = _filters(status, lang, workspace)
         with self._connection() as conn:
             rows = conn.execute(
                 f"SELECT * FROM jobs{where} ORDER BY created_at DESC LIMIT ?", (*params, limit)
             ).fetchall()
         return [_job(r, []) for r in rows]
 
-    def count_jobs(self, status: str | None = None) -> int:
-        """How many jobs there are, or how many have this status."""
-        where, params = _filters(status, None)
+    def count_jobs(self, status: str | None = None, *, workspace: str | None = None) -> int:
+        """How many jobs there are, or how many have this status, in the workspace."""
+        where, params = _filters(status, None, workspace)
         with self._connection() as conn:
             row = conn.execute(f"SELECT COUNT(*) FROM jobs{where}", params).fetchone()
         return int(row[0])
 
-    def status_counts(self, lang: str | None = None) -> dict[str, int]:
+    def status_counts(
+        self, lang: str | None = None, *, workspace: str | None = None
+    ) -> dict[str, int]:
         """How many jobs have each status, for the filter tabs of the drafts list."""
-        where, params = _filters(None, lang)
+        where, params = _filters(None, lang, workspace)
         with self._connection() as conn:
             rows = conn.execute(
                 f"SELECT status, COUNT(*) AS n FROM jobs{where} GROUP BY status", params
             ).fetchall()
         return {r["status"]: int(r["n"]) for r in rows}
 
-    def langs(self) -> list[str]:
+    def langs(self, *, workspace: str | None = None) -> list[str]:
         """The varieties of the stored jobs (schemas.variety: `de-CH`, `de-DE`, `fr-CH`),
         in the order of the languages and their regions; a job from before the region
         field is Swiss. The drafts list filters by them (since 30 October 2026; by the
         language before, which listed the Swiss German jobs under the installation's
         variety)."""
+        where, params = _filters(None, None, workspace)
+        where = f"{where} AND" if where else " WHERE"
         with self._connection() as conn:
             rows = conn.execute(
                 "SELECT DISTINCT json_extract(config, '$.lang') AS lang, "
-                "COALESCE(json_extract(config, '$.region'), 'CH') AS region FROM jobs "
-                "WHERE lang IS NOT NULL"
+                f"COALESCE(json_extract(config, '$.region'), 'CH') AS region FROM jobs{where} "
+                "lang IS NOT NULL",
+                params,
             ).fetchall()
         keys = {variety(r["lang"], r["region"]) for r in rows}
         return sorted(
             keys, key=lambda k: (LANGS.index(base_lang(k)), REGIONS.index(k.partition("-")[2]))
         )
+
+    def move_workspace(self, old: str, new: str) -> int:
+        """Every job of the workspace `old` (a hash) goes to `new`: the New link of the
+        drafts list (web/workspaces.py). Nothing else about them changes (`updated_at`
+        stays, so the purge sees them as before). How many moved."""
+        with self._tx() as conn:
+            cur = conn.execute("UPDATE jobs SET workspace = ? WHERE workspace = ?", (new, old))
+        return cur.rowcount
 
     def update_job(self, job_id: str, **fields: object) -> None:
         with self._tx() as conn:
@@ -748,11 +789,16 @@ def _update(job_id: str, fields: dict[str, object]) -> tuple[str, tuple]:
     return f"UPDATE jobs SET {assignments} WHERE id = ?", (*values.values(), job_id)
 
 
-def _filters(status: str | None, lang: str | None) -> tuple[str, tuple]:
+def _filters(
+    status: str | None, lang: str | None, workspace: str | None = None
+) -> tuple[str, tuple]:
     clauses, params = [], []
     if status is not None:
         clauses.append("status = ?")
         params.append(status)
+    if workspace is not None:  # a hash: the jobs of that workspace alone (web/workspaces.py)
+        clauses.append("workspace = ?")
+        params.append(workspace)
     if lang:  # a language (`de`) or a variety key (`de-DE`; a job without a region is Swiss)
         code, _, region = lang.partition("-")
         clauses.append("json_extract(config, '$.lang') = ?")

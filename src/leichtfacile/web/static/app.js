@@ -46,6 +46,27 @@
     });
   });
 
+  // -- the workspace link (server.workspaces): Copy puts it on the clipboard ------------
+  $$("[data-copy-link]").forEach((button) => {
+    const link = $("[data-workspace-link]");
+    if (!link || !navigator.clipboard) {
+      button.hidden = true; // the link stays to select and copy by hand
+      return;
+    }
+    const label = button.textContent;
+    button.addEventListener("click", () => {
+      navigator.clipboard.writeText(link.href).then(
+        () => {
+          button.textContent = t("copied");
+          setTimeout(() => {
+            button.textContent = label;
+          }, 2000);
+        },
+        () => {},
+      );
+    });
+  });
+
   // -- menus close on Escape and on a click outside -------------------------------------
   document.addEventListener("click", (event) => {
     $$("details.menu[open]").forEach((menu) => {

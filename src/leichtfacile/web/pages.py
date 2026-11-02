@@ -47,6 +47,7 @@ from leichtfacile.web.views import (
     review_view,
     stop_reason,
 )
+from leichtfacile.web.workspaces import current_token, current_workspace
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals.update(
@@ -107,17 +108,23 @@ def _render(request: Request, name: str, status_code: int = 200, **context) -> H
         here += f"?{request.url.query}"
     state = request.app.state
     context.setdefault("settings", state.settings)
-    context.setdefault("review_count", state.store.count_jobs("needs_review"))
+    context.setdefault(
+        "review_count",
+        state.store.count_jobs("needs_review", workspace=current_workspace(request)),
+    )
     # The app bar: the preset in use and whether it is ready; the link to the model
-    # page, unless an organisation offers one preset alone (web/model.py).
+    # page, unless an organisation offers one preset alone (web/model.py); under it the
+    # installation's notice (server.notice) in the interface language.
     context.setdefault("model_ready", state.registry.is_ready())
     context.setdefault("model_page", len(state.settings.llm.offer) != 1)
+    context.setdefault("notice", state.settings.server.notice_for(t.lang))
     context.update(ui_lang=t.lang, here=here)
     return TEMPLATES.TemplateResponse(request, name, context, status_code=status_code)
 
 
 def _job_or_404(request: Request, job_id: str):
-    job = request.app.state.store.get_job(job_id)
+    """The job, when it is in the request's workspace (web/workspaces.py)."""
+    job = request.app.state.store.get_job(job_id, workspace=current_workspace(request))
     if job is None:
         raise HTTPException(404, f"no job {job_id}")
     return job
@@ -161,23 +168,27 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
     t = translator(request)
     status = status if status in STATUS_FILTERS else "all"
     query = q.strip().casefold()
-    total = store.count_jobs()
+    workspace = current_workspace(request)  # this browser's jobs alone (web/workspaces.py)
+    total = store.count_jobs(workspace=workspace)
     settings = request.app.state.settings
     if query:
         # The title search stays in Python: SQLite's LIKE folds ASCII letters only.
         matching = [
             job
-            for job in store.list_jobs(200, lang=lang or None)
+            for job in store.list_jobs(200, lang=lang or None, workspace=workspace)
             if query in display_title(job).casefold()
         ]
         counts = {k: sum(1 for j in matching if k in ("all", j.status)) for k in STATUS_FILTERS}
         shown = [j for j in matching if status in ("all", j.status)][:LIST_LIMIT]
     else:  # the filters and their counts in SQL (audit B3)
-        by_status = store.status_counts(lang or None)
+        by_status = store.status_counts(lang or None, workspace=workspace)
         counts = {k: by_status.get(k, 0) for k in STATUS_FILTERS}
         counts["all"] = sum(by_status.values())
         shown = store.list_jobs(
-            LIST_LIMIT, status=None if status == "all" else status, lang=lang or None
+            LIST_LIMIT,
+            status=None if status == "all" else status,
+            lang=lang or None,
+            workspace=workspace,
         )
     filters = [
         {
@@ -201,10 +212,11 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         lang=lang,
         filtered=bool(query or lang or status != "all"),
         filters=filters,
-        langs=store.langs(),
+        langs=store.langs(workspace=workspace),
         # The empty state offers the example texts in the form.
         examples=examples_for_page(t, settings.data.examples_dir) if not total else [],
         rule_count=rule_count(),
+        workspace_token=current_token(request),  # the strip with the link, when on
         section="drafts",
         section_root=True,
     )
@@ -405,7 +417,7 @@ async def submit(request: Request, sub: Annotated[Submission, Depends(submission
     """The New draft form: the API's submission (`web/jobs.py`), then the job page; a
     refused submission renders the form again with the reason."""
     try:
-        job = await start_job(request.app.state, sub)
+        job = await start_job(request.app.state, sub, workspace=current_workspace(request))
     except (SubmissionError, QueueFull) as exc:
         return _refused(request, exc, sub.form())
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)

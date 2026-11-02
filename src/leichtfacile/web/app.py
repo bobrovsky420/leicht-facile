@@ -21,7 +21,7 @@ from leichtfacile.logs import configure_logging
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
 from leichtfacile.store import Store
-from leichtfacile.web import api, health, model, observability, pages, security
+from leichtfacile.web import api, health, model, observability, pages, security, workspaces
 
 log = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent / "static"
@@ -88,8 +88,10 @@ def create_app(
     app.state.endpoint_check = health.EndpointCheck(registry)
     app.state.metrics = metrics
 
-    # Headers, rate limit, login, cross-site guard, body limit: web/security.py; outside
-    # them the request id and the access line: web/observability.py.
+    # Inside everything, the request's workspace (web/workspaces.py); then headers, rate
+    # limit, login, cross-site guard, body limit: web/security.py; outside them the
+    # request id and the access line: web/observability.py.
+    workspaces.install(app, settings)
     security.install(app, settings)
     observability.install(app, metrics)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -98,4 +100,5 @@ def create_app(
     app.include_router(model.router)
     app.include_router(health.router)
     app.include_router(observability.router)
+    app.include_router(workspaces.router)
     return app

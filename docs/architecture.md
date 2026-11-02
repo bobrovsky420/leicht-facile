@@ -849,8 +849,9 @@ Job
             in a job stored before 11 October 2026 until its first listing fills it
 ```
 
-Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`,
-`artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
+Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`
+(the row above, and since 2 November 2026 the hash of the job's workspace when the server
+has them, §7), `artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
 the response cache's key when the cache is on, so that a deleted job takes its cached
 prompts with it); the response cache is a second file (`llm_cache.sqlite`). Standard
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
@@ -1008,7 +1009,7 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3) |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below) |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
@@ -1021,6 +1022,8 @@ Privacy: document text is never written to logs above `DEBUG`.
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
+| `GET /w/{token}` | With `server.workspaces` (below): the link's workspace becomes the browser's (the cookie), then the drafts list; a malformed token is 404, a well-formed one nobody has used opens an empty workspace |
+| `POST /w/new` | With `server.workspaces`: the workspace's jobs move under a new token, which the browser follows; the old link then opens an empty workspace |
 
 Jobs run on `jobs.workers` worker threads (one by default: enough for a reviewer's
 workload; more share an endpoint that serves parallel requests, as vLLM does). The jobs
@@ -1053,6 +1056,24 @@ and minute with 429, a write from a page on another site with 403, and with a lo
 configured everything but the probes and the static files needs it (401). `limit` takes
 1 to 200; a review's edit holds at most 10,000 characters, a comment 2,000, a review
 2,000 decisions.
+
+**Workspaces** (`server.workspaces`, off by default; `web/workspaces.py`, since
+2 November 2026). Every browser gets a workspace: a random token of 128 bits (22
+characters, URL-safe base64) in the cookie `workspace` (a year, HttpOnly, SameSite=Lax,
+Secure over HTTPS), or the header `X-Workspace` for a script. The store keeps the token's
+SHA-256 on each job (`jobs.workspace`), never the token, so a copy of the database holds
+no working link. The drafts list, its counts and filters, the review badge and every job
+route of the pages and the API answer for the request's workspace alone: a job of
+another workspace is 404. The drafts list shows the workspace's link (`/w/{token}`) with
+Copy link and New link: opening the link in another browser continues there; New link
+moves the jobs under a new token and retires the old link. `POST /api/jobs` names the
+job's workspace in its answer, so a script without a header can keep it. The access line
+writes `/w/[token]`. Workspaces separate the jobs; the login (§10) protects them: a link
+works only for people who get past the login, and the app still refuses to start
+published beyond this machine without one. Jobs outside every workspace (the command
+line's, or made before the setting was switched on) belong to none and are listed again
+once it is off. With `server.notice` a short text stands under the app bar on every page
+(a demo's terms, a test installation): one text, or a table by interface language.
 
 ### Review UI
 
@@ -1738,8 +1759,10 @@ at runtime.
   on; beyond the loopback interface the app refuses to start without one of the two. In
   a container, `server.published_on` names the address the runtime publishes the port
   on and is judged instead of the bind address.
-  No accounts or roles of its own: that limitation stays, every logged-in user sees
-  every job.
+  No accounts or roles of its own. Every logged-in user sees every job, unless the
+  server has workspaces (`server.workspaces`, §7): then a browser sees the jobs of its
+  workspace alone, a link anyone may open, so the login decides who gets in and the
+  workspace what they see; the token is never stored (its hash is) and never logged.
 - On a server the app runs as a system service (a systemd unit, for example) under a
   dedicated service account with no other rights:
   `leichtfacile serve --host 0.0.0.0 --no-browser` with `auth.token`, or on the
@@ -1988,7 +2011,8 @@ src/leichtfacile/
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
   web/                      app.py, api.py, pages.py, model.py (the model page), jobs.py, views.py, i18n.py,
-                            security.py (the hardening layer), health.py (the probes),
+                            security.py (the hardening layer), workspaces.py (the workspace link),
+                            health.py (the probes),
                             observability.py (request ids, the access line, /metrics), templates/,
                             static/ (app.css, app.js, fonts/), locales/ (en.json, de.json, fr.json, it.json)
   export/                   layout.py (the one layout every writer serialises), markdown.py, html.py,

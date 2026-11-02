@@ -576,6 +576,27 @@ class Server(Section):
         "ReDoc from a CDN; off, so the app loads nothing from the internet. /openapi.json "
         "is always served.",
     )
+    workspaces: bool = Field(
+        False,
+        description="Every browser gets a workspace of its own, a link anyone may open: the "
+        "drafts list and the job pages show that workspace's jobs alone "
+        "(docs/architecture.md §7). The login still protects the app.",
+    )
+    notice: str | dict[str, str] = Field(
+        "",
+        description="A short text under the app bar on every page (a demo's terms, a test "
+        'installation): one text, or a table by interface language ({ en = "...", '
+        'de = "..." }).',
+    )
+
+    def notice_for(self, lang: str) -> str:
+        """The notice in the interface language: a table's text for it, else its English
+        one, else its first; a plain text as it is."""
+        notice = self.notice
+        if isinstance(notice, str):
+            return notice.strip()
+        text = notice.get(lang) or notice.get("en") or next(iter(notice.values()), "")
+        return text.strip()
 
     @property
     def bound_to_loopback(self) -> bool:
@@ -949,8 +970,9 @@ def source_of(flat: Flat, key: str) -> str | None:
 
 
 # A key whose table is one value, not settings of its own: a later source's table
-# replaces it, except extra_body, whose fields add up (`_merge`).
-_OPAQUE = {"extra_body", "headers", "model_settings"}
+# replaces it, except extra_body, whose fields add up (`_merge`). `notice` is the
+# server's text by interface language.
+_OPAQUE = {"extra_body", "headers", "model_settings", "notice"}
 # A provider's models tables: one value per model, since model names hold dots.
 _MODEL_TABLES = re.compile(r"providers\.[^.]+\.models")
 # Folders a file may give relative to its own folder.

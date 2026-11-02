@@ -42,6 +42,7 @@ from leichtfacile.web.jobs import (
     submission_form,
 )
 from leichtfacile.web.views import finding_text
+from leichtfacile.web.workspaces import current_token, current_workspace
 
 router = APIRouter(prefix="/api")
 ARTIFACT_NAMES = (
@@ -82,7 +83,8 @@ def _state(request: Request):
 
 
 def _job_or_404(request: Request, job_id: str):
-    job = _state(request).store.get_job(job_id)
+    """The job, when it is in the request's workspace (web/workspaces.py)."""
+    job = _state(request).store.get_job(job_id, workspace=current_workspace(request))
     if job is None:
         raise HTTPException(404, f"no job {job_id}")
     return job
@@ -91,16 +93,21 @@ def _job_or_404(request: Request, job_id: str):
 @router.post("/jobs", status_code=201)
 async def post_job(request: Request, sub: Annotated[Submission, Depends(submission_form)]) -> dict:
     """Create a job from pasted text, a URL or an uploaded file (the multipart form of
-    `web/jobs.py: submission_form`, the New draft form's fields)."""
+    `web/jobs.py: submission_form`, the New draft form's fields). With workspaces on
+    (`server.workspaces`) the answer names the job's workspace, the request's
+    `X-Workspace` or cookie, else a new one."""
     try:
-        job = await start_job(_state(request), sub)
+        job = await start_job(_state(request), sub, workspace=current_workspace(request))
     except QueueFull as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
     except ServerBusy as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "5"}) from exc
     except SubmissionError as exc:
         raise HTTPException(400, str(exc)) from exc
-    return {"id": job.id, "status": "queued", "links": _links(job.id)}
+    answer: dict = {"id": job.id, "status": "queued", "links": _links(job.id)}
+    if token := current_token(request):
+        answer["workspace"] = token
+    return answer
 
 
 @router.get("/jobs")
@@ -110,7 +117,7 @@ def list_jobs(
     return [
         {"id": j.id, "title": j.title, "status": j.status, "stage": j.stage,
          "created_at": j.created_at.isoformat(), "condition": j.config.condition}
-        for j in _state(request).store.list_jobs(limit)
+        for j in _state(request).store.list_jobs(limit, workspace=current_workspace(request))
     ]  # fmt: skip
 
 

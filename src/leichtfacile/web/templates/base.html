@@ -40,6 +40,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
   <a class="api" href="{{ t('site.guide_url') }}" title="{{ t('site.guide_title') }}" target="_blank" rel="noopener">{{ t('site.guide') }}</a>
   <a class="api" href="/docs">API</a>
 </header>
+{% if notice %}<div class="site-notice" role="note">{{ notice }}</div>{% endif %}
 <main id="main" tabindex="-1">
 {% block content %}{% endblock %}
 </main>

@@ -17,6 +17,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - An illustrated user's guide for the people who review the drafts, from the source text
   to the export: docs/user-guide.md, and on the site in English and German. The app bar
   links to it (Guide, Anleitung).
+- Workspaces, off by default (`[server] workspaces = true`): every browser gets its own
+  drafts list behind a link anyone may open (`/w/<token>`), with Copy link and New link
+  on the drafts page; scripts send the token in the `X-Workspace` header. The login
+  still decides who gets into the app; the server stores only the link's hash and never
+  logs the link.
+- `[server] notice`: a short text under the app bar on every page, one text or a table
+  by interface language, for a demo's terms or a test installation.
 
 ### Changed
 

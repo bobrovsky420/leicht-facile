@@ -307,6 +307,31 @@ does not know, a wrong value or an app published without a login leaves the file
 unchanged. The file keeps its comments and order. `--local` makes `preset use`,
 `preset remove` and the `config` commands work on `./leichtfacile.toml` instead.
 
+## Workspaces and a notice
+
+By default everyone who reaches the app sees every draft. `[server] workspaces = true`
+gives each browser a workspace of its own: a link anyone may open (`/w/<token>`, 22
+random characters, kept in a cookie for a year; the server stores only its hash). The
+drafts list and the job pages show that workspace's drafts alone; the list shows the
+link with Copy link and New link, which moves the drafts under a new link and retires
+the old one. Scripts send the token in the header `X-Workspace`; `POST /api/jobs` names
+the job's workspace in its answer. The login (`[auth]`) still decides who gets into the
+app at all. Drafts made by the command line, or before the setting was switched on, are
+in no workspace and are listed again once it is off (docs/architecture.md §7).
+
+`[server] notice` puts a short text under the app bar on every page, for a demo's terms
+or a test installation: one text, or a table by interface language, shown in the
+interface's language, else in English, else the first:
+
+```toml
+[server]
+workspaces = true
+
+[server.notice]
+en = "Demo: public texts only. Drafts are deleted after 24 hours."
+de = "Demo: nur öffentliche Texte. Entwürfe werden nach 24 Stunden gelöscht."
+```
+
 ## Environment variables
 
 `LEICHTFACILE_<SECTION>__<KEY>`, the parts joined by two underscores, sets any key:
@@ -492,6 +517,8 @@ The web application (`leichtfacile serve`).
 | `allow_private_urls` | `false` | Let users submit URLs of the internal network (an intranet). |
 | `rate_limit_per_minute` | `120` | Writes (POST, PUT, PATCH, DELETE) per client address and minute; 0: no limit. |
 | `api_docs` | `false` | The API documentation pages /docs and /redoc, which load Swagger UI and ReDoc from a CDN; off, so the app loads nothing from the internet. /openapi.json is always served. |
+| `workspaces` | `false` | Every browser gets a workspace of its own, a link anyone may open: the drafts list and the job pages show that workspace's jobs alone (docs/architecture.md §7). The login still protects the app. |
+| `notice` |  | A short text under the app bar on every page (a demo's terms, a test installation): one text, or a table by interface language ({ en = "...", de = "..." }). |
 
 ### `[auth]`
 
