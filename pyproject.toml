@@ -139,6 +139,11 @@ path = "README.md"
 pattern = '!\[([^\]]*)\]\((?!https?://)([^)]+)\)'
 replacement = '![\1](https://raw.githubusercontent.com/bobrovsky420/leicht-facile/main/\2)'
 
+# The same for the files of the README's pictures in HTML (the logo, the review page).
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(src|srcset)="(?!https?://)([^"]+)"'
+replacement = '\1="https://raw.githubusercontent.com/bobrovsky420/leicht-facile/main/\2"'
+
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '\]\((?!https?://|#)([^)]+)\)'
 replacement = '](https://github.com/bobrovsky420/leicht-facile/blob/main/\1)'

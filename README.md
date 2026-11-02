@@ -1,4 +1,7 @@
-# Leicht·Facile
+<h1><picture>
+  <source srcset="docs/images/logo/logo-dark.svg" media="(prefers-color-scheme: dark)">
+  <img src="docs/images/logo/logo.svg" height="48" alt="Leicht·Facile">
+</picture></h1>
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)
 [![Release](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/release.yml)
@@ -262,6 +265,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
+- [logo.md](docs/logo.md): the logo, its files and where it goes
 - [rules.md](docs/rules.md): the rule catalogue the checker implements
 - [prompts.md](docs/prompts.md): prompt design and change log
 - [sources.md](docs/sources.md): reference pairs, demo documents, licences

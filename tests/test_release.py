@@ -97,6 +97,7 @@ def test_the_readme_on_pypi_has_no_relative_link() -> None:
     for sub in hook["substitutions"]:
         text = re.sub(sub["pattern"], sub["replacement"], text)
     assert re.findall(r"\]\((?!https://)[^)]*\)", text) == []
+    assert re.findall(r'(?:src|srcset)="(?!https://)[^"]*"', text) == []
     assert (
         "](https://raw.githubusercontent.com/bobrovsky420/leicht-facile/main/docs/images/" in text
     )

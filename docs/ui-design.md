@@ -185,7 +185,7 @@ carry copies of the same files in their `site/fonts`.
 
 | Component | Class | Anatomy and states |
 |-----------|-------|--------------------|
-| App bar | `.appbar` | 48 px, white, bottom border; wordmark, main nav, endpoint indicator, language switch, API link (§5.1) |
+| App bar | `.appbar` | 48 px, white, bottom border; logo, main nav, endpoint indicator, language switch, API link (§5.1) |
 | Page header | `.pagehead` | Breadcrumb link (12 px), title, status badge; actions on the right; wraps on narrow windows |
 | Summary strip | `.strip` | 40 px band in `--lf-sunken` under a page header, 13 px text, wraps |
 | Button | `.btn`, `.btn-primary`, `.btn-quiet`, `.btn-danger`, `.btn-sm` | 32 px. Primary: accent fill, white text. Default: white, `--lf-border-strong`. Quiet: no border, `--lf-text-2`. Danger: white, `--lf-error-line` border, error text. Disabled: 50 percent opacity and `aria-disabled` |
@@ -216,8 +216,11 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
 
 ### 5.1 Every page: the app bar (`base.html`)
 
-- Left: the wordmark `Leicht·Facile` (16 px 600, the Mediopunkt in the accent),
-  a link to `/`. Main nav: **Drafts** (`/`) with a count badge of the jobs in
+- Left: the logo ([logo.md](logo.md), since 2 November 2026; before it the wordmark in
+  text, 16 px 600), 18 px high: `logo.svg`, and `logo-dark.svg` under a dark system
+  setting, a link to `/` with the name as its text alternative. The browser's tab shows
+  `favicon.svg` (`favicon.ico` where a browser takes no SVG), a phone's home screen
+  `apple-touch-icon.png`. Main nav: **Drafts** (`/`) with a count badge of the jobs in
   `needs_review` (`aria-label` "3 drafts need review") and **New draft** (`/new`).
   The current section has a 2 px accent underline and `aria-current`.
 - Right: the model indicator, a dot, "Model" and the preset in use (`settings.llm.title`,
@@ -998,6 +1001,7 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
 | `web/static/water.css` | Deleted |
 | `web/static/app.css` | Rewritten: tokens, `@font-face`, components, screens |
 | `web/static/fonts/` | New: woff2 files and licence texts |
+| `web/static/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `logo.svg`, `logo-dark.svg` | New (2 November 2026): the logo ([logo.md](logo.md)), written by `scripts/logo.py` |
 | `web/static/app.js` | Extended (§6) |
 | `web/pages.py`, `web/views.py`, `web/i18n.py`, `store.py` | §7 |
 | `export/html.py` | Only the reader typeface (§14) |

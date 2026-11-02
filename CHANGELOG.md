@@ -24,6 +24,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   logs the link.
 - `[server] notice`: a short text under the app bar on every page, one text or a table
   by interface language, for a demo's terms or a test installation.
+- A logo (docs/logo.md): one stroke that loops like a handwritten L, runs out straight and
+  ends in a full stop, on a blue tile, next to the name. The app shows it in the app bar
+  and, for the first time, has a favicon and a touch icon; the README and the project's
+  site show it too. `scripts/logo.py` makes the files.
 
 ### Changed
 
@@ -39,6 +43,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   the scheme from the proxy's `X-Forwarded-Proto`, so its cookies are marked `Secure` and
   its links are https; before, a proxy that was not on 127.0.0.1 (a container network)
   left them http.
+- On pypi.org, the README's picture of the review page showed no image: its files were
+  relative. The build hook now makes the `src` and `srcset` of the README's pictures
+  absolute too.
 
 ## [0.10.2] - 2026-11-01
 

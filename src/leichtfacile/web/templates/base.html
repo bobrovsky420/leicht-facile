@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>{% block title %}Leicht·Facile{% endblock %}</title>
-<link rel="icon" href="data:,">
+<link rel="icon" href="/static/favicon.ico" sizes="32x32">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <link rel="stylesheet" href="/static/app.css">
 <script nonce="{{ request.state.csp_nonce }}">
 document.documentElement.classList.add("js");
@@ -15,7 +17,7 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
 <body class="{% block body_class %}{% endblock %}">
 <a class="skip" href="#main">{{ t('site.skip') }}</a>
 <header class="appbar">
-  <a class="wordmark" href="/">Leicht<span class="dot">·</span>Facile</a>
+  <a class="wordmark" href="/"><picture><source srcset="/static/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="/static/logo.svg" alt="Leicht·Facile" width="121" height="18"></picture></a>
   <nav class="mainnav" aria-label="{{ t('site.nav') }}">
     <a href="/"{% if section == 'drafts' %} aria-current="{{ 'page' if section_root else 'true' }}"{% endif %}>{{ t('site.drafts') }}{% if review_count %}<span class="count" title="{{ t('nav.review_count', n=review_count) }}"><span aria-hidden="true">{{ review_count }}</span><span class="visually-hidden">{{ t('nav.review_count', n=review_count) }}</span></span>{% endif %}</a>
     <a href="/new"{% if section == 'new' %} aria-current="page"{% endif %}>{{ t('site.new') }}</a>

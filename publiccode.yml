@@ -3,6 +3,7 @@ publiccodeYmlVersion: "0.4"
 name: "Leicht·Facile"
 url: "https://github.com/bobrovsky420/leicht-facile"
 landingURL: "https://leichtfacile.ch"
+logo: "docs/images/logo/icon.svg"
 softwareVersion: "0.10.2"
 platforms:
   - web
