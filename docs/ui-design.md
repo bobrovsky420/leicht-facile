@@ -217,7 +217,7 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
 ### 5.1 Every page: the app bar (`base.html`)
 
 - Left: the logo ([logo.md](logo.md), since 2 November 2026; before it the wordmark in
-  text, 16 px 600), 18 px high: `logo.svg`, and `logo-dark.svg` under a dark system
+  text, 16 px 600), 22 px high: `logo.svg`, and `logo-dark.svg` under a dark system
   setting, a link to `/` with the name as its text alternative. The browser's tab shows
   `favicon.svg` (`favicon.ico` where a browser takes no SVG), a phone's home screen
   `apple-touch-icon.png`. Main nav: **Drafts** (`/`) with a count badge of the jobs in

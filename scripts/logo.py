@@ -197,14 +197,22 @@ BOUNDS = (
     DOT[0] + DOT[2],
     DOT[1] + DOT[2],
 )
+# the looped L alone, from the top of its loop (the curve's highest point, y 3.23) to the
+# foot of the stroke: the part as tall as the name's capital L in the lockup
+LETTER = (3.23 - STROKE_WIDTH / 2, 17.8 + STROKE_WIDTH / 2)
 TILE_PAD = 0.21
+
+
+def place(size: float) -> tuple[float, float, float]:
+    """The symbol's scale and its offset (x, y) on a tile `size` units square."""
+    x0, y0, x1, y1 = BOUNDS
+    scale = size * (1 - 2 * TILE_PAD) / max(x1 - x0, y1 - y0)
+    return scale, size / 2 - (x0 + x1) / 2 * scale, size / 2 - (y0 + y1) / 2 * scale
 
 
 def tile(size: float, fill: str = ACCENT, dot: str = TILE_DOT, radius: float = 0.225) -> str:
     """The symbol in white on a tile `size` units square; radius 0 for a square tile."""
-    x0, y0, x1, y1 = BOUNDS
-    scale = size * (1 - 2 * TILE_PAD) / max(x1 - x0, y1 - y0)
-    tx, ty = size / 2 - (x0 + x1) / 2 * scale, size / 2 - (y0 + y1) / 2 * scale
+    scale, tx, ty = place(size)
     corner = f' rx="{num(size * radius)}"' if radius else ""
     return (
         f'<rect width="{num(size)}" height="{num(size)}"{corner} fill="{fill}"/>'
@@ -227,13 +235,16 @@ FAVICON = (
 
 
 def lockup(theme: str, height: float | None = None) -> str:
-    """The tile left of the wordmark: 1.62 times the cap height, centred on it, a third of
-    the tile between the two. `height` draws it at that many pixels."""
+    """The tile left of the wordmark, so large that its looped L is as tall as the name's
+    capital L and stands on the name's baseline, a third of the tile between the two.
+    `height` draws it at that many pixels."""
     body, text = wordmark(theme)
-    size = text.cap * 1.62
+    size = text.cap / (place(1)[0] * (LETTER[1] - LETTER[0]))
+    scale, _, ty = place(size)
+    y = -ty - LETTER[1] * scale  # the tile's top, the L's foot on the baseline
     shift = size * 1.34 - text.ink[0]
-    top = min(-text.cap / 2 - size / 2, text.ink[1])
-    bottom = max(-text.cap / 2 + size / 2, text.ink[3])
+    top = min(y, text.ink[1])
+    bottom = max(y + size, text.ink[3])
     w, h = shift + text.ink[2], bottom - top
     mono = theme == "mono"
     symbol = tile(size, "currentColor" if mono else ACCENT, "#fff" if mono else TILE_DOT)
@@ -241,7 +252,7 @@ def lockup(theme: str, height: float | None = None) -> str:
         w,
         h,
         f'<g transform="translate(0 {num(-top)})">'
-        f'<g transform="translate(0 {num(-text.cap / 2 - size / 2)})">{symbol}</g>'
+        f'<g transform="translate(0 {num(y)})">{symbol}</g>'
         f'<g transform="translate({num(shift)} 0)">{body}</g></g>',
         (w * height / h, height) if height else None,
     )
@@ -265,7 +276,7 @@ body {{ width: {width}px; height: {height}px; box-sizing: border-box; padding: {
 h1 {{ margin: 0; font-size: {round(height * 0.115)}px; line-height: 1.15;
   font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }}
 p {{ margin: 0; font-size: {round(height * 0.045)}px; color: {TEXT_2}; }}
-</style><body lang="{lang}">{lockup("light", round(height * 0.13))}
+</style><body lang="{lang}">{lockup("light", round(height * 0.165))}
 <h1>{HEADLINES[lang]}</h1><p>leichtfacile.ch</p></body>"""
 
 

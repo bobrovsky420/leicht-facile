@@ -1,6 +1,6 @@
 <h1><picture>
   <source srcset="docs/images/logo/logo-dark.svg" media="(prefers-color-scheme: dark)">
-  <img src="docs/images/logo/logo.svg" height="48" alt="Leicht·Facile">
+  <img src="docs/images/logo/logo.svg" height="60" alt="Leicht·Facile">
 </picture></h1>
 
 [![CI](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml/badge.svg)](https://github.com/bobrovsky420/leicht-facile/actions/workflows/ci.yml)

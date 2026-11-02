@@ -7,6 +7,11 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ## [Unreleased]
 
+### Changed
+
+- The logo's tile is larger: its looped L is as tall as the capital L of the name next to
+  it and stands on the same baseline. The name in the app bar keeps its size.
+
 ### Fixed
 
 - Review page: long block ids such as `b007.2.1`, which blocks added by a repair or a

@@ -8,7 +8,7 @@ four directions ([below](#the-four-directions)).
 <img src="images/logo/icon.svg" width="88" alt="The app icon: a white stroke that loops like a handwritten L, runs out straight and ends in a dot, on a blue tile">&nbsp;&nbsp;
 <picture>
   <source srcset="images/logo/logo-dark.svg" media="(prefers-color-scheme: dark)">
-  <img src="images/logo/logo.svg" height="48" alt="Leicht·Facile">
+  <img src="images/logo/logo.svg" height="60" alt="Leicht·Facile">
 </picture>
 </p>
 
@@ -33,8 +33,9 @@ upright letters; the app keeps to them in its own interface too
   ink (`#1A1E23`, on dark `#E6E9ED`). The Mediopunkt is a circle in the accent
   (`#1F4E8A`, on dark `#8FB1DE`), a little larger than the font's own and with a little
   more space on each side.
-- **Together**: the tile 1.62 times the cap height of the name and centred on it, a third
-  of the tile's width between the two.
+- **Together**: the tile so large that its looped L is as tall as the name's capital L
+  (the tile 2.05 times the cap height) and stands on the name's baseline, a third of the
+  tile's width between the two.
 - **Colours**: the tokens of [ui-design.md](ui-design.md) §3.1. No logo uses green, amber
   or red: in the app they are the status colours.
 
