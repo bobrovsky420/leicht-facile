@@ -107,8 +107,8 @@ The four accent tints are the accent mixed with white (90, 94, 95 and 60 percent
 An installation that changes `--lf-accent` recomputes them (§14).
 
 The dark set follows the system setting (`prefers-color-scheme: dark`); there is no
-switch in the app. It uses the dark values of the project page (`site/style.css`) for
-the same roles. Every text pair is at least 5.5:1, the field outline 3.0:1 on the tracks.
+switch in the app. It uses the dark values of the project page (its `style.css`, in the
+leicht-facile-web repository) for the same roles. Every text pair is at least 5.5:1, the field outline 3.0:1 on the tracks.
 Status icons take their colours from these tokens through classes (`.i-ok`, `.i-error`,
 `.i-warn`, ...), the glyph in `--lf-surface`. The reader view's paper stays white.
 
@@ -141,8 +141,8 @@ Rules:
 One family everywhere: Atkinson Hyperlegible, which the Braille Institute designed for
 readers with low vision (I, l and 1, O and 0, b, d, p and q are distinct). A tool for
 accessible language uses an accessible typeface in its own interface, not only in its
-output; the interface and the project pages (`site/`) share it since 29 October 2026,
-replacing IBM Plex Sans and Mono.
+output; the interface and the project pages (the leicht-facile-web repository) share it
+since 29 October 2026, replacing IBM Plex Sans and Mono.
 
 Font stacks: `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI",
 sans-serif` for the interface; `"Atkinson Hyperlegible Mono", ui-monospace, Consolas,
@@ -178,8 +178,8 @@ Into `src/leichtfacile/web/static/fonts/`, as woff2, subsets `latin` and
 file with `font-display: swap` and the subset's `unicode-range`. The licence text of
 each family lies next to the files (`OFL-Atkinson-Hyperlegible-Next.txt`,
 `OFL-Atkinson-Hyperlegible-Mono.txt`), and `THIRD_PARTY_NOTICES.md` has a section on
-the fonts with the version used. The project pages (`site/`) reuse the same files: the
-Pages workflow copies them into the site.
+the fonts with the version used. The project pages (the leicht-facile-web repository)
+carry copies of the same files in their `site/fonts`.
 
 ## 4. Components
 

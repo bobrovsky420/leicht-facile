@@ -36,7 +36,8 @@ def test_the_install_commands_name_the_wheel_of_this_version() -> None:
 
 
 def test_the_project_address_agrees() -> None:
-    """https://leichtfacile.ch (the site in site/) is the project's address on PyPI, in
+    """https://leichtfacile.ch (the site, in the leicht-facile-web repository) is the
+    project's address on PyPI, in
     publiccode.yml, in the web fetcher's User-Agent and in the header that names the app to
     OpenRouter."""
     from leichtfacile.ingest.fetch import USER_AGENT

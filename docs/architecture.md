@@ -1957,18 +1957,15 @@ Dockerfile, .dockerignore   the container image: the environment from uv.lock in
                             with that environment alone; the build context is the package, its metadata and the lockfile
 compose.yaml                the image as a service with a volume, and the model servers (vLLM, llama.cpp) as profiles
 Makefile                    `make run`: the image built from the checkout and started with compose.yaml, the web UI opened; `make stop`, `make logs`
-.github/workflows/pages.yml    on a change of site/: the project's page published on GitHub Pages at https://leichtfacile.ch
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
 README.md                   project overview, quick start, documentation list
 CHANGELOG.md                what each release changed, from 0.5.0 on
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
 publiccode.yml              the entry for public-sector software catalogues
-site/index.html             the project's page (https://leichtfacile.ch); pages.yml adds the app's fonts and a screenshot
-site/{de,fr,it}/index.html  the same page in German, French and Italian (https://leichtfacile.ch/de/, /fr/, /it/)
-site/style.css              the styles of every page in site/
-site/robots.txt             every page may be crawled; names the sitemap
-site/sitemap.xml            the site's pages for search engines (each page links its language versions)
+                            (the project's page, https://leichtfacile.ch, lives in the owner's private
+                            repository leicht-facile-web since 2 November 2026, with its Pages workflow;
+                            its fonts and pictures are copies of this repository's)
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key

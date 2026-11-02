@@ -1,5 +1,0 @@
-# https://leichtfacile.ch: every page may be crawled; the sitemap lists them.
-User-agent: *
-Allow: /
-
-Sitemap: https://leichtfacile.ch/sitemap.xml

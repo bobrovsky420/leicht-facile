@@ -1,10 +1,13 @@
 """The screenshots of the user's guide (docs/user-guide.md) and of its pages on the site.
 
 Usage: uv run python scripts/guide_screenshots.py [--work data/cache/guide]
-       [--preset publicai-apertus] [--langs en de] [--out docs/images/guide] [--redo]
+       [--preset publicai-apertus] [--langs en de] [--out docs/images/guide]
+       [--site ../leicht-facile-web/site] [--redo]
 
 Writes docs/images/guide/<lang>/<name>.webp (lossless), 1280 px wide and at most 820 high
-(an empty strip at the bottom is trimmed), one set per interface language. The app runs
+(an empty strip at the bottom is trimmed), one set per interface language, and the same
+pictures into the site's images/guide (--site; by default the sibling checkout of the
+leicht-facile-web repository when it exists, since 2 November 2026). The app runs
 from a work folder of its own (git-ignored under data/cache/): its own config file and
 data, no leichtfacile.toml and no key but the preset's, so the pictures show the shipped
 presets and nothing of this checkout. Two servers run, one on an
@@ -28,6 +31,7 @@ import base64
 import io
 import json
 import os
+import shutil
 import socket
 import sqlite3
 import subprocess
@@ -49,6 +53,7 @@ from leichtfacile.schemas import Draft, PipelineSummary, ReviewState
 from leichtfacile.store import Store
 
 ROOT = Path(__file__).resolve().parents[1]
+SITE = ROOT.parent / "leicht-facile-web" / "site"  # the project's page, a sibling checkout
 PRESETS = ROOT / "src" / "leichtfacile" / "presets" / "presets.toml"
 EDGE = Path("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe")
 WIDTH, HEIGHT = 1280, 820
@@ -453,6 +458,13 @@ def main() -> None:
     ap.add_argument("--preset", default="publicai-apertus")
     ap.add_argument("--langs", nargs="+", default=["en", "de"])
     ap.add_argument("--out", type=Path, default=ROOT / "docs" / "images" / "guide")
+    ap.add_argument(
+        "--site",
+        type=Path,
+        default=SITE if SITE.is_dir() else None,
+        help="the site's folder in the leicht-facile-web checkout: the pictures go into its "
+        "images/guide as well (../leicht-facile-web/site when it exists)",
+    )
     ap.add_argument("--only", nargs="+", help="these pictures alone, by name (05-review)")
     ap.add_argument("--redo", action="store_true", help="make the drafts again")
     ap.add_argument("--browser", type=Path, default=EDGE)
@@ -497,7 +509,12 @@ def main() -> None:
                         make_demo(db, job_id)
                     try:
                         shots[name](b)
-                        b.shoot(args.out / lang / f"{name}.webp")
+                        picture = args.out / lang / f"{name}.webp"
+                        b.shoot(picture)
+                        if args.site:  # the same picture for the guide pages on the site
+                            copy = args.site / "images" / "guide" / lang / picture.name
+                            copy.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copyfile(picture, copy)
                     finally:
                         drop_demo(db)
     store.close()
