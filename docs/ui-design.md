@@ -466,11 +466,12 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 
 - Header: "Draft v1", "21 blocks", and the filter control "All 21 | With findings 5 |
   Undecided 17" (`aria-pressed`, the existing `data-filter` buttons).
-- One row per block, reading as text: the id gutter (mono 11); a 34 px severity
-  column with the worst finding's icon and the count of errors and warnings (a grey
-  note icon when there are notes only); the text (16/24, headings 17/24 600, list
-  items with a bullet); a 40 px decision column with the decision icon, a hollow ring
-  until decided. Rejected blocks: text muted and struck through. Edited blocks show
+- One row per block, reading as text: the id gutter (mono 11, at least 56 px, as wide
+  as the longest id on the page needs: added blocks carry ids like `b007.2.1`); a 34 px
+  severity column with the worst finding's icon and the count of errors and warnings
+  (a grey note icon when there are notes only); the text (16/24, headings 17/24 600,
+  list items with a bullet); a 40 px decision column with the decision icon, a hollow
+  ring until decided. Rejected blocks: text muted and struck through. Edited blocks show
   the edited text.
 - Selecting a block (click, Enter, J or K) gives it the accent-weak fill and the
   accent bar, highlights its sentences in the source pane and scrolls them into view,

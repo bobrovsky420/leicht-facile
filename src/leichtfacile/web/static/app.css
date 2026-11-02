@@ -557,14 +557,17 @@ ol.steps { padding: 6px 0; list-style: none; }
 .seg-row.linked { background: var(--lf-accent-weak); box-shadow: inset 3px 0 0 var(--lf-accent); }
 
 /* -- review: draft pane -- */
-.block { display: flex; flex-wrap: wrap; align-items: flex-start; border-bottom: 1px solid var(--lf-divider); cursor: pointer; scroll-margin: 48px; }
+/* The id gutter fits the longest id on the page (--bid-ch, set on the form): 7px per character
+   of the mono font at 11px (advance 0.632 em), 16px before and 8px after it, at least 56px. */
+.block { --bid-w: max(56px, calc(var(--bid-ch, 0) * 7px + 24px));
+         display: flex; flex-wrap: wrap; align-items: flex-start; border-bottom: 1px solid var(--lf-divider); cursor: pointer; scroll-margin: 48px; }
 .block:hover { background: var(--lf-sunken); }
 .block.selected { background: var(--lf-accent-weak); box-shadow: inset 3px 0 0 var(--lf-accent); }
 .block.fact-hit { background: var(--lf-accent-faint); box-shadow: inset 3px 0 0 var(--lf-accent); }
 .block.fact-near { background: var(--lf-error-weak); box-shadow: inset 3px 0 0 var(--lf-error); }
 .block:focus { outline: none; }
 .block:focus-visible { outline: 2px solid var(--lf-accent); outline-offset: -2px; }
-.block .bid { flex: none; width: 56px; padding: 13px 0 0 16px; color: var(--lf-muted); font: 400 11px/16px var(--lf-mono); }
+.block .bid { flex: none; width: var(--bid-w); padding: 13px 0 0 16px; color: var(--lf-muted); font: 400 11px/16px var(--lf-mono); }
 .block-sev { display: flex; flex: none; align-items: center; gap: 3px; width: 34px; padding-top: 14px; font-size: 11px; line-height: 14px; font-weight: 600; }
 .block-sev .n-error { color: var(--lf-error); }
 .block-sev .n-warn { color: var(--lf-warn-text); }
@@ -585,7 +588,7 @@ ol.steps { padding: 6px 0; list-style: none; }
 .block-state .st { display: none; }
 .block:not(.decided) .st-undecided, .block.approved .st-approved, .block.edited .st-edited, .block.rejected .st-rejected { display: inline-block; }
 .st-undecided { width: 14px; height: 14px; margin: 1px; border: 1.5px solid var(--lf-border-strong); border-radius: 50%; }
-.block-details { flex: 0 0 100%; min-width: 0; padding: 0 16px 12px 90px; cursor: default; }
+.block-details { flex: 0 0 100%; min-width: 0; padding: 0 16px 12px calc(var(--bid-w) + 34px); cursor: default; }
 .js .block:not(.is-open) .block-details { display: none; }
 .edit-area { margin-bottom: 10px; }
 .edit-area textarea { font-size: 16px; line-height: 24px; }

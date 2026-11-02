@@ -224,6 +224,13 @@ class ReviewView:
         return sum(1 for r in self.rows if r.worst is not None)
 
     @property
+    def id_chars(self) -> int:
+        """Characters of the longest block or glossary id, the width of the id gutter: blocks
+        added by repairs and recovered facts carry ids like `b007.2` and `b007.2.1`."""
+        ids = [r.block.id for r in self.rows] + [g.gid for g in self.glossary_rows]
+        return max(map(len, ids), default=0)
+
+    @property
     def code_splits(self) -> int:
         """Words of this version that code split with its variety's mark (rules/mediopunkt.py)."""
         return sum(1 for e in self.draft.code_edits if e.rule_id == MEDIOPUNKT_RULE)
