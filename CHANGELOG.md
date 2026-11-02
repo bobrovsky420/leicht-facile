@@ -33,6 +33,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   `[texts] max_chars` in the config file changes it, with a warning below 1,000 or above
   200,000 characters.
 
+### Fixed
+
+- Behind the trusted reverse proxy of the proxy login (`auth.proxy_header`), the app takes
+  the scheme from the proxy's `X-Forwarded-Proto`, so its cookies are marked `Secure` and
+  its links are https; before, a proxy that was not on 127.0.0.1 (a container network)
+  left them http.
+
 ## [0.10.2] - 2026-11-01
 
 ### Fixed

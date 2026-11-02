@@ -601,7 +601,9 @@ other address, it needs one of two logins and refuses to start without one.
   `auth.proxy_from`, the proxy's addresses or networks (`["127.0.0.1"]` for a proxy on the
   same machine). A request from elsewhere is refused (403), one without the header is not
   logged in (401). With the proxy on another machine, `--host` names an address the proxy
-  reaches, and the header counts as the login.
+  reaches, and the header counts as the login. The proxy's `X-Forwarded-Proto` tells the
+  app it is reached over HTTPS, so its cookies are marked `Secure` and its links are
+  https.
 - **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with a token:
   `auth.token = "<secret>"` in the config file, or `auth.token_env` naming a variable that
   holds it, in the environment or a `.env` ([configuration.md](configuration.md#keys)).

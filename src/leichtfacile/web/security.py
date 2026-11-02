@@ -22,7 +22,9 @@ sees a request first and a response last):
    - `proxy`: the reverse proxy logs the user in and names them in the header
      `auth.proxy_header` (`X-Forwarded-User`, `Remote-User`). The header is trusted
      only from the proxy's addresses (`auth.proxy_from`); a request from elsewhere is
-     403, one without the header 401. The user lands in `request.state.user`.
+     403, one without the header 401. The user lands in `request.state.user`, and the
+     proxy's `X-Forwarded-Proto` becomes the request's scheme (Secure cookies, https
+     links).
    The probes `/healthz` and `/readyz` and the static files need no login.
    `Settings` refuses to start the app published beyond the loopback interface
    (`server.host`, or `server.published_on` in a container, where the runtime publishes
@@ -293,6 +295,12 @@ class Authentication:
             await _refuse(scope, receive, send, 401, "the reverse proxy sent no user")
             return
         scope.setdefault("state", {})["user"] = user
+        # The trusted proxy ends TLS: its X-Forwarded-Proto is the scheme the user sees,
+        # so the app's cookies are Secure and its absolute links https. uvicorn trusts the
+        # header from 127.0.0.1 alone, and a proxy in a container network is not there.
+        proto = (headers.get("x-forwarded-proto") or "").strip().lower()
+        if proto in ("http", "https"):
+            scope["scheme"] = proto
         await self.app(scope, receive, send)
 
 

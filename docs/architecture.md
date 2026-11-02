@@ -1754,8 +1754,10 @@ at runtime.
   name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
   tries per minute and client, then 429) or the proxy's user header
   (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
-  the user lands in `request.state.user`). The probes and the static files need no
-  login. `server.host` (which `serve --host` sets) names the interface the app listens
+  the user lands in `request.state.user`, and the proxy's `X-Forwarded-Proto` becomes
+  the request's scheme, so the cookies are Secure and the links https behind a proxy
+  that ends TLS, wherever it runs; since 2 November 2026). The probes and the static
+  files need no login. `server.host` (which `serve --host` sets) names the interface the app listens
   on; beyond the loopback interface the app refuses to start without one of the two. In
   a container, `server.published_on` names the address the runtime publishes the port
   on and is judged instead of the bind address.

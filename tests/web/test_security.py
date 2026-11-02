@@ -238,6 +238,21 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
     named = make_app(client_ip="192.168.1.5", **PROXY)  # a single address in the list
     assert named.get("/", headers={"X-Forwarded-User": "a.muster"}).status_code == 200
 
+    # The proxy's X-Forwarded-Proto is the scheme the user sees: the workspace cookie is
+    # Secure behind a proxy that ends TLS, wherever that proxy is.
+    tls = make_app(client_ip="10.0.0.2", server__workspaces=True, **PROXY)
+    plain = tls.get("/", headers={"X-Forwarded-User": "a.muster"}).headers["set-cookie"]
+    assert plain.startswith("workspace=") and "Secure" not in plain
+    tls.cookies.clear()  # a browser that has no workspace yet
+    secure = tls.get(
+        "/", headers={"X-Forwarded-User": "b.muster", "X-Forwarded-Proto": "https"}
+    ).headers["set-cookie"]
+    assert "; Secure" in secure
+    over_tls = {"X-Forwarded-User": "c", "X-Forwarded-Proto": "https"}
+    assert "/w/" in tls.get("/", headers=over_tls).text
+    spoofed = elsewhere.get("/", headers={"X-Forwarded-Proto": "https"})
+    assert spoofed.status_code == 403  # not from the proxy: nothing of it is trusted
+
 
 def test_the_app_refuses_to_start_published_without_a_login() -> None:
     with pytest.raises(ValidationError, match="auth.token"):
