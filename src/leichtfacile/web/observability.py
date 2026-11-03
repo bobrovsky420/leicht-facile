@@ -8,11 +8,11 @@ the client's `X-Request-ID` when that is a plain token (letters, digits, `.`, `_
 else makes one. The id is on `request.state.request_id`, in the response header and,
 for the time the request is handled, in `logs.request_id`, so every line written
 meanwhile carries it. When the response is out it writes one line to
-`leichtfacile.web.access`: method, path, status, duration and the client address,
-never the query string (the drafts list's search is what a reviewer typed) and never a
-workspace link's token (`/w/[token]`, web/workspaces.py), and counts the request for
-`/metrics`. uvicorn's own access log, whose line has the query string, is off
-(`leichtfacile serve`).
+`leichtfacile.web.access`: method, path, status, duration, the client address and, with
+the proxy login, the user it named (`user`; web/security.py), never the query string
+(the drafts list's search is what a reviewer typed) and never a workspace link's token
+(`/w/[token]`, web/workspaces.py), and counts the request for `/metrics`. uvicorn's own
+access log, whose line has the query string, is off (`leichtfacile serve`).
 
 `GET /metrics` answers in the Prometheus text format from three sources: the jobs
 table (jobs by status, the queue depth), the runner (workers, busy workers, the
@@ -162,6 +162,9 @@ class RequestContext:
                     "status": status,
                     "duration_ms": round(seconds * 1000, 1),
                     "client": client[0] if client else None,
+                    # The user the proxy login named while the request was handled
+                    # (the login runs inside this layer and leaves it in the scope).
+                    "user": scope.get("state", {}).get("user"),
                 },
             )
             logs.request_id.reset(token)

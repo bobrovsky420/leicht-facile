@@ -714,7 +714,9 @@ Export formats:
 - Markdown and HTML with one sentence per line, headings and lists preserved; the
   Markdown writes plain spaces where the others keep a value together, since it is
   meant for editing;
-- JSON bundle: source, fact sheet, final draft, findings, decisions - the audit trail;
+- JSON bundle: source, fact sheet, final draft, findings, decisions, each with who made
+  it and when, who submitted the job, who decided (`final.reviewers`) and who exported
+  the bundle (the users the login names, §10; null without one) - the audit trail;
 - Word (DOCX, `export/docx.py`, since 11 October 2026), for writers who work in Word:
   the layout in its print layout (A4, 20 mm margins, Arial 14 points, left-aligned, no
   hyphenation, no block split across pages, a heading kept with the block after it). A
@@ -724,7 +726,10 @@ Export formats:
   notice first and last; the language tag (de-CH, fr-CH, it-CH) gives the spell checker
   Swiss spelling. The footer names the tool, the draft version, the day of the export,
   the writer model and the hash of the prompt template that wrote the text
-  (`summary.prompt_versions`). Arial, not the reader font: a DOCX names a single font,
+  (`summary.prompt_versions`), and, once the draft is reviewed behind the login, who
+  decided ("Geprüft von a.muster, b.muster", "Relu par", "Rivisto da": the users the
+  decisions name, each once, in the order of their first decision; §10). Arial, not the
+  reader font: a DOCX names a single font,
   and Word replaces a missing one with its own choice. Built with the standard
   library (a few XML parts in a ZIP file), no new dependency.
 - With the original text (since 1 November 2026, `original=1` on the export and the
@@ -817,8 +822,11 @@ RepairRecord  (one per repair round, under the version it produced)
 
 ReviewState
   draft_version, completed, saved_at (when the server stored it; a save names the
-  value it loaded, so two reviewers never overwrite each other unseen, §7)
-  decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?, at}
+  value it loaded, so two reviewers never overwrite each other unseen, §7),
+  saved_by? (who saved it last: the user the login named, §10)
+  decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?,
+                at (when the decision was first saved in this form; a save that sends
+                it unchanged keeps the stamp), by? (who made it: the login's user)}
 
 PipelineSummary
   condition, mode, final_version, stop_reason (a code: no_blocking, no_progress,
@@ -831,7 +839,9 @@ PipelineSummary
             one per round that made a version (pipeline/rounds.py, §4.6)
 
 Job
-  id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at
+  id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at,
+  created_by? (who submitted the document: the user the login named, §10; null without
+               a login, from the command line, or in a job stored before 3 November 2026)
   config: {lang, region (the installation's texts.region when the job was created, §8),
            level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
            writer_model, understand_model, judge_model, use_judge,
@@ -1009,16 +1019,16 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below) |
+| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below); the job records the user the login named (`created_by`, §10) |
 | `GET /api/jobs` | The latest jobs |
 | `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
-| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at` |
-| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle; `original=1` appends the source text to the first three (§4.7) |
+| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (§10); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
+| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, §10); `original=1` appends the source text to the first three (§4.7) |
 | `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
 | `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
-| `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it |
+| `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (§10) |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
@@ -1678,7 +1688,12 @@ on the loopback interface of the host by default and the app told so through the
 variable `LEICHTFACILE_PUBLISH`, and, as profiles, the model servers of (a) below next
 to it (`vllm`: the official Apertus image with the flags measured on the L4; `llamacpp`:
 the 4-bit conversion), pointing the shipped providers `vllm` and `local` at them on the
-compose network. CI builds the image on every change, starts it with a token against the
+compose network. The two servers' images are pinned by digest, since their tags move, and
+every service drops every capability and gains no privilege on exec; the app and llama.cpp
+run on a read-only root with `/tmp` in memory and their volume as the one writable place,
+vLLM with a `/dev/shm` of its own in place of the host's IPC namespace
+(`tests/test_container.py` checks the pins and the hardening). CI builds the image on
+every change, starts it with a token against the
 unreachable endpoint, checks the probes, the login (401 without the token, 200 with it)
 and the user, starts it again published on the loopback interface alone, where the page
 answers without a login, and scans it for vulnerabilities that have a fix (Trivy, high
@@ -1754,7 +1769,13 @@ at runtime.
   name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
   tries per minute and client, then 429) or the proxy's user header
   (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
-  the user lands in `request.state.user`). The app reads the proxy's `X-Forwarded-For`
+  the user lands in `request.state.user`). That user is recorded (since 3 November
+  2026; the shared token names nobody): on the job they submit (`created_by`), on every
+  decision they save (`by`, with `at`, the time it was first saved in that form; a save
+  that sends a decision unchanged keeps the first reviewer's stamp) and on the review
+  (`saved_by`), on the audit bundle they export (`exported_by`, and `final.reviewers`,
+  who decided) and in the Word footer, in the log line of a deletion, which leaves no
+  row, and in the access line (below). The app reads the proxy's `X-Forwarded-For`
   and `X-Forwarded-Proto` itself (`ProxyHeaders`, outside every other layer): the user's
   address for the rate limit and the access line, and the scheme, so the cookies are
   Secure and the links https behind a proxy that ends TLS, wherever it runs; trusted
@@ -1811,8 +1832,9 @@ at runtime.
   reverse proxy sets one, so its log and ours meet), else a new one. Every log line
   written while the request is handled carries the id, and every line a worker writes
   while it runs a job carries the job id (`logs.py`, context variables). One access
-  line per request names method, path, status, duration and client address, never the
-  query string, which can carry what a reviewer typed into the drafts search; uvicorn's
+  line per request names method, path, status, duration, client address and, with the
+  proxy login, the user (`user`), never the query string, which can carry what a
+  reviewer typed into the drafts search; uvicorn's
   own access log, which has the query string, is off. `log.format = "json"` writes every
   line as one JSON object (time, level, logger, message, request_id, job_id, the
   access line's fields, the traceback) for a log collector; `text` is the default.
@@ -1875,8 +1897,9 @@ repository keeps that checkable:
   asks for its removal. The language packages are built from spaCy's wheels and the
   Morph-it! archive pinned by SHA-256 (§10, "Starting the app").
 - **Updates.** `.github/dependabot.yml` opens one grouped pull request a week for the
-  Python packages, one for the actions and one for the images, each under the same
-  seven-day window; CI gates them like any change.
+  Python packages, one for the actions, one for the Dockerfile's images and one for the
+  model servers' images of `compose.yaml`, pinned by digest since their tags move, each
+  under the same seven-day window; CI gates them like any change.
 - **Workflows and publishing.** Every action is pinned to a commit, the workflows start
   from read-only permissions, PyPI and ghcr.io take the artifacts by the workflow's own
   identity (trusted publishing, `packages: write`), no long-lived token exists, and the

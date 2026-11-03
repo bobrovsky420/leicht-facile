@@ -480,8 +480,11 @@ of way (a) on one NVIDIA GPU of the same machine (Docker with the NVIDIA Contain
 Toolkit): `--profile vllm` runs Apertus 1.5 8B on vLLM with the official image and the
 flags measured on an L4 ([Apertus 1.5 8B on vLLM](#apertus-15-8b-on-vllm-one-24-gb-gpu);
 `HF_TOKEN=...` in `.env` for the gated weights, about 18 GB downloaded on the first start),
-`--profile llamacpp` the 4-bit conversion on llama.cpp for an 8 GB GPU. The app reaches
-the server on the compose network, and one `setup` points it there:
+`--profile llamacpp` the 4-bit conversion on llama.cpp for an 8 GB GPU. Both images are
+pinned by digest in `compose.yaml`, so a pull brings the same server until the digest is
+changed (Dependabot proposes the next one once it is a week old), and every container runs
+with every capability dropped, the app's and llama.cpp's on a read-only root. The app
+reaches the server on the compose network, and one `setup` points it there:
 
 ```bash
 docker compose --profile vllm up -d
@@ -602,7 +605,9 @@ other address, it needs one of two logins and refuses to start without one.
   `auth.proxy_from`, the proxy's addresses or networks (`["127.0.0.1"]` for a proxy on the
   same machine). A request from elsewhere is refused (403), one without the header is not
   logged in (401). With the proxy on another machine, `--host` names an address the proxy
-  reaches, and the header counts as the login. The app takes the user's address from the
+  reaches, and the header counts as the login. The user the header names is recorded: on
+  the job they submit, on every review decision they save, on the audit bundle and in the
+  Word footer, and in the access line, so the audit trail says who approved what. The app takes the user's address from the
   proxy's `X-Forwarded-For` (for its rate limit and its log) and the scheme from its
   `X-Forwarded-Proto` (so its cookies are marked `Secure` and its links are https),
   trusted from the addresses in `auth.proxy_from`, or, without it, from a proxy on this

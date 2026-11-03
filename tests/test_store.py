@@ -23,8 +23,10 @@ from leichtfacile.store import SCHEMA_VERSION, Store
 
 def test_jobs_artifacts_and_usage(tmp_path) -> None:
     store = Store(tmp_path / "s.sqlite")
-    job = store.create_job(JobConfig(level="B1"), title="Test")
+    job = store.create_job(JobConfig(level="B1"), title="Test", created_by="a.muster")
     assert store.get_job(job.id).config.level == "B1"
+    assert store.get_job(job.id).created_by == "a.muster"  # who submitted it: the login's user
+    assert store.list_jobs()[0].created_by == "a.muster"
 
     for version in (1, 2):
         draft = Draft(doc_id="d", lang="de", level="A2", version=version,
@@ -82,6 +84,9 @@ def test_an_older_database_gets_the_new_columns_on_open(tmp_path) -> None:
     mine = store.create_job(JobConfig(), workspace="h1")  # the workspace column, group 7
     assert [j.id for j in store.list_jobs(workspace="h1")] == [mine.id]
     assert store.get_job("old1", workspace="h1") is None  # the old job is in no workspace
+    named = store.create_job(JobConfig(), created_by="a.muster")  # created_by, group 8
+    assert store.get_job(named.id).created_by == "a.muster"
+    assert job.created_by is None  # nobody was recorded before
     store.close()
     assert Store(path).schema_version == SCHEMA_VERSION  # opening again changes nothing
 

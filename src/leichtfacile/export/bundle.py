@@ -1,5 +1,9 @@
 """The JSON audit bundle: everything needed to show where each published sentence comes
-from and who approved it (docs/use-case-canton.md, step 8)."""
+from and who approved it (docs/use-case-canton.md, step 8): the job with who submitted
+it (`created_by`), every decision with its stamp and the user who made it (`by`), the
+review with who saved it last, `final.reviewers` (the users who decided, once each) and
+`exported_by`, who downloaded the bundle. The users are the ones the proxy login names
+(web/security.py); without one they are null."""
 
 from __future__ import annotations
 
@@ -14,7 +18,7 @@ from leichtfacile.store import Store
 BUNDLE_FORMAT = "leicht-facile/audit-bundle@1"
 
 
-def build_bundle(store: Store, job: Job) -> dict[str, Any]:
+def build_bundle(store: Store, job: Job, *, exported_by: str | None = None) -> dict[str, Any]:
     def versions(name: str) -> list[dict]:
         return [store.get_artifact_json(job.id, name, v) for v in store.versions(job.id, name)]
 
@@ -39,6 +43,7 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
             "review_complete": text.complete,
             "undecided_blocks": text.undecided,
             "undecided_glossary": text.undecided_glossary,
+            "reviewers": text.reviewers,
             "notice": notice,
             "blocks": [b.model_dump() for b in text.blocks],
             "glossary": [g.model_dump() for g in text.glossary],
@@ -50,6 +55,7 @@ def build_bundle(store: Store, job: Job) -> dict[str, Any]:
         "format": BUNDLE_FORMAT,
         "tool": f"leicht-facile {__version__}",
         "exported_at": utcnow().isoformat(),
+        "exported_by": exported_by,
         "job": job.model_dump(mode="json"),
         "summary": summary,
         "source": store.get_artifact_json(job.id, "source"),

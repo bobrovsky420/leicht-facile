@@ -5,8 +5,11 @@ without one, the rate limits, and the cross-site guard."""
 from __future__ import annotations
 
 import base64
+import io
+import json
 import logging
 import re
+import zipfile
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,6 +17,7 @@ from pydantic import ValidationError
 from starlette.datastructures import Headers
 
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.schemas import Block, Draft
 from leichtfacile.store import Store
 from leichtfacile.web.api import MAX_EDIT_CHARS
 from leichtfacile.web.app import create_app
@@ -268,6 +272,78 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
     }
     assert same_host.get("/api/jobs", headers=as_nginx).status_code == 200
     assert same_host.get("/api/jobs", headers=as_nginx).json() == []
+
+
+def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_the_log(
+    make_app, caplog
+) -> None:
+    """Who did what (audit of 3 November 2026, 2): behind the proxy login the job names
+    who submitted it, every decision who made it and when it was first saved in that
+    form, the review who saved it last, the audit bundle who exported it and who decided,
+    the Word footer the latter, and the access line and the deletion's log line name the
+    user. Without a login nobody is named."""
+    caplog.set_level(logging.INFO)
+    client = make_app(client_ip="10.0.0.2", **PROXY)
+    anna, bruno = {"X-Forwarded-User": "a.muster"}, {"X-Forwarded-User": "b.muster"}
+    created = client.post("/api/jobs", data={"text": LETTER}, headers=anna)
+    assert created.status_code == 201, created.text
+    job_id = created.json()["id"]
+    assert client.get(f"/api/jobs/{job_id}", headers=bruno).json()["created_by"] == "a.muster"
+    store: Store = client.app.state.store  # no worker here: the draft goes in by hand
+    draft = Draft(
+        doc_id="d", lang="de", level="A2", version=1,
+        blocks=[
+            Block(id="b001", kind="sentence", text="Sie bekommen Geld."),
+            Block(id="b002", kind="sentence", text="Sie haben wenig Geld."),
+        ],
+    )  # fmt: skip
+    store.put_artifact(job_id, "draft", draft, 1)
+    store.update_job(job_id, status="needs_review")
+
+    first = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "approved"}]}
+    assert client.post(f"/api/jobs/{job_id}/review", json=first, headers=anna).status_code == 200
+    made = client.get(f"/api/jobs/{job_id}/artifacts/review", headers=anna).json()
+    assert made["saved_by"] == "a.muster" and made["decisions"][0]["by"] == "a.muster"
+    second = {
+        "draft_version": 1,
+        "decisions": [
+            {"block_id": "b001", "decision": "approved"},  # sent again unchanged: Anna's
+            {"block_id": "b002", "decision": "rejected"},
+        ],
+        "completed": True,
+    }
+    saved = client.post(f"/api/jobs/{job_id}/review", json=second, headers=bruno)
+    assert saved.status_code == 200, saved.text
+    review = client.get(f"/api/jobs/{job_id}/artifacts/review", headers=bruno).json()
+    assert review["saved_by"] == "b.muster"
+    assert [(d["block_id"], d["by"]) for d in review["decisions"]] == [
+        ("b001", "a.muster"),
+        ("b002", "b.muster"),
+    ]
+    assert review["decisions"][0]["at"] == made["decisions"][0]["at"], "the stamp of its save"
+    assert review["decisions"][1]["at"] == review["saved_at"]
+
+    bundle = json.loads(client.get(f"/api/jobs/{job_id}/export?format=json", headers=bruno).text)
+    assert bundle["exported_by"] == "b.muster" and bundle["job"]["created_by"] == "a.muster"
+    assert bundle["final"]["reviewers"] == ["a.muster", "b.muster"]
+    assert [d["by"] for d in bundle["review"]["decisions"]] == ["a.muster", "b.muster"]
+    word = client.get(f"/api/jobs/{job_id}/export?format=docx", headers=bruno)
+    with zipfile.ZipFile(io.BytesIO(word.content)) as package:
+        footer = package.read("word/footer1.xml").decode("utf-8")
+    assert "Geprüft von a.muster, b.muster" in footer
+
+    line = [r for r in caplog.records if r.name == "leichtfacile.web.access"][-1]
+    assert line.user == "b.muster" and line.getMessage().startswith("GET /api/jobs/")
+    assert client.delete(f"/api/jobs/{job_id}", headers=bruno).status_code == 200
+    assert any(r.getMessage() == f"job {job_id} deleted by b.muster" for r in caplog.records)
+
+    nobody = make_app()  # no login: nobody is named, nothing fails
+    anonymous = nobody.post("/api/jobs", data={"text": LETTER}).json()["id"]
+    assert nobody.get(f"/api/jobs/{anonymous}").json()["created_by"] is None
+    line = [r for r in caplog.records if r.name == "leichtfacile.web.access"][-1]
+    assert line.user is None
+    assert nobody.delete(f"/api/jobs/{anonymous}").status_code == 200
+    assert any(r.getMessage() == f"job {anonymous} deleted" for r in caplog.records)
 
 
 def test_the_forwarded_headers_are_trusted_from_this_machine_without_a_login(

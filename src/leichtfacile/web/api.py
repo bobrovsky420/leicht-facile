@@ -41,6 +41,7 @@ from leichtfacile.web.jobs import (
     start_job,
     submission_form,
 )
+from leichtfacile.web.security import current_user
 from leichtfacile.web.views import finding_text
 from leichtfacile.web.workspaces import current_token, current_workspace
 
@@ -95,9 +96,15 @@ async def post_job(request: Request, sub: Annotated[Submission, Depends(submissi
     """Create a job from pasted text, a URL or an uploaded file (the multipart form of
     `web/jobs.py: submission_form`, the New draft form's fields). With workspaces on
     (`server.workspaces`) the answer names the job's workspace, the request's
-    `X-Workspace` or cookie, else a new one."""
+    `X-Workspace` or cookie, else a new one. The job records the user the login named
+    (`created_by`, web/security.py)."""
     try:
-        job = await start_job(_state(request), sub, workspace=current_workspace(request))
+        job = await start_job(
+            _state(request),
+            sub,
+            workspace=current_workspace(request),
+            created_by=current_user(request),
+        )
     except QueueFull as exc:
         raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
     except ServerBusy as exc:
@@ -155,8 +162,38 @@ def get_artifact(
     return JSONResponse(data)
 
 
+def stamp_decisions(
+    decisions: list[DecisionIn],
+    stored: ReviewState | None,
+    draft_version: int,
+    user: str | None,
+    now: datetime,
+) -> list[Decision]:
+    """The decisions as they are stored: one the stored review of the same draft
+    version already holds in this form (the same decision, text and comment) keeps its
+    `at` and `by`, every other one is stamped with `now` and `user`, the user the login
+    named. The page sends every decision with each save, so without this a second
+    reviewer's save would put their name on the first reviewer's decisions."""
+    previous = stored.by_block() if stored and stored.draft_version == draft_version else {}
+    out = []
+    for d in decisions:
+        before = previous.get(d.block_id)
+        if before and (before.decision, before.text, before.comment) == (
+            d.decision,
+            d.text,
+            d.comment,
+        ):
+            out.append(before)
+        else:
+            out.append(Decision(**d.model_dump(), at=now, by=user))
+    return out
+
+
 @router.post("/jobs/{job_id}/review")
 def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
+    """Store the decisions on one draft version. Each decision carries the time it was
+    first saved in this form and the user the login named (`stamp_decisions`); the
+    review carries who saved it last."""
     job = _job_or_404(request, job_id)
     store = _state(request).store
     draft = store.get_artifact(job_id, "draft", Draft, version=body.draft_version)
@@ -169,8 +206,8 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
     for d in body.decisions:
         if d.decision == "edited" and not (d.text and d.text.strip()):
             raise HTTPException(400, f"block {d.block_id}: an edit needs a text")
+    stored = store.get_artifact(job_id, "review", ReviewState)
     if "saved_at" in body.model_fields_set:
-        stored = store.get_artifact(job_id, "review", ReviewState)
         current = stored.saved_at if stored else None
         if current != body.saved_at:
             raise HTTPException(
@@ -179,11 +216,14 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
                 + (f" (at {current.isoformat(timespec='seconds')})" if current else "")
                 + "; reload the page to see their decisions",
             )
+    user = current_user(request)
+    now = utcnow()
     review = ReviewState(
         draft_version=body.draft_version,
-        decisions=[Decision(**d.model_dump()) for d in body.decisions],
+        decisions=stamp_decisions(body.decisions, stored, body.draft_version, user, now),
         completed=body.completed,
-        saved_at=utcnow(),
+        saved_at=now,
+        saved_by=user,
     )
     store.put_artifact(job_id, "review", review)
     fields: dict[str, object] = {"counts": job_counts(store, job)}
@@ -206,11 +246,13 @@ def export(
     original: bool = False,
 ) -> Response:
     """`original` appends the source text to Markdown, HTML and Word; the audit bundle
-    holds it anyway."""
+    holds it anyway. The bundle names the user who exported it, the Word footer the
+    users who decided (web/security.py)."""
     job = _job_or_404(request, job_id)
     store = _state(request).store
     if format == "json":
-        body = json.dumps(build_bundle(store, job), ensure_ascii=False, indent=2)
+        bundle = build_bundle(store, job, exported_by=current_user(request))
+        body = json.dumps(bundle, ensure_ascii=False, indent=2)
         return _download(body, "application/json", f"{job_id}-audit.json")
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     if version is None:
@@ -328,9 +370,11 @@ def cancel(request: Request, job_id: str) -> dict:
 
 @router.delete("/jobs/{job_id}")
 def delete(request: Request, job_id: str) -> dict:
+    """Remove the job; the log line names the user the login named, since no row is
+    left to."""
     _job_or_404(request, job_id)
     state = _state(request)
-    if not remove_job(state.store, state.registry.llm, job_id):
+    if not remove_job(state.store, state.registry.llm, job_id, by=current_user(request)):
         raise HTTPException(409, BUSY)
     return {"deleted": job_id}
 

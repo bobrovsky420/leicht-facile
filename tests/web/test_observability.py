@@ -112,7 +112,11 @@ def test_json_and_text_lines_carry_the_request_and_job_ids_and_redact() -> None:
     logger = logging.getLogger("leichtfacile.tests.logs")
     request, job = logs.request_id.set("req-1"), logs.job_id.set("job-9")
     try:
-        logger.info("hello %s", "world", extra={"method": "GET", "path": "/x", "status": 200})
+        logger.info(
+            "hello %s",
+            "world",
+            extra={"method": "GET", "path": "/x", "status": 200, "user": "a.muster"},
+        )
         try:
             raise ValueError("bad [type=int, input_value='Geheim 4711', input_type=str]")
         except ValueError:
@@ -126,8 +130,9 @@ def test_json_and_text_lines_carry_the_request_and_job_ids_and_redact() -> None:
     assert first["logger"] == "leichtfacile.tests.logs" and first["time"].endswith("+00:00")
     assert (first["request_id"], first["job_id"]) == ("req-1", "job-9")
     assert (first["method"], first["path"], first["status"]) == ("GET", "/x", 200)
+    assert first["user"] == "a.muster"  # the access line's user, when the login named one
     assert "ValueError" in second["exception"] and "Geheim" not in second["exception"]
-    assert "request_id" not in third and "job_id" not in third
+    assert "request_id" not in third and "job_id" not in third and "user" not in third
 
     stream = io.StringIO()
     logs.configure_logging("INFO", "text", stream)
@@ -140,6 +145,10 @@ def test_json_and_text_lines_carry_the_request_and_job_ids_and_redact() -> None:
     assert line == (
         "ERROR leichtfacile.tests.logs: boom input_value=<redacted>, input_type=str"
         " request_id=req-2"
+    )
+    logger.info("GET /x 200 1 ms", extra={"user": "a.muster"})  # the access line, named
+    assert stream.getvalue().strip().splitlines()[-1] == (
+        "INFO leichtfacile.tests.logs: GET /x 200 1 ms user=a.muster"
     )
     logging.getLogger().removeHandler(handler)
 

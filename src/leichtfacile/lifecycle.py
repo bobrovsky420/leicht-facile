@@ -59,16 +59,22 @@ def job_counts(store: Store, job: Job) -> JobCounts:
 # -- deletion and retention ------------------------------------------------------------
 
 
-def remove_job(store: Store, llm: LLMClient | None, job_id: str) -> bool:
+def remove_job(store: Store, llm: LLMClient | None, job_id: str, *, by: str | None = None) -> bool:
     """Delete the job with its artifacts and calls, and its prompts and answers from the
     response cache (`llm.cache`), which carry the document (`llm` None: no client in
     use, so no cache to clean). False when the job does not exist or a worker is
-    running it."""
+    running it. A deleted job leaves no row to name who deleted it, so the log line
+    does: `by` is the user the login named (web/security.py), None for the purge or
+    without a login."""
     keys = store.cache_keys(job_id)
     if not store.delete_job(job_id):
         return False
     if keys and llm is not None:
         llm.forget_keys(keys)
+    if by:
+        log.info("job %s deleted by %s", job_id, by)
+    else:
+        log.info("job %s deleted", job_id)
     return True
 
 

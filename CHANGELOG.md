@@ -7,6 +7,17 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ## [Unreleased]
 
+### Added
+
+- Who did what, behind the proxy login (`auth.proxy_header`): the job records who
+  submitted it, every review decision who made it and when it was first saved in that
+  form (a later save that sends it unchanged keeps the stamp), the review who saved it
+  last, the audit bundle who exported it and who decided (`final.reviewers`), and the
+  Word footer names the latter ("Geprüft von a.muster, b.muster"). The deletion of a job
+  is logged with the user, and the access line names the user of every request. Without
+  the login the new fields stay empty. An existing database gets the new column when it
+  is opened.
+
 ### Changed
 
 - The logo's tile is larger: its looped L is as tall as the capital L of the name next to
@@ -24,6 +35,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   `X-Forwarded-Proto` itself, trusted from `auth.proxy_from` with any login, or without
   it from a proxy on this machine, so the rate limit, the access line and the Secure
   cookie still see the users behind a proxy.
+
+### Security
+
+- `compose.yaml` pins the vLLM and llama.cpp images by digest (their tags move), gives
+  vLLM a shared memory of its own instead of the host's IPC namespace, and runs every
+  container with every capability dropped and no new privileges, the app's and
+  llama.cpp's on a read-only root with the volume as the one writable place. Dependabot
+  proposes the next image digests weekly.
 
 ## [0.11.0] - 2026-11-02
 

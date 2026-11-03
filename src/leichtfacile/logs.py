@@ -25,8 +25,9 @@ from leichtfacile.lifecycle import RedactingFilter, redact_logs
 request_id: ContextVar[str | None] = ContextVar("request_id", default=None)
 job_id: ContextVar[str | None] = ContextVar("job_id", default=None)
 HANDLER_NAME = "leichtfacile.log"
-# Fields a record may carry in `extra` that the JSON line keeps (the access line's).
-EXTRA_FIELDS = ("method", "path", "status", "duration_ms", "client")
+# Fields a record may carry in `extra` that the JSON line keeps (the access line's;
+# `user` is the one the proxy login named, left out without one).
+EXTRA_FIELDS = ("method", "path", "status", "duration_ms", "client", "user")
 
 
 class ContextFilter(logging.Filter):
@@ -62,8 +63,9 @@ def _exception_text(formatter: logging.Formatter, record: logging.LogRecord) -> 
 
 
 class TextFormatter(logging.Formatter):
-    """`LEVEL logger: message request_id=... job_id=...`, the traceback on the lines
-    after. The access line names its method, path and status in the message itself."""
+    """`LEVEL logger: message request_id=... job_id=... user=...`, the traceback on the
+    lines after. The access line names its method, path and status in the message
+    itself, and the user the proxy login named after the ids."""
 
     def __init__(self) -> None:
         super().__init__("%(levelname)s %(name)s: %(message)s")
@@ -72,7 +74,7 @@ class TextFormatter(logging.Formatter):
         record.message = record.getMessage()
         line = self.formatMessage(record)
         ids = context_of(record)
-        line += "".join(f" {k}={ids[k]}" for k in ("request_id", "job_id") if k in ids)
+        line += "".join(f" {k}={ids[k]}" for k in ("request_id", "job_id", "user") if k in ids)
         exception = _exception_text(self, record)
         return f"{line}\n{exception}" if exception else line
 

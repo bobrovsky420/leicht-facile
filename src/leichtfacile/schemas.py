@@ -472,17 +472,24 @@ class Decision(Artifact):
     decision: DecisionKind
     text: str | None = None  # the edited text, for "edited"
     comment: str | None = None
+    # When the decision was first saved in this form, and by whom: the user the login
+    # names (web/security.py), None without one. A later save that sends the decision
+    # unchanged keeps both (web/api.py), so a block's stamp is the reviewer's who decided
+    # it, whoever saved last.
     at: datetime = Field(default_factory=utcnow)
+    by: str | None = None
 
 
 class ReviewState(Artifact):
     draft_version: int
     decisions: list[Decision] = Field(default_factory=list)
     completed: bool = False
-    # When the server stored this review. A save names the value it loaded, so two
-    # reviewers cannot overwrite each other without noticing (web/api.py). None only in
-    # a review that was never stored (the reader view of unsaved decisions).
+    # When the server stored this review, and who saved it. A save names the value it
+    # loaded, so two reviewers cannot overwrite each other without noticing (web/api.py).
+    # None only in a review that was never stored (the reader view of unsaved decisions),
+    # the user None without a login too.
     saved_at: datetime | None = None
+    saved_by: str | None = None
 
     def by_block(self) -> dict[str, Decision]:
         return {d.block_id: d for d in self.decisions}
@@ -640,6 +647,9 @@ class Job(Artifact):
     title: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+    # Who submitted the document: the user the login names (web/security.py); None
+    # without a login, from the command line, or in a job stored before 3 November 2026.
+    created_by: str | None = None
     config: JobConfig = Field(default_factory=JobConfig)
     usage: list[UsageRecord] = Field(default_factory=list)
     error: str | None = None

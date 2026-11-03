@@ -625,7 +625,8 @@ class Auth(Section):
     proxy_header: str | None = Field(
         None,
         description="Or the header a reverse proxy fills with the logged-in user "
-        "(X-Forwarded-User, Remote-User) ...",
+        "(X-Forwarded-User, Remote-User), recorded on the jobs, the review decisions and "
+        "the exports and in the access line ...",
     )
     proxy_from: list[str] = Field(
         default_factory=list,

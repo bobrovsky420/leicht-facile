@@ -1,6 +1,7 @@
 # Dependabot: one grouped pull request a week for the Python packages in uv.lock, one for
-# the actions in the workflows and one for the images of the Dockerfile, each release
-# admitted only once it has been public for a week (the window of [tool.uv]
+# the actions in the workflows, one for the images of the Dockerfile and one for the model
+# servers' images of compose.yaml (pinned by digest, so a pull request moves the digest),
+# each release admitted only once it has been public for a week (the window of [tool.uv]
 # exclude-newer in pyproject.toml, which uv applies to the Python packages on its own).
 # CI gates every such pull request: lint, tests, the lockfile scan and the image build
 # with its scan (docs/architecture.md §10, "Supply chain").
@@ -28,6 +29,13 @@ updates:
       actions:
         patterns: ["*"]
   - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"

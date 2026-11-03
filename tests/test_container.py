@@ -80,3 +80,28 @@ def test_ci_starts_the_image_as_the_serve_job_does() -> None:
     assert "LEICHTFACILE_SERVER__PUBLISHED_ON: 127.0.0.1" in ci
     assert "docker build --tag leichtfacile:ci ." in ci
     assert re.search(r"uses: aquasecurity/trivy-action@[0-9a-f]{40} # v\d", ci)
+
+
+def test_compose_pins_the_model_servers_images_by_digest() -> None:
+    """vLLM's and llama.cpp's tags move, so each of their images carries the digest of the
+    one taken; the app's image is the release LEICHTFACILE_VERSION names."""
+    images = re.findall(r"^\s+image: (\S+)$", _read("compose.yaml"), re.MULTILINE)
+    assert len(images) == 3, images
+    assert images[0] == f"{IMAGE}:${{LEICHTFACILE_VERSION:-latest}}"
+    for image in images[1:]:
+        assert re.search(r":[\w.-]+@sha256:[0-9a-f]{64}$", image), image
+
+
+def test_compose_hardens_every_service() -> None:
+    """Every service drops every capability and gains no privilege on exec; the app and
+    llama.cpp run on a read-only root with /tmp in memory; vLLM gets a shared memory of
+    its own and no service the host's IPC namespace."""
+    compose = _read("compose.yaml")
+    services = compose.count("\n    restart: unless-stopped\n")
+    assert services == 3
+    assert compose.count("\n    cap_drop: [ALL]\n") == services
+    assert compose.count('\n    security_opt: ["no-new-privileges:true"]\n') == services
+    assert compose.count("\n    read_only: true\n    tmpfs:\n      - /tmp\n") == 2
+    assert "\n    shm_size: " in compose
+    assert not re.search(r"^\s+ipc:", compose, re.MULTILINE), "no host IPC namespace"
+    assert "privileged: true" not in compose

@@ -51,8 +51,9 @@ that makes Apertus the model that fits best, and the one recommended for decisio
 ([use-cases.md §2](use-cases.md#why-apertus-fits-best)).
 
 The audit bundle stays in the case file. It shows which sentence of the decision each
-easy-language sentence rests on and who approved it, so the authority can show exactly
-what it told the person.
+easy-language sentence rests on and who approved it (behind the authority's login, every
+decision carries the reviewer's user name and the time), so the authority can show
+exactly what it told the person.
 
 ## 3. A typical case: a deputyship
 

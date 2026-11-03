@@ -228,6 +228,27 @@ def test_the_footer_names_the_tool_draft_day_model_and_the_prompt_that_wrote_the
     footer = parts(docx(draft(), summary=summary))["word/footer1.xml"]
     assert paragraphs(footer) == [("Footer", [line])]
 
+    # Behind a login the decisions name who made them: the footer names each once, in
+    # the order of their first decision; without a login (`by` None) it says nothing.
+    decided = ReviewState(
+        draft_version=2,
+        decisions=[
+            Decision(block_id="b002", decision="approved", by="b.muster"),
+            Decision(block_id="b003", decision="rejected", by="a.muster"),
+            Decision(block_id="b006", decision="approved", by="b.muster"),
+        ],
+    )
+    reviewed = build_layout(draft(), decided)
+    assert reviewed.final.reviewers == ["b.muster", "a.muster"]
+    assert footer_line(reviewed, summary, DAY) == f"{line} · Geprüft von b.muster, a.muster"
+    assert footer_line(build_layout(draft("fr"), decided), None, DAY).endswith(
+        " · Relu par b.muster, a.muster"
+    )
+    anonymous = decided.model_copy(
+        update={"decisions": [d.model_copy(update={"by": None}) for d in decided.decisions]}
+    )
+    assert footer_line(build_layout(draft(), anonymous), summary, DAY) == line
+
 
 def test_a_french_draft_gets_french_labels_and_swiss_french_spelling() -> None:
     package = parts(docx(draft("fr")))

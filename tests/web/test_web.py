@@ -112,6 +112,10 @@ def test_submit_review_and_export(app_env) -> None:
     assert bundle["final"]["undecided_blocks"] == 2
     assert len(bundle["final"]["blocks"]) == 4
     assert bundle["factsheet"]["facts"][0]["id"] == "f01"
+    # No login: nobody is named (test_security.py has the proxy login's users).
+    assert bundle["job"]["created_by"] is None and bundle["exported_by"] is None
+    assert bundle["final"]["reviewers"] == [] and bundle["review"]["saved_by"] is None
+    assert [d["by"] for d in bundle["review"]["decisions"]] == [None] * 3
 
 
 def test_an_export_with_the_original_appends_the_source_text(app_env) -> None:

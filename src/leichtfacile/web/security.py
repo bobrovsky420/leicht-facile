@@ -34,7 +34,11 @@ response last):
    - `proxy`: the reverse proxy logs the user in and names them in the header
      `auth.proxy_header` (`X-Forwarded-User`, `Remote-User`). The header is trusted
      only from the proxy's addresses (`auth.proxy_from`); a request from elsewhere is
-     403, one without the header 401. The user lands in `request.state.user`.
+     403, one without the header 401. The user lands in `request.state.user`
+     (`current_user`), and the routes record it: on the job it submits, on every
+     decision it saves and the review, on the audit bundle it exports and in the Word
+     footer, in the line that logs a deletion, and the access line names it
+     (web/observability.py). With the shared token nobody is named.
    The probes `/healthz` and `/readyz` and the static files need no login.
    `Settings` refuses to start the app published beyond the loopback interface
    (`server.host`, or `server.published_on` in a container, where the runtime publishes
@@ -70,7 +74,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from leichtfacile.web.jobs import MAX_FILE_BYTES
 
 if TYPE_CHECKING:
-    from fastapi import FastAPI
+    from fastapi import FastAPI, Request
 
     from leichtfacile.config import Network, Settings
 
@@ -316,6 +320,12 @@ def token_matches(authorization: str | None, token: str) -> bool:
 
 def is_open_path(path: str) -> bool:
     return path in OPEN_PATHS or path.startswith(OPEN_PREFIXES)
+
+
+def current_user(request: Request) -> str | None:
+    """The user the proxy login named (module docstring, 3); None with the shared
+    token or no login. What the routes record on jobs, decisions and exports."""
+    return getattr(request.state, "user", None)
 
 
 class Authentication:

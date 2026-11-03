@@ -168,9 +168,12 @@ async def submission_form(
     )
 
 
-async def start_job(state: Any, sub: Submission, workspace: str | None = None) -> Job:
+async def start_job(
+    state: Any, sub: Submission, workspace: str | None = None, created_by: str | None = None
+) -> Job:
     """The job for a submission, stored and queued, in the request's `workspace`
-    (web/workspaces.py). The ingest (the fetch of a URL, the parse of a PDF, the
+    (web/workspaces.py) and recorded as submitted by `created_by`, the user the login
+    named (web/security.py). The ingest (the fetch of a URL, the parse of a PDF, the
     segmentation) runs in the thread pool, so a slow URL never stops the server.
     `QueueFull`, `ServerBusy` and `SubmissionError` say why a submission was refused;
     the routes turn them into their answers."""
@@ -183,6 +186,7 @@ async def start_job(state: Any, sub: Submission, workspace: str | None = None) -
         state.ingest_slots,
         presets=[name for name, _ in state.registry.ready()],
         workspace=workspace,
+        created_by=created_by,
     )
     state.runner.submit(job.id)
     return job
@@ -260,12 +264,14 @@ def create_job(
     *,
     presets: Collection[str] | None = None,
     workspace: str | None = None,
+    created_by: str | None = None,
 ) -> Job:
     """The job for a submission, queued and with its source stored. `slots` limits how
     many submissions are read at once (`ingest_slot`); `presets` are the ready presets
     a submission may pick, the one in use among them when it is ready (None: no
     check, a command's own client); `workspace` is the hash of the workspace the job
-    belongs to (web/workspaces.py; None: none)."""
+    belongs to (web/workspaces.py; None: none); `created_by` the user the login named
+    (None: no login)."""
     if sub.level not in LEVELS:
         raise SubmissionError("unknown_level", level=sub.level)
     condition = sub.condition
@@ -320,7 +326,11 @@ def create_job(
     )
     title = sub.title or source.title or sub.url or sub.file_name or "Pasted text"
     job = store.create_job(
-        config, title=title[:200], counts=source_counts(source), workspace=workspace
+        config,
+        title=title[:200],
+        counts=source_counts(source),
+        workspace=workspace,
+        created_by=created_by,
     )
     store.put_artifact(job.id, "source", source)
     return job

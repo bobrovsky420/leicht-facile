@@ -181,6 +181,19 @@ def test_a_review_save_names_the_review_it_saw(app_env) -> None:
     # A script that sends no `saved_at` is not checked: the field is the page's.
     assert client.post(f"/api/jobs/{job_id}/review", json=body).status_code == 200
 
+    # Every save sends every decision: one sent again unchanged keeps the stamp of the
+    # save that made it, a changed one is stamped anew (`stamp_decisions`). Without a
+    # login nobody is named (test_security.py has the login).
+    review = client.get(f"/api/jobs/{job_id}/artifacts/review").json()
+    made = review["decisions"][0]["at"]
+    assert made < review["saved_at"] and review["saved_by"] is None
+    assert review["decisions"][0]["by"] is None
+    changed = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "rejected"}]}
+    assert client.post(f"/api/jobs/{job_id}/review", json=changed).status_code == 200
+    review = client.get(f"/api/jobs/{job_id}/artifacts/review").json()
+    assert review["decisions"][0]["decision"] == "rejected"
+    assert review["decisions"][0]["at"] == review["saved_at"] != made
+
 
 def test_the_drafts_list_reads_its_counts_from_the_job_row(app_env) -> None:
     """Audit B3: the counts are written when the pipeline ends and when a review is

@@ -34,6 +34,17 @@
 #   Apertus 1.5 8B on llama.cpp (unofficial, no image input), on a GPU with 8 GB, for
 #   development and small offices; 5 GB of weights on the first start. Then, once:
 #   `docker compose run --rm app leichtfacile setup local --name llamacpp --model apertus-v1.5-8b-q4-llamacpp`
+#
+# The two servers' images are pinned by digest, since their tags move: the Swiss AI team
+# publishes no versioned tag of the vLLM image, and llama.cpp's server-cuda tag moves with
+# every build. A pull brings the image the digest names and no other; Dependabot proposes
+# the next one once it has been public for a week (.github/dependabot.yml), and by hand
+# `docker buildx imagetools inspect <image>:<tag>` prints the digest a tag stands for
+# today. Every service drops every capability and gains no privilege on exec; the app and
+# llama.cpp run on a read-only root with /tmp in memory, their volume the one writable
+# place; vLLM keeps its root writable (torch.compile and Triton write their caches under
+# /root and /tmp) and gets a /dev/shm of its own in place of the host's IPC namespace.
+# tests/test_container.py checks the pins and the hardening.
 
 name: leichtfacile
 
@@ -56,11 +67,19 @@ services:
       - "${LEICHTFACILE_PUBLISH:-127.0.0.1}:8000:8000"
     volumes:
       - data:/data
+    # Starlette spools a request body over 1 MB (a file to simplify) into /tmp; the app
+    # writes everything else to /data.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
   vllm:
     profiles: ["vllm"]
-    image: ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64
+    # The moving tag, with the digest of its image of 22 July 2026 (taken on 3 November 2026).
+    image: ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64@sha256:d85533f251c8272218ae2e519510836376e5a335b44f2204f193018e37753bc6
     entrypoint: ["vllm", "serve"]
     command:
       - swiss-ai/Apertus-v1.5-8B
@@ -77,7 +96,12 @@ services:
       HF_TOKEN: ${HF_TOKEN:-}
     volumes:
       - huggingface:/root/.cache/huggingface
-    ipc: host
+    # PyTorch passes tensors between vLLM's processes through /dev/shm, whose 64 MB default
+    # is too small; a size of its own replaces the host's IPC namespace (ipc: host, which
+    # the run on the L4 had). A "shared memory" error at the start asks for more here.
+    shm_size: 2gb
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     deploy:
       resources:
         reservations:
@@ -89,7 +113,9 @@ services:
 
   llamacpp:
     profiles: ["llamacpp"]
-    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    # Build b11889 of 25 October 2026 (the tag server-cuda moves with every build), with
+    # its digest.
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda-b11889@sha256:b51c252687249a6990ae1c168156cb215c954bfd71f9c434eda9a065b1a40dbe
     command:
       - -hf
       - Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF
@@ -117,6 +143,11 @@ services:
       LLAMA_CACHE: /models
     volumes:
       - llamacpp:/models
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     deploy:
       resources:
         reservations:

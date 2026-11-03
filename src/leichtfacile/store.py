@@ -343,6 +343,15 @@ def _add_workspace(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS jobs_workspace ON jobs(workspace, created_at)")
 
 
+def _add_created_by(conn: sqlite3.Connection) -> None:
+    """3 November 2026: who submitted the document, the user the login names
+    (web/security.py); NULL in every job stored before. Added only when missing, as
+    the workspace column."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(jobs)")}
+    if "created_by" not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN created_by TEXT")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -359,6 +368,7 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_rewrite_rule_ids,),  # 5 (25 October 2026): one rule id whatever the language
     (_rewrite_region_ids,),  # 6 (29 October 2026): CH-01 to CH-03 became REG-01 to REG-03
     (_add_workspace,),  # 7 (2 November 2026): the workspace column and its index
+    (_add_created_by,),  # 8 (3 November 2026): who submitted the document
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 # Connections kept open at most: the workers and a few web handlers at a time.
@@ -479,14 +489,22 @@ class Store:
         job_id: str | None = None,
         counts: JobCounts | None = None,
         workspace: str | None = None,
+        created_by: str | None = None,
     ) -> Job:
         """`workspace` is the hash of the workspace the job belongs to (web/workspaces.py);
-        None for a job outside every workspace (the command line, an app without them)."""
-        job = Job(id=job_id or uuid.uuid4().hex[:12], title=title, config=config, counts=counts)
+        None for a job outside every workspace (the command line, an app without them).
+        `created_by` is the user the login names (web/security.py); None without one."""
+        job = Job(
+            id=job_id or uuid.uuid4().hex[:12],
+            title=title,
+            created_by=created_by,
+            config=config,
+            counts=counts,
+        )
         with self._tx() as conn:
             conn.execute(
-                "INSERT INTO jobs (id, status, stage, title, created_at, updated_at, config, "
-                "counts, workspace) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO jobs (id, status, stage, title, created_at, updated_at, "
+                "created_by, config, counts, workspace) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     job.id,
                     job.status,
@@ -494,6 +512,7 @@ class Store:
                     job.title,
                     job.created_at.isoformat(),
                     job.updated_at.isoformat(),
+                    created_by,
                     job.config.model_dump_json(),
                     counts.model_dump_json() if counts else None,
                     workspace,
@@ -818,6 +837,7 @@ def _job(row: sqlite3.Row, usage: list[UsageRecord]) -> Job:
         title=row["title"],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+        created_by=row["created_by"],
         config=JobConfig.model_validate_json(row["config"]),
         usage=usage,
         error=row["error"],

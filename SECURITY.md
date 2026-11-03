@@ -56,10 +56,11 @@ it in ghcr.io.
 
 ## How the repository guards its supply chain
 
-Pinned, hashed dependencies installed frozen; actions pinned to commits; trusted
-publishing to PyPI; a one-week cooldown on new releases; weekly dependency updates;
-a secret scan of the whole history and a vulnerability scan of the lockfile and the
-image on every change; no download at runtime; provenance and a bill of materials with
-every release. The details and the repository settings
+Pinned, hashed dependencies installed frozen; actions pinned to commits; the model
+servers' images of `compose.yaml` pinned by digest; trusted publishing to PyPI; a
+one-week cooldown on new releases; weekly dependency updates; a secret scan of the whole
+history and a vulnerability scan of the lockfile and the image on every change; no
+download at runtime; provenance and a bill of materials with every release. The details
+and the repository settings
 that go with them: [docs/architecture.md §10](docs/architecture.md#10-deployment-and-sovereignty),
 "Supply chain".

@@ -107,7 +107,8 @@ Markdown, HTML or Word formatted for Leichte Sprache (one sentence per line, sho
 lines), plus a JSON bundle containing the source, the fact sheet, the final draft with
 provenance, all findings, and the writer's decisions. That bundle is the audit trail.
 If a resident later disputes the easy-language version, the office can show which
-source sentence each statement rests on and who approved it.
+source sentence each statement rests on and who approved it: behind the office's login,
+every decision carries the reviewer's user name and the time.
 
 ### Step 9: the target-group test stays with the canton
 

@@ -35,6 +35,7 @@ from leichtfacile.web.jobs import (
     submission_form,
     text_chars,
 )
+from leichtfacile.web.security import current_user
 from leichtfacile.web.views import (
     EXPORT_FORMATS,
     STEP_WHO,
@@ -417,7 +418,12 @@ async def submit(request: Request, sub: Annotated[Submission, Depends(submission
     """The New draft form: the API's submission (`web/jobs.py`), then the job page; a
     refused submission renders the form again with the reason."""
     try:
-        job = await start_job(request.app.state, sub, workspace=current_workspace(request))
+        job = await start_job(
+            request.app.state,
+            sub,
+            workspace=current_workspace(request),
+            created_by=current_user(request),
+        )
     except (SubmissionError, QueueFull) as exc:
         return _refused(request, exc, sub.form())
     return RedirectResponse(f"/jobs/{job.id}", status_code=303)

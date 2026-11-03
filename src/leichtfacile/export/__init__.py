@@ -17,18 +17,21 @@ LABELS = {
         "draft_note": "Entwurf: noch nicht geprüft.",
         "version": "Entwurf v{version}",
         "original": "Originaltext",
+        "reviewed_by": "Geprüft von {names}",
     },
     "fr": {
         "glossary": "Lexique",
         "draft_note": "Brouillon : pas encore relu.",
         "version": "Brouillon v{version}",
         "original": "Texte original",
+        "reviewed_by": "Relu par {names}",
     },
     "it": {
         "glossary": "Glossario",
         "draft_note": "Bozza: non ancora rivista.",
         "version": "Bozza v{version}",
         "original": "Testo originale",
+        "reviewed_by": "Rivisto da {names}",
     },
 }
 
@@ -43,6 +46,10 @@ class FinalText:
     undecided: int = 0  # blocks without a decision; they stay in, as drafted
     glossary: list[GlossaryEntry] = field(default_factory=list)
     undecided_glossary: int = 0  # glossary entries without a decision; they stay in too
+    # Who decided: the users the login named on the decisions (`Decision.by`), each
+    # once, in the order of their first decision; empty without a login. The Word
+    # footer and the audit bundle name them.
+    reviewers: list[str] = field(default_factory=list)
 
 
 def glossary_id(index: int) -> str:
@@ -86,4 +93,5 @@ def final_blocks(draft: Draft, review: ReviewState | None) -> FinalText:
         undecided=undecided,
         glossary=glossary,
         undecided_glossary=sum(1 for gid in glossary_ids(draft) if gid not in decisions),
+        reviewers=list(dict.fromkeys(d.by for d in review.decisions if d.by)),
     )

@@ -44,7 +44,7 @@ def test_new_releases_wait_a_week_and_dated_exceptions_expire() -> None:
 def test_dependabot_covers_the_lockfile_the_actions_and_the_images_under_the_same_window() -> None:
     config = yaml.safe_load(_read(".github/dependabot.yml"))
     updates = {u["package-ecosystem"]: u for u in config["updates"]}
-    assert set(updates) == {"uv", "github-actions", "docker"}
+    assert set(updates) == {"uv", "github-actions", "docker", "docker-compose"}
     for ecosystem, update in updates.items():
         assert update["schedule"]["interval"] == "weekly", ecosystem
         assert update["cooldown"]["default-days"] == 7, ecosystem

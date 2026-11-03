@@ -9,9 +9,10 @@ second time. Title, headings and list items carry
 Word's own styles (Heading 1 and 2, List Bullet), so a writer can restyle the document
 and the navigation pane shows its outline; the language tag (de-CH, fr-CH, it-CH) gives
 the spell checker Swiss spelling. The footer names the tool, the draft version, the day
-of the export, the model that wrote the text and the hash of its prompt template.
-With the original text (`Layout.original`), it follows on a new page under its own
-heading, the source's headings in Heading 3.
+of the export, the model that wrote the text and the hash of its prompt template, and,
+once the draft is reviewed behind a login, who decided (`FinalText.reviewers`). With the
+original text (`Layout.original`), it follows on a new page under its own heading, the
+source's headings in Heading 3.
 
 Arial is the HTML export's fallback: a DOCX names a single font, and Word replaces
 a missing one with a font of its own choosing. Written with the standard library, since
@@ -197,7 +198,8 @@ def _paragraph(lines: list[str], style: str | None = None, *, after: int | None 
 def footer_line(layout: Layout, summary: PipelineSummary | None, today: date | None = None) -> str:
     """The tool, the draft version and the day; once the pipeline has run, the model
     that wrote the text and the hash of its prompt template, as the job's summary (and
-    the audit bundle) records them."""
+    the audit bundle) records them; and the users who decided, when the login named
+    them ("Geprüft von a.muster, b.muster")."""
     labels = LABELS.get(layout.lang, LABELS["de"])
     parts = [
         f"Leicht·Facile {__version__}",
@@ -207,6 +209,8 @@ def footer_line(layout: Layout, summary: PipelineSummary | None, today: date | N
     if summary is not None:
         prompt = summary.prompt_versions.get(WRITER_PROMPTS.get(summary.condition, "write"))
         parts += [summary.writer_model, f"Prompt {prompt}" if prompt not in (None, "none") else ""]
+    if layout.final.reviewers:
+        parts.append(labels["reviewed_by"].format(names=", ".join(layout.final.reviewers)))
     return " · ".join(part for part in parts if part)
 
 
