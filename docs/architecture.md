@@ -1916,7 +1916,8 @@ repository keeps that checkable:
   one download in CI, gitleaks, is pinned by its checksum.
 - **Secrets.** CI scans every commit of the history with gitleaks on every change
   (`.gitleaks.toml` allows the project's own shapes that look like keys: the message
-  keys of findings in audit bundles and tests, and one test fixture); the hook in
+  keys of findings in audit bundles and tests, and the test fixtures that play a
+  key); the hook in
   `scripts/hooks/pre-commit` scans the staged changes before a commit when gitleaks is
   installed. The keys themselves live in the `.env` next to the config file, never in
   the repository.
@@ -2025,6 +2026,10 @@ docs/
   configuration.md          the settings: the config file, the saved endpoints and presets, every key
   architecture.md           this document
   assignment.md             the form that assigns the rights in a substantial contribution (CONTRIBUTING.md)
+  maintenance.md            the maintenance and support policy: the commitments, the stable surfaces, the
+                            rules until 1.0 and after, what 1.0 means
+  releasing.md              the maintainers' handbook: a release step by step, the language packages, the
+                            pins, the repository's settings, the sibling repositories and services
   ui-design.md              the web UI's specification
   rules.md                  rule catalogue → implemented by src/leichtfacile/rules
   prompts.md                prompt design notes and change log
