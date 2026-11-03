@@ -7,12 +7,9 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P7D"
 
 [options.exclude-newer-package]
-confection = "2026-11-03T00:00:00Z"
 leichtfacile-model-de = false
 leichtfacile-model-fr = false
 leichtfacile-model-it = false
-spacy = "2026-11-03T00:00:00Z"
-weasel = "2026-11-03T00:00:00Z"
 
 [[package]]
 name = "annotated-doc"
