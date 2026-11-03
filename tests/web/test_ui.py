@@ -225,7 +225,10 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
     usage = view.steps[0].usage  # each step carries its model calls
     assert (usage.calls, usage.tokens_in, usage.tokens_out) == (1, 1200, 300)
     assert view.steps[1].usage is None
-    assert "1 call · 1,500 tokens · 4 s" in client.get(f"/jobs/{job.id}").text
+    page = client.get(f"/jobs/{job.id}").text
+    assert "1 call · 1,500 tokens · 4 s" in page
+    # The running time is not live; app.js announces the stage when it changes.
+    assert 'class="run-line">' in page and 'data-stage="Stage 2 of 6: Write"' in page
 
     store.update_job(job.id, stage="repair 2")
     view = progress_view(store, store.get_job(job.id))

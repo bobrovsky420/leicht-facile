@@ -41,6 +41,15 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   `X-Forwarded-Proto` itself, trusted from `auth.proxy_from` with any login, or without
   it from a proxy on this machine, so the rate limit, the access line and the Secure
   cookie still see the users behind a proxy.
+- Screen readers no longer read out the job page's running time at every update (every
+  2 to 5 seconds while a job runs); they hear the stage when the job reaches a new one,
+  "Stage 3 of 6: Check". The page also replaces its progress view only when it changed,
+  so a screen reader keeps its place in the results so far.
+- Review page: the open block is marked as the current one for screen readers
+  (`aria-current`); opening a block used to be silent.
+- Dark mode: the outline of the selected filter, view or source tab stands out from the
+  grey track at 3.1:1 instead of 2.98:1, which was under the 3:1 that WCAG asks for.
+  Text fields share the slightly lighter outline.
 
 ### Security
 

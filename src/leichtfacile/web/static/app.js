@@ -317,9 +317,18 @@
   }
 
   // -- job progress: poll the fragment until the job leaves the queue -------------------
+  // The running time changes at every poll and is not live. The fragment is replaced
+  // only when something else in it changed, so a screen reader keeps its place, and a
+  // new stage is announced in #run-stage.
   const progress = $("#progress");
   if (progress && ["queued", "running"].includes(progress.dataset.status)) {
     const id = progress.dataset.job;
+    const line = $("#run-numbers");
+    const announce = $("#run-stage");
+    const withoutRun = (html) => html.replace(/ data-run="[^"]*"/, "").trim();
+    const first = $(".jobgrid", progress);
+    let shown = withoutRun(progress.innerHTML);
+    let stage = (first && first.dataset.stage) || "";
     let busy = false;
     const tick = async () => {
       if (busy) return;
@@ -332,10 +341,18 @@
           window.location.reload();
           return;
         }
-        progress.innerHTML = await res.text();
-        const grid = $(".jobgrid", progress);
-        const line = $("#run-numbers");
+        const fresh = document.createElement("template");
+        fresh.innerHTML = await res.text();
+        const grid = $(".jobgrid", fresh.content);
         if (grid && line && grid.dataset.run) line.textContent = grid.dataset.run;
+        const html = withoutRun(fresh.innerHTML);
+        if (html !== shown) {
+          shown = html;
+          progress.replaceChildren(fresh.content);
+        }
+        const next = (grid && grid.dataset.stage) || "";
+        if (announce && next && next !== stage) announce.textContent = next;
+        stage = next;
         const badge = $("#job-status");
         if (badge && status) {
           badge.className = `badge status-${status}`;
@@ -410,13 +427,20 @@
     $("#no-match").hidden = shown > 0;
   };
 
+  // the open block is the current one, for screen readers too
+  const closeBlocks = () =>
+    blocks.forEach((b) => {
+      b.classList.remove("selected", "is-open");
+      b.removeAttribute("aria-current");
+    });
   const select = (block, { scroll = false, focus = false } = {}) => {
     clearMarks();
-    blocks.forEach((b) => b.classList.remove("selected", "is-open"));
+    closeBlocks();
     current = block;
     applyFilter();
     if (!block) return;
     block.classList.add("selected", "is-open");
+    block.setAttribute("aria-current", "true");
     showSegments((block.dataset.segments || "").split(" "));
     if (scroll) block.scrollIntoView({ block: "nearest", behavior: "smooth" });
     if (focus) block.focus({ preventScroll: true });
@@ -676,7 +700,7 @@
 
   const showFact = (id, source) => {
     clearMarks();
-    blocks.forEach((b) => b.classList.remove("selected", "is-open"));
+    closeBlocks();
     current = null;
     applyFilter();
     if (source) {

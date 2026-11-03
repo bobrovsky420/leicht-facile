@@ -13,7 +13,9 @@
     </div>
     <div class="pagehead-actions">
       {% if p.live %}
-      <span class="run-line" role="status"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
+      <span class="run-line"><span id="run-numbers">{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}</span><span class="hint">{{ t('progress.updates') }}</span></span>
+      {# Screen readers hear each new stage here (app.js), not the running time. #}
+      <span class="visually-hidden" id="run-stage" role="status"></span>
       <form method="post" action="/jobs/{{ job.id }}/cancel">
         <button type="submit" class="btn btn-danger">{{ t('job.stop') }}</button>
       </form>

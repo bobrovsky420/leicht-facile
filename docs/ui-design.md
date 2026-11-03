@@ -72,7 +72,7 @@ CSS custom properties on `:root` in `app.css`, prefixed `--lf-`.
 | `--lf-ink` | `#1A1E23` | `#E6E9ED` | Text, headings, icons |
 | `--lf-text-2` | `#49515C` | `#BCC3CC` | Labels, descriptions (8.0:1 on white) |
 | `--lf-muted` | `#646C78` | `#9AA2AD` | IDs, captions, counts (5.3:1 on white, 5.0:1 on `--lf-sunken`) |
-| `--lf-border-input` | `#808893` | `#6B7380` | Outline of text fields, selects and the selected segment (3.6:1 on white, 3.1:1 on the segmented tracks, WCAG 1.4.11) |
+| `--lf-border-input` | `#808893` | `#6E7683` | Outline of text fields, selects and the selected segment (3.6:1 on white, 3.1:1 on the segmented tracks, WCAG 1.4.11) |
 | `--lf-border-strong` | `#BCC3CC` | `#4A525D` | Outline of buttons (their label identifies them) |
 | `--lf-border` | `#D7DBE0` | `#333A44` | Edges of panes, cards and the app bar |
 | `--lf-hairline` | `#E6E9ED` | `#2A3038` | Strip borders, chip borders, list frames |
@@ -108,7 +108,7 @@ An installation that changes `--lf-accent` recomputes them (§14).
 
 The dark set follows the system setting (`prefers-color-scheme: dark`); there is no
 switch in the app. It uses the dark values of the project page (its `style.css`, in the
-leicht-facile-web repository) for the same roles. Every text pair is at least 5.5:1, the field outline 3.0:1 on the tracks.
+leicht-facile-web repository) for the same roles. Every text pair is at least 5.5:1, the field outline at least 3.1:1 on the tracks.
 Status icons take their colours from these tokens through classes (`.i-ok`, `.i-error`,
 `.i-warn`, ...), the glyph in `--lf-surface`. The reader view's paper stays white.
 
@@ -366,7 +366,8 @@ them into local time and "Today" or "Yesterday".
 
 - Page header: breadcrumb, title, status badge (Queued, Running or Failed). On the
   right "Running for 2 min 01 s · 8,188 tokens" with "The page updates by itself"
-  under it (`role=status`), and "Stop" (danger; since 11 October 2026 it replaces
+  under it (not live: a hidden `role=status` region next to it announces each new
+  stage, "Stage 3 of 6: Check"), and "Stop" (danger; since 11 October 2026 it replaces
   "Delete draft" while the job is queued or running: the job ends at its next stage
   or streamed chunk and keeps what it has; a stopped or failed job shows "Delete
   draft", which asks first). Summary strip:
@@ -398,11 +399,13 @@ them into local time and "Today" or "Yesterday".
   {error}", or "The job was stopped." for a job the reviewer stopped, the existing
   hint, "Run again from the start"); the failed stage shows the error in its detail
   line, mono 12.
-- Polling as today: `app.js` swaps the `_progress.html` fragment every 2 s (every
+- Polling as today: `app.js` asks for the `_progress.html` fragment every 2 s (every
   5 s after two minutes) and
-  reloads when the status leaves queued and running. The fragment's root carries
-  the header's line, formatted by the server, in `data-run`; `app.js` copies it into
-  the page header after each swap.
+  reloads when the status leaves queued and running. It replaces the fragment only
+  when something besides the running line changed, so a screen reader keeps its place.
+  The fragment's root carries the header's line, formatted by the server, in
+  `data-run`, which `app.js` copies into the page header at every poll, and the running
+  stage in `data-stage`, which it puts into the hidden status region when it changes.
 - View model: `Step` gains `usage: StageUsage | None`, matched by stage key (Read is
   `understand`); `progress_view` already sums the usage per stage.
 
@@ -696,11 +699,12 @@ New or changed:
    on change.
 3. New draft: the character count, the language note after an example, the file
    name and size after a choice, dropping a file on the drop zone.
-4. Job running: copying the fragment's `data-run` line into the page header after
-   each swap.
+4. Job running: copying the fragment's `data-run` line into the page header at every
+   poll, replacing the fragment only when it changed, announcing a new stage
+   (`data-stage`).
 5. Review:
-   - one selected block at a time; its row opens (`.is-open`), the others close (the
-     page carries the `js` class);
+   - one selected block at a time; its row opens (`.is-open`) and carries
+     `aria-current="true"`, the others close (the page carries the `js` class);
    - shortcuts only while the focus is in the draft pane (WCAG 2.1.4): J and K, or
      the arrow keys, move; A, E and R decide; N jumps to the next undecided block.
      Ctrl+S (Cmd+S) saves from anywhere on the page; Esc closes an open menu;
@@ -957,8 +961,9 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
 - Landmarks: `header`, `nav`, `main`, `aside`; the skip link; one `h1` per page and
   headings in order.
 - Only real controls: `a`, `button`, `input`, `select`, `textarea`. A block row is an
-  `article` with `tabindex="0"`; Enter selects it. Filters use `aria-pressed`, the
-  view switch `aria-current`, the tabs the WAI-ARIA tabs pattern.
+  `article` with `tabindex="0"`; Enter selects it, and the selected row carries
+  `aria-current="true"`. Filters use `aria-pressed`, the view switch `aria-current`,
+  the tabs the WAI-ARIA tabs pattern.
 - Focus visible everywhere (2 px accent ring); sticky headers and footers do not
   cover the focused element (`scroll-margin`).
 - Colour is never the only signal: every status has a shape and a word or a number;
@@ -971,8 +976,10 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
   scrolls inside its card, as data tables may.
 - Language: the document's title, sentences, blocks, facts and glossary carry the
   document's `lang`; the interface carries the interface language.
-- Live regions: the save state, the elapsed time while a job runs, the endpoint
-  status (`role=status`, polite); the stepper itself is not live.
+- Live regions: the save state, the stage a running job reaches (a hidden region that
+  changes with the stage only; the running time is not live), the endpoint status
+  (`role=status`, polite); the stepper itself is not live, and the polled fragment is
+  replaced only when it changed.
 - Motion: the spinner stops under `prefers-reduced-motion`.
 - The reader iframe has a `title`; unsaved decisions warn before leaving, as today;
   every delete asks first.

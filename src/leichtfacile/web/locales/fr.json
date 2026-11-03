@@ -237,6 +237,7 @@
   "progress.findings": "{errors} erreurs et {warns} avertissements dans cette version ; les blocs marqués ont des constats.",
   "progress.pipeline": "Chaîne de traitement",
   "progress.stage_of": "Étape {current} sur {total}",
+  "progress.stage_now": "Étape {current} sur {total} : {stage}",
   "progress.state.done": "Terminée",
   "progress.state.running": "En cours",
   "progress.state.pending": "En attente",

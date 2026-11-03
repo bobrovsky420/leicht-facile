@@ -252,6 +252,7 @@
 
   "progress.pipeline": "Pipeline",
   "progress.stage_of": "Stage {current} of {total}",
+  "progress.stage_now": "Stage {current} of {total}: {stage}",
   "progress.state.done": "Done",
   "progress.state.running": "Running",
   "progress.state.pending": "Waiting",

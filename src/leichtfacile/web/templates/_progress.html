@@ -1,7 +1,8 @@
 {# The progress fragment: included by job.html and polled at /jobs/{id}/progress. Its
-   root carries the header's running line, which app.js copies after each swap. #}
+   root carries the header's running line, which app.js copies at every poll, and the
+   running stage, which app.js announces when it changes. #}
 {% import "_icons.html" as icons with context %}
-<div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}">
+<div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}" data-stage="{{ t('progress.stage_now', current=p.current_index, total=p.steps | length, stage=p.current.title) if p.current else '' }}">
   <section class="card pipeline" aria-labelledby="pipe-h">
     <div class="card-head">
       <h2 id="pipe-h">{{ t('progress.pipeline') }}</h2>
