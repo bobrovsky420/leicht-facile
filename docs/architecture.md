@@ -1937,10 +1937,19 @@ repository keeps that checkable:
   same way (`SECURITY.md`, "Verifying a release").
 - **Reporting.** `SECURITY.md` names the private channels, the scope and the response
   times.
+- **Contributions.** The maintainers (`MAINTAINERS.md`) keep the rights in what they
+  write and publish it under the Apache License 2.0 by committing it. Everyone else
+  signs off every commit, which certifies the Developer Certificate of Origin (`DCO`)
+  and accepts the assignment of the rights in the contribution to the main copyright
+  owner (`CONTRIBUTING.md`, "Rights in your contribution"); a substantial contribution,
+  or one an organisation holds the rights in, comes with the signed form
+  `docs/assignment.md`. CI checks the sign-off on every pull request and skips the
+  maintainers, whose logins it reads from `MAINTAINERS.md`, and bots.
 
 Settings of the repository on GitHub that go with this, outside the code: branch
-protection on `main` with CI required, secret scanning with push protection, Dependabot
-alerts, and private vulnerability reporting switched on.
+protection on `main` with every CI job required, the sign-off check among them, secret
+scanning with push protection, Dependabot alerts, and private vulnerability reporting
+switched on.
 
 #### Data lifecycle
 
@@ -1985,7 +1994,8 @@ What the service stores, where, for how long, and how it leaves:
 ```text
 .github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
                             the container image built, started the same way with a token and scanned (Trivy),
-                            the history scanned for secrets (gitleaks), uv.lock scanned (Trivy)
+                            the history scanned for secrets (gitleaks), uv.lock scanned (Trivy), the sign-off
+                            of every commit of an outside pull request (DCO)
 .github/dependabot.yml      weekly grouped updates of uv.lock, the actions and the images, a week after a release
 .gitleaks.toml              the secret scanner's configuration: the default rules and the project's own allowlist
 SECURITY.md                 how to report a vulnerability, the scope, the response times
@@ -2001,6 +2011,11 @@ README.md                   project overview, quick start, documentation list
 CHANGELOG.md                what each release changed, from 0.5.0 on
 THIRD_PARTY_NOTICES.md      the Canton of Zurich's prompt (MIT) used as baseline P0-ZH; the fonts (OFL)
 LICENSE                     Apache License 2.0
+CONTRIBUTING.md             how to contribute: setup, house rules, pull requests; who holds the rights (the maintainers
+                            keep theirs, everyone else signs off every commit and assigns), the form for a substantial one
+MAINTAINERS.md              the maintainers, with the GitHub logins the sign-off check reads
+DCO                         the Developer Certificate of Origin 1.1, verbatim, certified by the sign-off
+.github/PULL_REQUEST_TEMPLATE.md  the checklist of a pull request
 publiccode.yml              the entry for public-sector software catalogues
                             (the project's page, https://leichtfacile.ch, lives in the owner's private
                             repository leicht-facile-web since 2 November 2026, with its Pages workflow;
@@ -2009,6 +2024,7 @@ docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key
   architecture.md           this document
+  assignment.md             the form that assigns the rights in a substantial contribution (CONTRIBUTING.md)
   ui-design.md              the web UI's specification
   rules.md                  rule catalogue → implemented by src/leichtfacile/rules
   prompts.md                prompt design notes and change log

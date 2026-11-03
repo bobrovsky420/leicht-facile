@@ -267,6 +267,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md): what each release changed, from 0.5.0 on
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute, the house rules, who holds the rights in a contribution
 - [user-guide.md](docs/user-guide.md): the illustrated guide for the people who review the drafts, from the source text to the export
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
@@ -312,3 +313,7 @@ pages are not part of the repository; the evaluation fetches them from their URL
 leichtfacile-model-de (MIT) and leichtfacile-model-fr (LGPL-LR), spaCy's files unchanged
 with their license files; the Italian pipeline comes as leichtfacile-model-it, built on
 the Morph-it! lexicon (CC BY-SA 2.0 and LGPL, [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
+The code belongs to its authors: the maintainers ([MAINTAINERS.md](MAINTAINERS.md)) keep
+the rights in what they write, and contributions by others are assigned to Alexander
+Bobrovsky as [CONTRIBUTING.md](CONTRIBUTING.md) describes.

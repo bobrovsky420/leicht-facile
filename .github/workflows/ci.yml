@@ -9,9 +9,11 @@
 # vulnerabilities that have a fix (Trivy, high and critical; one without a fix is reported
 # and does not fail the job). The secrets job scans every commit of the history with
 # gitleaks, and the dependencies job scans uv.lock with Trivy under the same policy as
-# the image, without building it (docs/architecture.md §10, "Supply chain"). Every action
-# is pinned to a commit; the comment after the hash names the release; gitleaks, a
-# download, is pinned by its checksum.
+# the image, without building it (docs/architecture.md §10, "Supply chain"). The signoff
+# job runs on pull requests alone: unless the author is a maintainer (MAINTAINERS.md) or
+# a bot, every commit carries a Signed-off-by line (CONTRIBUTING.md, "Sign-off"). Every
+# action is pinned to a commit; the comment after the hash names the release; gitleaks,
+# a download, is pinned by its checksum.
 
 name: CI
 
@@ -214,3 +216,43 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
           format: table
+
+  signoff:
+    name: Every commit of an outside pull request is signed off (DCO)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Skip a maintainer or a bot, else require a Signed-off-by line on every commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          # The logins from the list items of MAINTAINERS.md, in the form it asks for.
+          maintainers="$(grep -E '^- ' MAINTAINERS.md | grep -oE 'GitHub login `[A-Za-z0-9-]+`' | tr -d '`' | awk '{print $3}')"
+          test -n "$maintainers" || { echo "::error::MAINTAINERS.md names no GitHub login"; exit 1; }
+          case " $(echo $maintainers) " in
+            *" $AUTHOR "*) echo "$AUTHOR is a maintainer: no sign-off required"; exit 0 ;;
+          esac
+          case "$AUTHOR" in
+            *'[bot]') echo "$AUTHOR is a bot: no sign-off required"; exit 0 ;;
+          esac
+          missing=0
+          while read -r sha signed; do
+            if [ "$signed" = 0 ]; then
+              echo "::error::commit $sha has no Signed-off-by line"
+              missing=1
+            fi
+          done < <(gh api --paginate "repos/$REPO/pulls/$NUMBER/commits" \
+            --jq '.[] | "\(.sha) \([.commit.message | split("\n")[] | select(test("^Signed-off-by: .+ <.+>$"))] | length)"')
+          if [ "$missing" = 1 ]; then
+            echo "Sign off every commit (CONTRIBUTING.md, \"Sign-off\"): git commit --amend -s for the last one,"
+            echo "git rebase --signoff origin/main for all of them, then push again."
+            exit 1
+          fi
+          echo "every commit is signed off"

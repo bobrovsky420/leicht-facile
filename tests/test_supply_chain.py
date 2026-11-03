@@ -117,3 +117,29 @@ def test_the_release_attests_its_artifacts_and_ships_their_bills_of_materials() 
     policy = _read("SECURITY.md")
     assert "gh attestation verify" in policy
     assert "pypi-attestations verify pypi" in policy
+
+
+def test_the_contribution_policy_stays_consistent() -> None:
+    """The two tiers of CONTRIBUTING.md hold together: MAINTAINERS.md names every author
+    of pyproject.toml with a GitHub login in the form the sign-off job greps, the job
+    reads that file, the DCO is the unchanged text of version 1.1, and the assignment
+    form exists where CONTRIBUTING.md points."""
+    maintainers = _read("MAINTAINERS.md")
+    login = r"GitHub login `([A-Za-z0-9-]+)`"
+    logins = re.findall(rf"^- .*{login}", maintainers, re.MULTILINE)
+    assert logins, "without a login the sign-off check would skip nobody"
+    # The prose of the file must not read as a login (the job greps the list items).
+    assert re.findall(login, maintainers) == logins
+    for author in tomllib.loads(_read("pyproject.toml"))["project"]["authors"]:
+        assert author["name"] in maintainers, author
+    ci = _read(".github/workflows/ci.yml")
+    assert "grep -E '^- ' MAINTAINERS.md | grep -oE 'GitHub login `[A-Za-z0-9-]+`'" in ci
+    assert 'test("^Signed-off-by: .+ <.+>$")' in ci
+    dco = _read("DCO")
+    assert dco.startswith("Developer Certificate of Origin\nVersion 1.1\n")
+    assert "changing it is not allowed" in dco
+    contributing = _read("CONTRIBUTING.md")
+    for needed in ("MAINTAINERS.md", "[DCO](DCO)", "docs/assignment.md", "hello@leichtfacile.ch"):
+        assert needed in contributing, needed
+    assert (ROOT / "docs" / "assignment.md").is_file()
+    assert "hello@leichtfacile.ch" in _read("docs/assignment.md")
