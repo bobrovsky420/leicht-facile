@@ -1,0 +1,25 @@
+# The dated phrases docs/architecture.md still carries, with their counts; a new one fails
+# tests/test_architecture_doc.py, and one taken out of the document is taken out here.
+1 before 11 october 2026
+1 before 3 november 2026
+1 since 1 november 2026
+2 since 10 october 2026
+1 since 11 october 2026
+1 since 12 october 2026
+1 since 14 october 2026
+4 since 2 november 2026
+4 since 25 october 2026
+1 since 26 october 2026
+3 since 28 october 2026
+11 since 29 october 2026
+2 since 3 november 2026
+3 since 30 october 2026
+6 since 31 october 2026
+10 since 7 october 2026
+6 since 8 october 2026
+2 since 9 october 2026
+2 until 29 october 2026
+1 until 3 may 2027
+1 until 30 october 2026
+1 until 6 october 2026
+1 until 8 october 2026

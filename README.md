@@ -274,7 +274,8 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [user-guide.md](docs/user-guide.md): the illustrated guide for the people who review the drafts, from the source text to the export
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
-- [architecture.md](docs/architecture.md): design and architecture
+- [architecture.md](docs/architecture.md): design and architecture, as the version at hand is; its first section says where to look
+- [history/](docs/history/): dated records of checks and measurements that no longer describe the current version
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [logo.md](docs/logo.md): the logo, its files and where it goes
 - [rules.md](docs/rules.md): the rule catalogue the checker implements

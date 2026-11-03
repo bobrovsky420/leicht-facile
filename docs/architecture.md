@@ -1,6 +1,33 @@
 # Leicht·Facile - design and architecture
 
-Status: design 5 October 2026; implemented 5-6 October 2026 except what needs the CSCS endpoint (§12); since 23 October 2026 a Python package that works with any OpenAI-compatible model endpoint, without Docker (§10); since 31 October 2026 also a container image, `ghcr.io/bobrovsky420/leichtfacile` (§10).
+## What holds today
+
+This document describes Leicht·Facile as it is in the version at hand: the one
+`pyproject.toml` names, plus what [CHANGELOG.md](../CHANGELOG.md) lists as unreleased.
+It is kept in step with the code; a change in the code changes it in the same commit
+([CONTRIBUTING.md](../CONTRIBUTING.md)). What changed when is the CHANGELOG's job, and
+dated records of checks and measurements that no longer describe the current version
+live under [history/](history/). Where a sentence here still says "since <date>", it is
+older wording on its way out: `tests/test_architecture_doc.py` lets no new one in. A
+date that stays says when a fact was verified or measured, not when a behaviour began.
+
+Where to look:
+
+- what the app is for, and what it is not: §1 and §2;
+- how the parts fit together and the decisions behind them: §3;
+- what each stage of the pipeline does, and what the model decides against what the
+  code decides: §4;
+- what is stored, and how the schema migrates: §5;
+- how the model is called, and the endpoints' profiles: §6;
+- the HTTP API, the review UI and the command line: §7;
+- the languages, their varieties and the levels: §8;
+- how it is evaluated: §9; the numbers are in [evaluation.md](evaluation.md),
+  [evaluation-publicai.md](evaluation-publicai.md) and
+  [model-comparison.md](model-comparison.md);
+- running it, from the installation to the container, with security, the supply chain
+  and the data lifecycle: §10 (the operator's steps: [quickstart.md](quickstart.md));
+- the repository's layout: §11; the risks and their mitigations: §12.
+
 Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-case-schools.md](use-case-schools.md) (letters from schools and other organisations to parents, students and members), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
 
 ## 1. What it is
@@ -163,7 +190,7 @@ a failure resumes from the last good stage.
 |-------|--------|--------|
 | HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at; 29 October 2026), and a cookie notice (an element whose class or id names cookies or consent, as parlament.gv.at's `div.cookie`; 30 October 2026) is dropped, and the sections the page's own jump list names are put back when trafilatura drops them (stadt.muenchen.de's "Dauer und Kosten"; 30 October 2026); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page; a soft hyphen in the text layer counts as a drawn hyphen (InDesign and Word map the hyphen glyph to U+00AD: the DRV brochure's Martin-Luther-Straße 2-4 read MartinLutherStraße 24 until 30 October 2026); words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Endpoint check 4 (§12) passed on the Public AI gateway on 6 October 2026: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Check 4 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md) passed on the Public AI gateway: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -287,7 +314,7 @@ Model: `llm.models.writer` (8B), temperature 0.3, thinking off by default. In th
 tests, writing with thinking took 24 minutes and produced a paraphrase of the original,
 while writing without thinking took 28 seconds and produced easy language (question
 headings, `Sie`, no passive); `llm.thinking_stages` switches thinking per stage, and
-the endpoint checks on CSCS (§12) decide the final setting.
+the setting rests on the endpoint checks of 6 October 2026 on CSCS (history/2026-10-06-endpoint-checks.md).
 
 An answer cut off at `max_tokens` is never used (its last objects are incomplete);
 the part of the document it was for is written again as two halves, down to six
@@ -982,7 +1009,8 @@ midway.
   guide as a section, 7 October) is recognised by code and sent back once in the same
   way.
   The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
-  but it made no difference in the endpoint check (§12), so it is not used.
+  but it made no difference in the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md),
+  so it is not used.
 - **Streaming.** Every response is streamed (`llm.stream`, on by default): the
   endpoint sends the answer as it is generated and the client assembles it, with the
   token counts from the last chunk (`stream_options.include_usage`). Without it, a
@@ -2056,6 +2084,8 @@ docs/
   evaluation-publicai.md    the Italian tables from the Public AI gateway, written by `eval report`
   model-comparison.md       every run on every endpoint side by side, tables written by `eval compare`
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
+  history/                  dated records of checks and measurements that no longer describe the current
+                            version (the endpoint checks of 6 October 2026)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, use-case-schools.md, hard-texts.md
 src/leichtfacile/
   __main__.py, cli.py       setup, preset, config, serve, check-llm, ingest, check, simplify, eval
@@ -2112,123 +2142,16 @@ data/
 eval/                       evaluation outputs (results*/) and labelling sheets (labels/), git-ignored
 tests/                      rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
                             eval, web; fixtures/prompts/ (the rendered prompts, frozen) and
-                            fixtures/parity/ (the Swiss counts), §8
+                            fixtures/parity/ (the Swiss counts), §8; fixtures/architecture_dated_wording.txt
+                            (the dated phrases this document may still carry, tests/test_architecture_doc.py)
 ```
 
-## 12. Endpoint checks
-
-Assumptions to confirm against the live endpoint, in this order. Run on the Public AI
-gateway on 6 October 2026 and, when the key arrived the same day, on CSCS (both
-results below). Check 6 is `python -m leichtfacile eval run --condition P0 --limit 10`. Checks 2 and 3
-were rehearsed against the local llama.cpp endpoint (§10): thinking switches per request
-through `chat_template_kwargs`, the reasoning arrives inline between `<|inner_prefix|>`
-and `<|inner_suffix|>` and is stripped, and the answer ends with a control token that the
-client removes.
-
-1. `GET {llm.url}/models` lists `swiss-ai/Apertus-v1.5-8B`, `…-8B-thinking`,
-   `…-70B`, `…-70B-thinking`; the base URL host
-   (`api.inference.cscs.ch` per the CSCS docs; some public projects use
-   `api.swissai.svc.cscs.ch`).
-2. How thinking output is returned by the `-thinking` models: a separate
-   `reasoning_content` field, or inline tokens that must be stripped.
-3. JSON reliability: 20 Understand calls on one document, count parse failures with
-   and without `response_format`.
-4. Image input through the API (a photographed letter); if unsupported, scans become
-   a local-vLLM-only feature.
-5. Rate limits and concurrency (the docs do not state them) - determines whether
-   section-parallel writing is worth it.
-6. Baseline quality: P0 on 10 German pairs. This decides whether the A2 level is
-   realistic for the 8B model or whether B1 becomes the primary target with A2 as the
-   stretch.
-
-### Results on the Public AI gateway, 6 October 2026
-
-On the Public AI gateway (§6): the 8B `swiss-ai/apertus-v1.5-8b`, served by vLLM
-at Juelich. The CSCS key had not arrived.
-
-1. **Models.** All four Apertus 1.5 names are listed, in lowercase
-   (`swiss-ai/apertus-v1.5-8b`, `-8b-thinking`, `-70b`, `-70b-thinking`), next to the
-   Apertus 1 names (`apertus-8b-instruct`, `-70b-instruct`) and three unrelated
-   models. The `-thinking` names are not used on this gateway (§6). The host and the
-   capitalised names: see CSCS below.
-2. **Thinking.** The 8B answered the arithmetic question without any reasoning (4
-   output tokens). Fourteen further calls on the same day with `enable_thinking`
-   through the chat template, short and long prompts, with and without JSON mode,
-   returned no reasoning either, after three calls in the morning had reasoned in two
-   cases. On this gateway thinking is unreliable to absent for the 8B and off for the
-   70B, so Public AI runs are, in effect, runs without thinking at every stage and are
-   labelled that way. The reasoning format of the `-thinking` models: see CSCS below.
-3. **JSON.** 20 of 20 Understand answers on the sample letter parsed and validated
-   without `response_format`, and 20 of 20 with `{"type": "json_object"}`; nothing
-   truncated. JSON mode is accepted by the vLLM backend and changes neither the
-   backend nor the answer: a side-by-side pair gave the same fact sheet with 995
-   against 1,102 output tokens in 47 against 52 seconds. Decision: `response_format`
-   is not used; the example in the prompt, lenient parsing and one repair round are
-   enough. The medians of the two runs (46 against 9 seconds) differ because the
-   backend's speed varied with load during the run, from about 20 to about 120 output
-   tokens per second. Three of the twenty long calls got a 504 from the gateway and
-   succeeded on the retry after 30 seconds. The P0 baseline run later lost 3 of 6
-   pairs to the same 504 after five attempts each: Cloudflare in front of the gateway
-   cuts any response that takes longer than about 100 seconds, which a long page at
-   20 tokens per second exceeds. The client now streams every response (§6), so the
-   limit no longer applies.
-4. **Image input.** Works: the 8B read a rendered letter (PNG as base64 `image_url`)
-   and answered "Man muss bis zum 31. März 2026 handeln." The same on CSCS, below.
-5. **Parallel calls.** 8 short calls at once: all succeeded, no 429, 1.4 to 2.2
-   seconds each, no rate-limit headers. Decision: there is headroom; the
-   evaluation can run several pairs at once, section-parallel writing stays optional.
-6. **Baseline.** P0 (one prompt, 8B without thinking) on the first 10 held-out German
-   pairs, 6 October 2026: 16.1 errors and 85 warnings per 100 blocks against 2.7 and
-   27 for the official easy-language versions and 31.3 and 146 for the sources; 7.1
-   words per sentence (official: 6.1); readability 46 (official: 62, sources: 36);
-   90 percent of the hard facts kept (the official versions keep 70). The findings
-   are mostly sentence length (LEN 33 per 100 blocks) and vocabulary (LEX 47:
-   abbreviations, long compounds without Mediopunkt). One prompt does not reach A2;
-   the choice of A2 or B1 as the primary level waits for P2 on the dev split.
-
-One cost figure from the gateway's headers: an Understand call on the 400-word sample
-letter (1,829 tokens in, about 1,000 out) costs USD 0.0004 on the 8B.
-
-### Results on CSCS, 6 October 2026
-
-On CSCS, the same afternoon.
-
-1. **Models and host.** `https://api.inference.cscs.ch/v1` lists `swiss-ai/Apertus-v1.5-8B`,
-   `-8B-thinking`, `-70B` and `-70B-thinking` in that spelling, next to the Apertus 1
-   models (`Apertus-8B-Instruct-2509`, `-70B-`) and six models of other makers. A short
-   call answers in about 100 milliseconds.
-2. **Thinking.** `thinking = "model-suffix"` works as designed: the `-thinking`
-   models reason, and the reasoning arrives in the `reasoning` field of every streamed
-   chunk (the newer vLLM name; the client reads `reasoning_content` too), never inline.
-   The budget is the price: for the 400-word sample letter the 8B wrote 3,000 to 17,000
-   characters of reasoning per Understand call, 1,800 to 7,000 output tokens in total,
-   in 12 to 90 seconds at about 150 tokens per second; without thinking the same
-   call is about 1,000 tokens and 10 seconds.
-3. **JSON.** 19 of 20 Understand answers with thinking parsed and validated without
-   `response_format` (the twentieth call failed on the connection, below) and 20 of 20
-   with `{"type": "json_object"}`; medians 36 and 38 seconds. The decision stands:
-   `response_format` is not used.
-4. **Image input.** Works on CSCS too: the 8B read the rendered letter and answered
-   "bis zum 31. März 2026".
-5. **Parallel calls.** 8 short calls at once, all in 98 to 104 milliseconds, no 429.
-   The decision on parallel calls stands.
-6. **Connection drops.** About one in four long thinking calls ends with the server
-   closing the stream (`peer closed connection without sending complete message body`,
-   `incomplete chunked`), after seconds to a minute of generation; 10 of the 40 calls of
-   check 3 needed retries and one failed after five attempts. The rate is the same for
-   sequential and for eight parallel calls, so it is not our load. The client retries
-   such drops; `llm.max_retries` defaults to 8, which makes a hard failure rare, at the
-   price of repeated generation time.
-7. **Baseline.** P0 on the eval pairs runs on CSCS with the evaluation commands
-   ([quickstart.md](quickstart.md#the-evaluation)); the Public AI
-   baseline above was the first reading.
-
-## 13. Risks and mitigations
+## 12. Risks and mitigations
 
 | Risk | Mitigation |
 |------|------------|
 | The 8B model cannot reach A2 quality | Fact sheet, examples and repair loop are designed to compensate; if it still fails, B1 becomes the primary level and the A2 gap is reported as a finding with numbers. |
-| JSON output unstable | Schema in prompt, lenient parse, pydantic validation, one error-feedback retry; measured in endpoint check 3 (§12). |
+| JSON output unstable | Schema in prompt, lenient parse, pydantic validation, one error-feedback retry; measured in check 3 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md). |
 | Model judging itself is biased | Everything countable is in code; the judge is a different, larger model; judge agreement with human labels is reported. |
 | CSCS endpoint rate-limited or down | Backoff and cache; single-worker queue; evaluation runs overnight. |
 | A model other than Apertus 1.5 behind the endpoint | The reported numbers hold for Apertus 1.5 only. The code checks (facts, values, rules) work the same for any model, and `eval run` measures another endpoint on the same pairs. |

@@ -1,4 +1,4 @@
-"""docs/model-comparison.md: every evaluation run side by side (docs/architecture.md §12).
+"""docs/model-comparison.md: every evaluation run side by side (docs/architecture.md §9).
 
 The document declares its runs in a TOML block between `<!-- runs:start -->` and
 `<!-- runs:end -->`, one `[[run]]` per run with its results folder and rows file;
