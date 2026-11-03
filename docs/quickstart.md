@@ -223,6 +223,7 @@ The development tasks run with uv:
 | Command | Does |
 |---------|------|
 | `uv run pytest` | the test suite |
+| `uv run pytest --cov`, then `uv run coverage report` | the test suite with the coverage of the package; CI writes the same report into the summary of the test job on the pinned Python version, as a number to read, not a threshold |
 | `uv run ruff check .`, `uv run ruff format --check .` | the checks CI runs; `uv run ruff format .` and `uv run ruff check --fix .` fix what they can |
 | `uv run leichtfacile check-llm` | lists the provider's models and makes one short call |
 | `uv run leichtfacile simplify src/leichtfacile/letters/praemienverbilligung-brief.txt --out out/smoke` | the smoke run: the German example letter through the whole pipeline against the live endpoint; it succeeds when the job reaches review |

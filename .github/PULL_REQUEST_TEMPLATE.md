@@ -6,7 +6,8 @@
 
 ## Checklist
 
-- [ ] `uv run pytest -q`, `uv run ruff check .` and `uv run ruff format --check .` pass
+- [ ] `uv run pytest -q`, `uv run ruff check .`, `uv run ruff format --check .` and
+      `uv run mypy` pass
 - [ ] CHANGELOG.md has an entry under `## [Unreleased]` if a user would notice the change
 - [ ] docs/architecture.md and docs/rules.md still describe the code
 - [ ] Every commit is signed off (`git commit -s`): I certify the DCO and accept the

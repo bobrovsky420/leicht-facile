@@ -158,3 +158,24 @@ def test_the_policies_agree_and_the_contacts_are_the_projects() -> None:
     releasing = " ".join(_read("docs/releasing.md").split())  # the names wrap in the file
     for job in yaml.safe_load(_read(".github/workflows/ci.yml"))["jobs"].values():
         assert job["name"].split(" ${{")[0] in releasing, job["name"]
+
+
+def test_coverage_is_measured_and_its_files_stay_out() -> None:
+    """CI measures the coverage of the package; its data files stay out of the repository."""
+    ci = _read(".github/workflows/ci.yml")
+    assert "pytest -q --cov" in ci and "GITHUB_STEP_SUMMARY" in ci
+    dev = tomllib.loads(_read("pyproject.toml"))["dependency-groups"]["dev"]
+    assert any(dep.startswith("pytest-cov") for dep in dev)
+    ignored = _read(".gitignore").splitlines()
+    assert ".coverage" in ignored and "coverage.xml" in ignored
+    try:
+        tracked = subprocess.run(
+            ["git", "ls-files", "--", ".coverage", "coverage.xml"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout
+    except OSError:
+        pytest.skip("git is not available")
+    assert tracked == "", "a coverage data file is tracked"

@@ -1987,7 +1987,9 @@ repository keeps that checkable:
   owner (`CONTRIBUTING.md`, "Rights in your contribution"); a substantial contribution,
   or one an organisation holds the rights in, comes with the signed form
   `docs/assignment.md`. CI checks the sign-off on every pull request and skips the
-  maintainers, whose logins it reads from `MAINTAINERS.md`, and bots.
+  maintainers, whose logins it reads from `MAINTAINERS.md`, and bots. The test job of
+  the pinned Python version measures the coverage of the package and writes it to the
+  job summary; no number is required.
 
 Settings of the repository on GitHub that go with this, outside the code: branch
 protection on `main` with every CI job required, the sign-off check among them, secret
@@ -2038,7 +2040,8 @@ What the service stores, where, for how long, and how it leaves:
 ## 11. Repository layout
 
 ```text
-.github/workflows/ci.yml    CI: ruff, mypy, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
+.github/workflows/ci.yml    CI: ruff, mypy, pytest (on the pinned Python version with the package's coverage, reported,
+                            not required), `leichtfacile serve --no-browser` started against an unreachable endpoint,
                             the container image built, started the same way with a token and scanned (Trivy),
                             the history scanned for secrets (gitleaks), uv.lock scanned (Trivy), the sign-off
                             of every commit of an outside pull request (DCO)

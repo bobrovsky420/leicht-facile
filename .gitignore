@@ -3,7 +3,7 @@
 .env.*
 /leichtfacile.toml
 
-# Model weights and checkpoints — do not commit these
+# Model weights and checkpoints - do not commit these
 *.bin
 *.safetensors
 *.gguf
@@ -39,6 +39,10 @@ data/models/
 out/
 .pytest_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 
 # Local instructions for AI coding agents
 /AGENTS.md

@@ -62,6 +62,7 @@ dev = [
     "fpdf2>=2.8.9",
     "mypy>=2.4.0",
     "pytest>=8.4",
+    "pytest-cov>=7.1.0",
     "pyyaml>=6.0.3",
     "ruff>=0.13",
 ]
@@ -154,6 +155,17 @@ replacement = '](https://github.com/bobrovsky420/leicht-facile#'
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+# The coverage of the package (`uv run pytest --cov`, then `uv run coverage report`):
+# CI measures it on the pinned Python version and writes it to the job summary, a
+# number to read, not a threshold (CONTRIBUTING.md, "Pull requests").
+[tool.coverage.run]
+source = ["leichtfacile"]
+
+[tool.coverage.report]
+precision = 1
+skip_empty = true
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.ruff]
 line-length = 100

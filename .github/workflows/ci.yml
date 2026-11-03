@@ -1,7 +1,9 @@
 # Continuous integration: lint, types, tests and a start of the service.
 #
 # The types job runs mypy over the package and the scripts with the settings of
-# pyproject.toml ([tool.mypy]); the tests are not checked yet. No model endpoint is
+# pyproject.toml ([tool.mypy]); the tests are not checked yet. The test job of the
+# Python version .python-version pins measures the coverage of the package as well and
+# writes it to the job summary, a number to read, not a threshold. No model endpoint is
 # needed: the tests answer model calls from a fake endpoint, and
 # the serve job starts the app against an unreachable endpoint (llm.url) to show that
 # the service and its liveness check do not depend on it. The container job builds the
@@ -74,7 +76,21 @@ jobs:
       # The spaCy models come from PyPI as leichtfacile-model-de and -fr, pinned in
       # uv.lock; nothing else is downloaded after this step.
       - run: uv sync --frozen
-      - run: uv run pytest -q
+      # On the version .python-version pins, the coverage of the package is measured
+      # as well and written to the job summary (pytest-cov, [tool.coverage] of
+      # pyproject.toml): the total and the files with lines not covered. A number to
+      # read, not a threshold.
+      - if: matrix.python != '3.14'
+        run: uv run pytest -q
+      - if: matrix.python == '3.14'
+        run: |
+          uv run pytest -q --cov --cov-report=
+          echo "coverage of the package: $(uv run coverage report --format=total) % of the lines"
+          {
+            echo "## Coverage of the package (lines, Python ${{ matrix.python }}; files with every line covered left out)"
+            echo
+            uv run coverage report --format=markdown --skip-covered
+          } >> "$GITHUB_STEP_SUMMARY"
 
   serve:
     name: The service starts without its endpoint

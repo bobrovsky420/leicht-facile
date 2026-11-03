@@ -7,8 +7,9 @@ vulnerability is in [SECURITY.md](SECURITY.md), not here.
 ## Before you start
 
 - Open an issue for a bug or a proposal before a large change, so that nobody works
-  twice. A rule finding you disagree with is an issue too: name the rule id, the
-  sentence and the source that says otherwise.
+  twice. A bug report says what happened, how to reproduce it, the version
+  (`leichtfacile --version`) and how the app runs. A rule finding you disagree with is
+  an issue too: name the rule id, the sentence and the source that says otherwise.
 - Never paste a confidential letter or a personal detail into an issue or a pull
   request. Use the sample letters of the app or a public web page.
 
@@ -54,7 +55,10 @@ the app and the evaluation is described in [docs/quickstart.md](docs/quickstart.
 
 Branch from `main`, keep the branch rebased, and send one pull request per change; the
 maintainers merge by fast-forward, so the history has no merge commits. The pull request
-template lists what a review looks for.
+template lists what a review looks for. CI reports the coverage of the package
+in the summary of the test job (`uv run pytest --cov`, then `uv run coverage report`,
+gives the same locally): a number to read, not a bar to clear; a change brings the tests
+it needs, whatever the number.
 
 ## Who holds the rights
 
