@@ -47,6 +47,13 @@ file = "P2_m.jsonl"
 date = 2026-10-25
 writer = "m"
 notes = "a test"
+
+[[run]]
+label = "Model N"
+results = "eval/results-x"
+file = "P2_n.jsonl"
+date = 2026-11-03
+writer = "n"
 ```
 <!-- runs:end -->
 
@@ -73,6 +80,13 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
         ]) + "\n",
         encoding="utf-8",
     )  # fmt: skip
+    (results / "P2_n.jsonl").write_text(  # a later run with a variety the first lacks
+        _row(pair_id="a", hard_fact_recall=1.0, fact_coverage=1.0, hard_facts_total=4)
+        + "\n"
+        + _row(pair_id="e", region="DE", hard_fact_recall=0.0)
+        + "\n",
+        encoding="utf-8",
+    )
     (results / "REF.jsonl").write_text(
         _row(setup="REF", pair_id="a", hard_fact_recall=0.5, errors_per_100=3.0)
         + "\n"
@@ -84,7 +98,7 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
     doc.parent.mkdir()
     doc.write_text(DOC, encoding="utf-8")
 
-    assert compare.update(doc, root=tmp_path) == 1
+    assert compare.update(doc, root=tmp_path) == 2
     text = doc.read_text(encoding="utf-8")
     assert "old tables" not in text and text.endswith("<!-- tables:end -->\n\nTail.\n")
     assert text.count("<!-- runs:start -->") == 1 and "[[run]]" in text  # the block stays
@@ -97,6 +111,8 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
     assert "| Model M | 1.0 | 0.0 | 0.0 | 0.0 | 0.0 | 5.0 | 0.0 | 0.0 |" in text  # families
     assert "| Model M | 1 | 100 % | 100 % | 0 % |" in text  # the fact-rich subset: pair a
     assert "Failed runs (not in the means): Model M: c." in text
+    assert "| Model N | 1 | 100 % | 100 % |" in text  # the second run, on the first's varieties
+    assert "## German" in text and "German (Germany)" not in text
 
     doc.write_text(DOC.replace("P2_m.jsonl", "gone.jsonl"), encoding="utf-8")
     with pytest.raises(compare.CompareError, match="no rows at"):

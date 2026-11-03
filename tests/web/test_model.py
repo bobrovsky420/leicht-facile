@@ -55,7 +55,7 @@ def toml(path: Path) -> dict:
 
 def test_the_app_starts_without_a_ready_preset_and_says_so(app) -> None:
     client, app = app
-    assert app.state.settings.llm.preset == "cscs-apertus" and app.state.registry.llm is None
+    assert app.state.settings.llm.preset == "publicai-apertus" and app.state.registry.llm is None
     page = client.get("/")
     assert page.status_code == 200 and "No AI model is ready yet" in page.text
     assert 'href="/model"' in page.text
@@ -68,7 +68,7 @@ def test_the_app_starts_without_a_ready_preset_and_says_so(app) -> None:
     ready = client.get("/readyz").json()
     assert ready["status"] == "degraded"
     assert (ready["llm"]["preset"], ready["llm"]["ready"], ready["llm"]["reachable"]) == (
-        "cscs-apertus", False, False,
+        "publicai-apertus", False, False,
     )  # fmt: skip
     assert "no key" in ready["llm"]["error"]
 
@@ -77,7 +77,7 @@ def test_the_page_lists_the_groups_and_a_key_puts_a_preset_to_use(app, home, fak
     client, app = app
     page = client.get("/model").text
     assert page.index("Switzerland") < page.index("Clouds: public documents only")
-    assert 'value="cscs-apertus" checked' in page  # the shipped default, pre-selected
+    assert 'value="publicai-apertus" checked' in page  # the shipped default, pre-selected
     assert "needs a key" in page and 'name="api_key_publicai"' in page
     assert "Where do I get a key?" in page and "about USD 0.02 per page" in page
     # The key goes into the .env next to the config file, the choice into the file.

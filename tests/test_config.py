@@ -27,10 +27,11 @@ from leichtfacile.config import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDER_NAMES = [
-    "cscs", "publicai", "anthropic", "openai", "gemini", "openrouter", "local", "ollama",
+    "publicai", "cscs", "anthropic", "openai", "gemini", "openrouter", "local", "ollama",
     "vllm", "mistral", "groq", "huggingface",
 ]  # fmt: skip
 CSCS_URL = "https://api.inference.cscs.ch/v1"
+PUBLICAI_URL = "https://api.publicai.co/v1"
 
 
 @pytest.fixture
@@ -118,7 +119,7 @@ def test_a_shipped_preset_fills_the_llm_and_the_key_comes_from_env_files(home, m
 
 def test_the_shipped_catalog_is_complete_and_in_order() -> None:
     assert list(config.PROVIDERS) == PROVIDER_NAMES
-    assert config.DEFAULT_PRESET == "cscs-apertus" and list(config.PRESETS)[0] == "cscs-apertus"
+    assert config.DEFAULT_PRESET == "publicai-apertus" and list(config.PRESETS)[0] == "publicai-apertus"
     for table in config.PROVIDERS.values():
         provider = config.Provider.model_validate(table)  # no unknown key, no wrong value
         assert provider.label and provider.url
@@ -296,7 +297,7 @@ def test_llm_takes_the_choice_and_the_switches_and_nothing_else(home, monkeypatc
 
 def test_the_preset_in_use(home, monkeypatch) -> None:
     lenient = load(strict=False)  # nothing named, no key set: the shipped default
-    assert lenient.settings.llm.preset == "cscs-apertus"
+    assert lenient.settings.llm.preset == "publicai-apertus"
     assert lenient.flat["llm.preset"].source == "the shipped default"
     monkeypatch.setenv("CSCS_API_KEY", "k")
     write(home, LOCAL)
@@ -304,7 +305,7 @@ def test_the_preset_in_use(home, monkeypatch) -> None:
     use_overrides({"llm.preset": "cscs-apertus"})  # --preset
     assert load().settings.llm.url == CSCS_URL
     use_overrides({"llm.preset": "gone"})
-    with pytest.raises(ConfigError, match="no such preset; known: cscs-apertus, .*, laptop"):
+    with pytest.raises(ConfigError, match="no such preset; known: publicai-apertus, .*, laptop"):
         load()
     use_overrides({})
     monkeypatch.setenv("LEICHTFACILE_LLM__PRESET", "cscs-apertus")  # a variable names one too
@@ -372,13 +373,13 @@ def test_the_later_source_decides_between_a_key_and_its_variable(home, monkeypat
 
 
 def test_a_preset_without_its_key_says_what_and_where(home) -> None:
-    with pytest.raises(ConfigError, match="The preset cscs-apertus is not ready") as unset:
+    with pytest.raises(ConfigError, match="The preset publicai-apertus is not ready") as unset:
         load()
     message = str(unset.value)
-    assert "CSCS_API_KEY (llm.api_key_env, provider cscs) is not set" in message
-    assert "leichtfacile setup cscs-apertus" in message and str(home.parent / ".env") in message
+    assert "PUBLICAI_API_KEY (llm.api_key_env, provider publicai) is not set" in message
+    assert "leichtfacile setup publicai-apertus" in message and str(home.parent / ".env") in message
     lenient = load(strict=False)  # `config show`, the web app and checks of a change
-    assert lenient.problems and lenient.settings.llm.url == CSCS_URL
+    assert lenient.problems and lenient.settings.llm.url == PUBLICAI_URL
 
 
 def test_typos_and_wrong_values_name_their_source(home, monkeypatch) -> None:

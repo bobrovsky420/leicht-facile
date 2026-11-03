@@ -44,9 +44,9 @@ There are three ways to make one ready:
   browser on its page **AI model**, which
   lists every preset with where the text goes, what a page costs and what it lacks,
   takes the key, checks it and makes a test call. The preset of a fresh install is
-  `cscs-apertus`.
+  `publicai-apertus`.
 - **The key alone.** With a provider's key variable set, in the environment or in a
-  `.env` in the current folder (`CSCS_API_KEY=...`, `PUBLICAI_API_KEY=...`), its presets
+  `.env` in the current folder (`PUBLICAI_API_KEY=...`, `CSCS_API_KEY=...`), its presets
   are ready without any setup.
 - **`leichtfacile setup`** on the command line: asks where the model should run, for the
   key (hidden input, saved in the `.env` next to the user's config file) and which of
@@ -67,8 +67,8 @@ draft.
 
 | Provider | Presets | Notes |
 |----------|---------|-------|
-| `cscs` | `cscs-apertus`: Apertus 8B writes, the 70B checks | CSCS inference API, Lugano: the endpoint of the reported numbers; needs a CSCS key (`CSCS_API_KEY`). Thinking models are separate names ending in `-thinking` |
-| `publicai` | `publicai-apertus` | Apertus on the Public AI gateway; needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The provider turns the gateway's response cache off, which ignores the thinking switch |
+| `publicai` | `publicai-apertus`: Apertus 70B at every stage | The shipped default: Apertus on the Public AI gateway; needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The provider turns the gateway's response cache off, which ignores the thinking switch |
+| `cscs` | `cscs-apertus`: Apertus 8B writes, the 70B checks | CSCS inference API, Lugano: the endpoint of the reference numbers ([evaluation.md](evaluation.md)); needs a CSCS key (`CSCS_API_KEY`), granted on application. Thinking models are separate names ending in `-thinking` |
 | `anthropic` | `claude-haiku-5-5`, `claude-haiku-5-5-sonnet` (Haiku writes, Sonnet checks), `claude-sonnet-5-5`, `claude-opus-5-5` | Anthropic's Claude through its OpenAI-compatible endpoint; needs the key (`ANTHROPIC_API_KEY`); the tables of Haiku and Sonnet switch their thinking off, Opus always thinks. US cloud: public documents only |
 | `openai` | `gpt-5-6-luna`, `gpt-5-6-terra`, `gpt-5-4-nano` | OpenAI; needs the key (`OPENAI_API_KEY`). US cloud: public documents only |
 | `gemini` | `gemini-3-8-flash` | Google's Gemini through its OpenAI-compatible endpoint; needs the key (`GEMINI_API_KEY`, from Google AI Studio); the model's table asks for its lowest thinking level. On the free tier Google uses the texts to improve its products: anything but test texts needs a paid account. Not run with the app yet |
@@ -87,7 +87,7 @@ so it runs from a script. `--api-key` ends up in the shell history; leave it out
 asked.
 
 ```bash
-leichtfacile setup cscs-apertus      # asks for the key; the rest is shipped
+leichtfacile setup publicai-apertus  # asks for the key; the rest is shipped
 leichtfacile serve claude-sonnet-5-5 # this preset for one run, nothing saved
 leichtfacile preset list             # every preset, ready or what it lacks, the one in use
 leichtfacile check-llm               # lists the provider's models and makes one short call
@@ -152,11 +152,11 @@ uvx leichtfacile serve        # opens http://127.0.0.1:8000/model
 ```
 
 The first start downloads the app with its dependencies, the language packages among them
-(95 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`cscs-apertus`) or of any
+(95 MB), and opens the browser on the AI model page, which takes the key of the pre-selected preset (`publicai-apertus`) or of any
 other. `uvx leichtfacile setup` asks the same on the command line. With a provider's key
 in a `.env` in the current folder (or in the environment), its presets are ready without
 either, and the first start uses the first of them, in the order setup lists the
-providers (CSCS, Public AI, Anthropic, OpenAI, ...;
+providers (Public AI, CSCS, Anthropic, OpenAI, ...;
 [configuration.md](configuration.md#the-model)):
 
 ```bash
@@ -203,7 +203,7 @@ uv run leichtfacile serve
 ```
 
 - A `.env` in the checkout (git ignores it) with a provider's key makes its presets
-  ready without setup: `CSCS_API_KEY=...` or `PUBLICAI_API_KEY=...`.
+  ready without setup: `PUBLICAI_API_KEY=...` or `CSCS_API_KEY=...`.
 - A `leichtfacile.toml` in the checkout (git ignores it too) overrides the user's config
   file there, for example with presets of its own for the evaluation runs. `[data] dir = "data"` in it keeps the
   database and the caches in the repository's `data/`, where git ignores them (the
@@ -235,7 +235,8 @@ The development tasks run with uv:
 
 The evaluation runs the conditions on the held-out pairs and writes the tables of
 [evaluation.md](evaluation.md). `--results` keeps one preset's results together
-(`eval/results-cscs` for the reported numbers), and `eval run --preset cscs-apertus`
+(`eval/results-cscs` for the reference numbers, `eval/results-publicai` for the shipped
+default's), and `eval run --preset cscs-apertus`
 runs on that preset whatever the configuration selects; `--cache` reuses the cached
 answers, so an interrupted run resumes cheaply. `uv run leichtfacile eval --help` lists
 every evaluation command.
@@ -265,6 +266,12 @@ uv run leichtfacile eval report --results eval/results-publicai --role eval --ou
 # section. eval reference keeps the rows of the other pairs in REF.jsonl.
 uv run leichtfacile eval reference --role all --lang de --region DE --results eval/results-publicai
 uv run leichtfacile eval run --cache --condition P2 --lang de --region DE --preset publicai-apertus --results eval/results-publicai
+# the Swiss pairs on Public AI (3 November 2026): the shipped default on the pairs of the
+# reference numbers, every condition; the comparison takes the P2 rows from the same folder
+uv run leichtfacile eval reference --role all --lang de --region CH --results eval/results-publicai
+uv run leichtfacile eval reference --role all --lang fr --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang de --region CH --preset publicai-apertus --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang fr --preset publicai-apertus --results eval/results-publicai
 # the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
 uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
@@ -442,7 +449,7 @@ the database). On this machine, for the browser on it, as with `leichtfacile ser
 
 ```bash
 docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
-  -e LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1 -e CSCS_API_KEY=<key> \
+  -e LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1 -e PUBLICAI_API_KEY=<key> \
   ghcr.io/bobrovsky420/leichtfacile:0.11.0
 ```
 
@@ -461,7 +468,7 @@ docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   stops at once, and `docker logs leichtfacile` says what it lacks.
 - Any setting is a variable, `LEICHTFACILE_<SECTION>__<KEY>`
   ([configuration.md](configuration.md#environment-variables)); a provider's key is its
-  variable (`CSCS_API_KEY`, `PUBLICAI_API_KEY`, ...), and the first preset whose key is set
+  variable (`PUBLICAI_API_KEY`, `CSCS_API_KEY`, ...), and the first preset whose key is set
   is in use. Or run setup inside the container once, which writes the preset and the key
   into the volume: `docker run --rm -it -v leichtfacile:/data
   ghcr.io/bobrovsky420/leichtfacile:0.11.0 leichtfacile setup`. The model page is
@@ -471,7 +478,7 @@ docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   answer without a login, and the image's own health check asks `/healthz`.
 
 `compose.yaml` in the repository does the same with `docker compose up -d`: the settings
-and the keys in a `.env` next to it (`CSCS_API_KEY=...`; `LEICHTFACILE_VERSION=0.11.0` pins
+and the keys in a `.env` next to it (`PUBLICAI_API_KEY=...`; `LEICHTFACILE_VERSION=0.11.0` pins
 the tag), the data in the volume `leichtfacile_data`, the port published on this machine
 alone and the app told so, without a login; `LEICHTFACILE_PUBLISH=0.0.0.0` in `.env`
 publishes it on every interface, and the app then needs its login there too
@@ -633,7 +640,7 @@ static files need no login. Details:
 
 | Message or symptom | Fix |
 |--------------------|-----|
-| `The preset cscs-apertus is not ready: - llm.api_key: the variable CSCS_API_KEY ... is not set` (a command that calls the model) | `leichtfacile setup <preset>` (for example `setup cscs-apertus`), the key in a `.env` in the current folder, or another preset: `leichtfacile preset list`. `serve` starts anyway and its model page asks for the key |
+| `The preset publicai-apertus is not ready: - llm.api_key: the variable PUBLICAI_API_KEY ... is not set` (a command that calls the model) | `leichtfacile setup <preset>` (for example `setup publicai-apertus`), the key in a `.env` in the current folder, or another preset: `leichtfacile preset list`. `serve` starts anyway and its model page asks for the key |
 | `The settings are not valid: - server.prot (...): Extra inputs are not permitted` | a misspelt key or a wrong value; the message names the file or the variable it came from |
 | `llm.preset = '...': no such preset; known: ...` | a preset that is not shipped and not in the file: `leichtfacile preset list`, or `leichtfacile setup` for a new one |
 | `failed to hardlink file ... incompatible hardlinks. (os error 396)` from `uvx` or `uv tool install` (Windows) | uv links files from its cache, and Windows refuses another link to a file that already has one in a OneDrive folder (for example a checkout's `.venv` there). Add `--link-mode=copy` (`uvx --link-mode=copy leichtfacile setup`), or set it for good in PowerShell with `[Environment]::SetEnvironmentVariable('UV_LINK_MODE', 'copy', 'User')` and open a new terminal |

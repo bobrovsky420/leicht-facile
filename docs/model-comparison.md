@@ -25,8 +25,9 @@ block and the prose are written by hand, the tables are not.
   some CHF 0.15 of electricity for its 23 pairs.
 - Seconds per page are the model time of that day on that endpoint: a research cluster,
   a US cloud and a laptop with a throttled GPU are not the same kind of number.
-- The Apertus runs are the project's reference results. Every other run is an experiment
-  on another endpoint, never an Apertus or CSCS number, and the texts of those runs left
+- The Apertus runs on CSCS are the project's reference results; the Public AI run is the
+  shipped default preset measured on the same pairs. Every other run is an experiment on
+  another endpoint, never an Apertus or CSCS number, and the texts of those runs left
   Switzerland (the "The text goes to" column).
 - Each run carries the scores of its day: the Apertus rows those of 12 October 2026, the
   later runs those of the current rules. The reference rows (the originals and the
@@ -43,6 +44,9 @@ is the `P2_<writer>.jsonl` the run wrote; `date`, `endpoint`, `writer`, `judge`,
 `thinking`, `text`, `prices` and `notes` fill the runs table), and run
 `uv run leichtfacile eval compare`. A model without a price in `presets.toml` shows no
 USD per page until it has one and the folder is scored again (`eval rescore --in-place`).
+The tables cover the varieties of the first run's rows, the Swiss German and French
+pairs; a later run's folder that also holds the pairs of Germany, Austria or Italian (the
+Public AI folder) contributes those rows nowhere here.
 
 <!-- runs:start -->
 ```toml
@@ -183,6 +187,18 @@ thinking = "always on, at the default effort (medium): Opus 5.5 refuses `disable
 text = "United States (Anthropic)"
 prices = "Anthropic list prices"
 notes = "no temperature; with the stages' own budgets the Understand answer of a long document passed 12,000 tokens and the pair failed, so it ran again with the larger budget (the longest Understand answer reached 18,000); four Write answers passed 20,000 tokens and were written in halves; 250 calls, USD 33.5 paid with the failed attempt and six test calls"
+[[run]]
+label = "Apertus 1.5 70B at every stage, no thinking (Public AI)"
+results = "eval/results-publicai"
+file = "P2_swiss-ai-apertus-v1-5-70b.jsonl"
+date = 2026-11-03
+endpoint = "Public AI gateway (api.publicai.co)"
+writer = "swiss-ai/apertus-v1.5-70b"
+judge = "swiss-ai/apertus-v1.5-70b (itself)"
+thinking = "none: the gateway's 70B ignores the switch, and the 1.5 8B and the -thinking names answer 400 since 28 October 2026"
+text = "Public AI (Metagov Inc., USA) and a compute partner of its choice (maas.phoeniqs.com on this day)"
+prices = "Public AI list prices"
+notes = "the shipped default preset since 3 November 2026 (publicai-apertus), run on the same pairs as the CSCS reference; the folder also holds the pairs of Germany, Austria and Italian (docs/evaluation-publicai.md), which the tables leave out"
 ```
 <!-- runs:end -->
 
@@ -200,6 +216,7 @@ notes = "no temperature; with the stages' own budgets the Understand answer of a
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-sonnet-5-5 | claude-sonnet-5-5 (itself) | off, through the native thinking field: `between_tools`, the only value Sonnet 5.5 accepts there (the endpoint refuses `adaptive`, Sonnet `disabled`); with no tools in the pipeline it does not think | United States (Anthropic) | Anthropic list prices | no temperature; nine Write answers passed 8,000 tokens and were written in halves, the longest Understand answer reached 10,800; 275 calls, USD 14.7 paid | `eval/results-anthropic-claude-sonnet-5.5/P2_claude-sonnet-5-5.jsonl` |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-sonnet-5-5 | off on both, through the native thinking field set per model (the provider's models tables): `disabled` for Haiku, `between_tools` for Sonnet | United States (Anthropic) | Anthropic list prices | the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid | `eval/results-anthropic-haiku-sonnet-judge/P2_claude-haiku-5-5.jsonl` |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 2026-10-27 | Anthropic's OpenAI-compatible endpoint | claude-opus-5-5 | claude-opus-5-5 (itself) | always on, at the default effort (medium): Opus 5.5 refuses `disabled` and the endpoint ignores `output_config`; the thinking counts in max_tokens, so every call had 12,000 tokens more (`thinking_tokens`) | United States (Anthropic) | Anthropic list prices | no temperature; with the stages' own budgets the Understand answer of a long document passed 12,000 tokens and the pair failed, so it ran again with the larger budget (the longest Understand answer reached 18,000); four Write answers passed 20,000 tokens and were written in halves; 250 calls, USD 33.5 paid with the failed attempt and six test calls | `eval/results-anthropic-claude-opus-5.5/P2_claude-opus-5-5.jsonl` |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 2026-11-03 | Public AI gateway (api.publicai.co) | swiss-ai/apertus-v1.5-70b | swiss-ai/apertus-v1.5-70b (itself) | none: the gateway's 70B ignores the switch, and the 1.5 8B and the -thinking names answer 400 since 28 October 2026 | Public AI (Metagov Inc., USA) and a compute partner of its choice (maas.phoeniqs.com on this day) | Public AI list prices | the shipped default preset since 3 November 2026 (publicai-apertus), run on the same pairs as the CSCS reference; the folder also holds the pairs of Germany, Austria and Italian (docs/evaluation-publicai.md), which the tables leave out | `eval/results-publicai/P2_swiss-ai-apertus-v1-5-70b.jsonl` |
 
 ## German
 
@@ -220,6 +237,7 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 91 % | 0 % | 0.0 | 17.5 | 6.5 | 59 | 47.4 | 2.2 | 0.0 | 68069 | 0.2386 | 73.3 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 20 | 99 % | 91 % | 0 % | 0.0 | 7.6 | 6.4 | 59 | 48.1 | 0.1 | 0.0 | 58324 | 0.4977 | 128.2 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 20 | 99 % | 94 % | 0 % | 2.4 | 23.4 | 6.3 | 57 | 43.6 | 1.3 | 0.0 | 28528 | 0.0324 | 39.6 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -240,6 +258,7 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 8.0 | 0.0 | 2.2 | 0.0 | 5.5 | 2.6 | 0.4 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.8 | 0.0 | 4.6 | 0.1 | 9.1 | 16.5 | 4.1 | 0.0 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 1.1 | 0.0 | 1.0 | 0.0 | 3.7 | 1.7 | 0.4 | 0.0 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 10.0 | 0.0 | 6.3 | 0.0 | 5.6 | 29.4 | 1.6 | 0.0 |
 
 Fact-rich subset (17 pairs with at least 3 hard facts):
 
@@ -258,6 +277,7 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 17 | 89 % | 100 % | 1 % |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 17 | 91 % | 100 % | 2 % |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 17 | 89 % | 99 % | 1 % |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 17 | 93 % | 99 % | 1 % |
 
 Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
@@ -268,7 +288,7 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Run | Pairs | Fact coverage | Hard facts kept | Silent losses | Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability | SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks | Tokens / page | USD / page | Seconds / page |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Original (standard language) | 3 | - | 100 % | 0 % | 36.4 | 85.8 | 10.1 | 59 | - | - | 0.0 | - | - | - |
-| Official easy-language version | 3 | - | 54 % | 46 % | 2.9 | 21.7 | 6.6 | 85 | - | - | 0.8 | - | - | - |
+| Official easy-language version | 3 | - | 56 % | 44 % | 2.9 | 21.7 | 6.6 | 85 | - | - | 0.8 | - | - | - |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 3 | 100 % | 72 % | 0 % | 3.5 | 25.8 | 8.2 | 70 | 40.2 | 8.4 | 0.0 | 23493 | 0.0156 | 43.5 |
 | Apertus 1.5 70B everywhere (CSCS) | 3 | 100 % | 89 % | 0 % | 3.4 | 17.4 | 7.7 | 80 | 47.3 | 0.5 | 0.0 | 14704 | 0.0177 | 39.2 |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 3 | 95 % | 87 % | 0 % | 8.8 | 45.5 | 8.7 | 73 | 42.4 | 13.6 | 0.0 | 26369 | 0.0157 | 38.9 |
@@ -280,6 +300,7 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 91 % | 0 % | 0.4 | 10.9 | 7.2 | 79 | 50.6 | 3.1 | 0.0 | 32037 | 0.1187 | 41.9 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.0 | 0.0 | 7.3 | 80 | 49.6 | 0.6 | 0.0 | 39165 | 0.3199 | 81.1 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 100 % | 91 % | 0 % | 3.3 | 19.0 | 6.7 | 76 | 46.3 | 1.8 | 0.0 | 20806 | 0.0246 | 36.7 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -300,13 +321,14 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 5.3 | 0.0 | 3.2 | 0.0 | 2.8 | 0.0 | 0.0 | 0.0 |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.5 | 0.0 | 8.8 | 0.0 | 5.8 | 0.0 | 3.4 | 0.0 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 6.8 | 0.0 | 6.6 | 0.0 | 6.4 | 0.0 | 2.5 | 0.0 |
 
 Fact-rich subset (3 pairs with at least 3 hard facts):
 
 | Run | Pairs | Hard facts kept | Fact coverage | Judge: distorted |
 |---|---|---|---|---|
 | Original (standard language) | 3 | 100 % | - | - |
-| Official easy-language version | 3 | 54 % | - | - |
+| Official easy-language version | 3 | 56 % | - | - |
 | Apertus 1.5 8B, the 70B judges (CSCS) | 3 | 72 % | 100 % | 5 % |
 | Apertus 1.5 70B everywhere (CSCS) | 3 | 89 % | 100 % | 0 % |
 | Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 3 | 87 % | 95 % | 8 % |
@@ -318,6 +340,7 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
 | Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 91 % | 100 % | 1 % |
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 87 % | 100 % | 2 % |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 83 % | 100 % | 1 % |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 91 % | 100 % | 0 % |
 <!-- tables:end -->
 
 ## Reading, 25 and 27 October 2026

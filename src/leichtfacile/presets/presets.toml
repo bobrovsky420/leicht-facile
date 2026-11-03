@@ -26,30 +26,12 @@
 # The order of the tables is the priority of the providers and presets: `leichtfacile
 # setup` and the model page list them in it, and while nothing names the preset in use
 # (a fresh install), the app uses the first preset whose provider's key variable is set
-# (CSCS_API_KEY, then PUBLICAI_API_KEY, ANTHROPIC_API_KEY, ...). `default` is the preset
+# (PUBLICAI_API_KEY, then CSCS_API_KEY, ANTHROPIC_API_KEY, ...). `default` is the preset
 # when no key is set.
 
-default = "cscs-apertus"
+default = "publicai-apertus"
 
 # -- Switzerland -------------------------------------------------------------------------
-
-# Apertus on the CSCS inference API, Lugano: the endpoint of the reported numbers.
-# Thinking models are separate model names ending in "-thinking". CSCS closes about one
-# long thinking stream in four midway (6 October 2026); the default retries
-# (max_retries) make a hard failure rare.
-[providers.cscs]
-label = "CSCS inference API, Lugano"
-url = "https://api.inference.cscs.ch/v1"
-api_key_env = "CSCS_API_KEY"
-key_url = "https://portal.cscs.ch/"
-location = "ch"
-documents = "any"
-thinking = "model-suffix"
-
-[presets.cscs-apertus]
-provider = "cscs"
-label = "Apertus 8B, checked by Apertus 70B"
-models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
 
 # Apertus on the Public AI gateway, for public documents only: run by Metagov Inc. (US
 # nonprofit), requests go to compute partners. Since 28 October 2026 the gateway rejects
@@ -91,6 +73,28 @@ output_usd = 2.92
 provider = "publicai"
 label = "Apertus 70B at every stage"
 models = { writer = "swiss-ai/apertus-v1.5-70b" }
+
+# Apertus on the CSCS inference API, Lugano: the endpoint of the reference numbers
+# (docs/evaluation.md, 12 October 2026). Access is by application (key_url) and not
+# open to every installation, so since 3 November 2026 the preset is no longer the
+# shipped default; it stays for those who have a key, so that the reference run can be
+# repeated.
+# Thinking models are separate model names ending in "-thinking". CSCS closes about one
+# long thinking stream in four midway (6 October 2026); the default retries
+# (max_retries) make a hard failure rare.
+[providers.cscs]
+label = "CSCS inference API, Lugano"
+url = "https://api.inference.cscs.ch/v1"
+api_key_env = "CSCS_API_KEY"
+key_url = "https://portal.cscs.ch/"
+location = "ch"
+documents = "any"
+thinking = "model-suffix"
+
+[presets.cscs-apertus]
+provider = "cscs"
+label = "Apertus 8B, checked by Apertus 70B"
+models = { writer = "swiss-ai/Apertus-v1.5-8B", judge = "swiss-ai/Apertus-v1.5-70B" }
 
 # -- US clouds, public documents only ----------------------------------------------------
 

@@ -5,7 +5,7 @@ model providers and the presets on them come with the app, so the file names the
 in use and holds what is the user's own: a key's variable, a preset or a server of their
 own, a changed setting. The model page of the web app and `leichtfacile setup` write it,
 `leichtfacile config` shows and changes it, and every setting has a default, the preset
-included (`cscs-apertus`).
+included (`publicai-apertus`).
 
 ```toml
 [llm]
@@ -92,10 +92,10 @@ tables (`reasoning`) takes the later value. Names are lowercase letters, digits,
 - `[llm]` names the preset in use: `llm.preset` is a shipped preset or one of the user's
   own. Without it (a fresh install, or after `preset remove` of the one in use) the app
   takes the first preset, in the order of the catalog, whose provider's key is set in the
-  environment or a `.env`: `CSCS_API_KEY` gives `cscs-apertus`, else `PUBLICAI_API_KEY`
-  gives `publicai-apertus`, else `ANTHROPIC_API_KEY` `claude-haiku-5-5`, else
+  environment or a `.env`: `PUBLICAI_API_KEY` gives `publicai-apertus`, else `CSCS_API_KEY`
+  gives `cscs-apertus`, else `ANTHROPIC_API_KEY` `claude-haiku-5-5`, else
   `OPENAI_API_KEY` `gpt-5-6-luna`, and so on; with `llm.offer`, among the offered ones.
-  With no key set, the shipped default (`cscs-apertus`) is in use and the model page asks
+  With no key set, the shipped default (`publicai-apertus`) is in use and the model page asks
   for its key. `serve` says which key picked the preset, `leichtfacile config show` names
   it as the source of `llm.preset`; the model page, `setup` and `preset use` save a
   choice, after which the keys pick nothing. `[llm]` takes two
@@ -148,8 +148,8 @@ models = { writer = "claude-haiku-5-5", judge = "claude-sonnet-5-5" }
 
 | Provider | Where the text goes | What it sets, and its presets |
 |----------|---------------------|-------------------------------|
-| `cscs` | CSCS inference API, Lugano (`ch`, any document): the endpoint of the reported numbers | the key from `CSCS_API_KEY`, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`). Preset `cscs-apertus`: the 8B writes, the 70B judges |
-| `publicai` | The Public AI gateway (`world`, public documents only): run by Metagov Inc. (US nonprofit), requests go to compute partners | the key from `PUBLICAI_API_KEY`, `thinking = "chat-template"`, `extra_body` turning the gateway's response cache off; Apertus at Public AI's list prices, by pattern, which the evaluation uses for every Apertus run. Preset `publicai-apertus`: the 70B at every stage, without thinking (the gateway stopped serving the 8B on 28 October 2026)|
+| `publicai` | The Public AI gateway, the shipped default (`world`, public documents only): run by Metagov Inc. (US nonprofit), requests go to compute partners | the key from `PUBLICAI_API_KEY`, `thinking = "chat-template"`, `extra_body` turning the gateway's response cache off; Apertus at Public AI's list prices, by pattern, which the evaluation uses for every Apertus run. Preset `publicai-apertus`: the 70B at every stage, without thinking (the gateway stopped serving the 8B on 28 October 2026)|
+| `cscs` | CSCS inference API, Lugano (`ch`, any document): the endpoint of the reference numbers ([evaluation.md](evaluation.md)); the key is granted on application | the key from `CSCS_API_KEY`, `thinking = "model-suffix"` (thinking models are separate names ending in `-thinking`). Preset `cscs-apertus`: the 8B writes, the 70B judges |
 | `anthropic` | Anthropic's Claude through its OpenAI-compatible endpoint, chat completions only (`us`, public) | the key from `ANTHROPIC_API_KEY`, `send_temperature = false` (the 5.5 models refuse a temperature), the header `anthropic-version` the model list needs. The endpoint ignores `reasoning_effort` and counts Claude's adaptive thinking in `max_tokens`, so each model's table switches it off with the native field: `{ thinking = { type = "disabled" } }` for Haiku 5.5, `{ type = "between_tools" }` for Sonnet 5.5 (each refuses the other's value). Opus 5.5 always thinks, at its default effort (the endpoint ignores `output_config`), so its table adds 12,000 tokens to every call's output budget (`thinking_tokens = 12000`; an Understand answer on a long document passed the 12,000 of a thinking stage). Presets `claude-haiku-5-5`, `claude-haiku-5-5-sonnet` (Haiku writes, Sonnet judges), `claude-sonnet-5-5`, `claude-opus-5-5` |
 | `openai` | OpenAI (`us`, public) | the key from `OPENAI_API_KEY`, `max_tokens_key = "max_completion_tokens"` and `send_temperature = false` (its GPT-5 models refuse `max_tokens` and any temperature but their default; the `gpt-4*` table takes the old fields back). The `gpt-5*` table sets `thinking = "reasoning-effort"` (`reasoning_effort` none for the stages that do not think) and leaves Understand a thinking stage for its larger budget (`thinking_stages = ["understand"]`; without the field these models do not reason either), since on long German documents Understand's answer passed the 6,000 tokens of a stage that does not think. Presets `gpt-5-6-luna`, `gpt-5-6-terra`, `gpt-5-4-nano` |
 | `gemini` | Google's Gemini through its OpenAI-compatible endpoint, in beta (`us`, public; on the free tier Google uses the texts to improve its products) | the key from `GEMINI_API_KEY`, `send_temperature = false` (Google advises against a temperature on Gemini 3: below its default of 1.0 it may loop). Gemini 3 models always think (`reasoning_effort` none switches off only Gemini 2.5) and count the thinking in `max_tokens`, so the model's table sends `reasoning_effort = "low"`, the lowest level 3.8 Flash takes (`minimal` is an error), on every call. Preset `gemini-3-8-flash`. From Google's documentation (26 October 2026), not run yet |
@@ -267,7 +267,7 @@ and nothing at all when the key's variable is set, so it runs from a script. Set
 the one place that sets the variety; the app reads it at its start:
 
 ```bash
-leichtfacile setup cscs-apertus                   # asks for the key; the rest is shipped
+leichtfacile setup publicai-apertus               # asks for the key; the rest is shipped
 leichtfacile setup cscs --model swiss-ai/Apertus-v1.5-70B   # a preset of your own on CSCS
 leichtfacile setup local --model apertus-v1.5-8b-q4-llamacpp --name laptop
 leichtfacile setup gpu --base-url http://gpu:8000/v1 --model swiss-ai/Apertus-v1.5-8B
@@ -394,7 +394,7 @@ The preset in use, and the two switches that apply to every preset. A provider's
 
 | Key | Default | Meaning |
 |-----|---------|---------|
-| `preset` |  | The preset in use: a shipped one or one of your own. Default: the first preset, in the order of presets.toml, whose provider's key is set; with none, cscs-apertus. |
+| `preset` |  | The preset in use: a shipped one or one of your own. Default: the first preset, in the order of presets.toml, whose provider's key is set; with none, publicai-apertus. |
 | `cache` | `false` | Keep the answers in data.dir and reuse them (development, evaluation), whichever preset is in use. |
 | `offer` | `[]` | The presets the interface offers (an organisation's choice); empty: every ready one. |
 

@@ -74,9 +74,9 @@ def menus(said: list[str]) -> list[list[str]]:
 
 def test_a_shipped_preset_needs_only_the_key(home) -> None:
     said: list[str] = []
-    # provider 1 (CSCS) in the menu, the key, then its one preset: no address, name,
+    # provider 2 (CSCS) in the menu, the key, then its one preset: no address, name,
     # model or judge question; then the German of the texts, once (2: Germany)
-    code = run_setup(ask=answers("1", "1", "2"), ask_secret=answers("secret-key"),
+    code = run_setup(ask=answers("2", "1", "2"), ask_secret=answers("secret-key"),
                      models=lambda url, key, headers: LISTED, say=said.append)  # fmt: skip
     assert code == 0
     # the preset as it is: no table
@@ -241,7 +241,7 @@ def test_presets_are_listed_switched_and_removed(home) -> None:
     assert said[-1].startswith("publicai-apertus is a preset that ships with the app")
     assert remove_preset("local-apertus-q4", path=home, say=said.append) == 0
     assert said[-2].startswith("Removed the preset local-apertus-q4")
-    assert said[-1] == "In use now: cscs-apertus."  # the shipped default, which is ready
+    assert said[-1] == "In use now: cscs-apertus."  # the first preset whose key is set
     assert "presets" not in toml(home) and "preset" not in toml(home).get("llm", {})
 
 
@@ -375,9 +375,9 @@ def test_missing_settings_name_themselves_and_the_setup(home, capsys) -> None:
         get_settings.cache_clear()
     assert stop.value.code == 2
     error = capsys.readouterr().err
-    assert "The preset cscs-apertus is not ready" in error and "leichtfacile setup" in error
+    assert "The preset publicai-apertus is not ready" in error and "leichtfacile setup" in error
     assert str(home.parent / ".env") in error
-    assert settings_or_exit(strict=False).llm.preset == "cscs-apertus"  # `serve` starts anyway
+    assert settings_or_exit(strict=False).llm.preset == "publicai-apertus"  # `serve` starts anyway
     # `eval run --preset`: the named preset, not the configured one
     named = settings_or_exit(strict=False, preset="claude-haiku-5-5")
     assert named.llm.preset == "claude-haiku-5-5"

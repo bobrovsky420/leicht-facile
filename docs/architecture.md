@@ -1557,8 +1557,9 @@ names of early October, the mean of a measure and the silent losses of a row wit
 a checklist are decided there once. `python -m leichtfacile eval report` renders the
 tables ([evaluation.md](evaluation.md)) from aggregates only; `eval compare` fills
 [model-comparison.md](model-comparison.md) with the same tables, one group per run
-instead of per setup, from the runs that document declares in a TOML block
-(`eval/compare.py`); and `eval numbers` prints the headline means
+instead of per setup, from the runs that document declares in a TOML block, for the
+varieties of the first run's rows (`eval/compare.py`); and `eval numbers`
+prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the headline case they fall into (`decide_case`), with the headline
 sentence filled in, so that the README and the documentation carry the same numbers. Since 14
@@ -1606,7 +1607,7 @@ key; a server of one's own names its models, which the model page lists. The pre
 use resolves from its provider, the provider's table of each model it calls, its own
 keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`;
 without it the first preset in the catalog's order whose provider's key is set,
-`config.first_with_key`, else the shipped default `cscs-apertus`), the `cache` switch and `offer` (the
+`config.first_with_key`, else the shipped default `publicai-apertus`), the `cache` switch and `offer` (the
 presets an organisation shows), nothing else. The model page of the web app (`/model`,
 `web/model.py`) lists the presets by group with where the text goes, the cost per page
 and what each lacks, takes the key (into the `.env` next to the config file), checks it
@@ -1710,9 +1711,9 @@ the app.
 
 | Architecture | Where the model runs and how Leicht·Facile meets it |
 |--------------|-----------------------------------------------------|
-| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional and can be the 8B in a pinch. Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. `compose.yaml` starts the vLLM server next to the app's container with these flags (`docker compose --profile vllm up -d`). |
+| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional; with the 8B judging, the one model such a server lists, the quality is not measured (the run below timed one letter). Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. `compose.yaml` starts the vLLM server next to the app's container with these flags (`docker compose --profile vllm up -d`). |
 | b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the two spaCy model packages among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs them ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. Or the container image and the model server's image, carried over with `docker save` and `docker load`. |
-| c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reported numbers come from the CSCS inference API in Lugano, which serves research, not administrations, and hold for Apertus only. Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
+| c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reference numbers come from the CSCS inference API in Lugano, which serves research and grants keys on application, and hold for Apertus only; the shipped default, Apertus 70B on the Public AI gateway without thinking, is measured on the same pairs ([evaluation-publicai.md](evaluation-publicai.md)). Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
 
 Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
 g6.xlarge in Zurich (`docs/hardware/aws-l4-2026-10-10/`): the official checkpoint

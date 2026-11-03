@@ -20,6 +20,12 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Changed
 
+- The shipped default preset is `publicai-apertus`, Apertus 70B on the Public AI gateway,
+  instead of `cscs-apertus`: the CSCS inference API grants keys on application, so most
+  installations could not run the pre-selected preset. Setup and the model page list
+  Public AI first, and a `PUBLICAI_API_KEY` picks its preset before a `CSCS_API_KEY`
+  does. The default is measured on the same pairs as the reference numbers
+  (docs/evaluation-publicai.md). An installation that named its preset is unchanged.
 - The logo's tile is larger: its looped L is as tall as the capital L of the name next to
   it and stands on the same baseline. The name in the app bar keeps its size.
 

@@ -5,7 +5,8 @@ The document declares its runs in a TOML block between `<!-- runs:start -->` and
 `python -m leichtfacile eval compare` fills the tables between `<!-- tables:start -->` and
 `<!-- tables:end -->` from those rows: the runs table, then the tables of `eval report`
 (eval/report.py) per language with one group per run, the originals and the official
-versions from the first folder that has them. Only aggregates leave this module.
+versions from the first folder that has them; the languages and varieties compared are
+those of the first run's rows. Only aggregates leave this module.
 """
 
 from __future__ import annotations
@@ -97,7 +98,10 @@ def render_runs(runs: list[Run], *, root: Path = Path("."), role: str = "eval") 
     data = {run.label: run.rows(root, role) for run in runs}
     reference = _reference(runs, root, role)
     out = [_runs_table(runs)]
-    for code in languages([r for rows in data.values() for r in rows]):
+    # The varieties compared are those of the first run, the published one: a later run's
+    # folder that also holds the pairs of another variety (Germany, Austria, Italian next
+    # to the Swiss pairs) contributes those rows nowhere here.
+    for code in languages(data[runs[0].label]):
         groups = []
         for setup in ("SOURCE", "REF"):
             rows = [r for r in reference if r.get("setup") == setup and variety_of(r) == code]
