@@ -155,9 +155,9 @@ maintenance:
   type: community
   contacts:
     - name: "Alexander Bobrovsky"
-      email: "bobrovsky@seznam.cz"
+      email: "hello@leichtfacile.ch"
     - name: "Ivan Kuzmych"
-      email: "i.kuzmych@hotmail.com"
+      email: "hello@leichtfacile.ch"
 
 localisation:
   localisationReady: true

@@ -127,10 +127,6 @@ contain no code or text whose licence you do not know.
 
 ## Releases
 
-Releases are made by the maintainers. A version bump changes in one commit the version
-in `pyproject.toml`, `src/leichtfacile/__init__.py` (`__version__`) and
-`publiccode.yml` (`softwareVersion`), and the wheel's URL in every install command of
-`docs/quickstart.md`; `## [Unreleased]` in CHANGELOG.md becomes the version's section
-with its date and compare link. `tests/test_release.py` checks that they agree. The tag
-`v<version>` pushed to GitHub makes `.github/workflows/release.yml` build the wheel,
-publish the GitHub release and the PyPI package, and push the container image.
+Releases are made by the maintainers as [docs/releasing.md](docs/releasing.md)
+describes; what a release may change, and what stays stable, is in
+[docs/maintenance.md](docs/maintenance.md).

@@ -268,6 +268,8 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 
 - [CHANGELOG.md](CHANGELOG.md): what each release changed, from 0.5.0 on
 - [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute, the house rules, who holds the rights in a contribution
+- [maintenance.md](docs/maintenance.md): the maintenance and support policy: what we commit to, what stays stable, what a release may change until 1.0 and after
+- [releasing.md](docs/releasing.md): the maintainers' handbook: releases, the language packages, the pins, the repository's settings and services
 - [user-guide.md](docs/user-guide.md): the illustrated guide for the people who review the drafts, from the source text to the export
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default

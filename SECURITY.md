@@ -28,7 +28,9 @@ to their projects, and findings that need an attacker on the machine the app run
 ## Supported versions
 
 The latest release, on PyPI and on ghcr.io. `uvx leichtfacile` runs it; the other ways
-of installing update by hand ([docs/quickstart.md](docs/quickstart.md#updates)).
+of installing update by hand ([docs/quickstart.md](docs/quickstart.md#updates)). What a
+release may change, what stays stable, and what changes from version 1.0 on:
+[docs/maintenance.md](docs/maintenance.md).
 
 ## Verifying a release
 

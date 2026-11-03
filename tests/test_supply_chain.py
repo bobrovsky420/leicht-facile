@@ -143,3 +143,18 @@ def test_the_contribution_policy_stays_consistent() -> None:
         assert needed in contributing, needed
     assert (ROOT / "docs" / "assignment.md").is_file()
     assert "hello@leichtfacile.ch" in _read("docs/assignment.md")
+
+
+def test_the_policies_agree_and_the_contacts_are_the_projects() -> None:
+    """SECURITY.md and docs/maintenance.md link each other and promise the same response
+    time; the maintenance contacts of publiccode.yml use the project's mailbox, not a
+    personal one; docs/releasing.md names every CI job, the list of required checks."""
+    security = _read("SECURITY.md")
+    policy = _read("docs/maintenance.md")
+    assert "docs/maintenance.md" in security and "SECURITY.md" in policy
+    assert "five working days" in security and "five working days" in policy
+    for contact in yaml.safe_load(_read("publiccode.yml"))["maintenance"]["contacts"]:
+        assert contact["email"].endswith("@leichtfacile.ch"), contact
+    releasing = " ".join(_read("docs/releasing.md").split())  # the names wrap in the file
+    for job in yaml.safe_load(_read(".github/workflows/ci.yml"))["jobs"].values():
+        assert job["name"].split(" ${{")[0] in releasing, job["name"]
