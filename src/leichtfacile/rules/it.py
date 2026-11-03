@@ -30,6 +30,7 @@ from leichtfacile.rules.messages import hit
 from leichtfacile.rules.recipes import recipe_it
 from leichtfacile.rules.values import DASHES, EMAIL_RE, URL_RE, mask, mask_numbers
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
+from leichtfacile.schemas import Severity
 
 IT = "it"
 SENTENCE_KINDS = ("sentence", "list_item")
@@ -109,7 +110,7 @@ def word_count(sent: Span) -> int:
 
 
 def is_finite(t: Token) -> bool:
-    return t.pos_ in ("VERB", "AUX") and "Fin" in t.morph.get("VerbForm")
+    return t.pos_ in ("VERB", "AUX") and "Fin" in t.morph.get("VerbForm", [])
 
 
 def is_participle(t: Token) -> bool:
@@ -117,13 +118,13 @@ def is_participle(t: Token) -> bool:
     adjective for every rule here."""
     return (
         t.pos_ in ("VERB", "AUX")
-        and "Part" in t.morph.get("VerbForm")
-        and "Past" in t.morph.get("Tense")
+        and "Part" in t.morph.get("VerbForm", [])
+        and "Past" in t.morph.get("Tense", [])
     )
 
 
 def is_infinitive(t: Token) -> bool:
-    return t.pos_ in ("VERB", "AUX") and "Inf" in t.morph.get("VerbForm")
+    return t.pos_ in ("VERB", "AUX") and "Inf" in t.morph.get("VerbForm", [])
 
 
 AUX_LEMMAS = frozenset({"essere", "avere", "venire", "andare", "stare"})
@@ -338,7 +339,7 @@ def passive_constructions(sent: Span) -> list[tuple[str, bool]]:
             or compound
             or t.lemma_ in ("venire", "andare")
             or is_infinitive(t)  # deve essere inviato
-            or "Fut" in t.morph.get("Tense")
+            or "Fut" in t.morph.get("Tense", [])
         )
         if not strong and participle.lemma_ in STATIVE_PARTICIPLES:
             continue
@@ -372,11 +373,11 @@ def si_passives(sent: Span) -> list[str]:
         if _norm(t.text) != "si" or k + 1 >= len(tokens):
             continue
         verb = tokens[k + 1]
-        if not is_finite(verb) or "3" not in verb.morph.get("Person"):
+        if not is_finite(verb) or "3" not in verb.morph.get("Person", []):
             continue
         if verb.lemma_ in PRONOMINAL_VERBS:
             continue
-        plural = "Plur" in verb.morph.get("Number")
+        plural = "Plur" in verb.morph.get("Number", [])
         after_noun = k >= 1 and tokens[k - 1].pos_ in ("NOUN", "PROPN")
         if plural or after_noun:
             found.append(_span_text(sent, t, verb))
@@ -474,7 +475,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     if clauses <= limit:
         return
     # As in German: one clause too many is a warning, nested clauses are an error.
-    severity = "warn" if clauses == limit + 1 else "error"
+    severity: Severity = "warn" if clauses == limit + 1 else "error"
     found = subordinators(worst)
     if found:
         yield hit(
@@ -774,7 +775,7 @@ def _antecedents(pronoun: Token, ctx: Context) -> set[str]:
         pool = [t for s in prev.sentences for t in s if t.pos_ in ("NOUN", "PROPN")] + pool
     found = set()
     for noun in pool:
-        numbers, genders = noun.morph.get("Number"), noun.morph.get("Gender")
+        numbers, genders = noun.morph.get("Number", []), noun.morph.get("Gender", [])
         if numbers and number not in numbers:
             continue
         if genders and gender not in genders and not (number == "Plur" and gender == "Masc"):
@@ -1021,7 +1022,7 @@ def lex_02(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         for m in regex.finditer(text):
             found = m.group(0).strip()
             # "tel." heads the contact lines of the official pages: a note
-            severity = "info" if found.lower().startswith("tel") else None
+            severity: Severity | None = "info" if found.lower().startswith("tel") else None
             yield hit(
                 "LEX-02",
                 found=found,

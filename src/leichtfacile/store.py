@@ -860,8 +860,8 @@ def _update(job_id: str, fields: dict[str, object]) -> tuple[str, tuple]:
         raise ValueError(f"cannot update {unknown}")
     values = dict(fields)
     for name in ("config", "counts"):
-        if isinstance(values.get(name), BaseModel):
-            values[name] = values[name].model_dump_json()  # type: ignore[union-attr]
+        if isinstance(value := values.get(name), BaseModel):
+            values[name] = value.model_dump_json()
     values["updated_at"] = utcnow().isoformat()
     assignments = ", ".join(f"{k} = ?" for k in values)
     return f"UPDATE jobs SET {assignments} WHERE id = ?", (*values.values(), job_id)

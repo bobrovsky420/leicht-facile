@@ -43,6 +43,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager, suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import httpx
 from PIL import Image
@@ -171,8 +172,10 @@ def find_job(store: Store, title: str) -> str | None:
 def make_job(base: str, store: Store, example_id: str) -> str:
     """The draft of an example letter, made by the live model; waits until it is ready."""
     e = example(example_id)
-    fields = {k: e[k] for k in ("mode", "addressee", "notice", "sender", "address") if k in e}
-    form = {
+    fields: dict[str, str] = {
+        k: e[k] for k in ("mode", "addressee", "notice", "sender", "address") if k in e
+    }
+    form: dict[str, Any] = {
         "text": e["text"],
         "lang": e["lang"],
         "level": "A2",
@@ -188,6 +191,8 @@ def make_job(base: str, store: Store, example_id: str) -> str:
     deadline = time.monotonic() + 45 * 60
     while time.monotonic() < deadline:
         job = store.get_job(job_id)
+        if job is None:
+            sys.exit(f"the job {job_id} is gone")
         if job.status in ("needs_review", "done"):
             print(f"  ready after {job.stage or 'the last stage'}")
             return job_id
@@ -202,8 +207,13 @@ def make_job(base: str, store: Store, example_id: str) -> str:
 
 def approve_first(base: str, store: Store, job_id: str, n: int) -> None:
     """Approve the first `n` blocks of the final version, as a reviewer who has begun."""
-    version = store.get_artifact(job_id, "summary", PipelineSummary).final_version
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    if summary is None:
+        sys.exit(f"the job {job_id} has no summary")
+    version = summary.final_version
     draft = store.get_artifact(job_id, "draft", Draft, version=version)
+    if draft is None:
+        sys.exit(f"the job {job_id} has no draft {version}")
     decisions = [{"block_id": b.id, "decision": "approved"} for b in draft.blocks[:n]]
     body = {"draft_version": version, "decisions": decisions}
     httpx.post(f"{base}/api/v1/jobs/{job_id}/review", json=body, timeout=30).raise_for_status()
@@ -492,6 +502,8 @@ def main() -> None:
                 sys.exit(f"no drafts yet and no {key_variable(args.preset)} for {args.preset}")
             job_id = make_job(app, store, LETTER)
         summary = store.get_artifact(job_id, "summary", PipelineSummary)
+        if summary is None:
+            sys.exit(f"the job {job_id} has no summary")
         review = store.get_artifact(job_id, "review", ReviewState)
         if review is None or review.draft_version != summary.final_version:
             approve_first(app, store, job_id, APPROVED)

@@ -70,7 +70,7 @@ class SubmissionError(ValueError):
                 if len(names) > 1
                 else "".join(names)
             )
-        return t(f"error.{self.key}", **params)
+        return t.fill(f"error.{self.key}", params)
 
 
 class ServerBusy(SubmissionError):
@@ -310,17 +310,17 @@ def create_job(
         notice = variety(source.variety).notice  # the authority's text, per variety
     config = JobConfig(
         lang=source.lang,
-        region=region,  # type: ignore[arg-type]
-        level=sub.level,  # type: ignore[arg-type]
-        condition=condition,  # type: ignore[arg-type]
+        region=region,
+        level=sub.level,
+        condition=condition,
         endpoint=endpoint,
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
         pipeline=settings.pipeline,
-        mode=sub.mode,  # type: ignore[arg-type]
-        sender=sub.sender,  # type: ignore[arg-type]
-        address=sub.address,  # type: ignore[arg-type]
+        mode=sub.mode,
+        sender=sub.sender,
+        address=sub.address,
         addressee=(sub.addressee or "").strip() or None,
         notice=notice,
     )

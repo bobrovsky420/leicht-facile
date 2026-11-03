@@ -21,16 +21,20 @@ uv sync --frozen
 uv run pytest -q
 uv run ruff check .
 uv run ruff format --check .
+uv run mypy
 ```
 
 The tests answer model calls from a fake endpoint, so no key and no model are needed,
-and the spaCy models come with the dependencies. Running the app and the evaluation is
-described in [docs/quickstart.md](docs/quickstart.md).
+and the spaCy models come with the dependencies. mypy checks the package and the
+scripts with the settings in `pyproject.toml`; the tests are not checked yet. Running
+the app and the evaluation is described in [docs/quickstart.md](docs/quickstart.md).
 
 ## House rules
 
-- Python stays within `[tool.ruff]` of `pyproject.toml` (line length 100); both ruff
-  commands above pass before you push.
+- Python stays within `[tool.ruff]` of `pyproject.toml` (line length 100); the ruff
+  commands and mypy above pass before you push. A `type: ignore` names its error code
+  and says in a comment why the type is wrong there; one that silences nothing fails
+  mypy.
 - Plain hyphens only: no en dash or em dash in prose, docs, comments or commit
   messages.
 - Paths are written from the repository root (`docs/rules.md`); Markdown link targets

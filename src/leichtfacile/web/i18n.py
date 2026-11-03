@@ -38,6 +38,7 @@ a German-speaking reviewer can check a French draft in a German interface.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
 
@@ -162,9 +163,13 @@ class Translator:
         self._fallback = all_catalogs[DEFAULT_LANG]
 
     def __call__(self, key: str, /, n: int | None = None, **params: object) -> str:
+        return self.fill(key, params, n=n)
+
+    def fill(self, key: str, params: Mapping[str, object], *, n: int | None = None) -> str:
+        """`t(key, n=n, **params)` with the parameters as a mapping."""
         key = self.variant(key, n)
         if n is not None:
-            params["n"] = n
+            params = {**params, "n": n}
         text = self._texts.get(key) or self._fallback.get(key)
         if text is None:
             return key

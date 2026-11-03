@@ -1,6 +1,8 @@
-# Continuous integration: lint, tests and a start of the service.
+# Continuous integration: lint, types, tests and a start of the service.
 #
-# No model endpoint is needed: the tests answer model calls from a fake endpoint, and
+# The types job runs mypy over the package and the scripts with the settings of
+# pyproject.toml ([tool.mypy]); the tests are not checked yet. No model endpoint is
+# needed: the tests answer model calls from a fake endpoint, and
 # the serve job starts the app against an unreachable endpoint (llm.url) to show that
 # the service and its liveness check do not depend on it. The container job builds the
 # image (Dockerfile), starts it the same way with a token, checks the probes and the
@@ -42,6 +44,17 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
+
+  types:
+    name: Types (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run mypy
 
   test:
     name: Tests (pytest, Python ${{ matrix.python }})

@@ -153,7 +153,9 @@ class LLMClient:
             timeout=settings.llm.timeout_s,
             max_retries=0,  # retries are handled here, with logging and Retry-After support
             default_headers={"User-Agent": USER_AGENT, **settings.llm.headers},
-            http_client=http_client,
+            # openai 3 types this with httpx2, a fork with httpx's interface; an httpx
+            # client works there (the tests' fake endpoint is one).
+            http_client=http_client,  # type: ignore[arg-type]
         )
 
     @classmethod
@@ -378,9 +380,11 @@ class LLMClient:
         finish_reason: str | None = None
         tokens_in = tokens_out = 0
         saw_usage = False
-        stream = self._client.chat.completions.create(
+        # The messages are plain dicts of role and content, what the API takes; the SDK's
+        # TypedDicts for them would spread its types through the prompts.
+        stream = self._client.chat.completions.create(  # type: ignore[call-overload]
             model=name,
-            messages=messages,  # type: ignore[arg-type]
+            messages=messages,
             stream=True,
             stream_options={"include_usage": True},
             timeout=settings.timeout_s,

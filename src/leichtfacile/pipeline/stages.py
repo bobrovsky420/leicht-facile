@@ -19,8 +19,10 @@ from leichtfacile.llm.json_out import LLMOutputError, complete_json
 from leichtfacile.pipeline import render as r
 from leichtfacile.pipeline.labels import label
 from leichtfacile.pipeline.models import (
+    AdditionItem,
     JudgeOut,
     RecoverOut,
+    RepairItem,
     RepairOut,
     UnderstandOut,
     WriteOut,
@@ -651,7 +653,7 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
         facts.append(
             Fact(
                 id=f"f{next_id:02d}",
-                kind=kind,  # type: ignore[arg-type]
+                kind=kind,
                 text=cited if len(cited) <= 200 else cited[:197] + "...",
                 value_norm=_value_norm(value, lang),
                 segment_ids=[seg.id for seg in segments],
@@ -719,7 +721,7 @@ def to_factsheet(out: UnderstandOut, doc_id: str) -> FactSheet:
     facts = [
         Fact(
             id=f"f{i:02d}",
-            kind=f.kind,  # type: ignore[arg-type]
+            kind=f.kind,
             text=f.text,
             value_norm=f.value_norm,
             segment_ids=f.segment_ids,
@@ -869,7 +871,7 @@ def write(
             blocks.append(
                 Block(
                     id=f"b{len(blocks) + 1:03d}",
-                    kind=b.kind,  # type: ignore[arg-type]
+                    kind=b.kind,
                     text=b.text,
                     fact_ids=[f for f in b.fact_ids if f in known_facts],
                     segment_ids=b.segment_ids,
@@ -890,7 +892,7 @@ def write(
         lang=lang,
         region=source.region,
         level=level,
-        address=address,  # type: ignore[arg-type]
+        address=address,
         version=1,
         origin="write",
         blocks=drop_repeats(blocks),
@@ -1159,7 +1161,7 @@ def to_judge_report(
             checks.append(
                 FactCheck(
                     fact_id=c.fact_id,
-                    status=c.status,  # type: ignore[arg-type]
+                    status=c.status,
                     block_ids=[b for b in c.block_ids if b in blocks],
                     note=clean_text(c.note),
                 )
@@ -1294,7 +1296,7 @@ def repair(
     record = RepairRecord(
         draft_version=version,
         parent_version=draft.version,
-        kind=kind,  # type: ignore[arg-type]
+        kind=kind,
         requested_blocks=list(request.problems),
         requested_facts=[f.id for f in request.missing],
         repairs=[AnsweredRepair(block_id=i.id, texts=list(i.texts)) for i in out.repairs],
@@ -1360,7 +1362,8 @@ def apply_repairs(
     has several texts), additions placed after their blocks. `dropped`, when given,
     collects every answered sentence code leaves out, with its reason."""
     dropped = [] if dropped is None else dropped
-    for item in (*out.repairs, *out.additions):  # the answer's texts as sentences
+    items: list[RepairItem | AdditionItem] = [*out.repairs, *out.additions]
+    for item in items:  # the answer's texts as sentences
         item.texts = _sentences(item.texts, draft.lang)
     repairs = {item.id: item.texts for item in out.repairs if item.id in request.problems}
     for item in out.repairs:
@@ -1372,8 +1375,8 @@ def apply_repairs(
     additions: dict[str | None, list] = {}
     block_ids = set(draft.by_id())
     for add in out.additions:
-        key = add.after if add.after in block_ids else None
-        additions.setdefault(key, []).append(add)
+        anchor = add.after if add.after in block_ids else None
+        additions.setdefault(anchor, []).append(add)
     used: set[str] = set()
 
     def new_id(base: str) -> str:
@@ -1441,7 +1444,7 @@ def apply_repairs(
         values = extract_values(text, draft.variety)
         if len(stems) < 2 and not values:
             return False
-        i = position.get(anchor_id)
+        i = position.get(anchor_id) if anchor_id is not None else None
         around = content[max(0, i - 1) : i + 2] if i is not None else content[-2:]
         around += [
             b
@@ -1922,7 +1925,7 @@ def text_to_blocks(text: str, lang: str) -> list[Block]:
     def add(kind: str, content: str) -> None:
         content = clean_text(content.replace("**", ""))
         if content:
-            blocks.append(Block(id=f"b{len(blocks) + 1:03d}", kind=kind, text=content))  # type: ignore[arg-type]
+            blocks.append(Block(id=f"b{len(blocks) + 1:03d}", kind=kind, text=content))
 
     for raw in text.splitlines():
         line = raw.strip()

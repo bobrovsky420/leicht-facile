@@ -109,7 +109,7 @@ class Letter(FPDF):
         self.set_y(self.get_y() + gap)
         self.fits()
 
-    def table(self, rows: list[tuple[str, str, str]], size: float = 10.0) -> None:
+    def amounts_table(self, rows: list[tuple[str, str, str]], size: float = 10.0) -> None:
         """Label and right-aligned amount per row; kind "H" is the header (rule below),
         "T" a total (bold, rule above)."""
         h = size * 0.55
@@ -231,7 +231,7 @@ def tax_reminder() -> Letter:
         "Zahlungsfrist ist am 12. Juli 2026 abgelaufen. Der offene Betrag setzt sich wie "
         "folgt zusammen:"
     )
-    pdf.table(
+    pdf.amounts_table(
         [
             ("Position", "Betrag in CHF", "H"),
             ("Schlussrechnung Staats- und Gemeindesteuern 2025", "4'386.40", ""),
@@ -333,7 +333,7 @@ def grant_decision() -> Letter:
         "des documents remis, nous rendons la décision suivante :"
     )
     pdf.para("1. Montant de la bourse", 10.5, "B", gap=1.5)
-    pdf.table(
+    pdf.amounts_table(
         [
             ("Calcul", "CHF", "H"),
             ("Frais de formation reconnus", "3'200.00", ""),

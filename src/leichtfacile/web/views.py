@@ -310,9 +310,9 @@ def review_view(
         for s in o.segment_ids:
             omitted[s] = f"{o.what}: {o.why}".strip(": ")
     if data.factsheet:
-        for o in data.factsheet.omit_candidates:
-            for s in o.segment_ids:
-                omitted.setdefault(s, o.reason)
+        for c in data.factsheet.omit_candidates:
+            for s in c.segment_ids:
+                omitted.setdefault(s, c.reason)
     used = {s for b in draft.blocks for s in b.segment_ids}
     segments: list[SegmentRow] = []
     segment_counts = {"sentences": 0, "omitted": 0, "unused": 0}

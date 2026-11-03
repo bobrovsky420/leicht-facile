@@ -1047,7 +1047,7 @@ def test_the_exact_form_of_a_missing_value() -> None:
     from leichtfacile.schemas import Fact
 
     def fact(kind: str, value: str | None) -> Fact:
-        return Fact(id="f01", kind=kind, text="x", value_norm=value)  # type: ignore[arg-type]
+        return Fact(id="f01", kind=kind, text="x", value_norm=value)
 
     assert missing_value_label(fact("deadline", "2026-03-31"), "de") == (
         " (Wert: 2026-03-31; schreibe: 31. März 2026)"

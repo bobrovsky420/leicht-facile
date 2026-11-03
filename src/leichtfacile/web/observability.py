@@ -309,8 +309,8 @@ def render(store: Store, runner: JobRunner, metrics: Metrics, settings: Settings
         "counter",
         "Requests this process answered, by method and status.",
     )
-    for (method, status), n in requests:
-        out.sample("leichtfacile_http_requests_total", n, method=method, status=status)
+    for (method, code), n in requests:
+        out.sample("leichtfacile_http_requests_total", n, method=method, status=code)
     out.histogram(
         "leichtfacile_http_request_duration_seconds",
         "Seconds from a request's arrival to the end of its response; this process.",

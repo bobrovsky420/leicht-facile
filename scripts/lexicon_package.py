@@ -35,6 +35,9 @@ import tomllib
 import urllib.request
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import cast
+
+from spacy.pipeline import Sentencizer
 
 ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
@@ -135,9 +138,9 @@ def build(
     package = f"leichtfacile_model_{lang}"
     data_dir = f"{lang}_{name}-{version}"
     nlp = spacy.blank(lang)
-    sentencizer = nlp.add_pipe("sentencizer")
+    sentencizer = cast(Sentencizer, nlp.add_pipe("sentencizer"))
     sentencizer.punct_chars = sorted(sentencizer.punct_chars)  # a set: its order varies per run
-    component: morphit.MorphitLexicon = nlp.add_pipe(morphit.COMPONENT)
+    component = cast(morphit.MorphitLexicon, nlp.add_pipe(morphit.COMPONENT))
     component.load_tsv(files["lexicon"])
     print(f"{len(component)} forms")
     description = (

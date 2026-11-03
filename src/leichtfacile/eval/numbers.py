@@ -243,17 +243,17 @@ def compare(rows: list[Row], a: tuple[str, str | None], b: tuple[str, str | None
     diffs = []
     for key, label, scale, digits, higher in PAIRED:
         values = [(value(a_by[p], key), value(b_by[p], key)) for p in common]
-        values = [(x, y) for x, y in values if x is not None and y is not None]
-        if not values:
+        pairs = [(x, y) for x, y in values if x is not None and y is not None]
+        if not pairs:
             continue
-        d = [scale * (x - y) for x, y in values]
+        d = [scale * (x - y) for x, y in pairs]
         low, high = bootstrap_interval(d)
         up = sum(1 for x in d if x > 1e-9)
         down = sum(1 for x in d if x < -1e-9)
         diffs.append(
             PairedDiff(
                 label, digits, len(d),
-                fmean(scale * x for x, _ in values), fmean(scale * y for _, y in values),
+                fmean(scale * x for x, _ in pairs), fmean(scale * y for _, y in pairs),
                 fmean(d), low, high,
                 up if higher else down, down if higher else up, len(d) - up - down,
             )
@@ -357,7 +357,7 @@ def sentence(h: Headline) -> str:
 def comparisons(rows: list[Row]) -> list[Comparison]:
     """P2 against the Zurich prompt (complete), and every other plain P2 writer (the 70B
     everywhere) against the P2 of the headline."""
-    out = []
+    out: list[Comparison] = []
     head_key, head = _group_rows(rows, "P2")
     if not head:
         return out

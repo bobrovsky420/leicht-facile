@@ -70,7 +70,7 @@ def test_old_c_names_map_to_the_current_ones() -> None:
     assert canonical_condition("P1") == "P1"
     assert canonical_condition("other") == "other"
     with pytest.raises(ValueError):
-        JobConfig(condition="C1")  # type: ignore[arg-type]
+        JobConfig(condition="C1")
     with pytest.raises(ValueError):
         zh_variant("P0")
 

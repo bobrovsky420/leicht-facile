@@ -60,6 +60,7 @@ leichtfacile = "leichtfacile.cli:main"
 [dependency-groups]
 dev = [
     "fpdf2>=2.8.9",
+    "mypy>=2.4.0",
     "pytest>=8.4",
     "pyyaml>=6.0.3",
     "ruff>=0.13",
@@ -162,3 +163,20 @@ src = ["src", "."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+# The type checker (`uv run mypy`, the CI job "Types (mypy)"): the package and the
+# scripts; the tests are not checked yet. pydantic's plugin types the models' fields and
+# constructors. A `type: ignore` that no longer silences anything is an error, so the
+# ignores only shrink.
+[tool.mypy]
+files = ["src", "scripts"]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+
+# Libraries without type information.
+[[tool.mypy.overrides]]
+module = ["pyphen", "srsly", "fontTools.*", "uharfbuzz"]
+ignore_missing_imports = true

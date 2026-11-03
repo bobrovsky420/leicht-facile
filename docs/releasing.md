@@ -106,7 +106,7 @@ published right before the pin.
 ## Settings of the repository on GitHub
 
 - The ruleset `main`: deletion and non-fast-forward pushes blocked; every CI job a
-  required check, by its name: "Lint (ruff)", "Tests (pytest, Python 3.12)", "Tests
+  required check, by its name: "Lint (ruff)", "Types (mypy)", "Tests (pytest, Python 3.12)", "Tests
   (pytest, Python 3.13)", "Tests (pytest, Python 3.14)", "The service starts without
   its endpoint", "The container image builds, starts and passes the scan", "No secret
   in the whole history (gitleaks)", "The lockfile has no fixable high or critical

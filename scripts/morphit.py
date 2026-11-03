@@ -265,7 +265,7 @@ class MorphitLexicon:
     def _noun_follows(self, token: Token | None) -> bool:
         """The token reads as a noun phrase's noun and not as a third-person verb: salario
         after "un nuovo", but not paga after "il Comune"."""
-        if not self._nominal(token):
+        if token is None or not self._nominal(token):
             return False
         return not any(_person(tag) == "3" for _, tag in self.readings(token.text))
 
@@ -285,7 +285,7 @@ class MorphitLexicon:
             token.lemma_ = lemma
             token.tag_ = tag
             token.pos_ = self._pos(lemma, tag, doc, i)
-            token.set_morph(morph_of(tag) or None)
+            token.set_morph(morph_of(tag) or None)  # type: ignore[attr-defined]  # no stub
         return doc
 
     def _choose(self, rs: tuple[tuple[str, str], ...], doc: Doc, i: int) -> tuple[str, str]:
@@ -296,8 +296,8 @@ class MorphitLexicon:
             wanted = "ART" if self._article(doc, i) else "PRO"
             return next(r for r in rs if coarse(r[1]) == wanted)
         if doc[i].text.lower() == "sei" and groups & _VERB_TAGS:
-            wanted = ("DET", "PRO") if self._number_sei(doc, i) else tuple(_VERB_TAGS)
-            return min((r for r in rs if coarse(r[1]) in wanted), key=_rank)
+            kinds = ("DET", "PRO") if self._number_sei(doc, i) else tuple(_VERB_TAGS)
+            return min((r for r in rs if coarse(r[1]) in kinds), key=_rank)
         if groups & _CLOSED_TAGS:
             return min(rs, key=_rank)  # dei: the preposition, not the gods
         prev = doc[i - 1] if i > 0 and not doc[i - 1].is_punct else None
@@ -324,7 +324,11 @@ class MorphitLexicon:
                 or bool(self._groups(nxt) & {"PRE", "ARTPRE"})
                 or self._coordinated_noun(groups, doc, i)
             )
-            if nominal and self._imperative(rs, nxt, doc[i + 2] if i + 2 < len(doc) else None):
+            if (
+                nominal
+                and nxt is not None
+                and self._imperative(rs, nxt, doc[i + 2] if i + 2 < len(doc) else None)
+            ):
                 nominal = False
         elif determiner:
             nominal = True

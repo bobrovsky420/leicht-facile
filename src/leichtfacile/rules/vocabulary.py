@@ -38,7 +38,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, replace
 from functools import cached_property, lru_cache
 from importlib import resources
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypeGuard
 
 from leichtfacile.rules.lexicon import MEDIOPUNKT, zipf
 from leichtfacile.rules.nlp import pipeline
@@ -443,7 +443,7 @@ class VocabularyMatcher:
         offset = doc.start_char if hasattr(doc, "start_char") and doc.start_char else 0
         text = doc.text
         found: list[Match] = []
-        sentences = list(doc.sents) if _has_sents(doc) else [doc]
+        sentences: list[Doc | Span] = list(doc.sents) if _has_sents(doc) else [doc]
         for sent in sentences:
             forms = [self._forms(t) for t in sent]
             for i, token_forms in enumerate(forms):
@@ -483,7 +483,7 @@ class VocabularyMatcher:
         return None
 
     def _match_at(
-        self, pattern: _Pattern, sent: Span, forms: list[set[str]], i: int, offset: int
+        self, pattern: _Pattern, sent: Doc | Span, forms: list[set[str]], i: int, offset: int
     ) -> Match | None:
         words = pattern.words[:-1] if pattern.verbal else pattern.words
         if i + len(words) > len(forms):
@@ -597,7 +597,7 @@ def _separated_particle(token: Token, accepted: frozenset[str]) -> Token | None:
     return None
 
 
-def _has_sents(doc: Doc | Span) -> bool:
+def _has_sents(doc: Doc | Span) -> TypeGuard[Doc]:
     if hasattr(doc, "has_annotation"):  # a Doc
         return doc.has_annotation("SENT_START")
     return False  # a Span is taken as one sentence

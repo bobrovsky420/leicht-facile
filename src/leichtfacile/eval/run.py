@@ -26,6 +26,7 @@ from leichtfacile.rules.lists import protect_lists
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
     ZH_CONDITIONS,
+    CodeEdit,
     Draft,
     FactSheet,
     JobConfig,
@@ -108,7 +109,9 @@ def run_condition(
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
     writer_name = writer or settings.llm.models.writer
-    reader_name = understand_model(settings, understand=understand, writer=writer) or writer_name
+    reader_name: str | None = (
+        understand_model(settings, understand=understand, writer=writer) or writer_name
+    )
     if condition in BASELINE_CONDITIONS or reader_name == writer_name:
         reader_name = None  # no Understand stage, or the writer reads too
     out = results_file(results_dir, condition, writer_name, reader_name)
@@ -127,7 +130,7 @@ def run_condition(
             lang=pair.lang,
             region=pair.region,  # the pair's variety, not the installation's setting
             level=pair.level,
-            condition=condition,  # type: ignore[arg-type]
+            condition=condition,
             writer_model=writer,
             understand_model=understand,
             judge_model=judge,
@@ -136,7 +139,9 @@ def run_condition(
         job = store.create_job(config, title=pair.id)
         store.put_artifact(job.id, "source", standard)
         orchestrator.run(job.id)
-        job = store.get_job(job.id)
+        finished = store.get_job(job.id)
+        assert finished is not None, job.id
+        job = finished
         row: dict[str, Any] = {
             "setup": condition,
             "pair_id": pair.id,
@@ -176,6 +181,8 @@ def _score(
     draft = store.get_artifact(
         job.id, "draft", Draft, version=summary.final_version if summary else None
     )
+    if draft is None:
+        raise ValueError(f"job {job.id} has no draft to score")
     factsheet = store.get_artifact(job.id, "factsheet", FactSheet) or _reference_factsheet(
         store, orchestrator, pair, job.id
     )
@@ -187,7 +194,7 @@ def _score(
         edit
         for version in store.versions(job.id, "draft")
         if version <= draft.version
-        for edit in store.get_artifact(job.id, "draft", Draft, version=version).code_edits
+        for edit in _edits_of(store, job.id, version)
     ]
     row = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
     if summary:
@@ -208,6 +215,12 @@ def _pair_factsheet(store: Store, pair: Pair, job_id: str) -> FactSheet | None:
     return None
 
 
+def _edits_of(store: Store, job_id: str, version: int) -> list[CodeEdit]:
+    """The code edits made on one draft version; none for a version that is not stored."""
+    stored = store.get_artifact(job_id, "draft", Draft, version=version)
+    return stored.code_edits if stored is not None else []
+
+
 def _reference_factsheet(
     store: Store, orch: Orchestrator, pair: Pair, job_id: str
 ) -> FactSheet | None:
@@ -216,6 +229,8 @@ def _reference_factsheet(
     if (fs := _pair_factsheet(store, pair, job_id)) is not None:
         return fs
     standard = store.get_artifact(job_id, "source", SourceDocument)
+    if standard is None or orch.llm is None:
+        raise ValueError(f"job {job_id}: no source document, or no model client to read it")
     fs, _ = stages.understand(
         orch.llm, standard, level=pair.level, model=orch.settings.llm.models.understand
     )
@@ -309,12 +324,9 @@ def rescore(
             standard, easy = load_pair(pair)
             version, _, judge_report = _best_version(store, job.id, versions, select)
             draft = store.get_artifact(job.id, "draft", Draft, version=version)
-            edits = [
-                edit
-                for v in versions
-                if v <= version
-                for edit in store.get_artifact(job.id, "draft", Draft, version=v).code_edits
-            ]
+            if draft is None:
+                continue
+            edits = [edit for v in versions if v <= version for edit in _edits_of(store, job.id, v)]
             summary = store.get_artifact(job.id, "summary", PipelineSummary)
             new_row = {
                 k: v

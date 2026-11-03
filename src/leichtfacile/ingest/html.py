@@ -234,8 +234,10 @@ _BLOCK_TAGS = (
     "tr",
     "ul",
 )
-_INLINE_TAGS = ("abbr", "acronym", "b", "big", "cite", "dfn", "em", "font", "i", "mark")
-_INLINE_TAGS += ("small", "strong", "tt", "u")
+_INLINE_TAGS = (
+    "abbr", "acronym", "b", "big", "cite", "dfn", "em", "font", "i", "mark", "small", "strong",
+    "tt", "u",
+)  # fmt: skip
 _INTERACTIVE_TAGS = frozenset({"a", "button", "input", "label", "option", "select", "textarea"})
 _CONTAINER_TAGS = frozenset(
     {"article", "dd", "details", "div", "dl", "li", "ol", "p", "section", "table", "ul"}

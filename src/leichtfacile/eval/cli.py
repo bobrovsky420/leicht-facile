@@ -9,9 +9,13 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from leichtfacile.eval.dataset import MANIFEST
 from leichtfacile.schemas import CONDITIONS
+
+if TYPE_CHECKING:
+    from leichtfacile.eval.dataset import Side
 
 
 def add_eval_parser(sub: argparse._SubParsersAction) -> None:
@@ -161,7 +165,7 @@ def _fetch(args: argparse.Namespace) -> int:
     return 1 if report.failed else 0
 
 
-def _loaded(args: argparse.Namespace, side: str):
+def _loaded(args: argparse.Namespace, side: Side):
     from leichtfacile.eval.dataset import load_side
 
     docs, missing = [], []

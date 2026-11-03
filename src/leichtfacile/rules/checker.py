@@ -48,7 +48,7 @@ def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
     blocks = [
         Block(
             id=f"b{i:04d}",
-            kind=_SEGMENT_KINDS.get(seg.kind, "sentence"),  # type: ignore[arg-type]
+            kind=_SEGMENT_KINDS.get(seg.kind, "sentence"),
             text=seg.text,
             segment_ids=[seg.id],
         )

@@ -201,8 +201,16 @@ def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
         return None
     lang = source.lang
     versions = store.versions(job_id, "draft")
-    drafts = {v: store.get_artifact(job_id, "draft", Draft, version=v) for v in versions}
-    rules = {v: store.get_artifact(job_id, "rules", RuleFindings, version=v) for v in versions}
+    drafts = {
+        v: d
+        for v in versions
+        if (d := store.get_artifact(job_id, "draft", Draft, version=v)) is not None
+    }
+    rules = {
+        v: r
+        for v in versions
+        if (r := store.get_artifact(job_id, "rules", RuleFindings, version=v)) is not None
+    }
     judges = {v: store.get_artifact(job_id, "judge", JudgeReport, version=v) for v in versions}
     records = {
         v: store.get_artifact(job_id, "repair", RepairRecord, version=v) for v in versions if v > 1

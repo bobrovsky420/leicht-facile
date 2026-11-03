@@ -20,7 +20,8 @@ BUNDLE_FORMAT = "leicht-facile/audit-bundle@1"
 
 def build_bundle(store: Store, job: Job, *, exported_by: str | None = None) -> dict[str, Any]:
     def versions(name: str) -> list[dict]:
-        return [store.get_artifact_json(job.id, name, v) for v in store.versions(job.id, name)]
+        found = (store.get_artifact_json(job.id, name, v) for v in store.versions(job.id, name))
+        return [a for a in found if a is not None]
 
     summary = store.get_artifact_json(job.id, "summary")
     drafts = versions("draft")
@@ -29,8 +30,12 @@ def build_bundle(store: Store, job: Job, *, exported_by: str | None = None) -> d
     )
     review_json = store.get_artifact_json(job.id, "review")
     final: dict[str, Any] | None = None
-    if final_version is not None:
-        draft = store.get_artifact(job.id, "draft", Draft, version=final_version)
+    draft = (
+        store.get_artifact(job.id, "draft", Draft, version=final_version)
+        if final_version is not None
+        else None
+    )
+    if draft is not None:
         review = ReviewState.model_validate(review_json) if review_json else None
         notice = job.config.notice  # decision mode: the first and the last line
         layout = build_layout(draft, review, notice=notice)

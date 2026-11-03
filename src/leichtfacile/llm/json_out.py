@@ -286,10 +286,10 @@ def extract_json(text: str, top_keys: Iterable[str] = ()) -> Any:
                     broken = broken or (candidate, exc)
                     break  # the answer is broken: no object from inside it
     if broken:
-        candidate, exc = broken
+        candidate, error = broken
         raise JSONExtractionError(
-            f"invalid JSON: {exc.msg} at line {exc.lineno}, column {exc.colno}, near: "
-            + _near(candidate, exc.pos)
+            f"invalid JSON: {error.msg} at line {error.lineno}, column {error.colno}, near: "
+            + _near(candidate, error.pos)
         )
     raise JSONExtractionError("no JSON object or array found in the model answer")
 
@@ -344,19 +344,20 @@ def complete_json[T: BaseModel](
             # The model gets the whole error, excerpts of its answer included; the
             # exception, which ends in the job row and the logs, gets the positions
             # and the kinds of error only (docs/architecture.md §10).
-            error: str | None = str(exc)[:_MAX_ERROR_CHARS]
+            error: str = str(exc)[:_MAX_ERROR_CHARS]
             summary = redacted_error(exc)
             client.forget(result)
         else:
-            error = summary = check(out) if check else None
-            if error is not None:
+            problem = check(out) if check else None
+            if problem is not None:
                 client.forget(result)
-            if error is None and soft_check is not None and attempt < max_repairs:
-                error = summary = soft_check(out)
-                if error is not None:
+            if problem is None and soft_check is not None and attempt < max_repairs:
+                problem = soft_check(out)
+                if problem is not None:
                     fallback = out
-            if error is None:
+            if problem is None:
                 return out, results
+            error = summary = problem
         if attempt == max_repairs:
             if fallback is not None:
                 return fallback, results

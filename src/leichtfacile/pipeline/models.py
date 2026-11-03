@@ -273,11 +273,11 @@ class WriteOut(LLMOut):
                 for key in ("omissions", "glossary"):
                     if isinstance(b.get(key), list):
                         hoisted.setdefault(key, []).extend(b[key])
-            elif isinstance(b, dict) and "text" not in b and _entry_kind(b.get("kind")):
+            elif isinstance(b, dict) and "text" not in b and (kind := _entry_kind(b.get("kind"))):
                 # One omission or glossary entry written as a block of that kind (the
                 # 70B on CSCS, 6 October 2026).
                 entry = {k: v for k, v in b.items() if k != "kind"}
-                hoisted.setdefault(_entry_kind(b.get("kind")), []).append(entry)
+                hoisted.setdefault(kind, []).append(entry)
             else:
                 blocks.append(b)
         if not hoisted and len(blocks) == len(data["blocks"]):
@@ -366,6 +366,15 @@ class JudgeOut(LLMOut):
 # -- repair ---------------------------------------------------------------------------
 
 
+def _texts(v: Any) -> list[str]:
+    """The texts of a repair or an addition: cleaned, the empty ones dropped."""
+    texts = [clean_text(str(t)) for t in (v if isinstance(v, list) else [v])]
+    texts = [t for t in texts if t]
+    if not texts:
+        raise ValueError("a repair needs at least one text")
+    return texts
+
+
 class RepairItem(LLMOut):
     id: str
     texts: list[str]
@@ -375,14 +384,7 @@ class RepairItem(LLMOut):
     def _bid(cls, v: Any) -> str:
         return normalize_id(v, "b", 3) or str(v)
 
-    @field_validator("texts", mode="before")
-    @classmethod
-    def _texts(cls, v: Any) -> list[str]:
-        texts = [clean_text(str(t)) for t in (v if isinstance(v, list) else [v])]
-        texts = [t for t in texts if t]
-        if not texts:
-            raise ValueError("a repair needs at least one text")
-        return texts
+    _tx = field_validator("texts", mode="before")(_texts)
 
 
 class AdditionItem(LLMOut):
@@ -394,7 +396,7 @@ class AdditionItem(LLMOut):
 
     _fids = field_validator("fact_ids", mode="before")(_fact_ids)
     _sids = field_validator("segment_ids", mode="before")(_segment_ids)
-    _texts = field_validator("texts", mode="before")(RepairItem._texts.__func__)
+    _tx = field_validator("texts", mode="before")(_texts)
 
     @field_validator("after", mode="before")
     @classmethod

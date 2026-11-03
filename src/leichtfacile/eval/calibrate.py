@@ -53,7 +53,7 @@ def calibrate(
             stats.documents.add(name)
             result.severities[f.severity] += 1
             if len(stats.examples) < examples:
-                stats.examples.append((name, texts.get(f.block_id, ""), render_finding(f)))
+                stats.examples.append((name, texts.get(f.block_id or "", ""), render_finding(f)))
     return result
 
 

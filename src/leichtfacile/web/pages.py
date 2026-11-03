@@ -396,7 +396,7 @@ def check_text(
         return _check(request, form, error=error, status_code=400)
     region = region_for(doc.lang, request.app.state.settings.texts.region)
     doc = doc.model_copy(update={"region": region})  # checked in the installation's variety
-    draft = source_as_draft(doc, level)  # type: ignore[arg-type]
+    draft = source_as_draft(doc, level)
     view = check_view(draft, check_draft(draft), t)
     return _check(request, form, view=view)
 

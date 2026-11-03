@@ -102,7 +102,7 @@ def protect_lists(fs: FactSheet, source: SourceDocument) -> FactSheet:
     cited = {s for f in fs.facts if f.origin == "code" for s in f.segment_ids}
     omitted = {s for o in fs.omit_candidates for s in o.segment_ids}
     headings = {_key(s.text) for s in source.segments if s.kind == "heading"}
-    first_line = {}  # a line's words -> the id of the first segment that says them
+    first_line: dict[str, str] = {}  # a line's words -> the first segment that says them
     for s in source.segments:
         first_line.setdefault(_key(s.text), s.id)
     facts = list(fs.facts)

@@ -144,9 +144,9 @@ def render_tables(groups: list[Group], *, role: str, column: str = "Setup") -> s
             )
     failed = []
     for g in groups:
-        pairs = sorted({r["pair_id"] for r in g.rows if r.get("status") not in OK})
-        if pairs:
-            failed.append(f"{g.short}: {', '.join(pairs)}")
+        failed_ids = sorted({r["pair_id"] for r in g.rows if r.get("status") not in OK})
+        if failed_ids:
+            failed.append(f"{g.short}: {', '.join(failed_ids)}")
     if failed:
         out += ["", "Failed runs (not in the means): " + "; ".join(failed) + "."]
     return "\n".join(out)

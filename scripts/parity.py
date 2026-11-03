@@ -21,6 +21,7 @@ import sys
 import time
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 from leichtfacile.eval.dataset import MANIFEST, Pair, cached_path
 from leichtfacile.rules import check_draft, source_as_draft
@@ -70,7 +71,7 @@ def collect() -> dict:
                 docs[side] = SourceDocument.model_validate_json(path.read_text(encoding="utf-8"))
         if not docs:
             continue
-        entry = {side: measure(doc) for side, doc in docs.items()}
+        entry: dict[str, Any] = {side: measure(doc) for side, doc in docs.items()}
         if len(docs) == 2:
             standard = hard_values(docs["standard"].text(), docs["standard"].lang)
             easy = hard_values(docs["easy"].text(), docs["easy"].lang)

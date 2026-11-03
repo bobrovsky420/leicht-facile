@@ -24,7 +24,6 @@ from __future__ import annotations
 import hashlib
 import logging
 from pathlib import Path
-from typing import cast
 
 import httpx
 
@@ -260,10 +259,10 @@ def _resolve_lang(lang: str | None, text: str) -> Lang:
         code = lang.strip().lower().replace("_", "-").split("-")[0]
         if code not in LANGS:
             raise ValueError(f"unsupported language {lang!r}; expected one of {', '.join(LANGS)}")
-        return cast(Lang, code)
+        return code
     detected, score = detect_language(text)
     if detected in LANGS:
-        return cast(Lang, detected)
+        return detected
     log.warning(
         "language not detected with confidence (score %.2f); using %r, pass lang to override",
         score,

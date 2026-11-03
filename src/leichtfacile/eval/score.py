@@ -67,7 +67,7 @@ def hard_values_of(draft: Draft, standard: SourceDocument) -> HardValues:
     keys = hard_values(standard.text(), standard.variety)
     out_values = extract_values(draft.text(), draft.variety)
     found = [key for key in keys if hard_value_found(key, out_values)]
-    return HardValues(keys, found, [key for key in keys if key not in found])
+    return HardValues(list(keys), found, [key for key in keys if key not in found])
 
 
 def text_metrics(
@@ -165,7 +165,7 @@ def silent_losses(
             for v in extract_values(seg.text, lang)
         ]
         for key in lost:
-            target = Value(*key)  # type: ignore[arg-type]
+            target = Value(*key)
             if any(matches(target, v) for v in fact_values) or hard_value_found(
                 key, omitted_values
             ):

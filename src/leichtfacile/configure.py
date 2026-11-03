@@ -468,8 +468,8 @@ def show(*, say: Callable[[str], None] = print) -> int:
     keys = max(len(row[0]) for row in rows)
     shown = min(48, max(len(row[1]) for row in rows))
     say("")
-    for key, value, source in rows:
-        say(f"{key:<{keys}}  {value:<{shown}}  {source}")
+    for key, text, source in rows:
+        say(f"{key:<{keys}}  {text:<{shown}}  {source}")
     if config.unusual(loaded):
         say("")
         warn_unusual(loaded, say)

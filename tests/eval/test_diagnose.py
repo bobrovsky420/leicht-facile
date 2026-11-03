@@ -39,7 +39,7 @@ from tests.pipeline import fixtures as fx
 
 def _fact(fid: str, kind: str, value: str | None, *, keep: bool = True, origin: str = "model"):
     return Fact(id=fid, kind=kind, text=f"Tatsache {fid}", value_norm=value, must_keep=keep,
-                origin=origin, segment_ids=["s0002"])  # type: ignore[arg-type]  # fmt: skip
+                origin=origin, segment_ids=["s0002"])  # fmt: skip
 
 
 def _source() -> SourceDocument:

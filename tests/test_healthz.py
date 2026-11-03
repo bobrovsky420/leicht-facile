@@ -109,7 +109,7 @@ def test_readyz_notices_the_endpoint_coming_back():
             raise httpx.ConnectError("refused")
         return answer(request)
 
-    endpoint.handler = handler  # type: ignore[method-assign]
+    endpoint.handler = handler
     client = _app(endpoint)
     now = [0.0]
     client.app.state.endpoint_check = EndpointCheck(

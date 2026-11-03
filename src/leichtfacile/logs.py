@@ -103,7 +103,7 @@ class StderrHandler(logging.StreamHandler):
     def __init__(self) -> None:
         logging.Handler.__init__(self)
 
-    @property  # type: ignore[override]
+    @property
     def stream(self) -> IO[str]:
         return sys.stderr
 

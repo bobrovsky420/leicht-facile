@@ -42,6 +42,7 @@ from leichtfacile.rules.vocabulary import (
     office_words,
     standard_spelling,
 )
+from leichtfacile.schemas import Severity
 from leichtfacile.varieties import variety as variety_table
 
 DE = "de"  # the language: a check every German variety runs
@@ -107,7 +108,7 @@ def finite_verbs(sent: Span) -> list[Token]:
     for t in sent:
         if t.tag_ not in FINITE_TAGS:
             continue
-        forms = t.morph.get("VerbForm")
+        forms = t.morph.get("VerbForm", [])
         if forms and "Fin" not in forms:
             continue  # tagged finite, but the morphology says infinitive or participle
         own_subject = any(c.dep_ in ("sb", "cp") for c in t.children)
@@ -222,7 +223,7 @@ def genitives(sent: Span) -> list[tuple[Token, str]]:
     """Genitive noun phrases: (head noun, phrase text)."""
     out = []
     for t in sent:
-        if t.pos_ not in ("NOUN", "PROPN") or "Gen" not in t.morph.get("Case"):
+        if t.pos_ not in ("NOUN", "PROPN") or "Gen" not in t.morph.get("Case", []):
             continue
         left = [c for c in t.lefts if c.pos_ in ("DET", "ADJ", "NUM")]
         start = left[0].i if left else t.i
@@ -262,7 +263,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
         return
     # One clause too many is a warning: professional texts use a simple "wenn" clause.
     # Two or more too many (nested clauses) is an error.
-    severity = "warn" if clauses == limit + 1 else "error"
+    severity: Severity = "warn" if clauses == limit + 1 else "error"
     subs = subordinators(worst)
     # The suggestion is the rewrite recipe for the conjunction (rules/recipes.py).
     if subs:
@@ -411,7 +412,7 @@ def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
         )  # "Sollten Sie ... geraten, ...": a condition without "wenn"
         if conditional:
             yield hit("GRAM-03.condition", found=t.text, evidence=t.text)
-        elif ("Sub" in t.morph.get("Mood") or lower in KONJUNKTIV_II) and not lower.startswith(
+        elif ("Sub" in t.morph.get("Mood", []) or lower in KONJUNKTIV_II) and not lower.startswith(
             "möcht"
         ):
             yield hit("GRAM-03", mood="Konjunktiv", found=t.text, evidence=t.text)
@@ -425,7 +426,11 @@ def gram_03(sent: Span, ctx: Context) -> Iterator[Hit]:
 )
 def gram_04(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
-        if t.tag_ == "VVFIN" and "Past" in t.morph.get("Tense") and "Ind" in t.morph.get("Mood"):
+        if (
+            t.tag_ == "VVFIN"
+            and "Past" in t.morph.get("Tense", [])
+            and "Ind" in t.morph.get("Mood", [])
+        ):
             yield hit("GRAM-04", found=t.text, evidence=t.text)
 
 
@@ -592,8 +597,8 @@ def _antecedents(pronoun: Token, ctx: Context, sent: Span) -> tuple[set[str], bo
         # feminine singular or plural ("diese prüft sie": die Stelle or die Unterlagen?).
         readings = [(("Fem",), "Sing"), (("Masc", "Fem", "Neut"), "Plur")]
     else:
-        genders = tuple(pronoun.morph.get("Gender")) or ("Masc", "Fem", "Neut")
-        readings = [(genders, (pronoun.morph.get("Number") or ["Sing"])[0])]
+        genders = tuple(pronoun.morph.get("Gender", [])) or ("Masc", "Fem", "Neut")
+        readings = [(genders, (pronoun.morph.get("Number", []) or ["Sing"])[0])]
     pool: list[Token] = [t for t in sent.doc[: pronoun.i] if t.pos_ in ("NOUN", "PROPN")]
     prev = ctx.previous_block()
     if prev:
@@ -601,9 +606,9 @@ def _antecedents(pronoun: Token, ctx: Context, sent: Span) -> tuple[set[str], bo
     found = set()
     for genders, number in readings:
         for noun in pool:
-            if number not in noun.morph.get("Number"):
+            if number not in noun.morph.get("Number", []):
                 continue
-            if number == "Sing" and not set(noun.morph.get("Gender")) & set(genders):
+            if number == "Sing" and not set(noun.morph.get("Gender", [])) & set(genders):
                 continue
             found.add(noun.lemma_)
     ambiguous_counts = len(readings) > 1 or readings[0][1] == "Sing"
@@ -643,9 +648,9 @@ def gram_07(sent: Span, ctx: Context) -> Iterator[Hit]:
         morph = t.morph
         if (
             t.tag_ in FINITE_TAGS
-            and "Sub" in morph.get("Mood")
-            and "Pres" in morph.get("Tense")
-            and "3" in morph.get("Person")
+            and "Sub" in morph.get("Mood", [])
+            and "Pres" in morph.get("Tense", [])
+            and "3" in morph.get("Person", [])
         ):
             yield hit("GRAM-07", found=t.text, evidence=t.text)
         elif t.pos_ == "ADP" and t.lower_ in ("laut", "gemäss", "gemäß", "zufolge"):
@@ -1279,13 +1284,14 @@ def reg_03_standard(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for sent in block.sentences:
         for t in sent:
             words = REGIONAL_WORDS.get(t.lemma_.lower()) or REGIONAL_WORDS.get(t.lower_)
-            if words and words[index]:
+            expected = words[index] if words else None
+            if expected:
                 yield hit(
                     "REG-03.germany" if ctx.region == "DE" else "REG-03.austria",
                     found=t.text,
-                    expected=words[index],
+                    expected=expected,
                     evidence=t.text,
-                    suggestion=words[index],
+                    suggestion=expected,
                     severity="warn",
                 )
 

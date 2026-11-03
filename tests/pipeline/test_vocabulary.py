@@ -46,7 +46,7 @@ def _draft(*texts: str, glossary: list[GlossaryEntry] | None = None, region: str
     blocks = [Block(id=f"b{i:03d}", kind="sentence", text=t) for i, t in enumerate(texts, 1)]
     return Draft(
         doc_id="d", lang="de", region=region, level="A2", blocks=blocks, glossary=glossary or []
-    )  # type: ignore[arg-type]
+    )
 
 
 def test_the_fact_sheet_gets_the_checked_explanations_and_the_terms_of_the_source() -> None:

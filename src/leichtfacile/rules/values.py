@@ -775,7 +775,7 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:
 
     for m in (_NUMBER_DE_RE if german else NUMBER_RE).finditer(masked):
         integer, _, decimals = _number_parts(m, german)
-        dash_decimals = bool(decimals) and not decimals.isdigit()  # "500.-" is 500
+        dash_decimals = bool(decimals and not decimals.isdigit())  # "500.-" is 500
         canonical = canonical_number(
             integer, None if dash_decimals else decimals, _SEP_DE if german else _SEP
         )

@@ -122,10 +122,13 @@ def load_review(store: Store, job: Job, version: int | None = None) -> ReviewDat
     review = store.get_artifact(job.id, "review", ReviewState)
     if review and review.draft_version != version:
         review = None
+    draft = store.get_artifact(job.id, "draft", Draft, version=version)
+    if draft is None:
+        return None
     return ReviewData(
         job=job,
         source=source,
-        draft=store.get_artifact(job.id, "draft", Draft, version=version),
+        draft=draft,
         versions=versions,
         final_version=final_version,
         summary=summary,

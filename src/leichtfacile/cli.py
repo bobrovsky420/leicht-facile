@@ -562,7 +562,9 @@ def _simplify(args: argparse.Namespace) -> int:
     store.put_artifact(job.id, "source", source)
     llm = LLMClient.from_settings(settings)
     Orchestrator(store, llm, settings).run(job.id, stop_after=args.stop_after)
-    job = store.get_job(job.id)
+    finished = store.get_job(job.id)
+    assert finished is not None, job.id
+    job = finished
 
     out = args.out / job.id
     out.mkdir(parents=True, exist_ok=True)

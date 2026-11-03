@@ -31,6 +31,7 @@ from leichtfacile.rules.values import (
     mask_numbers,
 )
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
+from leichtfacile.schemas import Severity
 
 FR = "fr"  # the language: French has one variety, so its checks are the language's
 CH = "fr-CH"  # the Swiss variety: the REG check, which another variety would replace
@@ -93,9 +94,9 @@ _BEFORE_INFINITIVE = frozenset(
 
 def is_finite(t: Token) -> bool:
     """The token is a finite verb, or the predicate of a finite auxiliary or copula."""
-    if "Fin" in t.morph.get("VerbForm"):
+    if "Fin" in t.morph.get("VerbForm", []):
         return True
-    return any(c.dep_ in AUX_DEPS and "Fin" in c.morph.get("VerbForm") for c in t.children)
+    return any(c.dep_ in AUX_DEPS and "Fin" in c.morph.get("VerbForm", []) for c in t.children)
 
 
 def _has_subject(t: Token) -> bool:
@@ -106,7 +107,7 @@ def adverbial_infinitive(t: Token) -> Token | None:
     """The preposition when an infinitive opens an adverbial clause: pour payer, afin de
     payer, sans payer, avant de partir, après avoir payé. An infinitive that completes
     a noun (le formulaire pour demander l'aide) does not count."""
-    if t.pos_ not in ("VERB", "AUX") or "Inf" not in t.morph.get("VerbForm") or t.dep_ == "acl":
+    if t.pos_ not in ("VERB", "AUX") or "Inf" not in t.morph.get("VerbForm", []) or t.dep_ == "acl":
         return None
     doc, start = t.doc, t.sent.start
     i = t.i - 1
@@ -140,7 +141,7 @@ def _opener(head: Token) -> Token | None:
     relative = [
         c
         for c in head.subtree
-        if c.i < head.i and ("Rel" in c.morph.get("PronType") or _question_que(c))
+        if c.i < head.i and ("Rel" in c.morph.get("PronType", []) or _question_que(c))
     ]
     return min(relative, key=lambda r: r.i) if relative else None
 
@@ -170,7 +171,7 @@ def marker(head: Token) -> str | None:
     marks += [f for m in marks for f in m.children if f.dep_ == "fixed"]
     if marks:
         return " ".join(_norm(m.text) for m in sorted(marks, key=lambda m: m.i))
-    relative = [c for c in head.subtree if "Rel" in c.morph.get("PronType") and c.i < head.i]
+    relative = [c for c in head.subtree if "Rel" in c.morph.get("PronType", []) and c.i < head.i]
     if relative:
         return _norm(relative[0].text)
     preposition = adverbial_infinitive(head)
@@ -255,7 +256,7 @@ def _loose(stem: str) -> str:
 
 def verb_tense(t: Token) -> str | None:
     """'future' or 'conditional' when the verb form is one, from its ending and lemma."""
-    if t.pos_ not in ("VERB", "AUX") or "Part" in t.morph.get("VerbForm"):
+    if t.pos_ not in ("VERB", "AUX") or "Part" in t.morph.get("VerbForm", []):
         return None
     form = t.lower_
     stems = future_stems(t.lemma_)
@@ -295,9 +296,9 @@ def is_passe_simple(t: Token) -> bool:
     morph = t.morph
     return (
         t.pos_ in ("VERB", "AUX")
-        and "Past" in morph.get("Tense")
-        and "Fin" in morph.get("VerbForm")
-        and "Ind" in morph.get("Mood")
+        and "Past" in morph.get("Tense", [])
+        and "Fin" in morph.get("VerbForm", [])
+        and "Ind" in morph.get("Mood", [])
         and t.lower_.endswith(PASSE_SIMPLE_ENDINGS)
         and _has_subject(t)  # "un acte interdit par la loi" is a participle
         and not any(c.dep_ in AUX_DEPS for c in t.children)  # "il est interdit"
@@ -333,7 +334,7 @@ def passive_constructions(sent: Span) -> list[tuple[str, bool]]:
     is weak, and the participles of STATIVE_PARTICIPLES are left out."""
     found = []
     for t in sent:
-        if t.pos_ not in ("VERB", "AUX") or "Part" not in t.morph.get("VerbForm"):
+        if t.pos_ not in ("VERB", "AUX") or "Part" not in t.morph.get("VerbForm", []):
             continue
         aux = [c for c in t.children if c.dep_ == "aux:pass" and c.lemma_ == "être"]
         if not aux or not _participle_like(t):
@@ -344,8 +345,8 @@ def passive_constructions(sent: Span) -> list[tuple[str, bool]]:
         )
         strong = (
             agent
-            or "Part" in be.morph.get("VerbForm")  # a été envoyé
-            or "Inf" in be.morph.get("VerbForm")  # doit être envoyé
+            or "Part" in be.morph.get("VerbForm", [])  # a été envoyé
+            or "Inf" in be.morph.get("VerbForm", [])  # doit être envoyé
             or verb_tense(be) is not None  # sera envoyé
             or any(c.dep_ == "aux:tense" for c in t.children)
         )
@@ -394,7 +395,7 @@ def len_02(sent: Span, ctx: Context) -> Iterator[Hit]:
     if clauses <= limit:
         return
     # As in German: one clause too many is a warning, nested clauses are an error.
-    severity = "warn" if clauses == limit + 1 else "error"
+    severity: Severity = "warn" if clauses == limit + 1 else "error"
     openers = subordinators(worst)
     # The suggestion is the rewrite recipe for the conjunction (rules/recipes.py).
     if openers:
@@ -573,7 +574,7 @@ def subjunctives(sent: Span) -> list[tuple[Token, str]]:
         if t.i in found or t.pos_ not in ("VERB", "AUX"):
             continue
         if t.lower_ in UNAMBIGUOUS_SUBJUNCTIVE or (
-            "Sub" in t.morph.get("Mood")
+            "Sub" in t.morph.get("Mood", [])
             and any(_norm(c.text) in ("que", "qu'") for c in t.children)
         ):
             found[t.i] = (t, "subjunctive form")
@@ -610,8 +611,8 @@ _ALLER = {("1", "Sing"): "vais", ("2", "Sing"): "vas", ("3", "Sing"): "va",
 def gram_04(sent: Span, ctx: Context) -> Iterator[Hit]:
     for t in sent:
         if verb_tense(t) == "future":
-            person = (t.morph.get("Person") or ["3"])[0]
-            number = (t.morph.get("Number") or ["Sing"])[0]
+            person = (t.morph.get("Person", []) or ["3"])[0]
+            number = (t.morph.get("Number", []) or ["Sing"])[0]
             aller = _ALLER.get((person, number))
             suggestion = None
             if aller and not t.dep_.startswith("aux"):
@@ -708,7 +709,7 @@ def _antecedents(pronoun: Token, ctx: Context) -> set[str]:
         pool = [t for s in prev.sentences for t in s if t.pos_ in ("NOUN", "PROPN")] + pool
     found = set()
     for noun in pool:
-        numbers, genders = noun.morph.get("Number"), noun.morph.get("Gender")
+        numbers, genders = noun.morph.get("Number", []), noun.morph.get("Gender", [])
         if numbers and number not in numbers:
             continue
         if genders and gender not in genders and not (number == "Plur" and gender == "Masc"):
@@ -802,7 +803,7 @@ def _negation_parts(sent: Span) -> list[list[Token]]:
             t.pos_ == "CCONJ" and t.lower_ in ("et", "ou", "mais", "car")
         ):
             parts.append([])
-        elif (t.dep_ == "mark" and t.pos_ == "SCONJ") or "Rel" in t.morph.get("PronType"):
+        elif (t.dep_ == "mark" and t.pos_ == "SCONJ") or "Rel" in t.morph.get("PronType", []):
             parts.append([t])  # si, que, qui: a new clause ("sans" is a negation itself)
         else:
             parts[-1].append(t)

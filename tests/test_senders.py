@@ -80,7 +80,7 @@ def test_the_form_of_address_adds_its_note_and_turns_the_style_guides_line() -> 
 def test_the_checker_names_the_forms_pronoun_in_its_hint() -> None:
     def hint(address: str) -> str:
         text = "Der Antragsteller wartet. Wir schicken dir Post."
-        draft = Draft(doc_id="d", lang="de", level="A2", address=address,  # type: ignore[arg-type]
+        draft = Draft(doc_id="d", lang="de", level="A2", address=address,
                       blocks=[Block(id="b001", kind="sentence", text=text)])  # fmt: skip
         (finding,) = [f for f in check_draft(draft).findings if f.rule_id == "LEX-06"]
         return finding.params["address"]

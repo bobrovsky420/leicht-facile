@@ -149,7 +149,7 @@ def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     coverage = fact_coverage(doc.draft, doc.factsheet, ctx.variety, doc.source)
     for fact in coverage.missing:
         target = parse_value_norm(fact.value_norm, fact.kind, ctx.variety)
-        expected = display_value(target, ctx.variety) if target else fact.value_norm
+        expected = display_value(target, ctx.variety) if target else fact.value_norm or ""
         yield hit(
             "FACT-01",
             fact=fact.id,
@@ -283,7 +283,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         yield hit(
             "FACT-05.cited" if contains(target, source_text, all_values) else "FACT-05",
             fact=fact.id,
-            value=fact.value_norm,
+            value=fact.value_norm or "",
             evidence=fact.text,
             fact_id=fact.id,
         )

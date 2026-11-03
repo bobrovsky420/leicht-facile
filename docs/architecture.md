@@ -2038,7 +2038,7 @@ What the service stores, where, for how long, and how it leaves:
 ## 11. Repository layout
 
 ```text
-.github/workflows/ci.yml    CI: ruff, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
+.github/workflows/ci.yml    CI: ruff, mypy, pytest, `leichtfacile serve --no-browser` started against an unreachable endpoint,
                             the container image built, started the same way with a token and scanned (Trivy),
                             the history scanned for secrets (gitleaks), uv.lock scanned (Trivy), the sign-off
                             of every commit of an outside pull request (DCO)

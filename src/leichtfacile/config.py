@@ -59,6 +59,12 @@ from leichtfacile.schemas import PipelineOptions, Region
 
 ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
+
+
+def _thinking_stages() -> list[ThinkingStage]:
+    return ["understand", "judge"]
+
+
 Location = Literal["ch", "eu", "us", "world", "local"]
 Documents = Literal["any", "public"]
 AuthMode = Literal["none", "token", "proxy"]
@@ -93,16 +99,17 @@ class ConfigError(ValueError):
     """Settings that cannot be used. The message names each setting and its source."""
 
 
-def _shown(text: str) -> dict[str, str]:
+def _shown(text: str) -> dict[str, Any]:
     """A default the reference describes instead of printing (a platform's folder)."""
     return {"shown": text}
 
 
-def _as_list(value: object) -> object:
-    """A list from TOML, or from a variable as JSON or comma-separated text."""
+def _as_list(value: object) -> list[Any]:
+    """A list from TOML, or from a variable as JSON or comma-separated text; a single
+    value as a list of one."""
     if isinstance(value, str):
         return [part.strip() for part in value.split(",") if part.strip()]
-    return value
+    return value if isinstance(value, list) else [value]
 
 
 class Section(BaseModel):
@@ -142,7 +149,7 @@ class ModelSettings(Section):
     # (docs/prompts.md). On a 24 GB L4 one letter took 63 minutes with these stages and 22
     # with understand alone.
     thinking_stages: list[ThinkingStage] = Field(
-        default_factory=lambda: ["understand", "judge"],
+        default_factory=_thinking_stages,
         description="The stages that think, when thinking is on.",
     )
     # Cloudflare in front of the Public AI gateway cuts a silent answer after about 100 s.
@@ -400,7 +407,7 @@ class LLM(Connection):
     def for_model(self, name: str) -> ModelSettings:
         """The request settings of one model: the preset's over its table's over the
         provider's, extra_body's fields added up."""
-        base = self.model_dump(include=MODEL_KEYS)
+        base = self.model_dump(include=set(MODEL_KEYS))
         return ModelSettings.model_validate(merge_tables(base, self.model_table(name)))
 
     def price(self, name: str) -> tuple[float, float] | None:
@@ -1226,8 +1233,8 @@ def _resolve_llm(flat: Flat, requested: str | None = None) -> Flat:
     layer = preset_layer(flat, name)
     layer["preset"] = picked
     for key in ("cache", "offer"):
-        if (item := flat.get(f"llm.{key}")) is not None:
-            layer[key] = item
+        if (found := flat.get(f"llm.{key}")) is not None:
+            layer[key] = found
     out = {key: item for key, item in flat.items() if not key.startswith("llm.")}
     out.update({f"llm.{key}": item for key, item in layer.items()})
     return out
@@ -1327,13 +1334,13 @@ def _resolve_secrets(flat: Flat) -> list[str]:
 PROVIDER_SECTION = "providers.<name>"
 MODEL_SECTION = "providers.<name>.models.<model>"
 PRESET_SECTION = "presets.<name>"
-SECTIONS: dict[str, type[Section]] = {
+SECTIONS: dict[str, type[BaseModel]] = {
     "llm": LLMChoice, PROVIDER_SECTION: Provider, MODEL_SECTION: ModelSettings,
     PRESET_SECTION: Preset, "texts": Texts, "pipeline": Pipeline, "jobs": Jobs,
     "server": Server, "auth": Auth, "data": Data, "log": Log,
 }  # fmt: skip
 # What `config show` lists: the preset in use with every key, then the other sections.
-IN_USE: dict[str, type[Section]] = {
+IN_USE: dict[str, type[BaseModel]] = {
     "llm": LLM,
     **{k: v for k, v in SECTIONS.items() if "<" not in k and k != "llm"},
 }
