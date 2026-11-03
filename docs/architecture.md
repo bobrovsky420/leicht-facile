@@ -1638,7 +1638,13 @@ the platform's folder for settings:
 file (`llm.api_key`) or named (`llm.api_key_env`) and then read from the environment
 or from a `.env` file, which holds such keys and nothing else; `setup` writes the key
 into the `.env` next to the config file and, on POSIX systems, makes both files
-readable by their owner alone. `serve`, `check-llm` and `simplify` stop with a short
+readable by their owner alone (on Windows the folder's permissions apply:
+`icacls` in quickstart way 5). `config set` does the same with a secret (`auth.token`, a
+provider's `api_key`, since 3 November 2026): the value goes into the `.env` under
+`LEICHTFACILE_TOKEN` or the provider's variable, the file names the variable, and
+without the value the command asks for it hidden (`configure.set_secret`); a secret
+written into a settings file by hand is read, with a warning from `config show`,
+`config edit` and `serve` (`config.unusual`). `serve`, `check-llm` and `simplify` stop with a short
 message naming a missing `llm.url`, `llm.api_key` or `llm.models.writer` and
 `leichtfacile setup`, not with a traceback (`cli.settings_or_exit`).
 
@@ -1793,14 +1799,17 @@ at runtime.
   server has workspaces (`server.workspaces`, §7): then a browser sees the jobs of its
   workspace alone, a link anyone may open, so the login decides who gets in and the
   workspace what they see; the token is never stored (its hash is) and never logged.
-- On a server the app runs as a system service (a systemd unit, for example) under a
-  dedicated service account with no other rights:
+- On a server the app runs as a system service (a systemd unit; on Windows a service
+  wrapper such as WinSW or a scheduled task, under `NT AUTHORITY\LocalService`;
+  quickstart way 5) under a dedicated service account with no other rights:
   `leichtfacile serve --host 0.0.0.0 --no-browser` with `auth.token`, or on the
-  loopback interface behind the reverse proxy with its user header. `data.dir` lies on
+  loopback interface behind the reverse proxy with its user header (IIS with Windows
+  Authentication hands the domain user over through a rewrite rule's server variable).
+  `data.dir` lies on
   a disk the organisation controls; that folder, the config file and the `.env` next
   to it, which hold the key, are readable and writable by the service account alone
-  (`setup` writes the two files so on POSIX systems; `data.dir`'s permissions are the
-  organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
+  (`setup` writes the two files so on POSIX systems; on Windows `icacls` restricts the
+  folder; `data.dir`'s permissions are the organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
   users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
 - In a container the same holds (above): the image runs as its own unprivileged user,
   `/data` is its one writable folder, and the login rule judges `server.published_on`,

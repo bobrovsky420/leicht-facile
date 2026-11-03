@@ -285,6 +285,74 @@ def test_a_project_file_wins_and_setting_the_user_file_says_so(home) -> None:
     assert said[-1] == f"Note: ./leichtfacile.toml sets it too and wins over {home}."
 
 
+def test_config_set_stores_a_secret_in_the_env_file_and_warns_about_one_in_the_file(
+    home, capsys, monkeypatch
+) -> None:
+    """`config set auth.token` or `providers.<name>.api_key` writes the secret into the
+    .env next to the file and names its variable in the file; a secret written into the
+    file by hand draws a warning from show, serve and set, and set replaces it."""
+    env = home.parent / ".env"
+    said: list[str] = []
+    assert set_value(home, "auth.token", "s3cret-1234", say=said.append) == 0
+    assert said == [
+        f"auth.token stored in {env} as LEICHTFACILE_TOKEN; auth.token_env set in {home}."
+    ]
+    assert "LEICHTFACILE_TOKEN=s3cret-1234" in env.read_text(encoding="utf-8").splitlines()
+    assert toml(home)["auth"] == {"token_env": "LEICHTFACILE_TOKEN"}
+    assert load(strict=False).settings.auth.token_value == "s3cret-1234"
+    # A provider's key goes under the variable the provider names, else <NAME>_API_KEY.
+    said.clear()
+    set_value(home, "providers.cscs.api_key", "cscs-key-1234", say=said.append)
+    set_value(home, "providers.mine.url", "http://127.0.0.1:8080/v1", say=said.append)
+    set_value(home, "providers.mine.api_key", "mine-key-1234", say=said.append)
+    assert said[0].startswith(f"providers.cscs.api_key stored in {env} as CSCS_API_KEY;")
+    assert said[2].startswith(f"providers.mine.api_key stored in {env} as MINE_API_KEY;")
+    assert toml(home)["providers"] == {
+        "cscs": {"api_key_env": "CSCS_API_KEY"},
+        "mine": {"url": "http://127.0.0.1:8080/v1", "api_key_env": "MINE_API_KEY"},
+    }
+    lines = env.read_text(encoding="utf-8").splitlines()
+    assert "CSCS_API_KEY=cscs-key-1234" in lines and "MINE_API_KEY=mine-key-1234" in lines
+    # Secrets written into the file by hand: show and serve warn, set replaces them.
+    home.write_text(
+        '[llm]\npreset = "cscs-apertus"\n\n[providers.cscs]\napi_key = "plain-key-1234"\n\n'
+        '[auth]\ntoken = "plain-1234"\n',
+        encoding="utf-8",
+    )
+    found = config.unusual(load(strict=False))
+    assert set(found) == {"auth.token", "providers.cscs.api_key"}
+    assert found["auth.token"].startswith(f"auth.token is written in {home}: a secret belongs")
+    assert "config set providers.cscs.api_key <key>" in found["providers.cscs.api_key"]
+    said.clear()
+    show(say=said.append)
+    assert any(line.startswith("Warning: auth.token is written in") for line in said)
+    assert any(line.startswith("Warning: providers.cscs.api_key is written") for line in said)
+    import uvicorn
+
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **k: None)
+    capsys.readouterr()
+    assert main(["serve", "--no-browser"]) == 0
+    assert "Warning: auth.token is written in" in capsys.readouterr().out
+    said.clear()
+    set_value(home, "auth.token", "new-1234", say=said.append)
+    assert toml(home)["auth"] == {"token_env": "LEICHTFACILE_TOKEN"}
+    assert load(strict=False).settings.auth.token_value == "new-1234"
+    assert "auth.token" not in config.unusual(load(strict=False))
+    assert not any(line.startswith("Warning: auth.token") for line in said)
+    # A variable named already is kept.
+    set_value(home, "auth.token_env", "MY_TOKEN", say=said.append)
+    set_value(home, "auth.token", "third-1234", say=said.append)
+    assert said[-1].startswith(f"auth.token stored in {env} as MY_TOKEN;")
+    assert load(strict=False).settings.auth.token_value == "third-1234"
+    # Without the value a secret is asked for, hidden; another key needs its value.
+    set_value(home, "auth.token", None, say=said.append, ask_secret=lambda prompt: "asked-1234")
+    assert load(strict=False).settings.auth.token_value == "asked-1234"
+    with pytest.raises(ConfigError, match="auth.token: nothing given"):
+        set_value(home, "auth.token", None, say=said.append, ask_secret=lambda prompt: " ")
+    with pytest.raises(ConfigError, match="server.port needs a value"):
+        set_value(home, "server.port", None, say=said.append)
+
+
 def test_config_show_names_sources_and_hides_keys(home, monkeypatch) -> None:
     run_setup(preset="cscs-apertus", api_key="secret-key-1234", ask=never, say=lambda line: None)
     monkeypatch.setenv("LEICHTFACILE_SERVER__PORT", "8001")

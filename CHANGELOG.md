@@ -28,6 +28,12 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   (docs/evaluation-publicai.md). An installation that named its preset is unchanged.
 - The logo's tile is larger: its looped L is as tall as the capital L of the name next to
   it and stands on the same baseline. The name in the app bar keeps its size.
+- `leichtfacile config set auth.token <secret>` (and `providers.<name>.api_key <key>`) no
+  longer writes the secret into the config file: it goes into the `.env` next to it,
+  under `LEICHTFACILE_TOKEN` or the provider's variable, and the file names the variable.
+  Without the value the command asks for it, hidden. A secret that stands in a settings
+  file by hand is still read, now with a warning from `config show`, `config edit` and
+  `serve`.
 
 ### Fixed
 

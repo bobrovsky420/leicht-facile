@@ -237,6 +237,13 @@ from `.env` next to the config file. A `.env` file holds such keys (`MINE_API_KE
 and nothing else: settings in it are not read. `auth.token` and `auth.token_env` work the
 same way.
 
+`leichtfacile config set` never writes a secret into the config file: given `auth.token`
+or `providers.<name>.api_key` it stores the value in the `.env` next to the file, under
+`LEICHTFACILE_TOKEN` or the provider's variable, and names the variable in the file
+(`token_env`, `api_key_env`); without the value it asks for it, hidden. A secret written
+into a settings file by hand is read, with a warning from `config show`, `config edit`
+and `serve`.
+
 The model page and `leichtfacile setup` take the key (hidden input on the command line;
 the page never shows it again) and write it into the `.env` next to the config file,
 readable by its owner only where the system supports it, under the provider's variable
@@ -253,7 +260,7 @@ readable by its owner only where the system supports it, under the provider's va
 | `leichtfacile preset remove <name>` | removes a preset of the user's own, or the user's table that extends a shipped preset (the shipped one stays) |
 | `leichtfacile config show` | every setting, its value and its source; keys masked; what keeps the preset from working |
 | `leichtfacile config show --defaults` | every setting with its default and meaning, as a config file to copy from |
-| `leichtfacile config set <key> <value>` | sets a key (`server.port 8001`, `llm.cache true`, `presets.laptop.timeout_s 1800`) |
+| `leichtfacile config set <key> [value]` | sets a key (`server.port 8001`, `llm.cache true`, `presets.laptop.timeout_s 1800`); a secret (`auth.token`, `providers.<name>.api_key`) goes into the `.env` next to the file, which names its variable, and is asked for, hidden, when left out |
 | `leichtfacile config unset <key>` | removes a key from the file, so the default or another source applies |
 | `leichtfacile config edit` | opens the file in `VISUAL` or `EDITOR` (else Notepad, TextEdit, nano or vi) and checks it when the editor closes |
 | `leichtfacile config path` | the config file's path |
@@ -300,8 +307,10 @@ refused, above it the drafts lose many facts and a job may run past
 `jobs.time_budget_s`. The command line (`leichtfacile simplify`, `check`, `eval`) has
 no limit.
 
-`--api-key` ends up in the shell history; leave it out to be asked. A value of
-`config set` is read as TOML (`8001`, `true`, `["understand"]`), else taken as text.
+`--api-key` ends up in the shell history; leave it out to be asked. So does a secret
+given to `config set`: `leichtfacile config set auth.token` without the value asks for
+it. A value of `config set` is read as TOML (`8001`, `true`, `["understand"]`), else
+taken as text.
 Every change is checked with all the other sources before it is written: a key the app
 does not know, a wrong value or an app published without a login leaves the file
 unchanged. The file keeps its comments and order. `--local` makes `preset use`,

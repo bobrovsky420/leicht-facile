@@ -52,6 +52,7 @@ HEADER = (
 )
 ANOTHER_SERVER = "Another OpenAI-compatible server"
 ANOTHER_MODEL = "Another model the provider lists"
+TOKEN_VARIABLE = "LEICHTFACILE_TOKEN"  # where `config set auth.token` stores the secret
 
 
 def list_models(
@@ -132,7 +133,7 @@ def run_setup(
             say(f"The texts follow {variety('de', region).label}: {path}.")
         if max_chars is not None:
             say(f"The web app takes texts of up to {max_chars:,} characters: {path}.")
-            _limit_notes(loaded.settings, path, say)
+            _limit_notes(loaded, path, say)
         say("It applies to the drafts created from now on; a running app takes it at its "
             "next start.")  # fmt: skip
         return 0
@@ -268,15 +269,15 @@ def run_setup(
     if use and (other := overridden("llm.preset", path)):
         say(f"Note: {other} picks another preset and wins over the config file.")
     if max_chars is not None:
-        _limit_notes(loaded.settings, path, say)
+        _limit_notes(loaded, path, say)
     say("Check it with `leichtfacile check-llm`; start the app with `leichtfacile serve`.")
     return 0
 
 
-def _limit_notes(settings: config.Settings, path: Path, say: Callable[[str], None]) -> None:
+def _limit_notes(loaded: config.Loaded, path: Path, say: Callable[[str], None]) -> None:
     """After `--max-chars`: the warning about an unusual limit, and the source that wins
     over the config file, if any."""
-    warn_unusual(settings, say, "texts.max_chars")
+    warn_unusual(loaded, say, "texts.max_chars")
     if other := overridden("texts.max_chars", path):
         say(f"Note: {other} sets texts.max_chars too and wins over the config file.")
 
@@ -469,9 +470,9 @@ def show(*, say: Callable[[str], None] = print) -> int:
     say("")
     for key, value, source in rows:
         say(f"{key:<{keys}}  {value:<{shown}}  {source}")
-    if config.unusual(loaded.settings):
+    if config.unusual(loaded):
         say("")
-        warn_unusual(loaded.settings, say)
+        warn_unusual(loaded, say)
     if loaded.problems:
         say("")
         say("Not ready to call the model:")
@@ -480,20 +481,35 @@ def show(*, say: Callable[[str], None] = print) -> int:
     return 0
 
 
-def warn_unusual(
-    settings: config.Settings, say: Callable[[str], None], key: str | None = None
-) -> None:
+def warn_unusual(loaded: config.Loaded, say: Callable[[str], None], key: str | None = None) -> None:
     """Say each value that is valid but probably not meant (`config.unusual`), or only
     `key`'s."""
-    for name, message in config.unusual(settings).items():
+    for name, message in config.unusual(loaded).items():
         if key is None or name == key:
             say(f"Warning: {message}")
 
 
-def set_value(path: Path, key: str, raw: str, *, say: Callable[[str], None] = print) -> int:
+def set_value(
+    path: Path,
+    key: str,
+    raw: str | None,
+    *,
+    say: Callable[[str], None] = print,
+    ask_secret: Callable[[str], str] = getpass.getpass,
+) -> int:
     """Set a key to a value as TOML reads it (8001, true, ["understand"]), else to the
-    text as it is."""
+    text as it is. A secret (auth.token, a provider's api_key) goes into the .env next
+    to the file, which names its variable instead; asked for, hidden, when none is
+    given."""
     parts = _parts(key)
+    if variable := secret_variable(parts):
+        if raw is None:
+            raw = ask_secret(f"{key} (not shown): ").strip()
+        if not raw:
+            raise ConfigError(f"{key}: nothing given")
+        return set_secret(path, parts, variable, raw, say=say)
+    if raw is None:
+        raise ConfigError(f"{key} needs a value: leichtfacile config set {key} <value>")
     value = parse_value(raw)
     try:
         loaded = save(path, _with(path, parts, value))
@@ -502,10 +518,53 @@ def set_value(path: Path, key: str, raw: str, *, say: Callable[[str], None] = pr
             raise
         loaded = save(path, _with(path, parts, raw))  # a model named 8 or true is still a name
     say(f"{key} set in {path}.")
-    warn_unusual(loaded.settings, say, key)
+    warn_unusual(loaded, say, key)
     if other := overridden(key, path):
         say(f"Note: {other} sets it too and wins over {path}.")
     return 0
+
+
+def secret_variable(parts: list[str]) -> str | None:
+    """The variable a secret given to `config set` is stored under: the one named
+    already (auth.token_env, the provider's api_key_env), else LEICHTFACILE_TOKEN for
+    auth.token and <NAME>_API_KEY for providers.<name>.api_key; None for any other key."""
+    if parts == ["auth", "token"]:
+        named = config.collect().get("auth.token_env")
+        return str(named.value) if named else TOKEN_VARIABLE
+    if len(parts) == 3 and parts[0] == "providers" and parts[2] == "api_key":
+        flat = config.collect()
+        table = provider_table(flat, parts[1]) if parts[1] in provider_names(flat) else {}
+        return str(table.get("api_key_env") or _variable_for(parts[1]))
+    return None
+
+
+def set_secret(
+    path: Path, parts: list[str], variable: str, value: str, *, say: Callable[[str], None]
+) -> int:
+    """Store a secret in the .env next to the file under `variable`, and in the file the
+    variable's name (`<key>_env`) in place of the value, if one was written there."""
+    key = ".".join(parts)
+    env_key = f"{parts[-1]}_env"
+    # The settings as they will be, checked before anything is written: the file names
+    # the variable or holds the value, never both.
+    draft = _with(path, parts, value)
+    _table(draft, parts[:-1]).pop(env_key, None)
+    check(path, draft)
+    secrets = path.parent / ".env"
+    save_secret(secrets, variable, value)
+    doc = _with(path, [*parts[:-1], env_key], variable)
+    _table(doc, parts[:-1]).pop(parts[-1], None)
+    loaded = save(path, doc)
+    say(f"{key} stored in {secrets} as {variable}; {key}_env set in {path}.")
+    warn_unusual(loaded, say, key)
+    if other := overridden(f"{key}_env", path):
+        say(f"Note: {other} names another variable and wins over {path}.")
+    return 0
+
+
+def _table(doc: MutableMapping[str, Any], parts: list[str]) -> MutableMapping[str, Any]:
+    """The table at `parts` of a document whose tables exist."""
+    return reduce(lambda node, part: node[part], parts, doc)
 
 
 def unset_value(path: Path, key: str, *, say: Callable[[str], None] = print) -> int:
@@ -545,7 +604,7 @@ def edit(
                 return 1
             continue
         say(f"{path}: valid.")
-        warn_unusual(loaded.settings, say)
+        warn_unusual(loaded, say)
         return 0
 
 
@@ -599,8 +658,8 @@ def write_document(path: Path, doc: tomlkit.TOMLDocument) -> None:
 
 
 def write_private(path: Path, text: str) -> None:
-    """Write a file readable by its owner alone where the system supports it (it may
-    hold a key)."""
+    """Write a file readable by its owner alone on POSIX systems (it may hold a key); on
+    Windows the folder's permissions apply (docs/quickstart.md way 5)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:

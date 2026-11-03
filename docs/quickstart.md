@@ -16,7 +16,7 @@ The app is a Python package (Python 3.12 or newer) with one command, `leichtfaci
 | [2. Clone and run](#2-clone-and-run-development) | `git clone`, `uv run leichtfacile setup`, `uv run leichtfacile serve` | git, uv |
 | [3. Install the command](#3-install-the-command) | `uv tool install leichtfacile` (or `pip install`), `leichtfacile setup`, `leichtfacile serve` | uv or pip, Python 3.12+ |
 | [4. Command line only](#4-command-line-only) | `leichtfacile simplify <file or URL> --out <folder>` | as 1, 2 or 3 |
-| [5. On a server](#5-on-a-server) | `leichtfacile serve --no-browser` as a system service | as 3, a login or a reverse proxy |
+| [5. On a server](#5-on-a-server) | `leichtfacile serve --no-browser` as a system service (systemd, Windows) | as 3, a login or a reverse proxy |
 | [6. Offline install](#6-offline-install-air-gapped) | `pip wheel` on a connected machine; `pip install --no-index` on the target | a connected machine of the same kind |
 
 Every way needs a model that is ready to make drafts: a preset and its key
@@ -406,15 +406,96 @@ curl http://127.0.0.1:8000/readyz          # "ok" once the provider answers
 - `StateDirectory` keeps `/var/lib/leichtfacile` for the service's user.
 - The app reads the config file itself through `LEICHTFACILE_CONFIG`;
   `Environment=LEICHTFACILE_<SECTION>__<KEY>=...` lines override single settings.
-- For the direct way, put a secret into `/etc/leichtfacile/.env`
-  (`LEICHTFACILE_TOKEN=<secret>`), then `config set auth.token_env LEICHTFACILE_TOKEN` and
-  `config set server.host 0.0.0.0` (with `$CONFIG`, as above).
+- For the direct way, `config set auth.token <secret>` and `config set server.host
+  0.0.0.0` (with `$CONFIG`, as above): the secret goes into `/etc/leichtfacile/.env` as
+  `LEICHTFACILE_TOKEN`, and the config file names the variable (`auth.token_env`), so no
+  secret stands in it. Without the value the command asks for it, hidden, and nothing
+  lands in the shell history.
 - `data.retention_days` deletes jobs after so many days, `log.format = "json"` writes one
   JSON object per line for a log collector, and `jobs.workers` runs jobs side by side when
   the provider serves parallel requests ([configuration.md](configuration.md#reference)).
 - The container image (way 7) brings the service user and the data folder with it, and
   its login rule follows the address the port is published on; the service is then
   `docker compose up -d` in the folder of `compose.yaml`.
+
+### Windows
+
+The same on Windows Server, in PowerShell as an administrator: Python 3.12 or newer
+installed for all users (python.org's installer with "Install for all users"; a Python
+that uv or the Microsoft Store installed lives in one user's profile, which a service
+account cannot read), the program in `C:\Program Files\leichtfacile`, the config file,
+the `.env` and the data under `C:\ProgramData\leichtfacile`, the app under the built-in
+account `NT AUTHORITY\LocalService`:
+
+```powershell
+py -3 -m venv "C:\Program Files\leichtfacile"
+& "C:\Program Files\leichtfacile\Scripts\pip" install leichtfacile
+New-Item -ItemType Directory C:\ProgramData\leichtfacile
+icacls C:\ProgramData\leichtfacile /inheritance:r /grant:r "BUILTIN\Administrators:(OI)(CI)F" "NT AUTHORITY\SYSTEM:(OI)(CI)F" "NT AUTHORITY\LocalService:(OI)(CI)M"
+$lf = "C:\Program Files\leichtfacile\Scripts\leichtfacile.exe"
+$config = "C:\ProgramData\leichtfacile\config.toml"
+& $lf --config $config setup
+& $lf --config $config config set data.dir C:\ProgramData\leichtfacile\data
+```
+
+- `icacls` stands in for the `chown` above: the owner-only mode that `setup` gives the
+  config file and the `.env` on Linux has no counterpart on Windows, and a folder under
+  `%ProgramData%` is readable by every user of the machine otherwise. Run it before
+  `setup`, so the files it writes inherit the folder's permissions: administrators, the
+  system and the service account alone.
+- `--config` names the file at every call (the variable `LEICHTFACILE_CONFIG` does the
+  same); without it the service would look for `%APPDATA%\leichtfacile\config.toml` of
+  its own account, under `C:\Windows\ServiceProfiles\LocalService`.
+
+Windows runs a program as a service through a service wrapper;
+[WinSW](https://github.com/winsw/winsw) (MIT licence) is one. Put its `WinSW-x64.exe`
+from the releases page into `C:\ProgramData\leichtfacile` as `leichtfacile-service.exe`,
+after checking its SHA-256 (`Get-FileHash`) against the digest the page shows, with
+`leichtfacile-service.xml` next to it:
+
+```xml
+<service>
+  <id>leichtfacile</id>
+  <name>Leicht-Facile</name>
+  <description>Leicht-Facile, letters in Easy Language</description>
+  <executable>C:\Program Files\leichtfacile\Scripts\leichtfacile.exe</executable>
+  <arguments>--config C:\ProgramData\leichtfacile\config.toml serve --no-browser</arguments>
+  <serviceaccount>
+    <username>NT AUTHORITY\LocalService</username>
+  </serviceaccount>
+  <logpath>C:\ProgramData\leichtfacile\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <onfailure action="restart" delay="10 sec"/>
+</service>
+```
+
+```powershell
+& C:\ProgramData\leichtfacile\leichtfacile-service.exe install
+Start-Service leichtfacile
+Get-Content C:\ProgramData\leichtfacile\logs\leichtfacile-service.err.log -Wait   # the log
+Invoke-RestMethod http://127.0.0.1:8000/readyz        # "ok" once the provider answers
+```
+
+- The service appears in `services.msc` as Leicht-Facile, starts with the system and is
+  restarted when it fails; `Stop-Service leichtfacile` stops it,
+  `leichtfacile-service.exe uninstall` removes it. Without a wrapper, a scheduled task
+  runs the same command at startup under the service account (`Register-ScheduledTask`
+  with `New-ScheduledTaskTrigger -AtStartup`, `New-ScheduledTaskPrincipal -UserId
+  'NT AUTHORITY\LocalService' -LogonType ServiceAccount` and a
+  `New-ScheduledTaskSettingsSet` with restarts and no execution time limit); its output
+  goes nowhere unless the command redirects it to a file.
+- Behind IIS (URL Rewrite with Application Request Routing) with Windows Authentication,
+  the users log in with their domain accounts: the reverse-proxy rule sets the server
+  variables `HTTP_X_FORWARDED_USER` to `{LOGON_USER}`, `HTTP_X_FORWARDED_PROTO` to
+  `https` and `HTTP_X_FORWARDED_FOR` to `{REMOTE_ADDR}` (allowed first under the site's
+  URL Rewrite, View Server Variables), and the app takes `auth.proxy_header =
+  "X-Forwarded-User"` with `auth.proxy_from = ["127.0.0.1"]`.
+- For the direct way, `config set auth.token <secret>` and `config set server.host
+  0.0.0.0` as above, and a firewall rule: `New-NetFirewallRule -DisplayName Leicht-Facile
+  -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow`.
 
 ## 6. Offline install (air-gapped)
 
@@ -620,9 +701,11 @@ other address, it needs one of two logins and refuses to start without one.
   trusted from the addresses in `auth.proxy_from`, or, without it, from a proxy on this
   machine (127.0.0.1); from anywhere else the headers mean nothing.
 - **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with a token:
-  `auth.token = "<secret>"` in the config file, or `auth.token_env` naming a variable that
-  holds it, in the environment or a `.env` ([configuration.md](configuration.md#keys)).
-  Browsers ask for it
+  `leichtfacile config set auth.token <secret>` stores it in the `.env` next to the
+  config file as `LEICHTFACILE_TOKEN` and names the variable in the file
+  (`auth.token_env`); the variable can also come from the environment
+  ([configuration.md](configuration.md#keys)). A token written into the config file
+  itself (`auth.token = "..."`) works, with a warning at every start. Browsers ask for it
   (HTTP Basic: any user name, the token as the password); scripts send
   `Authorization: Bearer <secret>`. Without TLS the token crosses the network readable, so
   use this inside a trusted network. A secret:
@@ -648,7 +731,7 @@ static files need no login. Details:
 | setup says `Nothing changed (... exists in ...; --force updates it)` | `leichtfacile setup --force`, or `leichtfacile config edit` |
 | setup says `The provider's model list could not be read` | the address or the key is wrong, or the server is not running; setup goes on, and `leichtfacile check-llm` (or the model page's Check the key) checks again later |
 | settings seem to be ignored | `leichtfacile config show` names the source of each setting: a `leichtfacile.toml` in the current folder, a `LEICHTFACILE_` variable or a flag wins over the config file |
-| `server.host = '0.0.0.0' publishes the app beyond this machine` | set `auth.token` (or `auth.token_env`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1; in a container whose port is published on this machine alone, `server.published_on = "127.0.0.1"` (way 7) |
+| `server.host = '0.0.0.0' publishes the app beyond this machine` | set a token (`leichtfacile config set auth.token <secret>`), or `auth.proxy_header` with `auth.proxy_from`, or serve on 127.0.0.1; in a container whose port is published on this machine alone, `server.published_on = "127.0.0.1"` (way 7) |
 | `auth.proxy_header needs auth.proxy_from` | set the proxy's addresses or networks |
 | `set auth.token or auth.proxy_header, not both` | keep one of them |
 | the browser does not open | it opens only for an app on this machine and, on Linux, with a desktop; open <http://127.0.0.1:8000> yourself |

@@ -92,7 +92,12 @@ def main(argv: list[str] | None = None) -> int:
     config_path = settings_sub.add_parser("path", help="print the config file's path")
     config_set = settings_sub.add_parser("set", help="set a setting (section.key value)")
     config_set.add_argument("key", help="section.key, as `config show` lists them")
-    config_set.add_argument("value", help='as TOML reads it (8001, true, ["understand"]) or text')
+    config_set.add_argument(
+        "value",
+        nargs="?",
+        help='as TOML reads it (8001, true, ["understand"]) or text; a secret (auth.token, '
+        "a provider's api_key) is asked for, hidden, when left out",
+    )
     config_unset = settings_sub.add_parser("unset", help="remove a setting from the file")
     config_unset.add_argument("key")
     config_edit = settings_sub.add_parser("edit", help="open the file in the editor")
@@ -301,7 +306,7 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
     if (source := loaded.flat["llm.preset"].source).startswith("the key in"):
         print(f"Model: {settings.llm.preset}, picked by {source}; the model page or "
               "`leichtfacile preset use` changes it.")  # fmt: skip
-    configure.warn_unusual(settings, print)
+    configure.warn_unusual(loaded, print)
     host, port = settings.server.host, settings.server.port
     if browser and settings.server.open_browser and wants_browser(host):
         address = f"[{host}]" if ":" in host else host

@@ -753,10 +753,30 @@ class Settings(Section):
         return self
 
 
-def unusual(settings: Settings) -> dict[str, str]:
+def unusual(loaded: Loaded) -> dict[str, str]:
     """Values that are valid but probably not meant, by key, with why: `setup`, `config
-    set`, `config edit`, `config show` and `serve` warn about them."""
+    set`, `config edit`, `config show` and `serve` warn about them. Among them a secret
+    written into a settings file as a value (`auth.token = "..."`, a provider's
+    `api_key`): it belongs in the `.env` next to the config file or in the environment,
+    named by `token_env` or `api_key_env`, which is where `config set` puts it."""
     found: dict[str, str] = {}
+    settings = loaded.settings
+    files = {str(path) for path in setting_files()}
+    token = loaded.flat.get("auth.token")
+    if token is not None and token.value and token.source in files:
+        found["auth.token"] = (
+            f"auth.token is written in {token.source}: a secret belongs in the .env next to "
+            "the config file or in the environment, named by auth.token_env; "
+            "`leichtfacile config set auth.token <secret>` stores it so."
+        )
+    key = loaded.flat.get("llm.api_key")
+    if key is not None and key.value and key.source in files and settings.llm.provider:
+        name = f"providers.{settings.llm.provider}.api_key"
+        found[name] = (
+            f"{name} is written in {key.source}: a key belongs in the .env next to the "
+            f"config file or in the environment, named by {name}_env; `leichtfacile config "
+            f"set {name} <key>` stores it so."
+        )
     chars = settings.texts.max_chars
     low, high = USUAL_MAX_CHARS
     if chars < low:

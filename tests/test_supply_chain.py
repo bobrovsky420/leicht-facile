@@ -6,10 +6,12 @@ its checksum; the security policy with its contact; and the scanners' configurat
 from __future__ import annotations
 
 import re
+import subprocess
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +20,23 @@ WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 
 def _read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def _git_mode(path: Path) -> str:
+    """The mode git records for a tracked file (100755: executable), the same on every
+    system: a checkout on Windows has no execute bit, the index has."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "--stage", "--", path.relative_to(ROOT).as_posix()],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("not a git checkout")
+    assert out, f"{path} is not tracked"
+    return out.split()[0]
 
 
 def test_new_releases_wait_a_week_and_dated_exceptions_expire() -> None:
@@ -71,7 +90,7 @@ def test_the_security_policy_names_the_contact_and_the_scanners_are_configured()
     assert gitleaks["extend"]["useDefault"] is True
     assert all(a["regexTarget"] == "line" for a in gitleaks["allowlists"])
     hook = ROOT / "scripts" / "hooks" / "pre-commit"
-    assert hook.stat().st_mode & 0o111, "the hook is executable"
+    assert _git_mode(hook) == "100755", "the hook is executable (git update-index --chmod=+x)"
     assert "gitleaks git --pre-commit --staged" in hook.read_text(encoding="utf-8")
 
 
