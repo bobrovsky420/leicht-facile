@@ -26,7 +26,8 @@ description:
       Leicht·Facile helps the writers of cantons, municipalities and other authorities in
       Switzerland, Germany and Austria turn an official text (a web
       page, a letter, a decision) into Leichte Sprache or FALC. A fact sheet lists what
-      must survive: deadlines, amounts, phone numbers, addresses, case numbers, periods.
+      must survive, such as deadlines, amounts, phone numbers, addresses, case numbers and
+      periods.
       The draft is written by a language model the organisation chooses (any
       OpenAI-compatible endpoint; built and evaluated with Apertus, the open Swiss
       model) and then checked twice: by deterministic rules (sentence length, passive, genitive, numbers, dates,
@@ -55,8 +56,8 @@ description:
       Leicht·Facile hilft Schreibenden in Kantonen, Gemeinden und anderen Behörden der
       Schweiz, Deutschlands und Österreichs, einen Behördentext
       (eine Webseite, einen Brief, einen Entscheid) in Leichte Sprache oder FALC zu
-      bringen. Ein Faktenblatt hält fest, was erhalten bleiben muss: Fristen, Beträge,
-      Telefonnummern, Adressen, Geschäftsnummern, Zeiträume. Den Entwurf schreibt ein
+      bringen. Ein Faktenblatt hält fest, was erhalten bleiben muss, etwa Fristen, Beträge,
+      Telefonnummern, Adressen, Geschäftsnummern und Zeiträume. Den Entwurf schreibt ein
       Sprachmodell nach Wahl der Organisation (jeder OpenAI-kompatible Endpunkt;
       entwickelt und geprüft mit Apertus, dem offenen Schweizer Sprachmodell). Danach
       prüfen ihn zwei Instanzen:

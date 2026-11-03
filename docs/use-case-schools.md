@@ -170,7 +170,7 @@ under the formal setting, which is why the plural option exists and is worth a r
 
 - It does not replace the secretariat's reading of the draft. A school letter is
   short, and the review takes minutes; the point is that the review starts from a
-  draft whose dates, amounts and lists have been checked by code.
+  draft whose dates, amounts, other exact values and lists have been checked by code.
 - It does not know a school's own words beyond the vocabulary's school group. A
   school that writes "Schulsozialarbeit" or "Tagesstruktur" in every letter can add
   the terms to its own vocabulary file ([rules.md](rules.md#vocabulary)).

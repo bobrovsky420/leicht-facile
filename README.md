@@ -11,7 +11,8 @@
 Leicht·Facile drafts easy-language versions of official texts from Switzerland, Germany
 and Austria (German Leichte Sprache and Einfache Sprache in each country's spelling and
 conventions, Swiss French FALC, Swiss Italian lingua facile) with a large language model,
-and proves with code that no deadline, amount or phone number got lost. It works with any
+and proves with code that every date, amount, phone number and other exact value of the
+original is still in the draft. It works with any
 OpenAI-compatible endpoint (a provider's API, a gateway or a model server of your own)
 and was built and evaluated with Apertus, the open Swiss model. It is a drafting
 assistant for the people who write official texts, from trained easy-language writers to
@@ -62,7 +63,7 @@ run where the organisation controls it, and **Apertus fits best**
 
 1. **Understand** (the model): the document becomes a fact sheet: the reader's core
    questions, every fact with its exact value, hard words, passages that can go.
-   Code adds every date, amount and contact the model missed.
+   Code adds every date, amount, contact and other exact value the model missed.
 2. **Write** (the model): a draft in easy language, every sentence linked to the source
    sentences it comes from, every omission explained.
 3. **Check** (code): 46 deterministic rules for German, 42 for French and 42 for Italian
@@ -141,9 +142,9 @@ basis, the sources and the use cases:
 ## Quick start
 
 Requirements: [uv](https://docs.astral.sh/uv/) (it brings Python 3.12 or newer when
-needed), and an OpenAI-compatible model endpoint with its key: Apertus on the CSCS
-inference API or the Public AI gateway, a model server of your own (vLLM, llama.cpp,
-Ollama) or a provider's API.
+needed), and an OpenAI-compatible model endpoint with its key: Apertus on the Public AI
+gateway (the shipped default) or on the CSCS inference API, a model server of your own
+(vLLM, llama.cpp, Ollama) or a provider's API.
 
 The shortest way, straight from PyPI without installing anything:
 
@@ -153,9 +154,9 @@ uvx leichtfacile serve        # starts the app and opens the browser
 
 The first start downloads the app with its dependencies, the language models for the
 checker among them (90 MB), into uv's cache (not onto the PATH,
-[quickstart.md](docs/quickstart.md#1-run-with-uvx-no-install)), and opens the app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus on the CSCS inference
-API in Lugano is pre-selected (the 8B writes, the 70B checks: the setup of the reported
-numbers), and the page takes the CSCS key, or any other model's. `uvx leichtfacile
+[quickstart.md](docs/quickstart.md#1-run-with-uvx-no-install)), and opens the app's **AI model** page at <http://127.0.0.1:8000/model>: Apertus 70B on the Public AI
+gateway is pre-selected (a key from [platform.publicai.co](https://platform.publicai.co/),
+pay per token, public documents only), and the page takes that key, or any other model's. `uvx leichtfacile
 setup` does the same on the command line. With a provider's key in the environment or a
 `.env`, any preset runs for one session without setup, and nothing is saved:
 
@@ -181,14 +182,15 @@ uv run leichtfacile setup     # the first uv run installs the app and the langua
 uv run leichtfacile serve
 ```
 
-`setup` without a name asks where the model should run (CSCS, Public AI, Anthropic,
+`setup` without a name asks where the model should run (Public AI, CSCS, Anthropic,
 OpenAI, Google, OpenRouter, a server of your own with llama.cpp, Ollama or vLLM, or
 another OpenAI-compatible server), for the key, and which of the provider's presets to
-use (`cscs-apertus`: Apertus 8B writes, the 70B checks; `claude-haiku-5-5-sonnet`: Haiku
-writes, Sonnet checks; ...), or any model the provider lists; `setup <preset>` asks for
+use (`publicai-apertus`: Apertus 70B at every stage; `cscs-apertus`: the 8B writes, the
+70B checks; `claude-haiku-5-5-sonnet`: Haiku writes, Sonnet checks; ...), or any model the
+provider lists; `setup <preset>` asks for
 the key alone. The app's model page does the same in the browser: the page lists every
 preset with where the text goes and what a page costs, takes the key and checks it.
-With a provider's key in the environment or a `.env` (`CSCS_API_KEY`, `PUBLICAI_API_KEY`),
+With a provider's key in the environment or a `.env` (`PUBLICAI_API_KEY`, `CSCS_API_KEY`),
 its presets are ready without setup: `serve` alone, and on a fresh install the first
 provider with a key, in setup's order, picks the preset. The language packages the checker
 parses German and French and tags Italian with (about 95 MB) are dependencies of the
@@ -240,11 +242,15 @@ the people who review the drafts; it is also on the site in
 
 ## Sovereign deployment
 
+Most installations will run on an endpoint: the shipped default, Apertus 70B on the
+Public AI gateway (a key, pay per token, public documents only), or Apertus on the CSCS
+inference API. The table is for texts that must not leave the organisation.
+
 | Where the model runs | How |
 |----------------------|-----|
 | a) On-premise | A model server in the organisation's network, for example Apertus 1.5 8B on vLLM with the official image on one GPU with 24 GB or more (measured on an NVIDIA L4: [aws-l4-2026-10-10/](docs/hardware/aws-l4-2026-10-10/)); point the endpoint's `url` at it |
 | b) Air-gapped | As (a), and the app installed offline, the spaCy models among its dependencies, from a folder of wheels collected on a connected machine ([quickstart.md](docs/quickstart.md)). The UI assets are in the package: no CDN, no telemetry, no installs at runtime |
-| c) Sovereign Swiss cloud | Point the endpoint's `url` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reported numbers come from CSCS in Lugano |
+| c) Sovereign Swiss cloud | Point the endpoint's `url` at a Swiss-operated endpoint (Swisscom and Infomaniak serve Apertus 70B); the reference numbers come from CSCS in Lugano |
 
 **As a container.** The image `ghcr.io/bobrovsky420/leichtfacile` carries the app with
 every dependency; `compose.yaml` starts it with the model server of (a) on one GPU, and

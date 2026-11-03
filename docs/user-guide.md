@@ -98,7 +98,7 @@ drafts.
 
 | Stage | Who | What happens |
 |-------|-----|--------------|
-| Read | Model | The model reads the document and writes the fact sheet: the reader's core questions and every fact with its exact value (deadlines, amounts, contacts). Code adds every date, amount and contact the model missed. |
+| Read | Model | The model reads the document and writes the fact sheet: the reader's core questions and every fact with its exact value (deadlines, amounts, contacts). Code adds every date, amount, contact and other exact value the model missed. |
 | Write | Model | The first draft in easy language. Every sentence points to the source sentences it comes from; everything left out has a reason. |
 | Check | Code | The rules of the published guidelines, and an exact check of every fact value: nothing lost, nothing invented. |
 | Judge | Model | A second model checks the meaning: distorted facts, statements the source does not make, metaphors, unclear references. |
