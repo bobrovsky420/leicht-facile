@@ -5,6 +5,7 @@ without one, the rate limits, and the cross-site guard."""
 from __future__ import annotations
 
 import base64
+import logging
 import re
 
 import pytest
@@ -253,6 +254,62 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
     spoofed = elsewhere.get("/", headers={"X-Forwarded-Proto": "https"})
     assert spoofed.status_code == 403  # not from the proxy: nothing of it is trusted
 
+    # A proxy on the same host, the recommended server deployment: it forwards the
+    # client's address, and the login judges the connection, not the forwarded client
+    # (ProxyHeaders keeps the peer; uvicorn's own middleware, which loses it, is off:
+    # test_configure.py).
+    same_host = make_app(
+        client_ip="127.0.0.1", auth__proxy_header="X-Forwarded-User", auth__proxy_from="127.0.0.1"
+    )
+    as_nginx = {
+        "X-Forwarded-User": "a.muster",
+        "X-Forwarded-For": "203.0.113.9",
+        "X-Forwarded-Proto": "https",
+    }
+    assert same_host.get("/api/jobs", headers=as_nginx).status_code == 200
+    assert same_host.get("/api/jobs", headers=as_nginx).json() == []
+
+
+def test_the_forwarded_headers_are_trusted_from_this_machine_without_a_login(
+    make_app, caplog
+) -> None:
+    """Behind a reverse proxy on the same host that logs the users in itself, the app
+    takes each user's address and the scheme from the proxy's headers: the rate limit
+    and the access line see the users, not the proxy, and the workspace cookie is Secure
+    over TLS. From any other address the headers mean nothing, unless `auth.proxy_from`
+    names it."""
+    caplog.set_level(logging.INFO, logger="leichtfacile.web.access")
+    text = {"text": "Hallo."}
+    users = [{"X-Forwarded-For": f"203.0.113.{n}", "X-Forwarded-Proto": "https"} for n in (1, 2)]
+    local = make_app(client_ip="127.0.0.1", server__rate_limit_per_minute=1)
+    assert local.post("/check", data=text, headers=users[0]).status_code != 429
+    assert local.post("/check", data=text, headers=users[1]).status_code != 429, "another user"
+    assert local.post("/check", data=text, headers=users[0]).status_code == 429
+    line = [r for r in caplog.records if r.name == "leichtfacile.web.access"][-1]
+    assert line.client == "203.0.113.1", "the access line names the user, not the proxy"
+    assert local.post("/check", data=text).status_code != 429, "the proxy itself: its own budget"
+    assert local.post("/check", data=text).status_code == 429
+
+    cookies = make_app(client_ip="127.0.0.1", server__workspaces=True)
+    assert "; Secure" in cookies.get("/", headers=users[0]).headers["set-cookie"]
+    cookies.cookies.clear()
+    assert "Secure" not in cookies.get("/").headers["set-cookie"]
+
+    elsewhere = make_app(
+        client_ip="203.0.113.7", server__rate_limit_per_minute=1, server__workspaces=True
+    )
+    assert "Secure" not in elsewhere.get("/", headers=users[0]).headers["set-cookie"]
+    assert elsewhere.post("/check", data=text, headers=users[0]).status_code != 429
+    assert elsewhere.post("/check", data=text, headers=users[1]).status_code == 429, "one client"
+
+    # auth.proxy_from without the proxy login: that proxy's headers, no other's.
+    named = make_app(client_ip="10.0.0.2", auth__proxy_from="10.0.0.0/8", server__workspaces=True)
+    assert "; Secure" in named.get("/", headers=users[0]).headers["set-cookie"]
+    not_named = make_app(
+        client_ip="127.0.0.1", auth__proxy_from="10.0.0.0/8", server__workspaces=True
+    )
+    assert "Secure" not in not_named.get("/", headers=users[0]).headers["set-cookie"]
+
 
 def test_the_app_refuses_to_start_published_without_a_login() -> None:
     with pytest.raises(ValidationError, match="auth.token"):
@@ -335,6 +392,10 @@ def test_client_address_behind_the_trusted_proxy() -> None:
     assert client_address(scope, proxied) == "203.0.113.9", "the entry the proxy added"
     assert client_address({**scope, "client": ("10.0.0.1", 1)}, proxied) == "10.0.0.1"
     assert client_address({**scope, "client": None}, direct) == "unknown"
+    local = {**scope, "client": ("127.0.0.1", 1)}
+    assert client_address(local, direct) == "203.0.113.9", "a proxy on this machine"
+    assert client_address(local, proxied) == "127.0.0.1", "auth.proxy_from names the proxy"
+    assert client_address({**scope, "client": ("::1", 1)}, direct) == "203.0.113.9"
 
 
 # -- 4. Cross-site request forgery -----------------------------------------------------------

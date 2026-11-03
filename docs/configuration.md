@@ -529,7 +529,7 @@ The login, needed when the app is published beyond this machine (docs/architectu
 | `token` |  | A shared secret: browsers ask for it (any user name, the token as the password), scripts send Authorization: Bearer &lt;token>. |
 | `token_env` |  | Or the variable that holds the token. |
 | `proxy_header` |  | Or the header a reverse proxy fills with the logged-in user (X-Forwarded-User, Remote-User) ... |
-| `proxy_from` | `[]` | ... trusted from these addresses or networks only (127.0.0.1, 172.16.0.0/12). |
+| `proxy_from` | `[]` | ... trusted from these addresses or networks only (127.0.0.1, 172.16.0.0/12). The proxy's X-Forwarded-For and X-Forwarded-Proto are trusted from them too, with any login; unset: from this machine's loopback addresses. |
 
 ### `[data]`
 

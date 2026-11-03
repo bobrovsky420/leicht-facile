@@ -210,11 +210,12 @@ uv run leichtfacile serve
   evaluation's page cache lives in `data/cache/`)
   ([configuration.md](configuration.md#in-a-checkout)).
 - `uv sync` does the install step alone, for example after `git pull`.
-- With live reload while editing code (`--no-access-log`: the app writes its own access
-  line, with the request id and without the query string):
+- With live reload while editing code (`--no-access-log` and `--no-proxy-headers`, as
+  `serve` runs it: the app writes its own access line, with the request id and without
+  the query string, and reads the reverse proxy's headers itself):
 
   ```bash
-  uv run uvicorn leichtfacile.web.app:create_app --factory --reload --no-access-log
+  uv run uvicorn leichtfacile.web.app:create_app --factory --reload --no-access-log --no-proxy-headers
   ```
 
 The development tasks run with uv:
@@ -601,9 +602,11 @@ other address, it needs one of two logins and refuses to start without one.
   `auth.proxy_from`, the proxy's addresses or networks (`["127.0.0.1"]` for a proxy on the
   same machine). A request from elsewhere is refused (403), one without the header is not
   logged in (401). With the proxy on another machine, `--host` names an address the proxy
-  reaches, and the header counts as the login. The proxy's `X-Forwarded-Proto` tells the
-  app it is reached over HTTPS, so its cookies are marked `Secure` and its links are
-  https.
+  reaches, and the header counts as the login. The app takes the user's address from the
+  proxy's `X-Forwarded-For` (for its rate limit and its log) and the scheme from its
+  `X-Forwarded-Proto` (so its cookies are marked `Secure` and its links are https),
+  trusted from the addresses in `auth.proxy_from`, or, without it, from a proxy on this
+  machine (127.0.0.1); from anywhere else the headers mean nothing.
 - **Directly.** `leichtfacile serve --host 0.0.0.0` (every interface) with a token:
   `auth.token = "<secret>"` in the config file, or `auth.token_env` naming a variable that
   holds it, in the environment or a `.env` ([configuration.md](configuration.md#keys)).

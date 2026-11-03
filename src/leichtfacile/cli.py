@@ -309,9 +309,19 @@ def _serve(*, browser: bool = True, strict: bool = False) -> int:
         page = "" if not loaded.problems else "model"
         open_when_ready(f"http://{address}:{port}/", page)
     # The app writes its own access line, with the request id and without the query
-    # string (web/observability.py); uvicorn's would double it.
+    # string (web/observability.py); uvicorn's would double it. The app also reads the
+    # reverse proxy's X-Forwarded-For and X-Forwarded-Proto itself, from the addresses in
+    # auth.proxy_from or the loopback addresses (web/security.py, ProxyHeaders); uvicorn's
+    # own proxy-headers middleware, on by default, would rewrite the client's address
+    # before the proxy login could compare the connection with auth.proxy_from, so a proxy
+    # on the same host got 403 from every request.
     uvicorn.run(
-        "leichtfacile.web.app:create_app", factory=True, host=host, port=port, access_log=False
+        "leichtfacile.web.app:create_app",
+        factory=True,
+        host=host,
+        port=port,
+        access_log=False,
+        proxy_headers=False,
     )
     return 0
 

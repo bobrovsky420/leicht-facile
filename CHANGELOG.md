@@ -16,6 +16,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 - Review page: long block ids such as `b007.2.1`, which blocks added by a repair or a
   recovered fact get, no longer run into the severity icons; the id column grows to fit.
+- Behind a reverse proxy on the same machine with the proxy login (`auth.proxy_from =
+  ["127.0.0.1"]`, the recommended server deployment), every request got 403 "not from the
+  trusted reverse proxy": uvicorn's own proxy-headers middleware replaced the connection's
+  address with the forwarded one before the login compared it with the proxy's addresses.
+  `serve` turns that middleware off, and the app reads `X-Forwarded-For` and
+  `X-Forwarded-Proto` itself, trusted from `auth.proxy_from` with any login, or without
+  it from a proxy on this machine, so the rate limit, the access line and the Secure
+  cookie still see the users behind a proxy.
 
 ## [0.11.0] - 2026-11-02
 

@@ -1,6 +1,8 @@
 """FastAPI application: pages, JSON API, probes and metrics, and the job runner.
 
-Run with `uvicorn leichtfacile.web.app:create_app --factory`.
+Run with `uvicorn leichtfacile.web.app:create_app --factory --no-access-log
+--no-proxy-headers`, as `leichtfacile serve` does (cli.py): the app writes its own access
+line and reads the reverse proxy's headers itself (web/security.py).
 """
 
 from __future__ import annotations
@@ -90,10 +92,13 @@ def create_app(
 
     # Inside everything, the request's workspace (web/workspaces.py); then headers, rate
     # limit, login, cross-site guard, body limit: web/security.py; outside them the
-    # request id and the access line: web/observability.py.
+    # request id and the access line: web/observability.py; outside even that, the
+    # client address and scheme the trusted reverse proxy forwards (web/security.py, 0),
+    # so that the access line and every layer see the same client.
     workspaces.install(app, settings)
     security.install(app, settings)
     observability.install(app, metrics)
+    app.add_middleware(security.ProxyHeaders, settings=settings)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(api.router)
     app.include_router(pages.router)

@@ -629,7 +629,9 @@ class Auth(Section):
     )
     proxy_from: list[str] = Field(
         default_factory=list,
-        description="... trusted from these addresses or networks only (127.0.0.1, 172.16.0.0/12).",
+        description="... trusted from these addresses or networks only (127.0.0.1, "
+        "172.16.0.0/12). The proxy's X-Forwarded-For and X-Forwarded-Proto are trusted from "
+        "them too, with any login; unset: from this machine's loopback addresses.",
     )
 
     _proxy_from = field_validator("proxy_from", mode="before")(_as_list)

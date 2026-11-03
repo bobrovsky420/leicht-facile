@@ -1,8 +1,20 @@
 """The hardening layer: everything that stands between the network and the routes.
 
-Five pieces of ASGI middleware, installed by `install` in this order (the first named
-sees a request first and a response last):
+Six pieces of ASGI middleware, in this order (the first named sees a request first and a
+response last):
 
+0. `ProxyHeaders`, outside everything, even the access line (web/app.py installs it;
+   `install` the other five): the client address and the scheme every later layer, the
+   log and the routes see. When the connection comes from a trusted reverse proxy, they
+   are the ones the proxy forwarded (the entry it appended to `X-Forwarded-For`, its
+   `X-Forwarded-Proto`, so the cookies are Secure and the links https behind a proxy
+   that ends TLS); from anyone else the headers mean nothing. Trusted: the proxy's
+   addresses or networks in `auth.proxy_from`, else this machine's loopback addresses,
+   where a proxy on the same host connects from. The connection's own address stays in
+   `scope["state"]["peer"]` for the proxy login. uvicorn's own middleware of the same
+   name is off (`leichtfacile serve`, cli.py): it trusts the loopback addresses alone and
+   rewrites the client before the login could compare the peer with `auth.proxy_from`,
+   so a proxy on the same host got 403 from every request.
 1. `SecurityHeaders`: a Content-Security-Policy with a nonce for the one inline script
    in base.html (`request.state.csp_nonce`), `frame-ancestors 'self'`, no plug-ins, no
    script from anywhere but this server; `X-Content-Type-Options`, `X-Frame-Options`,
@@ -22,9 +34,7 @@ sees a request first and a response last):
    - `proxy`: the reverse proxy logs the user in and names them in the header
      `auth.proxy_header` (`X-Forwarded-User`, `Remote-User`). The header is trusted
      only from the proxy's addresses (`auth.proxy_from`); a request from elsewhere is
-     403, one without the header 401. The user lands in `request.state.user`, and the
-     proxy's `X-Forwarded-Proto` becomes the request's scheme (Secure cookies, https
-     links).
+     403, one without the header 401. The user lands in `request.state.user`.
    The probes `/healthz` and `/readyz` and the static files need no login.
    `Settings` refuses to start the app published beyond the loopback interface
    (`server.host`, or `server.published_on` in a container, where the runtime publishes
@@ -73,6 +83,8 @@ OPEN_PREFIXES = ("/static/",)  # the interface's own files: no login, no data
 # Swagger UI and ReDoc from a CDN, served when server.api_docs is on (web/app.py).
 DOCS_PATHS = frozenset({"/docs", "/docs/oauth2-redirect", "/redoc"})
 REALM = 'Basic realm="Leicht-Facile", charset="UTF-8"'
+# Where a reverse proxy on this machine connects from: trusted without auth.proxy_from.
+LOOPBACK = [ipaddress.ip_network("127.0.0.1"), ipaddress.ip_network("::1")]
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; "
@@ -90,8 +102,9 @@ CONTENT_SECURITY_POLICY = (
 
 
 def install(app: FastAPI, settings: Settings) -> None:
-    """Put the layer in front of the routes. Starlette runs the middleware added last
-    first, so the order here is the reverse of the module docstring's."""
+    """Put pieces 1 to 5 in front of the routes. Starlette runs the middleware added
+    last first, so the order here is the reverse of the module docstring's;
+    `ProxyHeaders` goes outside the access line, so web/app.py adds it last of all."""
     app.add_middleware(BodyLimit)
     app.add_middleware(CrossSiteGuard)
     app.add_middleware(Authentication, settings=settings)
@@ -113,6 +126,75 @@ async def _refuse(
 
 def _retry_after(wait_s: float) -> dict[str, str]:
     return {"Retry-After": str(max(1, math.ceil(wait_s)))}
+
+
+# -- 0. The trusted reverse proxy's headers ------------------------------------------------
+
+
+def _in_networks(address: str, networks: list[Network]) -> bool:
+    try:
+        parsed = ipaddress.ip_address(address)
+    except ValueError:
+        return False  # the test client's "testclient", a socket path
+    return any(parsed in network for network in networks)
+
+
+def proxy_networks(settings: Settings) -> list[Network]:
+    """Whose forwarded headers are trusted: the proxy's addresses (`auth.proxy_from`),
+    else this machine's loopback addresses."""
+    return settings.auth.proxy_networks or LOOPBACK
+
+
+def client_address(scope: Scope, settings: Settings) -> str:
+    """The client's address: the connection's, or, when the connection comes from the
+    trusted reverse proxy, the one the proxy appended to `X-Forwarded-For`."""
+    client = scope.get("client")
+    peer = client[0] if client else "unknown"
+    if _in_networks(peer, proxy_networks(settings)):
+        forwarded = Headers(scope=scope).get("x-forwarded-for", "")
+        if forwarded.strip():
+            return forwarded.rsplit(",", 1)[-1].strip() or peer
+    return peer
+
+
+def forwarded_scheme(scope: Scope, settings: Settings) -> str | None:
+    """The scheme the user sees, when the trusted reverse proxy says so."""
+    client = scope.get("client")
+    if client and _in_networks(client[0], proxy_networks(settings)):
+        proto = (Headers(scope=scope).get("x-forwarded-proto") or "").strip().lower()
+        if proto in ("http", "https"):
+            return proto
+    return None
+
+
+class ProxyHeaders:
+    """ASGI middleware: the client address and scheme as the trusted reverse proxy
+    forwards them (module docstring, 0); the connection's own address in
+    `scope["state"]["peer"]`."""
+
+    def __init__(self, app: ASGIApp, settings: Settings) -> None:
+        self.app = app
+        self.settings = settings
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http":
+            client = scope.get("client")
+            peer = client[0] if client else ""
+            scope.setdefault("state", {})["peer"] = peer
+            # Both judged by the connection, before the client changes.
+            forwarded = client_address(scope, self.settings)
+            scheme = forwarded_scheme(scope, self.settings)
+            if forwarded != peer:
+                scope["client"] = (forwarded, 0)
+            if scheme:
+                scope["scheme"] = scheme
+        await self.app(scope, receive, send)
+
+
+def _address(scope: Scope) -> str:
+    """The client's address as `ProxyHeaders` left it."""
+    client = scope.get("client")
+    return client[0] if client else "unknown"
 
 
 # -- 1. Security headers ---------------------------------------------------------------
@@ -192,26 +274,6 @@ class RateLimit:
             del self._events[key]
 
 
-def _in_networks(address: str, networks: list[Network]) -> bool:
-    try:
-        parsed = ipaddress.ip_address(address)
-    except ValueError:
-        return False  # the test client's "testclient", a socket path
-    return any(parsed in network for network in networks)
-
-
-def client_address(scope: Scope, settings: Settings) -> str:
-    """The client's address: the connection's, or, when the connection comes from the
-    trusted reverse proxy, the one the proxy appended to `X-Forwarded-For`."""
-    client = scope.get("client")
-    peer = client[0] if client else "unknown"
-    if settings.auth.proxy_header and _in_networks(peer, settings.auth.proxy_networks):
-        forwarded = Headers(scope=scope).get("x-forwarded-for", "")
-        if forwarded.strip():
-            return forwarded.rsplit(",", 1)[-1].strip() or peer
-    return peer
-
-
 class RateLimitGuard:
     """ASGI middleware: writes beyond the client's budget are refused with 429."""
 
@@ -222,7 +284,7 @@ class RateLimitGuard:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http" and scope["method"] in UNSAFE_METHODS:
-            wait = self.limit.take(client_address(scope, self.settings))
+            wait = self.limit.take(_address(scope))
             if wait:
                 await _refuse(scope, receive, send, 429, "too many requests", _retry_after(wait))
                 return
@@ -274,7 +336,7 @@ class Authentication:
             if token_matches(headers.get("authorization"), self.settings.auth.token_value):
                 await self.app(scope, receive, send)
                 return
-            wait = self.failures.take(client_address(scope, self.settings))
+            wait = self.failures.take(_address(scope))
             if wait:
                 await _refuse(
                     scope, receive, send, 429, "too many failed logins", _retry_after(wait)
@@ -284,9 +346,10 @@ class Authentication:
                     scope, receive, send, 401, "login required", {"WWW-Authenticate": REALM}
                 )
             return
-        # proxy: the connection must come from the proxy, and the proxy must name the user
-        client = scope.get("client")
-        peer = client[0] if client else ""
+        # proxy: the connection must come from the proxy, and the proxy must name the
+        # user. The peer is the connection's address, which ProxyHeaders kept: the client
+        # in the scope is already the one the proxy forwarded.
+        peer = scope.get("state", {}).get("peer", _address(scope))
         if not _in_networks(peer, self.settings.auth.proxy_networks):
             await _refuse(scope, receive, send, 403, "not from the trusted reverse proxy")
             return
@@ -295,12 +358,6 @@ class Authentication:
             await _refuse(scope, receive, send, 401, "the reverse proxy sent no user")
             return
         scope.setdefault("state", {})["user"] = user
-        # The trusted proxy ends TLS: its X-Forwarded-Proto is the scheme the user sees,
-        # so the app's cookies are Secure and its absolute links https. uvicorn trusts the
-        # header from 127.0.0.1 alone, and a proxy in a container network is not there.
-        proto = (headers.get("x-forwarded-proto") or "").strip().lower()
-        if proto in ("http", "https"):
-            scope["scheme"] = proto
         await self.app(scope, receive, send)
 
 

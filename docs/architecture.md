@@ -1754,9 +1754,15 @@ at runtime.
   name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
   tries per minute and client, then 429) or the proxy's user header
   (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
-  the user lands in `request.state.user`, and the proxy's `X-Forwarded-Proto` becomes
-  the request's scheme, so the cookies are Secure and the links https behind a proxy
-  that ends TLS, wherever it runs; since 2 November 2026). The probes and the static
+  the user lands in `request.state.user`). The app reads the proxy's `X-Forwarded-For`
+  and `X-Forwarded-Proto` itself (`ProxyHeaders`, outside every other layer): the user's
+  address for the rate limit and the access line, and the scheme, so the cookies are
+  Secure and the links https behind a proxy that ends TLS, wherever it runs; trusted
+  from `auth.proxy_from`, with any login, else from this machine's loopback addresses.
+  uvicorn's own proxy-headers middleware is off (`serve`): it trusts the loopback
+  addresses alone and rewrote the client's address before the login compared the
+  connection with `auth.proxy_from`, so a proxy on the same host got 403 from every
+  request (since 2 November 2026, fixed 3 November 2026). The probes and the static
   files need no login. `server.host` (which `serve --host` sets) names the interface the app listens
   on; beyond the loopback interface the app refuses to start without one of the two. In
   a container, `server.published_on` names the address the runtime publishes the port

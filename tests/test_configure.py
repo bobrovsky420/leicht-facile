@@ -342,6 +342,11 @@ def test_serve_starts_on_a_fresh_machine(home, monkeypatch) -> None:
     assert main(["serve", "--no-browser"]) == 0
     assert len(started) == 1
     assert not home.exists()  # the default preset waits for its key on the model page
+    # The app reads the reverse proxy's headers itself (web/security.py, ProxyHeaders):
+    # uvicorn's middleware would rewrite the client's address before the proxy login
+    # compares the connection with auth.proxy_from, 403 for a proxy on the same host.
+    assert started[0]["proxy_headers"] is False
+    assert started[0]["access_log"] is False  # the app writes its own access line
 
 
 def test_serve_with_a_preset_named_stops_unless_it_is_ready(home, capsys, monkeypatch) -> None:
