@@ -62,7 +62,7 @@ def held_call(endpoint: FakeEndpoint) -> tuple[threading.Event, threading.Event]
 
 
 def submit(client: TestClient, **form) -> str:
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1", **form})
+    response = client.post("/api/v1/jobs", data={"text": LETTER, "condition": "P1", **form})
     assert response.status_code == 201, response.text
     return response.json()["id"]
 
@@ -75,11 +75,11 @@ def test_a_job_is_stopped_while_waiting_or_running_and_runs_again(make_env, endp
     waiting = submit(client, title="B")
     assert store.get_job(waiting).status == "queued"
 
-    stopped = client.post(f"/api/jobs/{waiting}/cancel")
+    stopped = client.post(f"/api/v1/jobs/{waiting}/cancel")
     assert stopped.status_code == 200 and stopped.json()["status"] == "cancelled"
     page = client.get(f"/jobs/{waiting}")
     assert "The job was stopped." in page.text and "Run again from the start" in page.text
-    assert client.post(f"/api/jobs/{waiting}/cancel").status_code == 409  # not live any more
+    assert client.post(f"/api/v1/jobs/{waiting}/cancel").status_code == 409  # not live any more
 
     # The job page offers Stop while the job is live, Delete afterwards.
     live = client.get(f"/jobs/{running}").text
@@ -99,7 +99,7 @@ def test_a_job_is_stopped_while_waiting_or_running_and_runs_again(make_env, endp
     assert f'action="/jobs/{running}/delete"' in done
 
     endpoint.push(*(chat_response(a) for a in P1))
-    assert client.post(f"/api/jobs/{running}/rerun?from=understand").status_code == 200
+    assert client.post(f"/api/v1/jobs/{running}/rerun?from=understand").status_code == 200
     assert app.state.runner.wait_idle(30)
     assert store.get_job(running).status == "needs_review"
 
@@ -110,8 +110,8 @@ def test_a_running_job_is_neither_deleted_nor_rerun(make_env, endpoint) -> None:
     job_id = submit(client)
     assert in_call.wait(10)
     for refused in (
-        client.delete(f"/api/jobs/{job_id}"),
-        client.post(f"/api/jobs/{job_id}/rerun?from=write"),
+        client.delete(f"/api/v1/jobs/{job_id}"),
+        client.post(f"/api/v1/jobs/{job_id}/rerun?from=write"),
         client.post(f"/jobs/{job_id}/rerun", data={"stage": "write"}),
         client.post(f"/jobs/{job_id}/delete", follow_redirects=False),
     ):
@@ -121,8 +121,8 @@ def test_a_running_job_is_neither_deleted_nor_rerun(make_env, endpoint) -> None:
     release.set()
     endpoint.push(chat_response(fx.as_json(fx.WRITE)))
     assert app.state.runner.wait_idle(30)
-    assert client.delete(f"/api/jobs/{job_id}").status_code == 200
-    assert client.delete(f"/api/jobs/{job_id}").status_code == 404
+    assert client.delete(f"/api/v1/jobs/{job_id}").status_code == 200
+    assert client.delete(f"/api/v1/jobs/{job_id}").status_code == 404
 
 
 def test_the_queue_limit_and_the_ingest_slots_answer_429(make_env, endpoint) -> None:
@@ -131,19 +131,19 @@ def test_the_queue_limit_and_the_ingest_slots_answer_429(make_env, endpoint) -> 
     submit(client)  # runs, held in its first call
     assert in_call.wait(10)
     waiting = submit(client)  # waits: the queue holds its one job
-    refused = client.post("/api/jobs", data={"text": LETTER})
+    refused = client.post("/api/v1/jobs", data={"text": LETTER})
     assert refused.status_code == 429 and refused.headers["retry-after"] == "60"
     assert "queue is full" in refused.json()["detail"]
     page = client.post("/jobs", data={"text": LETTER, "condition": "P1"})
     assert page.status_code == 429 and "The queue is full: 1 draft is waiting" in page.text
     assert store.count_jobs() == 2
-    assert client.post(f"/api/jobs/{waiting}/cancel").status_code == 200  # room again
+    assert client.post(f"/api/v1/jobs/{waiting}/cancel").status_code == 200  # room again
 
     # Every ingest slot taken: the submission is refused at once, not queued behind
     # the slow document (the thread pool keeps its threads for the other requests).
     assert app.state.ingest_slots.acquire(blocking=False)
     try:
-        busy = client.post("/api/jobs", data={"text": LETTER})
+        busy = client.post("/api/v1/jobs", data={"text": LETTER})
         assert busy.status_code == 429 and busy.headers["retry-after"] == "5"
         assert "reading other documents" in busy.json()["detail"]
         page = client.post("/jobs", data={"text": LETTER})
@@ -165,32 +165,32 @@ def test_a_review_save_names_the_review_it_saw(app_env) -> None:
     assert 'data-saved-at=""' in page  # nothing saved yet
     body = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "approved"}]}
 
-    first = client.post(f"/api/jobs/{job_id}/review", json={**body, "saved_at": None})
+    first = client.post(f"/api/v1/jobs/{job_id}/review", json={**body, "saved_at": None})
     assert first.status_code == 200
     stamp = first.json()["saved_at"]
     assert f'data-saved-at="{stamp}"' in client.get(f"/jobs/{job_id}").text
 
-    stale = client.post(f"/api/jobs/{job_id}/review", json={**body, "saved_at": None})
+    stale = client.post(f"/api/v1/jobs/{job_id}/review", json={**body, "saved_at": None})
     assert stale.status_code == 409 and "saved by someone else" in stale.json()["detail"]
     other = client.post(
-        f"/api/jobs/{job_id}/review", json={**body, "saved_at": "2020-01-01T00:00:00+00:00"}
+        f"/api/v1/jobs/{job_id}/review", json={**body, "saved_at": "2020-01-01T00:00:00+00:00"}
     )
     assert other.status_code == 409
-    fresh = client.post(f"/api/jobs/{job_id}/review", json={**body, "saved_at": stamp})
+    fresh = client.post(f"/api/v1/jobs/{job_id}/review", json={**body, "saved_at": stamp})
     assert fresh.status_code == 200 and fresh.json()["saved_at"] != stamp
     # A script that sends no `saved_at` is not checked: the field is the page's.
-    assert client.post(f"/api/jobs/{job_id}/review", json=body).status_code == 200
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=body).status_code == 200
 
     # Every save sends every decision: one sent again unchanged keeps the stamp of the
     # save that made it, a changed one is stamped anew (`stamp_decisions`). Without a
     # login nobody is named (test_security.py has the login).
-    review = client.get(f"/api/jobs/{job_id}/artifacts/review").json()
+    review = client.get(f"/api/v1/jobs/{job_id}/artifacts/review").json()
     made = review["decisions"][0]["at"]
     assert made < review["saved_at"] and review["saved_by"] is None
     assert review["decisions"][0]["by"] is None
     changed = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "rejected"}]}
-    assert client.post(f"/api/jobs/{job_id}/review", json=changed).status_code == 200
-    review = client.get(f"/api/jobs/{job_id}/artifacts/review").json()
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=changed).status_code == 200
+    review = client.get(f"/api/v1/jobs/{job_id}/artifacts/review").json()
     assert review["decisions"][0]["decision"] == "rejected"
     assert review["decisions"][0]["at"] == review["saved_at"] != made
 
@@ -213,7 +213,7 @@ def test_the_drafts_list_reads_its_counts_from_the_job_row(app_env) -> None:
 
     decisions = [{"block_id": b, "decision": "approved"} for b in ("b001", "b002")]
     saved = client.post(
-        f"/api/jobs/{job_id}/review",
+        f"/api/v1/jobs/{job_id}/review",
         json={"draft_version": 1, "decisions": decisions, "completed": True},
     )
     assert saved.status_code == 200
@@ -236,7 +236,7 @@ def test_deleting_a_job_drops_its_rows_in_the_response_cache(make_env, endpoint,
     assert app.state.runner.wait_idle(30)
     keys = store.cache_keys(job_id)
     assert len(keys) == 2 and all(cache.get(k) is not None for k in keys)
-    assert client.delete(f"/api/jobs/{job_id}").status_code == 200
+    assert client.delete(f"/api/v1/jobs/{job_id}").status_code == 200
     assert all(cache.get(k) is None for k in keys)
     cache.close()
 

@@ -60,12 +60,12 @@ def test_every_response_carries_a_request_id_and_the_access_line_leaves_the_quer
     caplog.set_level(logging.INFO, logger="leichtfacile.web.access")
     caplog.handler.addFilter(logs.ContextFilter())
     secret = "Geheimname4711"
-    for path in ("/", "/api/jobs", "/healthz", "/no-such-page", "/static/app.css"):
+    for path in ("/", "/api/v1/jobs", "/healthz", "/no-such-page", "/static/app.css"):
         response = client.get(path, params={"q": secret})
         assert HEX16.match(response.headers["x-request-id"]), path
     lines = [r for r in caplog.records if r.name == "leichtfacile.web.access"]
     assert [r.status for r in lines] == [200, 200, 200, 404, 200]
-    assert [r.path for r in lines][:2] == ["/", "/api/jobs"]
+    assert [r.path for r in lines][:2] == ["/", "/api/v1/jobs"]
     assert all(r.method == "GET" and r.duration_ms >= 0 for r in lines)
     assert secret not in caplog.text, "the query string is what a reviewer typed"
     page = client.get("/")
@@ -87,7 +87,7 @@ def test_a_proxys_request_id_is_kept_when_it_is_a_plain_token(app_env) -> None:
 def test_a_refusal_of_the_hardening_layer_carries_the_id_too(app_env) -> None:
     client, _, _ = app_env
     evil = {"origin": "https://evil.example"}
-    refused = client.post("/api/jobs", data={"text": "x"}, headers=evil)
+    refused = client.post("/api/v1/jobs", data={"text": "x"}, headers=evil)
     assert refused.status_code == 403 and HEX16.match(refused.headers["x-request-id"])
 
 

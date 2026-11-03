@@ -43,7 +43,7 @@ The surfaces an organisation builds on. A release that changes one of them says 
   `LEICHTFACILE_<SECTION>__<KEY>` variables, the keys read from `.env`, and where the
   file lives (`leichtfacile config path`), as [configuration.md](configuration.md)
   describes them.
-- **The HTTP API** under `/api` ([architecture.md §7](architecture.md#7-web-application)),
+- **The HTTP API** under `/api/v1` ([architecture.md §7](architecture.md#7-web-application)),
   the probes `/healthz` and `/readyz`, and the names of the metrics of `/metrics`.
 - **The exports:** Markdown, HTML, Word, and the audit bundle with its `format` field
   (`leicht-facile/audit-bundle@1`), whose number changes only with an incompatible
@@ -69,8 +69,9 @@ Versions 0.x. A minor release (0.11 to 0.12) may change a stable surface. When i
 
 - the CHANGELOG says so under Changed, Removed or Deprecated, with what an operator
   must do;
-- stored data is migrated by the app on its first start, never by hand, and a database
-  is never downgraded, so keep a backup before an update;
+- stored data is migrated by the app on its first start, never by hand; the app keeps a
+  copy of the database as it was before, and an older release refuses a database a newer
+  one has written, so going back means restoring that copy ([quickstart.md](quickstart.md#updates));
 - a renamed setting, command or route keeps working under its old name for one more
   minor release, with a warning, unless the CHANGELOG says why it cannot.
 

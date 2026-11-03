@@ -323,7 +323,7 @@ gives each browser a workspace of its own: a link anyone may open (`/w/<token>`,
 random characters, kept in a cookie for a year; the server stores only its hash). The
 drafts list and the job pages show that workspace's drafts alone; the list shows the
 link with Copy link and New link, which moves the drafts under a new link and retires
-the old one. Scripts send the token in the header `X-Workspace`; `POST /api/jobs` names
+the old one. Scripts send the token in the header `X-Workspace`; `POST /api/v1/jobs` names
 the job's workspace in its answer. The login (`[auth]`) still decides who gets into the
 app at all. Drafts made by the command line, or before the setting was switched on, are
 in no workspace and are listed again once it is off (docs/architecture.md §7).

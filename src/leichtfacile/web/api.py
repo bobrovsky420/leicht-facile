@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
+from email.utils import format_datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from leichtfacile.export import glossary_ids
 from leichtfacile.export.bundle import build_bundle
@@ -45,7 +48,14 @@ from leichtfacile.web.security import current_user
 from leichtfacile.web.views import finding_text
 from leichtfacile.web.workspaces import current_token, current_workspace
 
-router = APIRouter(prefix="/api")
+# The API's prefix, and the prefix of 0.11 and earlier, which answers the same routes
+# until the sunset (docs/maintenance.md, "Until 1.0"); `LegacyHeaders` says so to the
+# client. The routers are mounted under both in web/app.py.
+API_PREFIX = "/api/v1"
+LEGACY_PREFIX = "/api"
+LEGACY_DEPRECATED_ON = datetime(2026, 11, 3, tzinfo=UTC)
+LEGACY_SUNSET = datetime(2027, 5, 3, tzinfo=UTC)
+router = APIRouter()
 ARTIFACT_NAMES = (
     "source", "factsheet", "draft", "rules", "judge", "repair", "review", "summary",
 )  # fmt: skip
@@ -237,7 +247,10 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
     }
 
 
-@router.api_route("/jobs/{job_id}/export", methods=["GET", "POST"])
+# One route per method: a route that takes both gets one operation id for two
+# operations, which the OpenAPI description (docs/openapi.json) must not carry.
+@router.get("/jobs/{job_id}/export")
+@router.post("/jobs/{job_id}/export")
 def export(
     request: Request,
     job_id: str,
@@ -391,10 +404,42 @@ def _download(body: str | bytes, media_type: str, filename: str) -> Response:
 
 def _links(job_id: str) -> dict:
     return {
-        "self": f"/api/jobs/{job_id}",
+        "self": f"{API_PREFIX}/jobs/{job_id}",
         "page": f"/jobs/{job_id}",
-        "export_md": f"/api/jobs/{job_id}/export?format=md",
-        "export_html": f"/api/jobs/{job_id}/export?format=html",
-        "export_docx": f"/api/jobs/{job_id}/export?format=docx",
-        "export_json": f"/api/jobs/{job_id}/export?format=json",
+        "export_md": f"{API_PREFIX}/jobs/{job_id}/export?format=md",
+        "export_html": f"{API_PREFIX}/jobs/{job_id}/export?format=html",
+        "export_docx": f"{API_PREFIX}/jobs/{job_id}/export?format=docx",
+        "export_json": f"{API_PREFIX}/jobs/{job_id}/export?format=json",
     }
+
+
+class LegacyHeaders:
+    """ASGI middleware: a response under the old prefix carries the headers that announce
+    its end, `Deprecation` (RFC 9745, the day the prefix moved) and `Sunset` (RFC 8594,
+    the day it stops answering), and a `Link` to the same path under the current prefix
+    (`rel="successor-version"`, RFC 5829). The old prefix is outside the OpenAPI schema
+    (web/app.py)."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or not is_legacy(scope["path"]):
+            await self.app(scope, receive, send)
+            return
+        successor = API_PREFIX + scope["path"][len(LEGACY_PREFIX) :]
+
+        async def send_with_notice(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["Deprecation"] = f"@{int(LEGACY_DEPRECATED_ON.timestamp())}"
+                headers["Sunset"] = format_datetime(LEGACY_SUNSET, usegmt=True)
+                headers["Link"] = f'<{successor}>; rel="successor-version"'
+            await send(message)
+
+        await self.app(scope, receive, send_with_notice)
+
+
+def is_legacy(path: str) -> bool:
+    """Whether `path` is under the old prefix and not under the current one."""
+    return path.startswith(LEGACY_PREFIX + "/") and not path.startswith(API_PREFIX + "/")

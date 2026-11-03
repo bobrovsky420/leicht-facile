@@ -102,7 +102,7 @@ def test_a_relative_redirect_is_resolved_against_the_name_not_the_address():
     ("location", "host"),
     [
         ("http://169.254.169.254/latest/meta-data/", "169.254.169.254"),  # cloud metadata
-        ("http://127.0.0.1:8000/api/jobs", "127.0.0.1"),  # the app itself
+        ("http://127.0.0.1:8000/api/v1/jobs", "127.0.0.1"),  # the app itself
         ("http://intranet.example.ch/", "intranet.example.ch"),  # a name that resolves inside
         ("http://both.example.ch/", "both.example.ch"),  # one of its answers is private
         ("http://[::ffff:10.0.0.1]/", "::ffff:10.0.0.1"),  # IPv4 inside an IPv6 literal

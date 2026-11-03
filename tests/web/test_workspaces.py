@@ -45,7 +45,7 @@ def token_of(client: TestClient) -> str:
 
 
 def submit(client: TestClient) -> str:
-    response = client.post("/api/jobs", data={"text": TEXT, "title": "Gesuch"})
+    response = client.post("/api/v1/jobs", data={"text": TEXT, "title": "Gesuch"})
     assert response.status_code == 201, response.text
     return response.json()["id"]
 
@@ -56,7 +56,7 @@ def test_off_by_default_nothing_changes(make_app) -> None:
     page = client.get("/")
     assert page.status_code == 200
     assert COOKIE not in client.cookies and "data-copy-link" not in page.text
-    created = client.post("/api/jobs", data={"text": TEXT}).json()
+    created = client.post("/api/v1/jobs", data={"text": TEXT}).json()
     assert "workspace" not in created
     assert client.get(f"/w/{new_token()}").status_code == 404
     assert client.post("/w/new").status_code == 404
@@ -74,26 +74,26 @@ def test_each_browser_gets_a_workspace_and_sees_its_own_jobs_alone(make_app) -> 
     assert f'href="/w/{token}"' in page.text and "data-copy-link" in page.text
     assert "set-cookie" not in mine.get("/").headers  # given once
 
-    created = mine.post("/api/jobs", data={"text": TEXT, "title": "Gesuch"})
+    created = mine.post("/api/v1/jobs", data={"text": TEXT, "title": "Gesuch"})
     assert created.status_code == 201 and created.json()["workspace"] == token
     job_id = created.json()["id"]
     assert mine.get(f"/jobs/{job_id}").status_code == 200
-    assert [j["id"] for j in mine.get("/api/jobs").json()] == [job_id]
+    assert [j["id"] for j in mine.get("/api/v1/jobs").json()] == [job_id]
     assert "Gesuch" in mine.get("/").text
 
     other = TestClient(app)
-    assert other.get("/api/jobs").json() == []
+    assert other.get("/api/v1/jobs").json() == []
     assert token_of(other) != token
     assert "Gesuch" not in other.get("/").text
     for path in (
         f"/jobs/{job_id}",
         f"/jobs/{job_id}/progress",
-        f"/api/jobs/{job_id}",
-        f"/api/jobs/{job_id}/export?format=json",
+        f"/api/v1/jobs/{job_id}",
+        f"/api/v1/jobs/{job_id}/export?format=json",
     ):
         assert other.get(path).status_code == 404, path
-    assert other.delete(f"/api/jobs/{job_id}").status_code == 404
-    assert other.post(f"/api/jobs/{job_id}/cancel").status_code == 404
+    assert other.delete(f"/api/v1/jobs/{job_id}").status_code == 404
+    assert other.post(f"/api/v1/jobs/{job_id}/cancel").status_code == 404
     assert mine.get(f"/jobs/{job_id}").status_code == 200  # untouched
 
     # The page's own form puts the job into the browser's workspace too.
@@ -117,11 +117,11 @@ def test_the_link_opens_the_workspace_in_another_browser(make_app) -> None:
     assert token_of(fresh) == token
 
     other = TestClient(app)
-    assert other.get(f"/api/jobs/{job_id}").status_code == 404
+    assert other.get(f"/api/v1/jobs/{job_id}").status_code == 404
     opened = other.get(f"/w/{token}", follow_redirects=False)
     assert opened.status_code == 303 and opened.headers["location"] == "/"
     assert token_of(other) == token
-    assert other.get(f"/api/jobs/{job_id}").status_code == 200
+    assert other.get(f"/api/v1/jobs/{job_id}").status_code == 200
     assert "Gesuch" in other.get("/").text
 
     assert other.get("/w/too-short").status_code == 404
@@ -141,15 +141,15 @@ def test_a_new_link_moves_the_jobs_and_retires_the_old_link(make_app) -> None:
     assert renewed.status_code == 303 and renewed.headers["location"] == "/"
     new = token_of(mine)
     assert new != old and TOKEN.fullmatch(new)
-    assert [j["id"] for j in mine.get("/api/jobs").json()] == [job_id]  # followed along
+    assert [j["id"] for j in mine.get("/api/v1/jobs").json()] == [job_id]  # followed along
     assert store.get_job(job_id).updated_at == before  # moved, not changed
 
     other = TestClient(app)
     other.get(f"/w/{old}")
-    assert other.get("/api/jobs").json() == []  # the old link: an empty workspace
-    assert other.get(f"/api/jobs/{job_id}").status_code == 404
+    assert other.get("/api/v1/jobs").json() == []  # the old link: an empty workspace
+    assert other.get(f"/api/v1/jobs/{job_id}").status_code == 404
     other.get(f"/w/{new}")
-    assert [j["id"] for j in other.get("/api/jobs").json()] == [job_id]
+    assert [j["id"] for j in other.get("/api/v1/jobs").json()] == [job_id]
 
 
 def test_a_script_names_its_workspace_in_the_header(make_app) -> None:
@@ -159,21 +159,21 @@ def test_a_script_names_its_workspace_in_the_header(make_app) -> None:
     token = token_of(mine)
 
     script = TestClient(app, headers={"X-Workspace": token})
-    found = script.get(f"/api/jobs/{job_id}")
+    found = script.get(f"/api/v1/jobs/{job_id}")
     assert found.status_code == 200
     assert "set-cookie" not in found.headers and COOKIE not in script.cookies
-    assert script.post("/api/jobs", data={"text": TEXT}).json()["workspace"] == token
-    assert len(script.get("/api/jobs").json()) == 2
+    assert script.post("/api/v1/jobs", data={"text": TEXT}).json()["workspace"] == token
+    assert len(script.get("/api/v1/jobs").json()) == 2
 
     stranger = TestClient(app, headers={"X-Workspace": new_token()})
-    assert stranger.get(f"/api/jobs/{job_id}").status_code == 404
+    assert stranger.get(f"/api/v1/jobs/{job_id}").status_code == 404
     garbled = TestClient(app, headers={"X-Workspace": "not a token"})
-    response = garbled.get(f"/api/jobs/{job_id}")
+    response = garbled.get(f"/api/v1/jobs/{job_id}")
     assert response.status_code == 400 and "X-Workspace" in response.text.replace("x-w", "X-W")
 
     # A script without a header gets a workspace of its own, named in the answer.
     anonymous = TestClient(app)
-    created = anonymous.post("/api/jobs", data={"text": TEXT}).json()
+    created = anonymous.post("/api/v1/jobs", data={"text": TEXT}).json()
     assert TOKEN.fullmatch(created["workspace"]) and created["workspace"] not in (token,)
 
 

@@ -592,7 +592,12 @@ that have a fix (`.github/workflows/ci.yml`).
 
 Only way 1 gets a newer release by itself; the others are updated by hand. An update
 keeps the config file, the keys and the data, and a newer release brings the database up
-to date on its first start. A running app stays on its version until it starts again.
+to date on its first start, keeping a copy of it as it was in `backups/` next to it
+(`leichtfacile-v<schema>.sqlite`, one per schema version, replaced at the next update
+from the same version). A running app stays on its version until it starts again. An
+older release refuses a database a newer one has written and says so; to go back,
+restore the copy ("Backup and restore" below). The copies hold the documents: delete
+them under the same records rules as the data.
 
 | Way | A newer release arrives | By hand |
 |-----|-------------------------|---------|
@@ -612,6 +617,20 @@ it is. `leichtfacile --version` shows the version in use, and each release on th
 Up to 0.7.1, `leichtfacile models` unpacked the spaCy models into `models/` in
 `data.dir`. They come with the package now, so that folder (about 120 MB) is no longer
 read and can be deleted.
+
+### Backup and restore
+
+`leichtfacile backup <folder>` writes a consistent copy of the job database into the
+folder, named with the moment (`leichtfacile-20261103T201500Z.sqlite`), while the app
+runs or not. The response cache (`llm_cache.sqlite`) is not copied: a deleted job's
+prompts must not outlive it there either. Keep the copies under the same rules as the
+data; they hold the documents.
+
+To restore: stop the app, replace `leichtfacile.sqlite` in `data.dir` with the copy,
+delete `leichtfacile.sqlite-wal` and `leichtfacile.sqlite-shm` next to it if they exist,
+and start the app. A copy from an older release is brought up to date on that start; one
+from a newer release is refused with a message, so going back to an older release needs
+the copy made before the update (`backups/`, above).
 
 ## Running a model yourself
 

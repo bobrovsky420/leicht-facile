@@ -3,6 +3,7 @@
 - `setup`      ask for a provider, its key and a preset, save them
 - `preset`     list the presets, pick the one in use, remove one of your own
 - `config`     show the settings and their sources, set, unset or edit them
+- `backup`     copy the job database into a folder
 - `serve`     run the web application and open it in the browser
 - `check-llm`  list the provider's models and make one short call
 - `ingest`     print the segments of a file or URL
@@ -25,6 +26,7 @@ from typing import TYPE_CHECKING
 from leichtfacile import __version__, configure
 from leichtfacile.config import PRESETS, PROVIDERS, ConfigError, use_overrides
 from leichtfacile.schemas import CONDITIONS, REGIONS
+from leichtfacile.store import SchemaTooNew
 
 if TYPE_CHECKING:
     from leichtfacile.config import Settings
@@ -103,6 +105,11 @@ def main(argv: list[str] | None = None) -> int:
     config_edit = settings_sub.add_parser("edit", help="open the file in the editor")
     for p in (config_path, config_set, config_unset, config_edit):
         p.add_argument("--local", action="store_true", help="./leichtfacile.toml instead")
+
+    backup = sub.add_parser("backup", help="copy the job database into a folder")
+    backup.add_argument(
+        "folder", type=Path, help="where the copy goes, named with the moment (made if missing)"
+    )
 
     serve = sub.add_parser("serve", help="run the web application")
     serve.add_argument(
@@ -189,7 +196,7 @@ def main(argv: list[str] | None = None) -> int:
     })  # fmt: skip
     try:
         return _dispatch(parser, args)
-    except ConfigError as exc:
+    except (ConfigError, SchemaTooNew) as exc:
         print(exc, file=sys.stderr)
         return 2
 
@@ -224,6 +231,8 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         return _preset(args)
     if args.command == "config":
         return _config(args)
+    if args.command == "backup":
+        return _backup(args.folder)
     if args.command == "serve":
         # the app configures its logs (logs.py)
         named = bool(args.preset or args.preset_name)
@@ -288,6 +297,26 @@ def _config(args: argparse.Namespace) -> int:
     if command == "unset":
         return configure.unset_value(path, args.key)
     return configure.edit(path)
+
+
+def _backup(folder: Path) -> int:
+    """A consistent copy of the job database into `folder` (`store.backup_database`,
+    while the app runs or not), named with the moment it was made. The response cache
+    is not copied: a deleted job's prompts must not outlive it there either
+    (docs/architecture.md §10, "Data lifecycle")."""
+    from datetime import UTC, datetime
+
+    from leichtfacile.store import backup_database
+
+    settings = settings_or_exit(strict=False)
+    source = settings.data.dir / "leichtfacile.sqlite"
+    if not source.is_file():
+        print(f"no database at {source}", file=sys.stderr)
+        return 2
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    copy = backup_database(source, folder / f"{source.stem}-{stamp}{source.suffix}")
+    print(copy)
+    return 0
 
 
 def _serve(*, browser: bool = True, strict: bool = False) -> int:

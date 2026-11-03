@@ -333,7 +333,7 @@
           <label class="opt"><input type="checkbox" id="export-original"><span class="opt-text"><span class="opt-title">{{ t('reader.original') }}</span><span class="opt-desc">{{ t('reader.original.desc') }}</span></span></label>
         </div>
       </fieldset>
-      <a class="btn btn-primary btn-lg btn-block" id="export-download" href="/api/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">{{ icons.icon('download') }}<span id="export-label">{{ t('js.download', ext='.html') }}</span></a>
+      <a class="btn btn-primary btn-lg btn-block" id="export-download" href="/api/v1/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">{{ icons.icon('download') }}<span id="export-label">{{ t('js.download', ext='.html') }}</span></a>
       <p class="hint" id="export-note" style="margin: 10px 0 0">{{ t('js.saved_only') }}</p>
       <button type="button" class="btn btn-block js-only" id="reader-print" style="margin-top: 16px">{{ t('reader.print') }}</button>
       <p class="hint js-only" style="margin: 8px 0 0">{{ t('reader.print_hint') }}</p>

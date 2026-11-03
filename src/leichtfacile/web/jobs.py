@@ -142,7 +142,7 @@ async def submission_form(
     sender: Annotated[str, Form()] = "authority",
     address: Annotated[str, Form()] = "formal",
 ) -> Submission:
-    """The multipart form of `POST /jobs` and `POST /api/jobs` as one submission; FastAPI
+    """The multipart form of `POST /jobs` and `POST /api/v1/jobs` as one submission; FastAPI
     fills it for both routes (`Depends`). `endpoint` runs the job on another ready
     preset (docs/configuration.md); `mode` is `standard` or `decision`
     (docs/use-case-decisions.md); `addressee` and `notice` belong to the decision mode."""

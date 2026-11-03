@@ -95,15 +95,28 @@ def create_app(
     # request id and the access line: web/observability.py; outside even that, the
     # client address and scheme the trusted reverse proxy forwards (web/security.py, 0),
     # so that the access line and every layer see the same client.
+    app.add_middleware(api.LegacyHeaders)  # innermost: the old API prefix's headers
     workspaces.install(app, settings)
     security.install(app, settings)
     observability.install(app, metrics)
     app.add_middleware(security.ProxyHeaders, settings=settings)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-    app.include_router(api.router)
+    app.include_router(api.router, prefix=api.API_PREFIX)
+    # The same routes under the prefix of 0.11 and earlier, outside the schema, until
+    # the sunset that api.LegacyHeaders announces (docs/maintenance.md, "Until 1.0").
+    app.include_router(api.router, prefix=api.LEGACY_PREFIX, include_in_schema=False)
     app.include_router(pages.router)
     app.include_router(model.router)
     app.include_router(health.router)
     app.include_router(observability.router)
     app.include_router(workspaces.router)
     return app
+
+
+def api_schema() -> dict:
+    """The OpenAPI description of the JSON API alone, under its prefix, with the API's
+    version (1) rather than the app's: what docs/openapi.json holds (written by
+    scripts/openapi.py) and tests/web/test_api_version.py keeps equal to the code."""
+    bare = FastAPI(title="Leicht·Facile", version="1")
+    bare.include_router(api.router, prefix=api.API_PREFIX)
+    return bare.openapi()

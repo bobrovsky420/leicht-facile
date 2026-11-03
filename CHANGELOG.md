@@ -9,6 +9,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Added
 
+- `leichtfacile backup <folder>`: a consistent copy of the job database into the folder,
+  named with the moment it was made, while the app runs or not. The response cache is
+  not copied. Before a newer release brings a database up to date, the app now keeps a
+  copy of it as it was, in `backups/` next to it (`leichtfacile-v<schema>.sqlite`, one
+  per schema version): what a downgrade restores (docs/quickstart.md, "Updates").
+- `docs/openapi.json` describes the JSON API (OpenAPI); a test keeps it equal to the code.
+
 - Who did what, behind the proxy login (`auth.proxy_header`): the job records who
   submitted it, every review decision who made it and when it was first saved in that
   form (a later save that sends it unchanged keeps the stamp), the review who saved it
@@ -20,6 +27,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Changed
 
+- The JSON API lives under `/api/v1`. The old paths under `/api` answer the same until
+  3 May 2027, each response with the headers `Deprecation`, `Sunset` and a `Link` to the
+  same path under `/api/v1`, and are removed in the first minor release after that
+  date. Scripts move to `/api/v1`; the web UI already has.
 - The shipped default preset is `publicai-apertus`, Apertus 70B on the Public AI gateway,
   instead of `cscs-apertus`: the CSCS inference API grants keys on application, so most
   installations could not run the pre-selected preset. Setup and the model page list
@@ -37,6 +48,8 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Fixed
 
+- A database written by a newer release is refused with a message that says so and
+  names the copy to restore, instead of being opened and read with the wrong models.
 - Review page: long block ids such as `b007.2.1`, which blocks added by a repair or a
   recovered fact get, no longer run into the severity icons; the id column grows to fit.
 - Behind a reverse proxy on the same machine with the proxy login (`auth.proxy_from =

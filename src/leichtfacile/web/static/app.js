@@ -647,7 +647,7 @@
     out.className = "save-state";
     out.textContent = t("saving");
     try {
-      const res = await fetch(`/api/jobs/${form.dataset.job}/review`, {
+      const res = await fetch(`/api/v1/jobs/${form.dataset.job}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(currentReview()),
@@ -731,7 +731,7 @@
   });
 
   // a missing fact: sentences from its source paragraph, one model call
-  // (POST /api/jobs/{id}/facts/{fact}/recover); the reviewer adds them to a block as an edit
+  // (POST /api/v1/jobs/{id}/facts/{fact}/recover); the reviewer adds them to a block as an edit
   const el = (tag, cls, text) => {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -761,7 +761,7 @@
       out.replaceChildren(el("p", "hint", t("recover_asking")));
       let data = null;
       try {
-        const res = await fetch(`/api/jobs/${form.dataset.job}/facts/${box.dataset.recover}/recover?version=${form.dataset.version}`, { method: "POST" });
+        const res = await fetch(`/api/v1/jobs/${form.dataset.job}/facts/${box.dataset.recover}/recover?version=${form.dataset.version}`, { method: "POST" });
         data = await res.json();
         if (!res.ok) throw new Error(data.detail || res.status);
       } catch (e) {
@@ -880,7 +880,7 @@
     withOriginal.disabled = bundle;
     const original = !bundle && withOriginal.checked ? "&original=1" : "";
     const version = bundle ? "" : `&version=${download.dataset.version}${original}`;
-    download.href = `/api/jobs/${download.dataset.job}/export?format=${radio.value}${version}`;
+    download.href = `/api/v1/jobs/${download.dataset.job}/export?format=${radio.value}${version}`;
     $("#export-label").textContent = t("download", { ext: radio.dataset.ext });
   };
   $$("input[name=export-format]").forEach((radio) => radio.addEventListener("change", updateDownload));

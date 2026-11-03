@@ -82,7 +82,7 @@ def test_every_response_carries_the_security_headers(app_env) -> None:
     nonce = re.search(r"'nonce-([\w-]+)'", scripts).group(1)  # type: ignore[union-attr]
     assert f'<script nonce="{nonce}">' in page.text, "the inline script carries the nonce"
     assert client.get("/").headers["content-security-policy"] != policy, "a new nonce each time"
-    for path in ("/api/jobs", "/healthz", "/static/app.css", "/no-such-page"):
+    for path in ("/api/v1/jobs", "/healthz", "/static/app.css", "/no-such-page"):
         response = client.get(path)
         assert "content-security-policy" in response.headers, path
         assert response.headers["x-content-type-options"] == "nosniff", path
@@ -119,20 +119,22 @@ def test_a_body_over_the_limit_is_refused_before_a_byte_is_read(app_env) -> None
         yield b"x"
 
     headers = {"Content-Length": str(MAX_BODY_BYTES + 1), "Content-Type": "text/plain"}
-    response = client.post("/api/jobs", content=body(), headers=headers)
+    response = client.post("/api/v1/jobs", content=body(), headers=headers)
     assert response.status_code == 413
     assert response.json() == {"detail": "the request body is larger than 16 MB"}
     assert pulled == [], "refused by Content-Length"
     assert "content-security-policy" in response.headers, "the headers cover refusals too"
 
-    upload = client.post("/api/jobs", files={"file": ("big.pdf", b"%PDF-" + b"x" * MAX_BODY_BYTES)})
+    upload = client.post(
+        "/api/v1/jobs", files={"file": ("big.pdf", b"%PDF-" + b"x" * MAX_BODY_BYTES)}
+    )
     assert upload.status_code == 413
     at_the_file_limit = client.post(
-        "/api/jobs", files={"file": ("big.pdf", b"%PDF-" + b"x" * MAX_FILE_BYTES)}
+        "/api/v1/jobs", files={"file": ("big.pdf", b"%PDF-" + b"x" * MAX_FILE_BYTES)}
     )
     assert at_the_file_limit.status_code == 400, "inside the body limit, the file limit speaks"
     assert "15 MB" in at_the_file_limit.json()["detail"]
-    assert client.get("/api/jobs").json() == []
+    assert client.get("/api/v1/jobs").json() == []
 
 
 def test_a_chunked_body_over_the_limit_is_refused_while_it_is_read(app_env) -> None:
@@ -152,23 +154,23 @@ def test_a_chunked_body_over_the_limit_is_refused_while_it_is_read(app_env) -> N
 
 def test_the_bounds_on_the_list_and_the_review(app_env) -> None:
     client, app, endpoint = app_env
-    assert client.get("/api/jobs?limit=1000000000").status_code == 422  # the audit's probe 2
-    assert client.get("/api/jobs?limit=0").status_code == 422
-    assert client.get("/api/jobs?limit=200").status_code == 200
+    assert client.get("/api/v1/jobs?limit=1000000000").status_code == 422  # the audit's probe 2
+    assert client.get("/api/v1/jobs?limit=0").status_code == 422
+    assert client.get("/api/v1/jobs?limit=200").status_code == 200
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
     job_id = run_job(client, app, text=LETTER, condition="P1")
 
     def review(**decision) -> int:
         body = {"draft_version": 1, "decisions": [{"block_id": "b001", **decision}]}
-        return client.post(f"/api/jobs/{job_id}/review", json=body).status_code
+        return client.post(f"/api/v1/jobs/{job_id}/review", json=body).status_code
 
     assert review(decision="edited", text="x" * (MAX_EDIT_CHARS + 1)) == 422
     assert review(decision="approved", comment="x" * 2_001) == 422
     assert review(decision="edited", text="x" * MAX_EDIT_CHARS) == 200
     negative = {"draft_version": 0, "decisions": []}
-    assert client.post(f"/api/jobs/{job_id}/review", json=negative).status_code == 422
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=negative).status_code == 422
     long_id = {"draft_version": 1, "decisions": [{"block_id": "b" * 17, "decision": "approved"}]}
-    assert client.post(f"/api/jobs/{job_id}/review", json=long_id).status_code == 422
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=long_id).status_code == 422
 
 
 # -- 3. Login ----------------------------------------------------------------------------------
@@ -182,13 +184,13 @@ def test_a_shared_token_protects_everything_but_the_probes_and_static_files(make
     assert refused.status_code == 401
     assert refused.headers["www-authenticate"] == 'Basic realm="Leicht-Facile", charset="UTF-8"'
     assert refused.json() == {"detail": "login required"}
-    assert client.get("/api/jobs").status_code == 401
+    assert client.get("/api/v1/jobs").status_code == 401
     assert client.post("/jobs", data={"text": LETTER}).status_code == 401
     assert client.get("/docs").status_code == 401
 
     bearer = {"Authorization": "Bearer s3cret"}
     assert client.get("/", headers=bearer).status_code == 200, "a script"
-    assert client.get("/api/jobs", headers=bearer).json() == []
+    assert client.get("/api/v1/jobs", headers=bearer).json() == []
     assert client.get("/", auth=("reviewer", "s3cret")).status_code == 200, "a browser's answer"
     assert client.get("/", auth=("", "s3cret")).status_code == 200, "any user name"
     assert client.get("/", auth=("reviewer", "guess")).status_code == 401
@@ -231,7 +233,7 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
     assert nobody.status_code == 401
     assert nobody.json() == {"detail": "the reverse proxy sent no user"}
     assert from_proxy.get("/", headers={"X-Forwarded-User": "a.muster"}).status_code == 200
-    assert from_proxy.get("/api/jobs", headers={"x-forwarded-user": "a.muster"}).json() == []
+    assert from_proxy.get("/api/v1/jobs", headers={"x-forwarded-user": "a.muster"}).json() == []
     assert from_proxy.get("/healthz").status_code == 200
 
     elsewhere = make_app(client_ip="172.16.0.9", **PROXY)
@@ -270,8 +272,8 @@ def test_the_proxys_user_header_is_trusted_from_its_addresses_only(make_app) -> 
         "X-Forwarded-For": "203.0.113.9",
         "X-Forwarded-Proto": "https",
     }
-    assert same_host.get("/api/jobs", headers=as_nginx).status_code == 200
-    assert same_host.get("/api/jobs", headers=as_nginx).json() == []
+    assert same_host.get("/api/v1/jobs", headers=as_nginx).status_code == 200
+    assert same_host.get("/api/v1/jobs", headers=as_nginx).json() == []
 
 
 def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_the_log(
@@ -285,10 +287,10 @@ def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_th
     caplog.set_level(logging.INFO)
     client = make_app(client_ip="10.0.0.2", **PROXY)
     anna, bruno = {"X-Forwarded-User": "a.muster"}, {"X-Forwarded-User": "b.muster"}
-    created = client.post("/api/jobs", data={"text": LETTER}, headers=anna)
+    created = client.post("/api/v1/jobs", data={"text": LETTER}, headers=anna)
     assert created.status_code == 201, created.text
     job_id = created.json()["id"]
-    assert client.get(f"/api/jobs/{job_id}", headers=bruno).json()["created_by"] == "a.muster"
+    assert client.get(f"/api/v1/jobs/{job_id}", headers=bruno).json()["created_by"] == "a.muster"
     store: Store = client.app.state.store  # no worker here: the draft goes in by hand
     draft = Draft(
         doc_id="d", lang="de", level="A2", version=1,
@@ -301,8 +303,8 @@ def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_th
     store.update_job(job_id, status="needs_review")
 
     first = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "approved"}]}
-    assert client.post(f"/api/jobs/{job_id}/review", json=first, headers=anna).status_code == 200
-    made = client.get(f"/api/jobs/{job_id}/artifacts/review", headers=anna).json()
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=first, headers=anna).status_code == 200
+    made = client.get(f"/api/v1/jobs/{job_id}/artifacts/review", headers=anna).json()
     assert made["saved_by"] == "a.muster" and made["decisions"][0]["by"] == "a.muster"
     second = {
         "draft_version": 1,
@@ -312,9 +314,9 @@ def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_th
         ],
         "completed": True,
     }
-    saved = client.post(f"/api/jobs/{job_id}/review", json=second, headers=bruno)
+    saved = client.post(f"/api/v1/jobs/{job_id}/review", json=second, headers=bruno)
     assert saved.status_code == 200, saved.text
-    review = client.get(f"/api/jobs/{job_id}/artifacts/review", headers=bruno).json()
+    review = client.get(f"/api/v1/jobs/{job_id}/artifacts/review", headers=bruno).json()
     assert review["saved_by"] == "b.muster"
     assert [(d["block_id"], d["by"]) for d in review["decisions"]] == [
         ("b001", "a.muster"),
@@ -323,26 +325,26 @@ def test_the_proxys_user_is_recorded_on_the_job_the_decisions_the_exports_and_th
     assert review["decisions"][0]["at"] == made["decisions"][0]["at"], "the stamp of its save"
     assert review["decisions"][1]["at"] == review["saved_at"]
 
-    bundle = json.loads(client.get(f"/api/jobs/{job_id}/export?format=json", headers=bruno).text)
+    bundle = json.loads(client.get(f"/api/v1/jobs/{job_id}/export?format=json", headers=bruno).text)
     assert bundle["exported_by"] == "b.muster" and bundle["job"]["created_by"] == "a.muster"
     assert bundle["final"]["reviewers"] == ["a.muster", "b.muster"]
     assert [d["by"] for d in bundle["review"]["decisions"]] == ["a.muster", "b.muster"]
-    word = client.get(f"/api/jobs/{job_id}/export?format=docx", headers=bruno)
+    word = client.get(f"/api/v1/jobs/{job_id}/export?format=docx", headers=bruno)
     with zipfile.ZipFile(io.BytesIO(word.content)) as package:
         footer = package.read("word/footer1.xml").decode("utf-8")
     assert "Geprüft von a.muster, b.muster" in footer
 
     line = [r for r in caplog.records if r.name == "leichtfacile.web.access"][-1]
-    assert line.user == "b.muster" and line.getMessage().startswith("GET /api/jobs/")
-    assert client.delete(f"/api/jobs/{job_id}", headers=bruno).status_code == 200
+    assert line.user == "b.muster" and line.getMessage().startswith("GET /api/v1/jobs/")
+    assert client.delete(f"/api/v1/jobs/{job_id}", headers=bruno).status_code == 200
     assert any(r.getMessage() == f"job {job_id} deleted by b.muster" for r in caplog.records)
 
     nobody = make_app()  # no login: nobody is named, nothing fails
-    anonymous = nobody.post("/api/jobs", data={"text": LETTER}).json()["id"]
-    assert nobody.get(f"/api/jobs/{anonymous}").json()["created_by"] is None
+    anonymous = nobody.post("/api/v1/jobs", data={"text": LETTER}).json()["id"]
+    assert nobody.get(f"/api/v1/jobs/{anonymous}").json()["created_by"] is None
     line = [r for r in caplog.records if r.name == "leichtfacile.web.access"][-1]
     assert line.user is None
-    assert nobody.delete(f"/api/jobs/{anonymous}").status_code == 200
+    assert nobody.delete(f"/api/v1/jobs/{anonymous}").status_code == 200
     assert any(r.getMessage() == f"job {anonymous} deleted" for r in caplog.records)
 
 
@@ -509,18 +511,18 @@ def test_a_page_on_another_site_cannot_change_anything(app_env) -> None:
         ("POST", f"/jobs/{job_id}/delete", EVIL),
         ("POST", f"/jobs/{job_id}/delete", {"sec-fetch-site": "cross-site"}),
         ("POST", f"/jobs/{job_id}/rerun", {**EVIL, "sec-fetch-site": "cross-site"}),
-        ("DELETE", f"/api/jobs/{job_id}", EVIL),
-        ("POST", f"/api/jobs/{job_id}/rerun?from=understand", EVIL),
-        ("POST", f"/api/jobs/{job_id}/facts/f01/recover", EVIL),
-        ("POST", "/api/jobs", EVIL),
+        ("DELETE", f"/api/v1/jobs/{job_id}", EVIL),
+        ("POST", f"/api/v1/jobs/{job_id}/rerun?from=understand", EVIL),
+        ("POST", f"/api/v1/jobs/{job_id}/facts/f01/recover", EVIL),
+        ("POST", "/api/v1/jobs", EVIL),
         ("POST", "/jobs", {"origin": "null"}),
     ]:
         response = client.request(method, path, headers=headers, data={"text": LETTER})
         assert response.status_code == 403, (method, path, response.text)
         assert response.json() == {"detail": "cross-site request refused"}
     assert app.state.store.get_job(job_id) is not None
-    assert client.get(f"/api/jobs/{job_id}").json()["status"] == "needs_review"
-    assert len(client.get("/api/jobs").json()) == 1
+    assert client.get(f"/api/v1/jobs/{job_id}").json()["status"] == "needs_review"
+    assert len(client.get("/api/v1/jobs").json()) == 1
 
 
 def test_the_own_pages_scripts_and_api_clients_still_write(app_env) -> None:
@@ -529,7 +531,7 @@ def test_the_own_pages_scripts_and_api_clients_still_write(app_env) -> None:
     assert client.get(f"/jobs/{job_id}", headers=EVIL).status_code == 200, "reads pass"
 
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1"}, headers=OWN)
+    response = client.post("/api/v1/jobs", data={"text": LETTER, "condition": "P1"}, headers=OWN)
     assert response.status_code == 201, "the app's own script"
     assert app.state.runner.wait_idle(30)
 
@@ -538,8 +540,8 @@ def test_the_own_pages_scripts_and_api_clients_still_write(app_env) -> None:
     assert response.status_code == 303, "a navigation the user started"
     assert app.state.store.get_job(job_id) is None
 
-    (job,) = client.get("/api/jobs").json()  # the second job, deleted by the app's own form
+    (job,) = client.get("/api/v1/jobs").json()  # the second job, deleted by the app's own form
     form = {"origin": "http://testserver"}  # an older browser: Origin, no Sec-Fetch-Site
     response = client.post(f"/jobs/{job['id']}/delete", headers=form, follow_redirects=False)
     assert response.status_code == 303
-    assert client.get("/api/jobs").json() == []
+    assert client.get("/api/v1/jobs").json() == []

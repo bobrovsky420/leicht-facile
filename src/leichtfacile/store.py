@@ -27,6 +27,7 @@ rather than failing midway.
 from __future__ import annotations
 
 import json
+import logging
 import queue
 import re
 import sqlite3
@@ -371,6 +372,48 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_add_created_by,),  # 8 (3 November 2026): who submitted the document
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
+BACKUPS_DIR = "backups"  # next to the database: the copy made before a migration
+log = logging.getLogger(__name__)
+
+
+class SchemaTooNew(RuntimeError):
+    """The database was written by a newer version of the app than this one."""
+
+
+def stored_version(path: Path) -> int | None:
+    """The schema version of the database at `path`: None when there is none (no file,
+    or a file without the tables), else its `PRAGMA user_version` (0 for a database made
+    before the migrations existed)."""
+    if not path.is_file():
+        return None
+    conn = sqlite3.connect(path)
+    try:
+        if not conn.execute("SELECT 1 FROM sqlite_master WHERE name = 'jobs'").fetchone():
+            return None
+        return int(conn.execute("PRAGMA user_version").fetchone()[0])
+    finally:
+        conn.close()
+
+
+def backup_database(path: Path, dest: Path) -> Path:
+    """A consistent copy of the database at `path` as the file `dest`, through SQLite's
+    backup API, which reads one snapshot while the app writes (a copy of the file alone
+    would miss the WAL). `dest`'s folder is made, an earlier `dest` replaced."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    for stale in (dest, dest.with_name(dest.name + "-wal"), dest.with_name(dest.name + "-shm")):
+        stale.unlink(missing_ok=True)
+    source = sqlite3.connect(path)
+    try:
+        target = sqlite3.connect(dest)
+        try:
+            source.backup(target)
+        finally:
+            target.close()
+    finally:
+        source.close()
+    return dest
+
+
 # Connections kept open at most: the workers and a few web handlers at a time.
 POOL_SIZE = 8
 BUSY_TIMEOUT_S = 5.0  # how long a writer waits for another process's transaction
@@ -390,6 +433,22 @@ class Store:
         self._open_lock = threading.Lock()
         self._write_lock = threading.Lock()  # one write transaction at a time
         self._closed = False
+        # A database of a newer version is refused, not read with the wrong models; one
+        # of an older version is copied first (backups/<name>-v<version>.sqlite, one per
+        # version: what a downgrade restores, docs/quickstart.md "Updates"), then migrated.
+        found = stored_version(path)
+        if found is not None and found > SCHEMA_VERSION:
+            raise SchemaTooNew(
+                f"{path} was written by a newer version of Leicht·Facile (schema {found}; "
+                f"this version reads up to {SCHEMA_VERSION}): update the app, or restore "
+                f"the copy made before the update from {path.parent / BACKUPS_DIR}"
+            )
+        if found is not None and found < SCHEMA_VERSION:
+            copy = path.parent / BACKUPS_DIR / f"{path.stem}-v{found}{path.suffix}"
+            backup_database(path, copy)
+            log.info(
+                "schema %d to %d: the database as it was is at %s", found, SCHEMA_VERSION, copy
+            )
         with self._tx() as conn:
             conn.executescript(_SCHEMA)
             _migrate(conn)

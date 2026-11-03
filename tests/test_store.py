@@ -18,7 +18,7 @@ from leichtfacile.schemas import (
     ReviewState,
     RuleFindings,
 )
-from leichtfacile.store import SCHEMA_VERSION, Store
+from leichtfacile.store import SCHEMA_VERSION, SchemaTooNew, Store
 
 
 def test_jobs_artifacts_and_usage(tmp_path) -> None:
@@ -365,3 +365,33 @@ def test_the_swiss_rule_ids_become_the_regions_on_open(tmp_path) -> None:
         "REG-01", "LEX-01",
     ]  # fmt: skip
     store.close()
+
+
+def test_an_older_database_is_copied_before_its_migration(tmp_path) -> None:
+    """Before the groups it lacks are applied, the database as it was goes to
+    backups/<name>-v<version>.sqlite next to it: the copy a downgrade restores. A
+    database of the current version is not copied."""
+    path = tmp_path / "old.sqlite"
+    store = Store(path)
+    store.create_job(JobConfig())
+    store.close()
+    assert not (tmp_path / "backups").exists()
+    with sqlite3.connect(path) as db:
+        db.execute("PRAGMA user_version = 5")
+    Store(path).close()
+    copy = tmp_path / "backups" / "old-v5.sqlite"
+    assert copy.is_file()
+    with sqlite3.connect(copy) as db:
+        assert db.execute("PRAGMA user_version").fetchone()[0] == 5
+        assert db.execute("SELECT count(*) FROM jobs").fetchone()[0] == 1
+    assert Store(path).schema_version == SCHEMA_VERSION
+
+
+def test_a_database_of_a_newer_version_is_refused(tmp_path) -> None:
+    path = tmp_path / "new.sqlite"
+    Store(path).close()
+    with sqlite3.connect(path) as db:
+        db.execute(f"PRAGMA user_version = {SCHEMA_VERSION + 1}")
+    with pytest.raises(SchemaTooNew, match="newer version"):
+        Store(path)
+    assert not (tmp_path / "backups").exists()

@@ -70,7 +70,9 @@ def queued_job(store, settings, **options):
 
 def run_c1(client, app, endpoint) -> str:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1", "title": "Brief"})
+    response = client.post(
+        "/api/v1/jobs", data={"text": LETTER, "condition": "P1", "title": "Brief"}
+    )
     assert response.status_code == 201, response.text
     assert app.state.runner.wait_idle(30)
     return response.json()["id"]
@@ -178,7 +180,7 @@ def test_form_passes_model_overrides_to_the_job(env) -> None:
     )
     assert response.status_code == 303
     job_id = response.headers["location"].rsplit("/", 1)[-1]
-    config = client.get(f"/api/jobs/{job_id}").json()["config"]
+    config = client.get(f"/api/v1/jobs/{job_id}").json()["config"]
     assert config["writer_model"] == "my-writer" and config["judge_model"] is None
     assert config["understand_model"] == "my-reader"
 
@@ -242,7 +244,7 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
 def test_failed_job_marks_the_failed_step_with_the_error(env) -> None:
     client, app, _, _, endpoint = env
     endpoint.push(chat_response("kein JSON"), chat_response("immer noch kein JSON"))
-    response = client.post("/api/jobs", data={"text": LETTER, "condition": "P1"})
+    response = client.post("/api/v1/jobs", data={"text": LETTER, "condition": "P1"})
     job_id = response.json()["id"]
     assert app.state.runner.wait_idle(30)
     page = client.get(f"/jobs/{job_id}")
@@ -448,9 +450,9 @@ def test_every_export_menu_offers_word(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)
     page = client.get(f"/jobs/{job_id}").text
-    assert f"/api/jobs/{job_id}/export?format=docx&amp;version=1" in page  # the Export menu
+    assert f"/api/v1/jobs/{job_id}/export?format=docx&amp;version=1" in page  # the Export menu
     assert 'value="docx" data-ext=".docx"' in page and "A Word document" in page  # reader
-    assert f"/api/jobs/{job_id}/export?format=docx" in client.get("/").text  # the row menu
+    assert f"/api/v1/jobs/{job_id}/export?format=docx" in client.get("/").text  # the row menu
 
 
 def test_reader_preview_is_served_inline(env) -> None:
@@ -468,7 +470,7 @@ def test_reader_preview_of_unsaved_decisions_stores_nothing(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)
     version = int(re.search(r'data-version="(\d+)"', client.get(f"/jobs/{job_id}").text)[1])
-    draft = client.get(f"/api/jobs/{job_id}/artifacts/draft", params={"version": version}).json()
+    draft = client.get(f"/api/v1/jobs/{job_id}/artifacts/draft", params={"version": version}).json()
     rejected, edited = draft["blocks"][2], draft["blocks"][4]
     body = {
         "draft_version": version,
@@ -481,7 +483,7 @@ def test_reader_preview_of_unsaved_decisions_stores_nothing(env) -> None:
     assert preview.status_code == 200
     assert rejected["text"] not in preview.text and edited["text"] not in preview.text
     assert "Neu geschrieben." in preview.text and "noch nicht geprüft" not in preview.text
-    assert client.get(f"/api/jobs/{job_id}/artifacts/review").status_code == 404
+    assert client.get(f"/api/v1/jobs/{job_id}/artifacts/review").status_code == 404
 
     untouched = client.post(f"/jobs/{job_id}/preview", json={"draft_version": version})
     assert "noch nicht geprüft" in untouched.text
@@ -520,7 +522,7 @@ def test_the_form_offers_the_ready_presets_for_one_draft(tmp_path, endpoint, sle
         )
         assert response.status_code == 303
         job_id = response.headers["location"].rsplit("/", 1)[-1]
-        assert client.get(f"/api/jobs/{job_id}").json()["config"]["endpoint"] == "other"
+        assert client.get(f"/api/v1/jobs/{job_id}").json()["config"]["endpoint"] == "other"
         strip = client.get(f"/jobs/{job_id}").text
         assert "<code>other</code>" in strip and "<code>other-model</code>" in strip
         refused = client.post("/jobs", data={"text": LETTER, "endpoint": "nope"})

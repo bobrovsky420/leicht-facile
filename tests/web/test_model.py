@@ -63,7 +63,7 @@ def test_the_app_starts_without_a_ready_preset_and_says_so(app) -> None:
     assert "No AI model is ready yet" in form and "Choose one on the AI model page" in form
     refused = client.post("/jobs", data={"text": LETTER})
     assert refused.status_code == 400 and "No AI model is ready" in refused.text
-    api = client.post("/api/jobs", data={"text": LETTER})
+    api = client.post("/api/v1/jobs", data={"text": LETTER})
     assert api.status_code == 400 and "No AI model is ready" in api.json()["detail"]
     ready = client.get("/readyz").json()
     assert ready["status"] == "degraded"

@@ -363,7 +363,7 @@ The draft records its form (`Draft.address`), so every round and every later che
 reads it from the draft. The defaults, authority and formal, render every prompt byte
 for byte as before the options existed (the response cache keys on the text, and the
 evaluations ran on it; `tests/pipeline/test_prompt_snapshots.py`). The New draft form,
-`POST /api/jobs` and `leichtfacile simplify` take both options; the school letters'
+`POST /api/v1/jobs` and `leichtfacile simplify` take both options; the school letters'
 sidecars set them (`data/examples/README.md`). Why: on the school letters the 70B wrote
 the same student letter in Sie twice and in du once, and the Italian parents' letter
 mixed Lei, tu and voi (docs/prompts.md, version 20).
@@ -867,7 +867,11 @@ prompts with it); the response cache is a second file (`llm_cache.sqlite`). Stan
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
 tables, then one group per later change (`store.py`, `_MIGRATIONS`), of statements or of
 rewrites of the stored JSON; a database made by an older version gets the groups it lacks
-when it is opened. The later groups rewrite what the first weeks stored differently (the
+when it is opened. Before that, the database as it was is copied with SQLite's backup
+API to `backups/<name>-v<version>.sqlite` next to it, one copy per version, the copy a
+downgrade restores (`backup_database`, also behind `leichtfacile backup`); a database
+written by a newer version is refused with a message (`SchemaTooNew`) rather than read
+with the wrong models. The later groups rewrite what the first weeks stored differently (the
 conditions C0 to C2, the retired `live` field, a review without its stamp, the summary's
 round counters, a finding's English text), so the models read one shape and carry no
 fallbacks for old data. The jobs
@@ -1017,18 +1021,27 @@ Privacy: document text is never written to logs above `DEBUG`.
 
 ### API
 
+The API lives under `/api/v1` (`web/api.API_PREFIX`). The prefix of 0.11 and earlier,
+`/api`, answers the same routes outside the schema until 3 May 2027 (`LEGACY_SUNSET`),
+each response carrying `Deprecation` (RFC 9745), `Sunset` (RFC 8594) and a `Link` to the
+same path under `/api/v1` (`rel="successor-version"`), added by the ASGI middleware
+`api.LegacyHeaders`; the first minor release after that date removes the old prefix
+(docs/maintenance.md). `docs/openapi.json` is the API's OpenAPI description
+(`web/app.api_schema`, written by `scripts/openapi.py`); `tests/web/test_api_version.py`
+keeps it equal to the code and the old prefix out of the schema.
+
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below); the job records the user the login named (`created_by`, §10) |
-| `GET /api/jobs` | The latest jobs |
-| `GET /api/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
-| `GET /api/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
-| `POST /api/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (§10); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
-| `GET` or `POST /api/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, §10); `original=1` appends the source text to the first three (§4.7) |
-| `POST /api/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
-| `POST /api/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
-| `POST /api/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
-| `DELETE /api/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (§10) |
+| `POST /api/v1/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below); the job records the user the login named (`created_by`, §10) |
+| `GET /api/v1/jobs` | The latest jobs |
+| `GET /api/v1/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
+| `GET /api/v1/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
+| `POST /api/v1/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (§10); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
+| `GET` or `POST /api/v1/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, §10); `original=1` appends the source text to the first three (§4.7) |
+| `POST /api/v1/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
+| `POST /api/v1/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
+| `POST /api/v1/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
+| `DELETE /api/v1/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (§10) |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
@@ -1052,7 +1065,7 @@ loaded (above); the shared spaCy pipelines take one text at a time. The UI polls
 job page every 2 s for two minutes, then every 5 s.
 
 The page's forms share the API's code (since 25 October 2026): one dependency reads
-the form fields into a `Submission` for `POST /jobs` and `POST /api/jobs` alike and
+the form fields into a `Submission` for `POST /jobs` and `POST /api/v1/jobs` alike and
 one function stores and queues the job (`web/jobs.py`); the page's rerun, stop and
 delete call the API handlers and answer a redirect. A submission is read (fetched,
 parsed, segmented) in the request's thread, so the submitter gets a 400 with the
@@ -1076,7 +1089,7 @@ no working link. The drafts list, its counts and filters, the review badge and e
 route of the pages and the API answer for the request's workspace alone: a job of
 another workspace is 404. The drafts list shows the workspace's link (`/w/{token}`) with
 Copy link and New link: opening the link in another browser continues there; New link
-moves the jobs under a new token and retires the old link. `POST /api/jobs` names the
+moves the jobs under a new token and retires the old link. `POST /api/v1/jobs` names the
 job's workspace in its answer, so a script without a header can keep it. The access line
 writes `/w/[token]`. Workspaces separate the jobs; the login (§10) protects them: a link
 works only for people who get past the login, and the app still refuses to start
@@ -1280,6 +1293,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 | `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region] [--max-chars]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. `--max-chars N` sets the longest text the web app takes (`texts.max_chars`, 10,000 by default; pasted, or read from a file or a page), alone too; below 1,000 or above 200,000 setup, `config set`, `config edit`, `config show` and `serve` warn (`config.unusual`). |
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
+| `leichtfacile backup <folder>` | A consistent copy of the job database into the folder (SQLite's backup API, while the app runs or not), named with the moment; the response cache is not copied |
 | `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
 | `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
@@ -1965,8 +1979,11 @@ What the service stores, where, for how long, and how it leaves:
 - **Where.** `data.dir` (by default the user's data folder, such as
   `~/.local/share/leichtfacile` or `%LOCALAPPDATA%\leichtfacile`, §10; on a server a
   folder on a disk the organisation controls): `leichtfacile.sqlite` and, with
-  the cache on, `llm_cache.sqlite`. Nothing else is written; the exports are generated
-  on request and not stored. Encryption at rest belongs to the disk: put `data.dir`
+  the cache on, `llm_cache.sqlite`, and `backups/`, the copy of the database made before
+  an update changes its schema (§5), which the operator deletes under the records rules,
+  since it holds the documents; `leichtfacile backup <folder>` writes a copy wherever the
+  operator says. Nothing else is written; the exports are generated on request and not
+  stored. Encryption at rest belongs to the disk: put `data.dir`
   on an encrypted file system or disk (LUKS, BitLocker, the cloud provider's encrypted
   volume), which costs nothing in the application and covers the WAL and temporary
   files too; the application does not encrypt rows itself.
@@ -1976,7 +1993,7 @@ What the service stores, where, for how long, and how it leaves:
   stay. A deployment that handles letters with personal data should set it to the
   period its records rules allow and export what it must keep.
 - **Deletion.** The row menu of the drafts list, the job and review pages, and
-  `DELETE /api/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
+  `DELETE /api/v1/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
   CASCADE`) and with its rows in the response cache (`lifecycle.remove_job`: the keys
   of the job's calls are recorded in `llm_calls`), so no prompt with the document
   outlives the job. A running job is stopped first.
@@ -2026,6 +2043,7 @@ docs/
   configuration.md          the settings: the config file, the saved endpoints and presets, every key
   architecture.md           this document
   assignment.md             the form that assigns the rights in a substantial contribution (CONTRIBUTING.md)
+  openapi.json              the JSON API's OpenAPI description, written by scripts/openapi.py
   maintenance.md            the maintenance and support policy: the commitments, the stable surfaces, the
                             rules until 1.0 and after, what 1.0 means
   releasing.md              the maintainers' handbook: a release step by step, the language packages, the
@@ -2080,7 +2098,8 @@ src/leichtfacile/
                             of the result rows), report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing),
                             numbers.py (the headline numbers), cli.py
-scripts/                    config_reference.py (the settings reference in configuration.md), print_letters.py,
+scripts/                    config_reference.py (the settings reference in configuration.md), openapi.py (the
+                            API's description in docs/openapi.json), print_letters.py,
                             hooks/pre-commit (ruff and gitleaks on the staged changes; `git config core.hooksPath scripts/hooks`),
                             parity.py (the Swiss parity check against tests/fixtures/parity/swiss.json, §8),
                             model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),

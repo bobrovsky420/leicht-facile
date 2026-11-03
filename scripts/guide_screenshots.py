@@ -180,7 +180,7 @@ def make_job(base: str, store: Store, example_id: str) -> str:
         "title": e["title"],
         **fields,
     }
-    r = httpx.post(f"{base}/api/jobs", files={k: (None, v) for k, v in form.items()}, timeout=60)
+    r = httpx.post(f"{base}/api/v1/jobs", files={k: (None, v) for k, v in form.items()}, timeout=60)
     r.raise_for_status()
     job_id = r.json()["id"]
     print(f"{e['title']}: job {job_id}, waiting for the model")
@@ -206,7 +206,7 @@ def approve_first(base: str, store: Store, job_id: str, n: int) -> None:
     draft = store.get_artifact(job_id, "draft", Draft, version=version)
     decisions = [{"block_id": b.id, "decision": "approved"} for b in draft.blocks[:n]]
     body = {"draft_version": version, "decisions": decisions}
-    httpx.post(f"{base}/api/jobs/{job_id}/review", json=body, timeout=30).raise_for_status()
+    httpx.post(f"{base}/api/v1/jobs/{job_id}/review", json=body, timeout=30).raise_for_status()
 
 
 def drop_demo(db: Path) -> None:
