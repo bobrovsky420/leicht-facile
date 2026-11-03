@@ -23,8 +23,9 @@ The project's page, in English, German, French and Italian: **[leichtfacile.ch](
 > About 1.25 million adults in Switzerland aged 16 to 65 (22 percent) have low reading
 > skills ([Swiss Federal Statistical Office](#references)).
 
-A sentence like this one from a letter, in "Behördensprache" and with three negations, loses
-them, although the reader has only one question: do I get my money back?
+A sentence like this one from a letter, in "Behördensprache", with three negations, a clause
+inside a clause and two passives, loses them, although the reader has only one question: do I
+get my money back?
 
 | Before: the letter | After: easy language |
 |--------------------|----------------------|

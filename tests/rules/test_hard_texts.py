@@ -31,7 +31,7 @@ HARD_SENTENCES = {
     "DE-4": (
         "Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, "
         "nicht vergütet werden können.",
-        {"NEG-01", "LEN-02"},
+        {"NEG-01", "LEN-02", "GRAM-01"},
     ),
     "DE-5": (
         "Die Rückerstattung von Krankheits- und Behinderungskosten erfolgt gemäss Art. 14 "
@@ -73,7 +73,7 @@ HARD_SENTENCES_FR = {
     "FR-4": (
         "Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais "
         "ne pourront être remboursés.",
-        {"GRAM-09", "GRAM-03"},
+        {"GRAM-09", "LEN-02", "GRAM-03", "GRAM-01"},
     ),
     "FR-5": (
         "Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous "
@@ -109,7 +109,7 @@ HARD_SENTENCES_IT = {
     "IT-4": (
         "Occorre rilevare che le spese non annunciate entro i termini non potranno essere "
         "rimborsate.",
-        {"GRAM-09", "GRAM-01", "NEG-01"},
+        {"GRAM-09", "LEN-02", "NEG-01", "GRAM-01"},
     ),
     "IT-5": (
         "Qualora Lei non fosse in grado di pagare l'importo dovuto, La preghiamo di "

@@ -100,7 +100,7 @@ The rewrites are hand-written illustrations of the target, not tool output.
 | DE-1 | Anspruch auf Prämienverbilligung haben Personen, deren massgebendes Einkommen die vom Regierungsrat festgelegte Grenze nicht übersteigt. | Relative clause, inverted order, negation, abstract nouns | LEN-02, ORD-01, GRAM-05, NEG-02 |
 | DE-2 | Das Gesuch ist vollständig ausgefüllt und unterzeichnet bis spätestens 31.03.2027 einzureichen, andernfalls verwirkt der Anspruch. | Hidden passive, numeric date, jargon `verwirkt`, second clause | GRAM-01, NUM-03, LEN-02 |
 | DE-3 | Gegen diese Verfügung kann innert 30 Tagen seit Eröffnung schriftlich Einsprache erhoben werden. | Passive, two false friends, no visible actor | GRAM-01, SEM-05 |
-| DE-4 | Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können. | Triple negation, nested clauses; readers often understand the opposite | NEG-01, LEN-02 |
+| DE-4 | Es ist nicht unwesentlich, dass Kosten, die nicht fristgerecht geltend gemacht werden, nicht vergütet werden können. | Triple negation, nested clauses, two passives; readers often understand the opposite | NEG-01, LEN-02, GRAM-01 |
 | DE-5 | Die Rückerstattung von Krankheits- und Behinderungskosten erfolgt gemäss Art. 14 Abs. 1 ELG, sofern die Kosten nicht durch Dritte gedeckt sind bzw. wären. | Elliptic compound, abbreviations, Konjunktiv, abstract `Dritte` | LEX-02, GRAM-03, SEM-02 |
 | DE-6 | Sollten Sie mit der Zahlung in Verzug geraten, behalten wir uns vor, die Betreibung einzuleiten. | Conditional without `wenn`, idiom, indirect threat | GRAM-03, SEM-01 |
 | DE-7 | Der Antragsteller hat die Unterlagen der zuständigen Stelle einzureichen; diese prüft sie und leitet sie gegebenenfalls weiter. | Third person instead of `Sie`, semicolon, unclear pronouns | LEX-06, LEX-04, GRAM-06 |
@@ -118,7 +118,7 @@ Illustrative A2 rewrite of DE-4:
 | FR-1 | Le droit à la réduction individuelle des primes est reconnu aux personnes dont le revenu déterminant n'excède pas les limites fixées par le Conseil d'État. | Passive, `dont`, negation, jargon | GRAM-01, SEM-04 |
 | FR-2 | La demande doit être déposée, dûment remplie et signée, au plus tard le 31.03.2027, faute de quoi le droit s'éteint. | Passive, inserted phrase, numeric date, `faute de quoi` | GRAM-01, NUM-03 |
 | FR-3 | La présente décision peut faire l'objet d'une réclamation écrite et motivée dans les 30 jours dès sa notification. | Nominal style, Swiss `dès`, false friend | SEM-02, SEM-05 |
-| FR-4 | Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais ne pourront être remboursés. | Impersonal start, conditional passé, `ne` without `pas` | GRAM-09, GRAM-03 |
+| FR-4 | Il convient de relever que les frais qui n'auraient pas été annoncés dans les délais ne pourront être remboursés. | Impersonal start, nested clauses, conditional passé, two passives, `ne` without `pas` | GRAM-09, LEN-02, GRAM-03, GRAM-01 |
 | FR-5 | Si vous deviez ne pas être en mesure de vous acquitter du montant dû, nous vous saurions gré de bien vouloir prendre contact avec nos services. | Courtesy formulas hide the instruction ("call us") | GRAM-03, SEM-01 |
 | FR-6 | Le/la requérant·e transmet les pièces justificatives à l'office compétent, lequel les examine et, le cas échéant, les fait suivre. | Inclusive typography, `lequel`, unclear `les` | LEX-05, SEM-03 |
 | FR-7 | Le délai est prolongé au 15.09 moyennant un émolument de Fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03, NUM-07, LEX-07 |
@@ -136,7 +136,7 @@ Illustrative FALC rewrite of FR-4:
 | IT-1 | Il diritto alla riduzione individuale dei premi è riconosciuto alle persone il cui reddito determinante non supera i limiti fissati dal Consiglio di Stato. | Passive, `il cui`, negation, jargon | GRAM-01, LEN-02, SEM-04 |
 | IT-2 | La domanda deve essere inoltrata, debitamente compilata e firmata, entro il 31.03.2027, pena la perdita del diritto. | Passive, inserted phrase, numeric date, `pena` | GRAM-01, NUM-03, LEX-07 |
 | IT-3 | Contro la presente decisione può essere presentato reclamo scritto e motivato entro 30 giorni dalla notificazione. | Passive, nominal style, false friend | GRAM-01, SEM-02, SEM-05 |
-| IT-4 | Occorre rilevare che le spese non annunciate entro i termini non potranno essere rimborsate. | Impersonal start, two negations, future passive | GRAM-09, NEG-01, GRAM-01 |
+| IT-4 | Occorre rilevare che le spese non annunciate entro i termini non potranno essere rimborsate. | Impersonal start, a participle clause inside the `che` clause, two negations, future passive | GRAM-09, LEN-02, NEG-01, GRAM-01 |
 | IT-5 | Qualora Lei non fosse in grado di pagare l'importo dovuto, La preghiamo di contattare i nostri uffici. | Subjunctive after `qualora`, courtesy formulas hide the instruction ("call us") | GRAM-03, LEX-07, SEM-01 |
 | IT-6 | Il/la richiedente trasmette i documenti giustificativi all'ufficio competente, il quale li esamina e, se del caso, li inoltra. | Slash, third person, `il quale`, unclear `li` | LEX-04, LEX-06, SEM-03 |
 | IT-7 | Il termine è prorogato al 15.09 mediante un emolumento di fr. 40.-. | Passive, date without year, amount format, rare words | NUM-03, NUM-07, LEX-07 |
