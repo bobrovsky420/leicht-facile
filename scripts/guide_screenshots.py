@@ -462,7 +462,7 @@ def pictures(app: str, empty: str, job_id: str) -> dict[str, Callable[[Browser],
     }
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901, PLR0912, PLR0915
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--work", type=Path, default=ROOT / "data" / "cache" / "guide")
     ap.add_argument("--preset", default="publicai-apertus")

@@ -196,7 +196,7 @@ def test_the_fine_tune_panel_saves_a_preset_of_ones_own(app, home) -> None:
             "judge": "claude-sonnet-5-5",
             "think_understand": "1",
             "timeout_s": "600",
-        },  # fmt: skip
+        },
         follow_redirects=False,
     )
     assert response.status_code == 303 and response.headers["location"] == "/model?saved=mine"

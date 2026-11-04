@@ -30,6 +30,7 @@ import threading
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cache
+from itertools import pairwise
 
 import spacy
 from spacy.language import Language
@@ -148,7 +149,7 @@ def split_sentences(text: str, lang: str) -> list[str]:
         elif _missed_boundary(left, right, lang):
             starts.append(pos)
     bounds = [0, *starts, len(text)]
-    return [s for a, b in zip(bounds, bounds[1:], strict=False) if (s := text[a:b].strip())]
+    return [s for a, b in pairwise(bounds) if (s := text[a:b].strip())]
 
 
 def _before_opening(text: str, pos: int) -> int:

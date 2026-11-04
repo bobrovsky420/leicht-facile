@@ -174,7 +174,45 @@ target-version = "py312"
 src = ["src", "."]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+# The rule families CI enforces (`uv run ruff check .`). A finding is fixed, or its line
+# carries `noqa` with the rule and, in a comment, the reason; a directive that silences
+# nothing fails (RUF100), so the exceptions only shrink. The complexity rules (C901,
+# PLR0912, PLR0915) gate what is written from now on: the functions over a limit when
+# the rules were switched on carry a `noqa`, the baseline, which RUF100 takes out once
+# the function is simple again; a new function over a limit is split, not marked.
+select = [
+    "E", "W", "F", "I", "UP", "B", "SIM",  # pycodestyle, pyflakes, isort, pyupgrade, bugbear, simplify
+    "RUF", "PERF", "PIE", "C4", "RET", "RSE", "FLY", "FURB",  # ruff's own, performance, idioms
+    "S", "BLE", "DTZ", "ASYNC", "LOG", "G",  # bandit, blind excepts, naive dates, async, logging
+    "PTH", "A", "N", "ERA", "TRY", "T20", "ICN", "TID", "PGH",  # paths, names, dead code, raises, prints
+    "PT",  # pytest
+    "PLE", "PLW", "PLC", "C901", "PLR0912", "PLR0915",  # pylint, complexity
+]
+ignore = [
+    "TRY003",  # the message is written where the exception is raised
+    "PLC0415",  # an import inside a function keeps the start fast and a heavy dependency optional
+    "PLW2901",  # a loop that rewrites its item (`item = item.model_copy(...)`) is the project's idiom
+    "N818",  # an exception's name says what happened (SchemaTooNew, QueueFull), not all end in Error
+    "PT011",  # `pytest.raises(ValueError)` without a message: the type is the check
+    "PT018",  # a composite assertion reads as one statement
+    "RUF043",  # a `match=` pattern is a piece of the message; a dot that matches any character is no risk
+]
+# Characters of the texts that look like others: the typographic apostrophe of French and
+# Italian, and the German single quotation marks.
+allowed-confusables = ["’", "‚", "‘"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/leichtfacile/cli.py" = ["T201"]  # the command line's output
+"src/leichtfacile/eval/cli.py" = ["T201"]
+# The tables, columns and WHERE parts of the queries come from the module's own
+# constants; every value goes as a parameter.
+"src/leichtfacile/store.py" = ["S608"]
+# Developer tools run by hand: they print, download the URLs pinned in them and run the
+# checkout's own tools.
+"scripts/*" = ["T201", "S310", "S603", "S608"]
+# Asserts, 0.0.0.0, made-up secrets, the test's own XML and processes, a raise inside a
+# try to log the exception.
+"tests/*" = ["S101", "S104", "S105", "S106", "S314", "S603", "S607", "TRY301"]
 
 # The type checker (`uv run mypy`, the CI job "Types (mypy)"): the package and the
 # scripts; the tests are not checked yet. pydantic's plugin types the models' fields and

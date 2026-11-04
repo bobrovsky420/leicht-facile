@@ -87,7 +87,7 @@ def test_sheets_hold_the_items_without_the_verdicts(tmp_path) -> None:
 def test_kappa_from_a_filled_sheet(tmp_path) -> None:
     results = _results_dir(tmp_path)
     fact_items, block_items = sample_items(results)
-    sheet, key = write_sheets(tmp_path / "labels", fact_items, block_items)[:2]
+    sheet, _key = write_sheets(tmp_path / "labels", fact_items, block_items)[:2]
     verdicts = {k["item_id"]: k["judge"] for _, k in fact_items}
     rows = [json.loads(line) for line in sheet.read_text(encoding="utf-8").splitlines()]
     for row in rows:

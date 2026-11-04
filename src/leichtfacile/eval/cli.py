@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from leichtfacile.eval.dataset import Side
 
 
-def add_eval_parser(sub: argparse._SubParsersAction) -> None:
+def add_eval_parser(sub: argparse._SubParsersAction) -> None:  # noqa: PLR0915
     ev = sub.add_parser("eval", help="evaluation: fetch, calibrate, reference, run, report")
     evsub = ev.add_subparsers(dest="eval_command", required=True)
 

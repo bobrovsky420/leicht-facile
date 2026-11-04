@@ -27,7 +27,7 @@ def test_the_check_page_runs_the_rules_on_a_text_without_a_job(app_env) -> None:
 
 
 def test_the_check_page_refuses_an_empty_text_and_an_unchecked_language(app_env) -> None:
-    client, app, endpoint = app_env
+    client, _app, _endpoint = app_env
     empty = client.post("/check", data={"text": "   "})
     assert empty.status_code == 400 and "Paste a text first." in empty.text
     romansh = client.post("/check", data={"text": "Il termin scada ils 31 da mars.", "lang": "rm"})
@@ -39,7 +39,7 @@ def test_the_check_page_refuses_an_empty_text_and_an_unchecked_language(app_env)
 def test_the_check_page_takes_the_installations_limit_and_counts_a_line_break_once(
     app_env,
 ) -> None:
-    client, app, endpoint = app_env
+    client, app, _endpoint = app_env
     app.state.settings.texts.max_chars = limit = len(TEXT)
     page = client.get("/check").text
     assert f'data-max="{limit}"' in page and f"0 of {limit} characters" in page
@@ -50,7 +50,7 @@ def test_the_check_page_takes_the_installations_limit_and_counts_a_line_break_on
 
 
 def test_the_check_page_checks_italian(app_env) -> None:
-    client, app, endpoint = app_env
+    client, _app, _endpoint = app_env
     italian = client.post(
         "/check", data={"text": "Paghi la fattura entro il 31.03.2026.", "lang": "it"}
     )
@@ -60,7 +60,7 @@ def test_the_check_page_checks_italian(app_env) -> None:
 
 
 def test_the_check_page_speaks_german_and_checks_french(app_env) -> None:
-    client, app, endpoint = app_env
+    client, _app, _endpoint = app_env
     client.get("/ui/de?next=/check")
     page = client.get("/check")
     assert "Text prüfen" in page.text and "Prüfen</button>" in page.text

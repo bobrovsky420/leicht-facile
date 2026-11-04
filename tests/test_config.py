@@ -120,7 +120,7 @@ def test_a_shipped_preset_fills_the_llm_and_the_key_comes_from_env_files(home, m
 def test_the_shipped_catalog_is_complete_and_in_order() -> None:
     assert list(config.PROVIDERS) == PROVIDER_NAMES
     assert config.DEFAULT_PRESET == "publicai-apertus"
-    assert list(config.PRESETS)[0] == "publicai-apertus"
+    assert next(iter(config.PRESETS)) == "publicai-apertus"
     for table in config.PROVIDERS.values():
         provider = config.Provider.model_validate(table)  # no unknown key, no wrong value
         assert provider.label and provider.url

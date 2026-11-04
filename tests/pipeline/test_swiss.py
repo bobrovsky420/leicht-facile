@@ -51,7 +51,7 @@ def test_ss_replaces_sz_in_blocks_and_glossary_and_records_the_edits() -> None:
 
 
 def test_ss_is_idempotent_and_leaves_french_and_clean_drafts_alone() -> None:
-    once, edits = apply_ss(draft())
+    once, _edits = apply_ss(draft())
     twice, again = apply_ss(once)
     assert twice == once and again == []
     clean = draft().model_copy(update={"blocks": [draft().blocks[2]], "glossary": []})

@@ -174,7 +174,7 @@ def test_a_script_names_its_workspace_in_the_header(make_app) -> None:
     # A script without a header gets a workspace of its own, named in the answer.
     anonymous = TestClient(app)
     created = anonymous.post("/api/v1/jobs", data={"text": TEXT}).json()
-    assert TOKEN.fullmatch(created["workspace"]) and created["workspace"] not in (token,)
+    assert TOKEN.fullmatch(created["workspace"]) and created["workspace"] != token
 
 
 def test_the_cookie_is_secure_over_https_and_the_access_line_hides_the_token(

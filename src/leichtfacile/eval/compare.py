@@ -78,7 +78,7 @@ def read_runs(text: str) -> list[Run]:
     return runs
 
 
-def update(doc: Path, *, root: Path = Path("."), role: str = "eval") -> int:
+def update(doc: Path, *, root: Path = Path(), role: str = "eval") -> int:
     """Fill the document's tables from its runs; the number of runs."""
     text = doc.read_text(encoding="utf-8")
     runs = read_runs(text)
@@ -92,7 +92,7 @@ def update(doc: Path, *, root: Path = Path("."), role: str = "eval") -> int:
     return len(runs)
 
 
-def render_runs(runs: list[Run], *, root: Path = Path("."), role: str = "eval") -> str:
+def render_runs(runs: list[Run], *, root: Path = Path(), role: str = "eval") -> str:
     """The runs table, then one section per language with the tables of `eval report`:
     the originals and the official versions first, then one group per run."""
     data = {run.label: run.rows(root, role) for run in runs}

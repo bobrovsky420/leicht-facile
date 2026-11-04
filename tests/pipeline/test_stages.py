@@ -1019,7 +1019,7 @@ def test_the_repair_record_keeps_the_answer_and_what_code_dropped(endpoint, slee
         ],
     }  # fmt: skip
     endpoint.push(chat_response(fx.as_json(answer)), chat_response(fx.as_json(answer)))
-    new_draft, results, record = repair(llm, fx.letter(), fs, draft, request)
+    new_draft, _results, record = repair(llm, fx.letter(), fs, draft, request)
     assert [b.text for b in new_draft.blocks] == [
         "Rufen Sie das Sozial·amt an.",
         "Das kostet 20 Franken.",
@@ -1159,11 +1159,7 @@ def test_code_completion_works_on_the_document_text_and_keeps_percentages_checka
         Block(id="b002", kind="sentence", text="Die Adresse: Gerichtsstrasse 12, 8000 Musterwil."),
     ])  # fmt: skip
     coverage = fact_coverage(draft, fs, "de")
-    assert (
-        coverage.missing == []
-        and set(coverage.found) == {"4.5%", "Gerichtsstrasse 12, 8000 Musterwil"} - set()
-        or True
-    )
+    assert coverage.missing == []
     assert {fs.facts[i].id for i in range(len(fs.facts)) if fs.facts[i].must_keep} == set(
         coverage.found
     )

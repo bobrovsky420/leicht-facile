@@ -66,7 +66,7 @@ _TABLE.update({ord(k): v for k, v in _LIGATURES.items()})
 _TABLE.update({ord(c): "-" for c in _HYPHENS})
 # Remaining C0 and C1 control characters (tab and line feed are handled above).
 _TABLE.update({c: None for c in range(0x20) if c not in (0x09, 0x0A)})
-_TABLE.update({c: None for c in range(0x7F, 0xA0)})
+_TABLE.update(dict.fromkeys(range(0x7F, 0xA0)))
 
 # Carriage returns, vertical tab, form feed, next line, line separator.
 _NEWLINES = re.compile(r"\r\n?|[\x0b\x0c\x85\u2028]")

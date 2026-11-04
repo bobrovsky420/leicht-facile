@@ -315,7 +315,7 @@ def _check(
         return {"error": t("model.key.needed", provider=label)}
     try:
         models = configure.list_models(str(table.get("url", "")), key, table.get("headers"))
-    except Exception as exc:  # the address or the key is wrong: the page says so
+    except Exception as exc:  # noqa: BLE001  (a wrong address or key: the page says so)
         return {"error": t("model.check.failed", provider=label, error=_error_text(exc))}
     key_name = "model.check.ok" if config.listed(model, models) else "model.check.unlisted"
     return {"message": t(key_name, provider=label, count=len(models), model=model)}

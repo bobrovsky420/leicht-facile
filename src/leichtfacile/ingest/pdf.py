@@ -43,6 +43,7 @@ import re
 import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from itertools import pairwise
 
 import pdfplumber
 
@@ -219,7 +220,7 @@ def _join_words(words: list[_Word]) -> str:
     if not words:
         return ""
     out = words[0].text
-    for previous, word in zip(words, words[1:], strict=False):
+    for previous, word in pairwise(words):
         touching = word.x0 - previous.x1 < 0.12 * min(previous.size, word.size)
         mediopunkt = (
             len(previous.text) > 1
@@ -300,7 +301,7 @@ def _zone(line: _Line, page: _Page) -> str | None:
 _CROSSING = 6.0  # a word crosses the gutter only if it reaches this far into both sides
 
 
-def _page_blocks(page: _Page) -> list[list[_Line]]:
+def _page_blocks(page: _Page) -> list[list[_Line]]:  # noqa: C901
     """The lines of a page in reading order, as blocks (columns and full-width runs)."""
     if not page.words:
         return []
@@ -434,7 +435,7 @@ def _line_spacing(blocks: list[list[_Line]]) -> dict[float, float]:
     """Typical distance from one line top to the next, per font size."""
     distances: dict[float, list[float]] = defaultdict(list)
     for block in blocks:
-        for a, b in zip(block, block[1:], strict=False):
+        for a, b in pairwise(block):
             distance = b.top - a.top
             if a.size == b.size and 0.8 * a.size < distance < 2 * a.size:
                 distances[a.size].append(distance)

@@ -281,7 +281,7 @@ def test_the_mediopunkt_step_leaves_medication_names_as_written() -> None:
     facts = medications("Metoclopramidtropfen")
     assert medication_names(facts) == ["Metoclopramidtropfen"]
     text = draft("Nehmen Sie die Metoclopramidtropfen am Morgen.")
-    split, edits = apply_mediopunkt(text)
+    _split, edits = apply_mediopunkt(text)
     assert [e.after for e in edits] == ["Metoclopramid·tropfen"]
     kept, none = apply_mediopunkt(text, keep=medication_names(facts))
     assert none == [] and kept.blocks[0].text == text.blocks[0].text

@@ -119,7 +119,7 @@ def _digits(text: str) -> str:
     return re.sub(r"\D", "", text)
 
 
-def mentions(target: Value, text: str, lang: str) -> str | None:
+def mentions(target: Value, text: str, lang: str) -> str | None:  # noqa: C901
     """Whether a text carries the value: "exact" when FACT-01 would accept it, "loose"
     when its digits or its words are there in another form (a heuristic for a reader:
     `31.3.` for `2026-03-31` is exact, `Ende März 2026` loose), else None."""
@@ -127,7 +127,7 @@ def mentions(target: Value, text: str, lang: str) -> str | None:
         return "exact"
     lowered = text.lower()
     if target.kind == "date":
-        year, month, day = target.canonical.split("-")
+        _year, month, day = target.canonical.split("-")
         tokens = set(re.findall(r"\d+", text))
         names = [m.lower() for names in MONTH_NAMES.values() for m in names]
         month_named = any(
@@ -192,7 +192,7 @@ def _requests(
     return asked
 
 
-def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:
+def diagnose_job(store: Store, row: dict[str, Any]) -> JobDiagnosis | None:  # noqa: C901, PLR0912, PLR0915
     job_id = row["job_id"]
     source = store.get_artifact(job_id, "source", SourceDocument)
     factsheet = store.get_artifact(job_id, "factsheet", FactSheet)

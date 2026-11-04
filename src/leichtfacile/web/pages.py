@@ -402,12 +402,13 @@ def check_text(
 
 
 @router.get("/ui/{lang}")
-def set_ui_language(lang: str, next: str = "/") -> RedirectResponse:
+# `next` is the form field's name.
+def set_ui_language(lang: str, next: str = "/") -> RedirectResponse:  # noqa: A002
     """The language switcher: remember the choice and go back to the page."""
     if lang not in ui_languages():
         raise HTTPException(404, f"no interface language {lang}")
     if not next.startswith("/") or next.startswith("//") or "\\" in next:
-        next = "/"  # only paths on this site, never another host
+        next = "/"  # noqa: A001  (only paths on this site, never another host)
     response = RedirectResponse(next, status_code=303)
     response.set_cookie(COOKIE, lang, max_age=ONE_YEAR, samesite="lax", httponly=True)
     return response

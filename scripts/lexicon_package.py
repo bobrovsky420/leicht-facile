@@ -132,7 +132,7 @@ def build(
     import spacy
 
     sys.path.insert(0, str(HERE))
-    import morphit  # noqa: PLC0415  (scripts/morphit.py, bundled below)
+    import morphit  # scripts/morphit.py, bundled below
 
     name, version = model["name"], model["version"]
     package = f"leichtfacile_model_{lang}"

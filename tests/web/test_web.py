@@ -500,7 +500,7 @@ def test_a_decision_job_shows_the_notice_and_exports_it_first_and_last(app_env) 
 
 
 def test_the_new_draft_page_takes_the_decision_settings_from_the_example(app_env) -> None:
-    client, app, endpoint = app_env
+    client, _app, _endpoint = app_env
     page = client.get("/new?example=entscheid-beistandschaft-musterwil")
     assert page.status_code == 200
     assert '<option value="decision" selected>' in page.text

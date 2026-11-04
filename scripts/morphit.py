@@ -141,7 +141,7 @@ def pos_of(tag: str, text: str = "") -> str:
     return _POS.get(parts[0], "X")
 
 
-def morph_of(tag: str) -> str:
+def morph_of(tag: str) -> str:  # noqa: C901, PLR0912, PLR0915
     """The UD features of a Morph-it! tag as `Mood=Ind|Number=Sing|...`."""
     head, _, feats = tag.partition(":")
     parts = head.split("-")
@@ -288,7 +288,7 @@ class MorphitLexicon:
             token.set_morph(morph_of(tag) or None)  # type: ignore[attr-defined]  # no stub
         return doc
 
-    def _choose(self, rs: tuple[tuple[str, str], ...], doc: Doc, i: int) -> tuple[str, str]:
+    def _choose(self, rs: tuple[tuple[str, str], ...], doc: Doc, i: int) -> tuple[str, str]:  # noqa: C901, PLR0912
         if len(rs) == 1:
             return rs[0]
         groups = {coarse(tag) for _, tag in rs}
@@ -441,7 +441,7 @@ class MorphitLexicon:
                 return True
         return False
 
-    def _article(self, doc: Doc, i: int) -> bool:
+    def _article(self, doc: Doc, i: int) -> bool:  # noqa: C901
         """Whether the article reading of la, le, lo, gli or l' fits: after a preposition
         always; else the next word takes that form of the article (lo only before s plus
         consonant, z, gn, ps, x and y, l' only before a vowel, la never before one) and

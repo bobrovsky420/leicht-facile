@@ -8,7 +8,7 @@ import io
 import json
 import zipfile
 from datetime import date
-from xml.etree import ElementTree
+from xml.etree import ElementTree as ET
 
 from leichtfacile import __version__, cli
 from leichtfacile.export.docx import footer_line, to_docx
@@ -62,18 +62,18 @@ def docx(
     return to_docx(layout, summary=summary, today=DAY)
 
 
-def parts(data: bytes) -> dict[str, ElementTree.Element]:
+def parts(data: bytes) -> dict[str, ET.Element]:
     """Every part of the package, parsed: a part that is not well-formed XML fails here."""
     with zipfile.ZipFile(io.BytesIO(data)) as package:
-        return {name: ElementTree.fromstring(package.read(name)) for name in package.namelist()}
+        return {name: ET.fromstring(package.read(name)) for name in package.namelist()}
 
 
-def style_of(p: ElementTree.Element) -> str | None:
+def style_of(p: ET.Element) -> str | None:
     found = p.find(f"{W}pPr/{W}pStyle")
     return None if found is None else found.get(f"{W}val")
 
 
-def paragraphs(root: ElementTree.Element) -> list[tuple[str | None, list[str]]]:
+def paragraphs(root: ET.Element) -> list[tuple[str | None, list[str]]]:
     """Each paragraph's style and its lines, the text between its line breaks."""
     found = []
     for p in root.iter(f"{W}p"):
@@ -87,7 +87,7 @@ def paragraphs(root: ElementTree.Element) -> list[tuple[str | None, list[str]]]:
     return found
 
 
-def style(styles: ElementTree.Element, style_id: str) -> ElementTree.Element:
+def style(styles: ET.Element, style_id: str) -> ET.Element:
     return next(s for s in styles.iter(f"{W}style") if s.get(f"{W}styleId") == style_id)
 
 

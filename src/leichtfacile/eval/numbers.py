@@ -174,8 +174,9 @@ def decide_case(
     if not invented_better and not errors_better:
         return "C", reasons
     if errors_better and gap <= 0:
-        # case A2 (owner, 11 Oct): fewer rule errors and at least the same fact coverage,
-        # but not fewer invented values; the headline names facts and rules
+        # Case A2, as the owner decided on 11 October 2026: fewer rule errors and at least
+        # the same fact coverage, but not fewer invented values; the headline names facts
+        # and rules.
         return "A2", reasons
     reasons.append(
         "better on one of the two counts only, coverage within 5 points: the cases do "
@@ -209,7 +210,7 @@ def bootstrap_interval(
     diffs: list[float], resamples: int = RESAMPLES, seed: int = SEED
 ) -> tuple[float, float]:
     """Percentile 95 % interval of the mean of `diffs`, resampling them with replacement."""
-    rnd = random.Random(seed)
+    rnd = random.Random(seed)  # noqa: S311  (the bootstrap's resampling, not a secret)
     means = sorted(fmean(rnd.choices(diffs, k=len(diffs))) for _ in range(resamples))
     return means[int(0.025 * resamples)], means[int(0.975 * resamples) - 1]
 
@@ -364,9 +365,11 @@ def comparisons(rows: list[Row]) -> list[Comparison]:
     if _group_rows(rows, "P0-ZH-complete")[1]:
         out.append(compare(rows, ("P2", None), ("P0-ZH-complete", None)))
     keys = {group_key(r) for r in rows if r.get("setup") == "P2" and not r.get("understand")}
-    for key in sorted(keys - {head_key}):
-        if _group_rows(rows, "P2", key)[1]:
-            out.append(compare(rows, ("P2", key), ("P2", head_key)))
+    out.extend(
+        compare(rows, ("P2", key), ("P2", head_key))
+        for key in sorted(keys - {head_key})
+        if _group_rows(rows, "P2", key)[1]
+    )
     return out
 
 
@@ -420,12 +423,12 @@ def render_numbers(results_dir: Path, *, role: str = "eval", lang: str = "de") -
         "| Errors / 100 | Not in source / 100 | Unsupported / 100 |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
-    for s in sorted(h.setups, key=lambda s: ORDER.get(s.setup, 9)):
-        out.append(
-            f"| {s.setup} | {s.writer} | {s.pairs} | {_pct(s.fact_coverage)} % "
-            f"| {_pct(s.hard_facts_kept)} % | {_pct(s.silent_losses)} % | {_num(s.errors)} "
-            f"| {_num(s.invented)} | {_num(s.unsupported)} |"
-        )
+    out.extend(
+        f"| {s.setup} | {s.writer} | {s.pairs} | {_pct(s.fact_coverage)} % "
+        f"| {_pct(s.hard_facts_kept)} % | {_pct(s.silent_losses)} % | {_num(s.errors)} "
+        f"| {_num(s.invented)} | {_num(s.unsupported)} |"
+        for s in sorted(h.setups, key=lambda s: ORDER.get(s.setup, 9))
+    )
     out += ["", f"Headline case {h.case} (P2 against P0-ZH complete):"]
     out += [f"- {reason}" for reason in h.reasons]
     out += render_uncertainty(results_dir, role=role, lang=lang)

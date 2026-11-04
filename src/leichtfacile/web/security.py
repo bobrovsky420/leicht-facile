@@ -438,7 +438,7 @@ class BodyLimit:
         self.app = app
         self.max_bytes = max_bytes
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:  # noqa: C901
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

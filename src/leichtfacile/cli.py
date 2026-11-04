@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from leichtfacile.config import Settings
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
     parser = argparse.ArgumentParser(prog="leichtfacile", description=__doc__.splitlines()[0])
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument(
@@ -207,7 +207,7 @@ def with_preset(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
+def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:  # noqa: C901
     if args.command == "setup":
         from leichtfacile.config import collect, preset_names
 
@@ -383,7 +383,8 @@ def open_when_ready(url: str, page: str = "", timeout_s: float = 60.0) -> None:
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
             try:
-                urllib.request.urlopen(url + "healthz", timeout=2).close()
+                # The app's own address (`serve` made it), never a user's.
+                urllib.request.urlopen(url + "healthz", timeout=2).close()  # noqa: S310
             except OSError:
                 time.sleep(0.5)
                 continue
@@ -409,7 +410,7 @@ def _check_llm(model: str | None, thinking: bool) -> int:
         print(f"listed:    {len(models)} models; requested model listed: {listed(name, models)}")
         for m in models:
             print(f"           - {m}")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  (the check reports any failure)
         print(f"listing models failed: {type(exc).__name__}: {exc}", file=sys.stderr)
 
     try:
@@ -510,7 +511,7 @@ def _check(args: argparse.Namespace) -> int:
     return 0
 
 
-def _simplify(args: argparse.Namespace) -> int:
+def _simplify(args: argparse.Namespace) -> int:  # noqa: PLR0915
     from leichtfacile.export.bundle import build_bundle
     from leichtfacile.export.docx import to_docx
     from leichtfacile.export.html import to_html
@@ -563,7 +564,8 @@ def _simplify(args: argparse.Namespace) -> int:
     llm = LLMClient.from_settings(settings)
     Orchestrator(store, llm, settings).run(job.id, stop_after=args.stop_after)
     finished = store.get_job(job.id)
-    assert finished is not None, job.id
+    if finished is None:
+        raise RuntimeError(f"job {job.id} is gone from the store")
     job = finished
 
     out = args.out / job.id

@@ -83,7 +83,7 @@ class EndpointCheck:
             return EndpointStatus(False, datetime.now(UTC), error=NOT_READY)
         try:
             models = llm.list_models()
-        except Exception as exc:  # any failure is reported, never raised
+        except Exception as exc:  # noqa: BLE001  (any failure is reported, never raised)
             log.warning("LLM endpoint check failed: %s", type(exc).__name__)
             return EndpointStatus(False, datetime.now(UTC), error=_error_text(exc))
         return EndpointStatus(True, datetime.now(UTC), models)

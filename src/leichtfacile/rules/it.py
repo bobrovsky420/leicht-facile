@@ -243,7 +243,7 @@ def _infinitive_follows(tokens: list[Token], k: int, limit: int = 4) -> bool:
     return False
 
 
-def _opener_at(tokens: list[Token], k: int) -> tuple[str, str, int] | None:
+def _opener_at(tokens: list[Token], k: int) -> tuple[str, str, int] | None:  # noqa: C901
     """The opener starting at token k as (text, kind, length in tokens), or None."""
     for phrase in CONJUNCTIONS:
         n = phrase.count(" ") + 1

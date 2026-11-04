@@ -68,7 +68,7 @@ def sample_items(
 ) -> tuple[list[Item], list[Item]]:
     """Fact items stratified by the judge's status and block items half flagged,
     half passed, from the final drafts of the condition's completed jobs."""
-    rng = random.Random(seed)
+    rng = random.Random(seed)  # noqa: S311  (a reproducible sample, not a secret)
     fact_pools: dict[str, list[Item]] = {s: [] for s in FACT_LABELS}
     block_pools: dict[str, list[Item]] = {s: [] for s in BLOCK_LABELS}
     store = Store(results_dir / "store.sqlite")

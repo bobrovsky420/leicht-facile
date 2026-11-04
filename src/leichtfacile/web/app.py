@@ -42,7 +42,8 @@ def create_app(
     first use and made anew when the model page changes the settings. The app starts
     without a ready preset: its model page asks for the key."""
     if llm is not None:
-        assert settings is not None
+        if settings is None:
+            raise TypeError("a client needs its settings")
         registry = Registry(settings, llm=llm, clients=clients)
     else:
         registry = Registry.from_settings(settings)

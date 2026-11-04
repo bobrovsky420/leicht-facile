@@ -85,7 +85,7 @@ def _blocks(text: str) -> list[list[str]]:
     return blocks
 
 
-def _parse_block(lines: list[str]) -> list[Unit]:
+def _parse_block(lines: list[str]) -> list[Unit]:  # noqa: C901
     units: list[Unit] = []
     kind: SegmentKind = "paragraph"
     pending: list[str] = []

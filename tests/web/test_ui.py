@@ -165,7 +165,7 @@ def test_new_draft_page_offers_the_examples(env) -> None:
 
 
 def test_form_passes_model_overrides_to_the_job(env) -> None:
-    client, app, _, _, endpoint = env
+    client, _app, _, _, endpoint = env
     endpoint.push(chat_response(fx.BASELINE_TEXT))
     response = client.post(
         "/jobs",
@@ -222,7 +222,7 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
                       "judge": "pending", "repair": "pending", "review": "pending"}  # fmt: skip
     assert "facts" in view.steps[0].detail and "must survive" in view.steps[0].detail
     assert view.current.key == "write" and view.live and view.current_index == 2
-    assert [c.label for c in view.core][0] == "What is it about?"
+    assert next(c.label for c in view.core) == "What is it about?"
     assert 85 <= view.elapsed_s <= 100
     usage = view.steps[0].usage  # each step carries its model calls
     assert (usage.calls, usage.tokens_in, usage.tokens_out) == (1, 1200, 300)
@@ -424,7 +424,7 @@ def test_the_html_export_breaks_lines_its_column_can_hold_and_prints_on_a4() -> 
     draft = Draft(doc_id="d", lang="de", level="A2",
                   blocks=[Block(id="b001", kind="sentence", text=text)])  # fmt: skip
     page = to_html(build_layout(draft))
-    paragraph = re.search(r"<p>(.*?)</p>", page, re.S).group(1)
+    paragraph = re.search(r"<p>(.*?)</p>", page, re.DOTALL).group(1)
     lines = [unescape(line.strip()) for line in paragraph.split("<br>")]
     assert len(lines) > 1 and all(len(line) <= LINE_CHARS for line in lines)
     assert " ".join(lines) == text
@@ -434,8 +434,9 @@ def test_the_html_export_breaks_lines_its_column_can_hold_and_prints_on_a4() -> 
     # A value never breaks across lines (here the break fell inside the phone number).
     call = "Für Fragen rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67 oder mailen."
     draft = draft.model_copy(update={"blocks": [Block(id="b001", kind="sentence", text=call)]})
-    paragraph = re.search(r"<p>(.*?)</p>", to_html(build_layout(draft)), re.S).group(1)
-    assert any("044 123 45 67" in line for line in paragraph.split("<br>"))
+    paragraph = re.search(r"<p>(.*?)</p>", to_html(build_layout(draft)), re.DOTALL).group(1)
+    # The no-break spaces are the layout's: a phone number never breaks across lines.
+    assert any("044 123 45 67" in line for line in paragraph.split("<br>"))  # noqa: RUF001
 
 
 def test_the_reader_view_offers_print(env) -> None:

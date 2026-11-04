@@ -290,7 +290,7 @@ class LLMClient:
         if self._judge_model is None:
             try:
                 models = self.list_models()
-            except Exception as exc:  # the judge still runs, on the writer's model
+            except Exception as exc:  # noqa: BLE001  (the judge runs on the writer's model)
                 log.warning("model list for the judge failed: %s", type(exc).__name__)
                 return settings.llm.models.writer
             self._judge_model = settings.llm.judge_for(models)
@@ -482,7 +482,8 @@ def _retry_delay(exc: Exception, attempt: int) -> float:
             except ValueError:
                 pass
     backoff = min(_BACKOFF_BASE_S * 2 ** (attempt - 1), _BACKOFF_MAX_S)
-    return backoff * (0.5 + random.random() / 2)  # jitter: 50-100 percent of the backoff
+    # Jitter: 50-100 percent of the backoff; not a secret, so `random` will do.
+    return backoff * (0.5 + random.random() / 2)  # noqa: S311
 
 
 def _describe(exc: Exception) -> str:

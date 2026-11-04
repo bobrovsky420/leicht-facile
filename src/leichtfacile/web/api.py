@@ -254,7 +254,8 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
 def export(
     request: Request,
     job_id: str,
-    format: Annotated[Literal["md", "html", "docx", "json"], Query()] = "md",
+    # `format` is the query parameter's name.
+    format: Annotated[Literal["md", "html", "docx", "json"], Query()] = "md",  # noqa: A002
     version: int | None = None,
     original: bool = False,
 ) -> Response:

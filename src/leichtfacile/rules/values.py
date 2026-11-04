@@ -690,7 +690,7 @@ def mask(text: str, spans: Iterable[tuple[int, int]]) -> str:
     return "".join(chars)
 
 
-def extract_values(text: str, lang: str = "de") -> list[Value]:
+def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, PLR0915
     """All values in the text, in order of appearance, without overlaps. Each kind is
     taken from the text with the earlier kinds masked, so an IBAN is never also a
     phone number and the count of a period never also a plain number. `lang` is a
@@ -1005,7 +1005,7 @@ def find_medication(target: Value, text: str) -> list[Value]:
 # -- normalised fact values --------------------------------------------------------
 
 
-def parse_value_norm(
+def parse_value_norm(  # noqa: C901
     value_norm: str | None, fact_kind: str = "other", lang: str = "de"
 ) -> Value | None:
     """Interpret a fact sheet's value_norm; None when code cannot check it."""
@@ -1072,7 +1072,7 @@ def _address_matches(target: Value, candidate: Value) -> bool:
     return not t_pobox or c_pobox.startswith(t_pobox)
 
 
-def matches(target: Value, candidate: Value) -> bool:
+def matches(target: Value, candidate: Value) -> bool:  # noqa: C901
     """Whether a value found in a text is the fact's value."""
     if target.kind == "date":
         if candidate.kind != "date":

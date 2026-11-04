@@ -111,7 +111,7 @@ class RedactingFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         try:
             message = record.getMessage()
-        except Exception:  # a broken format string is the logger's problem, not ours
+        except Exception:  # noqa: BLE001  (a broken format string is the logger's problem)
             return True
         clean = redact(message)
         if clean != message:

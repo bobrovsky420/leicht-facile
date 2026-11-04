@@ -227,14 +227,14 @@ def test_an_unusable_answer_leaves_the_cache(endpoint, make_client, tmp_path):
     client = make_client(cache=cache)
     messages = [{"role": "user", "content": "x"}]
     endpoint.push(chat_response("nichts"), chat_response(VALID))
-    sheet, results = complete_json(client, messages, FactSheet)
+    _sheet, results = complete_json(client, messages, FactSheet)
     assert len(results) == 2
     # The same call again: the invalid first answer was dropped, so the model is asked.
     endpoint.push(chat_response(VALID))
-    sheet, results = complete_json(client, messages, FactSheet)
+    _sheet, results = complete_json(client, messages, FactSheet)
     assert len(results) == 1 and results[0].usage.cached is False
     # A usable answer stays cached.
-    sheet, results = complete_json(client, messages, FactSheet)
+    _sheet, results = complete_json(client, messages, FactSheet)
     assert len(results) == 1 and results[0].usage.cached is True
     cache.close()
 

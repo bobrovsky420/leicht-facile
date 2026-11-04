@@ -66,7 +66,7 @@ def test_manifest_accepts_both_field_spellings(pair_env) -> None:
     assert [p.url_standard for p in pairs] == ["https://example.org/s", "https://example.org/a"]
     assert pairs[0].licence_note == "synthetic"
     assert [p.id for p in dataset.select(pairs, role="eval")] == ["syn-letter-de"]
-    standard, easy = dataset.load_pair(pairs[0])
+    standard, _easy = dataset.load_pair(pairs[0])
     assert standard.segments[0].text == "Prämienverbilligung 2026"
     with pytest.raises(FileNotFoundError):
         dataset.load_pair(pairs[1])

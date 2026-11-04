@@ -41,7 +41,7 @@ _env = Environment(
     loader=FileSystemLoader(PROMPTS_DIR),
     undefined=StrictUndefined,
     keep_trailing_newline=False,
-    autoescape=False,
+    autoescape=False,  # noqa: S701  (prompts are text, not HTML)
     trim_blocks=True,
 )
 STANDARD_REGIONS = ("DE", "AT")  # the varieties that write the sharp s

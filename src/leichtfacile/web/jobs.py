@@ -198,7 +198,7 @@ def text_chars(text: str) -> int:
     return len(text.replace("\r\n", "\n"))
 
 
-def ingest_submission(
+def ingest_submission(  # noqa: C901, PLR0912
     sub: Submission, *, max_chars: int, allow_private_urls: bool = False
 ) -> SourceDocument:
     """The submission's document. A pasted text longer than `max_chars`
@@ -256,7 +256,7 @@ def ingest_submission(
     return source
 
 
-def create_job(
+def create_job(  # noqa: C901
     store: Store,
     settings: Settings,
     sub: Submission,

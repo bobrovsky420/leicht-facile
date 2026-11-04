@@ -673,7 +673,7 @@ class Data(Section):
     file that names it."""
 
     dir: Path = Field(
-        default_factory=lambda: default_data_dir(),
+        default_factory=lambda: default_data_dir(),  # noqa: PLW0108  (defined below)
         description="The database and the caches.",
         json_schema_extra=_shown("the user's app-data folder"),
     )
@@ -1296,7 +1296,7 @@ def provider_table(flat: Flat, name: str) -> dict[str, Any]:
     if name not in provider_names(flat):
         raise ConfigError(f"no provider {name!r}; known: {', '.join(provider_names(flat))}")
     layer = _layer(PROVIDERS, "providers", flat, name, f"provider {name}")
-    return _tree({key: item for key, item in layer.items()})
+    return _tree(dict(layer))
 
 
 def _layer(

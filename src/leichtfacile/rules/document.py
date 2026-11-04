@@ -51,7 +51,7 @@ _UNITS = {
 }
 
 
-def display_value(value: Value, lang: str) -> str:
+def display_value(value: Value, lang: str) -> str:  # noqa: C901
     """A value as the draft should write it: 4. Februar 2026, 4 février 2026; `lang` is
     a language or a variety key (de-DE: 1.500 Euro, de-AT: 4. Jänner 2026)."""
     language = base_lang(lang)
@@ -103,7 +103,8 @@ def full_text(source: SourceDocument) -> str:
 
 def _plain(text: str) -> str:
     """A text for a word-for-word search: no Mediopunkt, one space, lower case."""
-    return " ".join(text.replace("·", "").replace(" ", " ").split()).casefold()
+    # A no-break space, as the texts write 20 Franken, counts as a space.
+    return " ".join(text.replace("·", "").replace(" ", " ").split()).casefold()  # noqa: RUF001
 
 
 def fact_coverage(

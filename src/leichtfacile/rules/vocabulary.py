@@ -457,8 +457,10 @@ class VocabularyMatcher:
                     if match is not None:
                         found.append(match)
         for entry, regex in self._regexes:
-            for m in regex.finditer(text):
-                found.append(Match(entry, m.group(0), m.start(), m.end(), ((m.start(), m.end()),)))
+            found.extend(
+                Match(entry, m.group(0), m.start(), m.end(), ((m.start(), m.end()),))
+                for m in regex.finditer(text)
+            )
         found = [m for m in found if not _hidden(m, text)]
         return _longest(found)
 

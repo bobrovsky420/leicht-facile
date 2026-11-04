@@ -52,7 +52,8 @@ HEADER = (
 )
 ANOTHER_SERVER = "Another OpenAI-compatible server"
 ANOTHER_MODEL = "Another model the provider lists"
-TOKEN_VARIABLE = "LEICHTFACILE_TOKEN"  # where `config set auth.token` stores the secret
+# Where `config set auth.token` stores the secret: the variable's name, not a secret.
+TOKEN_VARIABLE = "LEICHTFACILE_TOKEN"  # noqa: S105
 
 
 def list_models(
@@ -77,7 +78,7 @@ def list_models(
 # -- setup ------------------------------------------------------------------------------
 
 
-def run_setup(
+def run_setup(  # noqa: C901, PLR0912, PLR0915
     *,
     provider: str | None = None,
     preset: str | None = None,
@@ -187,7 +188,7 @@ def run_setup(
     if store or not (preset or model):
         try:
             listed = models(url, key, table.get("headers") or None)
-        except Exception as exc:  # the address or the key may be wrong: go on anyway
+        except Exception as exc:  # noqa: BLE001  (a wrong address or key: go on anyway)
             say(f"The provider's model list could not be read ({type(exc).__name__}).")
         else:
             say(f"{label} lists {len(listed)} models.")
@@ -230,7 +231,8 @@ def run_setup(
     elif named and variable != table.get("api_key_env"):
         set_key(doc, ["providers", provider, "api_key_env"], variable)
         written.append(f"[providers.{provider}]")
-    assert preset is not None
+    if preset is None:  # a model always leads to one (above)
+        raise RuntimeError("no preset to use")
 
     active = (doc.get("llm") or {}).get("preset")
     use = True
@@ -665,7 +667,7 @@ def write_private(path: Path, text: str) -> None:
     with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     if os.name == "posix":  # a file that existed keeps its mode through O_TRUNC
-        os.chmod(path, 0o600)
+        path.chmod(0o600)
 
 
 def save_secret(path: Path, name: str, value: str) -> None:

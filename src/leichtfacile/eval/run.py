@@ -140,7 +140,8 @@ def run_condition(
         store.put_artifact(job.id, "source", standard)
         orchestrator.run(job.id)
         finished = store.get_job(job.id)
-        assert finished is not None, job.id
+        if finished is None:
+            raise RuntimeError(f"job {job.id} is gone from the store")
         job = finished
         row: dict[str, Any] = {
             "setup": condition,
@@ -158,7 +159,7 @@ def run_condition(
         else:
             try:
                 row.update(_score(store, orchestrator, job, pair, standard, easy, judge, judge_all))
-            except Exception as exc:  # a scoring call failed: the run goes on, the pair reruns
+            except Exception as exc:  # noqa: BLE001  (the run goes on; the pair reruns)
                 log.warning("%s %s: scoring failed: %s", condition, pair.id, exc)
                 row["status"] = "scoring_failed"
                 row["error"] = f"{type(exc).__name__}: {exc}"[:500]
@@ -273,7 +274,7 @@ def _best_version(
     return best[1], best[2], best[3]
 
 
-def rescore(
+def rescore(  # noqa: C901, PLR0912
     results_dir: Path,
     *,
     pairs: list[Pair],

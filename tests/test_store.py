@@ -310,7 +310,7 @@ def test_the_pool_serves_parallel_threads_within_its_size(tmp_path) -> None:
                 job = store.create_job(JobConfig(), title=f"{n}-{i}")
                 assert store.get_job(job.id) is not None
                 store.list_jobs(5)
-        except Exception as exc:  # reported by the test, not lost in the thread
+        except Exception as exc:  # noqa: BLE001  (the test reports it, not the thread)
             errors.append(exc)
 
     threads = [threading.Thread(target=work, args=(n,)) for n in range(8)]

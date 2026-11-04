@@ -27,7 +27,7 @@ def test_kandel_moles_from_counts():
 
 
 def test_gulpease_from_counts():
-    # 89 + (300 * 2 - 10 * 50) / 10 and 89 + (300 * 1 - 10 * 120) / 20
+    # Gulpease is 89 + (300 * sentences - 10 * letters) / words: 99 and 44 here.
     assert gulpease(2, 10, 50) == 99.0
     assert gulpease(1, 20, 120) == 44.0
 

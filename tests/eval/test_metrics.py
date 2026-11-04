@@ -98,8 +98,8 @@ def test_sari_document_scores_the_whole_document():
         (
             "Am 4.2.2020 zahlt die Gemeinde 1'500 Franken, d.h. CHF 1500.-.",
             "de",
-            ["am", "4.2.2020", "zahlt", "die", "gemeinde", "1'500", "franken", ","]
-            + ["d", ".", "h", ".", "chf", "1500", ".", "-", "."],
+            # The tokens on one line: a list literal would take seventeen.
+            "am 4.2.2020 zahlt die gemeinde 1'500 franken , d . h . chf 1500 . - .".split(),  # noqa: SIM905
         ),
         (
             "Das Sorge·recht per E-Mail: geht's?",

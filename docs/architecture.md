@@ -1712,7 +1712,10 @@ addressee, come from a JSON file next to it (`examples.py`).
 `leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
 the first thing to run after `setup`. In a checkout, development tasks run with
 `uv run`: `uv run pytest`, `uv run ruff check .` and `uv run ruff format .`, and the
-evaluation commands ([quickstart.md](quickstart.md#the-evaluation)). CI starts the app
+evaluation commands ([quickstart.md](quickstart.md#the-evaluation)); the lint rules, their
+exceptions with reasons and the complexity baseline (the functions over a limit when the
+rules were switched on, marked until they are simple again) are in `pyproject.toml`,
+`[tool.ruff.lint]`. CI starts the app
 natively with `leichtfacile serve --no-browser` against an unreachable endpoint and checks that
 `/healthz` answers and `/readyz` reports the endpoint unreachable
 (`.github/workflows/ci.yml`).

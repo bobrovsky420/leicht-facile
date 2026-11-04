@@ -136,7 +136,9 @@ def extract_html(html: str, url: str | None = None) -> tuple[str | None, list[Un
     )
     units: list[Unit] = []
     if xml:
-        main = ET.fromstring(xml).find("main")
+        # The XML is trafilatura's own serialisation of the parsed page: no document
+        # type, no entities.
+        main = ET.fromstring(xml).find("main")  # noqa: S314
         if main is not None:
             _walk(main, units)
     if not units or _flattened(units, tree):
@@ -324,11 +326,10 @@ def _unwrap_contact_links(tree: Any) -> None:
 
 def _reveal_panels(tree: Any) -> None:
     by_id = {e.get("id"): e for e in _elements(tree) if e.get("id")}
-    panels = []
+    panels: list[Any] = []
     for element in _elements(tree):
-        for ref in (element.get("aria-controls") or "").split():
-            if ref in by_id:
-                panels.append(by_id[ref])
+        refs = (element.get("aria-controls") or "").split()
+        panels.extend(by_id[ref] for ref in refs if ref in by_id)
         if (element.get("role") or "").lower() in _PANEL_ROLES or element.tag == "details":
             panels.append(element)
         labels = (element.get("aria-labelledby") or "").split()
@@ -376,7 +377,7 @@ def _unwrap_disclosure_buttons(tree: Any) -> None:
             button.tag = "p"  # the accordion title of a plain-text disclosure button
 
 
-def _drop_navigation_widgets(tree: Any) -> None:
+def _drop_navigation_widgets(tree: Any) -> None:  # noqa: C901
     for heading in list(tree.iter(*_HEADING_TAGS)):
         if heading.getparent() is None:
             continue
@@ -561,7 +562,7 @@ _HTML_KINDS: dict[str, SegmentKind] = {
 _HTML_BLOCKS = frozenset(_BLOCK_TAGS) | {"figure", "hr", "tbody", "tfoot", "thead"}
 
 
-def _walk_html(
+def _walk_html(  # noqa: C901
     element: Any,
     units: list[Unit],
     kind: SegmentKind,
@@ -723,7 +724,7 @@ def _rescue_sections(tree: Any, units: list[Unit], ids: list[str]) -> list[Unit]
     return _rescue_blocks(tree, units, blocks, "sections")
 
 
-def _rescue_blocks(tree: Any, units: list[Unit], blocks: list[Any], what: str) -> list[Unit]:
+def _rescue_blocks(tree: Any, units: list[Unit], blocks: list[Any], what: str) -> list[Unit]:  # noqa: C901
     """The units of the blocks that the extraction lacks, inserted at their place: the
     whole page is converted to units in document order, the extracted units are aligned
     to them, and the unmatched units of the blocks go in between."""

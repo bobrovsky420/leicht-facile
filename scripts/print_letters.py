@@ -279,7 +279,7 @@ def tax_reminder() -> Letter:
     return pdf
 
 
-def grant_decision() -> Letter:
+def grant_decision() -> Letter:  # noqa: PLR0915
     """French, two pages: a registered decision with an AHV number, a calculation,
     payment dates, duties and the means of appeal."""
     footer = [

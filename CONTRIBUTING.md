@@ -33,9 +33,12 @@ the app and the evaluation is described in [docs/quickstart.md](docs/quickstart.
 ## House rules
 
 - Python stays within `[tool.ruff]` of `pyproject.toml` (line length 100); the ruff
-  commands and mypy above pass before you push. A `type: ignore` names its error code
-  and says in a comment why the type is wrong there; one that silences nothing fails
-  mypy.
+  commands and mypy above pass before you push. The rule families and the exceptions
+  are listed there with their reasons. A `noqa` names its rule and says in a comment
+  why the finding is wrong there; a `type: ignore` names its error code the same way;
+  one that silences nothing fails ruff or mypy. The complexity rules carry a baseline:
+  the functions over a limit when the rules were switched on are marked; a new one is
+  split instead.
 - Plain hyphens only: no en dash or em dash in prose, docs, comments or commit
   messages.
 - Paths are written from the repository root (`docs/rules.md`); Markdown link targets

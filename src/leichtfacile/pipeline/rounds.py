@@ -117,7 +117,7 @@ def best(history: list[Step]) -> Step:
     return min(history, key=lambda h: (*version_key(h[1], h[2]), -h[0].version))
 
 
-def build_request(
+def build_request(  # noqa: C901, PLR0912
     draft: Draft,
     rules: RuleFindings,
     judge: JudgeReport | None,

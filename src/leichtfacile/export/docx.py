@@ -204,7 +204,7 @@ def footer_line(layout: Layout, summary: PipelineSummary | None, today: date | N
     parts = [
         f"Leicht·Facile {__version__}",
         labels["version"].format(version=layout.version),
-        (today or date.today()).strftime("%d.%m.%Y"),
+        (today or date.today()).strftime("%d.%m.%Y"),  # noqa: DTZ011  (the writer's day)
     ]
     if summary is not None:
         prompt = summary.prompt_versions.get(WRITER_PROMPTS.get(summary.condition, "write"))

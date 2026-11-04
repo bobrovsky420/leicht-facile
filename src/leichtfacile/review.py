@@ -139,7 +139,7 @@ def load_review(store: Store, job: Job, version: int | None = None) -> ReviewDat
     )
 
 
-def block_issues(
+def block_issues(  # noqa: C901, PLR0912
     draft: Draft, rules: RuleFindings | None, judge: JudgeReport | None
 ) -> tuple[dict[str, list[Issue]], list[Issue]]:
     """The issues per block (every block has a list), worst first, and the document

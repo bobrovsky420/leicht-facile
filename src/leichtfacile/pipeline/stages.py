@@ -995,7 +995,7 @@ def wording_source(text: str, source: SourceDocument) -> str | None:
     return sentences[scores[0][1]].id
 
 
-def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None = None) -> Draft:
+def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None = None) -> Draft:  # noqa: C901, PLR0912
     """Bookkeeping the model need not get right: a block that contains a fact's exact
     value conveys that fact, a block that cites a source sentence of a protected part of
     a decision (a code fact without a value, rules/decision.py) conveys that part, and
@@ -1350,7 +1350,7 @@ def _sentences(texts: list[str], lang: str) -> list[str]:
     return out
 
 
-def apply_repairs(
+def apply_repairs(  # noqa: C901, PLR0912, PLR0915
     draft: Draft,
     out: RepairOut,
     request: RepairRequest,
@@ -1656,7 +1656,7 @@ def _target_block(draft: Draft, window: list[Block], after: str | None, segment_
     return ids[i]
 
 
-def recover_fact(
+def recover_fact(  # noqa: C901, PLR0915
     llm: LLMClient,
     source: SourceDocument,
     factsheet: FactSheet,

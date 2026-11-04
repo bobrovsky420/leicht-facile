@@ -85,7 +85,7 @@ class JobBusy(PipelineError):
     """A worker is running the job: stop it before a rerun or a deletion (audit V14)."""
 
 
-class _Stopped(Exception):  # noqa: N818  (control flow, not an error)
+class _Stopped(Exception):  # control flow, not an error
     def __init__(self, stage: str) -> None:
         super().__init__(stage)
         self.stage = stage
@@ -104,7 +104,8 @@ class RunState:
 
     @property
     def stop(self) -> threading.Event:
-        assert self.limit.stop is not None
+        if self.limit.stop is None:
+            raise RuntimeError("the run has no stop event")
         return self.limit.stop
 
 
@@ -125,7 +126,8 @@ class Orchestrator:
         if isinstance(llm, Registry):
             self.registry = llm
         else:
-            assert settings is not None
+            if settings is None:
+                raise TypeError("a client needs its settings")
             self.registry = Registry(settings, llm=llm, clients=clients)
         self._clock = clock
         self._runs: dict[str, RunState] = {}  # the jobs running now, by id
@@ -228,8 +230,8 @@ class Orchestrator:
         try:
             self._set(job_id, status="running", error=None)
             source = self.store.get_artifact(job_id, "source", SourceDocument)
-            if source is None:
-                raise PipelineError("the job has no source document")
+            if source is None:  # raised inside the try: the handler below records it
+                raise PipelineError("the job has no source document")  # noqa: TRY301
             if job.config.lang and job.config.lang != source.lang:
                 source = source.model_copy(update={"lang": job.config.lang})
             if job.config.condition in BASELINE_CONDITIONS:
@@ -251,7 +253,7 @@ class Orchestrator:
             # Known failures carry a message without the document's or the model's
             # words (llm/json_out.redacted_error); no traceback, whose chained cause
             # would print the validation error with its input values (audit V10).
-            log.error("job %s failed: %s", job_id, _short(exc))
+            log.error("job %s failed: %s", job_id, _short(exc))  # noqa: TRY400
             self._set(job_id, status="failed", error=f"{type(exc).__name__}: {exc}"[:2000])
         except Exception as exc:  # the job fails; the service keeps running
             log.exception("job %s failed", job_id)
@@ -360,7 +362,7 @@ class Orchestrator:
 
     # -- the rounds after the first draft (pipeline/rounds.py) ----------------------------
 
-    def _rounds(
+    def _rounds(  # noqa: C901, PLR0912
         self,
         run: RunState,
         job: Job,

@@ -94,7 +94,8 @@ class Registry:
             return name in self._fixed or (self._loader is not None and self._is_ready(name))
 
     def _is_ready(self, name: str) -> bool:
-        assert self._loader is not None
+        if self._loader is None:
+            raise RuntimeError("the registry has no settings loader")
         if name not in self._ready:
             try:
                 self._ready[name] = not self._loader(strict=False, preset=name).problems
@@ -136,7 +137,8 @@ class Registry:
         return found
 
     def _settings_of(self, name: str) -> LLM:
-        assert self._loader is not None
+        if self._loader is None:
+            raise RuntimeError("the registry has no settings loader")
         return self._loader(preset=name).settings.llm
 
     def reload(self) -> None:
@@ -176,7 +178,7 @@ class Registry:
                 table.get("headers"),
                 timeout_s=DISCOVER_TIMEOUT_S,
             )
-        except Exception as exc:  # the server is off, or refuses: the page says so
+        except Exception as exc:  # noqa: BLE001  (off or refusing: the page says so)
             log.debug("discovering %s failed: %s", provider, type(exc).__name__)
             found = None
         with self._lock:

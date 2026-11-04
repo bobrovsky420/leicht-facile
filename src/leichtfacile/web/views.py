@@ -280,7 +280,7 @@ def _with_texts(t: Translator, issues: list[Issue]) -> list[Issue]:
     return issues
 
 
-def review_view(
+def review_view(  # noqa: C901
     store: Store, job: Job, version: int | None = None, t: Translator = ENGLISH
 ) -> ReviewView | None:
     data = load_review(store, job, version)
@@ -463,7 +463,7 @@ class ProgressView:
         return self.job.status in ("queued", "running")
 
 
-def progress_view(
+def progress_view(  # noqa: C901, PLR0912, PLR0915
     store: Store, job: Job, now: datetime | None = None, t: Translator = ENGLISH
 ) -> ProgressView:
     keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["P2"])
@@ -550,7 +550,7 @@ def progress_view(
     )
 
 
-def _add_detail(
+def _add_detail(  # noqa: C901, PLR0912
     step: Step,
     store: Store,
     job: Job,
@@ -720,7 +720,7 @@ def drafts_view(
 
 
 def format_duration(seconds: float) -> str:
-    seconds = int(round(seconds))
+    seconds = round(seconds)
     if seconds < 60:
         return f"{seconds} s"
     minutes, rest = divmod(seconds, 60)

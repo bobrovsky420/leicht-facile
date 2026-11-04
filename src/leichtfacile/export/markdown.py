@@ -11,7 +11,7 @@ from __future__ import annotations
 from leichtfacile.export.layout import Layout
 
 
-def to_markdown(layout: Layout) -> str:
+def to_markdown(layout: Layout) -> str:  # noqa: C901, PLR0912
     out: list[str] = []
     if layout.title:
         out += [f"# {layout.title}", ""]

@@ -146,7 +146,7 @@ def _string_end(text: str, start: int) -> int:
     return len(text)
 
 
-def drop_stray_strings(text: str) -> str:
+def drop_stray_strings(text: str) -> str:  # noqa: C901, PLR0912
     """Drop a string that stands where an object expects a key.
 
     The 8B gives a field two values without a list (`"value_norm": "0441234567",
@@ -198,7 +198,7 @@ def drop_stray_strings(text: str) -> str:
     return "".join(out)
 
 
-def close_containers(text: str, top_keys: Iterable[str]) -> str:
+def close_containers(text: str, top_keys: Iterable[str]) -> str:  # noqa: C901, PLR0912
     """Close the objects and lists a model forgot to close.
 
     Before a top-level key: `{"core": {"what": {...}, "facts": [...]}` lacks the brace
@@ -303,7 +303,7 @@ def schema_instruction(schema: type[BaseModel]) -> str:
     )
 
 
-def complete_json[T: BaseModel](
+def complete_json[T: BaseModel](  # noqa: C901
     client: LLMClient,
     messages: list[Message],
     schema: type[T],

@@ -80,22 +80,22 @@ def rendered_prompts(lang: str) -> dict[str, str]:
         examples=examples(lang), section="die Sätze 1 bis 3", medication=False,
         factsheet=r.factsheet_text(fs, ["f01"], lang),
         source=r.source_lines(source.segments[:3]))  # fmt: skip
-    judge = dict(factsheet=r.factsheet_text(fs, lang=lang),
-                 source=r.cited_source(source, cited), draft=r.draft_lines(draft, refs=False),
-                 glossary=r.glossary_text(draft))  # fmt: skip
+    judge = {"factsheet": r.factsheet_text(fs, lang=lang),
+             "source": r.cited_source(source, cited), "draft": r.draft_lines(draft, refs=False),
+             "glossary": r.glossary_text(draft)}  # fmt: skip
     add("judge A2", "judge", **judge)
     add("judge A2 decision", "judge", mode=decision, **judge)
-    repair = dict(style_guide=style_guide(lang, "A2"), flagged="[b001] Das kostet 20 Franken.\n"
-                  "  - LEN-01: 14 words", factsheet=r.factsheet_text(fs, lang=lang),
-                  draft=r.draft_lines(draft, refs=False, marked={"b001"}),
-                  source=r.cited_source(source, cited))  # fmt: skip
+    repair = {"style_guide": style_guide(lang, "A2"), "flagged": "[b001] Das kostet 20 Franken.\n"
+              "  - LEN-01: 14 words", "factsheet": r.factsheet_text(fs, lang=lang),
+              "draft": r.draft_lines(draft, refs=False, marked={"b001"}),
+              "source": r.cited_source(source, cited)}  # fmt: skip
     add("repair A2", "repair", missing="", **repair)
     add("repair A2 missing", "repair", missing="- f03: Sozialamt, 044 123 45 67.", **repair)
     add("repair A2 decision", "repair", mode=decision, missing="", **repair)
-    recover = dict(style_guide=style_guide(lang, "A2"), sentence_ids="[s0005]",
-                   fact="- f03: Sozialamt, 044 123 45 67.",
-                   paragraph=r.source_lines(source.segments[4:5]),
-                   blocks="[b001] Das kostet 20 Franken.\n[b002] Rufen Sie an.")  # fmt: skip
+    recover = {"style_guide": style_guide(lang, "A2"), "sentence_ids": "[s0005]",
+               "fact": "- f03: Sozialamt, 044 123 45 67.",
+               "paragraph": r.source_lines(source.segments[4:5]),
+               "blocks": "[b001] Das kostet 20 Franken.\n[b002] Rufen Sie an."}  # fmt: skip
     add("recover A2 value", "recover", value="044 123 45 67", **recover)
     add("recover A2 no value", "recover", value="", **recover)
     # The sender and the form of address (31 October 2026): a school writing to students.
