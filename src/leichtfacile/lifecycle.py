@@ -1,4 +1,4 @@
-"""The life of a job around the pipeline (docs/architecture.md §5 and §10):
+"""The life of a job around the pipeline (docs/architecture.md §5, docs/operations.md):
 
 - the counts the drafts list shows, written to the job row when the job is created,
   when the pipeline ends and when a review is saved, so the list opens no artifact;

@@ -405,8 +405,8 @@ class CrossSiteGuard:
     another site that posts to this app (a hidden form that deletes a job, re-runs it
     or starts model calls) is refused before any route runs. Today the app has no
     session of its own, so such a page only uses the victim's browser as a bridge into
-    the intranet; behind the login proxy of a deployment (docs/architecture.md
-    §10) the proxy's session cookie would make this classic CSRF, and the guard holds
+    the intranet; behind the login proxy of a deployment (docs/operations.md, "Security
+    and privacy") the proxy's session cookie would make this classic CSRF, and the guard holds
     there too. Only the unsafe methods are judged; reads are never refused."""
 
     def __init__(self, app: ASGIApp) -> None:

@@ -343,7 +343,7 @@ def complete_json[T: BaseModel](  # noqa: C901
             cause = exc
             # The model gets the whole error, excerpts of its answer included; the
             # exception, which ends in the job row and the logs, gets the positions
-            # and the kinds of error only (docs/architecture.md §10).
+            # and the kinds of error only (docs/operations.md, "Security and privacy").
             error: str = str(exc)[:_MAX_ERROR_CHARS]
             summary = redacted_error(exc)
             client.forget(result)

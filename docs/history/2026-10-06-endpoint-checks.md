@@ -10,7 +10,7 @@ Moved here from the design document's §12 in November 2026, unchanged.
 Assumptions to confirm against the live endpoint, in this order. Run on the Public AI
 gateway on 6 October 2026 and, when the key arrived the same day, on CSCS (both
 results below). Check 6 is `python -m leichtfacile eval run --condition P0 --limit 10`. Checks 2 and 3
-were rehearsed against the local llama.cpp endpoint (architecture.md §10): thinking switches per request
+were rehearsed against the local llama.cpp endpoint (operations.md §5): thinking switches per request
 through `chat_template_kwargs`, the reasoning arrives inline between `<|inner_prefix|>`
 and `<|inner_suffix|>` and is stripped, and the answer ends with a control token that the
 client removes.

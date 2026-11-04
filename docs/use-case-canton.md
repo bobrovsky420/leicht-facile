@@ -36,7 +36,7 @@ network, there are no accounts with foreign providers, and there is no telemetry
 Documents and review records stay in a data folder (`data.dir`) on a disk the canton
 controls.
 
-See [architecture.md §10](architecture.md#10-deployment-and-sovereignty) for the
+See [operations.md](operations.md#5-where-the-model-runs) for the
 deployment options and the hardware involved.
 
 ## 3. A typical case: the premium-reduction letter

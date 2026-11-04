@@ -7,9 +7,9 @@ This document describes Leicht·Facile as it is in the version at hand: the one
 It is kept in step with the code; a change in the code changes it in the same commit
 ([CONTRIBUTING.md](../CONTRIBUTING.md)). What changed when is the CHANGELOG's job, and
 dated records of checks and measurements that no longer describe the current version
-live under [history/](history/). Where a sentence here still says "since <date>", it is
-older wording on its way out: `tests/test_architecture_doc.py` lets no new one in. A
-date that stays says when a fact was verified or measured, not when a behaviour began.
+live under [history/](history/). `tests/test_architecture_doc.py` lets no sentence in
+that dates a behaviour ("since <date>"); a date that stays says when a fact was
+verified or measured, not when a behaviour began.
 
 Where to look:
 
@@ -25,7 +25,8 @@ Where to look:
   [evaluation-publicai.md](evaluation-publicai.md) and
   [model-comparison.md](model-comparison.md);
 - running it, from the installation to the container, with security, the supply chain
-  and the data lifecycle: §10 (the operator's steps: [quickstart.md](quickstart.md));
+  and the data lifecycle: [operations.md](operations.md), and §10 for what the design
+  fixes there (the operator's steps: [quickstart.md](quickstart.md));
 - the repository's layout: §11; the risks and their mitigations: §12.
 
 Companion documents: [rules.md](rules.md) (the rule catalogue the code checker implements), [use-case-canton.md](use-case-canton.md) (a walkthrough from the point of view of a cantonal administration), [use-case-decisions.md](use-case-decisions.md) (letters that accompany decisions of child and adult protection authorities and courts, partly planned), [use-case-schools.md](use-case-schools.md) (letters from schools and other organisations to parents, students and members), [use-cases.md](use-cases.md) (all use cases at a glance, the further ones sketched), [sources.md](sources.md) (reference pairs, demo documents and their licences) and [hard-texts.md](hard-texts.md) (hard words and sentences for tests and demos).
@@ -98,7 +99,7 @@ worker of a child and adult protection authority (KESB), or a court clerk, who d
 a decision and reviews an easy-language letter that goes out together with it. The
 workflow is the same. The review is mandatory, and the decision stays the only legally
 binding text. The appeal period, the case number, the AHV number and the court's
-postal address are exact facts since 7 October 2026 (§4.4). Not built yet: a field for
+postal address are exact facts (§4.4). Not built yet: a field for
 the person the letter speaks to; a document type "decision" whose operative part and
 appeal instructions are must-keep facts; a fixed notice in the export that the
 decision prevails; judge checks for neutrality and advice.
@@ -170,7 +171,7 @@ outbound connections are `llm.url` and the web addresses users submit.
 | # | Decision | Why |
 |---|----------|-----|
 | D1 | One Python service (FastAPI) serves both the API and a server-rendered review UI. No Node build step. | One Python package, one process (`leichtfacile serve`), nothing to build on another machine. The UI is a review tool, not a product front-end. |
-| D2 | All model access goes through one OpenAI-compatible client configured by `llm.url`, `llm.api_key`, `llm.models.writer`. | The CSCS endpoint, a model server of the organisation's own (vLLM, llama.cpp, Ollama), Swiss cloud providers and commercial APIs all speak the same protocol. "Sovereign deployment" becomes a change of the endpoint; `leichtfacile setup` saves the three as a named endpoint (§10). |
+| D2 | All model access goes through one OpenAI-compatible client configured by `llm.url`, `llm.api_key`, `llm.models.writer`. | The CSCS endpoint, a model server of the organisation's own (vLLM, llama.cpp, Ollama), Swiss cloud providers and commercial APIs all speak the same protocol. "Sovereign deployment" becomes a change of the endpoint; `leichtfacile setup` saves the three as a named endpoint (operations.md). |
 | D3 | The pipeline is a sequence of explicit stages with typed, persisted artifacts (pydantic models stored as JSON). | Every intermediate result is visible in the UI, re-runnable in isolation, and usable for evaluation and ablations. |
 | D4 | Countable rules live in code (spaCy morphology + regex). The model only judges what needs meaning. | Exact, free, reproducible; removes self-grading bias on the easy half of the rules. |
 | D5 | Writer and judge are separate model instances; with Apertus by default the 8B writes, the 70B (thinking) judges. `llm.models.understand` can give the Understand stage a third model (the hybrid: the 70B reads, the 8B writes). | A different, stronger model judging reduces bias and gives an 8B-vs-70B cost story. All three are a config switch; §9 compares the tiers. |
@@ -188,9 +189,9 @@ a failure resumes from the last good stage.
 
 | Input | Method | Output |
 |-------|--------|--------|
-| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at; 29 October 2026), and a cookie notice (an element whose class or id names cookies or consent, as parlament.gv.at's `div.cookie`; 30 October 2026) is dropped, and the sections the page's own jump list names are put back when trafilatura drops them (stadt.muenchen.de's "Dauer und Kosten"; 30 October 2026); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
-| PDF with text layer | `pdfplumber`, page by page; a soft hyphen in the text layer counts as a drawn hyphen (InDesign and Word map the hyphen glyph to U+00AD: the DRV brochure's Martin-Luther-Straße 2-4 read MartinLutherStraße 24 until 30 October 2026); words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
-| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Check 4 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md) passed on the Public AI gateway: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (its code removed with the no-go on 25 October 2026; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
+| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at), and a cookie notice (an element whose class or id names cookies or consent, as parlament.gv.at's `div.cookie`) is dropped, and the sections the page's own jump list names are put back when trafilatura drops them (stadt.muenchen.de's "Dauer und Kosten"); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
+| PDF with text layer | `pdfplumber`, page by page; a soft hyphen in the text layer counts as a drawn hyphen (InDesign and Word map the hyphen glyph to U+00AD: the DRV brochure's Martin-Luther-Straße 2-4 would read MartinLutherStraße 24); words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold; repeated headers, footers and page numbers removed; hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
+| PDF without text layer, photo | Not supported yet: a clear error. Planned: rendered to PNG and passed to Apertus as image input in the Understand step (Apertus 1.5 is multimodal). Check 4 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md) passed on the Public AI gateway: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (a no-go, its code removed; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, Markdown headings, bullet and numbered lists, short stand-alone lines as headings | `SourceDocument` |
 
 All text is normalised first: Unicode NFC, soft hyphens and zero-width characters
@@ -239,13 +240,13 @@ amount, phone number, e-mail address, web address, percentage, time, period (`in
 (`2,5 mg`) and dosing scheme (`1-0-1`) in the source that no fact carries (`origin:
 code`; the value kinds are listed in [rules.md](rules.md#facts-the-most-important-family)). The values are taken from the document text
 with the segments' character offsets, as the evaluation's "hard facts kept" takes
-them, so an address over two sentences is one fact citing both (since 7 October 2026;
-sentence by sentence before, which completed such an address without its street). A
+them, so an address over two sentences is one fact citing both (sentence by sentence,
+the completion wrote such an address without its street). A
 percentage is stored as `10%`, the form the prompt asks for; as a bare number it
 parsed as a plain number and never matched again. Values in passages the model marked as
 droppable become background facts; all others must be kept. The first local test run
 showed why: the model listed 3 facts for a letter with 11 checkable values. One fact
-per statement (since 31 October 2026): before code adds its facts, two of the model's
+per statement: before code adds its facts, two of the model's
 facts that cite a common sentence, are of one kind, both to keep or both not, and agree
 in their values (the normalised value, else the hard values in the fact's text) become
 one, the one with the normalised value, else the first, with the sentences of both; and
@@ -255,7 +256,7 @@ normalised value, becomes that fact's value instead of a fact of its own beside 
 value, code added the period again, and a repair round then wrote both). Code's own
 facts take their ids after the highest one, so none repeats an id a merge left
 standing. Then `rules/lists.py` adds one fact without a value per item of every list
-of the source that no code fact cites yet (`protect_lists`, since 31 October 2026,
+of the source that no code fact cites yet (`protect_lists`,
 after the decision mode's protected parts): the writer sees the items among the facts
 it must keep, a block that cites an item carries its fact, and FACT-10 (§4.4) fires
 when a must-keep item is cited by no block or listed as omitted, like FACT-08 for a
@@ -282,8 +283,8 @@ are never added by code. A hard term of the model that the source does not conta
 neither as written nor word for word in another form, is dropped (`stages.in_source`):
 the 8B listed the Understand example's own office (Einwohnerkontrolle, contrôle des
 habitants) for 6 documents of the CSCS evaluation, and the writer then sent the reader
-to it. Since 7 October 2026; `pipeline.vocabulary = false` switches this and the
-other uses below off, only to measure them.
+to it. `pipeline.vocabulary = false` switches this and the other uses below off, only
+to measure them.
 
 ### 4.3 Plan and write (model)
 
@@ -329,7 +330,7 @@ sentences, is apt to call it invented). A fact without a value whose text holds 
 e-mail) is linked to a block that cites one of its sentences and contains all of them,
 or to the blocks of its sentences that together hold all of them, each that holds one;
 a fact without a value and without values in its text to every block that cites one of
-its sentences (both 10 October 2026: the writer put the two income limits into two
+its sentences (the writer put the two income limits into two
 sentences, and renders a sentence without its tag). FACT-03 skips a question block, since a question states nothing. A sentence that repeats an earlier one is dropped and its references go
 to the first, and a heading left without content goes too: small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
@@ -363,10 +364,10 @@ recorded on the draft version (`code_edits`), shown on the review page and repor
 the evaluation. The same step runs after every repair round, before the check: the 8B
 does not apply the split it is given in a repair, and a warning alone costs a warnings
 round. P1 and P2 only; the baselines measure the prompt alone ([rules.md](rules.md),
-"Edits made by code"). Since 8 October 2026 the same step writes `ss` for `ß`
+"Edits made by code"). The same step writes `ss` for `ß`
 (`rules/swiss.py`, REG-01, one edit per word, blocks and glossary): the 8B writes `ß`
-now and then, and a repair round is a poor use of a model call for one character. Since
-29 October 2026 both steps follow the variety (§8): in the German of Germany and Austria
+now and then, and a repair round is a poor use of a model call for one character. Both
+steps follow the variety (§8): in the German of Germany and Austria
 the same split is written as `Kranken-Kasse`, the hyphen with a capital (the Netzwerk
 Leichte Sprache's rule W5, allowed by DIN SPEC 33429; `varieties.toml`, `compound_mark`;
 `rules/lexicon.hyphenated`), a Mediopunkt the model wrote is rendered the same way so one
@@ -375,7 +376,7 @@ style guide and the office are written with the Mediopunkt and rendered with the
 variety's mark), and the spelling step writes the sharp s instead of `ss`
 (`apply_spelling`, `apply_sz`); the Swiss text keeps the Mediopunkt and `ss`.
 
-**Sender and form of address** (since 31 October 2026). A job names who writes
+**Sender and form of address.** A job names who writes
 (`JobConfig.sender`: `authority`, `school` or `organisation`) and how the text addresses
 its reader (`JobConfig.address`: `formal` for Sie, vous and Lei, `informal` for du and
 tu, `plural` for ihr, vous and voi). Both are data in `src/leichtfacile/senders/senders.toml`
@@ -425,7 +426,7 @@ score, share of passive sentences, …). The full catalogue is in
   suggested, if it has exactly one. On the 12 dev pairs of 6 October the rule found
   the examples' phone numbers in 8 final drafts, the examples' amount and date in 3,
   and an e-mail address with a dropped letter; the P0 drafts had none. A value of the
-  fact sheet counts as known only if the source contains it: since 7 October 2026 a
+  fact sheet counts as known only if the source contains it: a
   value the Understand model computed or invented (an end of an appeal period, a
   day for "im Frühling") is flagged in the draft and no longer required by FACT-01,
   instead of reaching the reader with a FACT-05 warning on the fact sheet alone.
@@ -441,7 +442,7 @@ score, share of passive sentences, …). The full catalogue is in
   ([rules.md](rules.md#facts-the-most-important-family), "Value kinds"). Every further
   use case turns on one of them
   ([use-cases.md §13](use-cases.md#13-what-the-further-use-cases-need)).
-- the checks of the German of Germany and Austria (29 October 2026): the sharp s where
+- the checks of the German of Germany and Austria: the sharp s where
   the standard spelling has it, written by code like the Swiss `ss` (REG-01), `„ “` for
   direct speech only (REG-02), the Swiss words a Swiss-trained writer leaves in a German
   draft as a warning (REG-03: Velo, Spital, Trottoir), the euro and the thousands dot,
@@ -451,7 +452,7 @@ score, share of passive sentences, …). The full catalogue is in
   ([rules.md](rules.md#german-in-germany-de-de-and-in-austria-de-at)). The first
   calibration put the German pages at 2.2 errors per 100 blocks, the Austrian capito
   pages at 10.7;
-- the checks for the further use cases, all built by 8 October 2026: the fixed notice
+- the checks for the further use cases: the fixed notice
   (FACT-07) and the operative part and appeal instructions (FACT-08) of the decision
   mode, the judge's SEM-08 to SEM-10, and for patient letters a medication by its name
   (the value kind `medication`, which the fact sheet gives: code finds no drug name)
@@ -463,13 +464,13 @@ Each rule is declared in code once (`rules/catalog.py`, the registry of
 language; the language modules attach their checks and the instruction for the writer
 prompt, and the style guide is rendered from the registry, so prompt and checker never
 disagree; a test keeps the registry and [rules.md](rules.md) in sync. Of the 33 rules
-of the language families, 32 have a German check, 28 a French one and 28 an Italian one
-(Italian since 28 October 2026): 10 share one check with the language's words and
+of the language families, 32 have a German check, 28 a French one and 28 an Italian one:
+10 share one check with the language's words and
 patterns in a table (`rules/shared.py`), the others have a check per language
 (`rules/de.py`, `rules/fr.py`, `rules/it.py`), each calibrated on the official
 easy-language pages; GRAM-09 (impersonal phrases) is French and Italian, GRAM-10
 (gerund clauses) Italian only, ORD-01, GRAM-02, GRAM-08, REG-01 and REG-02 German only,
-REG-03 German and French only (the REG rules were CH-01 to CH-03 until 29 October 2026). 13 rules for facts, layout and readability apply to
+REG-03 German and French only. 13 rules for facts, layout and readability apply to
 every language.
 
 ### 4.5 Meaning check (a model as judge)
@@ -479,7 +480,7 @@ via the segment ids). It answers only what code cannot:
 
 1. For each fact: `present` | `missing` | `distorted`, with the block ids and a note.
 2. Which draft blocks state something the source does not support (hallucinations).
-   Since 10 October 2026 each such verdict quotes the words the source does not cover,
+   Each such verdict quotes the words the source does not cover,
    and code keeps it only when the quote stands in a block of the draft, on that
    block: the 70B had cited the block ids of the prompt's own example (`b006` in 46 of
    179 verdicts of the example builds, 18 of 146 in a dev run). A verdict whose quote
@@ -487,7 +488,7 @@ via the segment ids). It answers only what code cannot:
    On the 12 dev pairs the verdicts over all versions fell from 188 to 102, German
    unsupported per 100 blocks from 5.3 to 3.1, facts unchanged but for one pair's
    fresh sample (docs/prompts.md, "The judge's quotes on the dev pairs").
-   Since 12 October 2026 the comparison ignores the block id and the heading or list
+   The comparison ignores the block id and the heading or list
    marker the judge sees in front of a block (`[b012] - text`): the 70B had copied the
    marker into 43 of the 66 dropped verdicts of the final run of 11 October, among
    them a list item leaked from the prompt's own example (`- le numéro de la puce`)
@@ -496,7 +497,7 @@ via the segment ids). It answers only what code cannot:
    a statement, as the semantic findings on headings are already left out of repairs.
 3. Semantic rule violations: metaphors and idioms, abstract nouns, pronouns whose
    reference is unclear, implied knowledge the reader may not have, and a changed
-   obligation, possibility or condition (SEM-08, since 7 October 2026: `müssen` must
+   obligation, possibility or condition (SEM-08: `müssen` must
    not become `können`, and a `wenn` never `vielleicht`).
 
 Model: `llm.models.judge` (default: the 70B of the writer's Apertus family when the
@@ -507,9 +508,9 @@ assumed (§9).
 
 A `missing` on a fact whose value FACT-01 finds in the draft is shown on the review page
 in amber as "judge doubts", with the judge's note, not as a red "missing": code decides
-whether a value is there, and in the cases checked the judge had overlooked it (since
-8 October 2026; in the stored CSCS P2 jobs, 11 of the 24 `missing` verdicts on facts
-with a value left on final drafts were such facts). The pipeline still counts it as
+whether a value is there, and in the cases checked the judge had overlooked it (in the
+stored CSCS P2 jobs, 11 of the 24 `missing` verdicts on facts with a value left on final
+drafts were such facts). The pipeline still counts it as
 blocking and asks for the fact again: a dev rerun without that left three of ten German
 drafts worse (docs/prompts.md, "Judge doubts on values").
 
@@ -525,7 +526,7 @@ time, the most important kinds first; the warnings get one round once nothing bl
 is left. Code drops a repaired or added sentence that repeats one already in the draft,
 also when an addition lands before the block it repeats, and a repair text that ends
 another text of the same answer (the 70B wrote a sentence and then its tail once
-more). Since 31 October 2026 it also
+more). It also
 drops an addition for facts the draft already conveys (the links of §4.4), none of them
 asked for, and an addition asked for a value that brings none of it; a heading carries
 nothing, whatever fact ids the writer gave it. A fact the judge calls missing while a
@@ -559,7 +560,7 @@ answer is used as it is, and FACT-06 flags what remains. A missing fact is liste
 the fact sheet's value and, when that differs, the exact form the draft should write
 (`2026-03-31; schreibe: 31. März 2026`). A finding of LEN-02 carries the rewrite
 recipe for its conjunction as the suggestion, a German GRAM-01 the recipe for the active
-voice (docs/rules.md; since 30 October 2026, after the 70B left the passives of the
+voice (docs/rules.md; without it the 70B left the passives of the
 German pages standing through every repair round). Every round is recorded
 (`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
 every answered sentence code left out with its reason (a repeat, example content, a
@@ -577,7 +578,7 @@ Then:
   facts the judge found missing or distorted, invented statements), when a round brings
   no progress, or after `pipeline.repair_rounds` (3).
 
-**The plan** (`pipeline/rounds.py`, since 25 October 2026). The repair loop and the
+**The plan** (`pipeline/rounds.py`). The repair loop and the
 rounds that follow it run as one plan: every round starts from a version, asks the
 model, and ends as above. The kinds differ only in what they ask for, which version
 they start from, what measures their progress and how often they run:
@@ -608,15 +609,15 @@ They are measured by the FACT-01 count, not by the whole: the loop above stops o
 progress" when a round adds facts and the judge finds as many new problems, which on
 the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round
 goes on while it adds a fact and stops when none is missing, when it adds none, or at
-the limit. Since 7 October 2026.
+the limit.
 
-**The recover round** (since 9 October 2026, on by default: `pipeline.recover_facts = 10`;
+**The recover round** (on by default: `pipeline.recover_facts = 10`;
 0 turns it off). The must-keep values still missing (FACT-01) in the
 best version after the facts rounds, the most important kinds first and at most that
 many, are asked for one by one through `stages.recover_fact`, the call behind the
 review page's "Suggest a sentence" (§4.7): the fact's paragraph, the blocks at its
 place, the value and its sentence named. Each call sees the sentences accepted before
-it, and a value one of them brought is not asked for again (since 31 October 2026: the
+it, and a value one of them brought is not asked for again (the
 70B's sentence for the departure time named the return time too, and the next call then
 wrote the return time twice more). The accepted sentences go after their blocks, or after the list a block belongs
 to, as new blocks carrying the fact
@@ -628,7 +629,7 @@ the vocabulary round, so office words in its sentences go there too. An error of
 call ends the round with a note, never the job. On the dev pairs it raised German fact
 coverage from 78 to 96 percent (docs/prompts.md, "The recover round on the dev pairs").
 
-**The polish round** (since 10 October 2026, on by default: `pipeline.polish_rounds = 1`;
+**The polish round** (on by default: `pipeline.polish_rounds = 1`;
 0 turns it off). The facts and recover rounds add the source's sentences
 nearly verbatim, and the loop never sees them again: in the example rebuild of
 10 October the long passive sentences in the final drafts had all come in that way.
@@ -644,7 +645,7 @@ round on the dev pairs"): German rule errors 1.9 to 1.3 per 100 blocks, warnings
 34, facts unchanged, no must-keep value lost, about 17 percent more tokens; the final
 draft descends from the polished version in 8 of 12 jobs.
 
-**The vocabulary round** (since 7 October 2026, part of the vocabulary): after the facts
+**The vocabulary round** (part of the vocabulary): after the facts
 rounds, the office words still in the best version (LEX-07) go to one more
 round through the repair prompt: the flagged sentences alone, each with its everyday
 word as the suggestion, no fact and no judge's problem. Before it, office words reach a
@@ -660,9 +661,9 @@ per job.
 The final version is the one with the fewest must-keep values missing (FACT-01), then
 the fewest blocking findings, then the latest. Facts come first because a reviewer can
 reject an unsupported sentence or mend a long one with a click, but cannot conjure a
-missing deadline; until 8 October 2026 the blocking count alone decided, and the dev
-rerun of 7 October showed it discarding versions a facts round had just filled, when
-the judge flagged the new sentences (docs/prompts.md, bucket k). `eval rescore`
+missing deadline; the blocking count alone would discard versions a facts round had
+just filled when the judge flags the new sentences (seen in the dev rerun of 7 October
+2026; docs/prompts.md, bucket k). `eval rescore`
 scores stored jobs under either rule without a model call.
 
 Language-rule findings (families LEN, ORD, GRAM, NEG, LEX, NUM, CH), missing fact values
@@ -672,7 +673,7 @@ is marked final, and the reviewer can switch to any other version. Model: `llm.m
 thinking off, temperature 0.2.
 
 **Decision mode** (`JobConfig.mode = "decision"`, with `addressee` and `notice`;
-docs/use-case-decisions.md, since 8 October 2026). The same stages, with the decision
+docs/use-case-decisions.md). The same stages, with the decision
 partial pulled into every prompt and three additions by code. `rules/decision.py` finds
 the operative part and the appeal instructions of the source, by their headings (`III.
 Entscheid`, `Rechtsmittelbelehrung`) or, in a PDF without headings, by the sentence that
@@ -701,7 +702,7 @@ The reviewer sees the final draft with provenance, findings and the fact checkli
 and records a decision per block: `approved`, `edited` (with the new text), or
 `rejected`.
 
-**A missing fact on demand** (since 9 October 2026). For a fact the review shows as
+**A missing fact on demand.** For a fact the review shows as
 missing, "Suggest a sentence" makes one writer call (`stages.recover_fact`, template
 `recover.md`, stage settings `recover`: temperature 0.2, thinking off). The call gets the
 fact with its exact value form, the paragraphs its source sentences belong to
@@ -730,7 +731,7 @@ fact"). The pipeline calls it as the recover round (§4.6).
 
 Export formats:
 
-- One layout for every format (`export/layout.py`, since 25 October 2026): the review
+- One layout for every format (`export/layout.py`): the review
   decisions applied, every text cleaned (a line break in a reviewer's edit becomes a
   space), the spaces inside a value turned into no-break spaces, and every block broken
   at sense units into lines of at most 60 characters (`LINE_CHARS`, within LAY-02's
@@ -743,8 +744,8 @@ Export formats:
   meant for editing;
 - JSON bundle: source, fact sheet, final draft, findings, decisions, each with who made
   it and when, who submitted the job, who decided (`final.reviewers`) and who exported
-  the bundle (the users the login names, §10; null without one) - the audit trail;
-- Word (DOCX, `export/docx.py`, since 11 October 2026), for writers who work in Word:
+  the bundle (the users the login names, operations.md; null without one) - the audit trail;
+- Word (DOCX, `export/docx.py`), for writers who work in Word:
   the layout in its print layout (A4, 20 mm margins, Arial 14 points, left-aligned, no
   hyphenation, no block split across pages, a heading kept with the block after it). A
   block is one paragraph, its lines the layout's, joined by line breaks; Word opened the sample letters' drafts and a file with all their lines and
@@ -755,12 +756,12 @@ Export formats:
   the writer model and the hash of the prompt template that wrote the text
   (`summary.prompt_versions`), and, once the draft is reviewed behind the login, who
   decided ("Geprüft von a.muster, b.muster", "Relu par", "Rivisto da": the users the
-  decisions name, each once, in the order of their first decision; §10). Arial, not the
+  decisions name, each once, in the order of their first decision; operations.md). Arial, not the
   reader font: a DOCX names a single font,
   and Word replaces a missing one with its own choice. Built with the standard
   library (a few XML parts in a ZIP file), no new dependency.
-- With the original text (since 1 November 2026, `original=1` on the export and the
-  preview): Markdown, HTML and Word append the source after the text, after a decision
+- With the original text (`original=1` on the export and the preview): Markdown, HTML
+  and Word append the source after the text, after a decision
   job's closing notice too, under "Originaltext" ("Texte original", "Testo originale").
   The source's segments are grouped back into its paragraphs (`Segment.para`): a
   heading, a list item or a paragraph each becomes one item, cleaned but not broken
@@ -850,7 +851,7 @@ RepairRecord  (one per repair round, under the version it produced)
 ReviewState
   draft_version, completed, saved_at (when the server stored it; a save names the
   value it loaded, so two reviewers never overwrite each other unseen, §7),
-  saved_by? (who saved it last: the user the login named, §10)
+  saved_by? (who saved it last: the user the login named, operations.md)
   decisions[]: {block_id, decision (approved|edited|rejected), text?, comment?,
                 at (when the decision was first saved in this form; a save that sends
                 it unchanged keeps the stamp), by? (who made it: the login's user)}
@@ -867,8 +868,8 @@ PipelineSummary
 
 Job
   id, status (queued|running|needs_review|done|failed), stage, title, created_at, updated_at,
-  created_by? (who submitted the document: the user the login named, §10; null without
-               a login, from the command line, or in a job stored before 3 November 2026)
+  created_by? (who submitted the document: the user the login named, operations.md; null without
+               a login, from the command line, or in a job stored by an older version)
   config: {lang, region (the installation's texts.region when the job was created, §8),
            level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
            writer_model, understand_model, judge_model, use_judge,
@@ -883,12 +884,12 @@ Job
             what the drafts list shows, written when the job is created (the source
             line), when the pipeline ends and when a review is saved (counted by
             review.py, written by lifecycle.py), so the list opens no artifact; None
-            in a job stored before 11 October 2026 until its first listing fills it
+            in a job stored by an older version until its first listing fills it
 ```
 
 Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`
-(the row above, and since 2 November 2026 the hash of the job's workspace when the server
-has them, §7), `artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
+(the row above, and the hash of the job's workspace when the server has them, §7),
+`artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
 the response cache's key when the cache is on, so that a deleted job takes its cached
 prompts with it); the response cache is a second file (`llm_cache.sqlite`). Standard
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
@@ -916,7 +917,7 @@ midway.
 
 - **Configuration** from the settings' `[llm]` section, the preset in use, resolved
   from its provider, the provider's table of each model and the preset's own keys (the
-  config files, the environment, the command line; §10). `llm.url`, `llm.api_key` (or
+  config files, the environment, the command line; operations.md). `llm.url`, `llm.api_key` (or
   `llm.api_key_env`, the variable that holds it), `llm.models.writer`; plus
   `llm.models.judge` (default: the 70B of the writer's family when the provider lists
   it, looked up once per process, else `llm.models.writer`), `llm.models.understand`
@@ -948,7 +949,7 @@ midway.
   1. CSCS inference API, on which the reported numbers were measured
      (`thinking = "model-suffix"`);
   2. a vLLM server the organisation runs, for on-premise and air-gapped deployments
-     (§10; `thinking = "chat-template"`);
+     (operations.md; `thinking = "chat-template"`);
   3. the Public AI gateway (`https://api.publicai.co/v1`), for development and
      evaluation with public documents. It lists `swiss-ai/apertus-v1.5-8b` and
      `-70b`, each with a `-thinking` variant, at USD 0.10/0.20 per million
@@ -956,26 +957,17 @@ midway.
      credit. It is run by Metagov Inc., a US nonprofit, under Massachusetts law, and
      routes requests to compute partners. It requires a `User-Agent` header, which
      the client always sends. Not a sovereign deployment: never used for documents
-     with personal data. The routing checked on 6 October 2026 (from the gateway's
-     response headers) decides the profile's settings: the 8B goes to Juelich's
-     Blablador (vLLM) and thinks through the chat template, but only in about two
-     of three identical calls, so comparisons of thinking against no thinking are
-     left to the CSCS endpoint; the 70B goes to
-     Infomaniak (`Apertus-v1.5-70B`) and ignores the thinking switch; the
-     `-thinking` names are not used, because `apertus-v1.5-8b-thinking` serves the
-     older Apertus 1 8B through Featherless. The gateway's response cache ignores
-     the thinking switch, so the profile turns it off per request
-     (`extra_body = { cache = { no-cache = true } }`). Results from this profile are
-     labelled Public AI, never CSCS. Checked again on 13 October 2026, one small call
-     per name: the 8B still went to Juelich (Germany, 4 of 4 calls), the 70B was split
-     between Infomaniak (Switzerland) and Featherless (a US company), 8 of 11 calls
-     to Featherless, and both `-thinking` names answered with an error. So Public AI
-     is not Swiss-hosted throughout, whatever its own pages say. Checked again on
-     28 October 2026: the gateway still lists all four names, but chat completions
-     with both 8B names and both `-thinking` names answer 400 ("invalid model name"
-     for the key); the 70B answers from a new partner (`maas.phoeniqs.com`) and the
-     Apertus 1 8B from Featherless. Since then the preset runs every stage on the
-     70B, without thinking;
+     with personal data. The gateway routes each model name to a compute partner of
+     its choice and changes that without notice; the profile rests on the routing
+     checks of 6, 13 and 28 October 2026 (history/2026-10-28-public-ai-routing.md):
+     the 70B is served by partners that change from check to check (Infomaniak in
+     Switzerland, Featherless in the USA, `maas.phoeniqs.com`) and ignores the
+     thinking switch; the 8B names and the `-thinking` names are refused for the key
+     (`apertus-v1.5-8b-thinking` served the older Apertus 1 8B while it answered). So
+     the preset runs every stage on the 70B, without thinking, turns the gateway's
+     response cache off per request (`extra_body = { cache = { no-cache = true } }`),
+     since the cache ignores the thinking switch, and its results are labelled Public
+     AI, never CSCS and never Swiss-hosted, whatever the gateway's own pages say;
   4. the Hugging Face inference router, for development only. It serves only the
      older Apertus 1 models (`swiss-ai/Apertus-8B-Instruct-2509` through Public AI,
      `…-70B-Instruct-2509` through Featherless). No Hugging Face provider serves
@@ -1041,7 +1033,7 @@ midway.
   speaks the same protocol. With the community conversion
   `Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (text only, 4-bit, unofficial) and
   `thinking = "chat-template"` it serves Apertus v1.5 8B on an 8 GB laptop GPU;
-  see §10. Results from it are never reported as CSCS numbers.
+  see operations.md. Results from it are never reported as CSCS numbers.
 
 Privacy: document text is never written to logs above `DEBUG`.
 
@@ -1060,16 +1052,16 @@ keeps it equal to the code and the old prefix out of the schema.
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /api/v1/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and since 31 October 2026 `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below); the job records the user the login named (`created_by`, §10) |
+| `POST /api/v1/jobs` | Create a job from a file upload, a URL or pasted text (multipart form); options `lang`, `level`, `condition`, `endpoint` (another ready preset for this job), `writer_model`, `understand_model`, `judge_model`, `title`, for the decision mode (docs/use-case-decisions.md) `mode`, `addressee`, `notice`, and `sender` (authority, school, organisation) and `address` (formal, informal, plural; §4.3); with `server.workspaces` the answer names the job's workspace (below); the job records the user the login named (`created_by`, operations.md) |
 | `GET /api/v1/jobs` | The latest jobs |
 | `GET /api/v1/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/v1/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
-| `POST /api/v1/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (§10); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
-| `GET` or `POST /api/v1/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, §10); `original=1` appends the source text to the first three (§4.7) |
+| `POST /api/v1/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (operations.md); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
+| `GET` or `POST /api/v1/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, operations.md); `original=1` appends the source text to the first three (§4.7) |
 | `POST /api/v1/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/v1/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
 | `POST /api/v1/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
-| `DELETE /api/v1/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (§10) |
+| `DELETE /api/v1/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (operations.md) |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
 | `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
@@ -1092,7 +1084,7 @@ job are refused with 409 (stop it first); a review save names the stored review 
 loaded (above); the shared spaCy pipelines take one text at a time. The UI polls the
 job page every 2 s for two minutes, then every 5 s.
 
-The page's forms share the API's code (since 25 October 2026): one dependency reads
+The page's forms share the API's code: one dependency reads
 the form fields into a `Submission` for `POST /jobs` and `POST /api/v1/jobs` alike and
 one function stores and queues the job (`web/jobs.py`); the page's rerun, stop and
 delete call the API handlers and answer a redirect. A submission is read (fetched,
@@ -1101,15 +1093,15 @@ reason at once; at most `jobs.ingest_slots` (4) submissions
 are read at a time, the next one is refused with 429 and asked to try again, so slow
 documents never fill the thread pool (`web/jobs.py`).
 
-Every request passes the hardening layer first (`web/security.py`, §10): a body over
+Every request passes the hardening layer first (`web/security.py`, operations.md): a body over
 16 MB is refused with 413, more than `server.rate_limit_per_minute` writes per client address
 and minute with 429, a write from a page on another site with 403, and with a login
 configured everything but the probes and the static files needs it (401). `limit` takes
 1 to 200; a review's edit holds at most 10,000 characters, a comment 2,000, a review
 2,000 decisions.
 
-**Workspaces** (`server.workspaces`, off by default; `web/workspaces.py`, since
-2 November 2026). Every browser gets a workspace: a random token of 128 bits (22
+**Workspaces** (`server.workspaces`, off by default; `web/workspaces.py`).
+Every browser gets a workspace: a random token of 128 bits (22
 characters, URL-safe base64) in the cookie `workspace` (a year, HttpOnly, SameSite=Lax,
 Secure over HTTPS), or the header `X-Workspace` for a script. The store keeps the token's
 SHA-256 on each job (`jobs.workspace`), never the token, so a copy of the database holds
@@ -1119,7 +1111,7 @@ another workspace is 404. The drafts list shows the workspace's link (`/w/{token
 Copy link and New link: opening the link in another browser continues there; New link
 moves the jobs under a new token and retires the old link. `POST /api/v1/jobs` names the
 job's workspace in its answer, so a script without a header can keep it. The access line
-writes `/w/[token]`. Workspaces separate the jobs; the login (§10) protects them: a link
+writes `/w/[token]`. Workspaces separate the jobs; the login (operations.md) protects them: a link
 works only for people who get past the login, and the app still refuses to start
 published beyond this machine without one. Jobs outside every workspace (the command
 line's, or made before the setting was switched on) belong to none and are listed again
@@ -1168,7 +1160,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   shown when at least two presets are ready (the one in use selected, the job records
   the choice, `JobConfig.endpoint`); optional model overrides. `POST /jobs` answers 400
   with the form and the error, also when no preset is ready.
-- **AI model** (`/model`, since 26 October 2026, `web/model.py`): the presets in three
+- **AI model** (`/model`, `web/model.py`): the presets in three
   groups (Switzerland, this computer with the models a local server lists, clouds for
   public documents only), each with its provider, where the text goes, the cost per
   page and what it lacks; the key of the chosen preset's provider (into the `.env` next
@@ -1178,7 +1170,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   file locks it; one offered preset (`llm.offer`) hides the page. The registry of
   clients (`llm/registry.py`) reloads the settings when the page saves, so the next
   draft runs on the new preset while a running job keeps its client.
-- **Check my text** (`/check`, since 8 October 2026): the deterministic checker on a
+- **Check my text** (`/check`): the deterministic checker on a
   text the writer pasted, as the CLI `check` runs it (one block per sentence, the rules
   of the document's language at the chosen level, German and French), in
   milliseconds, without a model call and without a job: the page answers with the
@@ -1216,7 +1208,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      Keys, only while the focus is in this pane (WCAG 2.1.4): J and K or the arrows
      move, A, E and R decide, N jumps to the next undecided block; Approve and Reject
      move on to it. Unsaved decisions warn before leaving. Without JavaScript every
-     block is open. After the blocks, the glossary entries (since 8 October 2026),
+     block is open. After the blocks, the glossary entries,
      each with the id `g01`, `g02`, ... in the draft's order, decided like a block:
      approved, edited (the explanation; the term stays) or rejected, with the same keys
      and counts; the review API takes their ids in `block_id`, and the exports carry
@@ -1256,7 +1248,7 @@ Helvetica, without embedding it. Both families are vendored as woff2 under
 `web/static/fonts/` (SIL OFL 1.1, licences next to the files, THIRD_PARTY_NOTICES.md),
 so nothing is fetched from another host.
 
-**Interface languages.** The UI speaks English, German, French and Italian (French since 8 October 2026, Italian since 28 October 2026); the interface language is
+**Interface languages.** The UI speaks English, German, French and Italian; the interface language is
 the reviewer's and independent of the document's, so a German-speaking reviewer can
 check a French draft. Every text lives in one flat JSON catalog per language,
 `web/locales/<code>.json` (keys such as `review.approve`, `{name}` placeholders,
@@ -1280,7 +1272,7 @@ alike. The rules' titles, which head the grouped findings, join the English cata
 the same way as `rule.<ID>`. Model output (the judge's notes) is not translated: it stays in the
 language it was produced in.
 
-**The installation's variety** (since 29 October 2026, §8). The catalogs are written for
+**The installation's variety** (§8). The catalogs are written for
 Switzerland, and the installation's region (`texts.region`) renders the German one for
 Germany and Austria: first in their spelling, with the ß table the vocabulary uses
 (`standard_spelling`, `rules/data/spelling_de.toml`), then with an overlay on top,
@@ -1305,8 +1297,8 @@ and the French and Italian ones). The review strip names the mark code split the
 compounds with in the draft's variety (`mark.mediopunkt`, `mark.hyphen`). The drafts
 list's language filter offers the varieties the store holds (`store.langs`: `de-CH`,
 `de-DE`, `fr-CH`; a job from before the region field is Swiss), so after a change of
-the region the Swiss German jobs and the new variety's are two entries (since 30 October
-2026; before, the filter worked on the language and listed both under the new name).
+the region the Swiss German jobs and the new variety's are two entries (the filter works
+on the variety; on the language alone it would list both under the new name).
 
 ### CLI
 
@@ -1318,16 +1310,16 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 
 | Command | Purpose |
 |---------|---------|
-| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region] [--max-chars]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, §10); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. `--max-chars N` sets the longest text the web app takes (`texts.max_chars`, 10,000 by default; pasted, or read from a file or a page), alone too; below 1,000 or above 200,000 setup, `config set`, `config edit`, `config show` and `serve` warn (`config.unusual`). |
+| `leichtfacile setup [name] [--name] [--base-url] [--api-key] [--api-key-env] [--model] [--judge] [--force] [--region] [--max-chars]` | Sets a preset up and uses it: `name` is a preset (`cscs-apertus`, `claude-haiku-5-5`, ...), a provider (`cscs`, `anthropic`, `ollama`, ...) or a name for a server of one's own (`--base-url`); asks for the provider when none is named, then its key (not echoed; nothing when the key's variable is set or the provider needs none), then one of the provider's presets or any model the provider lists (`GET /models`), saved as `[presets.<name>]` in the user's config file, a server of one's own as `[providers.<name>]` too (`configure.py`, operations.md); `--force` updates a preset saved already. The variety of the texts (§8, `texts.region`) is asked once more than one German variety ships its prompts and the file names none; `--region CH\|DE\|AT` answers it, and alone changes the variety and nothing else; setup is the one place that sets it. `--max-chars N` sets the longest text the web app takes (`texts.max_chars`, 10,000 by default; pasted, or read from a file or a page), alone too; below 1,000 or above 200,000 setup, `config set`, `config edit`, `config show` and `serve` warn (`config.unusual`). |
 | `leichtfacile preset list\|use <name>\|remove <name>` | Every preset, shipped or the user's own, with its label, its provider, its writer model and what it lacks, the one in use marked; use another from now on; remove one of the user's own or the user's table that extends a shipped one (`configure.py`) |
 | `leichtfacile config show\|set\|unset\|edit\|path` | Every setting with its value and its source (`--defaults`: with its default and meaning); set or remove one key, checked with every other source before it is written; the file in the editor; its path ([configuration.md](configuration.md)) |
 | `leichtfacile backup <folder>` | A consistent copy of the job database into the folder (SQLite's backup API, while the app runs or not), named with the moment; the response cache is not copied |
-| `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (§10); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
+| `leichtfacile serve [preset] [--host] [--port] [--no-browser]` | The web application on `127.0.0.1:8000`; opens the browser once `/healthz` answers, for a loopback host only and on Linux only with a desktop; `--no-browser` turns that off, `--host` and `--port` set `server.host` and `server.port` (operations.md); `preset` (the same as `--preset`) runs that preset for this run, nothing saved, and stops with what it lacks when it is not ready, since the model page cannot change what the command line picks. It opens the browser on the model page while the preset in use lacks its key |
 | `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
 | `leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again (12 October 2026) |
+| `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again |
 
 ## 8. Languages and levels
 
@@ -1347,13 +1339,12 @@ as the calibration on the official pages shows (`rules/base.py`, `LANG_PARAMS`).
 
 | Status | German | French | Italian |
 |---|--------|--------|---------|
-| Checker rules | 32 of the language families + 13 for every language; Germany and Austria the same, 11 rules with a check or a table of their own (29 October 2026) | 28 + 13 | 28 + 13 |
-| Prompts and few-shot examples | yes; Germany and Austria since 29 October 2026 | yes | yes (28 October 2026) |
+| Checker rules | 32 of the language families + 13 for every language; Germany and Austria the same, 11 rules with a check or a table of their own | 28 + 13 | 28 + 13 |
+| Prompts and few-shot examples | yes, Germany and Austria included | yes | yes |
 | Calibration on official pages | 30 pages, 2.0 errors / 100 blocks; Germany 12 pages, 2.2; Austria 12 pages, 10.7 (29 October 2026, before tuning) | 5 pages, 2.2 errors / 100 blocks | 14 pages, 10.4 errors / 100 blocks |
 | Evaluation of the varieties | Switzerland: the published run (§9); Germany and Austria: 8 eval pairs each on Apertus 70B via Public AI (30 October 2026), P2 95 and 96 percent of the must-keep facts, 87 and 96 of the hard facts, docs/evaluation-publicai.md | Switzerland only | Switzerland only |
 
-**National varieties** (since 29 October 2026; the German of Germany and Austria the same
-day, their sources in docs/sources.md). A language has national
+**National varieties** (their sources in docs/sources.md). A language has national
 varieties: Swiss German, the German of Germany and Austrian German differ in spelling
 (`ss` or `ß`), in the mark that splits a long compound (Mediopunkt or hyphen), in the
 currency, the number formats, the phone and address formats, the names of the authorities
@@ -1365,8 +1356,8 @@ was created with (`JobConfig.region`, `SourceDocument.region`, `Draft.region`), 
 later setup never alters a stored job, and an artifact stored before the field is Swiss.
 French and Italian are Swiss whatever the setting (`varieties.region_for`). The key of a
 variety is the language and the region (`schemas.variety`: `de-CH`, `de-DE`, `de-AT`,
-`fr-CH`, `it-CH`; the Swiss keys were the bare language codes until 29 October 2026, and
-a bare code still names the Swiss variety wherever a key is taken). It is what the
+`fr-CH`, `it-CH`; a bare
+language code names the Swiss variety wherever a key is taken). It is what the
 variety tables, the few-shot examples and the decision partials (`llm/prompts/<key>/`,
 `pipeline/prompts.py`), the rule checks and guides (`rules/base.py`), the checker
 (`get_checker`, one per variety, the spaCy pipeline shared per language), the shared
@@ -1375,8 +1366,8 @@ resolving along `schemas.variety_chain`: the variety's own, then the language's 
 variety's, then the language's (`llm/prompts/<lang>/`: the stage templates and the
 medication partial, one set per language, and the checks a language's varieties share).
 The Canton of Zurich's prompt is Swiss and is not inherited. The value
-parser reads the variety's conventions and writes a value back in them (`rules/values.py`,
-since 29 October 2026: the thousands dot and the decimal comma, the euro, the German
+parser reads the variety's conventions and writes a value back in them (`rules/values.py`: the
+thousands dot and the decimal comma, the euro, the German
 and Austrian phone shapes, five-digit postcodes, Jänner; [rules.md](rules.md), "Value
 kinds"), and the fact rules, the code completion, the repair and recover prompts, the
 export layout and the evaluation pass the variety to it. The facts of a
@@ -1391,7 +1382,7 @@ these texts) and `scripts/parity.py` counts the checker's findings and the hard 
 the cached pages of the 49 Swiss pairs against `tests/fixtures/parity/swiss.json` (counts
 only; it needs the fetched pages, so it runs on a developer's machine).
 
-**One German template set** (since 29 October 2026). The German prompt templates serve
+**One German template set.** The German prompt templates serve
 every German variety: what the varieties need differently in the standard templates
 are a few facts, not the instructions, and these are data, the `prompt` table of each
 German variety in `varieties.toml` (`[de-CH.prompt]`: the country as `in der Schweiz` and
@@ -1408,7 +1399,7 @@ and the template files carry no Swiss fact (`tests/pipeline/test_prompt_varietie
 The version a job records (`prompt_versions`) hashes the template and the table. French
 and Italian have one variety each; their templates are not parametrized.
 
-**Germany and Austria** (since 29 October 2026). The German of Germany and Austria are
+**Germany and Austria.** The German of Germany and Austria are
 complete varieties: each has its table in `varieties.toml` (`[de-DE]`, `[de-AT]`: the
 label, the setup choice, the Word export's language tag, pyphen's `de_DE` or `de_AT`, the
 hyphen as the compound mark, the notice "Diese Erklärung hilft Ihnen, den Bescheid zu
@@ -1428,7 +1419,7 @@ through the filter `spelling` ("ausser", "außer"). `leichtfacile setup` therefo
 once for the German of the texts (Switzerland, Germany, Austria; Enter keeps
 Switzerland) and takes `--region`.
 
-The vocabulary follows the same pattern (since 29 October 2026): `rules/data/vocabulary_de.toml`
+The vocabulary follows the same pattern: `rules/data/vocabulary_de.toml`
 holds the German entries the three countries share and `vocabulary_de-CH.toml`,
 `vocabulary_de-DE.toml` and `vocabulary_de-AT.toml` those of each country, which
 `rules/vocabulary.py` reads after the shared file for a variety key (`de-CH` gives the
@@ -1437,7 +1428,7 @@ spelling and rendered for Germany and Austria at load time with the ß table of
 `rules/data/spelling_de.toml` (`standard_spelling`, for the planned spelling check to
 reuse), and matching treats ß and ss alike ([rules.md](rules.md), "Vocabulary").
 
-**The checks of Germany and Austria** (since 29 October 2026): the German checks under
+**The checks of Germany and Austria**: the German checks under
 the German limits, with the variety's facts in the shared checks' tables (`rules/shared.py`,
 the tables `de-DE` and `de-AT`: the euro, the thousands dot, the file numbers of a
 Bescheid, hyphenated compounds as one word), a check per variety for the REG rules
@@ -1450,10 +1441,10 @@ spelling. `eval calibrate --region DE|AT` runs the checker on the pairs of a cou
 numbers: 2.2 errors per 100 blocks on the German pages, 10.7 on the Austrian capito
 pages, whose A2 keeps longer sentences, genitives and unsplit compounds).
 
-German came first in the build order. French followed on 6 October 2026, before the
-CSCS key arrived: rules, prompts, examples and the web form. Italian followed on 28
-October 2026: the shared rules, the checks of its own, the prompts and few-shot
-examples, the example letter, the interface catalog, the web form and the calibration
+German is the most complete language and carries the published evaluation (§9). French
+has rules, prompts, examples and the web form. Italian has the shared rules, the checks
+of its own, the prompts and few-shot examples, the example letter, the interface
+catalog, the web form and the calibration
 (10.4 errors per 100 blocks: the official Italian pages, Ticino's above all, keep
 passives and sentences of three clauses, which the rules exclude; every error was read).
 Every spaCy Italian model is licensed CC BY-NC-SA, so the Italian checker tags
@@ -1468,13 +1459,13 @@ from `pyphen` with the `de_CH`, `fr`, `it` dictionaries.
 `data/pairs/manifest.jsonl`: one row per document pair - `id`, `publisher`, `canton`,
 `lang`, `level`, `role`, `topic`, `url_standard`, `url_easy`, `section_standard` and
 `section_easy` (a heading when only one section of a page corresponds), approximate
-word counts, `facts_estimate`, `licence_note`, `notes` and, since 29 October 2026,
+word counts, `facts_estimate`, `licence_note`, `notes` and
 `region` (the national variety, §8; CH when absent). It holds 73 verified pairs. Swiss:
 30 German (20 `eval`, 10 `dev`) from Zürich, Bern, St. Gallen, Luzern, Basel-Stadt,
-Graubünden, Zug and three federal offices, 5 French (3 `eval`, 2 `dev`) and, since 28
-October 2026, 14 Italian (9 `eval`, 5 `dev`) from the BAG, the EBGB, eHealth Suisse and
+Graubünden, Zug and three federal offices, 5 French (3 `eval`, 2 `dev`) and
+14 Italian (9 `eval`, 5 `dev`) from the BAG, the EBGB, eHealth Suisse and
 Ticino's Divisione dell'azione sociale e delle famiglie, whose easy pages are written
-with Pro Infirmis. Since 29 October 2026, 12 pairs from Germany (the Bundesagentur für
+with Pro Infirmis. Germany and Austria: 12 pairs from Germany (the Bundesagentur für
 Arbeit, the Deutsche Rentenversicherung, the Familienportal, Bayern, Köln, München,
 Nürnberg) and 12 from Austria (Tirol's Leicht Lesen pages and the Sozialministerium,
 both written by capito), 8 `eval` and 4 `dev` each, all at A2 ([sources.md](sources.md)
@@ -1498,8 +1489,8 @@ use beyond evaluation.
 ### Conditions
 
 The codes are P0 to P2, P as in pipeline: next to the levels A2 and B1, the letter C
-would read as a CEFR level. They were C0 to C2 until 6 October 2026; a store with the
-old names is rewritten when it is opened (§5), the evaluation reads old result rows with
+would read as a CEFR level. A store with the older names C0 to C2 is rewritten when it
+is opened (§5), the evaluation reads old result rows with
 the current names (`canonical_condition` in schemas.py), and the command line takes the
 current names only. On screen the code carries a short label, "P2: full".
 
@@ -1572,7 +1563,7 @@ day, against the 82 percent above.
 
 | Metric | How | Why it matters |
 |--------|-----|----------------|
-| Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code); since 7 October 2026 only values the source contains count (FACT-05) | Did anything important get lost? |
+| Fact coverage | Share of `must_keep` facts with a normalised value found in the output (exact, code); only values the source contains count (FACT-05) | Did anything important get lost? |
 | Fact status (judge) | Share present / missing / distorted per the judge | Semantic version of the above |
 | Invented statements | Unsupported blocks per 100 blocks (judge; human-labelled on a subset) | Hallucination rate |
 | Invented values | Dates, amounts, phone numbers, e-mail and web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes in the output that the source does not contain, per 100 blocks (exact, code, the FACT-06 check against the source alone) | A hallucination count that needs no model, also for P0 and the official versions |
@@ -1582,8 +1573,8 @@ day, against the 82 percent above.
 | SARI | Against the official easy-language reference | Standard simplification metric |
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/presets/presets.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
-| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five since 7 October 2026, which raised the count on the 20 German eval pairs from 138 to 195) | A fact measure that does not depend on any model, comparable with the official version |
-| Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`, since 7 October 2026; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
+| Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five kinds raised the count on the 20 German eval pairs from 138 to 195 when they were added) | A fact measure that does not depend on any model, comparable with the official version |
+| Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language
 original, checked as if it were a draft) and REF (the official easy-language version).
@@ -1604,8 +1595,8 @@ varieties of the first run's rows (`eval/compare.py`); and `eval numbers`
 prints the headline means
 (P2 against the Zurich prompt in its complete mode, the plain writer with the most
 pairs per setup) and the headline case they fall into (`decide_case`), with the headline
-sentence filled in, so that the README and the documentation carry the same numbers. Since 14
-October 2026 it also prints their uncertainty: P2 against the Zurich prompt, and every
+sentence filled in, so that the README and the documentation carry the same numbers. It also
+prints their uncertainty: P2 against the Zurich prompt, and every
 other P2 writer (the 70B everywhere) against the headline's, paired over the pairs both
 have, each measure with the mean difference, a bootstrap 95 % interval over the pairs
 (10,000 resamples, seed 0, so a second print gives the same interval) and the pairs
@@ -1615,432 +1606,40 @@ cover the choice of pairs, not a second sample of the same pairs.
 
 ## 10. Deployment and sovereignty
 
-### Starting the app
+How the service is installed, configured and run, where the model runs, what protects
+the service and the documents, what the repository does for the supply chain, and
+what the service stores and for how long, is in [operations.md](operations.md). What
+the design fixes:
 
-The app is a Python package (Python 3.12 and later), published on PyPI and as a wheel
-on a GitHub release for every version tag (`.github/workflows/release.yml`, PyPI by
-trusted publishing). `uv tool install leichtfacile` puts the command `leichtfacile` on
-the path; `pip install leichtfacile` installs it into an environment of one's own
-(docs/quickstart.md has the commands). The spaCy models for German and French
-(`de_core_news_md`, `fr_core_news_md`) are dependencies like any other: spaCy
-publishes them on GitHub only, and PyPI refuses dependencies given by URL, so they are
-republished on PyPI as `leichtfacile-model-de` and `leichtfacile-model-fr`, spaCy's
-files unchanged under the import names `leichtfacile_model_de` and `_fr`.
-`scripts/model_packages.py` builds them from spaCy's wheels, pinned by SHA-256 in
-`[tool.leichtfacile.spacy-models]` in pyproject.toml, and
-`.github/workflows/models.yml` publishes them, one job and GitHub environment per
-package (PyPI keeps one pending trusted publisher per repository, workflow and
-environment). A new model version is published first and pinned in `dependencies`
-afterwards; `tests/test_release.py` checks that the pins and the tables agree and that
-the checker loads those models (`rules/nlp.py`). The Italian pipeline,
-`leichtfacile-model-it`, is built the same way by `scripts/lexicon_package.py`: the
-blank Italian tokenizer and sentencizer with the Morph-it! lexicon as the tagger, the
-lexicon's archive pinned by SHA-256 in `[tool.leichtfacile.lexicon-models.it]` and the
-component's code (`scripts/morphit.py`) inside the package, since every spaCy Italian
-model is licensed for non-commercial use only. The vendored UI assets are inside the package. The app never runs
-a model itself: the endpoint is provided outside it (below).
-
-The settings are one TOML file with a section per topic, and the providers and presets
-of the model ([configuration.md](configuration.md)). The known providers (where models
-run and how to reach them, with a table per model for what it needs) and the presets on
-them (what the user picks: a provider and the models that write, read and check) come
-with the app, one table each in `src/leichtfacile/presets/presets.toml`, complete but for the
-key; a server of one's own names its models, which the model page lists. The preset in
-use resolves from its provider, the provider's table of each model it calls, its own
-keys and the user's tables of the same names; `[llm]` holds the choice (`llm.preset`;
-without it the first preset in the catalog's order whose provider's key is set,
-`config.first_with_key`, else the shipped default `publicai-apertus`), the `cache` switch and `offer` (the
-presets an organisation shows), nothing else. The model page of the web app (`/model`,
-`web/model.py`) lists the presets by group with where the text goes, the cost per page
-and what each lacks, takes the key (into the `.env` next to the config file), checks it
-and makes a test call, offers a local server's models and saves a preset of the user's
-own from its fine-tune panel; it changes the settings on the machine the app runs on
-only, and a source that wins over the config file locks it. `leichtfacile setup <name>`
-(`configure.py`) does the same on the command line: asks for the provider (or takes a
-preset's or a provider's name), its key (not echoed; nothing with the key's variable
-set), then one of the provider's presets or any model it lists, saved as
-`[presets.<name>]`, a server of one's own as `[providers.<name>]` too; `--name`,
-`--base-url`, `--api-key`, `--api-key-env`, `--model`, `--judge` and `--force` answer the
-questions in advance, and `--region` the question for the texts' variety (`[texts]`,
-§8), which setup alone sets; `--max-chars` sets the longest text the web app takes
-(`texts.max_chars`, never asked); the app reads both at its start. A preset is ready when its provider has an address and a key and
-it names a writer; nothing is guessed from the keys in the shell (since 25 October
-2026). `leichtfacile preset` lists every preset with what it lacks, switches and
-removes, `leichtfacile config` shows and changes every setting (§7). The settings come
-from the defaults, the shipped providers and presets, the user's config file,
-`leichtfacile.toml` in the current folder, the variables `LEICHTFACILE_<SECTION>__<KEY>`
-and the command line (`--preset`, `serve --host` and `--port`), each overriding the one
-before (`config.load`, `config.get_settings`; `config.paths` reads `[data]` without the
-model); `leichtfacile config show` names the source of each setting. The config
-file is `LEICHTFACILE_CONFIG` (or `--config`) when that is set, else `config.toml` in
-the platform's folder for settings:
-`%APPDATA%\leichtfacile` (Windows),
-`~/Library/Application Support/leichtfacile` (macOS), else
-`$XDG_CONFIG_HOME/leichtfacile` or `~/.config/leichtfacile`. A key is written into the
-file (`llm.api_key`) or named (`llm.api_key_env`) and then read from the environment
-or from a `.env` file, which holds such keys and nothing else; `setup` writes the key
-into the `.env` next to the config file and, on POSIX systems, makes both files
-readable by their owner alone (on Windows the folder's permissions apply:
-`icacls` in quickstart way 5). `config set` does the same with a secret (`auth.token`, a
-provider's `api_key`, since 3 November 2026): the value goes into the `.env` under
-`LEICHTFACILE_TOKEN` or the provider's variable, the file names the variable, and
-without the value the command asks for it hidden (`configure.set_secret`); a secret
-written into a settings file by hand is read, with a warning from `config show`,
-`config edit` and `serve` (`config.unusual`). `serve`, `check-llm` and `simplify` stop with a short
-message naming a missing `llm.url`, `llm.api_key` or `llm.models.writer` and
-`leichtfacile setup`, not with a traceback (`cli.settings_or_exit`).
-
-`leichtfacile serve` starts the web app on `127.0.0.1:8000`, this machine only, and
-opens it in the default browser as soon as `/healthz` answers (`cli.open_when_ready`):
-only for a loopback host, and on Linux only with a desktop (`DISPLAY` or
-`WAYLAND_DISPLAY`), since Python would otherwise start a text browser in the terminal
-(`cli.wants_browser`); `--no-browser` turns it off. `--host` sets `server.host`: beyond
-the loopback interface the app needs a login (below); in a container, which binds every
-interface of its own while the runtime publishes the port, `server.published_on` names
-the published address and is judged instead. The database goes to `data.dir`,
-by default `%LOCALAPPDATA%\leichtfacile` (Windows),
-`~/Library/Application Support/leichtfacile` (macOS), else
-`$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
-is empty, it offers the example letters shipped with the package in
-`src/leichtfacile/letters/` as one-click fills of the New draft form (§7):
-`data/examples/README.md` lists them, the premium-reduction letter in German, French
-and Italian, the KESB decision, the German and Austrian Bescheide, and since 30 October
-2026 two school letters in the three languages, to parents and, in the du form, to
-students; `data.examples_dir` names another folder of letters. A letter's job settings, such as the decision mode and the
-addressee, come from a JSON file next to it (`examples.py`).
-
-`leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
-the first thing to run after `setup`. In a checkout, development tasks run with
-`uv run`: `uv run pytest`, `uv run ruff check .` and `uv run ruff format .`, and the
-evaluation commands ([quickstart.md](quickstart.md#the-evaluation)); the lint rules, their
-exceptions with reasons and the complexity baseline (the functions over a limit when the
-rules were switched on, marked until they are simple again) are in `pyproject.toml`,
-`[tool.ruff.lint]`. CI starts the app
-natively with `leichtfacile serve --no-browser` against an unreachable endpoint and checks that
-`/healthz` answers and `/readyz` reports the endpoint unreachable
-(`.github/workflows/ci.yml`).
-
-The same app comes as a container image, `ghcr.io/bobrovsky420/leichtfacile`, one tag
-per release and `latest`, x86-64 ([quickstart.md](quickstart.md#7-in-a-container) way 7).
-The `Dockerfile` has two stages: uv installs the environment from `uv.lock` (the versions
-of every other install of the commit, the language packages among them) into a build
-stage, and a slim Python image of the version `.python-version` pins carries that
-environment alone, without uv, pip or the build context (`.dockerignore` is an allowlist:
-the package, its metadata and the lockfile, nothing else, so a checkout's `.env` never
-lands in an image). The image runs as a system user of its own (uid 10001), writes to
-`/data` alone, where it puts the config file, the `.env` that `setup` writes and the
-database (`LEICHTFACILE_CONFIG=/data/config.toml`, `LEICHTFACILE_DATA__DIR=/data`), and
-listens on every interface of its container (`LEICHTFACILE_SERVER__HOST=0.0.0.0`), since
-the runtime publishes the port. Whether that makes it a published server is decided by
-`server.published_on`, the address the runtime publishes the port on: on `127.0.0.1` the
-app runs without a login, as it does natively; on any other address, or without the
-setting, it needs one of the two logins and stops at once without one. Its health check
-asks `/healthz`. `compose.yaml` starts the image with a named volume, the port published
-on the loopback interface of the host by default and the app told so through the one
-variable `LEICHTFACILE_PUBLISH`, and, as profiles, the model servers of (a) below next
-to it (`vllm`: the official Apertus image with the flags measured on the L4; `llamacpp`:
-the 4-bit conversion), pointing the shipped providers `vllm` and `local` at them on the
-compose network. The two servers' images are pinned by digest, since their tags move, and
-every service drops every capability and gains no privilege on exec; the app and llama.cpp
-run on a read-only root with `/tmp` in memory and their volume as the one writable place,
-vLLM with a `/dev/shm` of its own in place of the host's IPC namespace
-(`tests/test_container.py` checks the pins and the hardening). CI builds the image on
-every change, starts it with a token against the
-unreachable endpoint, checks the probes, the login (401 without the token, 200 with it)
-and the user, starts it again published on the loopback interface alone, where the page
-answers without a login, and scans it for vulnerabilities that have a fix (Trivy, high
-and critical); `release.yml` builds it again for a tag, checks the version and the checker
-inside it and pushes it to ghcr.io (`tests/test_container.py` keeps the Python version,
-the port, the image's name and the tag the docs name in step).
-
-### The three target architectures
-
-In each, Leicht·Facile is the same Python service (above), on a workstation or on a
-server of the organisation; the model runs where the organisation wants it, behind an
-OpenAI-compatible endpoint that `llm.url` names (D2). Running the model is outside
-the app.
-
-| Architecture | Where the model runs and how Leicht·Facile meets it |
-|--------------|-----------------------------------------------------|
-| a) On-premise model server | On the organisation's own hardware; `leichtfacile setup local`, `ollama` or `vllm` knows the server's port and thinking switch (`--base-url` for another address) and asks for the model from the server's list. Apertus 1.5 8B runs on vLLM with the Swiss AI team's official image `ghcr.io/swiss-ai/vllm_apertus_1.5_release:latest-amd64` on one GPU with 24 GB or more, with the Apertus reasoning parser, `--max-model-len 32768`, an FP8 KV cache and at most 16 parallel sequences; the app takes `thinking = "chat-template"`, so one server provides both modes. The 70B judge is optional; with the 8B judging, the one model such a server lists, the quality is not measured (the run below timed one letter). Run on 10 October 2026 on one NVIDIA L4: the server starts and the app takes a letter end to end (below). llama.cpp with the 4-bit GGUF runs on an 8 GB GPU (below); Ollama or any other OpenAI-compatible server works the same way. `compose.yaml` starts the vLLM server next to the app's container with these flags (`docker compose --profile vllm up -d`). |
-| b) Air-gapped | As (a), with the model server and its weights inside the network. The app is installed offline: the wheel and all its dependencies, the two spaCy model packages among them, are collected with `pip wheel` on a connected machine with the same operating system, CPU architecture and Python version; on the target `pip install --no-index --find-links` installs them ([quickstart.md](quickstart.md) way 6 has the commands). The UI assets are in the package; no telemetry, no CDN, no package installs at runtime. Or the container image and the model server's image, carried over with `docker save` and `docker load`. |
-| c) A Swiss-operated or other provider | Set `llm.url` to a provider's endpoint: a Swiss-operated Apertus endpoint (Swisscom AI Platform, Infomaniak; both list Apertus 1.5 70B), or any other OpenAI-compatible API (`leichtfacile setup` has presets for OpenAI and Mistral AI). The reference numbers come from the CSCS inference API in Lugano, which serves research and grants keys on application, and hold for Apertus only; the shipped default, Apertus 70B on the Public AI gateway without thinking, is measured on the same pairs ([evaluation-publicai.md](evaluation-publicai.md)). Texts under secrecy belong on a model the organisation controls, (a) or (b), where Apertus fits best: open weights, open training data, Swiss, and the 8B on one GPU. |
-
-Hardware for (a)/(b), measured on 10 October 2026 on one NVIDIA L4 24 GB in an AWS
-g6.xlarge in Zurich (`docs/hardware/aws-l4-2026-10-10/`): the official checkpoint
-(bf16 with the image encoder) takes 17.23 GiB on the GPU. With a bf16 KV cache vLLM
-refused to start: one 32k request needs 4.0 GiB of KV cache, and 2.13 GiB were left at
-90 % utilisation (17,440 tokens). A shorter context does not help, because the stages
-ask for up to 16,000 output tokens on top of the prompt and vLLM rejects a request
-that does not fit. So the server stores the KV cache in FP8 (`--kv-cache-dtype=fp8`:
-38,752 tokens, 1.18 requests of 32k at once) and allows at most 16 parallel sequences
-(`--max-num-seqs=16`): with the default 256, the CUDA graphs (0.84 GiB, now 0.16) and
-the sampler's warm-up ran out of memory. By the same arithmetic a card with 32 GB or
-more needs neither flag (not tested). The start takes about 7 minutes with the weights
-on disk. One request generates 16.2 tokens per second, close to the limit of the L4's
-memory bandwidth (300 GB/s for about 16 GB of weights per token). With the 8B also
-judging, the example letter took 63 minutes with thinking in Understand
-and Judge, and 22 minutes with thinking only in Understand
-(`thinking_stages = ["understand"]`); in both runs Understand's reasoning hit the
-12,000-token cap, which costs 744 s on this card. What the FP8 KV cache does to
-quality is not measured. The FP8 build of the weights (`onprem-ai/Apertus-v1.5-8B-FP8`,
-keeps image input, not tested) is 11.42 GB against 18.44 GB for the full multimodal
-checkpoint.
-
-A smaller on-premise option was tested on 5-6 October 2026: llama.cpp (`llama-server`,
-Vulkan build b9637) with the community 4-bit text-only conversion
-`Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF` (5.06 GB) on a laptop GPU (RTX 4060 8 GB),
-16k context with an 8-bit KV cache. It generated about 37 tokens per second at short
-context and about 17 near 16k; Understand took about 1.5 minutes and Write, with
-thinking, about 12 minutes for a 400-word letter. It runs the whole pipeline
-including thinking mode (`thinking = "chat-template"`, `llama-server -sp`), but
-it has no image input and is an unofficial conversion, so it serves development and
-small offices, not the evaluation. The server is started next to the app, as
-[quickstart.md](quickstart.md#running-a-model-yourself) shows (`llama-server -hf Colby/apertus-v1.5-8b-text-Q4_K_M-GGUF ...`,
-weights downloaded on first start); it is served under the alias
-`apertus-v1.5-8b-q4-llamacpp`, so its results can never be mistaken for the official
-model. Tested on 6 October 2026 with llama.cpp's official CUDA build (b11429) on the
-same laptop: the model starts in 6 seconds with the weights on disk and takes 5.9 GB
-of GPU memory. The 70B is served with tensor parallelism over four
-GPUs in the official guide; FP8/NVFP4 builds reduce that. The business argument of
-the stretch goal (§4.8) is precisely that a fine-tuned 8B makes the 70B unnecessary
-at runtime.
-
-### Security and privacy
-
-- Documents contain personal data. For them the model endpoint is inside the
-  organisation, (a) or (b) above, so content never leaves. The demo uses public
-  documents only. Decisions of child and adult protection authorities and courts are
-  the most sensitive case: before anonymisation they name a person and describe their
-  health, family and finances ([use-case-decisions.md](use-case-decisions.md) §2). Why
-  such texts need a model the organisation controls, and why Apertus fits best there:
-  [use-cases.md §2](use-cases.md#why-apertus-fits-best).
-- Reachable from this machine only by default (`127.0.0.1:8000`); the organisation's
-  reverse proxy publishes it further. Two optional logins (`web/security.py`): a
-  shared token (`auth.token`; browsers are asked for it with HTTP Basic, any user
-  name, scripts send `Authorization: Bearer`; compared in constant time, ten wrong
-  tries per minute and client, then 429) or the proxy's user header
-  (`auth.proxy_header`, trusted only from the proxy's addresses in `auth.proxy_from`;
-  the user lands in `request.state.user`). That user is recorded (since 3 November
-  2026; the shared token names nobody): on the job they submit (`created_by`), on every
-  decision they save (`by`, with `at`, the time it was first saved in that form; a save
-  that sends a decision unchanged keeps the first reviewer's stamp) and on the review
-  (`saved_by`), on the audit bundle they export (`exported_by`, and `final.reviewers`,
-  who decided) and in the Word footer, in the log line of a deletion, which leaves no
-  row, and in the access line (below). The app reads the proxy's `X-Forwarded-For`
-  and `X-Forwarded-Proto` itself (`ProxyHeaders`, outside every other layer): the user's
-  address for the rate limit and the access line, and the scheme, so the cookies are
-  Secure and the links https behind a proxy that ends TLS, wherever it runs; trusted
-  from `auth.proxy_from`, with any login, else from this machine's loopback addresses.
-  uvicorn's own proxy-headers middleware is off (`serve`): it trusts the loopback
-  addresses alone and rewrote the client's address before the login compared the
-  connection with `auth.proxy_from`, so a proxy on the same host got 403 from every
-  request (since 2 November 2026, fixed 3 November 2026). The probes and the static
-  files need no login. `server.host` (which `serve --host` sets) names the interface the app listens
-  on; beyond the loopback interface the app refuses to start without one of the two. In
-  a container, `server.published_on` names the address the runtime publishes the port
-  on and is judged instead of the bind address.
-  No accounts or roles of its own. Every logged-in user sees every job, unless the
-  server has workspaces (`server.workspaces`, §7): then a browser sees the jobs of its
-  workspace alone, a link anyone may open, so the login decides who gets in and the
-  workspace what they see; the token is never stored (its hash is) and never logged.
-- On a server the app runs as a system service (a systemd unit; on Windows a service
-  wrapper such as WinSW or a scheduled task, under `NT AUTHORITY\LocalService`;
-  quickstart way 5) under a dedicated service account with no other rights:
-  `leichtfacile serve --host 0.0.0.0 --no-browser` with `auth.token`, or on the
-  loopback interface behind the reverse proxy with its user header (IIS with Windows
-  Authentication hands the domain user over through a rewrite rule's server variable).
-  `data.dir` lies on
-  a disk the organisation controls; that folder, the config file and the `.env` next
-  to it, which hold the key, are readable and writable by the service account alone
-  (`setup` writes the two files so on POSIX systems; on Windows `icacls` restricts the
-  folder; `data.dir`'s permissions are the organisation's to set). Outbound, the service connects to the model endpoint and to the web addresses
-  users submit (below), nothing else: no telemetry, no CDN, no downloads at runtime.
-- In a container the same holds (above): the image runs as its own unprivileged user,
-  `/data` is its one writable folder, and the login rule judges `server.published_on`,
-  the address the runtime publishes the port on, since the app binds every interface of
-  the container: `compose.yaml` publishes on the host's loopback interface by default and
-  passes that address, so no login is asked there; on any other address the app refuses
-  to start without one of the two logins. Behind a reverse proxy on the host,
-  `auth.proxy_from` names the proxy as the container sees it (the bridge network,
-  `172.16.0.0/12`).
-- Every response carries a Content-Security-Policy (scripts from this server only,
-  the one inline script by a nonce new per request, `frame-ancestors 'self'`, no
-  plug-ins; the API docs pages, which load Swagger UI from a CDN and are off unless
-  `server.api_docs` says so, get the other headers only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, a
-  `Referrer-Policy` that keeps job addresses on the site and a `Permissions-Policy`.
-  HTTPS and `Strict-Transport-Security` belong to the proxy that ends TLS.
-- A request body over 16 MB is refused with 413 by its `Content-Length` before a byte
-  is read, else as soon as the count passes the limit; the 15 MB file limit, the length
-  of the text (`texts.max_chars`, 10,000 characters by default, pasted or read from a
-  file or a page) and the bounds on the review fields (§7) hold inside it.
-  Writes (POST, PUT, PATCH, DELETE) are limited to `server.rate_limit_per_minute` (120) per
-  client address and minute, 429 with `Retry-After` beyond; behind the trusted proxy
-  the client is the address it forwards. In memory, per process.
-- `/healthz` answers from the process alone; `/readyz` asks the model's provider at most
-  once in 30 s, whoever asks, and answers booleans and the configured names, never the
-  endpoint's catalogue, so a caller cannot make the server spend the key's quota or
-  learn what the endpoint serves. `/metrics` (§7) says how much the service is used
-  and which models it calls, so it stays behind the login when one is configured; the
-  probes alone are open.
-- Every response carries an `X-Request-ID`: the client's when it is a plain token (a
-  reverse proxy sets one, so its log and ours meet), else a new one. Every log line
-  written while the request is handled carries the id, and every line a worker writes
-  while it runs a job carries the job id (`logs.py`, context variables). One access
-  line per request names method, path, status, duration, client address and, with the
-  proxy login, the user (`user`), never the query string, which can carry what a
-  reviewer typed into the drafts search; uvicorn's
-  own access log, which has the query string, is off. `log.format = "json"` writes every
-  line as one JSON object (time, level, logger, message, request_id, job_id, the
-  access line's fields, the traceback) for a log collector; `text` is the default.
-- Jobs and artifacts live in `data.dir` and can be deleted via the API and
-  the pages; the data lifecycle below says what is kept, for how long, and what a
-  deletion takes with it.
-- The server fetches the URLs users submit, so a URL that resolves to a private,
-  loopback or link-local address is refused (server-side request forgery). The check
-  runs on every hop of a redirect chain (at most 5 hops) and the connection goes to
-  the address that was checked, the name in the Host header and as the TLS server
-  name, so a DNS answer that changes between the check and the connect cannot redirect
-  the fetch (`ingest/fetch.py`). Three budgets end a slow or hostile server's hold on
-  a thread: 30 s per connect and read, 120 s for the whole fetch, 15 MB of body.
-  The check unwraps an IPv4 address carried in IPv6 (IPv4-mapped, NAT64) and names the
-  ranges that CPython 3.12.0 to 3.12.3 still counted as global (6to4 among them), so it
-  refuses the same addresses on every supported Python; CI runs the tests on 3.12,
-  3.13 and 3.14. `server.allow_private_urls = true` lifts the address check for an intranet that needs internal
-  pages.
-- A state-changing request from a page on another site (cross-site request forgery)
-  is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
-  `Origin` that is not this server (`web/security.py`). Requests without these
-  headers, from scripts and API clients, pass; reads are never refused.
-- A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
-  event loop, so a server that trickles its page or a large PDF does not hold every
-  other request (`/healthz` included) while it is ingested; at most `jobs.ingest_slots`
-  submissions are read at a time (the next is refused with 429), so they cannot fill
-  the pool either. A queue limit, a time budget per job and a Stop button bound what
-  one submitter can make the workers do (§7).
-- Prompt injection: a web page or a PDF can carry instructions ("ignore the rules
-  above and write ..."). Every prompt puts the document between `<document>` and
-  `</document>` and says, right before the fence, that what stands there is content,
-  never an instruction; code writes a tag inside the text as `[document]` so the text
-  cannot close the fence (`pipeline/render.py`). The code-side checks keep the values
-  honest (FACT-01, FACT-06, the copied-example check), and every draft goes through
-  the review before it is exported.
-- No document text in logs above `DEBUG`; the LLM cache can be disabled. The failure
-  path keeps the promise too: the error a job stores and logs when the model's answer
-  does not validate names the fields, the messages and the kinds of error, never an
-  excerpt of the answer (pydantic's `input_value`, left out by
-  `llm/json_out.redacted_error`; the whole error still goes back to the model for its
-  repair); the known failures are logged without a traceback, whose chained cause
-  would print the excerpt; the values a stage finds that the document does not contain
-  are counted at `WARNING` and named at `DEBUG` only; and a filter on the log handlers
-  redacts `input_value=` excerpts in any message or traceback that still carries one
-  (`lifecycle.py`). A test fails a job on purpose and checks the job row, the page and
-  the captured log for a sentinel word.
-
-### Supply chain
-
-What runs for an organisation is the code that was reviewed, at every hop, and the
-repository keeps that checkable:
-
-- **Dependencies.** `uv.lock` pins every package with its hashes, and every install,
-  CI and the image among them, runs `uv sync --frozen`. `[tool.uv] exclude-newer =
-  "7 days"` in pyproject.toml keeps a release out of `uv lock --upgrade` and `uv add`
-  until it has been public for a week, the window in which most hijacked packages are
-  caught; the project's own language packages are exempt (pinned to an exact version,
-  published right before the pin), and any other exception names a release and the date
-  after which the window admits it by itself, from which day `tests/test_supply_chain.py`
-  asks for its removal. The language packages are built from spaCy's wheels and the
-  Morph-it! archive pinned by SHA-256 (§10, "Starting the app").
-- **Updates.** `.github/dependabot.yml` opens one grouped pull request a week for the
-  Python packages, one for the actions, one for the Dockerfile's images and one for the
-  model servers' images of `compose.yaml`, pinned by digest since their tags move, each
-  under the same seven-day window; CI gates them like any change.
-- **Workflows and publishing.** Every action is pinned to a commit, the workflows start
-  from read-only permissions, PyPI and ghcr.io take the artifacts by the workflow's own
-  identity (trusted publishing, `packages: write`), no long-lived token exists, and the
-  one download in CI, gitleaks, is pinned by its checksum.
-- **Secrets.** CI scans every commit of the history with gitleaks on every change
-  (`.gitleaks.toml` allows the project's own shapes that look like keys: the message
-  keys of findings in audit bundles and tests, and the test fixtures that play a
-  key); the hook in
-  `scripts/hooks/pre-commit` scans the staged changes before a commit when gitleaks is
-  installed. The keys themselves live in the `.env` next to the config file, never in
-  the repository.
-- **Vulnerabilities.** Trivy scans `uv.lock` on every change and the image once built,
-  under one policy: a high or critical finding with a fix fails the job, one without a
-  fix is reported; the fix is a lockfile update or a rebuild of the image, which carries
-  Debian's updates from the day it is built.
-- **At runtime.** The app downloads nothing: the UI assets and the fonts are in the
-  package, and the API documentation pages, the one place that would load Swagger UI
-  and ReDoc from a CDN, are off unless `server.api_docs` says so.
-- **Provenance and bills of materials.** The release workflow attests the wheel and the
-  image with GitHub's build-provenance action: a Sigstore signature by the workflow's own
-  identity that binds the artifact's digest to this repository, the tagged commit and
-  the workflow, which `gh attestation verify` checks against a download. uv uploads the
-  PyPI attestation (PEP 740) under trusted publishing, and the job fails if pypi.org does
-  not hold it afterwards. Trivy writes a CycloneDX bill of materials of the locked
-  dependencies and one of the image; both go on the GitHub release and are attested the
-  same way (`SECURITY.md`, "Verifying a release").
-- **Reporting.** `SECURITY.md` names the private channels, the scope and the response
-  times.
-- **Contributions.** The maintainers (`MAINTAINERS.md`) keep the rights in what they
-  write and publish it under the Apache License 2.0 by committing it. Everyone else
-  signs off every commit, which certifies the Developer Certificate of Origin (`DCO`)
-  and accepts the assignment of the rights in the contribution to the main copyright
-  owner (`CONTRIBUTING.md`, "Rights in your contribution"); a substantial contribution,
-  or one an organisation holds the rights in, comes with the signed form
-  `docs/assignment.md`. CI checks the sign-off on every pull request and skips the
-  maintainers, whose logins it reads from `MAINTAINERS.md`, and bots. The test job of
-  the pinned Python version measures the coverage of the package and writes it to the
-  job summary; no number is required.
-
-Settings of the repository on GitHub that go with this, outside the code: branch
-protection on `main` with every CI job required, the sign-off check among them, secret
-scanning with push protection, Dependabot alerts, and private vulnerability reporting
-switched on.
-
-#### Data lifecycle
-
-What the service stores, where, for how long, and how it leaves:
-
-- **What.** For every job: the source document as segments, the fact sheet, every
-  draft version with its rule findings, judge reports and repair records, the review
-  with the reviewer's edits, the pipeline summary, and one row per model call (stage,
-  model, tokens, latency, no text). With `llm.cache = true`, the response cache keeps every
-  prompt (which contains the document) and answer, keyed by their hash; it is off by
-  default and meant for development and evaluation.
-- **Where.** `data.dir` (by default the user's data folder, such as
-  `~/.local/share/leichtfacile` or `%LOCALAPPDATA%\leichtfacile`, §10; on a server a
-  folder on a disk the organisation controls): `leichtfacile.sqlite` and, with
-  the cache on, `llm_cache.sqlite`, and `backups/`, the copy of the database made before
-  an update changes its schema (§5), which the operator deletes under the records rules,
-  since it holds the documents; `leichtfacile backup <folder>` writes a copy wherever the
-  operator says. Nothing else is written; the exports are generated on request and not
-  stored. Encryption at rest belongs to the disk: put `data.dir`
-  on an encrypted file system or disk (LUKS, BitLocker, the cloud provider's encrypted
-  volume), which costs nothing in the application and covers the WAL and temporary
-  files too; the application does not encrypt rows itself.
-- **How long.** By default until someone deletes the job. `data.retention_days` (0 by
-  default) makes a housekeeping thread delete, once an hour, every job that nobody
-  changed for that many days, with its artifacts, calls and cache rows; running jobs
-  stay. A deployment that handles letters with personal data should set it to the
-  period its records rules allow and export what it must keep.
-- **Deletion.** The row menu of the drafts list, the job and review pages, and
-  `DELETE /api/v1/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
-  CASCADE`) and with its rows in the response cache (`lifecycle.remove_job`: the keys
-  of the job's calls are recorded in `llm_calls`), so no prompt with the document
-  outlives the job. A running job is stopped first.
-- **What leaves the machine.** Only the model calls: the document text, the fact sheet
-  and the drafts go to the endpoint named by `llm.url`, nowhere else; the target
-  architectures above and the endpoint profiles in §6 say which endpoints are
-  sovereign. Fetching a web address a user submitted sends a request to that site,
-  with nothing of a document in it.
-- **Logs.** Model, stage, tokens and latency per call; job ids and stages; one line
-  per request with method, path, status, duration, client address and request id, no
-  query string; errors without the words of the document or the answer (above).
-  Nothing a person wrote.
+- The app never runs a model. It calls an OpenAI-compatible endpoint named by
+  `llm.url` (D2), and where that model runs is the organisation's choice: its own
+  GPU, an air-gapped network, a Swiss-operated or another provider. Texts under
+  secrecy belong on a model the organisation controls; the shipped default, Apertus
+  70B on the Public AI gateway, is for public texts, and the reference numbers come
+  from CSCS (§6, §9).
+- Reachable from this machine only by default. Published further, the app needs one
+  of two logins, a shared token or the proxy's user header, and records the user it
+  names on what they submit, decide and export; it has no accounts or roles of its
+  own, and workspaces separate what a browser sees (§7).
+- Nothing leaves the machine but the model calls and the fetch of a web address a user
+  submitted: no telemetry, no CDN, no downloads at runtime, no document text in the
+  logs above `DEBUG`, and a job's deletion takes its prompts out of the response cache
+  with it (§5).
+- What runs is the code that was reviewed: dependencies and actions pinned, the wheel
+  and the image attested, the history scanned for secrets, the lockfile and the image
+  for vulnerabilities, every outside pull request's commits signed off.
 
 ## 11. Repository layout
+
+In a checkout, development tasks run with `uv run`: `uv run pytest`, `uv run ruff
+check .` and `uv run ruff format .`, `uv run mypy`, and the evaluation commands
+([quickstart.md](quickstart.md#the-evaluation)); the lint rules, their exceptions with
+reasons and the complexity baseline (the functions over a limit when the rules were
+switched on, marked until they are simple again) are in `pyproject.toml`,
+`[tool.ruff.lint]`. CI (`.github/workflows/ci.yml`, below) runs the same checks and
+starts the app natively with `leichtfacile serve --no-browser` against an unreachable
+endpoint, checking that `/healthz` answers and `/readyz` reports the endpoint
+unreachable.
 
 ```text
 .github/workflows/ci.yml    CI: ruff, mypy, pytest (on the pinned Python version with the package's coverage, reported,
@@ -2070,12 +1669,14 @@ DCO                         the Developer Certificate of Origin 1.1, verbatim, c
 .github/PULL_REQUEST_TEMPLATE.md  the checklist of a pull request
 publiccode.yml              the entry for public-sector software catalogues
                             (the project's page, https://leichtfacile.ch, lives in the owner's private
-                            repository leicht-facile-web since 2 November 2026, with its Pages workflow;
+                            repository leicht-facile-web, with its Pages workflow;
                             its fonts and pictures are copies of this repository's)
 docs/
   quickstart.md             installing and starting the app (setup, serve), running a model, servers, development
   configuration.md          the settings: the config file, the saved endpoints and presets, every key
   architecture.md           this document
+  operations.md             running the service: the package, the settings, the container, where the model
+                            runs, security and privacy, the supply chain, the data lifecycle
   assignment.md             the form that assigns the rights in a substantial contribution (CONTRIBUTING.md)
   openapi.json              the JSON API's OpenAPI description, written by scripts/openapi.py
   maintenance.md            the maintenance and support policy: the commitments, the stable surfaces, the
@@ -2091,7 +1692,7 @@ docs/
   model-comparison.md       every run on every endpoint side by side, tables written by `eval compare`
   hardware/                 measured runs on rented hardware (AWS L4, 10 October 2026)
   history/                  dated records of checks and measurements that no longer describe the current
-                            version (the endpoint checks of 6 October 2026)
+                            version (the endpoint checks of 6 October 2026, the Public AI routing checks)
   sources.md, use-cases.md, use-case-canton.md, use-case-decisions.md, use-case-schools.md, hard-texts.md
 src/leichtfacile/
   __main__.py, cli.py       setup, preset, config, serve, check-llm, ingest, check, simplify, eval
@@ -2159,10 +1760,10 @@ tests/                      rules (golden sentences, hard texts), ingest, pipeli
 | The 8B model cannot reach A2 quality | Fact sheet, examples and repair loop are designed to compensate; if it still fails, B1 becomes the primary level and the A2 gap is reported as a finding with numbers. |
 | JSON output unstable | Schema in prompt, lenient parse, pydantic validation, one error-feedback retry; measured in check 3 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md). |
 | Model judging itself is biased | Everything countable is in code; the judge is a different, larger model; judge agreement with human labels is reported. |
-| CSCS endpoint rate-limited or down | Backoff and cache; single-worker queue; evaluation runs overnight. |
+| The model endpoint rate-limited or down | Backoff and the response cache; the job queue with its time budget and the Stop button; a failed job runs again from its stage; the evaluation runs overnight. |
 | A model other than Apertus 1.5 behind the endpoint | The reported numbers hold for Apertus 1.5 only. The code checks (facts, values, rules) work the same for any model, and `eval run` measures another endpoint on the same pairs. |
-| Image input not available on the CSCS endpoint | Feature flagged; demo uses text and HTML; scans shown with local vLLM only if time allows. |
-| Scope creep across three languages | German end-to-end with numbers first (by 10 October); FR/IT only afterwards. |
+| Scanned letters and photos | Not supported, with a clear error; the spike's findings are in docs/image-input.md, and ingest stays text, HTML and PDF with a text layer until a model reads scans well enough (§4.1). |
+| Three languages and five varieties drifting apart | German carries the full rule set and the published evaluation; French and Italian share the rules' tables and run the same harness and calibration; a rule family changes for every language that has it (rules.md, §8). |
 | No compute for the LoRA | Stretch goal; the pipeline's value does not depend on it. The data it would need (approved drafts, edits) is collected regardless. |
 | Over-promising to public-sector users | Positioned as a drafting assistant for professionals; target-group review stays mandatory; limitations stated in the documentation. |
 

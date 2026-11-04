@@ -110,7 +110,7 @@ and Infomaniak serve Apertus 1.5 70B in Switzerland; the 8B runs on one 24 GB GP
 the organisation's own building, served by vLLM with the Swiss AI team's official
 Apertus image, run by the team on an NVIDIA L4
 ([docs/hardware/aws-l4-2026-10-10/](hardware/aws-l4-2026-10-10/),
-[architecture.md §10](architecture.md#10-deployment-and-sovereignty)). The model server
+[operations.md](operations.md#5-where-the-model-runs)). The model server
 runs outside the app, which reaches it at the address in `llm.url`. The Canton of
 Ticino already runs Apertus in-house to translate sensitive government documents. The
 reported numbers come from the CSCS inference API, the first endpoint

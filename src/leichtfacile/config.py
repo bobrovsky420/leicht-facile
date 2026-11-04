@@ -621,7 +621,7 @@ class Server(Section):
 
 class Auth(Section):
     """The login, needed when the app is published beyond this machine
-    (docs/architecture.md §10)."""
+    (docs/operations.md, "Security and privacy")."""
 
     token: SecretStr | None = Field(
         None,
@@ -692,8 +692,8 @@ class Data(Section):
 
 
 class Log(Section):
-    """The app's log. Document text is only ever logged at DEBUG (docs/architecture.md
-    §10)."""
+    """The app's log. Document text is only ever logged at DEBUG (docs/operations.md,
+    "Security and privacy")."""
 
     level: LogLevel = Field("INFO", description="DEBUG, INFO, WARNING, ERROR or CRITICAL.")
     format: LogFormat = Field(

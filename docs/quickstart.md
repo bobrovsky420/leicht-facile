@@ -737,7 +737,7 @@ other address, it needs one of two logins and refuses to start without one.
 
 `auth.token` and `auth.proxy_header` exclude each other. `/healthz`, `/readyz` and the
 static files need no login. Details:
-[docs/architecture.md §10](architecture.md#10-deployment-and-sovereignty).
+[docs/operations.md](operations.md#6-security-and-privacy).
 
 ## When it does not start
 

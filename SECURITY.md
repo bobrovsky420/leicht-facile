@@ -64,5 +64,5 @@ one-week cooldown on new releases; weekly dependency updates; a secret scan of t
 history and a vulnerability scan of the lockfile and the image on every change; no
 download at runtime; provenance and a bill of materials with every release. The details
 and the repository settings
-that go with them: [docs/architecture.md §10](docs/architecture.md#10-deployment-and-sovereignty),
+that go with them: [docs/operations.md](docs/operations.md#7-supply-chain),
 "Supply chain".

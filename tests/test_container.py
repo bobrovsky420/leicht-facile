@@ -63,7 +63,7 @@ def test_the_image_name_and_the_version_agree() -> None:
     release = _read(".github/workflows/release.yml")
     assert re.search(rf"^\s+IMAGE: {re.escape(IMAGE)}$", release, re.MULTILINE)
     assert f"image: {IMAGE}:${{LEICHTFACILE_VERSION:-latest}}" in _read("compose.yaml")
-    for doc in ("README.md", "docs/quickstart.md", "docs/architecture.md"):
+    for doc in ("README.md", "docs/quickstart.md", "docs/architecture.md", "docs/operations.md"):
         text = _read(doc)
         assert IMAGE in text, doc
         tags = re.findall(re.escape(IMAGE) + r":([\w.-]+)", text)

@@ -441,7 +441,7 @@ def _foreign_check(lang: str, known: KnownValues, texts_of):
                 seen.setdefault(value.text, None)
         if not seen:
             return None
-        # The values themselves only at DEBUG: they are the model's words (§10).
+        # The values themselves only at DEBUG: they are the model's words (operations.md).
         log.warning("the answer has %d values not in the document", len(seen))
         log.debug("values not in the document: %s", ", ".join(seen))
         return label(lang, "foreign_values", values=", ".join(seen))

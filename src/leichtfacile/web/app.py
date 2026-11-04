@@ -49,7 +49,7 @@ def create_app(
         registry = Registry.from_settings(settings)
     settings = registry.settings
     # One line per record, text or JSON, with the request and job ids (logs.py); no
-    # excerpt of a document or an answer in an error's line (§10).
+    # excerpt of a document or an answer in an error's line (docs/operations.md).
     configure_logging(settings.log.level, settings.log.format)
     store = store or Store(settings.data.dir / DATABASE_NAME)
     orchestrator = Orchestrator(store, registry)

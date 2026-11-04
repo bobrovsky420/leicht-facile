@@ -259,7 +259,7 @@ every dependency; `compose.yaml` starts it with the model server of (a) on one G
 Documents and review records stay in a SQLite database in a folder the organisation
 controls (`data.dir`). At runtime the app contacts only the model endpoint, and a web
 page's server when a user enters a URL: no telemetry, no CDN, no login provider
-([architecture.md](docs/architecture.md) §10). Several teams on one server can each
+([operations.md](docs/operations.md)). Several teams on one server can each
 keep their own drafts list behind a workspace link (`server.workspaces`,
 [configuration.md](docs/configuration.md)). Which texts need this, and why Apertus
 fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidential-texts).
@@ -275,6 +275,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [quickstart.md](docs/quickstart.md): installing and starting the app, the model providers and presets, servers, offline installs, development
 - [configuration.md](docs/configuration.md): the settings, the providers and presets and their keys, every setting with its default
 - [architecture.md](docs/architecture.md): design and architecture, as the version at hand is; its first section says where to look
+- [operations.md](docs/operations.md): running the service: the package, the settings, the container, where the model runs, security and privacy, the supply chain, the data lifecycle
 - [history/](docs/history/): dated records of checks and measurements that no longer describe the current version
 - [ui-design.md](docs/ui-design.md): the web UI's specification: tokens, components, screens, accessibility
 - [logo.md](docs/logo.md): the logo, its files and where it goes

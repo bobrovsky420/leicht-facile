@@ -531,7 +531,7 @@ The web application (`leichtfacile serve`).
 
 ### `[auth]`
 
-The login, needed when the app is published beyond this machine (docs/architecture.md §10).
+The login, needed when the app is published beyond this machine (docs/operations.md, "Security and privacy").
 
 | Key | Default | Meaning |
 |-----|---------|---------|
@@ -552,7 +552,7 @@ Where the app keeps its data. A relative folder is taken from the folder of the 
 
 ### `[log]`
 
-The app's log. Document text is only ever logged at DEBUG (docs/architecture.md §10).
+The app's log. Document text is only ever logged at DEBUG (docs/operations.md, "Security and privacy").
 
 | Key | Default | Meaning |
 |-----|---------|---------|

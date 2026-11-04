@@ -7,7 +7,7 @@ Both are context variables, so a line written anywhere in between carries them
 without being told. `configure_logging` is called by `create_app` with `log.level`
 and `log.format`; the CLI's other commands keep `logging.basicConfig`.
 
-Privacy (docs/architecture.md §10) is the business of what is logged, not of
+Privacy (docs/operations.md, "Security and privacy") is the business of what is logged, not of
 this module: no document text above DEBUG, and the redacting filter as the net.
 """
 

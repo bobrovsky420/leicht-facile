@@ -1,4 +1,4 @@
-"""The supply-chain measures stay in step (docs/architecture.md §10, "Supply chain"): the
+"""The supply-chain measures stay in step (docs/operations.md, "Supply chain"): the
 release cooldown and its dated exceptions, which expire; Dependabot's three ecosystems
 under the same window; every action pinned to a commit and the one download pinned by
 its checksum; the security policy with its contact; and the scanners' configuration."""

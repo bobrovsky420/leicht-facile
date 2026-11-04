@@ -395,7 +395,7 @@ thinking_stages = []
 # vLLM (port 8000, the app's port too: on one machine start one of them elsewhere),
 # mostly on a GPU machine of the organisation (`setup vllm --base-url
 # http://<server>:8000/v1`); the Swiss AI team's image serves swiss-ai/Apertus-v1.5-8B and
-# switches thinking through the chat template (docs/architecture.md §10).
+# switches thinking through the chat template (docs/operations.md §5).
 [providers.vllm]
 label = "vLLM, a server of the organisation (port 8000)"
 url = "http://127.0.0.1:8000/v1"

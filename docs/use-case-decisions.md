@@ -44,7 +44,7 @@ and finances. Such a text may not go to a chatbot on a foreign cloud. Leicht·Fa
 is a Python package installed inside the network, and for decisions it is pointed at a
 model endpoint that the authority or the canton controls: on its own servers,
 air-gapped, or on a Swiss cloud under the canton's contract
-([architecture.md §10](architecture.md#10-deployment-and-sovereignty)).
+([operations.md](operations.md#5-where-the-model-runs)).
 Nothing else leaves the network. Official secrecy binds the authority, which must also
 be able to account for the model it uses and depend on no foreign supplier for it:
 that makes Apertus the model that fits best, and the one recommended for decisions
