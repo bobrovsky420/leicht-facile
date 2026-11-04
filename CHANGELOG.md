@@ -5,7 +5,7 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
-## [Unreleased]
+## [0.12.0] - 2026-11-04
 
 ### Added
 
@@ -15,7 +15,6 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   copy of it as it was, in `backups/` next to it (`leichtfacile-v<schema>.sqlite`, one
   per schema version): what a downgrade restores (docs/quickstart.md, "Updates").
 - `docs/openapi.json` describes the JSON API (OpenAPI); a test keeps it equal to the code.
-
 - Who did what, behind the proxy login (`auth.proxy_header`): the job records who
   submitted it, every review decision who made it and when it was first saved in that
   form (a later save that sends it unchanged keeps the stamp), the review who saved it
@@ -49,6 +48,11 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   Without the value the command asks for it, hidden. A secret that stands in a settings
   file by hand is still read, now with a warning from `config show`, `config edit` and
   `serve`.
+
+### Deprecated
+
+- The JSON API's paths under `/api` (without `/v1`): they answer until 3 May 2027 and are
+  removed in the first minor release after that date.
 
 ### Fixed
 
@@ -357,7 +361,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
-[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...HEAD
+[0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.0...v0.10.1
