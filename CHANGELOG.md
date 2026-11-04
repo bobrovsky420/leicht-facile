@@ -27,6 +27,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Changed
 
+- The audit bundle's `repair_records` and `GET /api/v1/jobs/{id}/artifacts/repair`
+  name, for every sentence a repair round added, the block kind (`kind`) and the
+  source sentences it cites (`segment_ids`), as a draft's blocks do. Rounds run before
+  this version have neither field in their record.
 - The JSON API lives under `/api/v1`. The old paths under `/api` answer the same until
   3 May 2027, each response with the headers `Deprecation`, `Sunset` and a `Link` to the
   same path under `/api/v1`, and are removed in the first minor release after that

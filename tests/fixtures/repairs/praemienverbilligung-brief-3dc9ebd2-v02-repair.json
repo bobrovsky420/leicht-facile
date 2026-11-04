@@ -1,0 +1,1477 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "3dc9ebd21605",
+ "letter": "praemienverbilligung-brief.txt",
+ "model": "claude-haiku-5-5",
+ "recorded": "2026-10-26",
+ "kind": "repair",
+ "version": 2,
+ "requested_blocks": [
+  "b013",
+  "b002",
+  "b003",
+  "b004",
+  "b006",
+  "b007",
+  "b008",
+  "b009",
+  "b011",
+  "b017",
+  "b018",
+  "b024",
+  "b026",
+  "b014",
+  "b015",
+  "b022",
+  "b027"
+ ],
+ "requested_facts": [],
+ "draft": {
+  "doc_id": "doc-744d9c41f4",
+  "lang": "de",
+  "region": "CH",
+  "level": "A2",
+  "address": "formal",
+  "version": 1,
+  "parent_version": null,
+  "origin": "write",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Worum geht es?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Die Gemeinde Musterwil hilft Menschen mit wenig Geld.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "sentence",
+    "text": "Sie bezahlt einen Teil von Ihrer Prämie für die Kranken·kasse.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Das Amt rechnet mit dem steuerbaren Einkommen aus der Steuer·veranlagung 2025.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "heading",
+    "text": "Wer bekommt die Hilfe?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Sie wohnen am 1. Januar 2027 in der Gemeinde Musterwil.",
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Allein·stehende dürfen höchstens 42'000 Franken im Jahr verdienen.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Verheiratete dürfen höchstens 61'000 Franken im Jahr verdienen.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "sentence",
+    "text": "Für jedes Kind, für das Sie Geld bezahlen, steigt die Grenze um 9'000 Franken.",
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b010",
+    "kind": "heading",
+    "text": "Was müssen Sie tun?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b011",
+    "kind": "sentence",
+    "text": "Füllen Sie das Antrags·formular vollständig aus und unterschreiben Sie es.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "sentence",
+    "text": "Bringen Sie das Formular bis spätestens 31. März 2027 zur Sozial·versicherungs·stelle.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "sentence",
+    "text": "Zu spät eingereichte Anträge werden nicht berücksichtigt.",
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "sentence",
+    "text": "Legen Sie dem Antrag eine Kopie der letzten Steuer·veranlagung bei.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Legen Sie auch eine Kopie der Kranken·versicherungs·police bei.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "heading",
+    "text": "Wie wird die Hilfe bezahlt?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b017",
+    "kind": "sentence",
+    "text": "Die Gemeinde zahlt das Geld direkt an Ihre Kranken·kasse.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "Die Kranken·kasse zieht es von der nächsten Prämien·rechnung ab.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Sie bekommen das Geld nicht auf Ihr Konto.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "heading",
+    "text": "Was müssen Sie melden?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Melden Sie Änderungen innert 30 Tagen schriftlich.",
+    "fact_ids": [
+     "f10",
+     "f12"
+    ],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "list_item",
+    "text": "wenn Sie aus der Gemeinde wegziehen",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b023",
+    "kind": "list_item",
+    "text": "wenn Ihr Einkommen stark steigt",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b024",
+    "kind": "sentence",
+    "text": "Wenn Sie zu viel Hilfe bekommen haben, müssen Sie das Geld zurück·zahlen.",
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b025",
+    "kind": "heading",
+    "text": "Sie sind nicht einverstanden?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b026",
+    "kind": "sentence",
+    "text": "Sie können innert 30 Tagen nach dem Brief schriftlich Einsprache machen.",
+    "fact_ids": [
+     "f12",
+     "f10"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b027",
+    "kind": "sentence",
+    "text": "Schreiben Sie in der Einsprache, warum Sie nicht einverstanden sind.",
+    "fact_ids": [
+     "f13"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b028",
+    "kind": "heading",
+    "text": "Haben Sie Fragen?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b029",
+    "kind": "sentence",
+    "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67.",
+    "fact_ids": [
+     "f14",
+     "f18"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b030",
+    "kind": "sentence",
+    "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example.",
+    "fact_ids": [
+     "f15",
+     "f18"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b031",
+    "kind": "sentence",
+    "text": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag da.",
+    "fact_ids": [
+     "f16"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b032",
+    "kind": "sentence",
+    "text": "Sie ist von 8.30 Uhr bis 11.30 Uhr erreichbar.",
+    "fact_ids": [
+     "f16",
+     "f18"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Gesetzesverweis EG KVG",
+    "why": "Für die Leserin nicht nötig",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "what": "Internetadresse",
+    "why": "Nur ein Zusatz; die Telefonnummer reicht",
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "what": "Grussformel und Absender",
+    "why": "Formalien",
+    "segment_ids": [
+     "s0018",
+     "s0019"
+    ]
+   },
+   {
+    "what": "Anrede",
+    "why": "Formalität, der Text spricht direkt mit Ihnen",
+    "segment_ids": [
+     "s0002"
+    ]
+   }
+  ],
+  "glossary": [
+   {
+    "term": "Prämien·verbilligung",
+    "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Kranken·kasse. Das gibt es für Menschen mit wenig Geld.",
+    "origin": "model"
+   },
+   {
+    "term": "Kranken·kasse",
+    "explanation": "Die Kranken·kasse bezahlt die Kosten für Arzt und Spital.",
+    "origin": "model"
+   },
+   {
+    "term": "Steuer·veranlagung",
+    "explanation": "Der Steuer·bescheid vom Kanton. Er sagt, wie viel Steuern Sie bezahlen müssen.",
+    "origin": "model"
+   },
+   {
+    "term": "Einsprache",
+    "explanation": "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal.",
+    "origin": "model"
+   },
+   {
+    "term": "Prämie",
+    "explanation": "Die Prämie ist das Geld für eine Versicherung. Sie bezahlen es regelmässig, zum Beispiel jeden Monat.",
+    "origin": "vocabulary"
+   }
+  ],
+  "code_edits": [
+   {
+    "block_id": "glossary",
+    "rule_id": "SEM-05",
+    "before": "",
+    "after": "Prämie"
+   },
+   {
+    "block_id": "b007",
+    "rule_id": "LEX-01",
+    "before": "Alleinstehende",
+    "after": "Allein·stehende"
+   },
+   {
+    "block_id": "b012",
+    "rule_id": "LEX-01",
+    "before": "Sozialversicherungs·stelle",
+    "after": "Sozial·versicherungs·stelle"
+   }
+  ]
+ },
+ "factsheet": {
+  "doc_id": "doc-744d9c41f4",
+  "doc_type": "Brief mit Verfügungscharakter (Information und Antragsverfahren zur Prämienverbilligung)",
+  "audience": "Personen mit Wohnsitz in der Gemeinde Musterwil in bescheidenen wirtschaftlichen Verhältnissen, die die Krankenkassenprämie verbilligt haben möchten",
+  "core": {
+   "what": {
+    "text": "Die Gemeinde Musterwil bietet eine Verbilligung der Krankenkassenprämien für Menschen mit kleinem Einkommen an.",
+    "segment_ids": [
+     "s0003",
+     "s0005"
+    ]
+   },
+   "must_do": {
+    "text": "Ein vollständig ausgefülltes und unterschriebenes Antragsformular mit Kopien der Steuerveranlagung und der Krankenversicherungspolice bei der Sozialversicherungsstelle einreichen.",
+    "segment_ids": [
+     "s0007",
+     "s0009"
+    ]
+   },
+   "deadline": {
+    "text": "Bis spätestens 31. März 2027.",
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   "cost": {
+    "text": "Es geht um eine Verbilligung der Prämien; einen festen Betrag zum Bezahlen nennt das Dokument nicht.",
+    "segment_ids": []
+   },
+   "contact": {
+    "text": "Sozialversicherungsstelle Musterwil, Telefon 044 123 45 67, E-Mail ipv@musterwil.example, Montag bis Freitag 8.30 bis 11.30 Uhr.",
+    "segment_ids": [
+     "s0016"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "Das Antragsformular muss bis spätestens 31. März 2027 eingereicht sein.",
+    "value_norm": "2027-03-31",
+    "segment_ids": [
+     "s0007"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "condition",
+    "text": "Anspruch hat, wer am 1. Januar 2027 den Wohnsitz in der Gemeinde Musterwil hat.",
+    "value_norm": "2027-01-01",
+    "segment_ids": [
+     "s0005"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "amount",
+    "text": "Alleinstehende haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 42'000 Franken beträgt.",
+    "value_norm": "42000",
+    "segment_ids": [
+     "s0005"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "amount",
+    "text": "Verheiratete haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 61'000 Franken beträgt.",
+    "value_norm": "61000",
+    "segment_ids": [
+     "s0005"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "amount",
+    "text": "Für jedes unterhaltsberechtigte Kind erhöht sich die Einkommensgrenze um 9'000 Franken.",
+    "value_norm": "9000",
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "condition",
+    "text": "Massgebend ist das steuerbare Einkommen gemäss der rechtskräftigen Steuerveranlagung 2025.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0004"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "obligation",
+    "text": "Dem Antrag müssen eine Kopie der letzten Steuerveranlagung und eine Kopie der Krankenversicherungspolice beigelegt werden.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f08",
+    "kind": "condition",
+    "text": "Verspätet eingereichte Anträge werden nicht berücksichtigt.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f09",
+    "kind": "procedure",
+    "text": "Die Verbilligung wird direkt an die Krankenversicherung gezahlt und mit der laufenden Prämienrechnung verrechnet; eine Barauszahlung an die versicherte Person ist ausgeschlossen.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0010",
+     "s0011"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f10",
+    "kind": "obligation",
+    "text": "Änderungen der persönlichen oder wirtschaftlichen Verhältnisse, etwa Wegzug oder wesentliche Einkommenserhöhung, müssen innert 30 Tagen schriftlich gemeldet werden.",
+    "value_norm": "30",
+    "segment_ids": [
+     "s0012"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f11",
+    "kind": "obligation",
+    "text": "Zu Unrecht bezogene Leistungen müssen zurückbezahlt werden.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f12",
+    "kind": "right",
+    "text": "Gegen die Verfügung kann innert 30 Tagen seit Zustellung schriftlich Einsprache erhoben werden.",
+    "value_norm": "30",
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f13",
+    "kind": "condition",
+    "text": "Die Einsprache muss begründet werden.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0015"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f14",
+    "kind": "contact",
+    "text": "Telefon der Sozialversicherungsstelle: 044 123 45 67.",
+    "value_norm": "0441234567",
+    "segment_ids": [
+     "s0016"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f15",
+    "kind": "contact",
+    "text": "E-Mail der Sozialversicherungsstelle: ipv@musterwil.example.",
+    "value_norm": "ipv@musterwil.example",
+    "segment_ids": [
+     "s0016"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f16",
+    "kind": "procedure",
+    "text": "Die Sozialversicherungsstelle ist von Montag bis Freitag, 8.30 bis 11.30 Uhr, erreichbar.",
+    "value_norm": "08:30",
+    "segment_ids": [
+     "s0016"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f17",
+    "kind": "other",
+    "text": "Weitere Informationen stehen unter www.musterwil.example/ipv.",
+    "value_norm": "www.musterwil.example/ipv",
+    "segment_ids": [
+     "s0017"
+    ],
+    "must_keep": false,
+    "origin": "model"
+   },
+   {
+    "id": "f18",
+    "kind": "other",
+    "text": "Für Auskünfte steht Ihnen die Sozialversicherungsstelle von Montag bis Freitag, 8.30 bis 11.30 Uhr, unter Telefon 044 123 45 67 oder per E-Mail an ipv@musterwil.example zur Verfügung.",
+    "value_norm": "11:30",
+    "segment_ids": [
+     "s0016"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "Prämienverbilligung",
+    "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Krankenkasse. Das gibt es für Menschen mit wenig Geld.",
+    "segment_ids": [
+     "s0003"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "Krankenpflegeversicherung",
+    "explanation": "Die Krankenkasse. Sie bezahlt die Kosten für Arzt und Spital.",
+    "segment_ids": [
+     "s0003"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Einkommensgrenze",
+    "explanation": "Die höchste Summe, die man im Jahr verdienen darf, damit man Anspruch hat.",
+    "segment_ids": [
+     "s0005"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "massgebendes Einkommen",
+    "explanation": "Dieses Einkommen zählt für einen Entscheid. Das Amt berechnet es nach eigenen Regeln.",
+    "segment_ids": [
+     "s0004"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "Steuerveranlagung",
+    "explanation": "Der Steuerbescheid vom Kanton. Er sagt, wie viel Steuern man bezahlen muss.",
+    "segment_ids": [
+     "s0004",
+     "s0009"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "zivilrechtlicher Wohnsitz",
+    "explanation": "Der Ort, an dem man offiziell gemeldet ist und wohnt.",
+    "segment_ids": [
+     "s0005"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "unterhaltsberechtigt",
+    "explanation": "Ein Kind, für das man Geld zum Leben bezahlen muss.",
+    "segment_ids": [
+     "s0006"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Einsprache",
+    "explanation": "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal.",
+    "segment_ids": [
+     "s0014"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "Verfügung",
+    "explanation": "Eine Verfügung ist ein Entscheid von einem Amt. Der Entscheid steht in einem Brief. Er gilt für Sie.",
+    "segment_ids": [
+     "s0014"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "Krankenversicherungspolice",
+    "explanation": "Das Dokument, das den Vertrag mit der Krankenkasse beschreibt.",
+    "segment_ids": [
+     "s0009"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "EG KVG",
+    "explanation": "Das kantonale Gesetz, das regelt, wie die Prämien verbilligt werden.",
+    "segment_ids": [
+     "s0003"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Zustellung",
+    "explanation": "Zustellung heisst: Das Amt schickt Ihnen einen Brief oder einen Entscheid. Oft beginnt an diesem Tag eine Frist.",
+    "segment_ids": [
+     "s0014"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0003"
+    ],
+    "reason": "Verweis auf das Gesetz (EG KVG) ist für die Leserin nicht nötig"
+   },
+   {
+    "segment_ids": [
+     "s0017"
+    ],
+    "reason": "Internetadresse ist nur ein Zusatz; kann weggelassen werden"
+   },
+   {
+    "segment_ids": [
+     "s0004"
+    ],
+    "reason": "Detail zur Berechnungsgrundlage, kann vereinfacht werden"
+   },
+   {
+    "segment_ids": [
+     "s0018",
+     "s0019"
+    ],
+    "reason": "Grussformel und Absender sind Formalien"
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b002",
+    "texts": [
+     "Die Gemeinde Musterwil hilft Menschen mit wenig Geld.",
+     "Die Gemeinde zahlt einen Teil der Prämie, wenn Sie wenig Einkommen haben."
+    ]
+   },
+   {
+    "id": "b003",
+    "texts": [
+     "Die Prämie ist der Preis für Ihre Kranken·kasse.",
+     "Die Gemeinde zahlt einen Teil davon."
+    ]
+   },
+   {
+    "id": "b004",
+    "texts": [
+     "Das Amt rechnet mit dem steuerbaren Einkommen.",
+     "Es nimmt das Einkommen aus der rechtskräftigen Steuer·veranlagung 2025."
+    ]
+   },
+   {
+    "id": "b006",
+    "texts": [
+     "Sie haben am 1. Januar 2027 Ihren Wohnsitz in der Gemeinde Musterwil.",
+     "Sie sind dort offiziell gemeldet."
+    ]
+   },
+   {
+    "id": "b007",
+    "texts": [
+     "Alleinstehende haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 42'000 Franken beträgt."
+    ]
+   },
+   {
+    "id": "b008",
+    "texts": [
+     "Verheiratete haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 61'000 Franken beträgt."
+    ]
+   },
+   {
+    "id": "b009",
+    "texts": [
+     "Für jedes Kind, für das Sie Geld zum Leben bezahlen, steigt die Grenze um 9'000 Franken."
+    ]
+   },
+   {
+    "id": "b011",
+    "texts": [
+     "Füllen Sie das Antrags·formular ganz aus.",
+     "Unterschreiben Sie es."
+    ]
+   },
+   {
+    "id": "b013",
+    "texts": [
+     "Das Amt berücksichtigt Anträge nicht, die zu spät kommen."
+    ]
+   },
+   {
+    "id": "b014",
+    "texts": [
+     "Legen Sie dem Antrag eine Kopie der letzten Steuer·veranlagung bei."
+    ]
+   },
+   {
+    "id": "b015",
+    "texts": [
+     "Legen Sie auch eine Kopie Ihrer Kranken·versicherungs·police bei.",
+     "Die Police ist Ihr Vertrag mit der Kranken·kasse."
+    ]
+   },
+   {
+    "id": "b017",
+    "texts": [
+     "Die Gemeinde zahlt das Geld direkt an Ihre Kranken·kasse."
+    ]
+   },
+   {
+    "id": "b018",
+    "texts": [
+     "Die Kranken·kasse zieht das Geld von Ihrer Prämien·rechnung ab."
+    ]
+   },
+   {
+    "id": "b022",
+    "texts": [
+     "- wenn Sie aus der Gemeinde wegziehen"
+    ]
+   },
+   {
+    "id": "b024",
+    "texts": [
+     "Wenn Sie zu Unrecht Hilfe bekommen haben, müssen Sie das Geld zurück·zahlen."
+    ]
+   },
+   {
+    "id": "b026",
+    "texts": [
+     "Sie können innert 30 Tagen nach der Zustellung schriftlich Einsprache machen.",
+     "Einsprache heisst: Sie sind mit dem Entscheid nicht einverstanden."
+    ]
+   },
+   {
+    "id": "b027",
+    "texts": [
+     "Schreiben Sie in der Einsprache, warum Sie nicht einverstanden sind."
+    ]
+   }
+  ],
+  "additions": [
+   {
+    "after": "b012",
+    "kind": "sentence",
+    "texts": [
+     "Die Frist endet am 31. März 2027."
+    ],
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "after": "b019",
+    "kind": "sentence",
+    "texts": [
+     "Die Kranken·kasse bekommt das Geld direkt."
+    ],
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "after": "b023",
+    "kind": "sentence",
+    "texts": [
+     "- wenn Ihr Einkommen stark steigt"
+    ],
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "after": "b032",
+    "kind": "sentence",
+    "texts": [
+     "Sie erreichen die Stelle von Montag bis Freitag, 8.30 Uhr bis 11.30 Uhr."
+    ],
+    "fact_ids": [
+     "f16"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   }
+  ]
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-744d9c41f4",
+   "lang": "de",
+   "region": "CH",
+   "level": "A2",
+   "address": "formal",
+   "version": 2,
+   "parent_version": 1,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Worum geht es?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Die Gemeinde Musterwil hilft Menschen mit wenig Geld.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b002.1",
+     "kind": "sentence",
+     "text": "Die Gemeinde zahlt einen Teil der Prämie, wenn Sie wenig Einkommen haben.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Die Prämie ist der Preis für Ihre Kranken·kasse.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b003.1",
+     "kind": "sentence",
+     "text": "Die Gemeinde zahlt einen Teil davon.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Das Amt rechnet mit dem steuerbaren Einkommen.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b004.1",
+     "kind": "sentence",
+     "text": "Es nimmt das Einkommen aus der rechtskräftigen Steuer·veranlagung 2025.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "heading",
+     "text": "Wer bekommt die Hilfe?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Sie haben am 1. Januar 2027 Ihren Wohnsitz in der Gemeinde Musterwil.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b006.1",
+     "kind": "sentence",
+     "text": "Sie sind dort offiziell gemeldet.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Alleinstehende haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 42'000 Franken beträgt.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Verheiratete haben nur Anspruch, wenn ihr massgebendes Einkommen höchstens 61'000 Franken beträgt.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Für jedes Kind, für das Sie Geld zum Leben bezahlen, steigt die Grenze um 9'000 Franken.",
+     "fact_ids": [
+      "f05"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "heading",
+     "text": "Was müssen Sie tun?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Füllen Sie das Antrags·formular ganz aus.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b011.1",
+     "kind": "sentence",
+     "text": "Unterschreiben Sie es.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Bringen Sie das Formular bis spätestens 31. März 2027 zur Sozial·versicherungs·stelle.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Das Amt berücksichtigt Anträge nicht, die zu spät kommen.",
+     "fact_ids": [
+      "f08"
+     ],
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "sentence",
+     "text": "Legen Sie dem Antrag eine Kopie der letzten Steuer·veranlagung bei.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Legen Sie auch eine Kopie Ihrer Kranken·versicherungs·police bei.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b015.1",
+     "kind": "sentence",
+     "text": "Die Police ist Ihr Vertrag mit der Kranken·kasse.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "heading",
+     "text": "Wie wird die Hilfe bezahlt?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "Die Gemeinde zahlt das Geld direkt an Ihre Kranken·kasse.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "Die Kranken·kasse zieht das Geld von Ihrer Prämien·rechnung ab.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Sie bekommen das Geld nicht auf Ihr Konto.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "heading",
+     "text": "Was müssen Sie melden?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Melden Sie Änderungen innert 30 Tagen schriftlich.",
+     "fact_ids": [
+      "f10",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "list_item",
+     "text": "- wenn Sie aus der Gemeinde wegziehen",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b023",
+     "kind": "list_item",
+     "text": "wenn Ihr Einkommen stark steigt",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b024",
+     "kind": "sentence",
+     "text": "Wenn Sie zu Unrecht Hilfe bekommen haben, müssen Sie das Geld zurück·zahlen.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b025",
+     "kind": "heading",
+     "text": "Sie sind nicht einverstanden?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b026",
+     "kind": "sentence",
+     "text": "Sie können innert 30 Tagen nach der Zustellung schriftlich Einsprache machen.",
+     "fact_ids": [
+      "f12",
+      "f10"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b026.1",
+     "kind": "sentence",
+     "text": "Einsprache heisst: Sie sind mit dem Entscheid nicht einverstanden.",
+     "fact_ids": [
+      "f12",
+      "f10"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b027",
+     "kind": "sentence",
+     "text": "Schreiben Sie in der Einsprache, warum Sie nicht einverstanden sind.",
+     "fact_ids": [
+      "f13"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b028",
+     "kind": "heading",
+     "text": "Haben Sie Fragen?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b029",
+     "kind": "sentence",
+     "text": "Rufen Sie die Sozial·versicherungs·stelle an: 044 123 45 67.",
+     "fact_ids": [
+      "f14",
+      "f18"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b030",
+     "kind": "sentence",
+     "text": "Oder schreiben Sie eine E-Mail an ipv@musterwil.example.",
+     "fact_ids": [
+      "f15",
+      "f18"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b031",
+     "kind": "sentence",
+     "text": "Die Sozial·versicherungs·stelle ist von Montag bis Freitag da.",
+     "fact_ids": [
+      "f16"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b032",
+     "kind": "sentence",
+     "text": "Sie ist von 8.30 Uhr bis 11.30 Uhr erreichbar.",
+     "fact_ids": [
+      "f16",
+      "f18"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Gesetzesverweis EG KVG",
+     "why": "Für die Leserin nicht nötig",
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "what": "Internetadresse",
+     "why": "Nur ein Zusatz; die Telefonnummer reicht",
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "what": "Grussformel und Absender",
+     "why": "Formalien",
+     "segment_ids": [
+      "s0018",
+      "s0019"
+     ]
+    },
+    {
+     "what": "Anrede",
+     "why": "Formalität, der Text spricht direkt mit Ihnen",
+     "segment_ids": [
+      "s0002"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "Prämien·verbilligung",
+     "explanation": "Der Kanton bezahlt einen Teil von Ihrer Prämie für die Kranken·kasse. Das gibt es für Menschen mit wenig Geld.",
+     "origin": "model"
+    },
+    {
+     "term": "Kranken·kasse",
+     "explanation": "Die Kranken·kasse bezahlt die Kosten für Arzt und Spital.",
+     "origin": "model"
+    },
+    {
+     "term": "Steuer·veranlagung",
+     "explanation": "Der Steuer·bescheid vom Kanton. Er sagt, wie viel Steuern Sie bezahlen müssen.",
+     "origin": "model"
+    },
+    {
+     "term": "Einsprache",
+     "explanation": "Sie sind mit einem Entscheid nicht einverstanden? Dann schreiben Sie dem gleichen Amt. Das Amt prüft den Entscheid noch einmal.",
+     "origin": "model"
+    },
+    {
+     "term": "Prämie",
+     "explanation": "Die Prämie ist das Geld für eine Versicherung. Sie bezahlen es regelmässig, zum Beispiel jeden Monat.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "Die Frist endet am 31. März 2027.",
+    "reason": "conveyed",
+    "block_id": "b012",
+    "fact_ids": [
+     "f01"
+    ]
+   },
+   {
+    "text": "Die Kranken·kasse bekommt das Geld direkt.",
+    "reason": "conveyed",
+    "block_id": "b019",
+    "fact_ids": [
+     "f09"
+    ]
+   },
+   {
+    "text": "- wenn Ihr Einkommen stark steigt",
+    "reason": "conveyed",
+    "block_id": "b023",
+    "fact_ids": [
+     "f10"
+    ]
+   },
+   {
+    "text": "Sie erreichen die Stelle von Montag bis Freitag, 8.30 Uhr bis 11.30 Uhr.",
+    "reason": "conveyed",
+    "block_id": "b032",
+    "fact_ids": [
+     "f16"
+    ]
+   }
+  ]
+ },
+ "recorded_dropped": []
+}

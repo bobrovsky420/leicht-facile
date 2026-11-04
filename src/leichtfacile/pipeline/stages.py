@@ -908,6 +908,14 @@ def _sentence_key(text: str) -> str:
     return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?:")
 
 
+def _wording_key(text: str) -> str:
+    """A sentence's wording for the repeat checks of the repair and recover rounds: lower
+    case, without the Mediopunkt, single spaces, no final full stop, exclamation or
+    question mark. Not `_sentence_key`, the key of `drop_repeats`: that one strips a
+    final colon too."""
+    return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?")
+
+
 def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
     """A sentence or list item that repeats an earlier one is dropped, and its fact and
     source references go to the first; a heading left without content goes too. Small
@@ -995,7 +1003,134 @@ def wording_source(text: str, source: SourceDocument) -> str | None:
     return sentences[scores[0][1]].id
 
 
-def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None = None) -> Draft:  # noqa: C901, PLR0912
+@dataclass(frozen=True)
+class _FactGroups:
+    """The fact sheet as `link_facts` reads it: the ids it has, the sentences of each
+    fact, and its facts in the four groups a block conveys in different ways. `of`
+    builds it once per draft."""
+
+    known: set[str]  # the sheet's fact ids
+    sources_of: dict[str, list[str]]  # fact id -> its sentences
+    # (fact id, its value, its sentences) of the facts with a value
+    targets: list[tuple[str, Value, list[str]]]
+    # (fact id, its segments) of the facts without a value that code added
+    parts: list[tuple[str, set[str]]]
+    # (fact id, its segments, the values in its text) of the model's others
+    worded: list[tuple[str, set[str], list[Value]]]
+    # (fact id, its segments) of the facts with no value anywhere
+    plain: list[tuple[str, set[str]]]
+
+    @classmethod
+    def of(cls, factsheet: FactSheet, variety: str) -> _FactGroups:
+        targets: list[tuple[str, Value, list[str]]] = []
+        parts: list[tuple[str, set[str]]] = []
+        worded: list[tuple[str, set[str], list[Value]]] = []
+        plain: list[tuple[str, set[str]]] = []
+        for fact in factsheet.facts:
+            value = parse_value_norm(fact.value_norm, fact.kind, variety)
+            if value is not None:
+                targets.append((fact.id, value, fact.segment_ids))
+            elif fact.origin == "code":
+                parts.append((fact.id, set(fact.segment_ids)))
+            elif in_text := extract_values(fact.text, variety):
+                worded.append((fact.id, set(fact.segment_ids), in_text))
+            elif fact.segment_ids:
+                plain.append((fact.id, set(fact.segment_ids)))
+        return cls(
+            known=factsheet.fact_ids(),
+            sources_of={f.id: f.segment_ids for f in factsheet.facts},
+            targets=targets,
+            parts=parts,
+            worded=worded,
+            plain=plain,
+        )
+
+
+def _cited_sentences(
+    b: Block,
+    facts: _FactGroups,
+    held: list[tuple[str, list[str]]],
+    source: SourceDocument | None,
+    source_ids: set[str] | None,
+) -> list[str]:
+    """The source sentences a block cites. A content block that cites none (FACT-03)
+    takes those of the facts whose values it contains (`held`: fact id, its sentences),
+    else those of the facts it names, else, with the `source`, the sentence it says in
+    other words (`wording_source`)."""
+    segment_ids = list(b.segment_ids)
+    if source_ids is not None:
+        # An id the source does not have names no sentence: the 8B cited a block id
+        # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
+        segment_ids = [s for s in segment_ids if s in source_ids]
+    if segment_ids or b.kind == "heading":
+        return segment_ids
+    for _, fact_segments in held:
+        segment_ids += [s for s in fact_segments if s not in segment_ids]
+    if not segment_ids:
+        for fact_id in b.fact_ids:
+            segment_ids += [s for s in facts.sources_of.get(fact_id, []) if s not in segment_ids]
+    if not segment_ids and source is not None and (found := wording_source(b.text, source)):
+        segment_ids = [found]
+    return segment_ids
+
+
+def _block_links(
+    b: Block,
+    facts: _FactGroups,
+    variety: str,
+    source: SourceDocument | None,
+    source_ids: set[str] | None,
+) -> tuple[list[str], list[str]]:
+    """The fact ids and the sentence ids one block ends up with: the ids it names that
+    the sheet has and the facts whose value it contains, then, by the sentences it cites
+    (`_cited_sentences`), the parts and plain facts of a cited sentence and the worded
+    facts all of whose values it contains."""
+    values = extract_values(b.text, variety) if facts.targets or facts.worded else []
+    held = [
+        (fact_id, fact_segments)
+        for fact_id, target, fact_segments in facts.targets
+        if contains(target, b.text, values)
+    ]
+    segment_ids = _cited_sentences(b, facts, held, source, source_ids)
+    ids = [f for f in b.fact_ids if f in facts.known]
+    for fact_id, _ in held:
+        if fact_id not in ids:
+            ids.append(fact_id)
+    for fact_id, segments in (*facts.parts, *facts.plain):
+        if fact_id not in ids and segments & set(segment_ids):
+            ids.append(fact_id)
+    for fact_id, segments, in_text in facts.worded:
+        if (
+            fact_id not in ids
+            and segments & set(segment_ids)
+            and all(any(matches(t, v) for v in values) for t in in_text)
+        ):
+            ids.append(fact_id)
+    return ids, segment_ids
+
+
+def _with_spread_facts(
+    blocks: list[Block], worded: list[tuple[str, set[str], list[Value]]], variety: str
+) -> list[Block]:
+    """The blocks with each worded fact (`_FactGroups.worded`) no block conveys yet whose
+    values the writer spread over the blocks that cite its sentences (the two income
+    limits in two sentences, 10 October 2026): conveyed when those blocks together hold
+    every value, named on each of them that holds one."""
+    for fact_id, segments, in_text in worded:
+        if any(fact_id in b.fact_ids for b in blocks):
+            continue
+        citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
+        held = {i: extract_values(blocks[i].text, variety) for i in citing}
+        if citing and all(any(matches(t, v) for i in citing for v in held[i]) for t in in_text):
+            for i in citing:
+                if any(matches(t, v) for t in in_text for v in held[i]):
+                    blocks[i] = blocks[i].model_copy(
+                        update={"fact_ids": [*blocks[i].fact_ids, fact_id]}
+                    )
+    return blocks
+
+
+def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None = None) -> Draft:
     """Bookkeeping the model need not get right: a block that contains a fact's exact
     value conveys that fact, a block that cites a source sentence of a protected part of
     a decision (a code fact without a value, rules/decision.py) conveys that part, and
@@ -1009,77 +1144,16 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
     October 2026). A fact without a value and without values in its text is conveyed by
     every block that cites one of its sentences (10 October 2026: the writer renders the
     sentence and leaves the tag out; the judge's fact check still reads the meaning)."""
-    known = factsheet.fact_ids()
-    sources_of = {f.id: f.segment_ids for f in factsheet.facts}
+    facts = _FactGroups.of(factsheet, draft.variety)
     source_ids = source.segment_ids() if source is not None else None
-    targets = []
-    parts = []  # (fact id, its segments) of the facts without a value that code added
-    worded = []  # (fact id, its segments, the values in its text) of the model's others
-    plain = []  # (fact id, its segments) of the facts with no value anywhere
-    for fact in factsheet.facts:
-        value = parse_value_norm(fact.value_norm, fact.kind, draft.variety)
-        if value is not None:
-            targets.append((fact.id, value, fact.segment_ids))
-        elif fact.origin == "code":
-            parts.append((fact.id, set(fact.segment_ids)))
-        elif in_text := extract_values(fact.text, draft.variety):
-            worded.append((fact.id, set(fact.segment_ids), in_text))
-        elif fact.segment_ids:
-            plain.append((fact.id, set(fact.segment_ids)))
-    blocks = []
+    blocks: list[Block] = []
     for b in draft.blocks:
-        ids = [f for f in b.fact_ids if f in known]
-        segment_ids = list(b.segment_ids)
-        if source_ids is not None:
-            # An id the source does not have names no sentence: the 8B cited a block id
-            # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
-            segment_ids = [s for s in segment_ids if s in source_ids]
-        cited = bool(segment_ids)
-        values = extract_values(b.text, draft.variety) if targets or worded else []
-        for fact_id, target, fact_segments in targets:
-            if contains(target, b.text, values):
-                if fact_id not in ids:
-                    ids.append(fact_id)
-                if not cited and b.kind != "heading":
-                    segment_ids += [s for s in fact_segments if s not in segment_ids]
-        if not segment_ids and b.kind != "heading":
-            for fact_id in b.fact_ids:
-                segment_ids += [s for s in sources_of.get(fact_id, []) if s not in segment_ids]
-        if (
-            not segment_ids
-            and b.kind != "heading"
-            and source is not None
-            and (found := wording_source(b.text, source))
-        ):
-            segment_ids = [found]
-        for fact_id, segments in (*parts, *plain):
-            if fact_id not in ids and segments & set(segment_ids):
-                ids.append(fact_id)
-        for fact_id, segments, in_text in worded:
-            if (
-                fact_id not in ids
-                and segments & set(segment_ids)
-                and all(any(matches(t, v) for v in values) for t in in_text)
-            ):
-                ids.append(fact_id)
+        ids, segment_ids = _block_links(b, facts, draft.variety, source, source_ids)
         if ids == b.fact_ids and segment_ids == b.segment_ids:
             blocks.append(b)
         else:
             blocks.append(b.model_copy(update={"fact_ids": ids, "segment_ids": segment_ids}))
-    # A worded fact whose values the writer spread over the blocks that cite its
-    # sentences (the two income limits in two sentences, 10 October 2026): conveyed when
-    # those blocks together hold every value, named on each of them that holds one.
-    for fact_id, segments, in_text in worded:
-        if any(fact_id in b.fact_ids for b in blocks):
-            continue
-        citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
-        held = {i: extract_values(blocks[i].text, draft.variety) for i in citing}
-        if citing and all(any(matches(t, v) for i in citing for v in held[i]) for t in in_text):
-            for i in citing:
-                if any(matches(t, v) for t in in_text for v in held[i]):
-                    blocks[i] = blocks[i].model_copy(
-                        update={"fact_ids": [*blocks[i].fact_ids, fact_id]}
-                    )
+    blocks = _with_spread_facts(blocks, facts.worded, draft.variety)
     return draft.model_copy(update={"blocks": blocks})
 
 
@@ -1301,7 +1375,13 @@ def repair(
         requested_facts=[f.id for f in request.missing],
         repairs=[AnsweredRepair(block_id=i.id, texts=list(i.texts)) for i in out.repairs],
         additions=[
-            AnsweredAddition(after=a.after, texts=list(a.texts), fact_ids=list(a.fact_ids))
+            AnsweredAddition(
+                after=a.after,
+                kind=a.kind,
+                texts=list(a.texts),
+                fact_ids=list(a.fact_ids),
+                segment_ids=list(a.segment_ids),
+            )
             for a in out.additions
         ],
     )
@@ -1350,7 +1430,248 @@ def _sentences(texts: list[str], lang: str) -> list[str]:
     return out
 
 
-def apply_repairs(  # noqa: C901, PLR0912, PLR0915
+def _answer_by_block(
+    draft: Draft, out: RepairOut, request: RepairRequest, dropped: list[DroppedText]
+) -> tuple[dict[str, list[str]], dict[str | None, list[AdditionItem]]]:
+    """The answer as sentences: the repairs by block id, the flagged blocks' only, and
+    the additions by the block they follow (None: a block the draft does not have, or
+    none named). A repair of a block the round had not flagged goes to `dropped`: the
+    prompt says only the flagged blocks."""
+    items: list[RepairItem | AdditionItem] = [*out.repairs, *out.additions]
+    for item in items:  # the answer's texts as sentences
+        item.texts = _sentences(item.texts, draft.lang)
+    repairs = {item.id: item.texts for item in out.repairs if item.id in request.problems}
+    for item in out.repairs:
+        if item.id not in request.problems:  # the prompt says: only the flagged blocks
+            dropped += [
+                DroppedText(text=t, reason="not_flagged", block_id=item.id) for t in item.texts
+            ]
+    additions: dict[str | None, list[AdditionItem]] = {}
+    block_ids = set(draft.by_id())
+    for add in out.additions:
+        anchor = add.after if add.after in block_ids else None
+        additions.setdefault(anchor, []).append(add)
+    return repairs, additions
+
+
+@dataclass(frozen=True)
+class _Given:
+    """What a repair round is given before its answer is placed: the draft's language,
+    what the draft keeps and conveys without the blocks under repair, what the round
+    asked for and where the draft's content blocks stand. The checks on an answered
+    sentence read it (`_left_out`, `_restates`, the repeat checks of `_append_repair`
+    and `_append_additions`); `of` builds it once per round."""
+
+    lang: str
+    variety: str
+    fact_ids: set[str]  # the fact sheet's: an id the writer invented carries nothing
+    kept: set[str]  # the wording of every block not under repair (`_wording_key`)
+    conveyed: set[str]  # the facts the content blocks not under repair carry
+    requested: set[str]  # the facts asked for
+    targets: dict[str, Value]  # their values, where the sheet has one to parse
+    content: list[Block]  # the draft's content blocks in order, no headings
+    position: dict[str, int]  # block id -> its index in `content`
+
+    @classmethod
+    def of(
+        cls, draft: Draft, request: RepairRequest, factsheet: FactSheet, repaired: set[str]
+    ) -> _Given:
+        # A repair must not repeat a sentence that is already in the draft elsewhere.
+        kept = {_wording_key(b.text) for b in draft.blocks if b.id not in repaired}
+        # A heading carries nothing, whatever fact ids the writer gave it (`link_facts`).
+        conveyed = {
+            f
+            for b in draft.blocks
+            if b.id not in repaired and b.kind != "heading"
+            for f in b.fact_ids
+        }
+        requested = {f.id: f for f in request.missing}
+        targets = {
+            fact_id: target
+            for fact_id, fact in requested.items()
+            if (target := parse_value_norm(fact.value_norm, fact.kind, draft.variety)) is not None
+        }
+        content = [b for b in draft.blocks if b.kind != "heading"]
+        return cls(
+            lang=draft.lang,
+            variety=draft.variety,
+            fact_ids=factsheet.fact_ids(),
+            kept=kept,
+            conveyed=conveyed,
+            requested=set(requested),
+            targets=targets,
+            content=content,
+            position={b.id: i for i, b in enumerate(content)},
+        )
+
+
+def _known_ids(add: AdditionItem, given: _Given) -> list[str]:
+    """The addition's fact ids the sheet has, in the answer's order."""
+    return [f for f in add.fact_ids if f in given.fact_ids]
+
+
+def _left_out(add: AdditionItem, given: _Given) -> DropReason | None:
+    """Why an addition stays out of the version, None when it goes in. An addition must
+    not say again, in other words, what the draft already says: one whose facts the
+    draft's content blocks all carry (by the links of `link_facts`), none of them asked
+    for, is left out as `conveyed`. The model volunteers such sentences next to the
+    ones asked for: 35 of the 80 sentences the rounds added to the six school letters
+    (Apertus 70B, 31 October 2026) were of this kind, and the check on wording
+    (`_Given.kept`, by `_wording_key`) sees only the same wording. And an addition
+    asked for a value that brings none of it is not what was asked for (`no_value`):
+    the 70B hung the requested fact id on six sentences that restated the packing
+    list. A fact FACT-01 asks for is never carried: its value is nowhere."""
+    ids = set(_known_ids(add, given))
+    asked = ids & given.requested
+    if ids and not asked and ids <= given.conveyed:
+        return "conveyed"
+    if asked and asked <= given.targets.keys():
+        values = [(t, extract_values(t, given.variety)) for t in add.texts]
+        if not any(contains(given.targets[f], t, v) for f in asked for t, v in values):
+            return "no_value"
+    return None
+
+
+def _restates(text: str, anchor_id: str | None, add: AdditionItem, given: _Given) -> bool:
+    """Whether a volunteered sentence says in other words what one block near its place
+    already says: every content word of it and every value stands in that one block
+    (the block it follows, that block's neighbours, a block that cites one of its
+    source sentences or carries one of its facts; without a block, or after a heading,
+    the draft's last two content blocks). The 70B adds "Ruf den Betrieb und das
+    Schulsekretariat an." after the sentence that says so, whatever fact ids it gives
+    the addition (31 October 2026). Words are compared by their first four letters
+    (Tage, Tagen), values by `matches`. One block, not the words of several, and never
+    a sentence asked for: easy language reuses its words, and the first form of this
+    check, against the words of all the blocks around and on repair texts too, dropped
+    rewrites that said something new in known words, so the loop stopped on "no
+    progress" and the eval pairs kept 1 to 2 more errors per 100 blocks (the Public AI
+    rerun of the same day)."""
+    if set(_known_ids(add, given)) & given.requested:
+        return False
+    stems = {s[:4] for s in _stems(text, given.lang)}
+    values = extract_values(text, given.variety)
+    if len(stems) < 2 and not values:
+        return False
+    content = given.content
+    i = given.position.get(anchor_id) if anchor_id is not None else None
+    around = content[max(0, i - 1) : i + 2] if i is not None else content[-2:]
+    around += [
+        b
+        for b in content
+        if set(b.segment_ids) & set(add.segment_ids) or set(b.fact_ids) & set(add.fact_ids)
+    ]
+    for b in around:
+        known_values = extract_values(b.text, given.variety)
+        if stems <= {s[:4] for s in _stems(b.text, given.lang)} and all(
+            any(matches(v, k) or matches(k, v) for k in known_values) for v in values
+        ):
+            return True
+    return False
+
+
+@dataclass
+class _NewVersion:
+    """The version under construction: its blocks so far, the ids given out (the draft's
+    and the new blocks') and every answered sentence left out, with its reason. The walk
+    of `apply_repairs` grows all three."""
+
+    dropped: list[DroppedText]
+    taken: set[str]
+    blocks: list[Block] = field(default_factory=list)
+
+    def new_id(self, base: str) -> str:
+        """The first of `base.1`, `base.2`, ... that no block has yet, marked as taken."""
+        n = 1
+        while f"{base}.{n}" in self.taken:
+            n += 1
+        self.taken.add(f"{base}.{n}")
+        return f"{base}.{n}"
+
+    def last_id(self) -> str:
+        """The id a sentence without a block goes under: the last block's (so the next
+        one chains under it, `b012.1`, `b012.1.1`), `b000` while there is none."""
+        return self.blocks[-1].id if self.blocks else "b000"
+
+
+def _append_additions(
+    anchor_id: str | None, adds: list[AdditionItem], given: _Given, new: _NewVersion
+) -> None:
+    """The additions after one block as blocks at the end of the version so far, one per
+    sentence, numbered under the block (`b005.1`, `b005.2`, ...). An addition the draft
+    conveys or that lacks the value asked for stays out whole (`_left_out`); a sentence
+    the draft keeps elsewhere, one placed already, or one that restates a block near its
+    place (`_restates`) is a repeat; what stays out goes to `new.dropped` with its
+    reason. Without a block (None: the answer named none of the draft's) the sentences
+    go at the end, each numbered under the block before it, so a batch chains:
+    `b012.1`, then `b012.1.1` (`b000.1` in an empty draft)."""
+    for add in adds:
+        if reason := _left_out(add, given):
+            new.dropped.extend(
+                DroppedText(text=t, reason=reason, block_id=anchor_id, fact_ids=add.fact_ids)
+                for t in add.texts
+            )
+            continue
+        for text in add.texts:
+            if (
+                _wording_key(text) in given.kept
+                or any(_wording_key(text) == _wording_key(x.text) for x in new.blocks)
+                or _restates(text, anchor_id, add, given)
+            ):
+                new.dropped.append(
+                    DroppedText(
+                        text=text, reason="repeat", block_id=anchor_id, fact_ids=add.fact_ids
+                    )
+                )
+                continue
+            base = anchor_id if anchor_id is not None else new.last_id()
+            new.blocks.append(
+                Block(
+                    id=new.new_id(base),
+                    kind=add.kind,
+                    text=text,
+                    fact_ids=_known_ids(add, given),
+                    segment_ids=add.segment_ids,
+                )
+            )
+
+
+def _append_repair(b: Block, texts: list[str], kept: set[str], new: _NewVersion) -> None:
+    """The repaired block replaced by its texts, one block per sentence: the first keeps
+    the id, the others get `b005.1`, `b005.2`. A text that ends another text of the same
+    answer goes (the 70B wrote a sentence and then its tail once more, 31 October 2026);
+    so does one the draft has elsewhere (`kept`, the draft's wording only, not the blocks
+    placed so far), unless nothing would be left. What goes is dropped as a repeat."""
+    keys = [_wording_key(t) for t in texts]
+    parts = [
+        t for i, t in enumerate(texts) if any(k != keys[i] and k.endswith(keys[i]) for k in keys)
+    ]
+    new.dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
+    texts = [t for t in texts if t not in parts] or texts[:1]
+    fresh = [t for t in texts if _wording_key(t) not in kept] or texts[:1]
+    new.dropped += [
+        DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
+    ]
+    for i, text in enumerate(fresh):
+        block_id = b.id if i == 0 else new.new_id(b.id)
+        new.blocks.append(b.model_copy(update={"id": block_id, "text": text}))
+
+
+def _without_late_repeats(new: _NewVersion) -> list[Block]:
+    """An addition can land before the repaired block it repeats: the repeat goes
+    (`drop_repeats`, ids kept), to `new.dropped` with its block; a heading left without
+    content goes with it but is no sentence to record."""
+    final_blocks = drop_repeats(new.blocks, renumber=False)
+    if len(final_blocks) != len(new.blocks):
+        left = {b.id for b in final_blocks}
+        new.dropped += [
+            DroppedText(text=b.text, reason="repeat", block_id=b.id, fact_ids=b.fact_ids)
+            for b in new.blocks
+            if b.id not in left and b.kind != "heading"
+        ]
+    return final_blocks
+
+
+def apply_repairs(
     draft: Draft,
     out: RepairOut,
     request: RepairRequest,
@@ -1362,211 +1683,33 @@ def apply_repairs(  # noqa: C901, PLR0912, PLR0915
     has several texts), additions placed after their blocks. `dropped`, when given,
     collects every answered sentence code leaves out, with its reason."""
     dropped = [] if dropped is None else dropped
-    items: list[RepairItem | AdditionItem] = [*out.repairs, *out.additions]
-    for item in items:  # the answer's texts as sentences
-        item.texts = _sentences(item.texts, draft.lang)
-    repairs = {item.id: item.texts for item in out.repairs if item.id in request.problems}
-    for item in out.repairs:
-        if item.id not in request.problems:  # the prompt says: only the flagged blocks
-            dropped += [
-                DroppedText(text=t, reason="not_flagged", block_id=item.id) for t in item.texts
-            ]
-    known_facts = factsheet.fact_ids()
-    additions: dict[str | None, list] = {}
-    block_ids = set(draft.by_id())
-    for add in out.additions:
-        anchor = add.after if add.after in block_ids else None
-        additions.setdefault(anchor, []).append(add)
-    used: set[str] = set()
-
-    def new_id(base: str) -> str:
-        n = 1
-        while f"{base}.{n}" in used or f"{base}.{n}" in block_ids:
-            n += 1
-        used.add(f"{base}.{n}")
-        return f"{base}.{n}"
-
-    def key(text: str) -> str:
-        return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?")
-
-    # A repair must not repeat a sentence that is already in the draft elsewhere.
-    kept = {key(b.text) for b in draft.blocks if b.id not in repairs}
-    # Nor say again, in other words, what the draft already says: an addition whose
-    # facts the draft's content blocks all carry (by the links of `link_facts`; a
-    # heading carries nothing, whatever fact ids the writer gave it), none of them asked
-    # for, is left out. The model volunteers such sentences next to the ones asked for:
-    # 35 of the 80 sentences the rounds added to the six school letters (Apertus 70B,
-    # 31 October 2026) were of this kind, and the repeat check above sees only the same
-    # wording. And an addition asked for a value that brings none of it is not what was
-    # asked for: the 70B hung the requested fact id on six sentences that restated the
-    # packing list. A fact FACT-01 asks for is never carried: its value is nowhere.
-    conveyed = {
-        f for b in draft.blocks if b.id not in repairs and b.kind != "heading" for f in b.fact_ids
-    }
-    requested = {f.id: f for f in request.missing}
-    targets = {
-        fact_id: target
-        for fact_id, fact in requested.items()
-        if (target := parse_value_norm(fact.value_norm, fact.kind, draft.variety)) is not None
-    }
-
-    def left_out(add) -> DropReason | None:
-        """Why an addition stays out of the version, None when it goes in."""
-        ids = {f for f in add.fact_ids if f in known_facts}
-        asked = ids & requested.keys()
-        if ids and not asked and ids <= conveyed:
-            return "conveyed"
-        if asked and asked <= targets.keys():
-            values = [(t, extract_values(t, draft.variety)) for t in add.texts]
-            if not any(contains(targets[f], t, v) for f in asked for t, v in values):
-                return "no_value"
-        return None
-
-    # A volunteered sentence that says in other words what one block near its place
-    # already says is a repeat too: every content word of it and every value stands in
-    # that one block (the block it follows, that block's neighbours, a block that cites
-    # one of its source sentences or carries one of its facts). The 70B adds "Ruf den
-    # Betrieb und das Schulsekretariat an." after the sentence that says so, whatever
-    # fact ids it gives the addition (31 October 2026). Words are compared by their
-    # first four letters (Tage, Tagen), values by `matches`. One block, not the words of
-    # several, and never a sentence asked for: easy language reuses its words, and the
-    # first form of this check, against the words of all the blocks around and on
-    # repair texts too, dropped rewrites that said something new in known words, so the
-    # loop stopped on "no progress" and the eval pairs kept 1 to 2 more errors per 100
-    # blocks (the Public AI rerun of the same day).
-    content = [b for b in draft.blocks if b.kind != "heading"]
-    position = {b.id: i for i, b in enumerate(content)}
-
-    def restates(text: str, anchor_id: str | None, add) -> bool:
-        if {f for f in add.fact_ids if f in known_facts} & requested.keys():
-            return False
-        stems = {s[:4] for s in _stems(text, draft.lang)}
-        values = extract_values(text, draft.variety)
-        if len(stems) < 2 and not values:
-            return False
-        i = position.get(anchor_id) if anchor_id is not None else None
-        around = content[max(0, i - 1) : i + 2] if i is not None else content[-2:]
-        around += [
-            b
-            for b in content
-            if set(b.segment_ids) & set(add.segment_ids) or set(b.fact_ids) & set(add.fact_ids)
-        ]
-        for b in around:
-            known_values = extract_values(b.text, draft.variety)
-            if stems <= {s[:4] for s in _stems(b.text, draft.lang)} and all(
-                any(matches(v, k) or matches(k, v) for k in known_values) for v in values
-            ):
-                return True
-        return False
-
-    blocks: list[Block] = []
-
-    def append_additions(anchor_id: str, adds: list) -> None:
-        for add in adds:
-            if reason := left_out(add):
-                dropped.extend(
-                    DroppedText(text=t, reason=reason, block_id=anchor_id, fact_ids=add.fact_ids)
-                    for t in add.texts
-                )
-                continue
-            for text in add.texts:
-                if (
-                    key(text) in kept
-                    or any(key(text) == key(x.text) for x in blocks)
-                    or restates(text, anchor_id, add)
-                ):
-                    dropped.append(
-                        DroppedText(
-                            text=text, reason="repeat", block_id=anchor_id, fact_ids=add.fact_ids
-                        )
-                    )
-                    continue
-                blocks.append(
-                    Block(
-                        id=new_id(anchor_id),
-                        kind=add.kind,
-                        text=text,
-                        fact_ids=[f for f in add.fact_ids if f in known_facts],
-                        segment_ids=add.segment_ids,
-                    )
-                )
-
+    repairs, additions = _answer_by_block(draft, out, request, dropped)
+    given = _Given.of(draft, request, factsheet, repaired=set(repairs))
+    new = _NewVersion(dropped, taken=set(draft.by_id()))
     # Sentences added after a list item go after the list, not between its items
     # (10 October 2026: the example letters' lists of enclosures were split by them).
-    pending: list[tuple[str, list]] = []
+    pending: list[tuple[str, list[AdditionItem]]] = []
     for b in draft.blocks:
         if pending and b.kind != "list_item":
             for anchor_id, adds in pending:
-                append_additions(anchor_id, adds)
+                _append_additions(anchor_id, adds, given, new)
             pending.clear()
         texts = repairs.get(b.id)
         if texts:
-            # A text that ends another text of the same answer goes (the 70B wrote a
-            # sentence and then its tail once more, 31 October 2026); so does one the
-            # draft has elsewhere, unless nothing would be left.
-            keys = [key(t) for t in texts]
-            parts = [
-                t
-                for i, t in enumerate(texts)
-                if any(k != keys[i] and k.endswith(keys[i]) for k in keys)
-            ]
-            dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
-            texts = [t for t in texts if t not in parts] or texts[:1]
-            fresh = [t for t in texts if key(t) not in kept] or texts[:1]
-            dropped += [
-                DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
-            ]
-            texts = fresh
-            for i, text in enumerate(texts):
-                block_id = b.id if i == 0 else new_id(b.id)
-                used.add(block_id)
-                blocks.append(b.model_copy(update={"id": block_id, "text": text}))
+            _append_repair(b, texts, given.kept, new)
         else:
-            used.add(b.id)
-            blocks.append(b)
+            new.blocks.append(b)
         adds = additions.get(b.id, [])
         if adds and b.kind == "list_item":
             pending.append((b.id, adds))
         elif adds:
-            append_additions(b.id, adds)
+            _append_additions(b.id, adds, given, new)
     for anchor_id, adds in pending:  # a list at the end of the draft
-        append_additions(anchor_id, adds)
-    for add in additions.get(None, []):
-        if reason := left_out(add):
-            dropped += [
-                DroppedText(text=t, reason=reason, fact_ids=add.fact_ids) for t in add.texts
-            ]
-            continue
-        for text in add.texts:
-            if (
-                key(text) in kept
-                or any(key(text) == key(x.text) for x in blocks)
-                or restates(text, None, add)
-            ):
-                dropped.append(DroppedText(text=text, reason="repeat", fact_ids=add.fact_ids))
-                continue
-            base = blocks[-1].id if blocks else "b000"
-            blocks.append(
-                Block(
-                    id=new_id(base),
-                    kind=add.kind,
-                    text=text,
-                    fact_ids=[f for f in add.fact_ids if f in known_facts],
-                    segment_ids=add.segment_ids,
-                )
-            )
-    # An addition can land before the repaired block it repeats: drop the repeat.
-    final_blocks = drop_repeats(blocks, renumber=False)
-    if len(final_blocks) != len(blocks):
-        left = {b.id for b in final_blocks}
-        dropped += [
-            DroppedText(text=b.text, reason="repeat", block_id=b.id, fact_ids=b.fact_ids)
-            for b in blocks
-            if b.id not in left and b.kind != "heading"
-        ]
+        _append_additions(anchor_id, adds, given, new)
+    _append_additions(None, additions.get(None, []), given, new)  # after no block of the draft
     return draft.model_copy(
         update={
-            "blocks": final_blocks,
+            "blocks": _without_late_repeats(new),
             "version": version if version is not None else draft.version + 1,
             "parent_version": draft.version,
             "origin": "repair",
@@ -1656,7 +1799,79 @@ def _target_block(draft: Draft, window: list[Block], after: str | None, segment_
     return ids[i]
 
 
-def recover_fact(  # noqa: C901, PLR0915
+def _carries(target: Value | None, text: str, variety: str) -> bool:
+    """Whether a text contains the fact's value; a fact without one is carried by none."""
+    return target is not None and contains(target, text, extract_values(text, variety))
+
+
+def _repeats(
+    text: str, target: Value | None, had: set[str], draft_values: list[Value], variety: str
+) -> bool:
+    """Whether an answered sentence repeats the draft: its wording is one of the draft's
+    (`had`, by `_wording_key`), or it lacks the fact's value and the draft has its hard
+    values already (`draft_values`). A sentence without the fact's value whose values
+    the draft already has repeats the draft: the 8B added the income limits of block
+    b009.1 to the date it was asked for."""
+    if _wording_key(text) in had:
+        return True
+    if _carries(target, text, variety):
+        return False
+    hard = [v for v in extract_values(text, variety) if v.kind in HARD_KINDS]
+    return bool(hard) and all(any(matches(v, d) for d in draft_values) for v in hard)
+
+
+def _foreign_values(
+    texts: list[str],
+    known: KnownValues,
+    target: Value | None,
+    had: set[str],
+    draft_values: list[Value],
+    variety: str,
+) -> list[str]:
+    """The values of the answered sentences that the paragraph does not have (`known`),
+    each once, in order. Repeats (`_repeats`) are left out before the paragraph check,
+    so the office's number from another paragraph does not cost a good sentence."""
+    found = {
+        v.text: None
+        for t in texts
+        if not _repeats(t, target, had, draft_values, variety)
+        for v in known.foreign(t)
+    }
+    return list(found)
+
+
+def _placed_findings(
+    recovery: Recovery,
+    fact: Fact,
+    target: Value | None,
+    draft: Draft,
+    source: SourceDocument,
+    factsheet: FactSheet,
+) -> tuple[list[Finding], bool | None]:
+    """The rules on the sentences, placed after their block, and FACT-01 with them: the
+    findings on the new blocks and, for a must-keep fact with a value, whether FACT-01
+    finds the value with them (None for the others)."""
+    added = [
+        Block(id=f"{recovery.block_id}.r{i}", kind="sentence", text=t, fact_ids=[fact.id],
+              segment_ids=list(fact.segment_ids))
+        for i, t in enumerate(recovery.texts, 1)
+    ]  # fmt: skip
+    blocks: list[Block] = []
+    for b in draft.blocks:
+        blocks.append(b)
+        if b.id == recovery.block_id:
+            blocks += added
+    findings = check_draft(
+        draft.model_copy(update={"blocks": blocks}), source=source, factsheet=factsheet
+    ).findings
+    new_ids = {b.id for b in added}
+    resolved: bool | None = None
+    if target is not None and fact.must_keep:
+        resolved = not any(f.rule_id == "FACT-01" and f.fact_id == fact.id for f in findings)
+    return [f for f in findings if f.block_id in new_ids], resolved
+
+
+def recover_fact(
     llm: LLMClient,
     source: SourceDocument,
     factsheet: FactSheet,
@@ -1696,39 +1911,19 @@ def recover_fact(  # noqa: C901, PLR0915
     )
     para_source = source.model_copy(update={"segments": paragraph, "title": None})
     known = KnownValues.of(para_source, factsheet.model_copy(update={"facts": [fact]}), variety)
-
-    def carries(text: str) -> bool:
-        return target is not None and contains(target, text, extract_values(text, variety))
-
-    # A sentence without the fact's value whose values the draft already has repeats the
-    # draft: the 8B added the income limits of block b009.1 to the date it was asked for.
-    # Repeats are left out before the paragraph check, so the office's number from
-    # another paragraph does not cost a good sentence.
-    def key(text: str) -> str:
-        return " ".join(text.lower().replace(MEDIOPUNKT, "").split()).rstrip(".!?")
-
-    had = {key(b.text) for b in draft.blocks}
+    had = {_wording_key(b.text) for b in draft.blocks}  # the draft's wordings
     draft_values = [v for b in draft.blocks for v in extract_values(b.text, variety)]
 
     def repeats(text: str) -> bool:
-        if key(text) in had:
-            return True
-        if carries(text):
-            return False
-        hard = [v for v in extract_values(text, variety) if v.kind in HARD_KINDS]
-        return bool(hard) and all(any(matches(v, d) for d in draft_values) for v in hard)
-
-    def foreign_values(texts: list[str]) -> list[str]:
-        found = {v.text: None for t in texts if not repeats(t) for v in known.foreign(t)}
-        return list(found)
+        return _repeats(text, target, had, draft_values, variety)
 
     def has_value(out: RecoverOut) -> str | None:
-        if target is None or any(carries(t) for t in out.texts):
+        if target is None or any(_carries(target, t, variety) for t in out.texts):
             return None
         return label(variety, "recover_value", value=exact)
 
     def in_paragraph(out: RecoverOut) -> str | None:
-        foreign = foreign_values(out.texts)
+        foreign = _foreign_values(out.texts, known, target, had, draft_values, variety)
         return label(variety, "recover_foreign", values=", ".join(foreign)) if foreign else None
 
     try:
@@ -1740,7 +1935,7 @@ def recover_fact(  # noqa: C901, PLR0915
         return recovery, exc.results
     recovery.texts = [t for t in out.texts if not repeats(t)]
     recovery.dropped = [t for t in out.texts if repeats(t)]
-    recovery.foreign = foreign_values(out.texts)
+    recovery.foreign = _foreign_values(out.texts, known, target, had, draft_values, variety)
     if recovery.foreign:
         recovery.rejected = "foreign"
         recovery.texts = []
@@ -1749,27 +1944,9 @@ def recover_fact(  # noqa: C901, PLR0915
         recovery.rejected = "nothing_new"
         return recovery, results
     recovery.block_id = _target_block(draft, window, out.after, para_ids)
-
-    # The rules on the sentences, placed after their block, and FACT-01 with them.
-    added = [
-        Block(id=f"{recovery.block_id}.r{i}", kind="sentence", text=t, fact_ids=[fact.id],
-              segment_ids=list(fact.segment_ids))
-        for i, t in enumerate(recovery.texts, 1)
-    ]  # fmt: skip
-    blocks: list[Block] = []
-    for b in draft.blocks:
-        blocks.append(b)
-        if b.id == recovery.block_id:
-            blocks += added
-    findings = check_draft(
-        draft.model_copy(update={"blocks": blocks}), source=source, factsheet=factsheet
-    ).findings
-    new_ids = {b.id for b in added}
-    recovery.findings = [f for f in findings if f.block_id in new_ids]
-    if target is not None and fact.must_keep:
-        recovery.resolved = not any(
-            f.rule_id == "FACT-01" and f.fact_id == fact.id for f in findings
-        )
+    recovery.findings, recovery.resolved = _placed_findings(
+        recovery, fact, target, draft, source, factsheet
+    )
     return recovery, results
 
 

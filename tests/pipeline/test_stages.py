@@ -24,6 +24,7 @@ from leichtfacile.rules import check_draft, style_guide
 from leichtfacile.schemas import (
     Block,
     Draft,
+    DroppedText,
     Fact,
     FactSheet,
     Segment,
@@ -1285,3 +1286,160 @@ def test_the_judge_filter_keeps_sem_09_and_sem_10_for_a_decision_only() -> None:
     assert [s.rule_id for s in standard.semantic_findings] == ["SEM-03"]
     decision = to_judge_report(out, draft, fs, "m", mode="decision")
     assert [s.rule_id for s in decision.semantic_findings] == ["SEM-09", "SEM-10", "SEM-03"]
+
+
+def test_an_addition_without_a_block_to_follow_goes_to_the_end() -> None:
+    """An addition whose `after` names no block of the draft, or none at all, goes
+    after the last block, with the repeat checks of the others and no block id on
+    what is left out."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="sentence", text="Alt zwei Wochen Frist."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [
+            {"texts": ["Neu am Ende."]},
+            {"after": "b999", "texts": ["Alt zwei Wochen Frist.", "Frist zwei Wochen alt."]},
+        ],
+    })  # fmt: skip
+    dropped: list[DroppedText] = []
+    new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Alt eins."), ("b002", "Alt zwei Wochen Frist."), ("b002.1", "Neu am Ende."),
+    ]  # fmt: skip
+    assert [(d.reason, d.text, d.block_id) for d in dropped] == [
+        ("repeat", "Alt zwei Wochen Frist.", None), ("repeat", "Frist zwei Wochen alt.", None),
+    ]  # fmt: skip
+
+
+def test_an_added_list_item_keeps_its_kind_and_its_sentences() -> None:
+    """The new block takes the addition's kind (the answer model reads the model's
+    names for it: `bullet` is a list item) and the source sentences it cites."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="sentence", text="Bringen Sie mit:"),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [{"after": "b002", "kind": "bullet", "texts": ["das Formular"],
+                       "segment_ids": ["s0004"]}],
+    })  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({}, []), fs)
+    assert [(b.id, b.kind, b.text, b.segment_ids) for b in new.blocks] == [
+        ("b001", "sentence", "Alt eins.", []),
+        ("b002", "sentence", "Bringen Sie mit:", []),
+        ("b002.1", "list_item", "das Formular", ["s0004"]),
+    ]
+
+
+def test_a_heading_left_without_content_by_a_repeated_repair_goes_too() -> None:
+    """A repair that says what another section says is a repeat (`drop_repeats`), and
+    the heading it leaves without content goes with it; the dropped list names the
+    sentence only, never a heading."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Titel"),
+        Block(id="b002", kind="sentence", text="Alt eins."),
+        Block(id="b003", kind="heading", text="Zweiter Titel"),
+        Block(id="b004", kind="sentence", text="Alt zwei."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({"repairs": [{"id": "b004", "texts": ["Alt eins."]}]})
+    dropped: list[DroppedText] = []
+    new = apply_repairs(draft, out, RepairRequest({"b004": ["x"]}, []), fs, dropped=dropped)
+    assert [(b.id, b.text) for b in new.blocks] == [("b001", "Titel"), ("b002", "Alt eins.")]
+    assert [(d.reason, d.text, d.block_id) for d in dropped] == [("repeat", "Alt eins.", "b004")]
+
+
+def test_additions_without_a_block_chain_under_the_last_block() -> None:
+    """Sentences added after no block of the draft go at the end, each numbered under
+    the block before it, so a batch chains (`b002.1`, `b002.1.1`); in an empty draft
+    under `b000`."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="sentence", text="Alt zwei."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [{"after": "b999", "texts": ["Neu drei.", "Neu vier."]},
+                      {"texts": ["Neu fünf."]}],
+    })  # fmt: skip
+    dropped: list[DroppedText] = []
+    new = apply_repairs(draft, out, RepairRequest({}, []), fs, dropped=dropped)
+    assert [b.id for b in new.blocks] == ["b001", "b002", "b002.1", "b002.1.1", "b002.1.1.1"]
+    assert dropped == []
+    empty = Draft(doc_id="doc", lang="de", level="A2", blocks=[])
+    out = RepairOut.model_validate({"additions": [{"texts": ["Erster Satz.", "Zweiter Satz."]}]})
+    new = apply_repairs(empty, out, RepairRequest({}, []), fs)
+    assert [b.id for b in new.blocks] == ["b000.1", "b000.1.1"]
+
+
+def test_an_addition_without_a_block_goes_after_a_trailing_list() -> None:
+    """The sentences after a list's last item and the ones after no block both wait
+    for the list to end, in that order."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="list_item", text="das Formular"),
+        Block(id="b003", kind="list_item", text="eine Kopie"),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [{"after": "b002", "texts": ["Nach der Liste: 20 Franken."],
+                       "fact_ids": ["f02"]},  # the value asked for, else it stays out
+                      {"after": "x", "texts": ["Ganz am Ende."]}],
+    })  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({}, [fs.facts[1]]), fs)
+    assert [b.id for b in new.blocks] == ["b001", "b002", "b003", "b002.1", "b002.1.1"]
+
+
+def test_a_new_id_skips_one_the_draft_has() -> None:
+    """A split repair and the additions number under their block past the ids the
+    draft already has (`b001.1` stays the draft's, the repair's second text gets
+    `b001.2`), and a sentence the draft has elsewhere is a repeat wherever it comes."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b001.1", kind="sentence", text="Alt eins b."),
+        Block(id="b002", kind="sentence", text="Alt zwei."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [{"id": "b001", "texts": ["Neu eins.", "Neu eins b.", "Neu eins c."]},
+                    {"id": "b002", "texts": ["Nicht markiert."]}],
+        "additions": [{"after": "b001", "texts": ["Dazu.", "Alt zwei."]},
+                      {"texts": ["Alt eins b.", "Ende."]}],
+    })  # fmt: skip
+    dropped: list[DroppedText] = []
+    new = apply_repairs(draft, out, RepairRequest({"b001": ["x"]}, []), fs, dropped=dropped)
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Neu eins."), ("b001.2", "Neu eins b."), ("b001.3", "Neu eins c."),
+        ("b001.4", "Dazu."), ("b001.1", "Alt eins b."), ("b002", "Alt zwei."),
+        ("b002.1", "Ende."),
+    ]  # fmt: skip
+    assert [(d.reason, d.block_id, d.text) for d in dropped] == [
+        ("not_flagged", "b002", "Nicht markiert."), ("repeat", "b001", "Alt zwei."),
+        ("repeat", None, "Alt eins b."),
+    ]  # fmt: skip
+
+
+def test_an_addition_that_repeats_a_repaired_block_before_it_is_dropped() -> None:
+    """The repeat check of an addition sees the blocks placed so far, the repaired
+    ones included, whatever their final punctuation."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins."),
+        Block(id="b002", kind="sentence", text="Alt zwei."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [{"id": "b001", "texts": ["Neu eins!"]}],
+        "additions": [{"after": "b002", "texts": ["Neu eins.", "Neu zwei."]}],
+    })  # fmt: skip
+    dropped: list[DroppedText] = []
+    new = apply_repairs(draft, out, RepairRequest({"b001": ["x"]}, []), fs, dropped=dropped)
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Neu eins!"), ("b002", "Alt zwei."), ("b002.1", "Neu zwei."),
+    ]  # fmt: skip
+    assert [(d.reason, d.block_id, d.text) for d in dropped] == [("repeat", "b002", "Neu eins.")]

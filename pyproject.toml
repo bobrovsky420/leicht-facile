@@ -59,6 +59,7 @@ leichtfacile = "leichtfacile.cli:main"
 
 [dependency-groups]
 dev = [
+    "coverage>=7.17",
     "fpdf2>=2.8.9",
     "mypy>=2.4.0",
     "pytest>=8.4",

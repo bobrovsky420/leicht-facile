@@ -1,0 +1,1147 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "17591eff9148",
+ "letter": "semaine-de-stage-lettre-eleves.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "polish",
+ "version": 4,
+ "requested_blocks": [
+  "b005",
+  "b007.1"
+ ],
+ "requested_facts": [],
+ "draft": {
+  "doc_id": "doc-d140714dff",
+  "lang": "fr",
+  "region": "CH",
+  "level": "A2",
+  "address": "informal",
+  "version": 3,
+  "parent_version": 2,
+  "origin": "repair",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Que devez-vous faire ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Tu fais un stage du 15 au 19 mars 2027.",
+    "fact_ids": [
+     "f11",
+     "f12"
+    ],
+    "segment_ids": [
+     "s0001"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "sentence",
+    "text": "Tu cherches une place de stage tout seul.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Tu remets l'attestation signée avant le 19 février 2027.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "sentence",
+    "text": "Si tu n'as pas de place de stage au 5 février 2027, informe ton enseignante ou ton enseignant tout de suite.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Tu remets le rapport de stage après la semaine.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0022"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Tu remets le rapport au plus tard le 2 avril 2027.",
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0022"
+    ]
+   },
+   {
+    "id": "b007.1",
+    "kind": "sentence",
+    "text": "Le rapport de stage doit être remis dans les deux semaines après ta semaine de stage, donc au plus tard le 2 avril 2027.",
+    "fact_ids": [
+     "f15",
+     "f02"
+    ],
+    "segment_ids": [
+     "s0022"
+    ]
+   },
+   {
+    "id": "b007.2",
+    "kind": "sentence",
+    "text": "Tu remets le rapport de stage à ton enseignante ou ton enseignant titulaire.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0022"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "heading",
+    "text": "Quand et comment payer ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b009",
+    "kind": "sentence",
+    "text": "L'établissement rembourse au maximum CHF 30.- pour les transports publics.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0018"
+    ]
+   },
+   {
+    "id": "b010",
+    "kind": "heading",
+    "text": "Quelles règles suivre ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b011",
+    "kind": "sentence",
+    "text": "Tu respectes les horaires et le règlement de l'entreprise.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "sentence",
+    "text": "Tu ne travailles pas plus de 8 heures par jour.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "sentence",
+    "text": "En cas de maladie ou d'accident, tu appelles avant 7 h 30.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "sentence",
+    "text": "Si tu es absent plus de 2 jours, tu donnes un certificat médical.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Sans excuse, l'absence est dans ton bulletin scolaire.",
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Les repas et les déplacements sont à la charge des parents.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "heading",
+    "text": "Qui contacter en cas de question ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b017.3",
+    "kind": "sentence",
+    "text": "Pour toute question, téléphone au secrétariat de l'établissement : 022 123 45 70.",
+    "fact_ids": [
+     "f10",
+     "f16"
+    ],
+    "segment_ids": [
+     "s0019"
+    ]
+   },
+   {
+    "id": "b017.4",
+    "kind": "sentence",
+    "text": "Tu peux aussi écrire à ton enseignante ou enseignant titulaire ou à secretariat@es-exempleville.example.",
+    "fact_ids": [
+     "f10",
+     "f16"
+    ],
+    "segment_ids": [
+     "s0019"
+    ]
+   },
+   {
+    "id": "b017.1",
+    "kind": "sentence",
+    "text": "L'office d'orientation scolaire et professionnelle est à Rue de la Gare 10, 1999 Exempleville.",
+    "fact_ids": [
+     "f13"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b017.2",
+    "kind": "sentence",
+    "text": "La participation à la semaine de stage est obligatoire pour toutes et tous.",
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "list_item",
+    "text": "Ton enseignante ou ton enseignant titulaire",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0024"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "list_item",
+    "text": "Le secrétariat de l'établissement : 022 123 45 70",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "list_item",
+    "text": "L'office d'orientation scolaire et professionnelle",
+    "fact_ids": [
+     "f09",
+     "f13"
+    ],
+    "segment_ids": [
+     "s0010",
+     "s0011"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Cet office est ouvert du lundi au jeudi de 13 h 30 à 17 h 30.",
+    "fact_ids": [
+     "f09",
+     "f14"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "Tu trouves des documents sur www.es-exempleville.example/orientation.",
+    "fact_ids": [
+     "f17"
+    ],
+    "segment_ids": [
+     "s0025"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Référence au plan d'études",
+    "why": "Pas nécessaire pour l'action à réaliser",
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "what": "Remarque interne sur l'évaluation du rapport",
+    "why": "Pas une instruction pour l'élève",
+    "segment_ids": [
+     "s0023"
+    ]
+   }
+  ],
+  "glossary": [
+   {
+    "term": "stage d'observation",
+    "explanation": "Pendant un stage d'observation, l'élève travaille quelques jours dans une entreprise. Elle ou il découvre un métier.",
+    "origin": "model"
+   },
+   {
+    "term": "attestation",
+    "explanation": "Un papier signé par l'entreprise qui confirme que tu as fait le stage.",
+    "origin": "model"
+   },
+   {
+    "term": "office d'orientation scolaire et professionnelle",
+    "explanation": "Un service qui aide les élèves à choisir leur futur métier et leur formation.",
+    "origin": "model"
+   },
+   {
+    "term": "bulletin scolaire",
+    "explanation": "Le bulletin scolaire est un papier de l'école. Il montre les notes de l'enfant. L'enfant le reçoit à la fin de l'année ou du semestre.",
+    "origin": "model"
+   },
+   {
+    "term": "responsabilité civile",
+    "explanation": "La responsabilité civile est une assurance. Vous ou votre enfant cassez quelque chose à une autre personne ? Alors cette assurance paie le dommage.",
+    "origin": "model"
+   },
+   {
+    "term": "délai",
+    "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+    "origin": "model"
+   },
+   {
+    "term": "enseignant titulaire",
+    "explanation": "L'enseignante ou l'enseignant titulaire est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui.",
+    "origin": "model"
+   },
+   {
+    "term": "orientation scolaire et professionnelle",
+    "explanation": "L'orientation scolaire et professionnelle aide les élèves à choisir un métier ou une école. Chaque canton a un office pour ça.",
+    "origin": "model"
+   },
+   {
+    "term": "certificat médical",
+    "explanation": "Un papier du médecin. Le médecin confirme votre maladie. Vous ne pouvez pas travailler.",
+    "origin": "model"
+   },
+   {
+    "term": "stage",
+    "explanation": "Un stage est un temps de travail dans une entreprise pour apprendre. Par exemple quelques jours pendant l'école.",
+    "origin": "vocabulary"
+   }
+  ],
+  "code_edits": []
+ },
+ "factsheet": {
+  "doc_id": "doc-d140714dff",
+  "doc_type": "Lettre",
+  "audience": "Les élèves de 10e année",
+  "core": {
+   "what": {
+    "text": "Il s'agit d'une semaine de stage obligatoire pour les élèves de 10e année.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Effectuer un stage d'observation dans une entreprise choisie, remettre l'attestation signée avant le 19 février 2027 et remettre le rapport de stage après la semaine.",
+    "segment_ids": [
+     "s0008",
+     "s0022"
+    ]
+   },
+   "deadline": {
+    "text": "L'attestation doit être remise au plus tard le vendredi 19 février 2027 et le rapport de stage au plus tard le 2 avril 2027.",
+    "segment_ids": [
+     "s0008",
+     "s0022"
+    ]
+   },
+   "cost": {
+    "text": "Les frais de repas et de déplacement sont à la charge des parents. L'établissement rembourse au maximum CHF 30.- pour les transports publics.",
+    "segment_ids": [
+     "s0016",
+     "s0018"
+    ]
+   },
+   "contact": {
+    "text": "L'enseignante ou l'enseignant titulaire, le secrétariat de l'établissement (secretariat@es-exempleville.example) ou l'office d'orientation scolaire et professionnelle.",
+    "segment_ids": [
+     "s0024",
+     "s0010"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "L'attestation de stage doit être remise au plus tard le vendredi 19 février 2027.",
+    "value_norm": "2027-02-19",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "deadline",
+    "text": "Le rapport de stage doit être remis au plus tard le 2 avril 2027.",
+    "value_norm": "2027-04-02",
+    "segment_ids": [
+     "s0022"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "deadline",
+    "text": "Si aucune place de stage n'est trouvée au 5 février 2027, il faut en informer l'enseignante ou l'enseignant titulaire sans délai.",
+    "value_norm": "2027-02-05",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "amount",
+    "text": "L'établissement rembourse au maximum CHF 30.- pour les frais de transports publics sur présentation de justificatifs.",
+    "value_norm": "30",
+    "segment_ids": [
+     "s0018"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "obligation",
+    "text": "La participation à la semaine de stage est obligatoire pour toutes et tous.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "obligation",
+    "text": "En cas de maladie ou d'accident, il faut avertir l'entreprise et le secrétariat de l'établissement avant 7h30.",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "obligation",
+    "text": "Un certificat médical est exigé pour toute absence de plus de 2 jours.",
+    "value_norm": "2 jours",
+    "segment_ids": [
+     "s0015"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f08",
+    "kind": "condition",
+    "text": "Les absences non excusées sont inscrites dans le bulletin scolaire.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0016"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f09",
+    "kind": "contact",
+    "text": "L'office d'orientation scolaire et professionnelle est ouvert du lundi au jeudi de 13h30 à 17h30.",
+    "value_norm": "13h30-17h30",
+    "segment_ids": [
+     "s0011"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f10",
+    "kind": "contact",
+    "text": "Le secrétariat de l'établissement peut être contacté au 022 123 45 70.",
+    "value_norm": "0221234570",
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f11",
+    "kind": "other",
+    "text": "Semaine de stage de 10e année du 15 au 19 mars 2027",
+    "value_norm": "2027-03-15",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f12",
+    "kind": "other",
+    "text": "Semaine de stage de 10e année du 15 au 19 mars 2027",
+    "value_norm": "2027-03-19",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "contact",
+    "text": "L'office d'orientation scolaire et professionnelle, Rue de la Gare 10, 1999 Exempleville, t'offre également son soutien dans tes recherches.",
+    "value_norm": "Rue de la Gare 10, 1999 Exempleville",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "other",
+    "text": "Il est ouvert du lundi au jeudi, de 13h30 à 17h30.",
+    "value_norm": "17:30",
+    "segment_ids": [
+     "s0011"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "deadline",
+    "text": "Le rapport de stage, accompagné de l'évaluation de l'entreprise, doit être remis à ton enseignante ou enseignant titulaire dans un délai de deux semaines après la semaine de stage, soit au plus tar...",
+    "value_norm": "2 semaines",
+    "segment_ids": [
+     "s0022"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "contact",
+    "text": "Pour toute question, tu t'adresses à ton enseignante ou enseignant titulaire ou au secrétariat de l'établissement (secretariat@es-exempleville.example).",
+    "value_norm": "secretariat@es-exempleville.example",
+    "segment_ids": [
+     "s0024"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "contact",
+    "text": "Le modèle d'attestation, le journal de stage et d'autres informations sur l'orientation professionnelle sont disponibles sur www.es-exempleville.example/orientation.",
+    "value_norm": "www.es-exempleville.example/orientation",
+    "segment_ids": [
+     "s0025"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "stage d'observation",
+    "explanation": "Pendant un stage d'observation, l'élève travaille quelques jours dans une entreprise. Elle ou il découvre un métier.",
+    "segment_ids": [
+     "s0004"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "attestation",
+    "explanation": "Un papier signé par l'entreprise qui confirme que tu as fait le stage.",
+    "segment_ids": [
+     "s0008"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "office d'orientation scolaire et professionnelle",
+    "explanation": "Un service qui aide les élèves à choisir leur futur métier et leur formation.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "bulletin scolaire",
+    "explanation": "Le bulletin scolaire est un papier de l'école. Il montre les notes de l'enfant. L'enfant le reçoit à la fin de l'année ou du semestre.",
+    "segment_ids": [
+     "s0016"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "assurance responsabilité civile",
+    "explanation": "Une assurance qui protège si tu fais un dommage à quelqu'un d'autre, payée par les parents.",
+    "segment_ids": [
+     "s0020"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "enseignant titulaire",
+    "explanation": "L'enseignante ou l'enseignant titulaire est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui.",
+    "segment_ids": [
+     "s0008",
+     "s0009",
+     "s0022",
+     "s0024"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "orientation scolaire et professionnelle",
+    "explanation": "L'orientation scolaire et professionnelle aide les élèves à choisir un métier ou une école. Chaque canton a un office pour ça.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "certificat médical",
+    "explanation": "Un papier du médecin. Le médecin confirme votre maladie. Vous ne pouvez pas travailler.",
+    "segment_ids": [
+     "s0015"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "responsabilité civile",
+    "explanation": "La responsabilité civile est une assurance. Vous ou votre enfant cassez quelque chose à une autre personne ? Alors cette assurance paie le dommage.",
+    "segment_ids": [
+     "s0020"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "délai",
+    "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+    "segment_ids": [
+     "s0022"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "stage",
+    "explanation": "Un stage est un temps de travail dans une entreprise pour apprendre. Par exemple quelques jours pendant l'école.",
+    "segment_ids": [
+     "s0001",
+     "s0003",
+     "s0005",
+     "s0007",
+     "s0012",
+     "s0019",
+     "s0021",
+     "s0022",
+     "s0025",
+     "s0026"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0005"
+    ],
+    "reason": "Référence au plan d'études, information de contexte pas essentielle pour l'action à réaliser"
+   },
+   {
+    "segment_ids": [
+     "s0023"
+    ],
+    "reason": "Remarque interne sur l'évaluation, pas une instruction pour l'élève"
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b005",
+    "texts": [
+     "Tu n'as pas de place de stage au 5 février 2027 ?",
+     "Informe ton enseignante ou ton enseignant tout de suite."
+    ]
+   },
+   {
+    "id": "b007.1",
+    "texts": [
+     "Tu remets le rapport de stage après ta semaine de stage.",
+     "Tu le remets au plus tard le 2 avril 2027."
+    ]
+   }
+  ],
+  "additions": []
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-d140714dff",
+   "lang": "fr",
+   "region": "CH",
+   "level": "A2",
+   "address": "informal",
+   "version": 4,
+   "parent_version": 3,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Que devez-vous faire ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Tu fais un stage du 15 au 19 mars 2027.",
+     "fact_ids": [
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0001"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Tu cherches une place de stage tout seul.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Tu remets l'attestation signée avant le 19 février 2027.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Tu n'as pas de place de stage au 5 février 2027 ?",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b005.1",
+     "kind": "sentence",
+     "text": "Informe ton enseignante ou ton enseignant tout de suite.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Tu remets le rapport de stage après la semaine.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Tu remets le rapport au plus tard le 2 avril 2027.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b007.1",
+     "kind": "sentence",
+     "text": "Tu remets le rapport de stage après ta semaine de stage.",
+     "fact_ids": [
+      "f15",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b007.1.1",
+     "kind": "sentence",
+     "text": "Tu le remets au plus tard le 2 avril 2027.",
+     "fact_ids": [
+      "f15",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b007.2",
+     "kind": "sentence",
+     "text": "Tu remets le rapport de stage à ton enseignante ou ton enseignant titulaire.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "heading",
+     "text": "Quand et comment payer ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "L'établissement rembourse au maximum CHF 30.- pour les transports publics.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0018"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "heading",
+     "text": "Quelles règles suivre ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Tu respectes les horaires et le règlement de l'entreprise.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Tu ne travailles pas plus de 8 heures par jour.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "En cas de maladie ou d'accident, tu appelles avant 7 h 30.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "sentence",
+     "text": "Si tu es absent plus de 2 jours, tu donnes un certificat médical.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Sans excuse, l'absence est dans ton bulletin scolaire.",
+     "fact_ids": [
+      "f08"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Les repas et les déplacements sont à la charge des parents.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "heading",
+     "text": "Qui contacter en cas de question ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b017.3",
+     "kind": "sentence",
+     "text": "Pour toute question, téléphone au secrétariat de l'établissement : 022 123 45 70.",
+     "fact_ids": [
+      "f10",
+      "f16"
+     ],
+     "segment_ids": [
+      "s0019"
+     ]
+    },
+    {
+     "id": "b017.4",
+     "kind": "sentence",
+     "text": "Tu peux aussi écrire à ton enseignante ou enseignant titulaire ou à secretariat@es-exempleville.example.",
+     "fact_ids": [
+      "f10",
+      "f16"
+     ],
+     "segment_ids": [
+      "s0019"
+     ]
+    },
+    {
+     "id": "b017.1",
+     "kind": "sentence",
+     "text": "L'office d'orientation scolaire et professionnelle est à Rue de la Gare 10, 1999 Exempleville.",
+     "fact_ids": [
+      "f13"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b017.2",
+     "kind": "sentence",
+     "text": "La participation à la semaine de stage est obligatoire pour toutes et tous.",
+     "fact_ids": [
+      "f05"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "list_item",
+     "text": "Ton enseignante ou ton enseignant titulaire",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0024"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "list_item",
+     "text": "Le secrétariat de l'établissement : 022 123 45 70",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "list_item",
+     "text": "L'office d'orientation scolaire et professionnelle",
+     "fact_ids": [
+      "f09",
+      "f13"
+     ],
+     "segment_ids": [
+      "s0010",
+      "s0011"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Cet office est ouvert du lundi au jeudi de 13 h 30 à 17 h 30.",
+     "fact_ids": [
+      "f09",
+      "f14"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Tu trouves des documents sur www.es-exempleville.example/orientation.",
+     "fact_ids": [
+      "f17"
+     ],
+     "segment_ids": [
+      "s0025"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Référence au plan d'études",
+     "why": "Pas nécessaire pour l'action à réaliser",
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "what": "Remarque interne sur l'évaluation du rapport",
+     "why": "Pas une instruction pour l'élève",
+     "segment_ids": [
+      "s0023"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "stage d'observation",
+     "explanation": "Pendant un stage d'observation, l'élève travaille quelques jours dans une entreprise. Elle ou il découvre un métier.",
+     "origin": "model"
+    },
+    {
+     "term": "attestation",
+     "explanation": "Un papier signé par l'entreprise qui confirme que tu as fait le stage.",
+     "origin": "model"
+    },
+    {
+     "term": "office d'orientation scolaire et professionnelle",
+     "explanation": "Un service qui aide les élèves à choisir leur futur métier et leur formation.",
+     "origin": "model"
+    },
+    {
+     "term": "bulletin scolaire",
+     "explanation": "Le bulletin scolaire est un papier de l'école. Il montre les notes de l'enfant. L'enfant le reçoit à la fin de l'année ou du semestre.",
+     "origin": "model"
+    },
+    {
+     "term": "responsabilité civile",
+     "explanation": "La responsabilité civile est une assurance. Vous ou votre enfant cassez quelque chose à une autre personne ? Alors cette assurance paie le dommage.",
+     "origin": "model"
+    },
+    {
+     "term": "délai",
+     "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+     "origin": "model"
+    },
+    {
+     "term": "enseignant titulaire",
+     "explanation": "L'enseignante ou l'enseignant titulaire est responsable de la classe. Les parents s'adressent d'abord à elle ou à lui.",
+     "origin": "model"
+    },
+    {
+     "term": "orientation scolaire et professionnelle",
+     "explanation": "L'orientation scolaire et professionnelle aide les élèves à choisir un métier ou une école. Chaque canton a un office pour ça.",
+     "origin": "model"
+    },
+    {
+     "term": "certificat médical",
+     "explanation": "Un papier du médecin. Le médecin confirme votre maladie. Vous ne pouvez pas travailler.",
+     "origin": "model"
+    },
+    {
+     "term": "stage",
+     "explanation": "Un stage est un temps de travail dans une entreprise pour apprendre. Par exemple quelques jours pendant l'école.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": []
+ },
+ "recorded_dropped": []
+}

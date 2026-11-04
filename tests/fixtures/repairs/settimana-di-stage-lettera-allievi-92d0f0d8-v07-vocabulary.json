@@ -1,0 +1,1214 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "92d0f0d86aa4",
+ "letter": "settimana-di-stage-lettera-allievi.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "vocabulary",
+ "version": 7,
+ "requested_blocks": [
+  "b016",
+  "b016.1",
+  "b019"
+ ],
+ "requested_facts": [],
+ "draft": {
+  "doc_id": "doc-5c60355f8d",
+  "lang": "it",
+  "region": "CH",
+  "level": "A2",
+  "address": "informal",
+  "version": 6,
+  "parent_version": 5,
+  "origin": "repair",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Che cosa succede?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Dal 15 al 19 marzo 2027 c'è la settimana di stage per le quarte medie.",
+    "fact_ids": [
+     "f07",
+     "f08"
+    ],
+    "segment_ids": [
+     "s0001"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "heading",
+    "text": "Cosa devi fare?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Scegli un'azienda per lo stage.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "sentence",
+    "text": "La partecipazione è obbligatoria.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Entro venerdì 19 febbraio 2027 consegna l'attestato firmato dall'azienda.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Se entro il 5 febbraio 2027 non hai ancora un posto, avvisa subito la tua docente o il tuo docente di classe.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b007.1",
+    "kind": "sentence",
+    "text": "Chiedi loro di aiutarti a trovare un'azienda per lo stage.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Per trovare un posto chiedi aiuto anche all'Ufficio dell'orientamento scolastico e professionale.",
+    "fact_ids": [
+     "f10",
+     "f11",
+     "f12"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "heading",
+    "text": "Regole durante lo stage",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b010",
+    "kind": "sentence",
+    "text": "Segui gli orari e le regole dell'azienda.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b011",
+    "kind": "sentence",
+    "text": "Lavori al massimo 8 ore al giorno.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "sentence",
+    "text": "Se sei malato o ferito, telefona all'azienda e alla segreteria.",
+    "fact_ids": [
+     "f13",
+     "f14"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b012.2",
+    "kind": "sentence",
+    "text": "In caso di malattia o infortunio telefona subito all'azienda.",
+    "fact_ids": [
+     "f13",
+     "f14"
+    ],
+    "segment_ids": [
+     "s0012",
+     "s0013"
+    ]
+   },
+   {
+    "id": "b012.3",
+    "kind": "sentence",
+    "text": "Telefona alla segreteria della scuola al numero 091 123 45 70 entro le ore 7.30 del mattino.",
+    "fact_ids": [
+     "f13",
+     "f14"
+    ],
+    "segment_ids": [
+     "s0012",
+     "s0013"
+    ]
+   },
+   {
+    "id": "b012.1",
+    "kind": "sentence",
+    "text": "Telefona entro le ore 7.30 del mattino.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "sentence",
+    "text": "Telefona entro le 7.30 del mattino.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "sentence",
+    "text": "Se sei assente più di 2 giorni, porta un certificato medico.",
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Le assenze senza giustificazione vanno sulla pagella.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Le spese per i pasti e per andare e tornare sono a carico dei genitori.",
+    "fact_ids": [
+     "f16"
+    ],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b016.1",
+    "kind": "sentence",
+    "text": "Le spese per i pasti e il tragitto sono a carico dei genitori.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "sentence",
+    "text": "La scuola ti rimborsa fino a 30 franchi alla settimana per i mezzi pubblici.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "La scuola ti assicura contro gli infortuni.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0018"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "L'assicurazione di responsabilità civile è a carico dei genitori.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0019"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "sentence",
+    "text": "Tieni il diario di stage nel tuo dossier.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0020"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Scrivi il rapporto di stage dopo la settimana di stage.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "Consegna il rapporto alla tua docente o al tuo docente di classe entro il 2 aprile 2027.",
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b022.1",
+    "kind": "sentence",
+    "text": "Il tempo per consegnare il rapporto è due settimane.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b023",
+    "kind": "heading",
+    "text": "A chi chiedere?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b024",
+    "kind": "list_item",
+    "text": "Alla tua docente o al tuo docente di classe",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0023"
+    ]
+   },
+   {
+    "id": "b025",
+    "kind": "list_item",
+    "text": "Per qualsiasi domanda rivolgiti alla tua docente o al tuo docente di classe oppure alla segreteria della scuola (segreteria@sm-esempiopoli.example).",
+    "fact_ids": [
+     "f13",
+     "f16"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b026",
+    "kind": "list_item",
+    "text": "All'Ufficio dell'orientamento scolastico e professionale: Via della Stazione 10, 6899 Esempiopoli, lunedì-giovedì dalle 13.30 alle 17.30",
+    "fact_ids": [
+     "f10",
+     "f11",
+     "f12"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b027",
+    "kind": "sentence",
+    "text": "Per moduli e informazioni vai su www.sm-esempiopoli.example/orientamento.",
+    "fact_ids": [
+     "f17"
+    ],
+    "segment_ids": [
+     "s0024"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Informazioni sulla copertura assicurativa e sulla pagella come documento scolastico",
+    "why": "Non sono azioni richieste alla lettrice o al lettore, ma informazioni di contesto.",
+    "segment_ids": []
+   },
+   {
+    "what": "Dettaglio sulla condizione del 5 febbraio 2027 per la ricerca del posto",
+    "why": "È un dettaglio procedurale interno non essenziale per capire l'obiettivo principale.",
+    "segment_ids": []
+   }
+  ],
+  "glossary": [
+   {
+    "term": "stage",
+    "explanation": "Uno stage è un periodo di lavoro in un'azienda. Così si impara un mestiere. Per esempio alcuni giorni durante la scuola.",
+    "origin": "model"
+   },
+   {
+    "term": "attestato",
+    "explanation": "Un foglio firmato dall'azienda che conferma che hai lavorato lì durante lo stage.",
+    "origin": "model"
+   },
+   {
+    "term": "rapporto di stage",
+    "explanation": "Un documento scritto dove racconti cosa hai fatto e imparato durante lo stage.",
+    "origin": "model"
+   },
+   {
+    "term": "Ufficio dell'orientamento scolastico e professionale",
+    "explanation": "Un ufficio che aiuta a trovare lavoro o a scegliere cosa studiare dopo la scuola.",
+    "origin": "model"
+   },
+   {
+    "term": "docente di classe",
+    "explanation": "La docente o il docente di classe è responsabile della classe. I genitori parlano prima di tutto con lei o con lui.",
+    "origin": "model"
+   },
+   {
+    "term": "orientamento scolastico e professionale",
+    "explanation": "L'orientamento scolastico e professionale aiuta gli allievi a scegliere una scuola o un mestiere. In Ticino c'è un ufficio per questo.",
+    "origin": "model"
+   },
+   {
+    "term": "certificato medico",
+    "explanation": "Un documento del medico. Il medico conferma la Sua malattia. Lei non può lavorare.",
+    "origin": "model"
+   },
+   {
+    "term": "responsabilità civile",
+    "explanation": "La responsabilità civile è un'assicurazione. Lei o Suo figlio rompete una cosa di un'altra persona? Allora questa assicurazione paga il danno.",
+    "origin": "model"
+   },
+   {
+    "term": "pagella",
+    "explanation": "La pagella è un documento della scuola. Mostra le note dell'allieva o dell'allievo. Arriva alla fine del semestre o dell'anno scolastico.",
+    "origin": "vocabulary"
+   }
+  ],
+  "code_edits": []
+ },
+ "factsheet": {
+  "doc_id": "doc-5c60355f8d",
+  "doc_type": "Promemoria informativo",
+  "audience": "Allieve e allievi di quarta media della Scuola media di Esempiopoli",
+  "core": {
+   "what": {
+    "text": "Si tratta della settimana di stage di orientamento per le classi di quarta media.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Partecipare allo stage presso un'azienda scelta autonomamente, consegnare l'attestato firmato entro venerdì 19 febbraio 2027 e consegnare il rapporto di stage entro due settimane dalla settimana di stage.",
+    "segment_ids": [
+     "s0008",
+     "s0021"
+    ]
+   },
+   "deadline": {
+    "text": "Entro venerdì 19 febbraio 2027 per la consegna dell'attestato e entro il 2 aprile 2027 per la consegna del rapporto di stage.",
+    "segment_ids": [
+     "s0008",
+     "s0021"
+    ]
+   },
+   "cost": {
+    "text": "Nessun costo diretto per lo stage, ma le spese per i pasti e il tragitto sono a carico dei genitori; la scuola rimborsa al massimo CHF 30.- alla settimana per i mezzi pubblici.",
+    "segment_ids": [
+     "s0016",
+     "s0017"
+    ]
+   },
+   "contact": {
+    "text": "Docente di classe, segreteria della scuola (091 123 45 70) o Ufficio dell'orientamento scolastico e professionale (Via della Stazione 10, 6899 Esempiopoli, lunedì-giovedì 13.30-17.30).",
+    "segment_ids": [
+     "s0009",
+     "s0010",
+     "s0023"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "La consegna dell'attestato firmato dall'azienda deve avvenire entro venerdì 19 febbraio 2027.",
+    "value_norm": "2027-02-19",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "deadline",
+    "text": "Il rapporto di stage deve essere consegnato entro due settimane dalla settimana di stage, quindi entro il 2 aprile 2027.",
+    "value_norm": "2027-04-02",
+    "segment_ids": [
+     "s0021"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "amount",
+    "text": "La scuola rimborsa al massimo CHF 30.- alla settimana per gli spostamenti con i mezzi pubblici.",
+    "value_norm": "30",
+    "segment_ids": [
+     "s0017"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "obligation",
+    "text": "La partecipazione alla settimana di stage è obbligatoria per tutte e tutti.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "condition",
+    "text": "In caso di assenze superiori a 2 giorni è richiesto un certificato medico.",
+    "value_norm": "2 giorni",
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "contact",
+    "text": "Per domande ci si può rivolgere alla docente di classe, alla segreteria della scuola o all'Ufficio dell'orientamento scolastico e professionale.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0023"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "other",
+    "text": "Settimana di stage delle quarte medie dal 15 al 19 marzo 2027",
+    "value_norm": "2027-03-15",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f08",
+    "kind": "other",
+    "text": "Settimana di stage delle quarte medie dal 15 al 19 marzo 2027",
+    "value_norm": "2027-03-19",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f09",
+    "kind": "deadline",
+    "text": "Se entro il 5 febbraio 2027 non disponi ancora di un posto, informi senza indugio la tua docente o il tuo docente di classe, affinché si possa cercare insieme una soluzione.",
+    "value_norm": "2027-02-05",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f10",
+    "kind": "contact",
+    "text": "Nella ricerca ti sostiene anche l'Ufficio dell'orientamento scolastico e professionale, Via della Stazione 10, 6899 Esempiopoli, aperto dal lunedì al giovedì dalle 13.30 alle 17.30.",
+    "value_norm": "Via della Stazione 10, 6899 Esempiopoli",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f11",
+    "kind": "other",
+    "text": "Nella ricerca ti sostiene anche l'Ufficio dell'orientamento scolastico e professionale, Via della Stazione 10, 6899 Esempiopoli, aperto dal lunedì al giovedì dalle 13.30 alle 17.30.",
+    "value_norm": "13:30",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f12",
+    "kind": "other",
+    "text": "Nella ricerca ti sostiene anche l'Ufficio dell'orientamento scolastico e professionale, Via della Stazione 10, 6899 Esempiopoli, aperto dal lunedì al giovedì dalle 13.30 alle 17.30.",
+    "value_norm": "17:30",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "contact",
+    "text": "In caso di malattia o infortunio avvisi l'azienda e la segreteria della scuola (091 123 45 70) entro le ore 7.30.",
+    "value_norm": "0911234570",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "other",
+    "text": "In caso di malattia o infortunio avvisi l'azienda e la segreteria della scuola (091 123 45 70) entro le ore 7.30.",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "deadline",
+    "text": "Il rapporto di stage, con la valutazione dell'azienda, va consegnato alla tua docente o al tuo docente di classe entro due settimane dalla settimana di stage, quindi entro il 2 aprile 2027.",
+    "value_norm": "2 settimane",
+    "segment_ids": [
+     "s0021"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "contact",
+    "text": "Per qualsiasi domanda ti rivolgi alla tua docente o al tuo docente di classe oppure alla segreteria della scuola (segreteria@sm-esempiopoli.example).",
+    "value_norm": "segreteria@sm-esempiopoli.example",
+    "segment_ids": [
+     "s0023"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "contact",
+    "text": "Il modello di attestato, il diario di stage e altre informazioni sull'orientamento professionale sono disponibili su www.sm-esempiopoli.example/orientamento.",
+    "value_norm": "www.sm-esempiopoli.example/orientamento",
+    "segment_ids": [
+     "s0024"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "stage",
+    "explanation": "Uno stage è un periodo di lavoro in un'azienda. Così si impara un mestiere. Per esempio alcuni giorni durante la scuola.",
+    "segment_ids": [
+     "s0004"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "attestato",
+    "explanation": "Un foglio firmato dall'azienda che conferma che hai lavorato lì durante lo stage.",
+    "segment_ids": [
+     "s0008"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "rapporto di stage",
+    "explanation": "Un documento scritto dove racconti cosa hai fatto e imparato durante lo stage.",
+    "segment_ids": [
+     "s0021"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Ufficio dell'orientamento scolastico e professionale",
+    "explanation": "Un ufficio che aiuta a trovare lavoro o a scegliere cosa studiare dopo la scuola.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "stage di orientamento",
+    "explanation": "Durante uno stage di orientamento l'allieva o l'allievo lavora alcuni giorni in un'azienda. Così conosce un mestiere.",
+    "segment_ids": [
+     "s0004"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "docente di classe",
+    "explanation": "La docente o il docente di classe è responsabile della classe. I genitori parlano prima di tutto con lei o con lui.",
+    "segment_ids": [
+     "s0008",
+     "s0009",
+     "s0021",
+     "s0023"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "orientamento scolastico e professionale",
+    "explanation": "L'orientamento scolastico e professionale aiuta gli allievi a scegliere una scuola o un mestiere. In Ticino c'è un ufficio per questo.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "certificato medico",
+    "explanation": "Un documento del medico. Il medico conferma la Sua malattia. Lei non può lavorare.",
+    "segment_ids": [
+     "s0014"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "responsabilità civile",
+    "explanation": "La responsabilità civile è un'assicurazione. Lei o Suo figlio rompete una cosa di un'altra persona? Allora questa assicurazione paga il danno.",
+    "segment_ids": [
+     "s0019"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "pagella",
+    "explanation": "La pagella è un documento della scuola. Mostra le note dell'allieva o dell'allievo. Arriva alla fine del semestre o dell'anno scolastico.",
+    "segment_ids": [
+     "s0015"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0009"
+    ],
+    "reason": "Contiene una condizione legale (informare entro il 5 febbraio) che è un dettaglio procedurale interno, non essenziale per capire l'obiettivo principale."
+   },
+   {
+    "segment_ids": [
+     "s0018"
+    ],
+    "reason": "Informazione di contesto sulla copertura assicurativa, non un'azione richiesta alla lettrice o al lettore."
+   },
+   {
+    "segment_ids": [
+     "s0024"
+    ],
+    "reason": "Indirizzo web di riferimento, non un obbligo o un dato critico da ricordare a memoria."
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b016",
+    "texts": [
+     "I genitori devono pagare i pasti e il tragitto."
+    ]
+   },
+   {
+    "id": "b016.1",
+    "texts": [
+     "I genitori devono pagare i pasti e il tragitto."
+    ]
+   }
+  ],
+  "additions": []
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-5c60355f8d",
+   "lang": "it",
+   "region": "CH",
+   "level": "A2",
+   "address": "informal",
+   "version": 7,
+   "parent_version": 6,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Che cosa succede?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Dal 15 al 19 marzo 2027 c'è la settimana di stage per le quarte medie.",
+     "fact_ids": [
+      "f07",
+      "f08"
+     ],
+     "segment_ids": [
+      "s0001"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "heading",
+     "text": "Cosa devi fare?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Scegli un'azienda per lo stage.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "La partecipazione è obbligatoria.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Entro venerdì 19 febbraio 2027 consegna l'attestato firmato dall'azienda.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Se entro il 5 febbraio 2027 non hai ancora un posto, avvisa subito la tua docente o il tuo docente di classe.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b007.1",
+     "kind": "sentence",
+     "text": "Chiedi loro di aiutarti a trovare un'azienda per lo stage.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Per trovare un posto chiedi aiuto anche all'Ufficio dell'orientamento scolastico e professionale.",
+     "fact_ids": [
+      "f10",
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "heading",
+     "text": "Regole durante lo stage",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b010",
+     "kind": "sentence",
+     "text": "Segui gli orari e le regole dell'azienda.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Lavori al massimo 8 ore al giorno.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Se sei malato o ferito, telefona all'azienda e alla segreteria.",
+     "fact_ids": [
+      "f13",
+      "f14"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b012.2",
+     "kind": "sentence",
+     "text": "In caso di malattia o infortunio telefona subito all'azienda.",
+     "fact_ids": [
+      "f13",
+      "f14"
+     ],
+     "segment_ids": [
+      "s0012",
+      "s0013"
+     ]
+    },
+    {
+     "id": "b012.3",
+     "kind": "sentence",
+     "text": "Telefona alla segreteria della scuola al numero 091 123 45 70 entro le ore 7.30 del mattino.",
+     "fact_ids": [
+      "f13",
+      "f14"
+     ],
+     "segment_ids": [
+      "s0012",
+      "s0013"
+     ]
+    },
+    {
+     "id": "b012.1",
+     "kind": "sentence",
+     "text": "Telefona entro le ore 7.30 del mattino.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Telefona entro le 7.30 del mattino.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "sentence",
+     "text": "Se sei assente più di 2 giorni, porta un certificato medico.",
+     "fact_ids": [
+      "f05"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Le assenze senza giustificazione vanno sulla pagella.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "I genitori devono pagare i pasti e il tragitto.",
+     "fact_ids": [
+      "f16"
+     ],
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "La scuola ti rimborsa fino a 30 franchi alla settimana per i mezzi pubblici.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "La scuola ti assicura contro gli infortuni.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0018"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "L'assicurazione di responsabilità civile è a carico dei genitori.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0019"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Tieni il diario di stage nel tuo dossier.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0020"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Scrivi il rapporto di stage dopo la settimana di stage.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Consegna il rapporto alla tua docente o al tuo docente di classe entro il 2 aprile 2027.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b022.1",
+     "kind": "sentence",
+     "text": "Il tempo per consegnare il rapporto è due settimane.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b023",
+     "kind": "heading",
+     "text": "A chi chiedere?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b024",
+     "kind": "list_item",
+     "text": "Alla tua docente o al tuo docente di classe",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0023"
+     ]
+    },
+    {
+     "id": "b025",
+     "kind": "list_item",
+     "text": "Per qualsiasi domanda rivolgiti alla tua docente o al tuo docente di classe oppure alla segreteria della scuola (segreteria@sm-esempiopoli.example).",
+     "fact_ids": [
+      "f13",
+      "f16"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b026",
+     "kind": "list_item",
+     "text": "All'Ufficio dell'orientamento scolastico e professionale: Via della Stazione 10, 6899 Esempiopoli, lunedì-giovedì dalle 13.30 alle 17.30",
+     "fact_ids": [
+      "f10",
+      "f11",
+      "f12"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b027",
+     "kind": "sentence",
+     "text": "Per moduli e informazioni vai su www.sm-esempiopoli.example/orientamento.",
+     "fact_ids": [
+      "f17"
+     ],
+     "segment_ids": [
+      "s0024"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Informazioni sulla copertura assicurativa e sulla pagella come documento scolastico",
+     "why": "Non sono azioni richieste alla lettrice o al lettore, ma informazioni di contesto.",
+     "segment_ids": []
+    },
+    {
+     "what": "Dettaglio sulla condizione del 5 febbraio 2027 per la ricerca del posto",
+     "why": "È un dettaglio procedurale interno non essenziale per capire l'obiettivo principale.",
+     "segment_ids": []
+    }
+   ],
+   "glossary": [
+    {
+     "term": "stage",
+     "explanation": "Uno stage è un periodo di lavoro in un'azienda. Così si impara un mestiere. Per esempio alcuni giorni durante la scuola.",
+     "origin": "model"
+    },
+    {
+     "term": "attestato",
+     "explanation": "Un foglio firmato dall'azienda che conferma che hai lavorato lì durante lo stage.",
+     "origin": "model"
+    },
+    {
+     "term": "rapporto di stage",
+     "explanation": "Un documento scritto dove racconti cosa hai fatto e imparato durante lo stage.",
+     "origin": "model"
+    },
+    {
+     "term": "Ufficio dell'orientamento scolastico e professionale",
+     "explanation": "Un ufficio che aiuta a trovare lavoro o a scegliere cosa studiare dopo la scuola.",
+     "origin": "model"
+    },
+    {
+     "term": "docente di classe",
+     "explanation": "La docente o il docente di classe è responsabile della classe. I genitori parlano prima di tutto con lei o con lui.",
+     "origin": "model"
+    },
+    {
+     "term": "orientamento scolastico e professionale",
+     "explanation": "L'orientamento scolastico e professionale aiuta gli allievi a scegliere una scuola o un mestiere. In Ticino c'è un ufficio per questo.",
+     "origin": "model"
+    },
+    {
+     "term": "certificato medico",
+     "explanation": "Un documento del medico. Il medico conferma la Sua malattia. Lei non può lavorare.",
+     "origin": "model"
+    },
+    {
+     "term": "responsabilità civile",
+     "explanation": "La responsabilità civile è un'assicurazione. Lei o Suo figlio rompete una cosa di un'altra persona? Allora questa assicurazione paga il danno.",
+     "origin": "model"
+    },
+    {
+     "term": "pagella",
+     "explanation": "La pagella è un documento della scuola. Mostra le note dell'allieva o dell'allievo. Arriva alla fine del semestre o dell'anno scolastico.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "I genitori devono pagare i pasti e il tragitto.",
+    "reason": "repeat",
+    "block_id": "b016.1",
+    "fact_ids": []
+   }
+  ]
+ },
+ "recorded_dropped": [
+  {
+   "text": "I genitori devono pagare i pasti e il tragitto.",
+   "reason": "repeat",
+   "block_id": "b016.1",
+   "fact_ids": []
+  }
+ ]
+}

@@ -1,0 +1,1017 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "8579f98182f2",
+ "letter": "klassenlager-elternbrief.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "facts",
+ "version": 3,
+ "requested_blocks": [],
+ "requested_facts": [
+  "f08",
+  "f09",
+  "f10"
+ ],
+ "draft": {
+  "doc_id": "doc-e9fd8483af",
+  "lang": "de",
+  "region": "CH",
+  "level": "A2",
+  "address": "formal",
+  "version": 2,
+  "parent_version": 1,
+  "origin": "repair",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Was müssen Sie tun?",
+    "fact_ids": [
+     "f01",
+     "f03",
+     "f13",
+     "f14"
+    ],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Sie geben den Talon bis spätestens 23. April 2027 ab.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "sentence",
+    "text": "Das Klassenlager ist ein obligatorischer Schulanlass.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Sie können ein Gesuch um Dispensation stellen.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "sentence",
+    "text": "Das Gesuch muss bis spätestens 30. April 2027 bei der Schulleitung sein.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0006"
+    ]
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Sie zahlen nach dem Lager CHF 80.- für das Essen.",
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0009",
+     "s0010"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Die Rechnung kommt nach dem Lager.",
+    "fact_ids": [
+     "f12"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Sie bezahlen die Rechnung innert 30 Tagen.",
+    "fact_ids": [
+     "f12"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "heading",
+    "text": "Was brauchen Sie?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b010",
+    "kind": "list_item",
+    "text": "Den ausgefüllten und unterschriebenen Talon",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b011",
+    "kind": "list_item",
+    "text": "Angaben zu Allergien und Medikamenten",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "list_item",
+    "text": "Medikamente in Original·packung mit Dosierungs·anweisung",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "list_item",
+    "text": "Eine Kopie der Krankenkassen·karte",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0024"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "list_item",
+    "text": "Taschengeld von höchstens CHF 20.-",
+    "fact_ids": [
+     "f13"
+    ],
+    "segment_ids": [
+     "s0025"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "heading",
+    "text": "Wen können Sie fragen?",
+    "fact_ids": [
+     "f05",
+     "f06",
+     "f16",
+     "f18",
+     "f19",
+     "f20"
+    ],
+    "segment_ids": [
+     "s0027",
+     "s0028",
+     "s0030"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Die Lagerleitung ist im Notfall unter 079 123 45 67 erreichbar.",
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0027"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "sentence",
+    "text": "Schreiben Sie an das Lagerhaus Sonnenhalde, Klassenlager Musterwil, Bergstrasse 8, 7999 Musterberg.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0028"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "Das Schul·sekretariat hilft von Montag bis Freitag von 7.30 Uhr bis 11.30 Uhr.",
+    "fact_ids": [
+     "f16",
+     "f17"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Sie rufen an unter 044 123 45 70.",
+    "fact_ids": [
+     "f18"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "sentence",
+    "text": "Sie schreiben eine E-Mail an sekretariat@schule-musterwil.example.",
+    "fact_ids": [
+     "f19"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Das Programm finden Sie ab Mitte Mai auf www.schule-musterwil.example/lager.",
+    "fact_ids": [
+     "f20"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "Am Dienstag, 20. April 2027, um 19.30 Uhr ist ein Informations·abend.",
+    "fact_ids": [
+     "f14",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0029",
+     "s0029"
+    ]
+   },
+   {
+    "id": "b022.1",
+    "kind": "sentence",
+    "text": "Der Informations·abend ist am Dienstag, 20. April 2027, um 19.30 Uhr im Singsaal des Schulhauses Lindenhof.",
+    "fact_ids": [
+     "f14",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0029"
+    ]
+   },
+   {
+    "id": "b022.2",
+    "kind": "sentence",
+    "text": "Dort wird das Lagerprogramm gezeigt und Fragen beantwortet.",
+    "fact_ids": [
+     "f14",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0029"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Kantonale Vorgaben für den Verpflegungsbeitrag",
+    "why": "Für die Leserin nicht nötig",
+    "segment_ids": [
+     "s0009"
+    ]
+   }
+  ],
+  "glossary": [
+   {
+    "term": "Dispensation",
+    "explanation": "Das ist eine Ausnahmebewilligung, wenn das Kind nicht am Lager teilnehmen kann.",
+    "origin": "model"
+   },
+   {
+    "term": "Schulleitung",
+    "explanation": "Das sind die Personen, die für die Schule verantwortlich sind.",
+    "origin": "model"
+   },
+   {
+    "term": "Lagerleitung",
+    "explanation": "Die Personen, die während des Lagers für die Kinder verantwortlich sind.",
+    "origin": "model"
+   },
+   {
+    "term": "Gesuch",
+    "explanation": "Mit einem Gesuch bitten Sie ein Amt um etwas. Zum Beispiel um Geld oder um eine Erlaubnis.",
+    "origin": "vocabulary"
+   }
+  ],
+  "code_edits": [
+   {
+    "block_id": "b022.1",
+    "rule_id": "LEX-01",
+    "before": "Informationsabend",
+    "after": "Informations·abend"
+   }
+  ]
+ },
+ "factsheet": {
+  "doc_id": "doc-e9fd8483af",
+  "doc_type": "Informationsschreiben",
+  "audience": "Eltern und Erziehungsberechtigte der 5. Klassen",
+  "core": {
+   "what": {
+    "text": "Es wird über das obligatorische Klassenlager der 5. Klassen vom 7. bis 11. Juni 2027 informiert.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Den beiliegenden Talon bis spätestens 23. April 2027 ausgefüllt und unterschrieben abgeben.",
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   "deadline": {
+    "text": "Der ausgefüllte Talon muss bis spätestens 23. April 2027 abgegeben werden.",
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   "cost": {
+    "text": "Ein Verpflegungsbeitrag von CHF 80.- wird nach dem Lager in Rechnung gestellt.",
+    "segment_ids": [
+     "s0009",
+     "s0010"
+    ]
+   },
+   "contact": {
+    "text": "Schulsekretariat unter Telefon 044 123 45 70 oder E-Mail sekretariat@schule-musterwil.example.",
+    "segment_ids": [
+     "s0030"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "Der ausgefüllte Talon muss bis spätestens 23. April 2027 abgegeben werden.",
+    "value_norm": "2027-04-23",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "amount",
+    "text": "Der Verpflegungsbeitrag beträgt CHF 80.- pro Lager.",
+    "value_norm": "80",
+    "segment_ids": [
+     "s0009",
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "obligation",
+    "text": "Das Klassenlager ist ein obligatorischer Schulanlass.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0004"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "deadline",
+    "text": "Ein Gesuch um Dispensation muss bis spätestens 30. April 2027 bei der Schulleitung eingehen.",
+    "value_norm": "2027-04-30",
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "contact",
+    "text": "Im Notfall ist die Lagerleitung unter der Nummer 079 123 45 67 erreichbar.",
+    "value_norm": "0791234567",
+    "segment_ids": [
+     "s0027"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "contact",
+    "text": "Post für das Kind erreicht uns unter Lagerhaus Sonnenhalde, Klassenlager Musterwil, Bergstrasse 8, 7999 Musterberg.",
+    "value_norm": "Lagerhaus Sonnenhalde, Klassenlager Musterwil, Bergstrasse 8, 7999 Musterberg",
+    "segment_ids": [
+     "s0028"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "deadline",
+    "text": "Klassenlager der 5. Klassen vom 7. bis 11. Juni 2027",
+    "value_norm": "2027-06-11",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f08",
+    "kind": "deadline",
+    "text": "Vom Montag, 7. Juni, bis Freitag, 11. Juni 2027, findet für die 5. Klassen des Schulhauses Lindenhof das diesjährige Klassenlager im Lagerhaus Sonnenhalde, Bergstrasse 8, 7999 Musterberg, statt.",
+    "value_norm": "--06-07",
+    "segment_ids": [
+     "s0003"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f09",
+    "kind": "other",
+    "text": "Die Abreise erfolgt am Montag um 7.15 Uhr ab Bahnhof Musterwil (Treffpunkt Gleis 3).",
+    "value_norm": "07:15",
+    "segment_ids": [
+     "s0007"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f10",
+    "kind": "other",
+    "text": "Die Rückkehr ist am Freitag um ca. 16.30 Uhr am Bahnhof Musterwil vorgesehen.",
+    "value_norm": "16:30",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f11",
+    "kind": "amount",
+    "text": "Gemäss den kantonalen Vorgaben wird den Erziehungsberechtigten ein Beitrag an die Verpflegungskosten von CHF 16.- pro Tag, insgesamt CHF 80.-, in Rechnung gestellt.",
+    "value_norm": "16",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f12",
+    "kind": "deadline",
+    "text": "Die Rechnung wird Ihnen nach dem Lager zugestellt und ist innert 30 Tagen zu begleichen.",
+    "value_norm": "30 Tage",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "amount",
+    "text": "Taschengeld von höchstens CHF 20.-",
+    "value_norm": "20",
+    "segment_ids": [
+     "s0025"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "other",
+    "text": "Am Dienstag, 20. April 2027, um 19.30 Uhr findet im Singsaal des Schulhauses Lindenhof ein Informationsabend statt, an dem das Lagerprogramm vorgestellt wird und offene Fragen beantwortet werden.",
+    "value_norm": "2027-04-20",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "other",
+    "text": "Am Dienstag, 20. April 2027, um 19.30 Uhr findet im Singsaal des Schulhauses Lindenhof ein Informationsabend statt, an dem das Lagerprogramm vorgestellt wird und offene Fragen beantwortet werden.",
+    "value_norm": "19:30",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "other",
+    "text": "Für weitere Auskünfte steht Ihnen das Schulsekretariat von Montag bis Freitag, 7.30 bis 11.30 Uhr, unter Telefon 044 123 45 70 oder per E-Mail an sekretariat@schule-musterwil.example zur Verfügung.",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "other",
+    "text": "Für weitere Auskünfte steht Ihnen das Schulsekretariat von Montag bis Freitag, 7.30 bis 11.30 Uhr, unter Telefon 044 123 45 70 oder per E-Mail an sekretariat@schule-musterwil.example zur Verfügung.",
+    "value_norm": "11:30",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f18",
+    "kind": "contact",
+    "text": "Für weitere Auskünfte steht Ihnen das Schulsekretariat von Montag bis Freitag, 7.30 bis 11.30 Uhr, unter Telefon 044 123 45 70 oder per E-Mail an sekretariat@schule-musterwil.example zur Verfügung.",
+    "value_norm": "0441234570",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f19",
+    "kind": "contact",
+    "text": "Für weitere Auskünfte steht Ihnen das Schulsekretariat von Montag bis Freitag, 7.30 bis 11.30 Uhr, unter Telefon 044 123 45 70 oder per E-Mail an sekretariat@schule-musterwil.example zur Verfügung.",
+    "value_norm": "sekretariat@schule-musterwil.example",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f20",
+    "kind": "contact",
+    "text": "Das detaillierte Programm sowie die vollständige Packliste finden Sie ab Mitte Mai unter www.schule-musterwil.example/lager.",
+    "value_norm": "www.schule-musterwil.example/lager",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "Dispensation",
+    "explanation": "Das ist eine Ausnahmebewilligung, wenn das Kind nicht am Lager teilnehmen kann.",
+    "segment_ids": [
+     "s0005"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Schulleitung",
+    "explanation": "Das sind die Personen, die für die Schule verantwortlich sind.",
+    "segment_ids": [
+     "s0006",
+     "s0011"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Lagerleitung",
+    "explanation": "Die Personen, die während des Lagers für die Kinder verantwortlich sind.",
+    "segment_ids": [
+     "s0027"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Gesuch",
+    "explanation": "Mit einem Gesuch bitten Sie ein Amt um etwas. Zum Beispiel um Geld oder um eine Erlaubnis.",
+    "segment_ids": [
+     "s0006",
+     "s0011"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0009"
+    ],
+    "reason": "Kantonale Vorgaben sind für die Eltern nicht direkt relevant."
+   },
+   {
+    "segment_ids": [
+     "s0031"
+    ],
+    "reason": "Webadresse ist nicht zwingend nötig, wenn das Programm auch am Informationsabend verteilt wird."
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [],
+  "additions": [
+   {
+    "after": "b022",
+    "kind": "sentence",
+    "texts": [
+     "Der Informationsabend ist am Dienstag, 20. April 2027, um 19.30 Uhr im Singsaal des Schulhauses Lindenhof.",
+     "Dort wird das Lagerprogramm gezeigt und Fragen beantwortet."
+    ],
+    "fact_ids": [
+     "f14",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0022",
+     "s0022.1"
+    ]
+   }
+  ]
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-e9fd8483af",
+   "lang": "de",
+   "region": "CH",
+   "level": "A2",
+   "address": "formal",
+   "version": 3,
+   "parent_version": 2,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Was müssen Sie tun?",
+     "fact_ids": [
+      "f01",
+      "f03",
+      "f13",
+      "f14"
+     ],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Sie geben den Talon bis spätestens 23. April 2027 ab.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Das Klassenlager ist ein obligatorischer Schulanlass.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Sie können ein Gesuch um Dispensation stellen.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Das Gesuch muss bis spätestens 30. April 2027 bei der Schulleitung sein.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0006"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Sie zahlen nach dem Lager CHF 80.- für das Essen.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009",
+      "s0010"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Die Rechnung kommt nach dem Lager.",
+     "fact_ids": [
+      "f12"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Sie bezahlen die Rechnung innert 30 Tagen.",
+     "fact_ids": [
+      "f12"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "heading",
+     "text": "Was brauchen Sie?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b010",
+     "kind": "list_item",
+     "text": "Den ausgefüllten und unterschriebenen Talon",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "list_item",
+     "text": "Angaben zu Allergien und Medikamenten",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "list_item",
+     "text": "Medikamente in Original·packung mit Dosierungs·anweisung",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "list_item",
+     "text": "Eine Kopie der Krankenkassen·karte",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0024"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "list_item",
+     "text": "Taschengeld von höchstens CHF 20.-",
+     "fact_ids": [
+      "f13"
+     ],
+     "segment_ids": [
+      "s0025"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "heading",
+     "text": "Wen können Sie fragen?",
+     "fact_ids": [
+      "f05",
+      "f06",
+      "f16",
+      "f18",
+      "f19",
+      "f20"
+     ],
+     "segment_ids": [
+      "s0027",
+      "s0028",
+      "s0030"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Die Lagerleitung ist im Notfall unter 079 123 45 67 erreichbar.",
+     "fact_ids": [
+      "f05"
+     ],
+     "segment_ids": [
+      "s0027"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "Schreiben Sie an das Lagerhaus Sonnenhalde, Klassenlager Musterwil, Bergstrasse 8, 7999 Musterberg.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0028"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "Das Schul·sekretariat hilft von Montag bis Freitag von 7.30 Uhr bis 11.30 Uhr.",
+     "fact_ids": [
+      "f16",
+      "f17"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Sie rufen an unter 044 123 45 70.",
+     "fact_ids": [
+      "f18"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Sie schreiben eine E-Mail an sekretariat@schule-musterwil.example.",
+     "fact_ids": [
+      "f19"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Das Programm finden Sie ab Mitte Mai auf www.schule-musterwil.example/lager.",
+     "fact_ids": [
+      "f20"
+     ],
+     "segment_ids": [
+      "s0031"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Am Dienstag, 20. April 2027, um 19.30 Uhr ist ein Informations·abend.",
+     "fact_ids": [
+      "f14",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0029",
+      "s0029"
+     ]
+    },
+    {
+     "id": "b022.1",
+     "kind": "sentence",
+     "text": "Der Informations·abend ist am Dienstag, 20. April 2027, um 19.30 Uhr im Singsaal des Schulhauses Lindenhof.",
+     "fact_ids": [
+      "f14",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0029"
+     ]
+    },
+    {
+     "id": "b022.2",
+     "kind": "sentence",
+     "text": "Dort wird das Lagerprogramm gezeigt und Fragen beantwortet.",
+     "fact_ids": [
+      "f14",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0029"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Kantonale Vorgaben für den Verpflegungsbeitrag",
+     "why": "Für die Leserin nicht nötig",
+     "segment_ids": [
+      "s0009"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "Dispensation",
+     "explanation": "Das ist eine Ausnahmebewilligung, wenn das Kind nicht am Lager teilnehmen kann.",
+     "origin": "model"
+    },
+    {
+     "term": "Schulleitung",
+     "explanation": "Das sind die Personen, die für die Schule verantwortlich sind.",
+     "origin": "model"
+    },
+    {
+     "term": "Lagerleitung",
+     "explanation": "Die Personen, die während des Lagers für die Kinder verantwortlich sind.",
+     "origin": "model"
+    },
+    {
+     "term": "Gesuch",
+     "explanation": "Mit einem Gesuch bitten Sie ein Amt um etwas. Zum Beispiel um Geld oder um eine Erlaubnis.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "Der Informationsabend ist am Dienstag, 20. April 2027, um 19.30 Uhr im Singsaal des Schulhauses Lindenhof.",
+    "reason": "conveyed",
+    "block_id": "b022",
+    "fact_ids": [
+     "f14",
+     "f15"
+    ]
+   },
+   {
+    "text": "Dort wird das Lagerprogramm gezeigt und Fragen beantwortet.",
+    "reason": "conveyed",
+    "block_id": "b022",
+    "fact_ids": [
+     "f14",
+     "f15"
+    ]
+   }
+  ]
+ },
+ "recorded_dropped": [
+  {
+   "text": "Der Informationsabend ist am Dienstag, 20. April 2027, um 19.30 Uhr im Singsaal des Schulhauses Lindenhof.",
+   "reason": "repeat",
+   "block_id": "b022",
+   "fact_ids": [
+    "f14",
+    "f15"
+   ]
+  },
+  {
+   "text": "Dort wird das Lagerprogramm gezeigt und Fragen beantwortet.",
+   "reason": "repeat",
+   "block_id": "b022",
+   "fact_ids": [
+    "f14",
+    "f15"
+   ]
+  }
+ ]
+}

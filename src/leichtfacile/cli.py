@@ -30,9 +30,11 @@ from leichtfacile.store import SchemaTooNew
 
 if TYPE_CHECKING:
     from leichtfacile.config import Settings
+    from leichtfacile.schemas import Job
+    from leichtfacile.store import Store
 
 
-def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="leichtfacile", description=__doc__.splitlines()[0])
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument(
@@ -41,7 +43,39 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
         help="the settings file (default: LEICHTFACILE_CONFIG, else the user's config.toml)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+    _add_setup(sub)
+    _add_preset(sub)
+    _add_config(sub)
+    _add_backup(sub)
+    _add_serve(sub)
+    _add_check_llm(sub)
+    _add_ingest(sub)
+    _add_check(sub)
+    _add_simplify(sub)
 
+    from leichtfacile.eval.cli import add_eval_parser
+
+    add_eval_parser(sub)
+
+    args = parser.parse_args(argv)
+    if args.config:
+        os.environ["LEICHTFACILE_CONFIG"] = str(args.config)
+    use_overrides({
+        "llm.preset": getattr(args, "preset", None) or getattr(args, "preset_name", None),
+        "llm.cache": True if getattr(args, "cache", False) else None,
+        "server.host": getattr(args, "host", None),
+        "server.port": getattr(args, "port", None),
+    })  # fmt: skip
+    try:
+        return _dispatch(parser, args)
+    except (ConfigError, SchemaTooNew) as exc:
+        print(exc, file=sys.stderr)
+        return 2
+
+
+# One function per command adds its parser and arguments; `main` calls them in the order
+# of the help, the eval commands last (eval/cli.py).
+def _add_setup(sub: argparse._SubParsersAction) -> None:
     setup = sub.add_parser("setup", help="set up a model preset and use it")
     setup.add_argument(
         "target",
@@ -75,6 +109,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
         "below 1000 or above 200000); alone, it changes the limit and nothing else",
     )
 
+
+def _add_preset(sub: argparse._SubParsersAction) -> None:
     preset = sub.add_parser("preset", help="list the presets, pick one, remove one of your own")
     preset_sub = preset.add_subparsers(dest="preset_command", required=True)
     preset_sub.add_parser("list", help="every preset, the one in use marked")
@@ -84,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
         p.add_argument("name")
         p.add_argument("--local", action="store_true", help="in ./leichtfacile.toml")
 
+
+def _add_config(sub: argparse._SubParsersAction) -> None:
     settings = sub.add_parser("config", help="show, set, unset or edit the settings")
     settings_sub = settings.add_subparsers(dest="config_command", required=True)
     show = settings_sub.add_parser("show", help="every setting, its value and its source")
@@ -106,11 +144,15 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
     for p in (config_path, config_set, config_unset, config_edit):
         p.add_argument("--local", action="store_true", help="./leichtfacile.toml instead")
 
+
+def _add_backup(sub: argparse._SubParsersAction) -> None:
     backup = sub.add_parser("backup", help="copy the job database into a folder")
     backup.add_argument(
         "folder", type=Path, help="where the copy goes, named with the moment (made if missing)"
     )
 
+
+def _add_serve(sub: argparse._SubParsersAction) -> None:
     serve = sub.add_parser("serve", help="run the web application")
     serve.add_argument(
         "preset_name",
@@ -124,17 +166,23 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
     serve.add_argument("--no-browser", action="store_true", help="do not open the browser")
     with_preset(serve)
 
+
+def _add_check_llm(sub: argparse._SubParsersAction) -> None:
     check_llm = sub.add_parser("check-llm", help="list models and make one short call")
     check_llm.add_argument("--model", help="model name (default: llm.models.writer)")
     check_llm.add_argument("--thinking", action="store_true", help="use thinking mode")
     with_preset(check_llm)
 
+
+def _add_ingest(sub: argparse._SubParsersAction) -> None:
     ingest = sub.add_parser("ingest", help="print the segments of a file or URL")
     ingest.add_argument("input", help="file path or http(s) URL")
     ingest.add_argument("--lang", choices=["de", "fr", "it"])
     ingest.add_argument("--section", help="keep only the section under this heading")
     ingest.add_argument("--json", action="store_true", help="print the SourceDocument as JSON")
 
+
+def _add_check(sub: argparse._SubParsersAction) -> None:
     check = sub.add_parser("check", help="run the rule checker on an easy-language text")
     check.add_argument("input", help="file path or http(s) URL")
     check.add_argument("--lang", choices=["de", "fr", "it"])
@@ -142,6 +190,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
     check.add_argument("--section", help="keep only the section under this heading")
     check.add_argument("--json", action="store_true", help="print the findings as JSON")
 
+
+def _add_simplify(sub: argparse._SubParsersAction) -> None:
     simplify = sub.add_parser("simplify", help="run the pipeline on a file or URL")
     simplify.add_argument("input", help="file path or http(s) URL")
     simplify.add_argument("--lang", choices=["de", "fr", "it"])
@@ -181,25 +231,6 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
     )
     with_preset(simplify)
 
-    from leichtfacile.eval.cli import add_eval_parser
-
-    add_eval_parser(sub)
-
-    args = parser.parse_args(argv)
-    if args.config:
-        os.environ["LEICHTFACILE_CONFIG"] = str(args.config)
-    use_overrides({
-        "llm.preset": getattr(args, "preset", None) or getattr(args, "preset_name", None),
-        "llm.cache": True if getattr(args, "cache", False) else None,
-        "server.host": getattr(args, "host", None),
-        "server.port": getattr(args, "port", None),
-    })  # fmt: skip
-    try:
-        return _dispatch(parser, args)
-    except (ConfigError, SchemaTooNew) as exc:
-        print(exc, file=sys.stderr)
-        return 2
-
 
 def with_preset(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -207,26 +238,9 @@ def with_preset(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:  # noqa: C901
+def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     if args.command == "setup":
-        from leichtfacile.config import collect, preset_names
-
-        # `setup claude-haiku-5-5` names a preset, `setup ollama` a provider, `setup gpu
-        # --base-url ...` a server of one's own.
-        target = args.target
-        preset = target if target in preset_names(collect()) else None
-        provider = target if preset is None and target in PROVIDERS else None
-        name = args.name or (target if preset is None and provider is None else None)
-        try:
-            return configure.run_setup(
-                provider=provider, preset=preset, name=name, base_url=args.base_url,
-                api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
-                judge=args.judge, force=args.force, region=args.region,
-                max_chars=args.max_chars,
-            )  # fmt: skip
-        except (EOFError, KeyboardInterrupt):
-            print("\nSetup cancelled.", file=sys.stderr)
-            return 1
+        return _setup(args)
     if args.command == "preset":
         return _preset(args)
     if args.command == "config":
@@ -238,7 +252,12 @@ def _dispatch(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         named = bool(args.preset or args.preset_name)
         return _serve(browser=not args.no_browser, strict=named)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    return _dispatch_with_logs(parser, args)
 
+
+def _dispatch_with_logs(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
+    """The commands that log to the console while they work: `_dispatch` configured the
+    logging, which the settings commands, `backup` and `serve` above do without."""
     if args.command == "check-llm":
         return _check_llm(args.model, args.thinking)
     if args.command == "ingest":
@@ -266,6 +285,27 @@ def settings_or_exit(*, strict: bool = True, preset: str | None = None) -> Setti
     except ConfigError as exc:
         print(exc, file=sys.stderr)
         raise SystemExit(2) from None
+
+
+def _setup(args: argparse.Namespace) -> int:
+    from leichtfacile.config import collect, preset_names
+
+    # `setup claude-haiku-5-5` names a preset, `setup ollama` a provider, `setup gpu
+    # --base-url ...` a server of one's own.
+    target = args.target
+    preset = target if target in preset_names(collect()) else None
+    provider = target if preset is None and target in PROVIDERS else None
+    name = args.name or (target if preset is None and provider is None else None)
+    try:
+        return configure.run_setup(
+            provider=provider, preset=preset, name=name, base_url=args.base_url,
+            api_key=args.api_key, api_key_env=args.api_key_env, model=args.model,
+            judge=args.judge, force=args.force, region=args.region,
+            max_chars=args.max_chars,
+        )  # fmt: skip
+    except (EOFError, KeyboardInterrupt):
+        print("\nSetup cancelled.", file=sys.stderr)
+        return 1
 
 
 def _preset(args: argparse.Namespace) -> int:
@@ -511,16 +551,11 @@ def _check(args: argparse.Namespace) -> int:
     return 0
 
 
-def _simplify(args: argparse.Namespace) -> int:  # noqa: PLR0915
-    from leichtfacile.export.bundle import build_bundle
-    from leichtfacile.export.docx import to_docx
-    from leichtfacile.export.html import to_html
-    from leichtfacile.export.layout import build_layout
-    from leichtfacile.export.markdown import to_markdown
+def _simplify(args: argparse.Namespace) -> int:
     from leichtfacile.ingest.errors import IngestError
     from leichtfacile.llm.client import LLMClient
     from leichtfacile.pipeline.orchestrator import Orchestrator
-    from leichtfacile.schemas import Draft, JobConfig, PipelineSummary
+    from leichtfacile.schemas import JobConfig
     from leichtfacile.store import Store
     from leichtfacile.varieties import region_for, variety
 
@@ -569,6 +604,27 @@ def _simplify(args: argparse.Namespace) -> int:  # noqa: PLR0915
     job = finished
 
     out = args.out / job.id
+    _write_artifacts(store, job, out)
+    tokens = sum(u.tokens_in + u.tokens_out for u in job.usage)
+    print(
+        f"job {job.id}: {job.status} ({job.stage}); {len(job.usage)} model calls, {tokens} tokens"
+    )
+    if job.error:
+        print(f"error: {job.error}", file=sys.stderr)
+    print(f"artifacts: {out}")
+    return 0 if job.status in ("needs_review", "done") else 1
+
+
+def _write_artifacts(store: Store, job: Job, out: Path) -> None:
+    """The job's bundle and, when it has a draft, the final version of the draft as
+    Markdown, HTML and DOCX, into `out` (made if missing)."""
+    from leichtfacile.export.bundle import build_bundle
+    from leichtfacile.export.docx import to_docx
+    from leichtfacile.export.html import to_html
+    from leichtfacile.export.layout import build_layout
+    from leichtfacile.export.markdown import to_markdown
+    from leichtfacile.schemas import Draft, PipelineSummary
+
     out.mkdir(parents=True, exist_ok=True)
     bundle = build_bundle(store, job)
     (out / "bundle.json").write_text(
@@ -582,14 +638,6 @@ def _simplify(args: argparse.Namespace) -> int:  # noqa: PLR0915
         (out / "draft.md").write_text(to_markdown(layout), encoding="utf-8")
         (out / "draft.html").write_text(to_html(layout), encoding="utf-8")
         (out / "draft.docx").write_bytes(to_docx(layout, summary=summary))
-    tokens = sum(u.tokens_in + u.tokens_out for u in job.usage)
-    print(
-        f"job {job.id}: {job.status} ({job.stage}); {len(job.usage)} model calls, {tokens} tokens"
-    )
-    if job.error:
-        print(f"error: {job.error}", file=sys.stderr)
-    print(f"artifacts: {out}")
-    return 0 if job.status in ("needs_review", "done") else 1
 
 
 if __name__ == "__main__":

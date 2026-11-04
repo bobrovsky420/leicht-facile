@@ -565,7 +565,10 @@ German pages standing through every repair round). Every round is recorded
 (`RepairRecord`, §5): the blocks and facts asked for, the model's answer as given, and
 every answered sentence code left out with its reason (a repeat, example content, a
 block the round had not flagged, facts the draft already conveys, a value asked for and
-not brought); `eval diagnose` reads these records.
+not brought); `eval diagnose` reads these records, and the recorded rounds of the
+example letters in `tests/fixtures/repairs/`, replayed through `apply_repairs` by
+`tests/pipeline/test_repair_replay.py`, pin what the function makes of a real answer
+(`scripts/repair_fixtures.py` exports them from a job store).
 Then:
 
 - code completes the glossary and writes the Mediopunkt into the new version as after
@@ -845,7 +848,7 @@ RepairRecord  (one per repair round, under the version it produced)
   draft_version, parent_version, kind (repair|facts|vocabulary|recover|polish)
   requested_blocks[], requested_facts[]
   repairs[]: {block_id, texts[]}            the answer as given
-  additions[]: {after?, texts[], fact_ids[]}
+  additions[]: {after?, kind (heading|sentence|list_item), texts[], fact_ids[], segment_ids[]}
   dropped[]: {text, reason (repeat|example|not_flagged|conveyed|no_value), block_id?, fact_ids[]}
 
 ReviewState
@@ -1739,6 +1742,8 @@ scripts/                    config_reference.py (the settings reference in confi
                             API's description in docs/openapi.json), print_letters.py,
                             hooks/pre-commit (ruff and gitleaks on the staged changes; `git config core.hooksPath scripts/hooks`),
                             parity.py (the Swiss parity check against tests/fixtures/parity/swiss.json, §8),
+                            repair_fixtures.py (the recorded repair rounds in tests/fixtures/repairs/,
+                            replayed by tests/pipeline/test_repair_replay.py, §5),
                             model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),
                             lexicon_package.py and morphit.py (the Italian pipeline leichtfacile-model-it
                             from the Morph-it! lexicon)
@@ -1749,7 +1754,8 @@ data/
 eval/                       evaluation outputs (results*/) and labelling sheets (labels/), git-ignored
 tests/                      rules (golden sentences, hard texts), ingest, pipeline (fake endpoint),
                             eval, web; fixtures/prompts/ (the rendered prompts, frozen) and
-                            fixtures/parity/ (the Swiss counts), §8; fixtures/architecture_dated_wording.txt
+                            fixtures/parity/ (the Swiss counts), §8; fixtures/repairs/ (recorded repair
+                            rounds, replayed through apply_repairs, §5); fixtures/architecture_dated_wording.txt
                             (the dated phrases this document may still carry, tests/test_architecture_doc.py)
 ```
 

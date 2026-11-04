@@ -1,0 +1,1122 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "a9c9516bb28c",
+ "letter": "camp-de-classe-lettre-parents.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "repair",
+ "version": 2,
+ "requested_blocks": [
+  "b006"
+ ],
+ "requested_facts": [
+  "f04",
+  "f05",
+  "f17",
+  "f18"
+ ],
+ "draft": {
+  "doc_id": "doc-a5d731aaca",
+  "lang": "fr",
+  "region": "CH",
+  "level": "A2",
+  "address": "formal",
+  "version": 1,
+  "parent_version": null,
+  "origin": "write",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Camp de classe des 7e année",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Le camp est obligatoire pour tous les élèves de 7e année.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "sentence",
+    "text": "Le camp se passe du lundi 7 juin au vendredi 11 juin 2027.",
+    "fact_ids": [
+     "f10",
+     "f11"
+    ],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Vous devez remettre le coupon-réponse signé avant le 23 avril 2027.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "sentence",
+    "text": "La participation aux repas coûte CHF 80.- au total.",
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Vous payez cette somme après le camp.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Vous avez 30 jours pour payer la facture.",
+    "fact_ids": [
+     "f14",
+     "f06"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Vous pouvez demander une remise si vous avez peu d'argent.",
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "heading",
+    "text": "Que devez-vous donner ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b010",
+    "kind": "list_item",
+    "text": "Le coupon-réponse rempli et signé.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b011",
+    "kind": "list_item",
+    "text": "Les allergies et les médicaments de votre enfant.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "list_item",
+    "text": "La posologie des médicaments écrite.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "heading",
+    "text": "Quand et où ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b014",
+    "kind": "sentence",
+    "text": "Départ : lundi 7 juin 2027 à 7 h 15 à la gare d'Exempleville.",
+    "fact_ids": [
+     "f12",
+     "f11"
+    ],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Retour : vendredi 11 juin 2027 vers 16 h 30 à la gare d'Exempleville.",
+    "fact_ids": [
+     "f13",
+     "f10"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Soirée d'information : mardi 20 avril 2027 à 19 h 30 dans l'aula du collège.",
+    "fact_ids": [
+     "f09",
+     "f16"
+    ],
+    "segment_ids": [
+     "s0029"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "heading",
+    "text": "Qui peut aider ?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "Le secrétariat de l'école répond du lundi au vendredi.",
+    "fact_ids": [
+     "f17",
+     "f19",
+     "f20"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Téléphone : 022 123 45 70.",
+    "fact_ids": [
+     "f19"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "sentence",
+    "text": "Courriel : secretariat@ecole-exempleville.example.",
+    "fact_ids": [
+     "f20"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "En cas d'urgence pendant le camp : téléphonez au 079 123 45 67.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0027"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "Envoyez le courrier à : Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple.",
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0028"
+    ]
+   },
+   {
+    "id": "b023",
+    "kind": "sentence",
+    "text": "Le programme complet sera en ligne dès la mi-mai sur www.ecole-exempleville.example/camp.",
+    "fact_ids": [
+     "f21"
+    ],
+    "segment_ids": [
+     "s0032"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Liste complète du matériel et restrictions",
+    "why": "Informations de contexte utiles mais pas des obligations ou délais critiques.",
+    "segment_ids": [
+     "s0018",
+     "s0019",
+     "s0020",
+     "s0021",
+     "s0022",
+     "s0023",
+     "s0024",
+     "s0025",
+     "s0026"
+    ]
+   },
+   {
+    "what": "Informations générales sur l'assurance",
+    "why": "Pas une instruction directe à suivre par le parent.",
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "what": "Lien internet pour télécharger le programme détaillé",
+    "why": "Information secondaire et disponible en ligne.",
+    "segment_ids": [
+     "s0032"
+    ]
+   }
+  ],
+  "glossary": [
+   {
+    "term": "dispense",
+    "explanation": "Une dispense est une permission de ne pas faire quelque chose, ici de ne pas participer au camp, seulement pour une raison très sérieuse.",
+    "origin": "model"
+   },
+   {
+    "term": "posologie",
+    "explanation": "C'est la manière et la quantité de prendre un médicament, comme indiqué sur la boîte ou par le médecin.",
+    "origin": "model"
+   },
+   {
+    "term": "remise",
+    "explanation": "Une remise est une réduction ou un abandon de la somme d'argent à payer, pour les familles qui ont peu d'argent.",
+    "origin": "model"
+   },
+   {
+    "term": "délai",
+    "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+    "origin": "model"
+   }
+  ],
+  "code_edits": []
+ },
+ "factsheet": {
+  "doc_id": "doc-a5d731aaca",
+  "doc_type": "Lettre",
+  "audience": "Les parents des élèves de 7e année du collège des Tilleuls",
+  "core": {
+   "what": {
+    "text": "Il s'agit d'une lettre annonçant le camp de classe obligatoire des 7e année du 7 au 11 juin 2027.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Remettre le coupon-réponse signé au plus tard le 23 avril 2027, annoncer le chien (si applicable), payer la participation aux frais de repas après réception de la facture.",
+    "segment_ids": [
+     "s0013",
+     "s0009",
+     "s0010"
+    ]
+   },
+   "deadline": {
+    "text": "Le coupon-réponse doit être remis au plus tard le 23 avril 2027.",
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   "cost": {
+    "text": "Une participation aux frais de repas de CHF 16.- par jour, soit CHF 80.- au total.",
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   "contact": {
+    "text": "Direction de l'établissement au 022 123 45 70 ou par e-mail à secretariat@ecole-exempleville.example.",
+    "segment_ids": [
+     "s0031"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "Le coupon-réponse doit être remis au plus tard le 23 avril 2027.",
+    "value_norm": "2027-04-23",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "amount",
+    "text": "La participation aux frais de repas coûte CHF 80.- au total.",
+    "value_norm": "80",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "obligation",
+    "text": "Le camp de classe est obligatoire pour les élèves de 7e année.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0004"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "deadline",
+    "text": "Toute demande de dispense doit être adressée par écrit au plus tard le 30 avril 2027.",
+    "value_norm": "2027-04-30",
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "amount",
+    "text": "La participation aux frais de repas est de CHF 16.- par jour.",
+    "value_norm": "16",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "deadline",
+    "text": "La facture pour la participation aux frais de repas doit être acquittée dans un délai de 30 jours.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "contact",
+    "text": "En cas d'urgence pendant le camp, appeler le 079 123 45 67.",
+    "value_norm": "0791234567",
+    "segment_ids": [
+     "s0027"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f08",
+    "kind": "contact",
+    "text": "Le courrier pour l'enfant peut être envoyé à l'adresse du chalet Le Soleil.",
+    "value_norm": "Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple",
+    "segment_ids": [
+     "s0028"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f09",
+    "kind": "deadline",
+    "text": "La soirée d'information aura lieu le mardi 20 avril 2027 à 19h30.",
+    "value_norm": "2027-04-20",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f10",
+    "kind": "other",
+    "text": "Camp de classe de 7e année du 7 au 11 juin 2027",
+    "value_norm": "2027-06-11",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f11",
+    "kind": "other",
+    "text": "Du lundi 7 juin au vendredi 11 juin 2027, les classes de 7e année du collège des Tilleuls participeront au camp de classe annuel au chalet Le Soleil, Chemin des Mélèzes 8, 1899 Montexemple.",
+    "value_norm": "--06-07",
+    "segment_ids": [
+     "s0003"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f12",
+    "kind": "other",
+    "text": "Le départ aura lieu le lundi à 7h15 à la gare d'Exempleville (rendez-vous sur le quai 3).",
+    "value_norm": "07:15",
+    "segment_ids": [
+     "s0007"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "other",
+    "text": "Le retour est prévu le vendredi vers 16h30 à la gare d'Exempleville.",
+    "value_norm": "16:30",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "deadline",
+    "text": "La facture vous parviendra après le camp et devra être acquittée dans un délai de 30 jours.",
+    "value_norm": "30 jours",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "amount",
+    "text": "de l'argent de poche, au maximum CHF 20.-",
+    "value_norm": "20",
+    "segment_ids": [
+     "s0025"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "other",
+    "text": "Une soirée d'information aura lieu le mardi 20 avril 2027 à 19h30 dans l'aula du collège des Tilleuls.",
+    "value_norm": "19:30",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "other",
+    "text": "Pour tout renseignement, le secrétariat de l'établissement se tient à votre disposition du lundi au vendredi, de 7h30 à 11h30, au 022 123 45 70 ou par e-mail à secretariat@ecole-exempleville.example.",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f18",
+    "kind": "other",
+    "text": "Pour tout renseignement, le secrétariat de l'établissement se tient à votre disposition du lundi au vendredi, de 7h30 à 11h30, au 022 123 45 70 ou par e-mail à secretariat@ecole-exempleville.example.",
+    "value_norm": "11:30",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f19",
+    "kind": "contact",
+    "text": "Pour tout renseignement, le secrétariat de l'établissement se tient à votre disposition du lundi au vendredi, de 7h30 à 11h30, au 022 123 45 70 ou par e-mail à secretariat@ecole-exempleville.example.",
+    "value_norm": "0221234570",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f20",
+    "kind": "contact",
+    "text": "Pour tout renseignement, le secrétariat de l'établissement se tient à votre disposition du lundi au vendredi, de 7h30 à 11h30, au 022 123 45 70 ou par e-mail à secretariat@ecole-exempleville.example.",
+    "value_norm": "secretariat@ecole-exempleville.example",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f21",
+    "kind": "contact",
+    "text": "Le programme détaillé et la liste complète du matériel seront disponibles dès la mi-mai sur www.ecole-exempleville.example/camp.",
+    "value_norm": "www.ecole-exempleville.example/camp",
+    "segment_ids": [
+     "s0032"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "dispense",
+    "explanation": "Une dispense est une permission de ne pas faire quelque chose, ici de ne pas participer au camp, seulement pour une raison très sérieuse.",
+    "segment_ids": [
+     "s0005"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "posologie",
+    "explanation": "C'est la manière et la quantité de prendre un médicament, comme indiqué sur la boîte ou par le médecin.",
+    "segment_ids": [
+     "s0015"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "remise",
+    "explanation": "Une remise est une réduction ou un abandon de la somme d'argent à payer, pour les familles qui ont peu d'argent.",
+    "segment_ids": [
+     "s0011"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "délai",
+    "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0032"
+    ],
+    "reason": "Lien internet pour télécharger le programme détaillé, information secondaire et disponible en ligne."
+   },
+   {
+    "segment_ids": [
+     "s0016"
+    ],
+    "reason": "Information générale sur l'assurance, pas une instruction directe à suivre par le parent."
+   },
+   {
+    "segment_ids": [
+     "s0018",
+     "s0019",
+     "s0020",
+     "s0021",
+     "s0022",
+     "s0023",
+     "s0024",
+     "s0025",
+     "s0026"
+    ],
+    "reason": "Liste de matériel et restrictions, informations de contexte utiles mais pas des obligations ou délais critiques."
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b006",
+    "texts": [
+     "La facture pour les repas arrive après le camp.",
+     "Vous avez 30 jours pour payer cette facture."
+    ]
+   }
+  ],
+  "additions": [
+   {
+    "after": "b007",
+    "kind": "sentence",
+    "texts": [
+     "Vous pouvez demander une remise si vous avez peu d'argent. Écrivez à la direction pour cela."
+    ],
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "after": "b018",
+    "kind": "sentence",
+    "texts": [
+     "Pour parler au secrétariat, appelez le 022 123 45 70 ou écrivez à secretariat@ecole-exempleville.example."
+    ],
+    "fact_ids": [
+     "f19",
+     "f20"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "after": "b021",
+    "kind": "sentence",
+    "texts": [
+     "En cas d'urgence pendant le camp, appelez le 079 123 45 67."
+    ],
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0027"
+    ]
+   },
+   {
+    "after": "b022",
+    "kind": "sentence",
+    "texts": [
+     "Envoyez le courrier à : Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple."
+    ],
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0028"
+    ]
+   },
+   {
+    "after": "b023",
+    "kind": "sentence",
+    "texts": [
+     "Le programme complet sera en ligne dès la mi-mai sur www.ecole-exempleville.example/camp."
+    ],
+    "fact_ids": [
+     "f21"
+    ],
+    "segment_ids": [
+     "s0032"
+    ]
+   }
+  ]
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-a5d731aaca",
+   "lang": "fr",
+   "region": "CH",
+   "level": "A2",
+   "address": "formal",
+   "version": 2,
+   "parent_version": 1,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Camp de classe des 7e année",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Le camp est obligatoire pour tous les élèves de 7e année.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Le camp se passe du lundi 7 juin au vendredi 11 juin 2027.",
+     "fact_ids": [
+      "f10",
+      "f11"
+     ],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Vous devez remettre le coupon-réponse signé avant le 23 avril 2027.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "La participation aux repas coûte CHF 80.- au total.",
+     "fact_ids": [
+      "f02"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "La facture pour les repas arrive après le camp.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b006.1",
+     "kind": "sentence",
+     "text": "Vous avez 30 jours pour payer cette facture.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Vous avez 30 jours pour payer la facture.",
+     "fact_ids": [
+      "f14",
+      "f06"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Vous pouvez demander une remise si vous avez peu d'argent.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "heading",
+     "text": "Que devez-vous donner ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b010",
+     "kind": "list_item",
+     "text": "Le coupon-réponse rempli et signé.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "list_item",
+     "text": "Les allergies et les médicaments de votre enfant.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "list_item",
+     "text": "La posologie des médicaments écrite.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "heading",
+     "text": "Quand et où ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b014",
+     "kind": "sentence",
+     "text": "Départ : lundi 7 juin 2027 à 7 h 15 à la gare d'Exempleville.",
+     "fact_ids": [
+      "f12",
+      "f11"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Retour : vendredi 11 juin 2027 vers 16 h 30 à la gare d'Exempleville.",
+     "fact_ids": [
+      "f13",
+      "f10"
+     ],
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Soirée d'information : mardi 20 avril 2027 à 19 h 30 dans l'aula du collège.",
+     "fact_ids": [
+      "f09",
+      "f16"
+     ],
+     "segment_ids": [
+      "s0029"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "heading",
+     "text": "Qui peut aider ?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "Le secrétariat de l'école répond du lundi au vendredi.",
+     "fact_ids": [
+      "f17",
+      "f19",
+      "f20"
+     ],
+     "segment_ids": [
+      "s0031"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Téléphone : 022 123 45 70.",
+     "fact_ids": [
+      "f19"
+     ],
+     "segment_ids": [
+      "s0031"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Courriel : secretariat@ecole-exempleville.example.",
+     "fact_ids": [
+      "f20"
+     ],
+     "segment_ids": [
+      "s0031"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "En cas d'urgence pendant le camp : téléphonez au 079 123 45 67.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0027"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Envoyez le courrier à : Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple.",
+     "fact_ids": [
+      "f08"
+     ],
+     "segment_ids": [
+      "s0028"
+     ]
+    },
+    {
+     "id": "b023",
+     "kind": "sentence",
+     "text": "Le programme complet sera en ligne dès la mi-mai sur www.ecole-exempleville.example/camp.",
+     "fact_ids": [
+      "f21"
+     ],
+     "segment_ids": [
+      "s0032"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Liste complète du matériel et restrictions",
+     "why": "Informations de contexte utiles mais pas des obligations ou délais critiques.",
+     "segment_ids": [
+      "s0018",
+      "s0019",
+      "s0020",
+      "s0021",
+      "s0022",
+      "s0023",
+      "s0024",
+      "s0025",
+      "s0026"
+     ]
+    },
+    {
+     "what": "Informations générales sur l'assurance",
+     "why": "Pas une instruction directe à suivre par le parent.",
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "what": "Lien internet pour télécharger le programme détaillé",
+     "why": "Information secondaire et disponible en ligne.",
+     "segment_ids": [
+      "s0032"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "dispense",
+     "explanation": "Une dispense est une permission de ne pas faire quelque chose, ici de ne pas participer au camp, seulement pour une raison très sérieuse.",
+     "origin": "model"
+    },
+    {
+     "term": "posologie",
+     "explanation": "C'est la manière et la quantité de prendre un médicament, comme indiqué sur la boîte ou par le médecin.",
+     "origin": "model"
+    },
+    {
+     "term": "remise",
+     "explanation": "Une remise est une réduction ou un abandon de la somme d'argent à payer, pour les familles qui ont peu d'argent.",
+     "origin": "model"
+    },
+    {
+     "term": "délai",
+     "explanation": "Un délai est le temps pour une tâche. Vous devez faire la tâche avant la fin du délai.",
+     "origin": "model"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "Vous pouvez demander une remise si vous avez peu d'argent.",
+    "reason": "conveyed",
+    "block_id": "b007",
+    "fact_ids": [
+     "f08"
+    ]
+   },
+   {
+    "text": "Écrivez à la direction pour cela.",
+    "reason": "conveyed",
+    "block_id": "b007",
+    "fact_ids": [
+     "f08"
+    ]
+   },
+   {
+    "text": "Pour parler au secrétariat, appelez le 022 123 45 70 ou écrivez à secretariat@ecole-exempleville.example.",
+    "reason": "conveyed",
+    "block_id": "b018",
+    "fact_ids": [
+     "f19",
+     "f20"
+    ]
+   },
+   {
+    "text": "En cas d'urgence pendant le camp, appelez le 079 123 45 67.",
+    "reason": "conveyed",
+    "block_id": "b021",
+    "fact_ids": [
+     "f07"
+    ]
+   },
+   {
+    "text": "Envoyez le courrier à : Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple.",
+    "reason": "conveyed",
+    "block_id": "b022",
+    "fact_ids": [
+     "f08"
+    ]
+   },
+   {
+    "text": "Le programme complet sera en ligne dès la mi-mai sur www.ecole-exempleville.example/camp.",
+    "reason": "conveyed",
+    "block_id": "b023",
+    "fact_ids": [
+     "f21"
+    ]
+   }
+  ]
+ },
+ "recorded_dropped": [
+  {
+   "text": "Envoyez le courrier à : Chalet Le Soleil, camp de classe Exempleville, Chemin des Mélèzes 8, 1899 Montexemple.",
+   "reason": "repeat",
+   "block_id": "b022",
+   "fact_ids": [
+    "f08"
+   ]
+  },
+  {
+   "text": "Le programme complet sera en ligne dès la mi-mai sur www.ecole-exempleville.example/camp.",
+   "reason": "repeat",
+   "block_id": "b023",
+   "fact_ids": [
+    "f21"
+   ]
+  }
+ ]
+}

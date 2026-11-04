@@ -1,0 +1,1535 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "41a86f9106fd",
+ "letter": "settimana-verde-lettera-genitori.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "repair",
+ "version": 3,
+ "requested_blocks": [
+  "b006"
+ ],
+ "requested_facts": [
+  "f04",
+  "f15",
+  "f02",
+  "f16",
+  "f17"
+ ],
+ "draft": {
+  "doc_id": "doc-cfa04b17d6",
+  "lang": "it",
+  "region": "CH",
+  "level": "A2",
+  "address": "formal",
+  "version": 2,
+  "parent_version": 1,
+  "origin": "repair",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Che cosa succede?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Le classi quinte vanno in settimana verde dal 7 al 11 giugno 2027.",
+    "fact_ids": [
+     "f12",
+     "f13"
+    ],
+    "segment_ids": [
+     "s0001",
+     "s0003"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "heading",
+    "text": "Cosa deve fare?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Consegna il tagliando entro il 23 aprile 2027.",
+    "fact_ids": [
+     "f01",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0006",
+     "s0013"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "sentence",
+    "text": "Lei compila il tagliando.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Scrivi allergie, intolleranze, diete e i medicinali che prende ogni giorno sul tagliando.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Porta la copia della tessera della cassa malati.",
+    "fact_ids": [
+     "f24"
+    ],
+    "segment_ids": [
+     "s0024"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Porta denaro personale, massimo 20 franchi.",
+    "fact_ids": [
+     "f19"
+    ],
+    "segment_ids": [
+     "s0025"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "heading",
+    "text": "Cosa porta?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b009.1",
+    "kind": "sentence",
+    "text": "Porta questi oggetti:",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b010",
+    "kind": "list_item",
+    "text": "sacco a pelo e federa",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0019"
+    ]
+   },
+   {
+    "id": "b011",
+    "kind": "list_item",
+    "text": "pantofole e scarponcini da escursione",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0020"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "list_item",
+    "text": "giacca impermeabile e indumenti caldi",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "list_item",
+    "text": "borraccia e zaino per le escursioni",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0022"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "list_item",
+    "text": "crema solare, cappellino e costume da bagno",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0023"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "heading",
+    "text": "Quando chiede aiuto?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "In caso di urgenza telefoni al numero 079 123 45 67.",
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0027"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "heading",
+    "text": "Chi contatta per informazioni?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "Telefoni alla segreteria al numero 091 123 45 70.",
+    "fact_ids": [
+     "f06"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Puoi telefonare dal lunedì al venerdì dalle 7.30 alle 11.30.",
+    "fact_ids": [
+     "f21",
+     "f22"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "sentence",
+    "text": "Puoi scrivere un'email a segreteria@scuola-esempiopoli.example.",
+    "fact_ids": [
+     "f23"
+    ],
+    "segment_ids": [
+     "s0030"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Il programma e la lista del materiale sono sul sito www.scuola-esempiopoli.example/settimanaverde da metà maggio.",
+    "fact_ids": [
+     "f24"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "La serata informativa è martedì 20 aprile 2027 alle 19.30.",
+    "fact_ids": [
+     "f07",
+     "f20"
+    ],
+    "segment_ids": [
+     "s0029"
+    ]
+   },
+   {
+    "id": "b023",
+    "kind": "sentence",
+    "text": "La serata è nell'aula magna della sede Tigli.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0029"
+    ]
+   },
+   {
+    "id": "b024",
+    "kind": "sentence",
+    "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0028"
+    ]
+   },
+   {
+    "id": "b024.1",
+    "kind": "sentence",
+    "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "id": "b025",
+    "kind": "sentence",
+    "text": "La partecipazione è obbligatoria.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b026",
+    "kind": "sentence",
+    "text": "Le dispense sono solo per motivi gravi.",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b027",
+    "kind": "sentence",
+    "text": "I genitori in difficoltà economica possono chiedere l'esonero dal pagamento.",
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b028",
+    "kind": "sentence",
+    "text": "I genitori consegnano i medicamenti alla direzione il giorno della partenza.",
+    "fact_ids": [
+     "f08"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b029",
+    "kind": "sentence",
+    "text": "Verifica la tua copertura assicurativa.",
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b030",
+    "kind": "sentence",
+    "text": "Telefoni cellulari e dolciumi restano a casa.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0026"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Informazioni sulla parte integrante dell'insegnamento e sulle direttive cantonali",
+    "why": "Non richieste per l'azione immediata del genitore",
+    "segment_ids": [
+     "s0004",
+     "s0009"
+    ]
+   },
+   {
+    "what": "Responsabilità assicurativa generale",
+    "why": "Già implicita nella partecipazione",
+    "segment_ids": [
+     "s0016"
+    ]
+   },
+   {
+    "what": "Indicazione del sito web per il programma dettagliato",
+    "why": "Informazione futura, non urgente",
+    "segment_ids": [
+     "s0031"
+    ]
+   }
+  ],
+  "glossary": [
+   {
+    "term": "Casa alpina",
+    "explanation": "Un luogo dove si alloggia in montagna, spesso usato per gite scolastiche.",
+    "origin": "model"
+   },
+   {
+    "term": "direzione dell'istituto",
+    "explanation": "Le persone che decidono e gestiscono la scuola.",
+    "origin": "model"
+   },
+   {
+    "term": "contributo alle spese",
+    "explanation": "Una somma di denaro che i genitori devono pagare per aiutare a coprire i costi dei pasti.",
+    "origin": "model"
+   },
+   {
+    "term": "esonero",
+    "explanation": "Non dover pagare una somma di denaro perché si è in difficoltà economiche.",
+    "origin": "model"
+   },
+   {
+    "term": "assicurazione contro gli infortuni",
+    "explanation": "Paga le spese dopo un infortunio, per esempio il medico. Paga anche dei soldi durante il tempo senza lavoro.",
+    "origin": "model"
+   },
+   {
+    "term": "cassa malati",
+    "explanation": "La cassa malati paga le spese del medico e dell'ospedale. Paga anche le medicine. Ogni persona in Svizzera deve avere una cassa malati.",
+    "origin": "model"
+   },
+   {
+    "term": "allegato",
+    "explanation": "Un foglio nella stessa lettera. Per esempio un formulario o una copia.",
+    "origin": "model"
+   }
+  ],
+  "code_edits": []
+ },
+ "factsheet": {
+  "doc_id": "doc-cfa04b17d6",
+  "doc_type": "Comunicazione scolastica",
+  "audience": "Genitori degli alunni delle classi quinte",
+  "core": {
+   "what": {
+    "text": "Le classi quinte parteciperanno alla settimana verde presso la Casa alpina Il Sole dal 7 all'11 giugno 2027.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Consegnare il tagliando compilato e firmato entro il 23 aprile 2027, rispettare le indicazioni sui materiali e le procedure per medicinali e denaro.",
+    "segment_ids": [
+     "s0013",
+     "s0014",
+     "s0015",
+     "s0025"
+    ]
+   },
+   "deadline": {
+    "text": "Il tagliando va consegnato entro il 23 aprile 2027.",
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   "cost": {
+    "text": "Un contributo alle spese per i pasti di CHF 16.- al giorno, per un totale di CHF 80.-.",
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   "contact": {
+    "text": "Segreteria dell'istituto al numero 091 123 45 70 o per e-mail all'indirizzo segreteria@scuola-esempiopoli.example.",
+    "segment_ids": [
+     "s0030"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "Il tagliando deve essere consegnato entro il 23 aprile 2027.",
+    "value_norm": "2027-04-23",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "amount",
+    "text": "Il contributo per i pasti è di CHF 16.- al giorno, per un totale di CHF 80.-.",
+    "value_norm": "80",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "obligation",
+    "text": "La partecipazione alla settimana verde è obbligatoria.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0004"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "deadline",
+    "text": "La fattura per il contributo alle spese deve essere saldata entro 30 giorni dalla ricezione.",
+    "value_norm": "30 giorni",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "contact",
+    "text": "In caso di urgenza durante la settimana verde, contattare il numero 079 123 45 67.",
+    "value_norm": "0791234567",
+    "segment_ids": [
+     "s0027"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "contact",
+    "text": "Per domande e informazioni, contattare la segreteria al numero 091 123 45 70 o via e-mail.",
+    "value_norm": "0911234570",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "deadline",
+    "text": "La serata informativa si terrà martedì 20 aprile 2027 alle ore 19.30.",
+    "value_norm": "2027-04-20T19:30",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f08",
+    "kind": "obligation",
+    "text": "I genitori devono consegnare i medicamenti alla direzione del campo il giorno della partenza nella confezione originale.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0015"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f09",
+    "kind": "obligation",
+    "text": "I genitori devono verificare la propria copertura assicurativa.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0017"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f10",
+    "kind": "condition",
+    "text": "Le dispense dalla partecipazione sono concesse solo per motivi gravi.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0005"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f11",
+    "kind": "right",
+    "text": "I genitori in condizioni economiche modeste possono chiedere l'esonero dal contributo.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0011"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f12",
+    "kind": "other",
+    "text": "Settimana verde delle classi quinte dal 7 all'11 giugno 2027",
+    "value_norm": "2027-06-07",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "other",
+    "text": "Settimana verde delle classi quinte dal 7 all'11 giugno 2027",
+    "value_norm": "2027-06-11",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "contact",
+    "text": "da lunedì 7 giugno a venerdì 11 giugno 2027 le classi quinte della sede Tigli parteciperanno alla settimana verde presso la Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio.",
+    "value_norm": "Via dei Larici 8, 6799 Montesempio",
+    "segment_ids": [
+     "s0003"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "deadline",
+    "text": "La relativa richiesta, debitamente motivata, deve essere inoltrata per iscritto alla direzione dell'istituto entro il 30 aprile 2027.",
+    "value_norm": "2027-04-30",
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "other",
+    "text": "La partenza è prevista lunedì alle ore 7.15 dalla stazione di Esempiopoli (ritrovo al binario 3).",
+    "value_norm": "07:15",
+    "segment_ids": [
+     "s0007"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "other",
+    "text": "Il rientro è previsto venerdì verso le ore 16.30 alla stazione di Esempiopoli.",
+    "value_norm": "16:30",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f18",
+    "kind": "amount",
+    "text": "Conformemente alle direttive cantonali, ai genitori viene richiesto un contributo alle spese per i pasti di CHF 16.- al giorno, per un totale di CHF 80.-.",
+    "value_norm": "16",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f19",
+    "kind": "amount",
+    "text": "denaro personale per un massimo di CHF 20.-",
+    "value_norm": "20",
+    "segment_ids": [
+     "s0025"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f20",
+    "kind": "other",
+    "text": "Martedì 20 aprile 2027 alle ore 19.30 si terrà nell'aula magna della sede Tigli una serata informativa, durante la quale sarà presentato il programma della settimana e sarà possibile porre domande.",
+    "value_norm": "19:30",
+    "segment_ids": [
+     "s0029"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f21",
+    "kind": "other",
+    "text": "Per ulteriori informazioni la segreteria dell'istituto è a vostra disposizione dal lunedì al venerdì dalle 7.30 alle 11.30, al numero 091 123 45 70 o per e-mail all'indirizzo segreteria@scuola-esem...",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f22",
+    "kind": "other",
+    "text": "Per ulteriori informazioni la segreteria dell'istituto è a vostra disposizione dal lunedì al venerdì dalle 7.30 alle 11.30, al numero 091 123 45 70 o per e-mail all'indirizzo segreteria@scuola-esem...",
+    "value_norm": "11:30",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f23",
+    "kind": "contact",
+    "text": "Per ulteriori informazioni la segreteria dell'istituto è a vostra disposizione dal lunedì al venerdì dalle 7.30 alle 11.30, al numero 091 123 45 70 o per e-mail all'indirizzo segreteria@scuola-esem...",
+    "value_norm": "segreteria@scuola-esempiopoli.example",
+    "segment_ids": [
+     "s0030"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f24",
+    "kind": "contact",
+    "text": "Il programma dettagliato e la lista completa del materiale saranno disponibili da metà maggio su www.scuola-esempiopoli.example/settimanaverde.",
+    "value_norm": "www.scuola-esempiopoli.example/settimanaverde",
+    "segment_ids": [
+     "s0031"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "Casa alpina",
+    "explanation": "Un luogo dove si alloggia in montagna, spesso usato per gite scolastiche.",
+    "segment_ids": [
+     "s0003"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "direzione dell'istituto",
+    "explanation": "Le persone che decidono e gestiscono la scuola.",
+    "segment_ids": [
+     "s0006",
+     "s0011"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "contributo alle spese",
+    "explanation": "Una somma di denaro che i genitori devono pagare per aiutare a coprire i costi dei pasti.",
+    "segment_ids": [
+     "s0009"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "esonero",
+    "explanation": "Non dover pagare una somma di denaro perché si è in difficoltà economiche.",
+    "segment_ids": [
+     "s0011"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "assicurazione contro gli infortuni",
+    "explanation": "Paga le spese dopo un infortunio. Per esempio il medico. Paga anche dei soldi durante il tempo senza lavoro.",
+    "segment_ids": [
+     "s0016"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "cassa malati",
+    "explanation": "La cassa malati paga le spese del medico e dell'ospedale. Paga anche le medicine. Ogni persona in Svizzera deve avere una cassa malati.",
+    "segment_ids": [
+     "s0024"
+    ],
+    "origin": "vocabulary"
+   },
+   {
+    "term": "allegato",
+    "explanation": "Un allegato è un foglio nella stessa lettera. Per esempio un formulario o una copia.",
+    "segment_ids": [
+     "s0013"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0004"
+    ],
+    "reason": "Informazione di contesto normativa (insegnamento integrante), non richiesta all'azione del genitore."
+   },
+   {
+    "segment_ids": [
+     "s0009"
+    ],
+    "reason": "Riferimento alle direttive cantonali, dettaglio normativo non essenziale per l'azione immediata."
+   },
+   {
+    "segment_ids": [
+     "s0016"
+    ],
+    "reason": "Informazione generale sulla responsabilità assicurativa, già implicita nella partecipazione."
+   },
+   {
+    "segment_ids": [
+     "s0031"
+    ],
+    "reason": "Indicazione di un sito web per informazioni future, non urgente."
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b005",
+    "texts": [
+     "Lei scrive allergie, intolleranze e diete sul tagliando.",
+     "Lei scrive i medicinali che prende ogni giorno sul tagliando."
+    ]
+   }
+  ],
+  "additions": [
+   {
+    "after": "b007",
+    "kind": "sentence",
+    "texts": [
+     "La fattura per il contributo alle spese va pagata entro 30 giorni dalla ricezione.",
+     "Per chiedere l'esonero dal pagamento, invii una richiesta scritta alla direzione entro il 30 aprile 2027."
+    ],
+    "fact_ids": [
+     "f04",
+     "f15"
+    ],
+    "segment_ids": [
+     "s0010",
+     "s0006"
+    ]
+   },
+   {
+    "after": "b015",
+    "kind": "sentence",
+    "texts": [
+     "In caso di urgenza, telefoni al numero 079 123 45 67."
+    ],
+    "fact_ids": [
+     "f05"
+    ],
+    "segment_ids": [
+     "s0027"
+    ]
+   },
+   {
+    "after": "b024",
+    "kind": "sentence",
+    "texts": [
+     "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio."
+    ],
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "after": "b021",
+    "kind": "sentence",
+    "texts": [
+     "Il programma e la lista del materiale sono sul sito www.scuola-esempiopoli.example/settimanaverde da metà maggio."
+    ],
+    "fact_ids": [
+     "f24"
+    ],
+    "segment_ids": [
+     "s0031"
+    ]
+   },
+   {
+    "after": "b022",
+    "kind": "sentence",
+    "texts": [
+     "La serata informativa è martedì 20 aprile 2027 alle ore 19.30.",
+     "La serata è nell'aula magna della sede Tigli."
+    ],
+    "fact_ids": [
+     "f07",
+     "f20"
+    ],
+    "segment_ids": [
+     "s0029",
+     "s0029"
+    ]
+   },
+   {
+    "after": "b026",
+    "kind": "sentence",
+    "texts": [
+     "Le dispense dalla partecipazione sono concesse solo per motivi gravi."
+    ],
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "after": "b027",
+    "kind": "sentence",
+    "texts": [
+     "I genitori in difficoltà economica possono chiedere l'esonero dal contributo."
+    ],
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "after": "b029",
+    "kind": "sentence",
+    "texts": [
+     "Verifica la tua copertura assicurativa contro gli infortuni."
+    ],
+    "fact_ids": [
+     "f09"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "after": "b030",
+    "kind": "sentence",
+    "texts": [
+     "Telefoni cellulari e dolciumi restano a casa."
+    ],
+    "fact_ids": [],
+    "segment_ids": []
+   }
+  ]
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-cfa04b17d6",
+   "lang": "it",
+   "region": "CH",
+   "level": "A2",
+   "address": "formal",
+   "version": 3,
+   "parent_version": 2,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Che cosa succede?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Le classi quinte vanno in settimana verde dal 7 al 11 giugno 2027.",
+     "fact_ids": [
+      "f12",
+      "f13"
+     ],
+     "segment_ids": [
+      "s0001",
+      "s0003"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "heading",
+     "text": "Cosa deve fare?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Consegna il tagliando entro il 23 aprile 2027.",
+     "fact_ids": [
+      "f01",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0006",
+      "s0013"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "sentence",
+     "text": "Lei compila il tagliando.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Scrivi allergie, intolleranze, diete e i medicinali che prende ogni giorno sul tagliando.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Porta la copia della tessera della cassa malati.",
+     "fact_ids": [
+      "f24"
+     ],
+     "segment_ids": [
+      "s0024"
+     ]
+    },
+    {
+     "id": "b007.1",
+     "kind": "sentence",
+     "text": "La fattura per il contributo alle spese va pagata entro 30 giorni dalla ricezione.",
+     "fact_ids": [
+      "f04",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0010",
+      "s0006"
+     ]
+    },
+    {
+     "id": "b007.2",
+     "kind": "sentence",
+     "text": "Per chiedere l'esonero dal pagamento, invii una richiesta scritta alla direzione entro il 30 aprile 2027.",
+     "fact_ids": [
+      "f04",
+      "f15"
+     ],
+     "segment_ids": [
+      "s0010",
+      "s0006"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Porta denaro personale, massimo 20 franchi.",
+     "fact_ids": [
+      "f19"
+     ],
+     "segment_ids": [
+      "s0025"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "heading",
+     "text": "Cosa porta?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b009.1",
+     "kind": "sentence",
+     "text": "Porta questi oggetti:",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "list_item",
+     "text": "sacco a pelo e federa",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0019"
+     ]
+    },
+    {
+     "id": "b011",
+     "kind": "list_item",
+     "text": "pantofole e scarponcini da escursione",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0020"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "list_item",
+     "text": "giacca impermeabile e indumenti caldi",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "list_item",
+     "text": "borraccia e zaino per le escursioni",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0022"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "list_item",
+     "text": "crema solare, cappellino e costume da bagno",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0023"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "heading",
+     "text": "Quando chiede aiuto?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "In caso di urgenza telefoni al numero 079 123 45 67.",
+     "fact_ids": [
+      "f05"
+     ],
+     "segment_ids": [
+      "s0027"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "heading",
+     "text": "Chi contatta per informazioni?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "Telefoni alla segreteria al numero 091 123 45 70.",
+     "fact_ids": [
+      "f06"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Puoi telefonare dal lunedì al venerdì dalle 7.30 alle 11.30.",
+     "fact_ids": [
+      "f21",
+      "f22"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Puoi scrivere un'email a segreteria@scuola-esempiopoli.example.",
+     "fact_ids": [
+      "f23"
+     ],
+     "segment_ids": [
+      "s0030"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Il programma e la lista del materiale sono sul sito www.scuola-esempiopoli.example/settimanaverde da metà maggio.",
+     "fact_ids": [
+      "f24"
+     ],
+     "segment_ids": [
+      "s0031"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "La serata informativa è martedì 20 aprile 2027 alle 19.30.",
+     "fact_ids": [
+      "f07",
+      "f20"
+     ],
+     "segment_ids": [
+      "s0029"
+     ]
+    },
+    {
+     "id": "b023",
+     "kind": "sentence",
+     "text": "La serata è nell'aula magna della sede Tigli.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0029"
+     ]
+    },
+    {
+     "id": "b024",
+     "kind": "sentence",
+     "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0028"
+     ]
+    },
+    {
+     "id": "b024.1",
+     "kind": "sentence",
+     "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b025",
+     "kind": "sentence",
+     "text": "La partecipazione è obbligatoria.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b026",
+     "kind": "sentence",
+     "text": "Le dispense sono solo per motivi gravi.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b027",
+     "kind": "sentence",
+     "text": "I genitori in difficoltà economica possono chiedere l'esonero dal pagamento.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b028",
+     "kind": "sentence",
+     "text": "I genitori consegnano i medicamenti alla direzione il giorno della partenza.",
+     "fact_ids": [
+      "f08"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b029",
+     "kind": "sentence",
+     "text": "Verifica la tua copertura assicurativa.",
+     "fact_ids": [
+      "f09"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b030",
+     "kind": "sentence",
+     "text": "Telefoni cellulari e dolciumi restano a casa.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0026"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Informazioni sulla parte integrante dell'insegnamento e sulle direttive cantonali",
+     "why": "Non richieste per l'azione immediata del genitore",
+     "segment_ids": [
+      "s0004",
+      "s0009"
+     ]
+    },
+    {
+     "what": "Responsabilità assicurativa generale",
+     "why": "Già implicita nella partecipazione",
+     "segment_ids": [
+      "s0016"
+     ]
+    },
+    {
+     "what": "Indicazione del sito web per il programma dettagliato",
+     "why": "Informazione futura, non urgente",
+     "segment_ids": [
+      "s0031"
+     ]
+    }
+   ],
+   "glossary": [
+    {
+     "term": "Casa alpina",
+     "explanation": "Un luogo dove si alloggia in montagna, spesso usato per gite scolastiche.",
+     "origin": "model"
+    },
+    {
+     "term": "direzione dell'istituto",
+     "explanation": "Le persone che decidono e gestiscono la scuola.",
+     "origin": "model"
+    },
+    {
+     "term": "contributo alle spese",
+     "explanation": "Una somma di denaro che i genitori devono pagare per aiutare a coprire i costi dei pasti.",
+     "origin": "model"
+    },
+    {
+     "term": "esonero",
+     "explanation": "Non dover pagare una somma di denaro perché si è in difficoltà economiche.",
+     "origin": "model"
+    },
+    {
+     "term": "assicurazione contro gli infortuni",
+     "explanation": "Paga le spese dopo un infortunio, per esempio il medico. Paga anche dei soldi durante il tempo senza lavoro.",
+     "origin": "model"
+    },
+    {
+     "term": "cassa malati",
+     "explanation": "La cassa malati paga le spese del medico e dell'ospedale. Paga anche le medicine. Ogni persona in Svizzera deve avere una cassa malati.",
+     "origin": "model"
+    },
+    {
+     "term": "allegato",
+     "explanation": "Un foglio nella stessa lettera. Per esempio un formulario o una copia.",
+     "origin": "model"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "Lei scrive allergie, intolleranze e diete sul tagliando.",
+    "reason": "not_flagged",
+    "block_id": "b005",
+    "fact_ids": []
+   },
+   {
+    "text": "Lei scrive i medicinali che prende ogni giorno sul tagliando.",
+    "reason": "not_flagged",
+    "block_id": "b005",
+    "fact_ids": []
+   },
+   {
+    "text": "In caso di urgenza, telefoni al numero 079 123 45 67.",
+    "reason": "conveyed",
+    "block_id": "b015",
+    "fact_ids": [
+     "f05"
+    ]
+   },
+   {
+    "text": "Il programma e la lista del materiale sono sul sito www.scuola-esempiopoli.example/settimanaverde da metà maggio.",
+    "reason": "conveyed",
+    "block_id": "b021",
+    "fact_ids": [
+     "f24"
+    ]
+   },
+   {
+    "text": "La serata informativa è martedì 20 aprile 2027 alle ore 19.30.",
+    "reason": "conveyed",
+    "block_id": "b022",
+    "fact_ids": [
+     "f07",
+     "f20"
+    ]
+   },
+   {
+    "text": "La serata è nell'aula magna della sede Tigli.",
+    "reason": "conveyed",
+    "block_id": "b022",
+    "fact_ids": [
+     "f07",
+     "f20"
+    ]
+   },
+   {
+    "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio.",
+    "reason": "conveyed",
+    "block_id": "b024",
+    "fact_ids": [
+     "f14"
+    ]
+   },
+   {
+    "text": "Le dispense dalla partecipazione sono concesse solo per motivi gravi.",
+    "reason": "conveyed",
+    "block_id": "b026",
+    "fact_ids": [
+     "f10"
+    ]
+   },
+   {
+    "text": "I genitori in difficoltà economica possono chiedere l'esonero dal contributo.",
+    "reason": "conveyed",
+    "block_id": "b027",
+    "fact_ids": [
+     "f11"
+    ]
+   },
+   {
+    "text": "Verifica la tua copertura assicurativa contro gli infortuni.",
+    "reason": "conveyed",
+    "block_id": "b029",
+    "fact_ids": [
+     "f09"
+    ]
+   },
+   {
+    "text": "Telefoni cellulari e dolciumi restano a casa.",
+    "reason": "repeat",
+    "block_id": "b030",
+    "fact_ids": []
+   }
+  ]
+ },
+ "recorded_dropped": [
+  {
+   "text": "Lei scrive allergie, intolleranze e diete sul tagliando.",
+   "reason": "not_flagged",
+   "block_id": "b005",
+   "fact_ids": []
+  },
+  {
+   "text": "Lei scrive i medicinali che prende ogni giorno sul tagliando.",
+   "reason": "not_flagged",
+   "block_id": "b005",
+   "fact_ids": []
+  },
+  {
+   "text": "In caso di urgenza, telefoni al numero 079 123 45 67.",
+   "reason": "conveyed",
+   "block_id": "b015",
+   "fact_ids": [
+    "f05"
+   ]
+  },
+  {
+   "text": "Il programma e la lista del materiale sono sul sito www.scuola-esempiopoli.example/settimanaverde da metà maggio.",
+   "reason": "conveyed",
+   "block_id": "b021",
+   "fact_ids": [
+    "f24"
+   ]
+  },
+  {
+   "text": "La serata informativa è martedì 20 aprile 2027 alle ore 19.30.",
+   "reason": "conveyed",
+   "block_id": "b022",
+   "fact_ids": [
+    "f07",
+    "f20"
+   ]
+  },
+  {
+   "text": "La serata è nell'aula magna della sede Tigli.",
+   "reason": "conveyed",
+   "block_id": "b022",
+   "fact_ids": [
+    "f07",
+    "f20"
+   ]
+  },
+  {
+   "text": "La posta per vostro figlio va all'indirizzo della Casa alpina Il Sole, Via dei Larici 8, 6799 Montesempio.",
+   "reason": "conveyed",
+   "block_id": "b024",
+   "fact_ids": [
+    "f14"
+   ]
+  },
+  {
+   "text": "Le dispense dalla partecipazione sono concesse solo per motivi gravi.",
+   "reason": "conveyed",
+   "block_id": "b026",
+   "fact_ids": [
+    "f10"
+   ]
+  },
+  {
+   "text": "I genitori in difficoltà economica possono chiedere l'esonero dal contributo.",
+   "reason": "conveyed",
+   "block_id": "b027",
+   "fact_ids": [
+    "f11"
+   ]
+  },
+  {
+   "text": "Verifica la tua copertura assicurativa contro gli infortuni.",
+   "reason": "conveyed",
+   "block_id": "b029",
+   "fact_ids": [
+    "f09"
+   ]
+  },
+  {
+   "text": "Telefoni cellulari e dolciumi restano a casa.",
+   "reason": "repeat",
+   "block_id": "b030",
+   "fact_ids": []
+  }
+ ]
+}

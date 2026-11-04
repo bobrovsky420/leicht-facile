@@ -1,0 +1,1190 @@
+{
+ "format": "repair-replay@1",
+ "exported_with": "0.11.0",
+ "job": "7acc6d5aca00",
+ "letter": "schnupperwoche-schuelerbrief.txt",
+ "model": "swiss-ai/apertus-v1.5-70b",
+ "recorded": "2026-10-31",
+ "kind": "repair",
+ "version": 3,
+ "requested_blocks": [
+  "b017",
+  "b009",
+  "b021"
+ ],
+ "requested_facts": [],
+ "draft": {
+  "doc_id": "doc-c509249b3d",
+  "lang": "de",
+  "region": "CH",
+  "level": "A2",
+  "address": "formal",
+  "version": 2,
+  "parent_version": 1,
+  "origin": "repair",
+  "blocks": [
+   {
+    "id": "b001",
+    "kind": "heading",
+    "text": "Was ist los?",
+    "fact_ids": [
+     "f08",
+     "f09"
+    ],
+    "segment_ids": [
+     "s0001"
+    ]
+   },
+   {
+    "id": "b002",
+    "kind": "sentence",
+    "text": "Vom 15. bis 19. März 2027 ist Schnupper·woche.",
+    "fact_ids": [
+     "f08",
+     "f09"
+    ],
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   {
+    "id": "b003",
+    "kind": "sentence",
+    "text": "Du machst in dieser Woche eine Schnupper·lehre in einem Betrieb.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0004"
+    ]
+   },
+   {
+    "id": "b004",
+    "kind": "sentence",
+    "text": "Die Teilnahme ist für alle Schülerinnen und Schüler Pflicht.",
+    "fact_ids": [
+     "f04"
+    ],
+    "segment_ids": [
+     "s0005"
+    ]
+   },
+   {
+    "id": "b005",
+    "kind": "heading",
+    "text": "Was musst du tun?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b006",
+    "kind": "sentence",
+    "text": "Du suchst dir selbst einen Schnupper·platz.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0007"
+    ]
+   },
+   {
+    "id": "b007",
+    "kind": "sentence",
+    "text": "Gib die unterschriebene Bestätigung bis Freitag, 19. Februar 2027, ab.",
+    "fact_ids": [
+     "f01"
+    ],
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   {
+    "id": "b008",
+    "kind": "sentence",
+    "text": "Hast du bis 5. Februar 2027 keinen Platz? Melde dich sofort bei deiner Lehrperson.",
+    "fact_ids": [
+     "f10"
+    ],
+    "segment_ids": [
+     "s0009"
+    ]
+   },
+   {
+    "id": "b009",
+    "kind": "sentence",
+    "text": "Das Berufs·informations·zentrum hilft dir bei der Suche.",
+    "fact_ids": [
+     "f11"
+    ],
+    "segment_ids": [
+     "s0010"
+    ]
+   },
+   {
+    "id": "b010",
+    "kind": "heading",
+    "text": "Was gilt während der Woche?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b011",
+    "kind": "sentence",
+    "text": "Du hältst dich an die Regeln und Arbeitszeiten des Betriebs.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0011"
+    ]
+   },
+   {
+    "id": "b012",
+    "kind": "sentence",
+    "text": "Du arbeitest höchstens 8 Stunden pro Tag.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0012"
+    ]
+   },
+   {
+    "id": "b013",
+    "kind": "sentence",
+    "text": "Bei Krankheit oder Unfall rufst du den Betrieb und das Schul·sekretariat an.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b013.1",
+    "kind": "sentence",
+    "text": "Ruf den Betrieb und das Schul·sekretariat an.",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b013.2",
+    "kind": "sentence",
+    "text": "Telefon: 044 123 45 70.",
+    "fact_ids": [
+     "f14"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b013.3",
+    "kind": "sentence",
+    "text": "Du rufst bis spätestens 7.30 Uhr an.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b014",
+    "kind": "sentence",
+    "text": "Ruf bis spätestens 7.30 Uhr an.",
+    "fact_ids": [
+     "f15"
+    ],
+    "segment_ids": [
+     "s0013"
+    ]
+   },
+   {
+    "id": "b015",
+    "kind": "sentence",
+    "text": "Bei mehr als 2 Tagen Absenz brauchst du ein Arztzeugnis.",
+    "fact_ids": [
+     "f16",
+     "f05"
+    ],
+    "segment_ids": [
+     "s0014"
+    ]
+   },
+   {
+    "id": "b016",
+    "kind": "sentence",
+    "text": "Ohne Entschuldigung stehen Absenzen im Zeugnis.",
+    "fact_ids": [
+     "f16",
+     "f06"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b016.1",
+    "kind": "sentence",
+    "text": "Ein Arztzeugnis brauchst du für mehr als 2 Tage Absenz.",
+    "fact_ids": [
+     "f16",
+     "f06"
+    ],
+    "segment_ids": [
+     "s0015"
+    ]
+   },
+   {
+    "id": "b017",
+    "kind": "sentence",
+    "text": "Die Schule zahlt dir bis 30 Franken pro Woche für den Arbeitsweg mit dem Bus oder Zug.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b017.1",
+    "kind": "sentence",
+    "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+    "fact_ids": [
+     "f03"
+    ],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b017.2",
+    "kind": "sentence",
+    "text": "Zeige dafür deine Belege der Schule.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   {
+    "id": "b018",
+    "kind": "sentence",
+    "text": "Bei Unfall bist du über die Schule versichert.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0018"
+    ]
+   },
+   {
+    "id": "b019",
+    "kind": "sentence",
+    "text": "Für Schäden haftest du oder deine Eltern.",
+    "fact_ids": [],
+    "segment_ids": [
+     "s0019"
+    ]
+   },
+   {
+    "id": "b020",
+    "kind": "sentence",
+    "text": "Du führst während der Woche das Schnupper·tagebuch.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0020"
+    ]
+   },
+   {
+    "id": "b021",
+    "kind": "sentence",
+    "text": "Nach der Woche gibst du den Schnupper·bericht ab.",
+    "fact_ids": [
+     "f17"
+    ],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b022",
+    "kind": "sentence",
+    "text": "Der Bericht muss bis spätestens 2. April 2027 bei der Lehrperson sein.",
+    "fact_ids": [
+     "f17",
+     "f02"
+    ],
+    "segment_ids": [
+     "s0021"
+    ]
+   },
+   {
+    "id": "b023",
+    "kind": "heading",
+    "text": "Wer hilft dir?",
+    "fact_ids": [],
+    "segment_ids": []
+   },
+   {
+    "id": "b024",
+    "kind": "sentence",
+    "text": "Frag deine Klassenlehr·person.",
+    "fact_ids": [
+     "f07"
+    ],
+    "segment_ids": [
+     "s0023"
+    ]
+   },
+   {
+    "id": "b024.1",
+    "kind": "sentence",
+    "text": "Oder schreibe eine E‑Mail an das Schul·sekretariat: sekretariat@sek-musterwil.example.",
+    "fact_ids": [
+     "f18",
+     "f07"
+    ],
+    "segment_ids": [
+     "s0023"
+    ]
+   },
+   {
+    "id": "b025",
+    "kind": "sentence",
+    "text": "Oder schreibe eine E‑Mail an das Schul·sekretariat.",
+    "fact_ids": [
+     "f18",
+     "f07"
+    ],
+    "segment_ids": [
+     "s0023"
+    ]
+   }
+  ],
+  "omissions": [
+   {
+    "what": "Interne Hinweise für den Fall ohne Platz (s0009)",
+    "why": "Nicht nötig für die wichtigsten Pflichten",
+    "segment_ids": []
+   },
+   {
+    "what": "Webadresse und Redundanzen (s0024)",
+    "why": "Kontakt ist bereits in E‑Mail enthalten",
+    "segment_ids": []
+   },
+   {
+    "what": "Abschlussformel und Unterschrift (s0025, s0026, s0027)",
+    "why": "Keine Information für die Aufgaben",
+    "segment_ids": []
+   }
+  ],
+  "glossary": [
+   {
+    "term": "Schnupper·lehre",
+    "explanation": "Eine Woche, in der Schülerinnen und Schüler einen Beruf ausprobieren dürfen.",
+    "origin": "model"
+   },
+   {
+    "term": "Berufswahl·unterricht",
+    "explanation": "Ein Fach in der Schule, das hilft, einen passenden Beruf zu finden.",
+    "origin": "model"
+   },
+   {
+    "term": "Schnupper·tagebuch",
+    "explanation": "Ein Heft, in dem man während der Schnupperwoche aufschreibt, was man erlebt.",
+    "origin": "model"
+   },
+   {
+    "term": "Berufs·informations·zentrum (BIZ)",
+    "explanation": "Ein Ort, der hilft, einen Schnupperplatz zu finden.",
+    "origin": "model"
+   },
+   {
+    "term": "Arztzeugnis",
+    "explanation": "Ein Papier vom Arzt oder von der Ärztin. Darin steht: Sie sind krank und können nicht arbeiten.",
+    "origin": "vocabulary"
+   }
+  ],
+  "code_edits": [
+   {
+    "block_id": "b013.1",
+    "rule_id": "LEX-01",
+    "before": "Schulsekretariat",
+    "after": "Schul·sekretariat"
+   },
+   {
+    "block_id": "b024.1",
+    "rule_id": "LEX-01",
+    "before": "Schulsekretariat",
+    "after": "Schul·sekretariat"
+   }
+  ]
+ },
+ "factsheet": {
+  "doc_id": "doc-c509249b3d",
+  "doc_type": "Informationsschreiben",
+  "audience": "Schülerinnen und Schüler der 2. Sekundarklassen",
+  "core": {
+   "what": {
+    "text": "Es findet eine verpflichtende Schnupperwoche vom 15. bis 19. März 2027 statt.",
+    "segment_ids": [
+     "s0003"
+    ]
+   },
+   "must_do": {
+    "text": "Einen Schnupperplatz suchen, die Bestätigung bis spätestens 19. Februar 2027 abgeben und das Schnuppertagebuch sowie den Bericht nach der Woche einreichen.",
+    "segment_ids": [
+     "s0007",
+     "s0008",
+     "s0020",
+     "s0021"
+    ]
+   },
+   "deadline": {
+    "text": "Die Bestätigung muss bis Freitag, 19. Februar 2027, abgegeben sein.",
+    "segment_ids": [
+     "s0008"
+    ]
+   },
+   "cost": {
+    "text": "Die Schule vergütet maximal CHF 30.- pro Woche für den Arbeitsweg mit dem öffentlichen Verkehr.",
+    "segment_ids": [
+     "s0017"
+    ]
+   },
+   "contact": {
+    "text": "Klassenlehrperson oder Schulsekretariat (sekretariat@sek-musterwil.example).",
+    "segment_ids": [
+     "s0023"
+    ]
+   }
+  },
+  "facts": [
+   {
+    "id": "f01",
+    "kind": "deadline",
+    "text": "Die Schnupperbestätigung muss bis spätestens Freitag, 19. Februar 2027, abgegeben werden.",
+    "value_norm": "2027-02-19",
+    "segment_ids": [
+     "s0008"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f02",
+    "kind": "deadline",
+    "text": "Der Schnupperbericht muss innert zwei Wochen nach der Schnupperwoche, also bis spätestens 2. April 2027, abgegeben werden.",
+    "value_norm": "2027-04-02",
+    "segment_ids": [
+     "s0021"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f03",
+    "kind": "amount",
+    "text": "Die Schule vergütet maximal CHF 30.- pro Woche für den Arbeitsweg mit dem öffentlichen Verkehr.",
+    "value_norm": "30",
+    "segment_ids": [
+     "s0017"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f04",
+    "kind": "obligation",
+    "text": "Die Teilnahme an der Schnupperwoche ist für alle Schülerinnen und Schüler verpflichtend.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0006"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f05",
+    "kind": "obligation",
+    "text": "Bei Absenzen von mehr als 2 Tagen ist ein Arztzeugnis erforderlich.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f06",
+    "kind": "condition",
+    "text": "Nicht entschuldigte Absenzen werden im Zeugnis vermerkt.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0015"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f07",
+    "kind": "contact",
+    "text": "Bei Fragen kann man sich an die Klassenlehrperson oder das Schulsekretariat wenden.",
+    "value_norm": null,
+    "segment_ids": [
+     "s0023"
+    ],
+    "must_keep": true,
+    "origin": "model"
+   },
+   {
+    "id": "f08",
+    "kind": "deadline",
+    "text": "Schnupperwoche der 2. Sekundarklassen vom 15. bis 19. März 2027",
+    "value_norm": "2027-03-15",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f09",
+    "kind": "deadline",
+    "text": "Schnupperwoche der 2. Sekundarklassen vom 15. bis 19. März 2027",
+    "value_norm": "2027-03-19",
+    "segment_ids": [
+     "s0001"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f10",
+    "kind": "deadline",
+    "text": "Solltest du bis am 5. Februar 2027 noch über keinen Platz verfügen, meldest du dich umgehend bei deiner Klassenlehrperson, damit gemeinsam eine Lösung gesucht werden kann.",
+    "value_norm": "2027-02-05",
+    "segment_ids": [
+     "s0009"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   },
+   {
+    "id": "f11",
+    "kind": "contact",
+    "text": "Unterstützung bei der Suche bietet zudem das Berufsinformationszentrum (BIZ), Bahnhofstrasse 10, 9999 Musterwil, geöffnet von Montag bis Donnerstag, 13.30 bis 17.30 Uhr.",
+    "value_norm": "Bahnhofstrasse 10, 9999 Musterwil",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f12",
+    "kind": "other",
+    "text": "Unterstützung bei der Suche bietet zudem das Berufsinformationszentrum (BIZ), Bahnhofstrasse 10, 9999 Musterwil, geöffnet von Montag bis Donnerstag, 13.30 bis 17.30 Uhr.",
+    "value_norm": "13:30",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f13",
+    "kind": "other",
+    "text": "Unterstützung bei der Suche bietet zudem das Berufsinformationszentrum (BIZ), Bahnhofstrasse 10, 9999 Musterwil, geöffnet von Montag bis Donnerstag, 13.30 bis 17.30 Uhr.",
+    "value_norm": "17:30",
+    "segment_ids": [
+     "s0010"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f14",
+    "kind": "contact",
+    "text": "Bei Krankheit oder Unfall informierst du den Betrieb und das Schulsekretariat (Telefon 044 123 45 70) bis spätestens 7.30 Uhr.",
+    "value_norm": "0441234570",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f15",
+    "kind": "other",
+    "text": "Bei Krankheit oder Unfall informierst du den Betrieb und das Schulsekretariat (Telefon 044 123 45 70) bis spätestens 7.30 Uhr.",
+    "value_norm": "07:30",
+    "segment_ids": [
+     "s0013"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f16",
+    "kind": "other",
+    "text": "Für Absenzen von mehr als 2 Tagen ist ein Arztzeugnis erforderlich.",
+    "value_norm": "2 Tage",
+    "segment_ids": [
+     "s0014"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f17",
+    "kind": "deadline",
+    "text": "Der Schnupperbericht mit der Beurteilung des Betriebs ist innert zwei Wochen nach der Schnupperwoche, also bis spätestens 2. April 2027, der Klassenlehrperson abzugeben.",
+    "value_norm": "2 Wochen",
+    "segment_ids": [
+     "s0021"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f18",
+    "kind": "contact",
+    "text": "Bei Fragen wendest du dich an deine Klassenlehrperson oder an das Schulsekretariat (sekretariat@sek-musterwil.example).",
+    "value_norm": "sekretariat@sek-musterwil.example",
+    "segment_ids": [
+     "s0023"
+    ],
+    "must_keep": true,
+    "origin": "code"
+   },
+   {
+    "id": "f19",
+    "kind": "contact",
+    "text": "Die Vorlage für die Bestätigung, das Schnuppertagebuch und weitere Informationen zur Berufswahl findest du unter www.sek-musterwil.example/berufswahl.",
+    "value_norm": "www.sek-musterwil.example/berufswahl",
+    "segment_ids": [
+     "s0024"
+    ],
+    "must_keep": false,
+    "origin": "code"
+   }
+  ],
+  "hard_terms": [
+   {
+    "term": "Schnupperlehre",
+    "explanation": "Eine Woche, in der Schülerinnen und Schüler einen Beruf ausprobieren dürfen.",
+    "segment_ids": [
+     "s0004"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Berufswahlunterricht",
+    "explanation": "Ein Fach in der Schule, das hilft, einen passenden Beruf zu finden.",
+    "segment_ids": [
+     "s0005"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Schnuppertagebuch",
+    "explanation": "Ein Heft, in dem man während der Schnupperwoche aufschreibt, was man erlebt.",
+    "segment_ids": [
+     "s0020"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Berufsinformationszentrum (BIZ)",
+    "explanation": "Ein Ort, der hilft, einen Schnupperplatz zu finden.",
+    "segment_ids": [
+     "s0010"
+    ],
+    "origin": "model"
+   },
+   {
+    "term": "Arztzeugnis",
+    "explanation": "Ein Papier vom Arzt oder von der Ärztin. Darin steht: Sie sind krank und können nicht arbeiten.",
+    "segment_ids": [
+     "s0014"
+    ],
+    "origin": "vocabulary"
+   }
+  ],
+  "omit_candidates": [
+   {
+    "segment_ids": [
+     "s0009"
+    ],
+    "reason": "Interne Hinweis für den Fall, dass kein Platz vorhanden ist (nicht zwingend nötig für das Verständnis der Pflichten)"
+   },
+   {
+    "segment_ids": [
+     "s0024"
+    ],
+    "reason": "Webadresse ist im Kontaktfeld bereits enthalten und redundant"
+   },
+   {
+    "segment_ids": [
+     "s0026",
+     "s0027"
+    ],
+    "reason": "Abschlussformel und Unterschrift sind für die Information nicht notwendig"
+   }
+  ]
+ },
+ "answer": {
+  "repairs": [
+   {
+    "id": "b017",
+    "texts": [
+     "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+     "Zeige dafür deine Belege der Schule."
+    ]
+   }
+  ],
+  "additions": [
+   {
+    "after": "b021",
+    "kind": "sentence",
+    "texts": [
+     "Der Schnupperbericht muss bis spätestens 2. April 2027 bei der Klassenlehrperson sein."
+    ],
+    "fact_ids": [
+     "f02"
+    ],
+    "segment_ids": [
+     "s0022"
+    ]
+   }
+  ]
+ },
+ "expected": {
+  "draft": {
+   "doc_id": "doc-c509249b3d",
+   "lang": "de",
+   "region": "CH",
+   "level": "A2",
+   "address": "formal",
+   "version": 3,
+   "parent_version": 2,
+   "origin": "repair",
+   "blocks": [
+    {
+     "id": "b001",
+     "kind": "heading",
+     "text": "Was ist los?",
+     "fact_ids": [
+      "f08",
+      "f09"
+     ],
+     "segment_ids": [
+      "s0001"
+     ]
+    },
+    {
+     "id": "b002",
+     "kind": "sentence",
+     "text": "Vom 15. bis 19. März 2027 ist Schnupper·woche.",
+     "fact_ids": [
+      "f08",
+      "f09"
+     ],
+     "segment_ids": [
+      "s0003"
+     ]
+    },
+    {
+     "id": "b003",
+     "kind": "sentence",
+     "text": "Du machst in dieser Woche eine Schnupper·lehre in einem Betrieb.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0004"
+     ]
+    },
+    {
+     "id": "b004",
+     "kind": "sentence",
+     "text": "Die Teilnahme ist für alle Schülerinnen und Schüler Pflicht.",
+     "fact_ids": [
+      "f04"
+     ],
+     "segment_ids": [
+      "s0005"
+     ]
+    },
+    {
+     "id": "b005",
+     "kind": "heading",
+     "text": "Was musst du tun?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b006",
+     "kind": "sentence",
+     "text": "Du suchst dir selbst einen Schnupper·platz.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0007"
+     ]
+    },
+    {
+     "id": "b007",
+     "kind": "sentence",
+     "text": "Gib die unterschriebene Bestätigung bis Freitag, 19. Februar 2027, ab.",
+     "fact_ids": [
+      "f01"
+     ],
+     "segment_ids": [
+      "s0008"
+     ]
+    },
+    {
+     "id": "b008",
+     "kind": "sentence",
+     "text": "Hast du bis 5. Februar 2027 keinen Platz? Melde dich sofort bei deiner Lehrperson.",
+     "fact_ids": [
+      "f10"
+     ],
+     "segment_ids": [
+      "s0009"
+     ]
+    },
+    {
+     "id": "b009",
+     "kind": "sentence",
+     "text": "Das Berufs·informations·zentrum hilft dir bei der Suche.",
+     "fact_ids": [
+      "f11"
+     ],
+     "segment_ids": [
+      "s0010"
+     ]
+    },
+    {
+     "id": "b010",
+     "kind": "heading",
+     "text": "Was gilt während der Woche?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b011",
+     "kind": "sentence",
+     "text": "Du hältst dich an die Regeln und Arbeitszeiten des Betriebs.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0011"
+     ]
+    },
+    {
+     "id": "b012",
+     "kind": "sentence",
+     "text": "Du arbeitest höchstens 8 Stunden pro Tag.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0012"
+     ]
+    },
+    {
+     "id": "b013",
+     "kind": "sentence",
+     "text": "Bei Krankheit oder Unfall rufst du den Betrieb und das Schul·sekretariat an.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b013.1",
+     "kind": "sentence",
+     "text": "Ruf den Betrieb und das Schul·sekretariat an.",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b013.2",
+     "kind": "sentence",
+     "text": "Telefon: 044 123 45 70.",
+     "fact_ids": [
+      "f14"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b013.3",
+     "kind": "sentence",
+     "text": "Du rufst bis spätestens 7.30 Uhr an.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b014",
+     "kind": "sentence",
+     "text": "Ruf bis spätestens 7.30 Uhr an.",
+     "fact_ids": [
+      "f15"
+     ],
+     "segment_ids": [
+      "s0013"
+     ]
+    },
+    {
+     "id": "b015",
+     "kind": "sentence",
+     "text": "Bei mehr als 2 Tagen Absenz brauchst du ein Arztzeugnis.",
+     "fact_ids": [
+      "f16",
+      "f05"
+     ],
+     "segment_ids": [
+      "s0014"
+     ]
+    },
+    {
+     "id": "b016",
+     "kind": "sentence",
+     "text": "Ohne Entschuldigung stehen Absenzen im Zeugnis.",
+     "fact_ids": [
+      "f16",
+      "f06"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b016.1",
+     "kind": "sentence",
+     "text": "Ein Arztzeugnis brauchst du für mehr als 2 Tage Absenz.",
+     "fact_ids": [
+      "f16",
+      "f06"
+     ],
+     "segment_ids": [
+      "s0015"
+     ]
+    },
+    {
+     "id": "b017",
+     "kind": "sentence",
+     "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b017.2",
+     "kind": "sentence",
+     "text": "Zeige dafür deine Belege der Schule.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b018",
+     "kind": "sentence",
+     "text": "Bei Unfall bist du über die Schule versichert.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0018"
+     ]
+    },
+    {
+     "id": "b019",
+     "kind": "sentence",
+     "text": "Für Schäden haftest du oder deine Eltern.",
+     "fact_ids": [],
+     "segment_ids": [
+      "s0019"
+     ]
+    },
+    {
+     "id": "b020",
+     "kind": "sentence",
+     "text": "Du führst während der Woche das Schnupper·tagebuch.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0020"
+     ]
+    },
+    {
+     "id": "b021",
+     "kind": "sentence",
+     "text": "Nach der Woche gibst du den Schnupper·bericht ab.",
+     "fact_ids": [
+      "f17"
+     ],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b022",
+     "kind": "sentence",
+     "text": "Der Bericht muss bis spätestens 2. April 2027 bei der Lehrperson sein.",
+     "fact_ids": [
+      "f17",
+      "f02"
+     ],
+     "segment_ids": [
+      "s0021"
+     ]
+    },
+    {
+     "id": "b023",
+     "kind": "heading",
+     "text": "Wer hilft dir?",
+     "fact_ids": [],
+     "segment_ids": []
+    },
+    {
+     "id": "b024",
+     "kind": "sentence",
+     "text": "Frag deine Klassenlehr·person.",
+     "fact_ids": [
+      "f07"
+     ],
+     "segment_ids": [
+      "s0023"
+     ]
+    },
+    {
+     "id": "b024.1",
+     "kind": "sentence",
+     "text": "Oder schreibe eine E‑Mail an das Schul·sekretariat: sekretariat@sek-musterwil.example.",
+     "fact_ids": [
+      "f18",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0023"
+     ]
+    },
+    {
+     "id": "b025",
+     "kind": "sentence",
+     "text": "Oder schreibe eine E‑Mail an das Schul·sekretariat.",
+     "fact_ids": [
+      "f18",
+      "f07"
+     ],
+     "segment_ids": [
+      "s0023"
+     ]
+    }
+   ],
+   "omissions": [
+    {
+     "what": "Interne Hinweise für den Fall ohne Platz (s0009)",
+     "why": "Nicht nötig für die wichtigsten Pflichten",
+     "segment_ids": []
+    },
+    {
+     "what": "Webadresse und Redundanzen (s0024)",
+     "why": "Kontakt ist bereits in E‑Mail enthalten",
+     "segment_ids": []
+    },
+    {
+     "what": "Abschlussformel und Unterschrift (s0025, s0026, s0027)",
+     "why": "Keine Information für die Aufgaben",
+     "segment_ids": []
+    }
+   ],
+   "glossary": [
+    {
+     "term": "Schnupper·lehre",
+     "explanation": "Eine Woche, in der Schülerinnen und Schüler einen Beruf ausprobieren dürfen.",
+     "origin": "model"
+    },
+    {
+     "term": "Berufswahl·unterricht",
+     "explanation": "Ein Fach in der Schule, das hilft, einen passenden Beruf zu finden.",
+     "origin": "model"
+    },
+    {
+     "term": "Schnupper·tagebuch",
+     "explanation": "Ein Heft, in dem man während der Schnupperwoche aufschreibt, was man erlebt.",
+     "origin": "model"
+    },
+    {
+     "term": "Berufs·informations·zentrum (BIZ)",
+     "explanation": "Ein Ort, der hilft, einen Schnupperplatz zu finden.",
+     "origin": "model"
+    },
+    {
+     "term": "Arztzeugnis",
+     "explanation": "Ein Papier vom Arzt oder von der Ärztin. Darin steht: Sie sind krank und können nicht arbeiten.",
+     "origin": "vocabulary"
+    }
+   ],
+   "code_edits": []
+  },
+  "dropped": [
+   {
+    "text": "Zeige dafür deine Belege der Schule.",
+    "reason": "repeat",
+    "block_id": "b017",
+    "fact_ids": []
+   },
+   {
+    "text": "Der Schnupperbericht muss bis spätestens 2. April 2027 bei der Klassenlehrperson sein.",
+    "reason": "conveyed",
+    "block_id": "b021",
+    "fact_ids": [
+     "f02"
+    ]
+   },
+   {
+    "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+    "reason": "repeat",
+    "block_id": "b017.1",
+    "fact_ids": [
+     "f03"
+    ]
+   }
+  ]
+ },
+ "recorded_dropped": [
+  {
+   "text": "Zeige dafür deine Belege der Schule.",
+   "reason": "repeat",
+   "block_id": "b017",
+   "fact_ids": []
+  },
+  {
+   "text": "Der Schnupperbericht muss bis spätestens 2. April 2027 bei der Klassenlehrperson sein.",
+   "reason": "conveyed",
+   "block_id": "b021",
+   "fact_ids": [
+    "f02"
+   ]
+  },
+  {
+   "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+   "reason": "repeat",
+   "block_id": "b017.1",
+   "fact_ids": [
+    "f03"
+   ]
+  }
+ ]
+}

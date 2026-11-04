@@ -443,9 +443,16 @@ class AnsweredRepair(Artifact):
 
 
 class AnsweredAddition(Artifact):
+    """An added sentence as the model gave it: the block it follows, the texts, the
+    block kind and the facts and source sentences it names, everything `apply_repairs`
+    reads, so a recorded round replays (tests/fixtures/repairs/README.md). Records from
+    before 4 November 2026 have neither the kind nor the cited sentences."""
+
     after: str | None = None
+    kind: BlockKind = "sentence"
     texts: list[str]
     fact_ids: list[str] = Field(default_factory=list)
+    segment_ids: list[str] = Field(default_factory=list)
 
 
 class RepairRecord(Artifact):

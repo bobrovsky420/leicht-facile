@@ -29,6 +29,7 @@ from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.rounds import (
     MISSING_PRIORITY,
     MISSING_RULES,
+    RoundSpec,
     Step,
     best,
     blocking_count,
@@ -362,7 +363,7 @@ class Orchestrator:
 
     # -- the rounds after the first draft (pipeline/rounds.py) ----------------------------
 
-    def _rounds(  # noqa: C901, PLR0912
+    def _rounds(
         self,
         run: RunState,
         job: Job,
@@ -373,72 +374,69 @@ class Orchestrator:
         """The plan, kind by kind: every version made, one record per round, and why
         the repair and facts rounds ended. A round that fails leaves the versions so
         far standing; after a round the endpoint failed, nothing more runs."""
-        options = job.config.pipeline
         history = [first]
         records: list[RoundRecord] = []
         reason: StopReason = "no_problems"
-        for spec in plan(options):
+        for spec in plan(job.config.pipeline):
             if spec.kind != "repair" and run.round_failure == "endpoint":
                 break
             for number in range(1, spec.limit + 1):
                 base = best(history) if spec.from_best else history[-1]
-                draft, rules, judge = base
-                before = (blocking_count(rules, judge), missing_count(rules))
+                before = _counts(base)
                 if spec.measure == "missing" and before[1] == 0:
                     break
                 version = max(h[0].version for h in history) + 1
-                if spec.kind == "recover":
-                    step = self._recover(run, job, source, factsheet, *base, version=version)
-                else:
-                    request = request_for(spec, draft, rules, judge, factsheet, options)
-                    if not request:
-                        if spec.kind == "repair":
-                            reason = "no_problems"
-                        break
-                    step = self._round(
-                        run, job, source, factsheet, *base, request, number,
-                        kind=spec.kind, version=version,
-                    )  # fmt: skip
+                step, ended = self._step(run, job, source, factsheet, spec, base, number, version)
                 if step is None:
-                    if spec.kind == "repair":
-                        reason = "round_failed"
-                    elif spec.kind == "facts":
-                        reason = "facts_round_failed"
+                    if ended:
+                        reason = ended
                     break
                 history.append(step)
-                after = (blocking_count(step[1], step[2]), missing_count(step[1]))
-                records.append(
-                    RoundRecord(
-                        kind=spec.kind,
-                        number=number,
-                        parent_version=draft.version,
-                        version=step[0].version,
-                        blocking_before=before[0],
-                        blocking_after=after[0],
-                        missing_before=before[1],
-                        missing_after=after[1],
-                    )
-                )
-                if spec.measure == "blocking":
-                    if after[0] == 0:
-                        reason = "no_blocking"
-                        break
-                    if after[0] >= before[0]:
-                        reason = "no_progress"
-                        break
-                elif spec.measure == "missing":
-                    if after[1] == 0:
-                        reason = "no_missing_facts"
-                        break
-                    if after[1] >= before[1]:
-                        reason = "facts_no_progress"
-                        break
+                after = _counts(step)
+                records.append(_round_record(spec, number, base, step, before, after))
+                ended = _stop_reason(spec, before, after)
+                if ended:
+                    reason = ended
+                    break
             else:  # every round of the kind ran
                 if spec.kind == "repair":
                     reason = "max_rounds"
                 elif spec.kind == "facts" and spec.limit:
                     reason = "max_facts_rounds"
         return history, records, reason
+
+    def _step(
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        spec: RoundSpec,
+        base: Step,
+        number: int,
+        version: int,
+    ) -> tuple[Step | None, StopReason | None]:
+        """One round of the kind on `base`: the recover round, else the repair prompt with
+        the round's request. No step means the kind's rounds end here: with the reason
+        (a repair round with nothing to ask for, a failed repair or facts round), or
+        without one when the reason so far stands."""
+        if spec.kind == "recover":
+            step = self._recover(run, job, source, factsheet, *base, version=version)
+        else:
+            draft, rules, judge = base
+            request = request_for(spec, draft, rules, judge, factsheet, job.config.pipeline)
+            if not request:
+                return None, ("no_problems" if spec.kind == "repair" else None)
+            step = self._round(
+                run, job, source, factsheet, *base, request, number,
+                kind=spec.kind, version=version,
+            )  # fmt: skip
+        if step is None:
+            if spec.kind == "repair":
+                return None, "round_failed"
+            if spec.kind == "facts":
+                return None, "facts_round_failed"
+        return step, None
 
     def _round(
         self,
@@ -535,7 +533,12 @@ class Orchestrator:
                 run.notes.append(f"recover {fact.id}: {rec.rejected or 'value not found'}")
                 continue
             record.additions.append(
-                AnsweredAddition(after=rec.block_id, texts=list(rec.texts), fact_ids=[fact.id])
+                AnsweredAddition(
+                    after=rec.block_id,
+                    texts=list(rec.texts),
+                    fact_ids=[fact.id],
+                    segment_ids=list(fact.segment_ids),
+                )
             )
             current = stages.add_sentences(current, rec.block_id, rec.texts, fact)
         if not record.additions:
@@ -725,3 +728,54 @@ def _carry_over(judge: JudgeReport, old: Draft, new: Draft) -> JudgeReport:
             "semantic_findings": [s for s in judge.semantic_findings if s.block_id in unchanged],
         }
     )
+
+
+# -- the rounds' bookkeeping (pipeline/rounds.py) -----------------------------------------
+
+
+def _counts(step: Step) -> tuple[int, int]:
+    """What the rounds measure on a version: its blocking findings and its missing
+    must-keep values."""
+    _, rules, judge = step
+    return blocking_count(rules, judge), missing_count(rules)
+
+
+def _round_record(
+    spec: RoundSpec,
+    number: int,
+    base: Step,
+    step: Step,
+    before: tuple[int, int],
+    after: tuple[int, int],
+) -> RoundRecord:
+    """One round's record: the version it started from, the one it made, the counts
+    before and after."""
+    return RoundRecord(
+        kind=spec.kind,
+        number=number,
+        parent_version=base[0].version,
+        version=step[0].version,
+        blocking_before=before[0],
+        blocking_after=after[0],
+        missing_before=before[1],
+        missing_after=after[1],
+    )
+
+
+def _stop_reason(
+    spec: RoundSpec, before: tuple[int, int], after: tuple[int, int]
+) -> StopReason | None:
+    """Why a kind's rounds end after a round, by what the kind measures: the count is
+    zero, or the round did not lower it. None: the next round runs (a kind without a
+    measure runs to its limit)."""
+    if spec.measure == "blocking":
+        if after[0] == 0:
+            return "no_blocking"
+        if after[0] >= before[0]:
+            return "no_progress"
+    elif spec.measure == "missing":
+        if after[1] == 0:
+            return "no_missing_facts"
+        if after[1] >= before[1]:
+            return "facts_no_progress"
+    return None

@@ -1081,6 +1081,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "coverage" },
     { name = "fpdf2" },
     { name = "mypy" },
     { name = "pytest" },
@@ -1112,6 +1113,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "coverage", specifier = ">=7.17" },
     { name = "fpdf2", specifier = ">=2.8.9" },
     { name = "mypy", specifier = ">=2.4.0" },
     { name = "pytest", specifier = ">=8.4" },
