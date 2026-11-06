@@ -41,7 +41,7 @@ from importlib import resources
 from typing import TYPE_CHECKING, Literal, TypeGuard
 
 from leichtfacile.rules.lexicon import MEDIOPUNKT, zipf
-from leichtfacile.rules.nlp import pipeline
+from leichtfacile.rules.nlp import parse
 from leichtfacile.schemas import base_lang, canonical_variety
 
 if TYPE_CHECKING:
@@ -358,16 +358,12 @@ class VocabularyMatcher:
         self.entries = load_vocabulary(key)
 
     @cached_property
-    def _nlp(self):
-        return pipeline(self.lang)
-
-    @cached_property
     def _patterns(self) -> dict[str, list[_Pattern]]:
         """Word patterns by every accepted form of their first word."""
         words = [e for e in self.entries if not e.abbreviation]
         terms = [_without_reflexive(e.term, self.lang) for e in words]
         index: dict[str, list[_Pattern]] = defaultdict(list)
-        for entry, doc in zip(words, self._nlp.pipe(terms), strict=True):
+        for entry, doc in zip(words, parse(self.lang, terms), strict=True):
             tokens = [t for t in doc if not t.is_space]
             forms = [self._accepted(t) for t in tokens]
             verbal = (
@@ -465,10 +461,10 @@ class VocabularyMatcher:
         return _longest(found)
 
     def find_text(self, text: str) -> list[Match]:
-        return self.find(self._nlp(text))
+        return self.find(parse(self.lang, [text])[0])
 
     def find_texts(self, texts: Iterable[str]) -> Iterator[list[Match]]:
-        for doc in self._nlp.pipe(texts):
+        for doc in parse(self.lang, texts):  # parsed at once: no lock held across a yield
             yield self.find(doc)
 
     def _hyphen_part(self, token: Token, accepted: frozenset[str]) -> tuple[str, int, int] | None:

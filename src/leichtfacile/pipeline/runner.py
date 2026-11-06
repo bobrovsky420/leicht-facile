@@ -4,12 +4,13 @@ The jobs table is the queue: a worker takes the job that has waited longest with
 guarded UPDATE (`Store.claim_next_queued`), so `jobs.workers` threads share it without a
 broker and nothing in memory is lost on a restart. A worker that finds nothing waits
 for a nudge from `submit` or one second, whichever comes first, so a job queued by
-another process is picked up too. Jobs left `running` by a process that stopped are
-queued again on start. A queue limit refuses submissions when `jobs.queue_limit` jobs
-wait; `cancel` stops a queued or a running job. A housekeeping thread deletes the jobs
-older than `data.retention_days` once an hour (lifecycle.py). `on_finished` hears every
-job's final status and how long the worker ran it (web/observability.py counts them
-for `/metrics`).
+another process is picked up too; a claim that fails (the database busy past its
+timeout) is logged and tried again after five seconds, and the thread lives on. Jobs
+left `running` by a process that stopped are queued again on start. A queue limit
+refuses submissions when `jobs.queue_limit` jobs wait; `cancel` stops a queued or a
+running job. A housekeeping thread deletes the jobs older than `data.retention_days`
+once an hour (lifecycle.py). `on_finished` hears every job's final status and how long
+the worker ran it (web/observability.py counts them for `/metrics`).
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from leichtfacile.store import IDLE_STATUSES
 
 log = logging.getLogger(__name__)
 POLL_S = 1.0  # how long an idle worker waits before it looks at the queue again
+CLAIM_RETRY_S = 5.0  # how long a worker waits after a claim failed
 PURGE_INTERVAL_S = 3600.0
 
 
@@ -51,7 +53,12 @@ class JobRunner:
         self.purge_interval_s = purge_interval_s
         self.on_finished = on_finished
         self._threads: list[threading.Thread] = []
-        self._work = threading.Condition()  # a nudge: something was queued or finished
+        # Two conditions on one lock: the workers wait on `_work` for a nudge (something
+        # was queued, or stop), `wait_idle` on `_idle` for a worker that went idle. With
+        # one condition for both, every idle worker woke the others at once.
+        lock = threading.Lock()
+        self._work = threading.Condition(lock)
+        self._idle = threading.Condition(lock)
         self._stopping = threading.Event()
         self._busy = 0  # workers between taking a job and finishing it
 
@@ -116,8 +123,8 @@ class JobRunner:
 
     def wait_idle(self, timeout_s: float = 30.0) -> bool:
         """For tests: wait until no job is waiting and no worker is busy."""
-        with self._work:
-            return self._work.wait_for(
+        with self._idle:
+            return self._idle.wait_for(
                 lambda: self._busy == 0 and self.store.count_jobs("queued") == 0, timeout_s
             )
 
@@ -135,13 +142,18 @@ class JobRunner:
         while not self._stopping.is_set():
             with self._work:
                 self._busy += 1  # before the claim, so `wait_idle` never misses a job
-            job_id = self.store.claim_next_queued()
+            wait_s = POLL_S
+            try:
+                job_id = self.store.claim_next_queued()
+            except Exception:  # a busy or failing database must not end the thread
+                log.exception("job runner: no job could be taken; trying again shortly")
+                job_id, wait_s = None, CLAIM_RETRY_S
             if job_id is None:
                 with self._work:
                     self._busy -= 1
-                    self._work.notify_all()
+                    self._idle.notify_all()
                     if not self._stopping.is_set():
-                        self._work.wait(POLL_S)
+                        self._work.wait(wait_s)
                 continue
             started = time.monotonic()
             try:
@@ -152,7 +164,7 @@ class JobRunner:
                 self._finished(job_id, time.monotonic() - started)
                 with self._work:
                     self._busy -= 1
-                    self._work.notify_all()
+                    self._idle.notify_all()
 
     def _finished(self, job_id: str, seconds: float) -> None:
         if self.on_finished is None:

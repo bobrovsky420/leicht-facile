@@ -30,7 +30,7 @@ Kept: 15 of the 114 replayable rounds of the store: a small set, chosen greedily
 | `klassenlager-elternbrief-8579f981-v03-facts` | klassenlager-elternbrief.txt | facts | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 24 | 24 | 2 | yes |
 | `praemienverbilligung-brief-3dc9ebd2-v02-repair` | praemienverbilligung-brief.txt | repair | claude-haiku-5-5 | 2026-10-26 | 32 | 39 | 4 | yes |
 | `schnupperwoche-schuelerbrief-3acf822c-v06-polish` | schnupperwoche-schuelerbrief.txt | polish | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 29 | 29 | 0 |  |
-| `schnupperwoche-schuelerbrief-7acc6d5a-v03-repair` | schnupperwoche-schuelerbrief.txt | repair | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 32 | 31 | 3 |  |
+| `schnupperwoche-schuelerbrief-7acc6d5a-v03-repair` | schnupperwoche-schuelerbrief.txt | repair | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 32 | 32 | 3 | yes |
 | `schnupperwoche-schuelerbrief-a9d39c54-v04-vocabulary` | schnupperwoche-schuelerbrief.txt | vocabulary | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 22 | 23 | 0 |  |
 | `semaine-de-stage-lettre-eleves-17591eff-v04-polish` | semaine-de-stage-lettre-eleves.txt | polish | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 28 | 30 | 0 |  |
 | `semaine-de-stage-lettre-eleves-5f778912-v03-facts` | semaine-de-stage-lettre-eleves.txt | facts | swiss-ai/apertus-v1.5-70b | 2026-10-31 | 24 | 32 | 6 | yes |

@@ -114,6 +114,23 @@ def test_the_findings_of_germany_and_austria_carry_the_varietys_suggestions() ->
     assert all(rule not in ("GRAM-08", "REG-03") for rule, _, _ in swiss)
 
 
+def test_the_amount_style_suggestion_keeps_the_cents() -> None:
+    """NUM-07 asks for the number before the currency word, and the cents stay with it:
+    a repair round that applied "500 Franken" for "500.50 CHF" changed the amount."""
+    swiss = findings(draft("CH", "Das kostet 500.50 CHF.", "Das kostet CHF 1'200.00."))
+    assert ("NUM-07", "NUM-07", "500.50 Franken") in swiss
+    assert ("NUM-07", "NUM-07", "1'200 Franken") in swiss
+    german = findings(draft("DE", "Das kostet 20,50 Euro.", "Das kostet EUR 1.234,56."))
+    assert ("NUM-07", "NUM-07", "20,50 Euro") in german
+    assert ("NUM-07", "NUM-07", "1.234,56 Euro") in german
+    for lang, text, amount in (("fr", "Cela coûte 500.50 CHF.", "500.50 francs"),
+                               ("it", "Costa 500.50 CHF.", "500.50 franchi")):  # fmt: skip
+        block = Block(id="b001", kind="sentence", text=text)
+        assert ("NUM-07", "NUM-07", amount) in findings(
+            Draft(doc_id="d", lang=lang, level="A2", blocks=[block])
+        )
+
+
 # -- the decision mode on a Bescheid --------------------------------------------------
 
 BESCHEID_DE = """Stadt Musterstadt

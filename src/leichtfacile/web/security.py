@@ -377,20 +377,24 @@ class Authentication:
 def is_cross_site(headers: Headers) -> bool:
     """True when the request comes from a page on another site, judged in this order:
 
-    - `Sec-Fetch-Site`, which every current browser sends and a page cannot set: only
-      `cross-site` is refused (`same-origin`, `same-site` and `none`, a typed address
-      or a bookmark, pass).
+    - `Sec-Fetch-Site`, which every current browser sends and a page cannot set:
+      `cross-site` is refused, `same-origin` and `none` (a typed address or a bookmark)
+      pass. `same-site` is a page on a sibling host (`evil.example.ch` for
+      `app.example.ch`), which is not this server: the `Origin` decides.
     - Without it, `Origin`: a browser sends it with every POST, so it must name this
       server (the `Host` the request came to; the scheme is left out because a proxy
-      that ends TLS reports http inside). `null` (an opaque origin) is refused.
+      that ends TLS reports http inside). `null` (an opaque origin) is refused, and so
+      is `same-site` without an `Origin`.
     - A request with neither header is not from a browser (curl, the Python client,
       the tests) and passes: the API stays usable from scripts."""
-    site = headers.get("sec-fetch-site")
-    if site is not None:
-        return site.strip().lower() == "cross-site"
+    site = (headers.get("sec-fetch-site") or "").strip().lower()
+    if site in ("same-origin", "none"):
+        return False
+    if site == "cross-site":
+        return True
     origin = headers.get("origin")
     if origin is None:
-        return False
+        return site == "same-site"
     origin = origin.strip()
     if origin.lower() == "null":
         return True

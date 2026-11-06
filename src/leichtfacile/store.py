@@ -664,6 +664,13 @@ class Store:
         with self._tx() as conn:
             conn.execute(*_update(job_id, fields))
 
+    def fill_counts(self, job_id: str, counts: JobCounts) -> None:
+        """Write the counts the drafts list computed for a job stored before they existed,
+        `updated_at` kept: the stamp is the queue's order and the purge's clock, and a
+        cache fill is no change of the job."""
+        with self._tx() as conn:
+            conn.execute(*_update(job_id, {"counts": counts}, touch=False))
+
     def transition(
         self, job_id: str, status: str, *, only_from: tuple[str, ...], **fields: object
     ) -> bool:
@@ -870,8 +877,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
 
-def _update(job_id: str, fields: dict[str, object]) -> tuple[str, tuple]:
-    """The UPDATE for `fields` (an allowlist of columns), `updated_at` set with them."""
+def _update(job_id: str, fields: dict[str, object], *, touch: bool = True) -> tuple[str, tuple]:
+    """The UPDATE for `fields` (an allowlist of columns), `updated_at` set with them
+    unless `touch` is False."""
     allowed = {"status", "stage", "title", "error", "config", "counts"}
     unknown = set(fields) - allowed
     if unknown:
@@ -880,7 +888,8 @@ def _update(job_id: str, fields: dict[str, object]) -> tuple[str, tuple]:
     for name in ("config", "counts"):
         if isinstance(value := values.get(name), BaseModel):
             values[name] = value.model_dump_json()
-    values["updated_at"] = utcnow().isoformat()
+    if touch:
+        values["updated_at"] = utcnow().isoformat()
     assignments = ", ".join(f"{k} = ?" for k in values)
     return f"UPDATE jobs SET {assignments} WHERE id = ?", (*values.values(), job_id)
 

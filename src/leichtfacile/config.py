@@ -914,9 +914,20 @@ def collect(replace: Mapping[Path, Mapping[str, Any]] | None = None) -> Flat:
     for a file's content (a change checked before it is written)."""
     replace = replace or {}
     layers = [_file_layer(path, replace.get(path)) for path in setting_files()]
-    layers.append(_env_layer(os.environ))
+    layers.append(_env_layer(os.environ, _table_names(layers)))
     layers.append({key: Setting(value, "command line") for key, value in _overrides.items()})
     return _merge(layers)
+
+
+def _table_names(layers: Iterable[Flat]) -> dict[str, set[str]]:
+    """The providers and the presets by name: the shipped ones and those of the files."""
+    names = {"providers": set(PROVIDERS), "presets": set(PRESETS)}
+    for layer in layers:
+        for key in layer:
+            section, _, rest = key.partition(".")
+            if section in names and rest:
+                names[section].add(rest.partition(".")[0])
+    return names
 
 
 def load(
@@ -1098,17 +1109,27 @@ def _file_layer(path: Path, tree: Mapping[str, Any] | None = None) -> Flat:
     return flat
 
 
-def _env_layer(environ: Mapping[str, str]) -> Flat:
+def _env_layer(environ: Mapping[str, str], known: Mapping[str, set[str]] | None = None) -> Flat:
     """LEICHTFACILE_<SECTION>__<KEY>, the parts joined by two underscores
     (LEICHTFACILE_PROVIDERS__MINE__URL): the text, which the settings convert ("8001",
     "true", a comma-separated list); an empty variable sets nothing. A table (extra_body,
-    headers, a models table) is set in a file."""
+    headers, a models table) is set in a file. A variable's name has no hyphen, so the
+    name of a provider or a preset in `known` that reads the same with - as _ is the one
+    meant (LEICHTFACILE_PRESETS__CSCS_APERTUS__... sets cscs-apertus; until 6 November
+    2026 it made a preset cscs_apertus without a provider); any other name is a table of
+    its own, a preset made by variables."""
     flat: Flat = {}
     for name, raw in environ.items():
         upper = name.upper()
         if not upper.startswith(ENV_PREFIX) or "__" not in upper or not raw.strip():
             continue
         key = upper.removeprefix(ENV_PREFIX).lower().replace("__", ".")
+        section, _, rest = key.partition(".")
+        if known and section in known and rest:
+            table, dot, tail = rest.partition(".")
+            if table not in known[section]:
+                same = (n for n in sorted(known[section]) if n.replace("-", "_") == table)
+                key = f"{section}.{next(same, table)}{dot}{tail}"
         flat[key] = Setting(raw, name)
     return flat
 

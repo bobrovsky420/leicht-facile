@@ -484,8 +484,11 @@ def test_client_address_behind_the_trusted_proxy() -> None:
     [
         ({"sec-fetch-site": "cross-site", "origin": "http://testserver"}, True),  # browser's word
         ({"sec-fetch-site": "same-origin"}, False),
-        ({"sec-fetch-site": "same-site"}, False),
         ({"sec-fetch-site": "none"}, False),  # a typed address, a bookmark
+        # a sibling host is the same site, not this server: the Origin decides
+        ({"sec-fetch-site": "same-site", "origin": "https://evil.zh.ch", "host": "lf.zh.ch"}, True),
+        ({"sec-fetch-site": "same-site", "origin": "https://lf.zh.ch", "host": "lf.zh.ch"}, False),
+        ({"sec-fetch-site": "same-site", "host": "lf.zh.ch"}, True),
         ({"origin": "https://evil.example", "host": "testserver"}, True),
         ({"origin": "http://testserver", "host": "testserver"}, False),
         ({"origin": "https://app.example.ch", "host": "app.example.ch"}, False),  # proxy ends TLS

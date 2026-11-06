@@ -33,7 +33,7 @@ from leichtfacile.rules.checker import check_draft
 from leichtfacile.rules.document import KnownValues, display_value
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.medication import has_doses, names_medication
-from leichtfacile.rules.nlp import pipeline as nlp_pipeline
+from leichtfacile.rules.nlp import parse
 from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.rules.values import (
     HARD_KINDS,
@@ -1640,17 +1640,23 @@ def _append_repair(b: Block, texts: list[str], kept: set[str], new: _NewVersion)
     the id, the others get `b005.1`, `b005.2`. A text that ends another text of the same
     answer goes (the 70B wrote a sentence and then its tail once more, 31 October 2026);
     so does one the draft has elsewhere (`kept`, the draft's wording only, not the blocks
-    placed so far), unless nothing would be left. What goes is dropped as a repeat."""
+    placed so far). What goes is dropped as a repeat. An answer with nothing else leaves
+    the block as it was: the answer is the repeat, not the block it repeats (the answer
+    used to take the block's place, and `drop_repeats` then removed the later of the two,
+    an unflagged block with its heading included; audit of 6 November 2026)."""
     keys = [_wording_key(t) for t in texts]
     parts = [
         t for i, t in enumerate(texts) if any(k != keys[i] and k.endswith(keys[i]) for k in keys)
     ]
     new.dropped += [DroppedText(text=t, reason="repeat", block_id=b.id) for t in parts]
     texts = [t for t in texts if t not in parts] or texts[:1]
-    fresh = [t for t in texts if _wording_key(t) not in kept] or texts[:1]
+    fresh = [t for t in texts if _wording_key(t) not in kept]
     new.dropped += [
         DroppedText(text=t, reason="repeat", block_id=b.id) for t in texts if t not in fresh
     ]
+    if not fresh:
+        new.blocks.append(b)
+        return
     for i, text in enumerate(fresh):
         block_id = b.id if i == 0 else new.new_id(b.id)
         new.blocks.append(b.model_copy(update={"id": block_id, "text": text}))
@@ -2096,7 +2102,6 @@ _ITEM_RE = re.compile(r"^(?:[-*\u2022]|\d+[.)])\s+(.*)$")
 
 def text_to_blocks(text: str, lang: str) -> list[Block]:
     """Split free model text into blocks: Markdown headings, list items, sentences."""
-    nlp = nlp_pipeline(lang)
     blocks: list[Block] = []
 
     def add(kind: str, content: str) -> None:
@@ -2113,6 +2118,6 @@ def text_to_blocks(text: str, lang: str) -> list[Block]:
         elif m := _ITEM_RE.match(line):
             add("list_item", m.group(1))
         else:
-            for sent in nlp(line).sents:
+            for sent in parse(lang, [line])[0].sents:  # under the pipeline's lock
                 add("sentence", sent.text)
     return blocks

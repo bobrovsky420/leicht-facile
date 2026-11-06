@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
@@ -28,6 +29,17 @@ HANDLER_NAME = "leichtfacile.log"
 # Fields a record may carry in `extra` that the JSON line keeps (the access line's;
 # `user` is the one the proxy login named, left out without one).
 EXTRA_FIELDS = ("method", "path", "status", "duration_ms", "client", "user")
+# A control character in a text line would begin a line of its own that reads as a
+# record (uvicorn decodes a request path, %0A included): the message and the ids show
+# them escaped (\n, \x1b). A traceback keeps its line breaks and tabs, and a line of it
+# that begins like a record is indented.
+_CONTROL = re.compile(r"[\x00-\x1f\x7f-\x9f\u2028\u2029]")
+_CONTROL_IN_TRACEBACK = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029]")
+_RECORD_START = re.compile(r"^(?=(?:DEBUG|INFO|WARNING|ERROR|CRITICAL) )", re.MULTILINE)
+
+
+def _escaped(text: str, control: re.Pattern[str] = _CONTROL) -> str:
+    return control.sub(lambda m: m.group().encode("unicode_escape").decode("ascii"), text)
 
 
 class ContextFilter(logging.Filter):
@@ -65,17 +77,21 @@ def _exception_text(formatter: logging.Formatter, record: logging.LogRecord) -> 
 class TextFormatter(logging.Formatter):
     """`LEVEL logger: message request_id=... job_id=... user=...`, the traceback on the
     lines after. The access line names its method, path and status in the message
-    itself, and the user the proxy login named after the ids."""
+    itself, and the user the proxy login named after the ids. One line per record and
+    the traceback's lines after it, whatever the texts hold (`_escaped`)."""
 
     def __init__(self) -> None:
         super().__init__("%(levelname)s %(name)s: %(message)s")
 
     def format(self, record: logging.LogRecord) -> str:
         record.message = record.getMessage()
-        line = self.formatMessage(record)
+        line = _escaped(self.formatMessage(record))
         ids = context_of(record)
-        line += "".join(f" {k}={ids[k]}" for k in ("request_id", "job_id", "user") if k in ids)
+        names = ("request_id", "job_id", "user")
+        line += "".join(f" {k}={_escaped(str(ids[k]))}" for k in names if k in ids)
         exception = _exception_text(self, record)
+        if exception:
+            exception = _RECORD_START.sub("  ", _escaped(exception, _CONTROL_IN_TRACEBACK))
         return f"{line}\n{exception}" if exception else line
 
 

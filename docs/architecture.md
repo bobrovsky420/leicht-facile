@@ -523,7 +523,8 @@ placed after a named block, or after the list when that block is a list item (10
 October 2026). A round first asks only for what blocks the draft (rule
 errors, missing fact values, the judge's problems), with at most 5 missing facts at a
 time, the most important kinds first; the warnings get one round once nothing blocking
-is left. Code drops a repaired or added sentence that repeats one already in the draft,
+is left. Code drops a repaired or added sentence that repeats one already in the draft
+(a repair that brings nothing else leaves its block as it was),
 also when an addition lands before the block it repeats, and a repair text that ends
 another text of the same answer (the 70B wrote a sentence and then its tail once
 more). It also
@@ -1084,8 +1085,11 @@ finished and shows why. What belongs to one run (notes, the last round's failure
 budget, the stop signal) lives in a `RunState` the orchestrator makes per run, never on
 the orchestrator, so the workers share one. The rerun and the deletion of a running
 job are refused with 409 (stop it first); a review save names the stored review it
-loaded (above); the shared spaCy pipelines take one text at a time. The UI polls the
-job page every 2 s for two minutes, then every 5 s.
+loaded (above); the shared spaCy pipelines take one text at a time, whoever runs them
+(one lock per language next to the pipeline cache, `rules/nlp.py`). An idle worker
+looks at the queue once a second or when nudged, and a claim that fails is tried again
+after five seconds without ending the thread. The UI polls the job page every 2 s for
+two minutes, then every 5 s.
 
 The page's forms share the API's code: one dependency reads
 the form fields into a `Submission` for `POST /jobs` and `POST /api/v1/jobs` alike and

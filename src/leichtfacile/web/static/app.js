@@ -409,15 +409,20 @@
   }
 
   // -- job progress: poll the fragment until the job leaves the queue -------------------
-  // The running time changes at every poll and is not live. The fragment is replaced
-  // only when something else in it changed, so a screen reader keeps its place, and a
-  // new stage is announced in #run-stage.
+  // The header's line and the running time (#run-for) change at every poll and are not
+  // live: both are copied in place. The fragment is replaced only when something else
+  // in it changed, so a screen reader keeps its place, and a new stage is announced in
+  // #run-stage.
   const progress = $("#progress");
   if (progress && ["queued", "running"].includes(progress.dataset.status)) {
     const id = progress.dataset.job;
     const line = $("#run-line");
     const announce = $("#run-stage");
-    const withoutRun = (html) => html.replace(/ data-run="[^"]*"/, "").trim();
+    const withoutRun = (html) =>
+      html
+        .replace(/ data-run="[^"]*"/, "")
+        .replace(/(<p class="hint" id="run-for">)[^<]*/, "$1")
+        .trim();
     const first = $(".jobgrid", progress);
     let shown = withoutRun(progress.innerHTML);
     let stage = (first && first.dataset.stage) || "";
@@ -454,6 +459,10 @@
           progress.replaceChildren(fresh.content);
           const again = $("#run-details", progress);
           if (again && open) again.open = true;
+        } else {
+          const runFor = $("#run-for", fresh.content);
+          const shownFor = $("#run-for", progress);
+          if (runFor && shownFor) shownFor.textContent = runFor.textContent;
         }
         const next = (grid && grid.dataset.stage) || "";
         if (announce && next && next !== stage) announce.textContent = next;
@@ -863,12 +872,29 @@
     event.returnValue = "";
   });
   window.addEventListener("pagehide", flushOnLeave);
-  // An export link waits for the pending save, so the file carries every decision.
+  // An export link waits until the review is saved, so the file carries every decision:
+  // for the save on its way, then for one with what is left. After a failed save it
+  // tries once more; a save that fails or cannot be made (a block being emptied, a
+  // colleague's save) keeps the page, and the note says why.
+  const flush = async () => {
+    if (failed === "error") failed = null;
+    while (unsaved() && !failed) {
+      if (inflight) {
+        await new Promise((done) => setTimeout(done, 100));
+        continue;
+      }
+      await save();
+      if (emptyEdit()) break; // save() named the block
+    }
+    return !unsaved();
+  };
   document.addEventListener("click", (event) => {
     const link = event.target.closest('a[href*="/export?"]');
-    if (!link || !unsaved() || failed || inflight || emptyEdit()) return;
+    if (!link || !unsaved()) return;
     event.preventDefault();
-    save().then(() => window.location.assign(link.href));
+    flush().then((saved) => {
+      if (saved) window.location.assign(link.href);
+    });
   });
 
   // The decisions on screen, in the body the review API takes.

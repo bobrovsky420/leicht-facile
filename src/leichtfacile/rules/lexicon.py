@@ -137,6 +137,10 @@ _NOT_PARTS = frozenset(
         "enden",
         "ner",
         "nern",
+        # Common words that are a head misread at the linking s: Betreibungs·amt became
+        # Betreibung·samt, Gemeinde·steuer Gemeindes·teuer (audit of 6 November 2026).
+        "samt",
+        "teuer",
     ]
 )
 

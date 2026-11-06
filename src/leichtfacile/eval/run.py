@@ -274,6 +274,11 @@ def _best_version(
     return best[1], best[2], best[3]
 
 
+# The fields a rescored row keeps from the run's; the region too, without which a de-DE or
+# de-AT row read as Swiss German after a rescore.
+_KEPT_FIELDS = ("pair_id", "role", "lang", "region", "writer", "understand", "job_id", "status")
+
+
 def rescore(  # noqa: C901, PLR0912
     results_dir: Path,
     *,
@@ -329,11 +334,7 @@ def rescore(  # noqa: C901, PLR0912
                 continue
             edits = [edit for v in versions if v <= version for edit in _edits_of(store, job.id, v)]
             summary = store.get_artifact(job.id, "summary", PipelineSummary)
-            new_row = {
-                k: v
-                for k, v in row.items()
-                if k in ("pair_id", "role", "lang", "writer", "understand", "job_id", "status")
-            }
+            new_row = {k: v for k, v in row.items() if k in _KEPT_FIELDS}
             new_row.update(score_output(job, draft, standard, easy, factsheet, judge_report, edits))
             if summary:
                 new_row.update(rounds=summary.rounds_of("repair"), stop_reason=summary.stop_reason)

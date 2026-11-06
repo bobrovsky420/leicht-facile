@@ -44,9 +44,12 @@ try {
      model" while the preset lacks its key); the preset's title and the status are the
      tooltip and the text a screen reader hears. A link to the model page. #}
   {% set model_status = (settings.llm.title ~ '. ' ~ t('js.endpoint.unknown')) if model_ready else t('model.none') %}
-  <{{ 'a href="/model"' if model_page else 'span' }} class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz"{% if model_ready %} data-model="{{ settings.llm.title }}"{% endif %} title="{{ model_status }}">
+  {# Only the tag's name is an expression: autoescape would turn the quotes of an
+     attribute written in one into &#34;. #}
+  {% set endpoint_tag = 'a' if model_page else 'span' %}
+  <{{ endpoint_tag }}{% if model_page %} href="/model"{% endif %} class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz"{% if model_ready %} data-model="{{ settings.llm.title }}"{% endif %} title="{{ model_status }}">
     <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') if model_ready else t('site.no_model') }}</span><span class="visually-hidden" data-endpoint-text>{{ model_status }}</span>
-  </{{ 'a' if model_page else 'span' }}>
+  </{{ endpoint_tag }}>
   {% set languages = ui_languages() %}
   {% if languages | length > 1 %}
   <nav class="ui-langs" aria-label="{{ t('site.ui_lang') }}">

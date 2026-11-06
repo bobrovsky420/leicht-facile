@@ -454,7 +454,9 @@ them into local time and "Today" or "Yesterday".
 - Polling as today: `app.js` asks for the `_progress.html` fragment every 2 s (every
   5 s after two minutes) and
   reloads when the status leaves queued and running. It replaces the fragment only
-  when something besides the running line changed, so a screen reader keeps its place.
+  when something besides the running line and the running time changed, so a screen
+  reader keeps its place; the running time ("Running for", `#run-for`) is copied in
+  place.
   The fragment's root carries the header's line, formatted by the server, in
   `data-run`, which `app.js` copies into the page header at every poll, the tab's
   prefix in `data-tab`, and the running stage in `data-stage`, which it puts into the
@@ -796,8 +798,9 @@ New or changed:
    stored when the form is sent and filled into a blank form (`data-remember`), each
    only when the form offers the stored value.
 4. Job running: copying the fragment's `data-run` line into the page header at every
-   poll, the `data-tab` prefix into the document title, replacing the fragment only
-   when it changed (the folded details stay open once opened), announcing a new stage
+   poll, the `data-tab` prefix into the document title and the running time into
+   `#run-for`, replacing the fragment only when anything else changed (the folded
+   details stay open once opened), announcing a new stage
    (`data-stage`). Drafts: a click on a row opens the draft (`tr[data-href]`).
 5. Review:
    - one selected block at a time; its row opens (`.is-open`) and carries
@@ -829,8 +832,11 @@ New or changed:
      decision; the dot follows the state. A 409 stops the saving until the page is
      reloaded ("Reload the page"); any other failure shows "Try again", and the next
      change retries by itself. An edited block with an empty text is not sent: the
-     state says which block. An export link waits for the pending save; a save still
-     pending when the page closes goes out with `keepalive` (under 60 KB), and the
+     state says which block. An export link waits until the review is saved (the save
+     on its way, then one with what is left; after a failure it tries once more) and
+     downloads nothing while a save fails or cannot be made, the state saying why; a
+     save still pending when the page closes goes out with `keepalive` (under 60 KB),
+     and the
      browser's leave prompt remains only when the save cannot be made (one failed or
      is running, a block is being emptied);
    - the checks tabs, with arrow keys;

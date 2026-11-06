@@ -306,8 +306,10 @@ is precisely that a fine-tuned 8B makes the 70B unnecessary at runtime.
   intranet that needs internal pages.
 - A state-changing request from a page on another site (cross-site request forgery)
   is refused with 403 before any route runs: `Sec-Fetch-Site: cross-site`, else an
-  `Origin` that is not this server (`web/security.py`). Requests without these
-  headers, from scripts and API clients, pass; reads are never refused.
+  `Origin` that is not this server, which holds for `Sec-Fetch-Site: same-site` too,
+  so a page on a sibling host (`evil.example.ch` for `app.example.ch`) is refused
+  (`web/security.py`). Requests without these headers, from scripts and API clients,
+  pass; reads are never refused.
 - A submission's fetch, PDF parse and segmentation run in the thread pool, not on the
   event loop, so a server that trickles its page or a large PDF does not hold every
   other request (`/healthz` included) while it is ingested; at most `jobs.ingest_slots`

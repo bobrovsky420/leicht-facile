@@ -84,6 +84,45 @@ def test_workers_take_queued_jobs_from_the_table_and_wait_idle_sees_them_through
     assert store.get_job(first).status == "queued"
 
 
+def test_a_worker_outlives_a_store_error_while_it_takes_a_job(
+    store, endpoint, sleeps, runners, monkeypatch
+) -> None:
+    """A claim that fails (the database busy past its timeout) is logged and tried again:
+    the job still runs. The error used to end the thread, with `busy` stuck at 1 and no
+    job run until a restart."""
+    endpoint.push(*(chat_response(a) for a in P1))
+    claim, calls = store.claim_next_queued, []
+
+    def flaky() -> str | None:
+        calls.append(1)
+        if len(calls) == 1:
+            raise sqlite3.OperationalError("no write turn became free")
+        return claim()
+
+    monkeypatch.setattr(store, "claim_next_queued", flaky)
+    monkeypatch.setattr("leichtfacile.pipeline.runner.CLAIM_RETRY_S", 0.05)
+    runner = runners(orchestrator(store, endpoint, sleeps), workers=1)
+    job_id = new_job(store, condition="P1")
+    runner.start()
+    assert runner.wait_idle(30)
+    assert store.get_job(job_id).status == "needs_review" and runner.busy == 0
+
+
+def test_idle_workers_wait_for_a_nudge_instead_of_waking_each_other(
+    store, endpoint, sleeps, runners, monkeypatch
+) -> None:
+    """An idle worker looks at the queue once a second or when nudged. When the workers'
+    nudge and `wait_idle` shared one condition, each idle worker woke the others: two
+    workers took some 80,000 claims, each a write transaction, a second."""
+    claim, calls = store.claim_next_queued, []
+    monkeypatch.setattr(store, "claim_next_queued", lambda: calls.append(1) or claim())
+    runner = runners(orchestrator(store, endpoint, sleeps), workers=3)
+    runner.start()
+    threading.Event().wait(0.5)
+    runner.stop()
+    assert 1 <= len(calls) <= 6, len(calls)
+
+
 def test_the_queue_has_a_limit(store, endpoint, sleeps) -> None:
     runner = JobRunner(orchestrator(store, endpoint, sleeps), queue_limit=2)
     new_job(store), new_job(store)

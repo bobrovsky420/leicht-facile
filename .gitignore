@@ -47,3 +47,6 @@ htmlcov/
 # Local instructions for AI coding agents
 /AGENTS.md
 /CLAUDE.md
+
+# Audit notes for the owner, local
+/TODO.md

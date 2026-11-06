@@ -852,14 +852,15 @@ def drafts_view(
     """One row per job for the drafts list, from the counts on the job row (audit B3):
     no artifact is opened. A job stored before the counts existed (11 October 2026), or
     before the blocking count joined them (7 November 2026), gets them computed once
-    here and written back."""
+    here and written back, its `updated_at` kept: a listing must not move a job in the
+    queue or postpone its purge."""
     now = now or datetime.now(UTC)
     rows: list[DraftRow] = []
     for job in jobs:
         counts = job.counts
         if counts is None or (counts.has_draft and counts.blocking is None):
             counts = job_counts(store, job)
-            store.update_job(job.id, counts=counts)
+            store.fill_counts(job.id, counts)
             job = job.model_copy(update={"counts": counts})
         title = display_title(job)
         doc_lang = job.config.lang

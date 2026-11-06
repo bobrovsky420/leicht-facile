@@ -362,9 +362,14 @@ def num_06(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 )
 def num_07(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     for m in table(ctx).amount_re.finditer(block.text):
-        number = re.sub(r"\D", "", next(g for g in m.groups() if g))
-        figure = format_thousands(number, ctx.variety) if len(number) > 3 else number
-        amount = f"{figure} {table(ctx).currency_word}"
+        group = next(i for i, g in enumerate(m.groups(), 1) if g)
+        number = re.sub(r"\D", "", m.group(group))
+        # The cents after the number stay in the suggestion (`500.50 CHF` is `500.50
+        # Franken`, `20,50 €` `20,50 Euro`): a repair that applied it kept the amount.
+        cents = re.match(r"[.,](\d{2})", block.text[m.end(group) : m.end()])
+        if cents and cents.group(1) != "00":
+            number = f"{number}.{cents.group(1)}"
+        amount = f"{format_thousands(number, ctx.variety)} {table(ctx).currency_word}"
         yield hit(
             "NUM-07", found=m.group(0), expected=amount, evidence=m.group(0), suggestion=amount
         )

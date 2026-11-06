@@ -30,11 +30,12 @@ from leichtfacile.schemas import (
     RuleFindings,
 )
 from leichtfacile.store import Store
+from leichtfacile.web import pages
 from leichtfacile.web.app import create_app
 from leichtfacile.web.i18n import Translator
 from leichtfacile.web.jobs import Submission, create_job
 from leichtfacile.web.pages import READER_FONTS
-from leichtfacile.web.views import format_duration, progress_view, review_view
+from leichtfacile.web.views import drafts_view, format_duration, progress_view, review_view
 from tests.conftest import FakeEndpoint, chat_response, make_settings
 from tests.pipeline import fixtures as fx
 
@@ -140,6 +141,24 @@ def test_drafts_list_filters_by_status_search_and_language(env) -> None:
     assert "No drafts match" in nothing and ">Clear filters</a>" in nothing
 
 
+def test_the_drafts_list_fills_old_counts_without_moving_the_job(tmp_path) -> None:
+    """A job stored before the counts existed gets them on the drafts list, written back
+    with its `updated_at` kept: the stamp is the queue's order and the purge's clock, and
+    a listing once moved an older queued job behind a newer one."""
+    settings = make_settings(data__dir=tmp_path)
+    store = Store(tmp_path / "list.sqlite")
+    older, newer = (queued_job(store, settings) for _ in range(2))
+    for job in (older, newer):  # in this order: the older stays first in the queue
+        store.update_job(job.id, counts=None)  # as stored before 11 October
+    stamps = {job.id: store.get_job(job.id).updated_at for job in (older, newer)}
+    assert all(row.job.counts is not None for row in drafts_view(store, store.list_jobs()))
+    for job_id, stamp in stamps.items():
+        job = store.get_job(job_id)
+        assert job.counts is not None and job.updated_at == stamp
+    assert store.claim_next_queued() == older.id
+    store.close()
+
+
 def test_the_app_bar_counts_the_drafts_to_review(env) -> None:
     client, _, store, settings, _ = env
     job = queued_job(store, settings)
@@ -166,6 +185,23 @@ def test_the_app_bar_names_the_model_in_its_tooltip_and_the_api_link_needs_the_d
         assert f'data-model="{settings.llm.title}"' in bar and "<code>" not in bar
         assert ">Model</span>" in bar and ">Help</a>" in bar and 'href="/docs"' not in bar
         assert ('href="/docs">API</a>' in rest) is api_docs
+
+
+def test_the_app_bar_links_to_the_model_page_only_when_there_is_a_choice(env) -> None:
+    """The indicator is a link to /model while the settings offer other than one preset,
+    and every link of the bar has a plain href (an attribute composed in an expression
+    came out as href=&#34;/model&#34;, a 404)."""
+    client, *_ = env
+    bar = client.get("/").text.split("</header>")[0]
+    assert '<a href="/model" class="endpoint"' in bar and "&#34;" not in bar
+    hrefs = re.findall(r"<a\b[^>]*?\bhref=(\S+)", bar)
+    assert hrefs and all(href.startswith('"') for href in hrefs), hrefs
+    settings = make_settings(llm__offer=["publicai-apertus"])
+    store = Store(settings.data.dir / "one.sqlite")
+    with TestClient(create_app(settings, None, store)) as one:
+        bar = one.get("/").text.split("</header>")[0]
+    store.close()
+    assert '<span class="endpoint"' in bar and 'href="/model"' not in bar
 
 
 def test_the_explanations_are_one_time_hints_with_a_cross(env) -> None:
@@ -338,6 +374,34 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
     assert {s.key for s in view.steps if s.state == "done"} == {"understand", "write", "check"}
     # No judge artifact in this test: the step reads as skipped, not done.
     assert next(s for s in view.steps if s.key == "judge").state == "skipped"
+
+
+def test_two_polls_of_a_running_job_differ_only_where_app_js_copies_in_place(
+    env, monkeypatch
+) -> None:
+    """app.js replaces the polled fragment, and a screen reader loses its place, when
+    it changed beyond the header's line (`data-run`) and the running time (`#run-for`),
+    which it copies in place (`withoutRun`): time alone must change nothing else."""
+    client, _, store, settings, _ = env
+    job = queued_job(store, settings)
+    store.update_job(job.id, status="running", stage="write")
+    polls = []
+    for seconds in (5, 125):
+        monkeypatch.setattr(
+            pages,
+            "progress_view",
+            lambda store, job, t, s=seconds: progress_view(
+                store, job, now=job.created_at + timedelta(seconds=s), t=t
+            ),
+        )
+        polls.append(client.get(f"/jobs/{job.id}/progress").text)
+
+    def settled(html: str) -> str:
+        html = re.sub(r' data-run="[^"]*"', "", html)
+        return re.sub(r'(<p class="hint" id="run-for">)[^<]*', r"\1", html).strip()
+
+    assert "Running for 5 s" in polls[0] and "Running for 2 min 05 s" in polls[1]
+    assert settled(polls[0]) == settled(polls[1])
 
 
 def test_failed_job_marks_the_failed_step_with_the_error(env) -> None:

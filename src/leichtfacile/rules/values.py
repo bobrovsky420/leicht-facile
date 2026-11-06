@@ -180,13 +180,20 @@ _PHONE_DE_RE = re.compile(
 )
 # A multiplier after a number scales it (since 12 October 2026): `CHF 1,5 Mio.` and
 # `1'500'000 Franken` are the same amount, `20 Millionen Franken` is an amount, not the
-# plain number 20 (found on the Fedlex Answer snippets, docs/rules.md).
+# plain number 20 (found on the Fedlex Answer snippets, docs/rules.md). A billion is
+# `Mrd.`, the Swiss `Mia.` and every word with "iard" (Milliarde, milliard, miliardo),
+# a million the rest; the first three letters said "mil" for both.
 _MULTIPLIER_AFTER = re.compile(
-    r"^[ ]?(?P<word>Mio\.?|Millionen|Million|Mrd\.?|Milliarden?|millions?|milliards?"
-    r"|milion[ei]|miliard[oi])(?![\w·])",
+    r"^[ ]?(?P<word>Mio\.?|Millionen|Million|Mrd\.?|(?-i:Mia\.)|Milliarden?|millions?"
+    r"|milliards?|milion[ei]|miliard[oi])(?![\w·])",
     re.IGNORECASE,
 )
-_MULTIPLIERS = {"mio": 1_000_000, "mil": 1_000_000, "mrd": 1_000_000_000, "mia": 1_000_000_000}
+_BILLION = re.compile(r"^(?:mrd|mia)|iard", re.IGNORECASE)
+
+
+def _multiplier(word: str) -> int:
+    return 1_000_000_000 if _BILLION.search(word) else 1_000_000
+
 
 # -- periods: a count with days, weeks, months or years --------------------------------
 
@@ -784,7 +791,7 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
         before = text[max(0, m.start() - 6) : m.start()]
         end = m.end()
         if multiplier := _MULTIPLIER_AFTER.match(text[end : end + 12]):
-            canonical = _scaled(canonical, _MULTIPLIERS[multiplier.group("word")[:3].lower()])
+            canonical = _scaled(canonical, _multiplier(multiplier.group("word")))
             end += multiplier.end()
         after = text[end : end + 10]
         is_amount = dash_decimals or bool(

@@ -1,6 +1,6 @@
 {
  "format": "repair-replay@1",
- "exported_with": "0.11.0",
+ "exported_with": "0.12.0",
  "job": "7acc6d5aca00",
  "letter": "schnupperwoche-schuelerbrief.txt",
  "model": "swiss-ai/apertus-v1.5-70b",
@@ -980,6 +980,17 @@
     {
      "id": "b017",
      "kind": "sentence",
+     "text": "Die Schule zahlt dir bis 30 Franken pro Woche für den Arbeitsweg mit dem Bus oder Zug.",
+     "fact_ids": [
+      "f03"
+     ],
+     "segment_ids": [
+      "s0017"
+     ]
+    },
+    {
+     "id": "b017.1",
+     "kind": "sentence",
      "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
      "fact_ids": [
       "f03"
@@ -1140,6 +1151,12 @@
   },
   "dropped": [
    {
+    "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
+    "reason": "repeat",
+    "block_id": "b017",
+    "fact_ids": []
+   },
+   {
     "text": "Zeige dafür deine Belege der Schule.",
     "reason": "repeat",
     "block_id": "b017",
@@ -1151,14 +1168,6 @@
     "block_id": "b021",
     "fact_ids": [
      "f02"
-    ]
-   },
-   {
-    "text": "Für den Weg mit Bus oder Zug bekommst du bis CHF 30.- pro Woche.",
-    "reason": "repeat",
-    "block_id": "b017.1",
-    "fact_ids": [
-     "f03"
     ]
    }
   ]

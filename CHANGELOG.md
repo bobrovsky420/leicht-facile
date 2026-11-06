@@ -23,8 +23,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - The review saves by itself, a moment after each decision; the "Save review" button
   is gone. The note at the top right says when it last saved (Ctrl+S saves at once),
   a failed save shows "Try again", and a review a colleague saved in the meantime asks
-  for a reload before anything is overwritten. An export waits for a pending save, and
-  a save still pending when the page closes goes out with it.
+  for a reload before anything is overwritten. An export waits for a pending save and
+  downloads nothing while a save fails, and a save still pending when the page closes
+  goes out with it.
 - Typing in a block's field makes the block edited; a text set back to the original
   restores the decision made before. Until now a text typed without choosing Edit was
   not saved.
@@ -60,6 +61,49 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   empty list no longer repeats the New draft button of the page header. An
   installation's own letters (`[data] examples_dir`) get their description from the
   `description` key of the JSON file next to each letter.
+
+### Fixed
+
+- A worker that met a busy or failing database while taking the next job no longer
+  stops for good (the service then ran no job until a restart while `/healthz` said
+  ok): it logs the error and tries again after five seconds. With `[jobs] workers`
+  above 1, idle workers no longer wake each other without pause, which took tens of
+  thousands of database write transactions a second.
+- Opening the list of drafts no longer postpones the deletion of drafts stored before
+  an upgrade or moves them in the queue: the counts it fills in for them no longer
+  count as a change of the draft.
+- Amounts in billions are read as billions: `2 Milliarden Franken`, `milliards` and
+  `miliardi` counted as millions, so a draft that turned billions into millions passed
+  the fact checks. The Swiss `Mia.` is read as well.
+- The amount style finding (NUM-07) keeps the cents in its suggestion: `500.50 CHF`
+  becomes `500.50 Franken` and `20,50 €` `20,50 Euro`, where the cents were dropped
+  and a repair round that applied the suggestion changed the amount.
+- A spaCy pipeline runs one text at a time, whoever uses it: the checkers of the Swiss
+  and the German variety, the vocabulary matcher, the word splitting and the split of
+  free text into blocks could run the same pipeline at once from the worker threads
+  and the Check page.
+- The word splitting keeps the linking s on its part: `Betreibungs·amt`,
+  `Sozial·versicherungs·amt` and `Gemeinde·steuer`, no longer `Betreibung·samt` or
+  `Gemeindes·teuer`.
+- A repair answer that only repeats sentences the draft already has leaves the flagged
+  block as it was. It used to take the block's place, and the original block it
+  repeated, never flagged, went with its heading.
+- A variable such as `LEICHTFACILE_PRESETS__CSCS_APERTUS__MODELS__WRITER` sets the
+  preset `cscs-apertus`, as the documentation shows: the underscore stands for the
+  name's hyphen. It made a preset `cscs_apertus` without a provider, which broke
+  `leichtfacile preset list`, the model page and the New draft form.
+- `eval rescore` keeps each row's region, so rescored rows of Germany and Austria are
+  no longer counted as Swiss German.
+
+### Security
+
+- The cross-site guard refuses a state-changing request from a page on a sibling host
+  (`Sec-Fetch-Site: same-site`, such as `evil.example.ch` for `app.example.ch`) unless
+  its `Origin` is this server; such a page could submit, delete or rerun drafts
+  through a logged-in browser.
+- The text log format keeps one line per record: control characters in a request
+  path (`%0A`) or a user name are written escaped, and a traceback line that begins
+  like a record is indented, so a request can no longer forge a log line.
 
 ## [0.12.0] - 2026-11-04
 

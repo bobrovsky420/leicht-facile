@@ -153,6 +153,33 @@ def test_json_and_text_lines_carry_the_request_and_job_ids_and_redact() -> None:
     logging.getLogger().removeHandler(handler)
 
 
+def test_a_text_line_cannot_be_split_into_a_forged_record() -> None:
+    """A request for /x%0AERROR%20... wrote a second line that read as a record of its
+    own (uvicorn decodes the path): the text format escapes the control characters of
+    the message and the ids, and a traceback line that begins like a record is
+    indented."""
+    stream = io.StringIO()
+    handler = logs.configure_logging("INFO", "text", stream)
+    logger = logging.getLogger("leichtfacile.tests.logs")
+    try:
+        forged = "\nERROR leichtfacile.web: forged line"
+        logger.info("GET /x%s 404 1 ms", forged, extra={"user": "a.muster\r\x1b[2J"})
+        try:
+            raise ValueError(f"bad path /x{forged}")
+        except ValueError:
+            logger.exception("failed")
+    finally:
+        logging.getLogger().removeHandler(handler)
+    first, *rest = stream.getvalue().splitlines()
+    assert first == (
+        "INFO leichtfacile.tests.logs: GET /x\\nERROR leichtfacile.web: forged line 404 1 ms"
+        " user=a.muster\\r\\x1b[2J"
+    )
+    assert rest[0] == "ERROR leichtfacile.tests.logs: failed" and "Traceback" in rest[1]
+    assert "  ERROR leichtfacile.web: forged line" in rest
+    assert not any(line.startswith("ERROR leichtfacile.web") for line in rest)
+
+
 # -- /metrics ---------------------------------------------------------------------------
 
 

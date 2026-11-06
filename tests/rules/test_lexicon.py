@@ -32,6 +32,12 @@ from leichtfacile.rules.lexicon import (
         ("Einkommensgrenze", "Einkommens·grenze"),
         ("Ostermundigenstrasse", "Ostermundigen·strasse"),  # not Ostermundi·gens·trasse
         ("Familiennamensänderung", "Familien·namens·änderung"),
+        # the linking s stays with its part (audit of 6 November 2026): not
+        # Betreibung·samt, Strassen·verkehr·samt or Gemeindes·teuer
+        ("Betreibungsamt", "Betreibungs·amt"),
+        ("Sozialversicherungsamt", "Sozial·versicherungs·amt"),
+        ("Strassenverkehrsamt", "Strassen·verkehrs·amt"),
+        ("Gemeindesteuer", "Gemeinde·steuer"),
         # -innen is an ending: the stem is split, never the ending (CSCS dev drafts)
         ("Sozialarbeiterinnen", "Sozial·arbeiterinnen"),
         ("Dachrinnen", "Dach·rinnen"),  # no feminine stem: rinnen is the head

@@ -23,7 +23,7 @@ from leichtfacile.rules.base import (
     rules_for,
 )
 from leichtfacile.rules.document import DocInput, fact_coverage
-from leichtfacile.rules.nlp import has_analysis, pipeline
+from leichtfacile.rules.nlp import has_analysis, parse, pipeline
 from leichtfacile.schemas import (
     SEVERITY_RANK,
     Block,
@@ -91,17 +91,12 @@ class RuleChecker:
         # German and French: a full parse; Italian: the lexicon's lemma, part of speech
         # and morphology. The sentence rules run with either.
         self.parsed = has_analysis(self.nlp)
-        # One spaCy pipeline per language, used by the worker threads and the web
-        # requests (the Check page) at once: one text through it at a time, as
-        # ingest/segment.py does with its sentencizer.
-        self._lock = threading.Lock()
 
     # -- analysis -----------------------------------------------------------------
 
     def analyse(self, blocks: Iterable[Block]) -> list[BlockInfo]:
         blocks = list(blocks)
-        with self._lock:
-            docs = list(self.nlp.pipe([b.text for b in blocks]))
+        docs = parse(self.lang, [b.text for b in blocks])  # under the pipeline's lock
         return [
             BlockInfo(b.id, b.kind, b.text, list(doc.sents))
             for b, doc in zip(blocks, docs, strict=True)

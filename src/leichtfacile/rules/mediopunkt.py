@@ -35,7 +35,7 @@ from leichtfacile.rules.lexicon import (
     lowercase_after_mediopunkt,
     mediopunkt_suggestion,
 )
-from leichtfacile.rules.nlp import pipeline
+from leichtfacile.rules.nlp import parse, pipeline
 from leichtfacile.schemas import CodeEdit, Draft
 from leichtfacile.varieties import variety
 
@@ -58,20 +58,21 @@ def apply_mediopunkt(draft: Draft, keep: Iterable[str] = ()) -> tuple[Draft, lis
     # 2026): the same split, rendered with the variety's mark; a Mediopunkt the model
     # wrote is rendered too, so one text carries one mark (DIN SPEC 33429).
     hyphen = variety(draft.variety).compound_mark == "hyphen"
-    nlp = pipeline(draft.lang)
-    tagged = _has_tagger(nlp)
+    tagged = _has_tagger(pipeline(draft.lang))
     kept = frozenset(word.lower() for name in keep for word in name.split())
     edits: list[CodeEdit] = []
     blocks = []
-    for block, doc in zip(draft.blocks, nlp.pipe(b.text for b in draft.blocks), strict=True):
+    docs = parse(draft.lang, [b.text for b in draft.blocks])  # under the pipeline's lock
+    for block, doc in zip(draft.blocks, docs, strict=True):
         text, changes = split_text(doc, limit, tagged, kept, hyphen)
         edits += _edits(block.id, changes)
         blocks.append(block.model_copy(update={"text": text}) if changes else block)
     glossary = []
-    for entry in draft.glossary:
+    terms = parse(draft.lang, [entry.term for entry in draft.glossary])
+    for entry, doc in zip(draft.glossary, terms, strict=True):
         # A glossary term is a noun phrase by nature; the tagger is unreliable on a bare
         # phrase, so every capitalised word of the term counts as a noun.
-        term, changes = split_text(nlp(entry.term), limit, tagged=False, kept=kept, hyphen=hyphen)
+        term, changes = split_text(doc, limit, tagged=False, kept=kept, hyphen=hyphen)
         edits += _edits(GLOSSARY, changes)
         glossary.append(entry.model_copy(update={"term": term}) if changes else entry)
     if not edits:

@@ -421,6 +421,22 @@ def test_variables_carry_values_and_comma_lists_but_no_tables(home, monkeypatch)
         load()
 
 
+def test_a_variable_names_a_hyphenated_preset_with_an_underscore(home, monkeypatch) -> None:
+    """A variable's name has no hyphen: CSCS_APERTUS is the shipped cscs-apertus, and a
+    file's my-server likewise. It used to make a preset cscs_apertus without a provider,
+    which kept the override from the preset and broke the list of presets."""
+    write(home, '[providers.cscs]\napi_key = "k"\n\n'
+                '[presets.my-server]\nprovider = "cscs"\nlabel = "Mine"\n'
+                'models.writer = "swiss-ai/Apertus-v1.5-8B"\n')  # fmt: skip
+    monkeypatch.setenv("LEICHTFACILE_PRESETS__CSCS_APERTUS__MODELS__WRITER", "big-model")
+    monkeypatch.setenv("LEICHTFACILE_PRESETS__MY_SERVER__LABEL", "My server")
+    loaded = load(preset="cscs-apertus")
+    assert loaded.settings.llm.models.writer == "big-model"
+    assert "presets.cscs_apertus.models.writer" not in loaded.flat
+    names = {i.name: i for i in config.available()}
+    assert "cscs_apertus" not in names and names["my-server"].label == "My server"
+
+
 def test_a_preset_from_variables_alone(home, monkeypatch) -> None:
     """A container or a CI job: a provider and a preset without any file."""
     monkeypatch.setenv("LEICHTFACILE_LLM__PRESET", "ci")

@@ -354,7 +354,10 @@ LEICHTFACILE_PRESETS__CSCS_APERTUS__THINKING_STAGES=understand,judge
 
 A value is text, which the setting converts; a list is comma-separated; an empty
 variable sets nothing. A table (`extra_body`, `headers`, a models table) is set in a
-file, not in a variable. In a container or a CI job, five variables make a preset
+file, not in a variable. A variable's name has no hyphen: the name of a provider or a
+preset is written with `_` for its `-`, so `CSCS_APERTUS` above sets the shipped
+`cscs-apertus`, and the same holds for the names of the files' own tables; a name that
+matches none is a table of its own. In a container or a CI job, five variables make a preset
 without any file: `LEICHTFACILE_LLM__PRESET=ci`, the provider's
 `LEICHTFACILE_PROVIDERS__CI__URL` and `LEICHTFACILE_PROVIDERS__CI__API_KEY`, and the
 preset's `LEICHTFACILE_PRESETS__CI__PROVIDER=ci` and

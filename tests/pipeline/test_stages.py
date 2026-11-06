@@ -352,12 +352,8 @@ EASY_MARKERS = {
 
 
 # The examples of Germany and Austria (prompts/de-DE, prompts/de-AT) write the ß of
-# standard spelling, which the Swiss checks flag until the varieties have their own.
-VARIETY_EXAMPLES = [
-    pytest.param(key, marks=pytest.mark.xfail(
-        strict=False, reason="the German and Austrian checks come with WP3"))
-    for key in ("de-DE", "de-AT")
-]  # fmt: skip
+# standard spelling, which their varieties' own checks accept.
+VARIETY_EXAMPLES = ["de-DE", "de-AT"]
 
 
 @pytest.mark.parametrize("key", [*sorted(EASY_MARKERS), *VARIETY_EXAMPLES])
@@ -1335,10 +1331,12 @@ def test_an_added_list_item_keeps_its_kind_and_its_sentences() -> None:
     ]
 
 
-def test_a_heading_left_without_content_by_a_repeated_repair_goes_too() -> None:
-    """A repair that says what another section says is a repeat (`drop_repeats`), and
-    the heading it leaves without content goes with it; the dropped list names the
-    sentence only, never a heading."""
+def test_a_repair_that_only_repeats_another_block_leaves_the_block_as_it_was() -> None:
+    """A repair whose every text stands elsewhere in the draft brings nothing: the answer
+    is the repeat and is dropped, the block keeps its text, and no other block or heading
+    goes. The answer used to take the block's place, and `drop_repeats` then removed the
+    later of the two: the flagged block's own text, or an unflagged block below it with
+    its heading (audit of 6 November 2026)."""
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
         Block(id="b001", kind="heading", text="Titel"),
@@ -1346,11 +1344,39 @@ def test_a_heading_left_without_content_by_a_repeated_repair_goes_too() -> None:
         Block(id="b003", kind="heading", text="Zweiter Titel"),
         Block(id="b004", kind="sentence", text="Alt zwei."),
     ])  # fmt: skip
-    out = RepairOut.model_validate({"repairs": [{"id": "b004", "texts": ["Alt eins."]}]})
+    before = [(b.id, b.text) for b in draft.blocks]
+    for flagged, other in (("b004", "Alt eins."), ("b002", "Alt zwei.")):
+        out = RepairOut.model_validate({"repairs": [{"id": flagged, "texts": [other]}]})
+        dropped: list[DroppedText] = []
+        request = RepairRequest({flagged: ["x"]}, [])
+        new = apply_repairs(draft, out, request, fs, dropped=dropped)
+        assert [(b.id, b.text) for b in new.blocks] == before, flagged
+        assert [(d.reason, d.text, d.block_id) for d in dropped] == [("repeat", other, flagged)]
+
+
+def test_a_heading_left_without_content_by_a_late_repeat_goes_too() -> None:
+    """An addition can land before the repaired block it repeats: the repaired block is
+    the later repeat (`drop_repeats`), and the heading it leaves without content goes
+    with it; the dropped list names the sentence only, never a heading."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="heading", text="Titel"),
+        Block(id="b002", kind="sentence", text="Alt eins."),
+        Block(id="b003", kind="heading", text="Zweiter Titel"),
+        Block(id="b004", kind="sentence", text="Der Hund bellt laut."),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [{"id": "b004", "texts": ["Die Katze schläft lange."]}],
+        "additions": [{"after": "b002", "texts": ["Die Katze schläft lange."]}],
+    })  # fmt: skip
     dropped: list[DroppedText] = []
     new = apply_repairs(draft, out, RepairRequest({"b004": ["x"]}, []), fs, dropped=dropped)
-    assert [(b.id, b.text) for b in new.blocks] == [("b001", "Titel"), ("b002", "Alt eins.")]
-    assert [(d.reason, d.text, d.block_id) for d in dropped] == [("repeat", "Alt eins.", "b004")]
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Titel"), ("b002", "Alt eins."), ("b002.1", "Die Katze schläft lange."),
+    ]  # fmt: skip
+    assert [(d.reason, d.text, d.block_id) for d in dropped] == [
+        ("repeat", "Die Katze schläft lange.", "b004")
+    ]
 
 
 def test_additions_without_a_block_chain_under_the_last_block() -> None:

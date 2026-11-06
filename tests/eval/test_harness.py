@@ -364,6 +364,7 @@ def test_rescore_in_place_scores_a_baseline_again_without_sampling_it_again(
     assert out == results and not (tmp_path / "results-rescored-facts").exists()
     (again,) = _rows(path)
     assert again["rescored"] is True and again["job_id"] == row["job_id"]
+    assert again["region"] == row["region"]  # dropped, it made a de-DE row Swiss German
     assert again["fact_coverage"] == row["fact_coverage"] == 1.0
     assert "selection" not in again and "stored_final_version" not in again
     assert len(endpoint.chat_bodies()) == calls  # no model call
