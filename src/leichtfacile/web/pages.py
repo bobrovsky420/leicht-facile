@@ -214,7 +214,7 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         }
         for key in STATUS_FILTERS
     ]
-    # The empty state offers the example letters, the interface language's first.
+    # The card of example letters under the empty list, the interface language's first.
     examples = examples_for_page(t, settings.data.examples_dir) if not total else []
     featured, more = featured_examples(examples, t.lang)
     return _render(
@@ -230,8 +230,7 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         filtered=bool(query or lang or status != "all"),
         filters=filters,
         langs=store.langs(workspace=workspace),
-        examples=featured,
-        more_examples=more,
+        examples=featured + more,
         rule_count=rule_count(),
         workspace_token=current_token(request),  # the strip with the link, when on
         section="drafts",

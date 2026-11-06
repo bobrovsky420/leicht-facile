@@ -12,14 +12,18 @@
 <script nonce="{{ request.state.csp_nonce }}">
 document.documentElement.classList.add("js");
 // The one-time hints closed in this browser (_hint.html; app.js keeps their names in
-// localStorage) are hidden before the first paint. A name is letters and hyphens.
+// localStorage) are hidden before the first paint, and the button that shows one again
+// (data-hint-show, the example letters) comes into view. A name is letters and hyphens.
 try {
   var closed = JSON.parse(localStorage.getItem("lf-hints-hidden") || "[]");
   var style = document.createElement("style");
   style.id = "lf-hints";
   style.textContent = (Array.isArray(closed) ? closed : [])
     .filter(function (name) { return /^[a-z-]+$/.test(name); })
-    .map(function (name) { return '[data-hint="' + name + '"]{display:none !important}'; })
+    .map(function (name) {
+      return '[data-hint="' + name + '"]{display:none !important}' +
+        '[data-hint-show="' + name + '"]{display:inline-flex !important}';
+    })
     .join("");
   document.head.appendChild(style);
 } catch (e) {}

@@ -302,7 +302,19 @@ details.menu > summary::-webkit-details-marker { display: none; }
 .empty p { max-width: 600px; margin: 0 auto 14px; color: var(--lf-text-2); }
 .empty .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .empty .actions + .actions { margin-top: 20px; }
-.empty .examples-label { align-self: center; color: var(--lf-text-2); font-size: 13px; }
+/* the example letters: a card of mini-cards under the empty list; the cross hides it for
+   good (data-hint, base.html and app.js), the button in the empty state shows it again */
+.samples { margin-top: 16px; }
+.samples .card-head .meta { font-size: 13px; color: var(--lf-text-2); }
+.samples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.sample { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--lf-border); border-radius: 8px;
+          background: var(--lf-surface); color: inherit; text-decoration: none; }
+.sample:hover { border-color: var(--lf-accent); background: var(--lf-accent-tint); }
+.sample:focus-visible { outline: 2px solid var(--lf-accent); outline-offset: 2px; }
+.sample-title { font-weight: 600; line-height: 20px; }
+.sample-desc { color: var(--lf-text-2); font-size: 13px; line-height: 18px; }
+.sample-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: auto; color: var(--lf-muted); font-size: 12px; line-height: 16px; }
+[data-hint-show] { display: none; }
 /* the four steps of the pipeline, shown in the empty drafts list */
 .empty .how { max-width: 900px; margin: 0 auto 18px; padding: 12px 16px; border-radius: 8px; background: var(--lf-sunken); }
 .empty .how h3 { margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 600; }
@@ -428,8 +440,8 @@ html:not(.js) .tab-panel + .tab-panel { margin-top: 20px; padding-top: 16px; bor
 .textmeta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 8px; color: var(--lf-muted); font-size: 12px; line-height: 16px; }
 .examples { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--lf-divider);
             color: var(--lf-text-2); font-size: 13px; }
-/* The example letters in the other languages, here and in the empty drafts list: behind
-   "More examples" (app.js), all in the row without JavaScript. */
+/* The example letters in the other languages in the New draft form: behind "More
+   examples" (app.js), all in the row without JavaScript. */
 .examples-more { display: contents; }
 .js .examples-more:not(.open) { display: none; }
 .dropzone { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 10px;

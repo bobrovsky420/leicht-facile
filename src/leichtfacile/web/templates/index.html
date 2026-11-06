@@ -138,22 +138,39 @@
         </ol>
       </section>
       <p>{{ t('drafts.empty.text') }}</p>
-      {# The example letters: those in the interface language first (pages.featured_examples),
-         the others behind "More examples" (app.js; all of them without it). #}
-      {% if examples %}
       <div class="actions">
-        <span class="examples-label">{{ t('index.examples') }}</span>
-        {% for e in examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}
-        {% if more_examples %}
-        <button type="button" class="btn btn-quiet js-only" data-more-examples>{{ t('index.more_examples') }}</button>
-        <span class="examples-more">{% for e in more_examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}</span>
-        {% endif %}
+        <a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
+        {# In view only while the card of example letters below is hidden (app.js). #}
+        {% if examples %}<button type="button" class="btn btn-quiet btn-lg" data-hint-show="examples">{{ t('drafts.samples.show') }}</button>{% endif %}
       </div>
-      {% endif %}
-      <div class="actions"><a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a></div>
     </div>
     {% endif %}
   </div>
+
+  {# The example letters as a card of mini-cards, the interface language's first
+     (pages.featured_examples): the title and the short description in the letter's
+     language, then its language and sender. The cross hides the card for good in this
+     browser (the hint mechanism of _hint.html, name "examples"); the button in the
+     empty state above shows it again. #}
+  {% if not total and examples %}
+  <section class="card samples" data-hint="examples" aria-labelledby="samples-title">
+    <div class="card-head">
+      <h2 id="samples-title">{{ t('drafts.samples.title') }}</h2>
+      <span class="meta">{{ t('drafts.samples.text') }}</span>
+      <span class="grow"></span>
+      <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" data-hint-close aria-label="{{ t('drafts.samples.hide') }}">{{ icons.icon('x', 14) }}</button>
+    </div>
+    <div class="card-body samples-grid">
+      {% for e in examples %}
+      <a class="sample" href="/new?example={{ e.id }}">
+        <span class="sample-title"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</span>
+        {% if e.description %}<span class="sample-desc"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.description }}</span>{% endif %}
+        <span class="sample-meta">{% if e.lang_name %}<span>{{ e.lang_name }}</span>{% endif %}<span>{{ t('new.sender.' ~ (e.sender or 'authority')) }}</span>{% if e.mode == 'decision' %}<span class="tag">{{ t('drafts.decision') }}</span>{% endif %}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   {# The API's documentation pages exist when server.api_docs is on. #}
   <p class="pagefoot">Leicht·Facile {{ version }}. {{ t('site.footer') }}{% if settings.server.api_docs %} <a href="/docs">API</a>{% endif %}</p>

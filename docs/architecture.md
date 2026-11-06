@@ -1150,11 +1150,13 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   the counts from the job row (`review.py` counts a draft's findings, facts and
   decisions from its artifacts, without interface text; `lifecycle.py` writes them when
   a job ends or a review is saved). Under the list, the API link when `server.api_docs`
-  serves the documentation pages. With no jobs, the empty state explains the four steps
-  and offers the team-written sample letters shipped with the package
-  (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as one-click
-  fills of the New draft form (buttons to `/new?example=<id>`): those in the interface
-  language first, the others behind "More examples".
+  serves the documentation pages. With no jobs, the empty state explains the four steps,
+  and a card "Example letters" under it offers the team-written sample letters shipped
+  with the package (`src/leichtfacile/letters/`, or the folder `data.examples_dir`
+  names) as mini-cards, each a one-click fill of the New draft form
+  (`/new?example=<id>`) with the title, the short description from the letter's JSON
+  file and its language and sender, those in the interface language first; the card's
+  cross hides it in that browser, a button in the empty state shows it again.
 - **New draft** (`/new`): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
   (`/new?example=<id>` fills the text without JavaScript, and the decision mode's

@@ -57,6 +57,22 @@ def test_a_settings_file_with_other_keys_is_refused(tmp_path: Path) -> None:
         example_config(tmp_path / "entscheid.txt")
 
 
+def test_the_description_goes_with_the_letter_but_not_into_the_job(tmp_path: Path) -> None:
+    (tmp_path / "brief.txt").write_text("# Titel\n\nText", encoding="utf-8")
+    data = {"sender": "school", "description": " Kurz gesagt. "}
+    (tmp_path / "brief.json").write_text(json.dumps(data), encoding="utf-8")
+    assert example_config(tmp_path / "brief.txt") == {"sender": "school"}
+    (letter,) = example_sources(tmp_path)
+    assert letter["description"] == "Kurz gesagt." and letter["sender"] == "school"
+    (tmp_path / "brief.json").write_text("{}", encoding="utf-8")
+    assert example_sources(tmp_path)[0]["description"] == ""
+
+
+def test_every_shipped_letter_has_a_short_description() -> None:
+    for letter in example_sources(EXAMPLES):
+        assert 40 < len(letter["description"]) < 160, letter["id"]
+
+
 def test_the_settings_files_are_no_example_texts() -> None:
     ids = [e["id"] for e in example_sources(EXAMPLES)]
     assert "entscheid-beistandschaft-musterwil" in ids

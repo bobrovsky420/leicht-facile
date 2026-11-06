@@ -1,5 +1,6 @@
 {
  "mode": "decision",
  "addressee": "Maria Exempel",
- "region": "AT"
+ "region": "AT",
+ "description": "Das Finanzamt fordert Familienbeihilfe zurück: Betrag, Zahlungsfrist, Begründung und Beschwerde."
 }

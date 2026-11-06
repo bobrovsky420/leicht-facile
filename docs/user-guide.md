@@ -49,9 +49,11 @@ The bar at the top is the same on every page:
   per draft.
 - **Help**: opens this guide on the project's site, in a new tab.
 
-Before the first draft, the start page explains the four steps and offers the example
-letters: those in the language of the interface, the others under **More examples**.
-Click one to open the New draft form with the letter filled in.
+Before the first draft, the start page explains the four steps, and the card **Example
+letters** under it shows the letters that ship with the app, each with a short
+description, those in the language of the interface first. Click one to open the New
+draft form with the letter filled in. The cross on the card hides it in this browser;
+**Show the example letters**, next to the New draft button, brings it back.
 
 Some pages open with a short explanation in a box, such as the Facts tab of the review
 or Check my text. Once you know it, click the cross: the box stays away in this browser.

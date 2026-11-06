@@ -166,27 +166,53 @@
 
   // -- one-time hints (_hint.html): the cross hides a note for good in this browser ----
   // The closed names live in localStorage; base.html hides them before the first paint,
-  // and the rule added here keeps a re-rendered fragment (the progress page) without it.
+  // and the style rebuilt here keeps a re-rendered fragment (the progress page) without
+  // them. A [data-hint-show] button (the card of example letters) shows one again.
   const HINTS_KEY = "lf-hints-hidden";
+  const validHint = (name) => /^[a-z-]+$/.test(name || "");
+  const closedHints = () => {
+    try {
+      const closed = JSON.parse(localStorage.getItem(HINTS_KEY) || "[]");
+      return Array.isArray(closed) ? closed.filter(validHint) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const rememberHints = (names) => {
+    const style = $("#lf-hints");
+    if (style) {
+      style.textContent = names
+        .map(
+          (name) =>
+            `[data-hint="${name}"]{display:none !important}[data-hint-show="${name}"]{display:inline-flex !important}`,
+        )
+        .join("");
+    }
+    try {
+      localStorage.setItem(HINTS_KEY, JSON.stringify(names));
+    } catch (e) {
+      /* kept until the page reloads */
+    }
+  };
   document.addEventListener("click", (event) => {
     const close = event.target.closest("[data-hint-close]");
     const note = close && close.closest("[data-hint]");
-    if (!note) return;
-    const name = note.dataset.hint;
-    note.hidden = true;
-    const style = $("#lf-hints");
-    if (style && /^[a-z-]+$/.test(name)) style.textContent += `[data-hint="${name}"]{display:none !important}`;
-    try {
-      const closed = JSON.parse(localStorage.getItem(HINTS_KEY) || "[]");
-      const names = Array.isArray(closed) ? closed : [];
-      if (!names.includes(name)) names.push(name);
-      localStorage.setItem(HINTS_KEY, JSON.stringify(names));
-    } catch (e) {
-      /* hidden until the page reloads */
+    if (note) {
+      const name = note.dataset.hint;
+      note.hidden = true;
+      if (validHint(name)) rememberHints([...closedHints().filter((n) => n !== name), name]);
+      return;
     }
+    const show = event.target.closest("[data-hint-show]");
+    const name = show && show.dataset.hintShow;
+    if (!validHint(name)) return;
+    $$(`[data-hint="${name}"]`).forEach((el) => {
+      el.hidden = false;
+    });
+    rememberHints(closedHints().filter((n) => n !== name));
   });
 
-  // -- drafts list and New draft: the other example letters, the language filter ------
+  // -- New draft: the other example letters; the drafts list: the language filter ------
   $$("[data-more-examples]").forEach((button) => {
     button.addEventListener("click", () => {
       const more = $(".examples-more", button.parentElement);

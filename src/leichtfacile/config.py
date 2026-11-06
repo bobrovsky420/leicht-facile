@@ -685,8 +685,9 @@ class Data(Section):
     )
     examples_dir: Path = Field(
         LETTERS_DIR,
-        description="A folder of example letters for the New draft form (.txt or .md, a "
-        ".json of job settings next to each).",
+        description="A folder of example letters for the New draft form and the empty drafts "
+        "list (.txt or .md; next to each a .json with its job settings and a short "
+        "description in the letter's language).",
         json_schema_extra=_shown("the letters shipped with the package"),
     )
     # Checked every hour (lifecycle.py); the job's cache rows go with it.

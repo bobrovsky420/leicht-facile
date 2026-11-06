@@ -87,17 +87,23 @@ def test_start_page_lists_the_drafts_and_starts_empty_with_the_examples(env) -> 
     assert 'href="/new?example=praemienverbilligung-brief"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
     assert settings.llm.title in page.text  # the preset in use: the app bar's tooltip
-    # The English interface shows the German letters first (no letter is English), the
-    # French and Italian ones behind "More examples".
-    first, more = page.text.split('class="examples-more"')
-    assert "praemienverbilligung-brief" in first and "More examples" in first
-    assert "reduction-primes-lettre" in more and "riduzione-premi-lettera" in more
-    assert "reduction-primes-lettre" not in first
+    # The example letters: one card of mini-cards with the title, the description, the
+    # language and the sender; the English interface shows the German letters first (no
+    # letter is English). The cross hides the card for good, the button in the empty
+    # state shows it again (app.js).
+    card = page.text.split('class="card samples" data-hint="examples"')[1]
+    assert "Example letters" in card and 'aria-label="Hide the example letters"' in card
+    assert "Die Gemeinde informiert: wer Anspruch auf die Prämienverbilligung hat" in card
+    assert card.index("praemienverbilligung-brief") < card.index("reduction-primes-lettre")
+    assert "<span>German</span><span>Authority</span>" in card
+    assert "<span>German</span><span>School</span>" in card and ">Decision</span>" in card
+    assert 'data-hint-show="examples">Show the example letters</button>' in page.text
 
     queued_job(store, settings, title="Brief")
     page = client.get("/")
     assert "No drafts yet" not in page.text and ">Brief</a>" in page.text
     assert "rules and every value" not in page.text  # the steps are for the first visit
+    assert 'data-hint="examples"' not in page.text  # the letters are for the first visit
     assert 'class="badge status-queued"' in page.text and "waiting for the worker" in page.text
 
 

@@ -29,8 +29,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   "Model" (the model's name and status are its tooltip, and a screen reader hears them),
   the guide link reads "Help", and the API link moved to the foot of the list of drafts,
   where it appears only when `[server] api_docs` serves the documentation pages. The
-  example letters on the start page and the New draft form show those in the interface
-  language first, the others behind "More examples".
+  example letters on the New draft form show those in the interface language first, the
+  others behind "More examples".
+- Before the first draft, the start page shows the example letters as a card of
+  mini-cards under the empty list, each with a short description, its language and its
+  sender, those in the interface language first, instead of a row of buttons. The
+  card's cross hides it in that browser; "Show the example letters" brings it back. An
+  installation's own letters (`[data] examples_dir`) get their description from the
+  `description` key of the JSON file next to each letter.
 
 ## [0.12.0] - 2026-11-04
 

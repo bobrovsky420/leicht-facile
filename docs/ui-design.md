@@ -306,14 +306,21 @@ Empty states:
 - No jobs at all: "No drafts yet", the tagline, the four steps "How it works" in a
   sunken box (`.how`: the model reads the text and writes the draft; code checks 45
   rules (`rule_count()`) and every value; a second model judges and flagged blocks are
-  repaired; you review every block and export), one sentence on what to paste, "Try an
-  example:" with the sample letters (`src/leichtfacile/letters/`, or the folder
-  `data.examples_dir` names) as one-click fills of the New draft form (buttons that open
-  `/new?example=<id>` with the text filled in), and "New draft". The letters in the
-  interface language come first, else those in the first document language one is
-  written in (`pages.featured_examples`); the others sit behind a "More examples"
-  button (`.examples-more`, since 6 November 2026; without JavaScript all are in the
-  row). The New draft form's example row is split the same way.
+  repaired; you review every block and export), one sentence on what to paste, "New
+  draft" and, in view only while the card below is hidden, "Show the example letters".
+  Under the list's card a second card "Example letters" (`.samples`, since 6 November
+  2026; before, the letters were a row of buttons in the empty state): the sample
+  letters (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as
+  mini-cards (`.sample`, each a link to `/new?example=<id>`, which opens the New draft
+  form with the text filled in), three to a row at 1280 px: the title and the short
+  description from the letter's `.json` (`description`, in the letter's language), then
+  the letter's language, its sender and a "Decision" tag for a decision letter. The
+  letters in the interface language come first, else those in the first document
+  language one is written in (`pages.featured_examples`). The cross in the card's
+  header hides it for good in this browser (the hint mechanism of §5.10, name
+  `examples`); "Show the example letters" brings it back. The New draft form's example
+  row still splits the letters: the others behind a "More examples" button
+  (`.examples-more`; without JavaScript all are in the row).
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
   status." with a "Clear filters" link to `/`.
 
@@ -715,8 +722,10 @@ the text and a quiet icon button ("Hide this hint", `hint.hide`, JavaScript only
 names: `facts` (under the facts summary), `findings` and `questions` (at the top of
 their tabs) and `glossary` (under the section head of the draft pane) on the review
 page, `results` (next to "Results so far", while the job runs) on the progress page,
-`check` (under the title) on Check my text. A click on the cross hides the note for
-good in that browser (§6); without JavaScript every note stays and has no cross. The
+`check` (under the title) on Check my text, and `examples`, the card of example letters
+on the empty drafts list, the one note with a button that shows it again (§5.2). A
+click on the cross hides the note for good in that browser (§6); without JavaScript
+every note stays and has no cross. The
 note is a bordered 13 px card on a page (`.note`), flat and sunken in a pane of the
 review page (`.pane .note`), and a bare line next to the results title
 (`.results-head .note`). Before that day the review page's hints were `section-intro`
@@ -733,13 +742,16 @@ New or changed:
 
 1. The endpoint indicator on every page, its answer cached for 5 minutes in
    `sessionStorage`; the New draft page reads the same answer.
-2. Drafts and New draft: "More examples" reveals the example letters of the other
-   languages (`.examples-more`); the language select submits on change. The one-time
-   hints (§5.10): a click on the cross hides the note, adds its rule to the style
-   element `#lf-hints` (so the polled progress fragment comes back without it) and adds
-   the name to `lf-hints-hidden` in `localStorage`; the inline script in `base.html`
-   writes the rules of the closed names into `#lf-hints` before the first paint. Until
-   6 November 2026 the same pair hid the drafts list's intro strip (`lf-intro-hidden`).
+2. New draft: "More examples" reveals the example letters of the other languages
+   (`.examples-more`). Drafts: the language select submits on change. The one-time
+   hints (§5.10): a click on the cross hides the note, rebuilds the style element
+   `#lf-hints` from the closed names (so the polled progress fragment comes back
+   without it) and keeps them in `lf-hints-hidden` in `localStorage`; a click on a
+   `[data-hint-show]` button (the card of example letters) shows the note again and
+   takes the name out. The rule of a closed name also shows its `[data-hint-show]`
+   button, hidden otherwise. The inline script in `base.html` writes the rules of the
+   closed names into `#lf-hints` before the first paint. Until 6 November 2026 the
+   same pair hid the drafts list's intro strip (`lf-intro-hidden`).
 3. New draft: the character count, the language note after an example, the file
    name and size after a choice, dropping a file on the drop zone; the level, the
    sender and the form of address of the last draft (`localStorage`, `lf-new-draft`),
@@ -849,6 +861,10 @@ drafts.open               Open
 drafts.delete             Delete
 drafts.empty.title        No drafts yet
 drafts.empty.text         Paste an official text, give a web address or upload a PDF.
+drafts.samples.title      Example letters           (since 6 November 2026, the four)
+drafts.samples.text       Letters written for trying the app: click one and it opens in the New draft form.
+drafts.samples.hide       Hide the example letters
+drafts.samples.show       Show the example letters
 drafts.no_match           No drafts match. Clear the search or pick another status.
 drafts.clear              Clear filters
 drafts.shown              {shown} of {total} drafts
