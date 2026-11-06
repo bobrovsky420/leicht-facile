@@ -168,11 +168,12 @@ def test_the_explanations_are_one_time_hints_with_a_cross(env) -> None:
     check = client.get("/check").text
     assert 'data-hint="check"' in check and 'aria-label="Hide this hint"' in check
     assert '"lf-hints-hidden"' in check  # the early script
-    job = queued_job(store, settings)
-    assert 'data-hint="results"' in client.get(f"/jobs/{job.id}").text
     review = client.get(f"/jobs/{run_c1(client, app, endpoint)}").text
     for name in ("facts", "findings", "questions", "glossary"):
         assert f'data-hint="{name}"' in review, name
+    # Last: the worker picks the queued job up and fails it for want of answers.
+    job = queued_job(store, settings)
+    assert 'data-hint="results"' in client.get(f"/jobs/{job.id}").text
 
 
 def test_pages_load_nothing_from_another_host() -> None:

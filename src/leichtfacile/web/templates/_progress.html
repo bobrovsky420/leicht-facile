@@ -2,6 +2,7 @@
    root carries the header's running line, which app.js copies at every poll, and the
    running stage, which app.js announces when it changes. #}
 {% import "_icons.html" as icons with context %}
+{% import "_hint.html" as hints with context %}
 <div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}" data-stage="{{ t('progress.stage_now', current=p.current_index, total=p.steps | length, stage=p.current.title) if p.current else '' }}">
   <section class="card pipeline" aria-labelledby="pipe-h">
     <div class="card-head">
@@ -52,7 +53,7 @@
     {% if p.factsheet or p.draft or p.live %}
     <div class="results-head">
       <h2>{{ t('progress.results') }}</h2>
-      {% if p.live %}<span class="hint">{{ t('progress.results_hint') }}</span>{% endif %}
+      {% if p.live %}{{ hints.note('results', t('progress.results_hint')) }}{% endif %}
     </div>
     {% endif %}
 

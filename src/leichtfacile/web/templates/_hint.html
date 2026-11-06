@@ -1,0 +1,9 @@
+{# A one-time hint: a short explanation with a cross. The cross hides the note for good
+   in this browser: app.js keeps the name in localStorage, and the script in base.html
+   hides the closed notes before the first paint, so a re-rendered fragment (the
+   progress page) stays without it. Without JavaScript the note stays and has no cross.
+   Import with: {% import "_hint.html" as hints with context %}. #}
+{% import "_icons.html" as icons with context %}
+{% macro note(name, text, lang=None) -%}
+<div class="note" data-hint="{{ name }}"{% if lang %} lang="{{ lang }}"{% endif %}><p>{{ text }}</p><button type="button" class="btn btn-quiet btn-icon btn-sm js-only" data-hint-close aria-label="{{ t('hint.hide') }}">{{ icons.icon('x', 14) }}</button></div>
+{%- endmacro %}

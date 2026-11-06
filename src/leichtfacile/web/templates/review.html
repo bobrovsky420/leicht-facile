@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
 {% import "_menus.html" as menus with context %}
+{% import "_hint.html" as hints with context %}
 {% block title %}{{ t('review.title', title=title) }} - Leicht·Facile{% endblock %}
 {% block body_class %}fit-screen{% endblock %}
 {% block content %}
@@ -140,7 +141,8 @@
       </article>
     {% endfor %}
     {% if v.glossary_rows %}
-      <h3 class="draft-section" lang="{{ ui_lang }}">{{ t('review.glossary') }} <span class="hint">{{ t('review.glossary_review_hint') }}</span></h3>
+      <h3 class="draft-section" lang="{{ ui_lang }}">{{ t('review.glossary') }}</h3>
+      {{ hints.note('glossary', t('review.glossary_review_hint'), ui_lang) }}
       {% for g in v.glossary_rows %}
       <article class="block kind-glossary{% if g.decided %} decided {{ g.decided }}{% endif %}" id="blk-{{ g.gid }}"
                data-block="{{ g.gid }}" data-segments="" data-facts="" tabindex="0">
@@ -198,8 +200,8 @@
           </div>
           <div class="fs-legend" aria-hidden="true">{{ v.facts_text }}</div>
           {% endif %}
-          <p class="hint">{{ t('review.facts_hint') }}</p>
         </div>
+        {{ hints.note('facts', t('review.facts_hint')) }}
         {% for f in v.facts_sorted %}
         <button type="button" class="fact fact-{{ f.status }}" data-fact="{{ f.fact.id }}" data-fact-segments="{{ f.fact.segment_ids | join(' ') }}" aria-pressed="false">
           <span class="fact-top">{{ icons.sev(f.status) }}<span class="id">{{ f.fact.id }}</span>{% if f.expected %}<span class="chip" lang="{{ doc_lang }}">{{ f.expected }}</span>{% endif %}<span class="fstatus">{{ t('fact.' ~ f.status) }}</span></span>
@@ -221,7 +223,7 @@
 
       <section class="tabpanel" id="panel-findings" role="tabpanel" aria-labelledby="tab-findings">
         <h3 class="tabpanel-title">{{ t('review.doc_findings') }}</h3>
-        <p class="section-intro">{{ t('review.findings_hint') }}</p>
+        {{ hints.note('findings', t('review.findings_hint')) }}
         {% for g in v.finding_groups %}
         <div class="group">
           <div class="group-head">{{ icons.sev(g.worst, t('sev.' ~ g.worst)) }}<span class="rid">{{ g.rule_id }}</span><span class="title">{{ g.title }}</span><span class="n">{{ g.issues | length }}</span></div>
@@ -239,7 +241,7 @@
       <section class="tabpanel" id="panel-questions" role="tabpanel" aria-labelledby="tab-questions">
         <h3 class="tabpanel-title">{{ t('review.core') }}</h3>
         {% if v.core %}
-        <p class="section-intro">{{ t('review.core_hint') }}</p>
+        {{ hints.note('questions', t('review.core_hint')) }}
         <dl class="qa">
           {% for c in v.core %}
           <div><dt>{{ c.label }}</dt><dd lang="{{ doc_lang }}"{% if c.answer.segment_ids %} class="linkable" role="button" tabindex="0" data-segments="{{ c.answer.segment_ids | join(' ') }}"{% endif %}>{% if c.answer.text %}{{ c.answer.text }}{% else %}<span class="muted" lang="{{ ui_lang }}">{{ t('core.unanswered') }}</span>{% endif %}</dd></div>

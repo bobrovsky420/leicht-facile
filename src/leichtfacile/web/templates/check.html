@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
+{% import "_hint.html" as hints with context %}
 {% block title %}{{ t('site.check') }} - Leicht·Facile{% endblock %}
 {% block content %}
 <div class="page page-form">
-  <h1 style="margin-bottom: 4px">{{ t('site.check') }}</h1>
-  <p class="lead" style="margin-bottom: 16px">{{ t('check.intro', spelling=t.spelling) }}</p>
+  <h1 style="margin-bottom: 12px">{{ t('site.check') }}</h1>
+  {{ hints.note('check', t('check.intro', spelling=t.spelling)) }}
 
   {% if error %}
   <div class="alert form-error" role="alert">{{ icons.sev('error') }}<p>{{ error }}</p></div>

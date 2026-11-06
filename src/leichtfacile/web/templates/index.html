@@ -11,19 +11,6 @@
     <a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
   </div>
 
-  {% if total %}
-  <section class="intro" id="intro" aria-label="{{ t('drafts.how.title') }}">
-    <span class="intro-title">{{ t('drafts.how.title') }}</span>
-    <ol>
-      <li><span class="stepno" aria-hidden="true">1</span>{{ t('drafts.how.read') }}</li>
-      <li><span class="stepno" aria-hidden="true">2</span>{{ t('drafts.how.check', count=rule_count) }}</li>
-      <li><span class="stepno" aria-hidden="true">3</span>{{ t('drafts.how.judge') }}</li>
-      <li><span class="stepno" aria-hidden="true">4</span>{{ t('drafts.how.review') }}</li>
-    </ol>
-    <button type="button" class="btn btn-quiet btn-icon btn-sm js-only" id="intro-close" aria-label="{{ t('drafts.how.hide') }}">{{ icons.icon('x', 14) }}</button>
-  </section>
-  {% endif %}
-
   {# server.workspaces: the list belongs to this browser's workspace; the link opens it anywhere. #}
   {% if workspace_token %}
   <section class="ws-strip" aria-labelledby="workspace-title">
@@ -141,15 +128,34 @@
     <div class="empty">
       <h2>{{ t('drafts.empty.title') }}</h2>
       <p>{{ t('site.tagline', country=t.country) }}</p>
+      <section class="how" aria-labelledby="how-title">
+        <h3 id="how-title">{{ t('drafts.how.title') }}</h3>
+        <ol>
+          <li><span class="stepno" aria-hidden="true">1</span>{{ t('drafts.how.read') }}</li>
+          <li><span class="stepno" aria-hidden="true">2</span>{{ t('drafts.how.check', count=rule_count) }}</li>
+          <li><span class="stepno" aria-hidden="true">3</span>{{ t('drafts.how.judge') }}</li>
+          <li><span class="stepno" aria-hidden="true">4</span>{{ t('drafts.how.review') }}</li>
+        </ol>
+      </section>
       <p>{{ t('drafts.empty.text') }}</p>
+      {# The example letters: those in the interface language first (pages.featured_examples),
+         the others behind "More examples" (app.js; all of them without it). #}
+      {% if examples %}
       <div class="actions">
+        <span class="examples-label">{{ t('index.examples') }}</span>
         {% for e in examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}
-        <a class="btn btn-primary" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
+        {% if more_examples %}
+        <button type="button" class="btn btn-quiet js-only" data-more-examples>{{ t('index.more_examples') }}</button>
+        <span class="examples-more">{% for e in more_examples %}<a class="btn" href="/new?example={{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</a>{% endfor %}</span>
+        {% endif %}
       </div>
+      {% endif %}
+      <div class="actions"><a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a></div>
     </div>
     {% endif %}
   </div>
 
-  <p class="pagefoot">Leicht·Facile {{ version }}. {{ t('site.footer') }}</p>
+  {# The API's documentation pages exist when server.api_docs is on. #}
+  <p class="pagefoot">Leicht·Facile {{ version }}. {{ t('site.footer') }}{% if settings.server.api_docs %} <a href="/docs">API</a>{% endif %}</p>
 </div>
 {% endblock %}

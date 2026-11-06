@@ -56,7 +56,7 @@ Click one to open the New draft form with the letter filled in.
 Some pages open with a short explanation in a box, such as the Facts tab of the review
 or Check my text. Once you know it, click the cross: the box stays away in this browser.
 
-![The start page before the first draft: the example letters and the New draft button](images/guide/en/01-start.webp)
+![The start page before the first draft: the four steps, the example letters and the New draft button](images/guide/en/01-start.webp)
 
 ## 2. Start a draft
 

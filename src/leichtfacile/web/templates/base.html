@@ -11,7 +11,18 @@
 <link rel="stylesheet" href="/static/app.css">
 <script nonce="{{ request.state.csp_nonce }}">
 document.documentElement.classList.add("js");
-try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElement.classList.add("intro-hidden"); } catch (e) {}
+// The one-time hints closed in this browser (_hint.html; app.js keeps their names in
+// localStorage) are hidden before the first paint. A name is letters and hyphens.
+try {
+  var closed = JSON.parse(localStorage.getItem("lf-hints-hidden") || "[]");
+  var style = document.createElement("style");
+  style.id = "lf-hints";
+  style.textContent = (Array.isArray(closed) ? closed : [])
+    .filter(function (name) { return /^[a-z-]+$/.test(name); })
+    .map(function (name) { return '[data-hint="' + name + '"]{display:none !important}'; })
+    .join("");
+  document.head.appendChild(style);
+} catch (e) {}
 </script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -25,10 +36,12 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
     {% if model_page %}<a href="/model"{% if section == 'model' %} aria-current="page"{% endif %}>{{ t('site.model') }}</a>{% endif %}
   </nav>
   <span class="spacer"></span>
-  {# The preset in use: the dot follows /readyz (app.js); the name links to the model page. #}
-  <{{ 'a href="/model"' if model_page else 'span' }} class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz" title="{{ t('js.endpoint.unknown') }}">
-    <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') }}</span>
-    <code>{{ settings.llm.title if model_ready else t('model.none') }}</code><span class="visually-hidden" data-endpoint-text>{{ t('js.endpoint.unknown') }}</span>
+  {# The model in use: a dot that follows /readyz (app.js) and the word "Model" ("No
+     model" while the preset lacks its key); the preset's title and the status are the
+     tooltip and the text a screen reader hears. A link to the model page. #}
+  {% set model_status = (settings.llm.title ~ '. ' ~ t('js.endpoint.unknown')) if model_ready else t('model.none') %}
+  <{{ 'a href="/model"' if model_page else 'span' }} class="endpoint" id="endpoint-status" data-endpoint data-url="/readyz"{% if model_ready %} data-model="{{ settings.llm.title }}"{% endif %} title="{{ model_status }}">
+    <span class="ep-dot" aria-hidden="true"></span><span class="ep-label">{{ t('site.endpoint') if model_ready else t('site.no_model') }}</span><span class="visually-hidden" data-endpoint-text>{{ model_status }}</span>
   </{{ 'a' if model_page else 'span' }}>
   {% set languages = ui_languages() %}
   {% if languages | length > 1 %}
@@ -40,7 +53,6 @@ try { if (localStorage.getItem("lf-intro-hidden") === "1") document.documentElem
   </nav>
   {% endif %}
   <a class="api" href="{{ t('site.guide_url') }}" title="{{ t('site.guide_title') }}" target="_blank" rel="noopener">{{ t('site.guide') }}</a>
-  <a class="api" href="/docs">API</a>
 </header>
 {% if notice %}<div class="site-notice" role="note">{{ notice }}</div>{% endif %}
 <main id="main" tabindex="-1">
