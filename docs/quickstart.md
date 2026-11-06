@@ -166,7 +166,7 @@ uvx leichtfacile serve publicai-apertus
 
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
   ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
-  is quick. `uvx leichtfacile@0.12.0 serve` runs that version.
+  is quick. `uvx leichtfacile@0.13.0 serve` runs that version.
 - Nothing lands on the PATH or in the current folder: uv unpacks the app with its
   dependencies into its cache, a Python it downloads goes to its Python folder.
   `uv cache dir` and `uv python dir` print both; by default:
@@ -295,7 +295,7 @@ pip install leichtfacile
 
 Every release's wheel is also on the
 [releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.12.0/leichtfacile-0.12.0-py3-none-any.whl`.
+`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.13.0/leichtfacile-0.13.0-py3-none-any.whl`.
 Every release made after 31 October 2026 carries signed provenance and a bill of
 materials, for the wheel and for the container image;
 [SECURITY.md](../SECURITY.md#verifying-a-release) has the commands that verify a
@@ -526,7 +526,7 @@ it with `leichtfacile setup local` and run it as in way 5.
 
 The image `ghcr.io/bobrovsky420/leichtfacile` holds the app with every dependency, the
 language packages of the checker among them, so a container needs no network but the
-model endpoint. One tag per release (`:0.12.0`) and `:latest`, x86-64, built from the
+model endpoint. One tag per release (`:0.13.0`) and `:latest`, x86-64, built from the
 `Dockerfile` of the checkout and published by a release. The app runs as a user of its
 own and keeps everything it writes in `/data` (the config file, the `.env` with the key,
 the database). On this machine, for the browser on it, as with `leichtfacile serve`:
@@ -534,7 +534,7 @@ the database). On this machine, for the browser on it, as with `leichtfacile ser
 ```bash
 docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   -e LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1 -e PUBLICAI_API_KEY=<key> \
-  ghcr.io/bobrovsky420/leichtfacile:0.12.0
+  ghcr.io/bobrovsky420/leichtfacile:0.13.0
 ```
 
 - The app listens on every interface of its container, and `-p` says where Docker
@@ -555,14 +555,14 @@ docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   variable (`PUBLICAI_API_KEY`, `CSCS_API_KEY`, ...), and the first preset whose key is set
   is in use. Or run setup inside the container once, which writes the preset and the key
   into the volume: `docker run --rm -it -v leichtfacile:/data
-  ghcr.io/bobrovsky420/leichtfacile:0.12.0 leichtfacile setup`. The model page is
+  ghcr.io/bobrovsky420/leichtfacile:0.13.0 leichtfacile setup`. The model page is
   read-only on a published server, as in way 5.
 - The named volume `leichtfacile` holds `config.toml`, `.env` and the database (a folder
   of the host does too, when the user 10001 may write to it). `/healthz` and `/readyz`
   answer without a login, and the image's own health check asks `/healthz`.
 
 `compose.yaml` in the repository does the same with `docker compose up -d`: the settings
-and the keys in a `.env` next to it (`PUBLICAI_API_KEY=...`; `LEICHTFACILE_VERSION=0.12.0` pins
+and the keys in a `.env` next to it (`PUBLICAI_API_KEY=...`; `LEICHTFACILE_VERSION=0.13.0` pins
 the tag), the data in the volume `leichtfacile_data`, the port published on this machine
 alone and the app told so, without a login; `LEICHTFACILE_PUBLISH=0.0.0.0` in `.env`
 publishes it on every interface, and the app then needs its login there too
@@ -584,8 +584,8 @@ docker compose run --rm app leichtfacile setup vllm --model swiss-ai/Apertus-v1.
 
 (`setup local --name llamacpp --model apertus-v1.5-8b-q4-llamacpp` for the other
 profile.) Air-gapped, as way 6 for containers: on a connected machine
-`docker save ghcr.io/bobrovsky420/leichtfacile:0.12.0 | gzip > leichtfacile-0.12.0.tar.gz`,
-carry it over, `docker load < leichtfacile-0.12.0.tar.gz`; the model server's image and its
+`docker save ghcr.io/bobrovsky420/leichtfacile:0.13.0 | gzip > leichtfacile-0.13.0.tar.gz`,
+carry it over, `docker load < leichtfacile-0.13.0.tar.gz`; the model server's image and its
 weights the same way. A build from a checkout: `docker build -t leichtfacile .` (or
 `docker compose up -d --build`; `make run` does that and opens the web UI). CI builds the image, starts it with a token against an
 unreachable endpoint, checks the probes and the login and scans it for vulnerabilities
