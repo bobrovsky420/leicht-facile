@@ -427,6 +427,20 @@
     let shown = withoutRun(progress.innerHTML);
     let stage = (first && first.dataset.stage) || "";
     let busy = false;
+    // The poll ends when the draft is gone or the login has lapsed (404, 401, 403), and
+    // after five failed polls in a row (no answer, 5xx, 429); the header line and the
+    // status region say so. It polled for the tab's lifetime before.
+    let failures = 0;
+    let stopped = false;
+    const stop = (key) => {
+      stopped = true;
+      if (line) line.textContent = t(key);
+      if (announce) announce.textContent = t(key);
+    };
+    const missed = () => {
+      failures += 1;
+      if (failures >= 5) stop("poll_failed");
+    };
     // The browser tab names the stage, so the page can wait in the background.
     const baseTitle = document.title;
     const setTab = (grid) => {
@@ -439,7 +453,15 @@
       busy = true;
       try {
         const res = await fetch(`/jobs/${id}/progress`, { cache: "no-store" });
-        if (!res.ok) return;
+        if ([401, 403, 404].includes(res.status)) {
+          stop("poll_gone");
+          return;
+        }
+        if (!res.ok) {
+          missed();
+          return;
+        }
+        failures = 0;
         const status = res.headers.get("X-Job-Status");
         if (status && !["queued", "running"].includes(status)) {
           window.location.reload();
@@ -473,7 +495,7 @@
           badge.textContent = t(`status.${status}`);
         }
       } catch (e) {
-        /* the next tick tries again */
+        missed(); // no answer: the next tick tries again, five in a row stop the poll
       } finally {
         busy = false;
       }
@@ -482,6 +504,7 @@
     // on a slow endpoint) must not keep the server busy with its own page.
     let ticks = 0;
     const schedule = () => {
+      if (stopped) return;
       ticks += 1;
       setTimeout(async () => {
         await tick();
@@ -613,6 +636,10 @@
   let timer = null;
   let inflight = false;
   let failed = null; // "error": the next change or "Try again" saves; "conflict": reload
+  // The version whose decisions are stored, when it is another one (one review per
+  // job): the first save here replaces them, so it asks first, once; a save while the
+  // page closes cannot ask and is not made.
+  let replaces = form.dataset.replaces || null;
   const unsaved = () => changes !== stored;
   const emptyEdit = () =>
     blocks.find((b) => {
@@ -653,6 +680,17 @@
     if (empty) {
       showState("bad", t("empty_edit", { block: empty.dataset.block }));
       return;
+    }
+    if (replaces) {
+      if (!window.confirm(t("replace_confirm", { version: replaces }))) {
+        failed = "error";
+        showState("bad", t("replace_declined", { version: replaces }));
+        offerAgain(t("save_again"));
+        return;
+      }
+      replaces = null;
+      const banner = $("#other-version");
+      if (banner) banner.hidden = true;
     }
     const count = changes;
     const body = JSON.stringify(currentReview());
@@ -859,10 +897,11 @@
 
   // Leaving the page: a pending save goes out with the page. The browser asks first
   // only when the save cannot be made (one failed or is still running, a block is
-  // being emptied); its answer is lost then, as the dot and the text say.
+  // being emptied, or it would replace another version's decisions unasked); its
+  // answer is lost then, as the dot and the text say.
   const flushOnLeave = () => {
     if (!unsaved()) return true;
-    if (failed || inflight || emptyEdit()) return false;
+    if (failed || inflight || emptyEdit() || replaces) return false;
     save({ keepalive: true });
     return true;
   };

@@ -163,12 +163,13 @@ def test_the_review_applies_and_a_decision_job_opens_and_ends_with_the_notice() 
             Decision(block_id="b006", decision="rejected"),
             Decision(block_id="g01", decision="rejected"),
         ],
+        completed=True,
     )  # fmt: skip
     data = docx(draft(), review, title="Entscheid", notice=NOTICE)
     found = paragraphs(parts(data)["word/document.xml"])
     assert found[1] == ("Notice", [NOTICE]) and found[-1] == ("Notice", [NOTICE])
     assert [s for s, _ in found].count("Notice") == 2
-    assert "DraftNote" not in [s for s, _ in found]  # reviewed
+    assert "DraftNote" not in [s for s, _ in found]  # the review is complete
     texts = [" ".join(lines).replace("\xa0", " ") for _, lines in found]
     # The edit's line break is a space: in Word only `wrap_sentence` breaks lines.
     assert "Schicken Sie das Gesuch bis 31. März 2026 an die Gemeinde." in texts
@@ -228,8 +229,9 @@ def test_the_footer_names_the_tool_draft_day_model_and_the_prompt_that_wrote_the
     footer = parts(docx(draft(), summary=summary))["word/footer1.xml"]
     assert paragraphs(footer) == [("Footer", [line])]
 
-    # Behind a login the decisions name who made them: the footer names each once, in
-    # the order of their first decision; without a login (`by` None) it says nothing.
+    # Behind a login the decisions name who made them: once the review is marked
+    # complete, the footer names each once, in the order of their first decision;
+    # without a login (`by` None) it says nothing.
     decided = ReviewState(
         draft_version=2,
         decisions=[
@@ -237,10 +239,16 @@ def test_the_footer_names_the_tool_draft_day_model_and_the_prompt_that_wrote_the
             Decision(block_id="b003", decision="rejected", by="a.muster"),
             Decision(block_id="b006", decision="approved", by="b.muster"),
         ],
+        completed=True,
     )
     reviewed = build_layout(draft(), decided)
-    assert reviewed.final.reviewers == ["b.muster", "a.muster"]
+    assert reviewed.final.reviewers == ["b.muster", "a.muster"] and reviewed.note is None
     assert footer_line(reviewed, summary, DAY) == f"{line} · Geprüft von b.muster, a.muster"
+    # A review under way signs nothing and keeps the draft note: a few decisions of many
+    # signed the document and dropped the note until 6 November 2026.
+    under_way = build_layout(draft(), decided.model_copy(update={"completed": False}))
+    assert footer_line(under_way, summary, DAY) == line
+    assert under_way.note == "Entwurf: noch nicht geprüft."
     assert footer_line(build_layout(draft("fr"), decided), None, DAY).endswith(
         " · Relu par b.muster, a.muster"
     )

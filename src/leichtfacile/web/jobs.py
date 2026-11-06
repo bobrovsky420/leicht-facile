@@ -10,6 +10,7 @@ the other requests, the probes included, keep their threads (audit V4).
 
 from __future__ import annotations
 
+import codecs
 import threading
 from collections.abc import Collection, Iterator
 from contextlib import contextmanager
@@ -39,6 +40,13 @@ from leichtfacile.varieties import region_for, variety
 from leichtfacile.web.i18n import ENGLISH, Translator
 
 MAX_FILE_BYTES = 15_000_000  # the text's own limit is texts.max_chars
+# How a file that is no text starts: Word, OpenDocument and other ZIP files, an old
+# Office file, PNG, JPEG, GIF, WebP, TIFF, PostScript, RTF (`_not_text`). Read as text,
+# they became a job of garbage that went to the model.
+_BINARY_STARTS = (
+    b"PK\x03\x04", b"\xd0\xcf\x11\xe0", b"\x89PNG", b"\xff\xd8\xff", b"GIF8", b"RIFF",
+    b"II*\x00", b"MM\x00*", b"%!PS", b"{\\rtf",
+)  # fmt: skip
 # The fields of the New draft form, which the page shows again after a refusal.
 FORM_FIELDS = (
     "text", "url", "lang", "level", "condition", "endpoint", "title", "writer_model",
@@ -198,6 +206,17 @@ def text_chars(text: str) -> int:
     return len(text.replace("\r\n", "\n"))
 
 
+def _not_text(data: bytes) -> bool:
+    """An upload that is no text: it starts like a known binary format, or a NUL byte
+    stands in its first 8 KB, which no text has; UTF-16 and UTF-32 start with their byte
+    order mark and are text."""
+    if data.startswith(_BINARY_STARTS):
+        return True
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE, codecs.BOM_UTF32_BE)):
+        return False  # UTF-32 LE starts with UTF-16 LE's mark
+    return b"\x00" in data[:8192]
+
+
 def ingest_submission(  # noqa: C901, PLR0912
     sub: Submission, *, max_chars: int, allow_private_urls: bool = False
 ) -> SourceDocument:
@@ -237,6 +256,8 @@ def ingest_submission(  # noqa: C901, PLR0912
             name = (sub.file_name or "upload").lower()
             if name.endswith(".pdf") or data[:5] == b"%PDF-":
                 source = ingest.ingest_pdf(data, filename=sub.file_name, lang=lang)
+            elif _not_text(data):
+                raise SubmissionError("upload_format")
             else:
                 # Read as the command line reads a file (ingest_file): a byte order mark,
                 # UTF-8, else Windows-1252, and a page by the charset it declares (the

@@ -689,7 +689,10 @@ def test_reader_preview_of_unsaved_decisions_stores_nothing(env) -> None:
     preview = client.post(f"/jobs/{job_id}/preview", json=body)
     assert preview.status_code == 200
     assert rejected["text"] not in preview.text and edited["text"] not in preview.text
-    assert "Neu geschrieben." in preview.text and "noch nicht geprüft" not in preview.text
+    # a review under way keeps the draft note; marked complete, it goes
+    assert "Neu geschrieben." in preview.text and "noch nicht geprüft" in preview.text
+    complete = client.post(f"/jobs/{job_id}/preview", json={**body, "completed": True})
+    assert "Neu geschrieben." in complete.text and "noch nicht geprüft" not in complete.text
     assert client.get(f"/api/v1/jobs/{job_id}/artifacts/review").status_code == 404
 
     untouched = client.post(f"/jobs/{job_id}/preview", json={"draft_version": version})

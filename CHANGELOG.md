@@ -5,6 +5,23 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Fixed
+
+- An export keeps the note "Entwurf: noch nicht geprüft" until the review is marked
+  complete, and only then does a Word file name who decided; a few decisions of many
+  removed the note and signed the document.
+- Once one version of a draft has saved decisions, another version's page says so and
+  links to it, and its first decision asks before it replaces them. Every save on that
+  page was refused as "saved by someone else", even after a reload.
+- The progress page stops asking for news when the draft is gone or the login has
+  expired, and after five failed attempts in a row, and says so; it asked every few
+  seconds for as long as the tab stayed open.
+- An uploaded Word or OpenDocument file, an image or any other file that is no text is
+  refused with a message naming the formats that are read; it became a draft of
+  garbage that went to the model.
+
 ## [0.13.0] - 2026-11-06
 
 ### Added
@@ -487,6 +504,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...HEAD
 [0.13.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.2...v0.11.0

@@ -190,8 +190,14 @@ class ReviewView:
     tokens_out: int
     seconds: float  # model time over all calls
     finding_groups: list[FindingGroup] = field(default_factory=list)  # doc_issues by rule
-    saved_at: datetime | None = None  # when the stored review was last saved
+    saved_at: datetime | None = None  # when this version's review was last saved
     glossary_rows: list[GlossaryRow] = field(default_factory=list)  # decided like blocks
+    # The stored review's stamp, whatever version it decides: the token a save names, so
+    # a save from another version's page is no false conflict (web/api.py, 409).
+    stored_at: datetime | None = None
+    # The version the stored review decides, when it is another one: a save here
+    # replaces those decisions, so the page says so and app.js asks first.
+    other_version: int | None = None
 
     @property
     def facts_sorted(self) -> list[FactRow]:
@@ -392,6 +398,12 @@ def review_view(
         finding_groups=group_findings(doc_issues, t),
         saved_at=data.review.saved_at if data.review else None,
         glossary_rows=glossary_rows,
+        stored_at=data.stored.saved_at if data.stored else None,
+        other_version=(
+            data.stored.draft_version
+            if data.stored and data.stored.draft_version != draft.version
+            else None
+        ),
     )
 
 

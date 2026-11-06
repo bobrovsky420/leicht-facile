@@ -108,7 +108,13 @@
         <button type="button" class="seg-item filter" data-filter="undecided" aria-pressed="false">{{ t('review.filter.undecided') }}<span class="n" id="undecided-n">{{ v.undecided }}</span></button>
       </div>
     </div>
-    <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" data-saved-at="{{ v.saved_at.isoformat() if v.saved_at else '' }}" lang="{{ doc_lang }}" style="--bid-ch: {{ v.id_chars }}">
+    {# data-saved-at: the stored review's stamp, whatever version it decides, which a save
+       names; data-replaces: that version, when it is another one (app.js asks before a
+       save here replaces its decisions). #}
+    <form id="review-form" class="pane-body" data-job="{{ job.id }}" data-version="{{ v.draft.version }}" data-saved-at="{{ v.stored_at.isoformat() if v.stored_at else '' }}"{% if v.other_version %} data-replaces="{{ v.other_version }}"{% endif %} lang="{{ doc_lang }}" style="--bid-ch: {{ v.id_chars }}">
+    {% if v.other_version %}
+      <p class="notice-banner" id="other-version" lang="{{ ui_lang }}"><span class="label">{{ t('review.other_version.label') }}</span>{{ t('review.other_version', version=v.other_version) }} <a href="?version={{ v.other_version }}">{{ t('review.other_version.open', version=v.other_version) }}</a></p>
+    {% endif %}
     {% if job.config.notice %}
       <p class="notice-banner"><span class="label" lang="{{ ui_lang }}">{{ t('review.notice') }}</span>{{ job.config.notice }}</p>
     {% endif %}

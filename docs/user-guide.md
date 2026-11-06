@@ -156,7 +156,9 @@ source sentences it comes from light up on the left.
 **The strip under the title** shows the language, the level and the pipeline, then the
 **Versions** menu: v1 is the first draft, every repair round adds one, and one is marked
 **final**, not always the last. Each version shows its blocking problems. You review the
-final version; choose another to compare. On the right, what is left to do in the
+final version; choose another to compare. The decisions you save belong to one
+version: on another version's page a note says which one holds them, and your first
+decision there asks before it replaces them. On the right, what is left to do in the
 version you see: the **blocking problems** (errors, and facts missing or distorted) and
 the **undecided blocks**. Click either to see those blocks; **Ready to export** appears
 when nothing is left.
@@ -272,7 +274,10 @@ On the right you choose the export:
 **Print or save as PDF** prints the reader view on A4; choose "Save as PDF" as the
 printer for a PDF.
 
-The export carries every decision made so far. Undecided blocks stay in, as drafted. The checklist **Before publication** shows how many blocks are decided,
+The export carries every decision made so far. Undecided blocks and glossary entries stay
+in, as drafted, and the export starts with the note "Draft: not yet reviewed" (in the
+document's language) until you tick **Review complete**; a Word file names who decided
+only then. The checklist **Before publication** shows how many blocks are decided,
 the blocking problems left in the version and whether the review is marked complete.
 
 **Reader view and export** in the menu of a row in the list of drafts opens the same

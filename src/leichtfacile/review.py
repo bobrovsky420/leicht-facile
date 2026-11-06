@@ -103,6 +103,9 @@ class ReviewData:
     judge: JudgeReport | None
     factsheet: FactSheet | None
     review: ReviewState | None  # the stored review, when it decides this version
+    # The stored review whatever version it decides, one per job: a save from this
+    # version's page replaces it, so the page names its version and asks first.
+    stored: ReviewState | None = None
 
     @property
     def decisions(self) -> dict[str, Decision]:
@@ -120,9 +123,8 @@ def load_review(store: Store, job: Job, version: int | None = None) -> ReviewDat
     final_version = summary.final_version if summary else versions[-1]
     if version not in versions:
         version = final_version if final_version in versions else versions[-1]
-    review = store.get_artifact(job.id, "review", ReviewState)
-    if review and review.draft_version != version:
-        review = None
+    stored = store.get_artifact(job.id, "review", ReviewState)
+    review = stored if stored and stored.draft_version == version else None
     draft = store.get_artifact(job.id, "draft", Draft, version=version)
     if draft is None:
         return None
@@ -137,6 +139,7 @@ def load_review(store: Store, job: Job, version: int | None = None) -> ReviewDat
         judge=store.get_artifact(job.id, "judge", JudgeReport, version=version),
         factsheet=store.get_artifact(job.id, "factsheet", FactSheet),
         review=review,
+        stored=stored,
     )
 
 

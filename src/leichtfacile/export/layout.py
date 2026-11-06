@@ -65,7 +65,7 @@ class Layout:
     variety: str  # the national variety (schemas.variety): the Word export's language tag
     version: int
     title: str | None
-    note: str | None  # the draft note, while the draft is not reviewed
+    note: str | None  # the draft note, until the review is marked complete
     notice: str | None  # decision mode: the authority's fixed text, first and last, as it is
     items: list[Item]
     glossary_title: str
@@ -123,7 +123,9 @@ def build_layout(
         variety=draft.variety,
         version=draft.version,
         title=clean(title) if title else None,
-        note=None if final.reviewed else labels["draft_note"],
+        # Until the reviewer marks the review complete: one decision of forty took the
+        # note away before 6 November 2026.
+        note=None if final.complete else labels["draft_note"],
         notice=clean(notice) if notice else None,
         items=items,
         glossary_title=labels["glossary"],

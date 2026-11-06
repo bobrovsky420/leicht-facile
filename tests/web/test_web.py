@@ -217,12 +217,10 @@ def test_glossary_entries_are_decided_like_blocks(app_env) -> None:
     assert bundle["final"]["undecided_glossary"] == 0
 
 
-def test_the_audit_bundle_describes_the_version_the_review_decided(app_env) -> None:
-    """The reviewer decides v1 from the Versions menu while the pipeline's final version
-    is v2: the bundle's `final` is v1 with its decisions, the version that went out. It
-    used to be v2, "not reviewed", beside a review of v1."""
-    client, app, _ = app_env
-    app.state.runner.stop()  # the job below is made by hand: no worker may take it
+def _two_versions(app) -> str:
+    """A job made by hand with two draft versions, v2 the pipeline's final one, waiting
+    for review; the worker is stopped, so none takes it."""
+    app.state.runner.stop()
     store = app.state.store
     job = store.create_job(JobConfig(condition="P2", lang="de"), title="Brief")
     store.put_artifact(job.id, "source", ingest.ingest_text("Die Frist endet am 31. März 2027."))
@@ -237,15 +235,52 @@ def test_the_audit_bundle_describes_the_version_the_review_decided(app_env) -> N
     store.put_artifact(job.id, "draft", second, version=2)
     store.put_artifact(job.id, "summary", PipelineSummary(condition="P2", final_version=2))
     store.update_job(job.id, status="needs_review")
-    bundle = json.loads(client.get(f"/api/v1/jobs/{job.id}/export?format=json").text)
+    return job.id
+
+
+def test_the_audit_bundle_describes_the_version_the_review_decided(app_env) -> None:
+    """The reviewer decides v1 from the Versions menu while the pipeline's final version
+    is v2: the bundle's `final` is v1 with its decisions, the version that went out. It
+    used to be v2, "not reviewed", beside a review of v1."""
+    client, app, _ = app_env
+    job_id = _two_versions(app)
+    bundle = json.loads(client.get(f"/api/v1/jobs/{job_id}/export?format=json").text)
     assert bundle["final"]["draft_version"] == 2  # no review yet: the pipeline's final
     review = {"draft_version": 1, "completed": True, "decisions": [
         {"block_id": "b001", "decision": "approved"}, {"block_id": "b002", "decision": "rejected"},
     ]}  # fmt: skip
-    assert client.post(f"/api/v1/jobs/{job.id}/review", json=review).status_code == 200
-    final = json.loads(client.get(f"/api/v1/jobs/{job.id}/export?format=json").text)["final"]
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=review).status_code == 200
+    final = json.loads(client.get(f"/api/v1/jobs/{job_id}/export?format=json").text)["final"]
     assert (final["draft_version"], final["reviewed"], final["review_complete"]) == (1, True, True)
     assert [b["text"] for b in final["blocks"]] == ["Die Frist ist am 31. März 2027."]
+
+
+def test_another_versions_page_names_the_saved_decisions_and_may_replace_them(app_env) -> None:
+    """One review per job: once v1 has saved decisions, v2's page names them, links to
+    v1 and carries their stamp, so a save there replaces them (app.js asks first)
+    instead of a false "saved by someone else" (409) on every save. A stale stamp is
+    still a conflict."""
+    client, app, _ = app_env
+    job_id = _two_versions(app)
+    first = {"draft_version": 1, "saved_at": None,
+             "decisions": [{"block_id": "b001", "decision": "approved"}]}  # fmt: skip
+    saved_at = client.post(f"/api/v1/jobs/{job_id}/review", json=first).json()["saved_at"]
+    own = client.get(f"/jobs/{job_id}?version=1").text
+    assert f'data-saved-at="{saved_at}"' in own and "data-replaces" not in own
+    assert 'id="other-version"' not in own
+    page = client.get(f"/jobs/{job_id}?version=2").text
+    assert f'data-saved-at="{saved_at}"' in page and 'data-replaces="1"' in page
+    assert "The decisions saved for this draft are on version 1." in page
+    assert '<a href="?version=1">Open version 1</a>' in page
+    assert "No decisions saved yet" in page  # the note speaks of this version
+    second = {"draft_version": 2, "saved_at": saved_at,
+              "decisions": [{"block_id": "b002", "decision": "rejected"}]}  # fmt: skip
+    replaced = client.post(f"/api/v1/jobs/{job_id}/review", json=second)
+    assert replaced.status_code == 200, replaced.text
+    review = client.get(f"/api/v1/jobs/{job_id}/artifacts/review").json()
+    assert review["draft_version"] == 2 and [d["block_id"] for d in review["decisions"]] == ["b002"]
+    stale = client.post(f"/api/v1/jobs/{job_id}/review", json=first | {"saved_at": saved_at})
+    assert stale.status_code == 409
 
 
 def test_form_submission_redirects_and_lists_the_job(app_env) -> None:
@@ -371,6 +406,25 @@ def test_an_upload_is_decoded_as_the_command_line_decodes_a_file() -> None:
         # ingest writes the typographic apostrophe of 1’500 as '
         assert "Sie erhalten 1'500 Franken für Ihre Krankenkasse." in read, (name, read)
         assert chr(0xFFFD) not in read  # no replacement character
+
+
+@pytest.mark.parametrize(
+    ("name", "data"),
+    [
+        ("brief.docx", b"PK\x03\x04\x14\x00\x06\x00" + bytes(40)),  # Word, OpenDocument: ZIP
+        ("brief.doc", b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + bytes(40)),  # old Office
+        ("scan.png", b"\x89PNG\r\n\x1a\n" + bytes(40)),
+        ("scan.jpg", b"\xff\xd8\xff\xe0\x00\x10JFIF"),
+        ("brief.rtf", b"{\\rtf1\\ansi Sie erhalten 500 Franken.}"),
+        ("brief.txt", b"Sie erhalten\x00\x00 500 Franken."),  # a NUL: no text
+    ],
+)
+def test_an_upload_that_is_no_text_is_refused(name: str, data: bytes) -> None:
+    """A Word file, an image or any other file with a NUL byte became a job of garbage
+    text that went to the model; it is refused, naming what is read."""
+    upload = Submission(file_name=name, file_data=data, lang="de")
+    with pytest.raises(SubmissionError, match="This file cannot be read. Upload a PDF"):
+        ingest_submission(upload, max_chars=10_000)
 
 
 def test_a_slow_fetch_does_not_stop_other_requests(app_env, monkeypatch) -> None:

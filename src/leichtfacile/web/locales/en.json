@@ -386,6 +386,9 @@
 
   "review.saved_at": "Saved {time}",
   "review.never_saved": "No decisions saved yet",
+  "review.other_version.label": "Saved decisions",
+  "review.other_version": "The decisions saved for this draft are on version {version}. A decision here replaces them.",
+  "review.other_version.open": "Open version {version}",
   "review.blocking_n": "{count} blocking",
   "review.sentences.one": "{n} sentence",
   "review.sentences.other": "{n} sentences",
@@ -466,6 +469,7 @@
   "error.document_too_long": "The document has {chars} characters of text; the limit is {max}. Shorten it or split it into parts.",
   "error.url_scheme": "The URL must start with http:// or https://.",
   "error.file_too_large": "The file is larger than {mb} MB.",
+  "error.upload_format": "This file cannot be read. Upload a PDF with a text layer, an HTML page, or a text or Markdown file.",
   "error.ingest": "{detail}",
   "error.unknown_level": "Unknown level '{level}'; use A2 or B1.",
   "error.unknown_condition": "Unknown condition '{condition}'; use P0, P1 or P2.",
@@ -557,6 +561,10 @@
   "js.no_answer": "Not saved: the server did not answer.",
   "js.save_again": "Try again",
   "js.reload": "Reload the page",
+  "js.replace_confirm": "The decisions saved on version {version} will be replaced by the ones you make on this version. Continue?",
+  "js.replace_declined": "Not saved: the decisions on version {version} stay.",
+  "js.poll_gone": "This draft is no longer there, or your login has expired. Reload the page.",
+  "js.poll_failed": "The page stopped updating: the server did not answer. Reload the page.",
   "js.empty_edit": "Not saved: block {block} has no text. Write the text or reject the block.",
   "js.reader_failed": "The reader view could not be loaded.",
 

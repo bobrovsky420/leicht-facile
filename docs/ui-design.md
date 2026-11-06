@@ -453,7 +453,9 @@ them into local time and "Today" or "Yesterday".
   line, mono 12.
 - Polling as today: `app.js` asks for the `_progress.html` fragment every 2 s (every
   5 s after two minutes) and
-  reloads when the status leaves queued and running. It replaces the fragment only
+  reloads when the status leaves queued and running; it stops, the header's line
+  saying so, when the draft is gone or the login has lapsed (404, 401, 403) and after
+  five failed polls in a row. It replaces the fragment only
   when something besides the running line and the running time changed, so a screen
   reader keeps its place; the running time ("Running for", `#run-for`) is copied in
   place.
@@ -831,14 +833,19 @@ New or changed:
      with news ("Saved HH:MM", a failure), so the live region does not announce every
      decision; the dot follows the state. A 409 stops the saving until the page is
      reloaded ("Reload the page"); any other failure shows "Try again", and the next
-     change retries by itself. An edited block with an empty text is not sent: the
+     change retries by itself. One review per job: on the page of a version other
+     than the one whose decisions are stored, a notice names that version
+     (`#other-version`, `data-replaces`), the form carries the stored review's stamp,
+     and the first save asks before it replaces those decisions (declined, nothing is
+     saved). An edited block with an empty text is not sent: the
      state says which block. An export link waits until the review is saved (the save
      on its way, then one with what is left; after a failure it tries once more) and
      downloads nothing while a save fails or cannot be made, the state saying why; a
      save still pending when the page closes goes out with `keepalive` (under 60 KB),
      and the
      browser's leave prompt remains only when the save cannot be made (one failed or
-     is running, a block is being emptied);
+     is running, a block is being emptied, it would replace another version's
+     decisions unasked);
    - the checks tabs, with arrow keys;
    - reader view: the format choice builds the download link; the "Before
      publication" lines follow the decisions on screen.

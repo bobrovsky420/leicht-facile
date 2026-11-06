@@ -386,6 +386,9 @@
 
   "review.saved_at": "Gespeichert {time}",
   "review.never_saved": "Noch keine Entscheide gespeichert",
+  "review.other_version.label": "Gespeicherte Entscheidungen",
+  "review.other_version": "Die gespeicherten Entscheidungen zu diesem Entwurf gehören zu Version {version}. Eine Entscheidung hier ersetzt sie.",
+  "review.other_version.open": "Version {version} öffnen",
   "review.blocking_n": "{count} blockierend",
   "review.sentences.one": "{n} Satz",
   "review.sentences.other": "{n} Sätze",
@@ -466,6 +469,7 @@
   "error.document_too_long": "Das Dokument hat {chars} Zeichen Text, die Grenze liegt bei {max}. Kürzen Sie es oder teilen Sie es in mehrere Teile auf.",
   "error.url_scheme": "Die Adresse muss mit http:// oder https:// beginnen.",
   "error.file_too_large": "Die Datei ist grösser als {mb} MB.",
+  "error.upload_format": "Diese Datei kann nicht gelesen werden. Laden Sie ein PDF mit Textebene, eine HTML-Seite oder eine Text- oder Markdown-Datei hoch.",
   "error.ingest": "Das Dokument kann nicht gelesen werden: {detail}",
   "error.unknown_level": "Unbekannte Stufe '{level}'; verwenden Sie A2 oder B1.",
   "error.unknown_condition": "Unbekannter Ablauf '{condition}'; verwenden Sie P0, P1 oder P2.",
@@ -557,6 +561,10 @@
   "js.no_answer": "Nicht gespeichert: Der Server hat nicht geantwortet.",
   "js.save_again": "Erneut versuchen",
   "js.reload": "Seite neu laden",
+  "js.replace_confirm": "Die Entscheidungen, die auf Version {version} gespeichert sind, werden durch Ihre Entscheidungen auf dieser Version ersetzt. Fortfahren?",
+  "js.replace_declined": "Nicht gespeichert: Die Entscheidungen auf Version {version} bleiben.",
+  "js.poll_gone": "Diesen Entwurf gibt es nicht mehr, oder Ihre Anmeldung ist abgelaufen. Laden Sie die Seite neu.",
+  "js.poll_failed": "Die Seite wird nicht mehr aktualisiert: Der Server hat nicht geantwortet. Laden Sie die Seite neu.",
   "js.empty_edit": "Nicht gespeichert: Block {block} hat keinen Text. Schreiben Sie den Text oder lehnen Sie den Block ab.",
   "js.reader_failed": "Die Leseansicht konnte nicht geladen werden.",
 

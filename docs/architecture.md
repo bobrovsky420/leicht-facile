@@ -760,8 +760,8 @@ Export formats:
   notice first and last; the language tag (de-CH, fr-CH, it-CH) gives the spell checker
   Swiss spelling. The footer names the tool, the draft version, the day of the export,
   the writer model and the hash of the prompt template that wrote the text
-  (`summary.prompt_versions`), and, once the draft is reviewed behind the login, who
-  decided ("Geprüft von a.muster, b.muster", "Relu par", "Rivisto da": the users the
+  (`summary.prompt_versions`), and, once the review is marked complete behind the login,
+  who decided ("Geprüft von a.muster, b.muster", "Relu par", "Rivisto da": the users the
   decisions name, each once, in the order of their first decision; operations.md). Arial, not the
   reader font: a DOCX names a single font,
   and Word replaces a missing one with its own choice. Built with the standard
@@ -1091,7 +1091,8 @@ finished and shows why. What belongs to one run (notes, the last round's failure
 budget, the stop signal) lives in a `RunState` the orchestrator makes per run, never on
 the orchestrator, so the workers share one. The rerun and the deletion of a running
 job are refused with 409 (stop it first); a review save names the stored review it
-loaded (above); the shared spaCy pipelines take one text at a time, whoever runs them
+loaded (above), on every version's page, since one review per job decides one
+version and a save from another version replaces it after the page asks; the shared spaCy pipelines take one text at a time, whoever runs them
 (one lock per language next to the pipeline cache, `rules/nlp.py`). An idle worker
 looks at the queue once a second or when nudged, and a claim that fails is tried again
 after five seconds without ending the thread. The UI polls the job page every 2 s for
@@ -1251,9 +1252,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      Without JavaScript every block is open. After the blocks, the glossary entries,
      each with the id `g01`, `g02`, ... in the draft's order, decided like a block:
      approved, edited (the explanation; the term stays) or rejected, with the same keys
-     and counts; the review API takes their ids in `block_id`, and the exports carry
-     only the entries the review keeps (`final_blocks`), so no model-written
-     explanation reaches print without a decision. The audit bundle's `final` lists
+     and counts; the review API takes their ids in `block_id`, and the exports leave out
+     the rejected entries and carry the edited ones (`final_blocks`); an undecided
+     entry stays as written, as an undecided block does, and every export carries the
+     draft note until the review is marked complete. The audit bundle's `final` lists
      them under `glossary`, the undecided ones under `undecided_glossary`.
   3. **Checks** - four tabs (stacked without JavaScript): **Facts**, problems first,
      with the expected value, the status from code and judge (present, missing,
