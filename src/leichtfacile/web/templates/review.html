@@ -25,7 +25,10 @@
         <a class="seg-item view-opt" href="?version={{ v.draft.version }}" data-view="review" aria-current="true">{{ t('review.view.review') }}</a>
         <a class="seg-item view-opt" href="/jobs/{{ job.id }}/preview?version={{ v.draft.version }}" data-view="reader">{{ t('review.reader_view') }}</a>
       </span>
-      <details class="menu">
+      {# The exports live in the reader view's panel: the button opens it (app.js).
+         Without JavaScript the menu of download links stays. #}
+      <button type="button" class="btn js-only" data-view-go="reader">{{ t('review.export') }}</button>
+      <details class="menu no-js">
         <summary class="btn">{{ t('review.export') }}{{ icons.icon('chevron-down', 14) }}</summary>
         <div class="menu-panel">
           {{ menus.export_links(job.id, v.draft.version) }}
@@ -40,18 +43,27 @@
   </div>
   <div class="strip">
     <span title="{{ t('level.' ~ v.draft.level) }}">{{ t.language(doc_lang, job.config.region) }} · {{ v.draft.level }} · {{ t.get('condition.short.' ~ job.config.condition, job.config.condition) }}</span>
-    <nav class="versions" aria-label="{{ t('review.versions_label') }}">
-      <span class="muted">{{ t('review.versions') }}</span>
-      {% for row in v.version_rows %}
-      <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}>v{{ row.version }}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}{% if row.blocking is not none %} <span class="vcount{% if row.blocking == 0 %} zero{% endif %}">{{ t('review.blocking_n', count=row.blocking) }}</span>{% endif %}</a>
-      {% endfor %}
-      {% if v.summary %}<span class="muted" title="{{ t('review.rounds', n=v.summary.rounds_of('repair'), reason=stop_reason(t, v.summary)) }}">{{ t('review.rounds_short', n=v.summary.rounds_of('repair')) }}</span>{% endif %}
-      {% if v.code_splits %}{% set mark = t('mark.' ~ v.compound_mark) %}<span class="muted" title="{{ t('review.code_splits_title', mark=mark) }}">{{ t('review.code_splits', n=v.code_splits, mark=mark) }}</span>{% endif %}
-    </nav>
+    {# The draft versions behind a menu; the summary names the one on screen. #}
+    <details class="menu versions">
+      <summary class="btn btn-sm" aria-label="{{ t('review.versions_label') }}">{{ t('review.versions') }}: v{{ v.draft.version }}{% if v.draft.version == v.final_version %} · {{ t('review.final') }}{% endif %}{{ icons.icon('chevron-down', 14) }}</summary>
+      <div class="menu-panel">
+        {% for row in v.version_rows %}
+        <a class="version{% if row.current %} current{% endif %}" href="?version={{ row.version }}"{% if row.current %} aria-current="page"{% endif %}><span>v{{ row.version }}{% if row.final %} <span class="final">{{ t('review.final') }}</span>{% endif %}</span>{% if row.blocking is not none %}<span class="vcount{% if row.blocking == 0 %} zero{% endif %}">{{ t('review.blocking_n', count=row.blocking) }}</span>{% endif %}</a>
+        {% endfor %}
+        {% if v.summary or v.code_splits %}<hr>{% endif %}
+        {% if v.summary %}<p class="menu-note">{{ t('review.rounds', n=v.summary.rounds_of('repair'), reason=stop_reason(t, v.summary)) }}</p>{% endif %}
+        {% if v.code_splits %}{% set mark = t('mark.' ~ v.compound_mark) %}<p class="menu-note" title="{{ t('review.code_splits_title', mark=mark) }}">{{ t('review.code_splits', n=v.code_splits, mark=mark) }}</p>{% endif %}
+      </div>
+    </details>
     <span class="grow"></span>
-    <span class="stat">{{ icons.sev('error' if counts.error else 'none') }}{{ t('count.errors', n=counts.error) }}</span>
-    <span class="stat">{{ icons.sev('warn') }}{{ t('count.warnings', n=counts.warn) }}</span>
-    {% if fc.total %}<span>{{ t('review.facts_present', present=fc.present, total=fc.total) }}</span>{% endif %}
+    {# What is left to do in this version: the blocking problems and the undecided blocks,
+       each a button that filters the draft (app.js keeps the undecided part current);
+       "Ready to export" when nothing is left. The counts behind them are on the More tab. #}
+    <span class="todo" id="todo" data-blocking="{{ v.blocking }}">
+      <button type="button" class="todo-part bad" data-filter-to="issues" data-tab-to="facts"{% if not v.blocking %} hidden{% endif %}>{{ icons.sev('error') }}{{ t('review.todo.blocking', n=v.blocking) }}</button>
+      <button type="button" class="todo-part" id="todo-undecided" data-filter-to="undecided"{% if not v.undecided %} hidden{% endif %}>{{ t('review.todo.undecided', n=v.undecided) }}</button>
+      <span class="todo-ready" id="todo-ready"{% if v.blocking or v.undecided %} hidden{% endif %}>{{ icons.sev('present') }}{{ t('review.todo.ready') }}</span>
+    </span>
   </div>
 </section>
 
@@ -257,6 +269,16 @@
 
       <section class="tabpanel" id="panel-more" role="tabpanel" aria-labelledby="tab-more">
         <h3 class="tabpanel-title">{{ t('review.tab.more') }}</h3>
+        {# The counts behind the strip's to-do line. #}
+        <div class="more-section">
+          <h3>{{ t('review.more.checks') }}</h3>
+          <dl class="measures">
+            <div><dt>{{ t('review.more.errors') }}</dt><dd>{{ counts.error }}</dd></div>
+            <div><dt>{{ t('review.more.warnings') }}</dt><dd>{{ counts.warn }}</dd></div>
+            {% if fc.total %}<div><dt>{{ t('review.more.facts') }}</dt><dd>{{ fc.present }} / {{ fc.total }}</dd></div>{% endif %}
+            <div><dt>{{ t('review.more.blocking') }}</dt><dd>{{ v.blocking }}</dd></div>
+          </dl>
+        </div>
         {% if v.draft.omissions %}
         <div class="more-section">
           <h3>{{ t('review.omissions') }} <span class="n">{{ v.draft.omissions | length }}</span></h3>

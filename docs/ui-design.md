@@ -291,15 +291,23 @@ The table is a real `<table>`; column widths at 1440 px:
 |--------|---------|------|
 | Document (flexible, at least 280) | Title as a link to `/jobs/{id}`, one line with an ellipsis. Second line, 12 px muted: the source, "Pasted text · 1,960 characters", "Web page · zh.ch", "PDF · antrag.pdf", "Photo". A "Decision" tag for a decision letter (§5.7) | `Job.title`, `SourceDocument.source` (`type`, `uri`), `JobConfig.mode` |
 | Language (130) | "German · A2" | the source's `lang` or `config.lang`, `config.level` |
-| Pipeline (120) | "P2: full" | `condition.short.*` |
-| Status (180) | The badge. Second line: running: the stage and the time so far ("Judge, 1 min 04 s"); queued: "Waiting for the worker"; failed: the first 60 characters of the error, in red | `Job.status`, `Job.stage`, `Job.error` |
-| Checks (200) | Error icon and count, warning icon and count, "Facts 9/14"; "Not yet" before the first draft | the counts on the job row (`review.py`, written by `lifecycle.job_counts`) |
-| Review (150) | A 56 px meter and "4 of 21", with ", complete" once the review is complete; "Not yet" | decisions on the final version, its blocks, `ReviewState.completed` |
-| Created (150) | "Today", "Yesterday" or "05.10.2026", the time below; the full UTC time in `title` | `Job.created_at`; `app.js` makes the day relative, as today |
-| Actions (40) | Row menu (`details.menu`): Open, Reader view, Export Markdown, HTML, Word (since 11 October 2026) or audit bundle, the three text formats with the original text (since 1 November 2026), Delete (asks first) | existing routes |
+| Status (190) | The badge. Second line: running: the stage and the time so far ("Judge, 1 min 04 s"); queued: "Waiting for the worker"; failed: the first 60 characters of the error, in red | `Job.status`, `Job.stage`, `Job.error` |
+| To do (230) | One line of what is left (since 7 November 2026): "4 blocking" in red with the error icon and "33 to decide", "Ready to export" with the green icon when neither is left, "Review complete" once the review is marked complete; "Not yet" before the first draft | the counts on the job row (`review.py`, written by `lifecycle.job_counts`; `blocking` counted as the pipeline counts it, `rounds.blocking_count`) |
+| Created (140) | "Today", "Yesterday" or "05.10.2026", the time below; the full UTC time in `title` | `Job.created_at`; `app.js` makes the day relative, as today |
+| Actions (56) | Row menu (`details.menu`): Open, "Reader view and export" (`/jobs/{id}#reader`, the reader view with the export panel), Delete (asks first) | existing routes |
 
-Rows highlight on hover; the title is the link, the rest of the row has no click
-handler.
+Until 7 November 2026 the table had a Pipeline column, a Checks column (the error and
+warning counts, "Facts 9/14") and a Review column (a meter and "4 of 21"). The
+pipeline now joins the source line ("Pasted text · 1,960 characters · P1: no judge")
+only when it is a choice: when it is not P2, or `server.offer_pipelines` shows the
+choice on the form. The row menu listed every export format; the formats live in the
+reader view's panel alone (§5.6).
+
+Rows highlight on hover and, with JavaScript, the whole row opens the draft
+(`tr[data-href]`; a click on the title link, the menu or with a modifier key keeps its
+own job, a text selection is not a click); the title is the link without it. A status
+filter nobody's draft is in stays out of the segmented control, unless it is the one
+chosen; "All" always shows.
 
 Empty states:
 
@@ -329,7 +337,9 @@ View model: `drafts_view(store, jobs, t) -> list[DraftRow]` in `views.py` (§14)
 reads the counts on the job row (`lifecycle.job_counts`, computed by `review.py` from
 the artifacts); jobs without a draft get status and note only. `DraftRow`: `job`, `title`, `language`, `doc_lang`,
 `source_line`, `status_note`, `has_checks`, `errors`, `warnings`, `facts_present`,
-`facts_total`, `decided`, `blocks`, `complete` and `review_pct`. The template writes the creation date and time in UTC; `app.js` turns
+`facts_total`, `decided`, `blocks`, `complete`, `blocking` and `undecided`. Counts
+written before 7 November 2026 carry no `blocking` (None): the next listing computes
+them again and writes them back, as it does for a job without counts. The template writes the creation date and time in UTC; `app.js` turns
 them into local time and "Today" or "Yesterday".
 
 ### 5.3 New draft (`/new`, `new.html`)
@@ -394,26 +404,39 @@ them into local time and "Today" or "Yesterday".
 ### 5.4 Job running (`job.html`, `_progress.html`)
 
 - Page header: breadcrumb, title, status badge (Queued, Running or Failed). On the
-  right "Running for 2 min 01 s · 8,188 tokens" with "The page updates by itself"
-  under it (not live: a hidden `role=status` region next to it announces each new
-  stage, "Stage 3 of 6: Check"), and "Stop" (danger; since 11 October 2026 it replaces
-  "Delete draft" while the job is queued or running: the job ends at its next stage
-  or streamed chunk and keeps what it has; a stopped or failed job shows "Delete
-  draft", which asks first). Summary strip:
-  language, level, pipeline; the endpoint when the job picked one; the writer and judge
-  model names (`JobConfig`, else the job's endpoint).
+  right the stage line (since 7 November 2026): "Stage 5 of 6: Repair · About 1 minute
+  left", "In the queue" while queued, with "The page updates by itself" under it (not
+  live: a hidden `role=status` region next to it announces each new stage, "Stage 3 of
+  6: Check"), and "Stop" (danger; since 11 October 2026 it replaces "Delete draft"
+  while the job is queued or running: the job ends at its next stage or streamed chunk
+  and keeps what it has; a stopped or failed job shows "Delete draft", which asks
+  first). Until 7 November the line read "Running for 2 min 01 s · 8,188 tokens".
+  Summary strip: language, level, pipeline (the endpoint and the model names moved
+  into the folded details below).
+- The time left (`views._time_left`): the median model time of each stage over the
+  newest 20 finished jobs on the same pipeline (`store.usage_of`, whatever their
+  workspace: timings carry no text), summed over the stages that wait, the running one
+  less what it has used; "Less than a minute left" under 45 s, "About {n} minutes
+  left" rounded to the minute, "Taking longer than usual" once the running stage is
+  past its median with nothing waiting; nothing without a finished job to learn from.
+  The browser tab carries the stage ("Repair, 5 of 6 · Title", `data-tab`), so the
+  page can wait in the background.
 - Left, the card "Pipeline" (380 px) with "Stage 4 of 6" in its header. One row per
   stage:
   - the state icon: done, a green check; running, an accent spinner; waiting, a grey
     ring; skipped, a dashed ring; failed, a red "!";
   - a connector line to the next stage, green after a done stage;
   - title, who tag (Model, Code, You), the state word on the right, the
-    description, the detail line (`Step.detail`, as today);
-  - new: a usage line, "1 call · 2,813 tokens · 47 s" from the stage's
-    `StageUsage`, and "45 rules · no model call" for Check.
+    description, the detail line (`Step.detail`, as today); "45 rules · no model call"
+    under Check.
 
-  The running stage has `--lf-accent-tint` and `aria-current="step"`. The separate
-  usage table goes.
+  The running stage has `--lf-accent-tint` and `aria-current="step"`. Under the
+  stages a folded `details` "Calls, tokens, time and models" (`#run-details`, since 7
+  November 2026): a table with one row per stage that made calls (calls, tokens, model
+  time) and a total, "Running for 2 min 01 s", then the endpoint and the writer and
+  judge model names. Until then every stage carried a usage line ("1 call · 2,813
+  tokens · 47 s") and the models stood in the strip. `app.js` keeps the block open
+  across polls once it was opened.
 - Right, "Results so far" with "Shown as each stage finishes. The review opens by
   itself when the pipeline is done." Two cards side by side:
   - Fact sheet (Model tag, "14 facts"): the five core questions, label above
@@ -433,10 +456,12 @@ them into local time and "Today" or "Yesterday".
   reloads when the status leaves queued and running. It replaces the fragment only
   when something besides the running line changed, so a screen reader keeps its place.
   The fragment's root carries the header's line, formatted by the server, in
-  `data-run`, which `app.js` copies into the page header at every poll, and the running
-  stage in `data-stage`, which it puts into the hidden status region when it changes.
-- View model: `Step` gains `usage: StageUsage | None`, matched by stage key (Read is
-  `understand`); `progress_view` already sums the usage per stage.
+  `data-run`, which `app.js` copies into the page header at every poll, the tab's
+  prefix in `data-tab`, and the running stage in `data-stage`, which it puts into the
+  hidden status region when it changes.
+- View model: `Step` carries `usage: StageUsage | None`, matched by stage key (Read is
+  `understand`); `ProgressView` carries `left_s`, `over`, `left_text`, `run_line` and
+  `tab`.
 
 ### 5.5 Review (`review.html`)
 
@@ -448,9 +473,11 @@ status badge ("Needs review" or "Done"). On the right:
 
 - the view switch "Review | Reader view" (segmented; links as today, `app.js`
   switches in place);
-- the "Export" menu (Markdown, HTML, Word since 11 October 2026, audit bundle; links
-  as today), and below a rule the three text formats once more with the original
-  text appended ("Word with original", since 1 November 2026);
+- "Export", a button that opens the reader view, where the export panel is (since 7
+  November 2026, `data-view-go`); without JavaScript the menu it replaced stays
+  (`.no-js`): Markdown, HTML, Word since 11 October 2026, audit bundle, and below a
+  rule the three text formats once more with the original text appended ("Word with
+  original", since 1 November 2026);
 - the save state (`role=status`): "Saved 10:42" from the stored review's `saved_at`,
   "No decisions saved yet", "Saving..." (a manual save only), "Not saved: {detail}";
   the dot is amber while a save is pending, green after it, red after a failure. Since
@@ -458,12 +485,20 @@ status badge ("Needs review" or "Done"). On the right:
   button: a button `#save-again` appears after a failed save ("Try again") or a
   conflict ("Reload the page"). Ctrl+S saves at once.
 
-**Row 2, the summary strip:** "German · A2: Leichte Sprache, FALC · P2: full";
-"Version" with one pill per draft version ("v1 · final · 10 blocking", "v2 · 11
-blocking"; the current one in `--lf-accent-weak`; links `?version=`); the repair
-rounds and the stop reason; the code-split line when there are splits; on the right
-the error icon and count, the warning icon and count, "Facts 9 of 14 present", and
-"19,369 tokens · 2 min 22 s model time" in muted text.
+**Row 2, the summary strip:** "German · A2 · P2: full"; the versions menu
+("Versions: v3 · final", a `details.menu` since 7 November 2026) with one link per
+draft version ("v1 · final" and "10 blocking" on the right; the current one in
+`--lf-accent-weak`; links `?version=`), then under a rule the repair rounds with the
+stop reason and the code-split line when there are splits; on the right the to-do line
+(`#todo`): "4 blocking problems" in red with the error icon and "33 blocks undecided",
+each a button that filters the draft (With findings, and the Facts tab opens, where the
+missing facts are; Undecided) and selects the first block shown, or "Ready to export"
+in green when neither is left. `app.js` keeps the undecided part current. Until 7
+November the versions were pills in the strip and its right side held the error and
+warning counts and "9 of 14 facts present"; those counts are on the More tab now
+("Checks of this version": errors, warnings, facts present, blocking problems).
+`ReviewView.blocking` is the pipeline's count after the version on screen
+(`summary.blocking_findings`), else counted the same way (`rounds.blocking_count`).
 
 **Three panes,** flush, with 1 px borders between them and no gaps or rounded
 frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
@@ -601,6 +636,7 @@ a document finding points at); `ReviewView` carries `facts_sorted` (the order ab
 source sentence with its state, note and paragraph break) and `segment_counts`
 (sentences, left out, not explained), `saved_at` (when the review was saved, or None),
 `current_blocking` (the current version's blocking count, for the reader view's list),
+`blocking` (the strip's to-do number: `current_blocking`, else counted),
 `facts_text` (the fact counts as one sentence), `blocking_facts`, `undecided`,
 `facts_by_id` and `decided_pct`; `BlockRow` and `GlossaryRow` carry `decided` (the
 decision's code) and `text` (the reviewer's text or the draft's). The template holds
@@ -760,11 +796,17 @@ New or changed:
    stored when the form is sent and filled into a blank form (`data-remember`), each
    only when the form offers the stored value.
 4. Job running: copying the fragment's `data-run` line into the page header at every
-   poll, replacing the fragment only when it changed, announcing a new stage
-   (`data-stage`).
+   poll, the `data-tab` prefix into the document title, replacing the fragment only
+   when it changed (the folded details stay open once opened), announcing a new stage
+   (`data-stage`). Drafts: a click on a row opens the draft (`tr[data-href]`).
 5. Review:
    - one selected block at a time; its row opens (`.is-open`) and carries
      `aria-current="true"`, the others close (the page carries the `js` class);
+   - the strip's to-do line (since 7 November 2026): `[data-filter-to]` sets the
+     draft filter (`setFilter`), `[data-tab-to]` opens that checks tab, and the first
+     block shown is selected; `refresh` rewrites the undecided part and shows "Ready
+     to export" when nothing is left (`#todo`, `data-blocking`); the header's Export
+     button (`[data-view-go]`) opens the reader view;
    - shortcuts only while the focus is in the draft pane (WCAG 2.1.4): J and K, or
      the arrow keys, move; A, E and R decide; N jumps to the next undecided block.
      Ctrl+S (Cmd+S) saves at once from anywhere on the page; Esc closes an open menu;
@@ -865,17 +907,18 @@ drafts.search_label       Search drafts by title
 drafts.filter             Filter by status
 drafts.filter.all         All
 drafts.lang.all           All
-drafts.col.checks         Checks
-drafts.col.review         Review
+drafts.col.todo           To do                     (since 7 November 2026; drafts.col.checks and drafts.col.review went)
 drafts.col.actions        Actions
+drafts.todo.complete      Review complete           (the To do column, since 7 November 2026)
+drafts.todo.ready         Ready to export
+drafts.todo.blocking.*    {n} blocking
+drafts.todo.decide.*      {n} to decide
+drafts.reader_export      Reader view and export
 drafts.source.text        Pasted text · {chars} characters
 drafts.source.html        Web page · {host}
 drafts.source.pdf         PDF · {name}
 drafts.source.image       Photo
 drafts.not_yet            Not yet
-drafts.facts              Facts {present}/{total}
-drafts.reviewed           {decided} of {total}
-drafts.reviewed_complete  {decided} of {total}, complete
 drafts.running            {stage}, {time}
 drafts.actions_for        More actions for {title}
 drafts.open               Open
@@ -924,12 +967,21 @@ progress.state.running    Running
 progress.state.pending    Waiting
 progress.state.skipped    Skipped
 progress.state.failed     Failed
-progress.usage.one        {n} call · {tokens} tokens · {time}
-progress.usage.other      {n} calls · {tokens} tokens · {time}
+progress.usage.stage      Stage                     (the folded usage table, since 7 November 2026; progress.usage.one/other went)
+progress.usage.calls      Calls
+progress.usage.tokens     Tokens
+progress.usage.time       Model time
+progress.usage.total      Total
+progress.details          Calls, tokens, time and models
 progress.no_model         {rules} rules · no model call
 progress.results          Results so far
 progress.results_hint     Shown as each stage finishes. The review opens by itself when the pipeline is done.
-progress.running_for      Running for {time} · {tokens} tokens
+progress.running_for      Running for {time}        (in the folded details; until 7 November 2026 the header's line, with the tokens)
+progress.queued           In the queue              (the header's line, since 7 November 2026)
+progress.left.*           About {n} minutes left
+progress.left_under       Less than a minute left
+progress.left_over        Taking longer than usual
+progress.tab              {stage}, {current} of {total}
 progress.updates          The page updates by itself
 progress.writer           Writer
 progress.judge            Judge
@@ -940,6 +992,15 @@ review.never_saved        No decisions saved yet
 review.blocking_n         {count} blocking
 review.rounds_short.one   {n} repair round
 review.rounds_short.other {n} repair rounds
+review.todo.blocking.*    {n} blocking problems     (the strip's to-do line, since 7 November 2026)
+review.todo.undecided.*   {n} blocks undecided
+review.todo.ready         Ready to export
+review.more.checks        Checks of this version    (the More tab, since 7 November 2026)
+review.more.errors        Errors
+review.more.warnings      Warnings
+review.more.facts         Facts present
+review.more.blocking      Blocking problems
+js.todo_undecided.*       {n} blocks undecided
 review.run.cost           Used
 review.sentences.one      {n} sentence
 review.sentences.other    {n} sentences

@@ -105,7 +105,9 @@ for comparison.
 ## 3. While the model works
 
 The draft page shows each stage as it runs. A letter of one or two pages takes a few
-minutes. The page updates by itself; you can leave it and come back through the list of
+minutes. The line at the top right says where the run is and about how long it still
+takes, once the app has seen a few runs; the browser tab says it too, so you can switch
+away. The page updates by itself; you can leave it and come back through the list of
 drafts.
 
 ![The progress page: Read, Write and Check done, Judge done, Repair running; on the right the fact sheet and draft version 1 with its findings](images/guide/en/03-progress.webp)
@@ -120,23 +122,24 @@ drafts.
 | Review | You | Approve, edit or reject each block, then export. |
 
 Under **Results so far** you see the fact sheet and the latest version as soon as they
-exist. **Stop** ends the run. If a run fails, the stages that finished are kept: click
+exist. **Calls, tokens, time and models** under the stages opens what the run used so
+far. **Stop** ends the run. If a run fails, the stages that finished are kept: click
 **Run again from the start**. When the pipeline is done, the review page opens.
 
 ## 4. The list of drafts
 
 **Drafts** lists every draft, the newest first.
 
-![The list of drafts with two letters that need review: their checks, the facts found and the review progress](images/guide/en/04-drafts.webp)
+![The list of drafts with two letters that need review, each with what is left to do](images/guide/en/04-drafts.webp)
 
 - **Status**: Queued, Running (with the stage), Needs review, Done (review complete) or
   Failed.
-- **Checks**: the errors and warnings of the final version, and how many facts that must
-  survive are in it.
-- **Review**: how many blocks you have decided.
-- The menu at the end of a row: **Open**, **Reader view**, the exports and **Delete**.
+- **To do**: what is left on the draft: how many problems block publication and how many
+  blocks you have not decided; **Ready to export** when nothing is left, **Review
+  complete** once you marked it so.
+- The menu at the end of a row: **Open**, **Reader view and export** and **Delete**.
 
-Search by title, filter by status or language. Depending on the settings of your
+Click a row to open the draft. Search by title, filter by status or language. Depending on the settings of your
 installation, drafts nobody changed for a while are deleted after some days; ask whoever
 runs the app.
 
@@ -149,10 +152,12 @@ source sentences it comes from light up on the left.
 ![The review page: a block with a finding is open in the middle, its source sentences are marked on the left, the facts on the right](images/guide/en/05-review.webp)
 
 **The strip under the title** shows the language, the level and the pipeline, then the
-**Versions** of the draft: v1 is the first draft, every repair round adds one, and one is
-marked **final**, not always the last. Each version shows its blocking problems. You review the
-final version; click another to compare. On the right: the errors, the warnings and the
-facts found in the version you see.
+**Versions** menu: v1 is the first draft, every repair round adds one, and one is marked
+**final**, not always the last. Each version shows its blocking problems. You review the
+final version; choose another to compare. On the right, what is left to do in the
+version you see: the **blocking problems** (errors, and facts missing or distorted) and
+the **undecided blocks**. Click either to see those blocks; **Ready to export** appears
+when nothing is left.
 
 **The source** shows the document sentence by sentence, numbered. A sentence marked
 **Left out** was dropped on purpose, with the reason next to it. **Not explained** marks a
@@ -232,6 +237,8 @@ The other tabs:
 
 The **More** tab shows:
 
+- **Checks of this version**: the errors, the warnings, the facts present and the
+  blocking problems, as numbers.
 - **Left out, with reasons**: what the draft leaves out and why. Click an entry to see
   the source sentences.
 - **Glossary**: the hard words and their explanations. Those marked **from the
@@ -245,8 +252,8 @@ The **More** tab shows:
 
 ## 8. Reader view and export
 
-**Reader view** (top of the review page) shows the text as a reader gets it, with your
-decisions: rejected blocks left out, edits in place.
+**Reader view** (top of the review page, also behind **Export**) shows the text as a
+reader gets it, with your decisions: rejected blocks left out, edits in place.
 
 ![The reader view: the easy-language letter on the left, the export options on the right](images/guide/en/08-reader.webp)
 
@@ -266,7 +273,8 @@ printer for a PDF.
 The export carries every decision made so far. Undecided blocks stay in, as drafted. The checklist **Before publication** shows how many blocks are decided,
 the blocking problems left in the version and whether the review is marked complete.
 
-The menu of a row in the list of drafts offers the same exports.
+**Reader view and export** in the menu of a row in the list of drafts opens the same
+view.
 
 ## 9. Check a text you wrote
 

@@ -220,6 +220,16 @@
       button.hidden = true;
     });
   });
+  // A click on a row of the drafts list opens the draft; the title link, the menu and
+  // a click with a modifier key keep their own job.
+  $$("tr[data-href]").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button, details, form, input, select, label")) return;
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+      if (String(window.getSelection())) return; // a text selection, not a choice
+      window.location.assign(row.dataset.href);
+    });
+  });
   $$("select[data-autosubmit]").forEach((select) => {
     select.addEventListener("change", () => select.form.submit());
   });
@@ -405,13 +415,20 @@
   const progress = $("#progress");
   if (progress && ["queued", "running"].includes(progress.dataset.status)) {
     const id = progress.dataset.job;
-    const line = $("#run-numbers");
+    const line = $("#run-line");
     const announce = $("#run-stage");
     const withoutRun = (html) => html.replace(/ data-run="[^"]*"/, "").trim();
     const first = $(".jobgrid", progress);
     let shown = withoutRun(progress.innerHTML);
     let stage = (first && first.dataset.stage) || "";
     let busy = false;
+    // The browser tab names the stage, so the page can wait in the background.
+    const baseTitle = document.title;
+    const setTab = (grid) => {
+      const tab = grid && grid.dataset.tab;
+      document.title = tab ? `${tab} · ${baseTitle}` : baseTitle;
+    };
+    setTab(first);
     const tick = async () => {
       if (busy) return;
       busy = true;
@@ -426,11 +443,17 @@
         const fresh = document.createElement("template");
         fresh.innerHTML = await res.text();
         const grid = $(".jobgrid", fresh.content);
-        if (grid && line && grid.dataset.run) line.textContent = grid.dataset.run;
+        if (grid && line) line.textContent = grid.dataset.run || "";
+        setTab(grid);
         const html = withoutRun(fresh.innerHTML);
         if (html !== shown) {
+          // the folded details stay open across the replacement once opened
+          const details = $("#run-details", progress);
+          const open = Boolean(details && details.open);
           shown = html;
           progress.replaceChildren(fresh.content);
+          const again = $("#run-details", progress);
+          if (again && open) again.open = true;
         }
         const next = (grid && grid.dataset.stage) || "";
         if (announce && next && next !== stage) announce.textContent = next;
@@ -553,6 +576,14 @@
     $("#decided-count").textContent = t("decided", { decided, total });
     $("#decided-meter").style.width = `${total ? Math.round((100 * decided) / total) : 0}%`;
     $("#undecided-n").textContent = String(total - decided);
+    // the strip's to-do line: the undecided part, and "Ready to export" when nothing is left
+    const todo = $("#todo");
+    if (todo) {
+      const part = $("#todo-undecided", todo);
+      part.hidden = decided === total;
+      part.textContent = t("todo_undecided", { n: total - decided });
+      $("#todo-ready", todo).hidden = decided !== total || Number(todo.dataset.blocking) > 0;
+    }
     const check = $("#check-decided");
     if (check) {
       check.classList.toggle("done", decided === total);
@@ -778,15 +809,24 @@
     save({ manual: true });
   });
 
-  $$(".filter").forEach((button) => {
+  const setFilter = (name) => {
+    filter = name;
+    $$(".filter").forEach((b) => {
+      const on = b.dataset.filter === name;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    applyFilter();
+  };
+  $$(".filter").forEach((button) => button.addEventListener("click", () => setFilter(button.dataset.filter)));
+  // The strip's to-do line: each part filters the draft and selects the first block
+  // shown; the blocking part opens the Facts tab too, where the missing facts are.
+  $$("[data-filter-to]").forEach((button) => {
     button.addEventListener("click", () => {
-      filter = button.dataset.filter;
-      $$(".filter").forEach((b) => {
-        const on = b === button;
-        b.classList.toggle("active", on);
-        b.setAttribute("aria-pressed", String(on));
-      });
-      applyFilter();
+      setFilter(button.dataset.filterTo);
+      if (button.dataset.tabTo) activate(document.getElementById(`tab-${button.dataset.tabTo}`));
+      const shown = blocks.find((b) => !b.hidden);
+      if (shown) select(shown, { scroll: true, focus: true });
     });
   });
 
@@ -1040,6 +1080,12 @@
     a.addEventListener("click", (event) => {
       event.preventDefault();
       if (a.dataset.view !== view) showView(a.dataset.view);
+    })
+  );
+  // the header's Export button: the exports live in the reader view's panel
+  $$("[data-view-go]").forEach((button) =>
+    button.addEventListener("click", () => {
+      if (button.dataset.viewGo !== view) showView(button.dataset.viewGo);
     })
   );
 

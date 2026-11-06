@@ -645,6 +645,9 @@ class JobCounts(Artifact):
     blocks: int = 0  # what the reviewer decides: blocks and glossary entries
     decided: int = 0
     complete: bool = False
+    # What blocks publication in the final version (pipeline/rounds.py `blocking_count`):
+    # None on counts written before 7 November 2026, computed again on the next listing.
+    blocking: int | None = None
 
 
 class Job(Artifact):

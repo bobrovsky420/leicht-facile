@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from leichtfacile.export import glossary_ids
+from leichtfacile.pipeline.rounds import blocking_count
 from leichtfacile.rules.document import display_value, fact_coverage
 from leichtfacile.rules.recipes import RECIPE_RULES
 from leichtfacile.rules.values import parse_value_norm
@@ -279,4 +280,5 @@ def review_counts(data: ReviewData) -> dict[str, Any]:
         "blocks": review_items(data.draft),
         "decided": decided_count(data.draft, data.review),
         "complete": bool(data.review and data.review.completed),
+        "blocking": blocking_count(data.rules, data.judge) if data.rules else 0,
     }

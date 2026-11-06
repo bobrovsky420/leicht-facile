@@ -816,6 +816,24 @@ class Store:
                 ),
             )
 
+    def usage_of(self, job_ids: list[str]) -> dict[str, list[UsageRecord]]:
+        """The model calls of these jobs, each job's in the order made: the time a
+        stage usually takes, for the time left on the progress page (web/views.py)."""
+        if not job_ids:
+            return {}
+        marks = ",".join("?" * len(job_ids))
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT job_id, stage, model, tokens_in, tokens_out, latency_ms, cached "
+                f"FROM llm_calls WHERE job_id IN ({marks}) ORDER BY id",
+                job_ids,
+            ).fetchall()
+        out: dict[str, list[UsageRecord]] = {}
+        for r in rows:
+            record = dict(r)
+            out.setdefault(record.pop("job_id"), []).append(UsageRecord(**record))
+        return out
+
     def usage_totals(self) -> list[dict]:
         """Calls, tokens and latency per stage, model and cache hit, summed over every
         stored job, for `/metrics` (web/observability.py)."""

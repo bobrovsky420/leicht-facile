@@ -1,9 +1,10 @@
 {# The progress fragment: included by job.html and polled at /jobs/{id}/progress. Its
-   root carries the header's running line, which app.js copies at every poll, and the
-   running stage, which app.js announces when it changes. #}
+   root carries the header's line (the stage, the time left), which app.js copies at
+   every poll, the browser tab's prefix, and the running stage, which app.js announces
+   when it changes. #}
 {% import "_icons.html" as icons with context %}
 {% import "_hint.html" as hints with context %}
-<div class="jobgrid" data-run="{{ t('progress.running_for', time=duration(p.elapsed_s), tokens=t.number(p.tokens)) }}" data-stage="{{ t('progress.stage_now', current=p.current_index, total=p.steps | length, stage=p.current.title) if p.current else '' }}">
+<div class="jobgrid" data-run="{{ p.run_line }}" data-tab="{{ p.tab }}" data-stage="{{ t('progress.stage_now', current=p.current_index, total=p.steps | length, stage=p.current.title) if p.current else '' }}">
   <section class="card pipeline" aria-labelledby="pipe-h">
     <div class="card-head">
       <h2 id="pipe-h">{{ t('progress.pipeline') }}</h2>
@@ -23,12 +24,32 @@
           <span class="step-top"><span class="step-title">{{ s.title }}</span>{{ icons.who(s.who) }}<span class="step-state">{{ t('progress.state.' ~ s.state) }}</span></span>
           <span class="step-desc">{{ s.description }}</span>
           {% if s.detail %}<span class="step-detail">{{ s.detail }}</span>{% endif %}
-          {% if s.usage %}<span class="step-usage">{{ t('progress.usage', n=s.usage.calls, tokens=t.number(s.usage.tokens_in + s.usage.tokens_out), time=duration(s.usage.seconds)) }}</span>
-          {% elif s.key == 'check' and s.state == 'done' %}<span class="step-usage">{{ t('progress.no_model', rules=rule_count) }}</span>{% endif %}
+          {% if s.key == 'check' and s.state == 'done' %}<span class="step-usage">{{ t('progress.no_model', rules=rule_count) }}</span>{% endif %}
         </span>
       </li>
     {% endfor %}
     </ol>
+    {# The calls, tokens and model time per stage and the models, folded away: a
+       reviewer waits for the stage line, not for these. app.js keeps the block open
+       across polls once it was opened. #}
+    <details class="run-details" id="run-details">
+      <summary>{{ t('progress.details') }}</summary>
+      <table class="usage">
+        <thead><tr><th scope="col">{{ t('progress.usage.stage') }}</th><th scope="col">{{ t('progress.usage.calls') }}</th><th scope="col">{{ t('progress.usage.tokens') }}</th><th scope="col">{{ t('progress.usage.time') }}</th></tr></thead>
+        <tbody>
+        {% for s in p.steps if s.usage %}
+          <tr><th scope="row">{{ s.title }}</th><td>{{ s.usage.calls }}</td><td>{{ t.number(s.usage.tokens_in + s.usage.tokens_out) }}</td><td>{{ duration(s.usage.seconds) }}</td></tr>
+        {% endfor %}
+          <tr class="total"><th scope="row">{{ t('progress.usage.total') }}</th><td>{{ p.usage | sum(attribute='calls') }}</td><td>{{ t.number(p.tokens) }}</td><td>{{ duration(p.usage | sum(attribute='seconds')) }}</td></tr>
+        </tbody>
+      </table>
+      <p class="hint">{{ t('progress.running_for', time=duration(p.elapsed_s)) }}</p>
+      <dl class="runinfo">
+        {% if job.config.endpoint %}<dt>{{ t('site.endpoint') }}</dt><dd><code>{{ job.config.endpoint }}</code></dd>{% endif %}
+        <dt>{{ t('progress.writer') }}</dt><dd><code>{{ job.config.writer_model or job_llm.models.writer }}</code></dd>
+        {% if job.config.judge_model %}<dt>{{ t('progress.judge') }}</dt><dd><code>{{ job.config.judge_model }}</code></dd>{% endif %}
+      </dl>
+    </details>
   </section>
 
   <div class="results">

@@ -9,10 +9,12 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from statistics import median
 from urllib.parse import urlsplit
 
 from leichtfacile.export import glossary_ids
 from leichtfacile.lifecycle import job_counts
+from leichtfacile.pipeline.rounds import blocking_count
 from leichtfacile.review import (
     FactRow,
     Issue,
@@ -45,6 +47,7 @@ from leichtfacile.schemas import (
     RuleFindings,
     Segment,
     SourceDocument,
+    UsageRecord,
 )
 from leichtfacile.store import Store
 from leichtfacile.varieties import variety
@@ -218,6 +221,15 @@ class ReviewView:
     def blocking_facts(self) -> int:
         """Must-keep facts missing or distorted: what blocks publication."""
         return self.fact_counts["missing"] + self.fact_counts["distorted"]
+
+    @property
+    def blocking(self) -> int:
+        """What blocks publication in the version on screen, the strip's to-do number:
+        the pipeline's count after that version, else counted here the same way (a job
+        whose summary is missing)."""
+        if self.current_blocking is not None:
+            return self.current_blocking
+        return blocking_count(self.rules, self.judge) if self.rules else 0
 
     @property
     def blocks_with_issues(self) -> int:
@@ -462,6 +474,11 @@ class ProgressView:
     elapsed_s: float
     block_marks: dict[str, str] = field(default_factory=dict)  # block id -> worst severity
     core: list[CoreRow] = field(default_factory=list)
+    left_s: float | None = None  # model seconds the stages still need; None: no sample
+    over: bool = False  # the running stage is past what it usually takes, nothing waits
+    left_text: str = ""  # "About 2 minutes left", "" without an estimate
+    run_line: str = ""  # the header's line while the job is live: the stage, the time left
+    tab: str = ""  # the browser tab's prefix while the job is live: "Repair, 5 of 6"
 
     @property
     def current(self) -> Step | None:
@@ -511,14 +528,14 @@ def progress_view(
         steps[0].detail = t("detail.waiting")
 
     block_marks = _block_marks(rules)
-    by_stage = _usage_by_stage(job)
+    by_stage = _usage_by_stage(job.usage)
     for step in steps:
         step.usage = by_stage.get(step.key)
 
     now = now or datetime.now(UTC)
     end = now if job.status in ("queued", "running") else job.updated_at
     elapsed = (_aware(end) - _aware(job.created_at)).total_seconds()
-    return ProgressView(
+    view = ProgressView(
         job=job,
         steps=steps,
         factsheet=factsheet,
@@ -530,6 +547,73 @@ def progress_view(
         block_marks=block_marks,
         core=core_questions(factsheet, t) if factsheet else [],
     )
+    if job.status == "running":
+        view.left_s, view.over = _time_left(steps, _past_stage_seconds(store, job))
+        view.left_text = _left_text(t, view.left_s, view.over)
+    _run_line(view, t)
+    return view
+
+
+PAST_JOBS = 20  # the finished jobs whose stage times give the time left
+
+
+def _past_stage_seconds(store: Store, job: Job) -> dict[str, list[float]]:
+    """Model seconds per step key of the newest finished jobs on the same pipeline,
+    whatever their workspace (timings carry no text), this job left out: the sample the
+    time left is estimated from."""
+    jobs = [
+        past
+        for status in ("needs_review", "done")
+        for past in store.list_jobs(PAST_JOBS, status=status)
+        if past.id != job.id and past.config.condition == job.config.condition
+    ]
+    jobs.sort(key=lambda past: past.created_at, reverse=True)
+    samples: dict[str, list[float]] = {}
+    for usage in store.usage_of([past.id for past in jobs[:PAST_JOBS]]).values():
+        for key, row in _usage_by_stage(usage).items():
+            samples.setdefault(key, []).append(row.seconds)
+    return samples
+
+
+def _time_left(steps: list[Step], samples: dict[str, list[float]]) -> tuple[float | None, bool]:
+    """Seconds the model stages still need, from the median past time of each: the
+    waiting stages in full, the running one less what it has used. (None, False)
+    without a sample for any of them; the flag says the running stage is past its
+    median and nothing waits ("taking longer than usual")."""
+    left, known = 0.0, False
+    for step in steps:
+        if step.who != "model" or step.state not in ("running", "pending"):
+            continue
+        sample = samples.get(step.key)
+        if not sample:
+            continue
+        known = True
+        used = step.usage.seconds if step.usage and step.state == "running" else 0.0
+        left += max(median(sample) - used, 0.0)
+    return (left, left <= 0.0) if known else (None, False)
+
+
+def _left_text(t: Translator, left_s: float | None, over: bool) -> str:
+    if left_s is None:
+        return ""
+    if over:
+        return t("progress.left_over")
+    if left_s < 45:
+        return t("progress.left_under")
+    return t("progress.left", n=max(1, round(left_s / 60)))
+
+
+def _run_line(view: ProgressView, t: Translator) -> None:
+    """The header's line and the tab's prefix while the job is live: the stage with the
+    time left, or the queue."""
+    if view.job.status == "queued":
+        view.run_line = view.tab = t("progress.queued")
+    elif view.current is not None and view.job.status == "running":
+        numbers = {"current": view.current_index, "total": len(view.steps)}
+        view.run_line = t("progress.stage_now", stage=view.current.title, **numbers)
+        if view.left_text:
+            view.run_line += " · " + view.left_text
+        view.tab = t("progress.tab", stage=view.current.title, **numbers)
 
 
 def _current_step(job: Job, keys: tuple[str, ...], drafts: list[int]) -> str | None:
@@ -580,10 +664,10 @@ def _block_marks(rules: RuleFindings | None) -> dict[str, str]:
     return block_marks
 
 
-def _usage_by_stage(job: Job) -> dict[str, StageUsage]:
-    """The job's model calls summed per step key; every kind of round counts as repair."""
+def _usage_by_stage(usage: list[UsageRecord]) -> dict[str, StageUsage]:
+    """A job's model calls summed per step key; every kind of round counts as repair."""
     by_stage: dict[str, StageUsage] = {}
-    for u in job.usage:
+    for u in usage:
         key = u.stage.split(" ")[0]
         key = "repair" if key in ROUND_KINDS else key
         row = by_stage.setdefault(key, StageUsage(key))
@@ -736,10 +820,11 @@ class DraftRow:
     decided: int = 0
     blocks: int = 0
     complete: bool = False
+    blocking: int = 0  # what blocks publication in the final version
 
     @property
-    def review_pct(self) -> int:
-        return round(100 * self.decided / self.blocks) if self.blocks else 0
+    def undecided(self) -> int:
+        return self.blocks - self.decided
 
 
 def display_title(job: Job) -> str:
@@ -765,13 +850,14 @@ def drafts_view(
     store: Store, jobs: list[Job], t: Translator = ENGLISH, now: datetime | None = None
 ) -> list[DraftRow]:
     """One row per job for the drafts list, from the counts on the job row (audit B3):
-    no artifact is opened. A job stored before the counts existed gets them computed
-    once here and written back."""
+    no artifact is opened. A job stored before the counts existed (11 October 2026), or
+    before the blocking count joined them (7 November 2026), gets them computed once
+    here and written back."""
     now = now or datetime.now(UTC)
     rows: list[DraftRow] = []
     for job in jobs:
         counts = job.counts
-        if counts is None:
+        if counts is None or (counts.has_draft and counts.blocking is None):
             counts = job_counts(store, job)
             store.update_job(job.id, counts=counts)
             job = job.model_copy(update={"counts": counts})
@@ -802,6 +888,7 @@ def drafts_view(
             row.facts_present, row.facts_total = counts.facts_present, counts.facts_total
             row.decided, row.blocks = counts.decided, counts.blocks
             row.complete = counts.complete
+            row.blocking = counts.blocking or 0
         rows.append(row)
     return rows
 

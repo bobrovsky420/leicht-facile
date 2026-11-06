@@ -1141,11 +1141,13 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   A "Skip to content" link comes first. The explanations on the pages (the Facts,
   Findings and Questions tabs, the glossary, "Results so far", Check my text) are
   one-time hints: a cross hides each for good in that browser (`localStorage`).
-- **Drafts** (`/`): the work queue as a table. Title and where the text came from,
-  language and level, pipeline, status (the stage and time while running, the error
-  when failed), the checks of the latest draft (errors, warnings, facts present), the
-  review progress, the creation time, and a row menu (open, reader view, exports,
-  delete, which asks first). Search, status filter with counts and language filter are
+- **Drafts** (`/`): the work queue as a table. Title and where the text came from
+  (with the pipeline when it is not P2), language and level, status (the stage and
+  time while running, the error when failed), what is left to do on the latest draft
+  ("4 blocking · 33 to decide", "Ready to export", "Review complete"), the creation
+  time, and a row menu (open, reader view and export, delete, which asks first); a
+  click on the row opens the draft. Search, status filter with counts (a status with
+  no draft is hidden) and language filter are
   GET parameters, so they work without JavaScript; at most 50 rows, newest first, with
   the counts from the job row (`review.py` counts a draft's findings, facts and
   decisions from its artifacts, without interface text; `lifecycle.py` writes them when
@@ -1191,10 +1193,15 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   warnings and notes per 100 blocks, sentences, words per sentence, readability,
   passive, genitive and subordinate-clause shares). Nothing is stored. Facts and
   meaning need the pipeline, which the page says.
-- **Job running** (`/jobs/{id}` while queued or running): the stages of the chosen
-  condition as a stepper (done, running, waiting, skipped, failed), each with its
-  detail line ("14 facts, 14 must survive") and its model usage ("1 call · 2,813
-  tokens · 47 s"; Check: "45 rules · no model call"); next to it the results as soon
+- **Job running** (`/jobs/{id}` while queued or running): the header says where the
+  job is and how long it still takes ("Stage 5 of 6: Repair · About 1 minute left":
+  the median model time of each stage over the newest 20 finished jobs on the same
+  pipeline, the running stage less what it has used; "Taking longer than usual" past
+  that; nothing without a finished job to learn from), and the browser tab carries the
+  stage; the stages of the chosen condition as a stepper (done, running, waiting,
+  skipped, failed), each with its detail line ("14 facts, 14 must survive"; Check: "45
+  rules · no model call"); under them, folded away, the calls, tokens and model time
+  per stage, the running time and the model names; next to it the results as soon
   as they exist: the fact sheet with the core questions and the facts that must
   survive, then the latest draft with a severity mark on blocks that have findings.
   The page polls `/jobs/{id}/progress` every two seconds (every five after two
@@ -1203,11 +1210,17 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   in place of "Delete": the job ends at its next stage or streamed chunk, keeps the
   stages that finished and reads "The job was stopped", with "Run again".
 - **Review** (`/jobs/{id}` once a draft exists): a header with the view switch
-  (Review, Reader view), the export menu and the save state ("Saved 10:42": the review
-  saves by itself a moment after each change, Ctrl+S saves at once, and after a failed
-  save a button offers "Try again", after a conflict "Reload the page"); a strip with
-  language, level, pipeline, the draft versions as
-  pills with the blocking problems left after each, the repair rounds and the counts.
+  (Review, Reader view), an Export button that opens the reader view's export panel
+  (without JavaScript, a menu of the download links) and the save state ("Saved
+  10:42": the review saves by itself a moment after each change, Ctrl+S saves at once,
+  and after a failed save a button offers "Try again", after a conflict "Reload the
+  page"); a strip with language, level, pipeline, the draft versions behind a
+  "Versions" menu (each with the blocking problems left after it, then the repair
+  rounds) and, on the right, the to-do line: "4 blocking problems" and "33 blocks
+  undecided", each a button that filters the draft, or "Ready to export". The drafts
+  list says the same per row in its To do column ("4 blocking · 33 to decide", "Ready
+  to export", "Review complete"), from the counts on the job row, and a click on the
+  row opens the draft.
   On a window at least 1101 px wide and 600 px high the page fits the window and only
   the three panes scroll; smaller windows stack them. The panes:
   1. **Source** - the sentences in order. Selecting a block marks the sentences it came

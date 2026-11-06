@@ -486,13 +486,15 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
 @router.get("/jobs/{job_id}/progress", response_class=HTMLResponse)
 def job_progress(request: Request, job_id: str) -> HTMLResponse:
     """The progress fragment the job page polls while the pipeline runs."""
+    state = request.app.state
     job = _job_or_404(request, job_id)
     t = translator(request)
     response = _render(
         request,
         "_progress.html",
         job=job,
-        p=progress_view(request.app.state.store, job, t=t),
+        job_llm=state.orchestrator.llm_for(job),
+        p=progress_view(state.store, job, t=t),
         t=t,
         rule_count=rule_count(),
     )

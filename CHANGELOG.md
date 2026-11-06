@@ -28,6 +28,20 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - Typing in a block's field makes the block edited; a text set back to the original
   restores the decision made before. Until now a text typed without choosing Edit was
   not saved.
+- One line says what is left to do. On the review page the strip shows "4 blocking
+  problems" and "33 blocks undecided", each a button that shows those blocks, or "Ready
+  to export"; the draft versions sit behind a "Versions" menu, and the error, warning
+  and fact counts moved to the More tab. The list of drafts shows the same per row in
+  one "To do" column in place of the Checks, Review and Pipeline columns (the pipeline
+  joins the source line when it is not P2), and a click anywhere on a row opens the
+  draft. Status filters with no draft are hidden.
+- While a draft runs, the page header says the stage and about how long the run still
+  takes, from the stage times of the last finished drafts on the same pipeline, and the
+  browser tab names the stage. The calls, tokens, model time and model names are folded
+  away under the stages.
+- The exports live in one place, the reader view's panel: the review page's Export
+  button opens it, and the row menu of the list offers "Reader view and export" in
+  place of the list of formats.
 - The explanations in the app are one-time hints: the notes on the Facts, Findings and
   Questions tabs and above the glossary of the review page, next to "Results so far"
   while a draft runs, and above Check my text each carry a cross that hides them for

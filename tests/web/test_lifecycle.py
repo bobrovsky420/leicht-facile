@@ -210,6 +210,8 @@ def test_the_drafts_list_reads_its_counts_from_the_job_row(app_env) -> None:
         view.fact_counts["present"], view.fact_counts["total"],
     )  # fmt: skip
     assert (job.counts.blocks, job.counts.decided, job.counts.complete) == (view.items, 0, False)
+    assert job.counts.blocking == view.blocking  # the To do column's number
+    assert f"{view.items} to decide" in client.get("/").text
 
     decisions = [{"block_id": b, "decision": "approved"} for b in ("b001", "b002")]
     saved = client.post(
@@ -219,13 +221,17 @@ def test_the_drafts_list_reads_its_counts_from_the_job_row(app_env) -> None:
     assert saved.status_code == 200
     counts = store.get_job(job_id).counts
     assert (counts.decided, counts.complete) == (2, True)
-    assert f"2 of {counts.blocks}, complete" in client.get("/").text
+    assert "Review complete" in client.get("/").text
 
     store.update_job(job_id, counts=None)  # as a job stored before 11 October 2026
     assert store.get_job(job_id).counts is None
     page = client.get("/")
-    assert f"2 of {counts.blocks}, complete" in page.text
+    assert "Review complete" in page.text
     assert store.get_job(job_id).counts == counts  # written back once
+    # Counts written before 7 November 2026 carry no blocking count: computed once too.
+    store.update_job(job_id, counts=counts.model_copy(update={"blocking": None}))
+    assert "Review complete" in client.get("/").text
+    assert store.get_job(job_id).counts.blocking == counts.blocking
 
 
 def test_deleting_a_job_drops_its_rows_in_the_response_cache(make_env, endpoint, tmp_path) -> None:

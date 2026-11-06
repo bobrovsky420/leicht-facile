@@ -153,7 +153,7 @@ def test_an_export_with_the_original_appends_the_source_text(app_env) -> None:
     page = client.get(f"/jobs/{job_id}").text
     assert f"{export}?format=docx&amp;version=1&amp;original=1" in page
     assert "Word with original" in page and 'id="export-original"' in page
-    assert f"{export}?format=md&amp;original=1" in client.get("/").text
+    assert f'href="/jobs/{job_id}#reader"' in client.get("/").text  # the row menu
     assert "format=json&amp;original" not in page
     assert "Originaltext" in client.get(f"/jobs/{job_id}/preview?original=1").text
     assert "Originaltext" not in client.get(f"/jobs/{job_id}/preview").text

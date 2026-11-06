@@ -133,6 +133,9 @@ def test_drafts_list_filters_by_status_search_and_language(env) -> None:
     failed = client.get("/", params={"status": "failed"}).text
     assert 'aria-current="true">Failed<span class="n">1</span>' in failed
     assert '>All<span class="n">3</span>' in failed and "1 of 3 drafts" in failed
+    # A status nobody's draft has stays out of the filters; a row opens its draft.
+    assert ">Queued<" in failed and ">Running<" not in failed and ">Done<" not in failed
+    assert '<tr data-href="/jobs/' in page
     nothing = client.get("/", params={"q": "zzz"}).text
     assert "No drafts match" in nothing and ">Clear filters</a>" in nothing
 
@@ -323,7 +326,8 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
     assert (usage.calls, usage.tokens_in, usage.tokens_out) == (1, 1200, 300)
     assert view.steps[1].usage is None
     page = client.get(f"/jobs/{job.id}").text
-    assert "1 call · 1,500 tokens · 4 s" in page
+    assert '<th scope="row">Read</th><td>1</td><td>1,500</td><td>4 s</td>' in page  # folded away
+    assert 'id="run-line">Stage 2 of 6: Write<' in page  # no sample yet: no time left
     # The running time is not live; app.js announces the stage when it changes.
     assert 'class="run-line">' in page and 'data-stage="Stage 2 of 6: Write"' in page
 
@@ -347,6 +351,38 @@ def test_failed_job_marks_the_failed_step_with_the_error(env) -> None:
     assert "Run again from the start" in page.text
 
 
+def test_the_progress_header_estimates_the_time_left_from_past_jobs(env) -> None:
+    """The stage line names the time the model stages still need: the median model
+    time of each over the newest finished jobs on the same pipeline, the running stage
+    less what it has used; without such a job there is no estimate."""
+    client, _, store, settings, _ = env
+    past = queued_job(store, settings, condition="P2")
+    for stage, seconds in (("understand", 20), ("write", 40), ("judge", 15), ("repair 1", 50)):
+        store.add_usage(past.id, Usage(stage, "m", 100, 50, seconds * 1000))
+    store.update_job(past.id, status="done")
+    job = queued_job(store, settings, condition="P2")
+    store.update_job(job.id, status="running", stage="write")
+    store.add_usage(job.id, Usage("understand", "m", 100, 50, 20_000))
+    store.add_usage(job.id, Usage("write", "m", 100, 50, 10_000))
+
+    view = progress_view(store, store.get_job(job.id))
+    assert view.left_s == 30 + 15 + 50  # the rest of Write, then Judge and Repair
+    assert view.left_text == "About 2 minutes left" and view.tab == "Write, 2 of 6"
+    assert view.run_line == "Stage 2 of 6: Write · About 2 minutes left"
+    page = client.get(f"/jobs/{job.id}").text
+    assert 'id="run-line">Stage 2 of 6: Write · About 2 minutes left<' in page
+    assert 'data-tab="Write, 2 of 6"' in page and 'id="run-details"' in page
+    # Past its median with nothing waiting: taking longer than usual.
+    store.update_job(job.id, stage="repair 1")
+    store.add_usage(job.id, Usage("judge", "m", 100, 50, 15_000))
+    store.add_usage(job.id, Usage("repair 1", "m", 100, 50, 60_000))
+    view = progress_view(store, store.get_job(job.id))
+    assert view.over and view.left_text == "Taking longer than usual"
+    # In the queue: the queue, no estimate.
+    store.update_job(job.id, status="queued", stage=None)
+    assert progress_view(store, store.get_job(job.id)).run_line == "In the queue"
+
+
 def test_review_page_shows_core_questions_versions_and_counts(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)
@@ -361,6 +397,11 @@ def test_review_page_shows_core_questions_versions_and_counts(env) -> None:
     assert f"0 of {len(fx.WRITE['blocks']) + 2} decided" in page.text
     assert 'data-filter="issues"' in page.text
     assert "Reader view" in page.text
+    # The strip: the versions menu and the to-do line, each part a filter button.
+    assert 'class="menu versions"' in page.text and "Versions: v1" in page.text
+    assert f"{len(fx.WRITE['blocks']) + 2} blocks undecided" in page.text
+    assert 'data-filter-to="issues" data-tab-to="facts"' in page.text
+    assert "Checks of this version" in page.text  # the counts, on the More tab
 
 
 def test_review_page_marks_the_glossary_entries_code_added(env) -> None:
@@ -548,9 +589,13 @@ def test_every_export_menu_offers_word(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)
     page = client.get(f"/jobs/{job_id}").text
-    assert f"/api/v1/jobs/{job_id}/export?format=docx&amp;version=1" in page  # the Export menu
+    assert f"/api/v1/jobs/{job_id}/export?format=docx&amp;version=1" in page  # the no-script menu
+    assert 'class="btn js-only" data-view-go="reader">Export<' in page  # opens the panel
     assert 'value="docx" data-ext=".docx"' in page and "A Word document" in page  # reader
-    assert f"/api/v1/jobs/{job_id}/export?format=docx" in client.get("/").text  # the row menu
+    # The row menu opens the reader view's panel instead of listing the formats.
+    listed = client.get("/").text
+    assert f'href="/jobs/{job_id}#reader">Reader view and export<' in listed
+    assert "export?format=" not in listed
 
 
 def test_reader_preview_is_served_inline(env) -> None:

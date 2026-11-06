@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons with context %}
-{% import "_menus.html" as menus with context %}
 {% block content %}
 <div class="page">
   <div class="pagetitle">
@@ -30,7 +29,8 @@
         <input type="search" name="q" value="{{ q }}" placeholder="{{ t('drafts.search') }}" aria-label="{{ t('drafts.search_label') }}">
       </div>
       <nav class="seg" aria-label="{{ t('drafts.filter') }}">
-        {% for f in filters %}<a class="seg-item" href="{{ f.url }}"{% if f.current %} aria-current="true"{% endif %}>{{ f.label }}<span class="n">{{ f.n }}</span></a>{% endfor %}
+        {# A status nobody's draft has stays out of the way, unless it is the one chosen. #}
+        {% for f in filters if f.n or f.current or f.key == 'all' %}<a class="seg-item" href="{{ f.url }}"{% if f.current %} aria-current="true"{% endif %}>{{ f.label }}<span class="n">{{ f.n }}</span></a>{% endfor %}
       </nav>
       {% if status != 'all' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
       <span class="grow"></span>
@@ -49,44 +49,43 @@
     {% if rows %}
     <div class="table-wrap">
       <table class="drafts">
-        <colgroup><col class="c-doc"><col class="c-lang"><col class="c-pipe"><col class="c-status"><col class="c-checks"><col class="c-review"><col class="c-created"><col class="c-actions"></colgroup>
+        <colgroup><col class="c-doc"><col class="c-lang"><col class="c-status"><col class="c-todo"><col class="c-created"><col class="c-actions"></colgroup>
         <thead>
           <tr>
             <th scope="col">{{ t('jobs.document') }}</th>
             <th scope="col">{{ t('index.lang') }}</th>
-            <th scope="col">{{ t('index.condition') }}</th>
             <th scope="col">{{ t('jobs.status') }}</th>
-            <th scope="col">{{ t('drafts.col.checks') }}</th>
-            <th scope="col">{{ t('drafts.col.review') }}</th>
+            <th scope="col">{{ t('drafts.col.todo') }}</th>
             <th scope="col">{{ t('jobs.created') }}</th>
             <th scope="col"><span class="visually-hidden">{{ t('drafts.col.actions') }}</span></th>
           </tr>
         </thead>
         <tbody>
         {% for r in rows %}
-          <tr>
+          {# The whole row opens the draft (app.js); the title link does without JavaScript. #}
+          <tr data-href="/jobs/{{ r.job.id }}">
             <td>
               <span class="doc-title"><a href="/jobs/{{ r.job.id }}"{% if r.doc_lang %} lang="{{ r.doc_lang }}"{% endif %}>{{ r.title }}</a>{% if r.job.config.mode == 'decision' %}<span class="tag">{{ t('drafts.decision') }}</span>{% endif %}</span>
-              {% if r.source_line %}<span class="doc-sub">{{ r.source_line }}</span>{% endif %}
+              {# The pipeline joins the source line only where it is a choice (new.html). #}
+              {% set pipeline = t.get('condition.short.' ~ r.job.config.condition, r.job.config.condition) if r.job.config.condition != 'P2' or settings.server.offer_pipelines else '' %}
+              {% if r.source_line or pipeline %}<span class="doc-sub">{{ r.source_line }}{% if r.source_line and pipeline %} · {% endif %}{{ pipeline }}</span>{% endif %}
             </td>
             <td>{{ r.language }}{% if r.job.config.level %} <span class="muted">· {{ r.job.config.level }}</span>{% endif %}</td>
-            <td>{{ t.get('condition.short.' ~ r.job.config.condition, r.job.config.condition) }}</td>
             <td>
               <span class="badge status-{{ r.job.status }}">{{ t('status.' ~ r.job.status) }}</span>
               {% if r.status_note %}<span class="cell-note{% if r.job.status == 'failed' %} bad{% endif %}">{{ r.status_note }}</span>{% endif %}
             </td>
             <td>
+              {# One line of what is left to do: what blocks publication and what is
+                 undecided, "Ready to export" when nothing, "Review complete" when done. #}
               {% if r.has_checks %}
-              <span class="checks-cell">
-                <span class="stat">{{ icons.sev('error' if r.errors else 'none', t('count.errors', n=r.errors)) }}<span aria-hidden="true">{{ r.errors }}</span></span>
-                <span class="stat">{{ icons.sev('warn', t('count.warnings', n=r.warnings)) }}<span aria-hidden="true">{{ r.warnings }}</span></span>
-                {% if r.facts_total %}<span class="muted">{{ t('drafts.facts', present=r.facts_present, total=r.facts_total) }}</span>{% endif %}
+              <span class="todo-cell">
+                {% if r.complete %}<span class="stat ok">{{ icons.sev('present') }}{{ t('drafts.todo.complete') }}</span>
+                {% elif r.blocking or r.undecided %}
+                {% if r.blocking %}<span class="stat bad">{{ icons.sev('error') }}{{ t('drafts.todo.blocking', n=r.blocking) }}</span>{% endif %}
+                {% if r.undecided %}<span class="stat">{{ t('drafts.todo.decide', n=r.undecided) }}</span>{% endif %}
+                {% else %}<span class="stat ok">{{ icons.sev('present') }}{{ t('drafts.todo.ready') }}</span>{% endif %}
               </span>
-              {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
-            </td>
-            <td>
-              {% if r.blocks %}
-              <span class="review-cell"><span class="meter{% if r.complete %} complete{% endif %}"><span style="width: {{ r.review_pct }}%"></span></span>{{ t('drafts.reviewed_complete' if r.complete else 'drafts.reviewed', decided=r.decided, total=r.blocks) }}</span>
               {% else %}<span class="muted">{{ t('drafts.not_yet') }}</span>{% endif %}
             </td>
             <td class="created">
@@ -97,11 +96,8 @@
                 <summary class="btn btn-quiet btn-icon" aria-label="{{ t('drafts.actions_for', title=r.title) }}">{{ icons.icon('kebab') }}</summary>
                 <div class="menu-panel">
                   <a href="/jobs/{{ r.job.id }}">{{ t('drafts.open') }}</a>
-                  {% if r.has_checks %}
-                  <a href="/jobs/{{ r.job.id }}/preview">{{ t('review.reader_view') }}</a>
-                  <hr>
-                  {{ menus.export_links(r.job.id) }}
-                  {% endif %}
+                  {# The exports live in the reader view's panel (review.html). #}
+                  {% if r.has_checks %}<a href="/jobs/{{ r.job.id }}#reader">{{ t('drafts.reader_export') }}</a>{% endif %}
                   <hr>
                   <form method="post" action="/jobs/{{ r.job.id }}/delete" data-confirm="{{ t('js.confirm_delete') }}">
                     <button type="submit" class="danger">{{ t('drafts.delete') }}</button>

@@ -371,6 +371,18 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .strip strong { color: var(--lf-ink); font-weight: 600; }
 .strip .stat { display: inline-flex; align-items: center; gap: 6px; }
 .strip .grow { flex: 1; }
+/* the review strip: the versions menu and the to-do line */
+.versions .menu-panel { right: auto; left: 0; min-width: 250px; }
+.menu-panel .version { height: auto; border: 0; border-radius: 6px; font-weight: 500; }
+.menu-panel .version.current { background: var(--lf-accent-weak); }
+.menu-panel .version .vcount { font-size: 12px; }
+.menu-note { margin: 0; padding: 6px 10px; color: var(--lf-muted); font-size: 12px; line-height: 16px; }
+.todo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.todo-part { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--lf-ink); font: inherit; font-weight: 600;
+             cursor: pointer; }
+.todo-part:hover { text-decoration: underline; }
+.todo-part.bad { color: var(--lf-error); }
+.todo-ready { display: inline-flex; align-items: center; gap: 6px; color: var(--lf-ok); font-weight: 600; }
 
 /* -- one-time hints (_hint.html): a note with a cross; app.js keeps the closed ones -- */
 .note { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; padding: 10px 8px 10px 16px;
@@ -398,12 +410,10 @@ a.ui-lang:hover { background: var(--lf-sunken); color: var(--lf-ink); }
 .search input { height: 32px; min-height: 32px; padding-top: 0; padding-bottom: 0; padding-left: 34px; }
 .toolbar .inline { display: flex; align-items: center; gap: 8px; color: var(--lf-text-2); font-size: 13px; }
 .toolbar select { width: auto; height: 32px; min-height: 32px; padding-top: 0; padding-bottom: 0; font-size: 13px; }
-table.drafts { min-width: 1200px; table-layout: fixed; }
+table.drafts { min-width: 1000px; table-layout: fixed; }
 table.drafts col.c-lang { width: 130px; }
-table.drafts col.c-pipe { width: 130px; }
 table.drafts col.c-status { width: 190px; }
-table.drafts col.c-checks { width: 200px; }
-table.drafts col.c-review { width: 150px; }
+table.drafts col.c-todo { width: 230px; }
 table.drafts col.c-created { width: 140px; }
 table.drafts col.c-actions { width: 56px; }
 table.drafts th { height: 36px; padding: 0 16px 0 0; border-bottom: 1px solid var(--lf-border); background: var(--lf-sunken); color: var(--lf-text-2);
@@ -411,6 +421,7 @@ table.drafts th { height: 36px; padding: 0 16px 0 0; border-bottom: 1px solid va
 table.drafts td { padding: 8px 16px 8px 0; border-bottom: 1px solid var(--lf-divider); vertical-align: middle; }
 table.drafts th:first-child, table.drafts td:first-child { padding-left: 16px; }
 table.drafts tbody tr:hover { background: var(--lf-sunken); }
+table.drafts tbody tr[data-href] { cursor: pointer; }
 table.drafts tbody tr:last-child td { border-bottom: 0; }
 .doc-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .doc-title a { overflow: hidden; color: var(--lf-ink); font-weight: 500; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
@@ -418,9 +429,10 @@ table.drafts tbody tr:last-child td { border-bottom: 0; }
 .doc-sub, .cell-note { display: block; margin-top: 2px; overflow: hidden; color: var(--lf-muted); font-size: 12px; line-height: 16px;
                        text-overflow: ellipsis; white-space: nowrap; }
 .cell-note.bad { color: var(--lf-error); }
-.checks-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 13px; }
-.checks-cell .stat { display: inline-flex; align-items: center; gap: 5px; }
-.review-cell { display: flex; align-items: center; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.todo-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.todo-cell .stat { display: inline-flex; align-items: center; gap: 5px; }
+.todo-cell .bad { color: var(--lf-error); font-weight: 600; }
+.todo-cell .ok { color: var(--lf-ok); }
 .created .day { display: block; font-size: 13px; }
 .created .tm { display: block; color: var(--lf-muted); font-size: 12px; line-height: 16px; }
 .table-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; border-top: 1px solid var(--lf-border);
@@ -522,6 +534,16 @@ ol.steps { padding: 6px 0; list-style: none; }
 .step-detail { margin-top: 4px; font-size: 13px; line-height: 18px; }
 .step-failed .step-detail { color: var(--lf-error); font: 400 12px/17px var(--lf-mono); word-break: break-word; }
 .step-usage { margin-top: 2px; color: var(--lf-muted); font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; }
+/* the folded calls, tokens, time and models under the stages */
+.run-details { margin: 0 16px 12px; font-size: 13px; }
+.run-details > summary { color: var(--lf-text-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+table.usage { width: 100%; margin: 8px 0 10px; border-collapse: collapse; font-size: 12px; line-height: 16px; font-variant-numeric: tabular-nums; }
+table.usage th, table.usage td { padding: 3px 0 3px 8px; border-bottom: 1px solid var(--lf-divider); text-align: right; }
+table.usage th:first-child { padding-left: 0; color: var(--lf-text-2); font-weight: 500; text-align: left; }
+table.usage thead th { color: var(--lf-muted); font-weight: 600; }
+table.usage tr.total th, table.usage tr.total td { border-bottom: 0; font-weight: 600; }
+.run-details .runinfo { margin: 8px 0 0; }
+.run-details code { font-size: 12px; }
 .core-list { padding: 4px 16px 10px; border-bottom: 1px solid var(--lf-divider); }
 .core-list > div { padding: 6px 0; }
 .core-list dt { color: var(--lf-muted); font-size: 12px; line-height: 16px; font-weight: 500; }
