@@ -746,9 +746,11 @@ Export formats:
 - Markdown and HTML with one sentence per line, headings and lists preserved; the
   Markdown writes plain spaces where the others keep a value together, since it is
   meant for editing;
-- JSON bundle: source, fact sheet, final draft, findings, decisions, each with who made
-  it and when, who submitted the job, who decided (`final.reviewers`) and who exported
-  the bundle (the users the login names, operations.md; null without one) - the audit trail;
+- JSON bundle: source, fact sheet, every draft version, findings, decisions, each with
+  who made it and when, who submitted the job, who decided (`final.reviewers`) and who
+  exported the bundle (the users the login names, operations.md; null without one), and
+  as `final` the version the review decided as it goes out (the pipeline's final
+  version while there is no review) - the audit trail;
 - Word (DOCX, `export/docx.py`), for writers who work in Word:
   the layout in its print layout (A4, 20 mm margins, Arial 14 points, left-aligned, no
   hyphenation, no block split across pages, a heading kept with the block after it). A
@@ -963,12 +965,16 @@ midway.
      the client always sends. Not a sovereign deployment: never used for documents
      with personal data. The gateway routes each model name to a compute partner of
      its choice and changes that without notice; the profile rests on the routing
-     checks of 6, 13 and 28 October 2026 (history/2026-10-28-public-ai-routing.md):
-     the 70B is served by partners that change from check to check (Infomaniak in
-     Switzerland, Featherless in the USA, `maas.phoeniqs.com`) and ignores the
-     thinking switch; the 8B names and the `-thinking` names are refused for the key
+     checks of 6, 13 and 28 October 2026 (history/2026-10-28-public-ai-routing.md)
+     and 6 November 2026 (history/2026-11-06-public-ai-routing.md): the 70B is served
+     by partners that change from check to check (Infomaniak in Switzerland,
+     Featherless in the USA, `maas.phoeniqs.com`) and ignores the thinking switch; the
+     8B goes to Juelich's Blablador, was refused for the key from 28 October to early
+     November and ignores the switch too; the `-thinking` names are refused
      (`apertus-v1.5-8b-thinking` served the older Apertus 1 8B while it answered). So
-     the preset runs every stage on the 70B, without thinking, turns the gateway's
+     the preset lets the 8B write and the 70B check, as on CSCS but without thinking
+     at any stage (from 28 October to 6 November 2026 it ran every stage on the 70B),
+     turns the gateway's
      response cache off per request (`extra_body = { cache = { no-cache = true } }`),
      since the cache ignores the thinking switch, and its results are labelled Public
      AI, never CSCS and never Swiss-hosted, whatever the gateway's own pages say;
@@ -1555,8 +1561,8 @@ tables.
 
 Italian ran on 28 October 2026 on the 9 Italian eval pairs, on the Public AI gateway
 (the CSCS key had expired), where the 8B was no longer served that day: every stage on
-the Apertus 1.5 70B, without thinking (`--preset publicai-apertus --results
-eval/results-publicai`; the tables in docs/evaluation-publicai.md, kept apart from the
+the Apertus 1.5 70B, without thinking (`--preset publicai-apertus --writer
+swiss-ai/apertus-v1.5-70b --results eval/results-publicai`; the tables in docs/evaluation-publicai.md, kept apart from the
 CSCS tables and not comparable one to one with them). P2 found 100 percent of the
 must-keep facts and kept 82 percent of the hard facts with 0.5 rule errors per 100
 blocks and a Gulpease readability of 78; the single prompt found 56 percent and kept

@@ -185,8 +185,7 @@ uv run leichtfacile serve
 `setup` without a name asks where the model should run (Public AI, CSCS, Anthropic,
 OpenAI, Google, OpenRouter, a server of your own with llama.cpp, Ollama or vLLM, or
 another OpenAI-compatible server), for the key, and which of the provider's presets to
-use (`publicai-apertus`: Apertus 70B at every stage; `cscs-apertus`: the 8B writes, the
-70B checks; `claude-haiku-5-5-sonnet`: Haiku writes, Sonnet checks; ...), or any model the
+use (`publicai-apertus` and `cscs-apertus`: the 8B writes, the 70B checks; `claude-haiku-5-5-sonnet`: Haiku writes, Sonnet checks; ...), or any model the
 provider lists; `setup <preset>` asks for
 the key alone. The app's model page does the same in the browser: the page lists every
 preset with where the text goes and what a page costs, takes the key and checks it.

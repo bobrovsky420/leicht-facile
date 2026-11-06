@@ -94,9 +94,19 @@ def decode_html(content: bytes, charset: str | None = None) -> str:
 
 
 def decode_bytes(content: bytes, *charsets: str | None) -> str:
-    """Decode with the first charset that works; Latin-1 labels are read as Windows-1252."""
+    """Decode with the first charset that works; Latin-1 labels are read as Windows-1252.
+    A byte order mark decides first: UTF-8, UTF-16 (Notepad's "Unicode") or UTF-32."""
     if content.startswith(codecs.BOM_UTF8):
         return content[len(codecs.BOM_UTF8) :].decode("utf-8", errors="replace")
+    # UTF-32's little-endian mark begins with UTF-16's, so it is looked for first.
+    for bom, codec in (
+        (codecs.BOM_UTF32_LE, "utf-32"),
+        (codecs.BOM_UTF32_BE, "utf-32"),
+        (codecs.BOM_UTF16_LE, "utf-16"),
+        (codecs.BOM_UTF16_BE, "utf-16"),
+    ):
+        if content.startswith(bom):
+            return content.decode(codec, errors="replace")
     for name in (*charsets, "utf-8"):
         if not name:
             continue
@@ -278,17 +288,29 @@ def _drop_screen_reader_text(tree: Any) -> None:
 
 
 _COOKIE_RE = re.compile(r"(?:^|[\s_-])(?:cookies?|consent)(?:$|[\s_-])", re.IGNORECASE)
+# What only the page itself is or holds: a notice never does.
+_PAGE_TAGS = ("html", "body", "main", "article", "h1")
 
 
 def _drop_cookie_notices(tree: Any) -> None:
     """A cookie notice is no content. parlament.gv.at keeps its notice in a plain
     `div.cookie` without a role, which trafilatura took for the page's first paragraph
     ("Die Webseite verwendet Cookies: ...", 30 October 2026): an element whose class or
-    id names cookies or consent goes, with what it holds."""
+    id names cookies or consent goes, with what it holds. Not the page itself, whose
+    class can name the consent state too (`<body class="cookies-not-set">` of the
+    WordPress plugin Cookie Notice, a wrapper `div.cookie-consent-given`): an element
+    that is or holds `body`, `main`, `article` or an `h1`, or holds more than half of
+    the page's text, stays."""
+    total = len("".join(tree.itertext()))
     for element in _elements(tree):
         attrs = f"{element.get('class') or ''} {element.get('id') or ''}"
-        if element.getparent() is not None and _COOKIE_RE.search(attrs):
-            element.drop_tree()
+        if element.getparent() is None or not _COOKIE_RE.search(attrs):
+            continue
+        if next(element.iter(*_PAGE_TAGS), None) is not None:
+            continue
+        if 2 * len("".join(element.itertext())) > total:
+            continue
+        element.drop_tree()
 
 
 def _separate_touching_inlines(tree: Any) -> None:

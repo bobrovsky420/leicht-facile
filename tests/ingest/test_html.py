@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import codecs
+
 import pytest
 
 from leichtfacile.ingest import html
@@ -254,6 +256,15 @@ def test_decode_html():
     assert "Prämie" in decode_html("<p>Prämie</p>".encode()), "UTF-8 without declaration"
     assert decode_html(b"\xef\xbb\xbf<p>Pr\xc3\xa4mie</p>") == "<p>Prämie</p>"
     assert "Prämie" in decode_html("<p>Prämie</p>".encode("cp1252"), "windows-1252")
+    # A UTF-16 or UTF-32 byte order mark (Notepad's "Unicode" is UTF-16): no mojibake.
+    text = "<p>Prämie 1’500</p>"
+    for data in (
+        text.encode("utf-16"),  # the little-endian mark, which UTF-32's begins with
+        text.encode("utf-32"),
+        codecs.BOM_UTF16_BE + text.encode("utf-16-be"),
+        codecs.BOM_UTF32_BE + text.encode("utf-32-be"),
+    ):
+        assert decode_html(data) == text, data[:4]
 
 
 def test_contact_facts_read_the_bracketed_zero_as_the_trunk_prefix():
@@ -305,6 +316,31 @@ def test_cookie_notices_are_dropped():
     texts = " ".join(u.text for u in units)
     assert "Cookies" not in texts and "akzeptieren" not in texts
     assert "Texte in einfacher Sprache sind klar und einfach aufgebaut." in texts
+
+
+@pytest.mark.parametrize(
+    "wrap",
+    [
+        '<body class="home page cookies-not-set">{}</body>',  # WordPress plugin Cookie Notice
+        '<body><div id="page" class="site cookie-consent-given">{}</div></body>',
+        '<body><div class="consent-pending"><div class="inhalt">{}</div></div></body>',
+    ],
+)
+def test_a_page_whose_wrapper_names_the_consent_state_keeps_its_content(wrap: str):
+    """A class naming cookies or consent marks a notice, not the page itself: a body, a
+    wrapper that holds the main content or most of the page's text stays (each of these
+    lost the whole page, the title alone left)."""
+    content = """<main><h1>Einfache Sprache</h1>
+    <p>Texte in einfacher Sprache sind klar und einfach aufgebaut. Fremdwoerter werden
+    vermieden oder erklaert. Die Texte richten sich an alle Menschen.</p>
+    <div class="cookie-banner"><p>Wir verwenden Cookies.</p></div></main>"""
+    if "inhalt" in wrap:  # a wrapper without main or h1: most of the page's text
+        content = content.replace("<main>", "").replace("</main>", "").replace("h1>", "h2>")
+    page = f"<html><head><title>Titel</title></head>{wrap.format(content)}</html>"
+    _, units = extract_html(page)
+    texts = " ".join(u.text for u in units)
+    assert "Texte in einfacher Sprache sind klar und einfach aufgebaut." in texts
+    assert "Wir verwenden Cookies" not in texts  # the notice inside still goes
 
 
 def test_rescue_puts_back_the_sections_of_the_pages_jump_list():

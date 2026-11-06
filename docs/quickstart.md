@@ -67,7 +67,7 @@ draft.
 
 | Provider | Presets | Notes |
 |----------|---------|-------|
-| `publicai` | `publicai-apertus`: Apertus 70B at every stage | The shipped default: Apertus on the Public AI gateway; needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. The provider turns the gateway's response cache off, which ignores the thinking switch |
+| `publicai` | `publicai-apertus`: Apertus 8B writes, the 70B checks | The shipped default: Apertus on the Public AI gateway; needs a Public AI key (`PUBLICAI_API_KEY`). Public documents only: run by Metagov Inc. (US nonprofit), requests go to compute partners; pay per token after USD 2 of starter credit. Neither model thinks there: both ignore the thinking switch, and so does the gateway's response cache, which the provider turns off |
 | `cscs` | `cscs-apertus`: Apertus 8B writes, the 70B checks | CSCS inference API, Lugano: the endpoint of the reference numbers ([evaluation.md](evaluation.md)); needs a CSCS key (`CSCS_API_KEY`), granted on application. Thinking models are separate names ending in `-thinking` |
 | `anthropic` | `claude-haiku-5-5`, `claude-haiku-5-5-sonnet` (Haiku writes, Sonnet checks), `claude-sonnet-5-5`, `claude-opus-5-5` | Anthropic's Claude through its OpenAI-compatible endpoint; needs the key (`ANTHROPIC_API_KEY`); the tables of Haiku and Sonnet switch their thinking off, Opus always thinks. US cloud: public documents only |
 | `openai` | `gpt-5-6-luna`, `gpt-5-6-terra`, `gpt-5-4-nano` | OpenAI; needs the key (`OPENAI_API_KEY`). US cloud: public documents only |
@@ -258,21 +258,23 @@ uv run leichtfacile eval run --cache --condition P1 --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --results eval/results-cscs
 uv run leichtfacile eval report --results eval/results-cscs --out docs/evaluation.md
 uv run leichtfacile eval compare      # docs/model-comparison.md: every run side by side
-# Italian ran on the Public AI gateway, the 70B at every stage (28 October 2026)
+# Italian ran on the Public AI gateway, the 70B at every stage (28 October 2026; the
+# preset's 8B writer is replaced by the 70B with --writer)
 uv run leichtfacile eval reference --role all --lang it --results eval/results-publicai
-uv run leichtfacile eval run --cache --condition P2 --lang it --preset publicai-apertus --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang it --preset publicai-apertus --writer swiss-ai/apertus-v1.5-70b --results eval/results-publicai
 uv run leichtfacile eval report --results eval/results-publicai --role eval --out docs/evaluation-publicai.md
 # Germany and Austria (30 October 2026): the pairs of one variety (--region), the same
 # preset and folder; the rows carry the region and the report gives each variety its own
 # section. eval reference keeps the rows of the other pairs in REF.jsonl.
 uv run leichtfacile eval reference --role all --lang de --region DE --results eval/results-publicai
-uv run leichtfacile eval run --cache --condition P2 --lang de --region DE --preset publicai-apertus --results eval/results-publicai
-# the Swiss pairs on Public AI (3 November 2026): the shipped default on the pairs of the
-# reference numbers, every condition; the comparison takes the P2 rows from the same folder
+uv run leichtfacile eval run --cache --condition P2 --lang de --region DE --preset publicai-apertus --writer swiss-ai/apertus-v1.5-70b --results eval/results-publicai
+# the Swiss pairs on Public AI (3 November 2026): the 70B at every stage, then the shipped
+# default, on the pairs of the reference numbers, every condition; the comparison takes
+# the P2 rows from the same folder
 uv run leichtfacile eval reference --role all --lang de --region CH --results eval/results-publicai
 uv run leichtfacile eval reference --role all --lang fr --results eval/results-publicai
-uv run leichtfacile eval run --cache --condition P2 --lang de --region CH --preset publicai-apertus --results eval/results-publicai
-uv run leichtfacile eval run --cache --condition P2 --lang fr --preset publicai-apertus --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang de --region CH --preset publicai-apertus --writer swiss-ai/apertus-v1.5-70b --results eval/results-publicai
+uv run leichtfacile eval run --cache --condition P2 --lang fr --preset publicai-apertus --writer swiss-ai/apertus-v1.5-70b --results eval/results-publicai
 # the 70B: every stage on it, and the hybrid (the 70B reads, the 8B writes)
 uv run leichtfacile eval run --cache --condition P2 --writer swiss-ai/Apertus-v1.5-70B --results eval/results-cscs
 uv run leichtfacile eval run --cache --condition P2 --understand swiss-ai/Apertus-v1.5-70B --results eval/results-cscs

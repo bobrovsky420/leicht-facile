@@ -17,6 +17,7 @@ from leichtfacile import ingest
 from leichtfacile.export.docx import DOCX_TYPE
 from leichtfacile.ingest.fetch import FetchedResource
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.schemas import Block, Draft, JobConfig, PipelineSummary
 from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
 from leichtfacile.web.jobs import Submission, SubmissionError, ingest_submission
@@ -216,6 +217,37 @@ def test_glossary_entries_are_decided_like_blocks(app_env) -> None:
     assert bundle["final"]["undecided_glossary"] == 0
 
 
+def test_the_audit_bundle_describes_the_version_the_review_decided(app_env) -> None:
+    """The reviewer decides v1 from the Versions menu while the pipeline's final version
+    is v2: the bundle's `final` is v1 with its decisions, the version that went out. It
+    used to be v2, "not reviewed", beside a review of v1."""
+    client, app, _ = app_env
+    app.state.runner.stop()  # the job below is made by hand: no worker may take it
+    store = app.state.store
+    job = store.create_job(JobConfig(condition="P2", lang="de"), title="Brief")
+    store.put_artifact(job.id, "source", ingest.ingest_text("Die Frist endet am 31. März 2027."))
+    first = Draft(doc_id="d", lang="de", level="A2", version=1, blocks=[
+        Block(id="b001", kind="sentence", text="Die Frist ist am 31. März 2027."),
+        Block(id="b002", kind="sentence", text="Sie bezahlen 500 Franken."),
+    ])  # fmt: skip
+    second = first.model_copy(update={"version": 2, "blocks": [
+        b.model_copy(update={"text": b.text + " Version zwei."}) for b in first.blocks
+    ]})  # fmt: skip
+    store.put_artifact(job.id, "draft", first, version=1)
+    store.put_artifact(job.id, "draft", second, version=2)
+    store.put_artifact(job.id, "summary", PipelineSummary(condition="P2", final_version=2))
+    store.update_job(job.id, status="needs_review")
+    bundle = json.loads(client.get(f"/api/v1/jobs/{job.id}/export?format=json").text)
+    assert bundle["final"]["draft_version"] == 2  # no review yet: the pipeline's final
+    review = {"draft_version": 1, "completed": True, "decisions": [
+        {"block_id": "b001", "decision": "approved"}, {"block_id": "b002", "decision": "rejected"},
+    ]}  # fmt: skip
+    assert client.post(f"/api/v1/jobs/{job.id}/review", json=review).status_code == 200
+    final = json.loads(client.get(f"/api/v1/jobs/{job.id}/export?format=json").text)["final"]
+    assert (final["draft_version"], final["reviewed"], final["review_complete"]) == (1, True, True)
+    assert [b["text"] for b in final["blocks"]] == ["Die Frist ist am 31. März 2027."]
+
+
 def test_form_submission_redirects_and_lists_the_job(app_env) -> None:
     client, app, endpoint = app_env
     endpoint.push(chat_response(fx.BASELINE_TEXT))
@@ -318,6 +350,27 @@ def test_the_text_limit_holds_for_pasted_text_files_and_pages(app_env, monkeypat
     assert ingest_submission(page, max_chars=limit).segments
     with pytest.raises(SubmissionError, match="characters of text; the limit is 99"):
         ingest_submission(page, max_chars=99)
+
+
+def test_an_upload_is_decoded_as_the_command_line_decodes_a_file() -> None:
+    """A Windows-1252 text, a UTF-16 one (Notepad's "Unicode") and a page that declares
+    its charset keep every umlaut and the apostrophe of 1’500: every upload that was no
+    PDF used to be read as UTF-8 with replacement characters."""
+    text = "Prämienverbilligung\n\nSie erhalten 1’500 Franken für Ihre Krankenkasse.\n"
+    page = (
+        "<!doctype html><html><head><meta charset='windows-1252'><title>Prämien</title>"
+        f"</head><body><main><h1>Prämienverbilligung</h1><p>{text}</p></main></body></html>"
+    )
+    for name, data in (
+        ("brief.txt", text.encode("cp1252")),
+        ("brief.txt", text.encode("utf-16")),
+        ("seite.html", page.encode("cp1252")),
+    ):
+        upload = Submission(file_name=name, file_data=data, lang="de")
+        read = ingest_submission(upload, max_chars=10_000).text()
+        # ingest writes the typographic apostrophe of 1’500 as '
+        assert "Sie erhalten 1'500 Franken für Ihre Krankenkasse." in read, (name, read)
+        assert chr(0xFFFD) not in read  # no replacement character
 
 
 def test_a_slow_fetch_does_not_stop_other_requests(app_env, monkeypatch) -> None:

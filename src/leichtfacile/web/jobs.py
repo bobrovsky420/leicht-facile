@@ -238,11 +238,15 @@ def ingest_submission(  # noqa: C901, PLR0912
             if name.endswith(".pdf") or data[:5] == b"%PDF-":
                 source = ingest.ingest_pdf(data, filename=sub.file_name, lang=lang)
             else:
-                text = data.decode("utf-8", errors="replace")
+                # Read as the command line reads a file (ingest_file): a byte order mark,
+                # UTF-8, else Windows-1252, and a page by the charset it declares (the
+                # bytes go to ingest_html). UTF-8 with replacement characters lost every
+                # umlaut of a Windows-1252 file.
+                text = ingest.decode_bytes(data)
                 if name.endswith((".html", ".htm")) or text.lstrip()[:15].lower().startswith(
                     ("<!doctype", "<html")
                 ):
-                    source = ingest.ingest_html(text, url=None, lang=lang)
+                    source = ingest.ingest_html(data, url=None, lang=lang)
                 else:
                     source = ingest.ingest_text(text, lang=lang, title=sub.title or sub.file_name)
     except PrivateAddressError as exc:

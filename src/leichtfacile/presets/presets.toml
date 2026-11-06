@@ -34,12 +34,13 @@ default = "publicai-apertus"
 # -- Switzerland -------------------------------------------------------------------------
 
 # Apertus on the Public AI gateway, for public documents only: run by Metagov Inc. (US
-# nonprofit), requests go to compute partners. Since 28 October 2026 the gateway rejects
-# both Apertus 1.5 8B names and the "-thinking" names (400, "invalid model name"); the
-# 1.5 70B answers (maas.phoeniqs.com) and ignores the thinking switch, and the older
-# Apertus 1 8B (apertus-8b-instruct, Featherless, US) is the only 8B left. So the preset
-# runs every stage on the 70B, without thinking. The gateway caches answers without
-# regard to the switch, so extra_body turns its cache off.
+# nonprofit), requests go to compute partners (the 8B at Juelich, the 70B at
+# maas.phoeniqs.com on 6 November 2026). From 28 October to early November 2026 the
+# gateway refused the 1.5 8B and the preset ran every stage on the 70B; since it serves
+# the 8B again (6 November 2026), the 8B writes and the 70B checks, as on CSCS. Neither
+# thinks: both ignore the switch, and the "-thinking" names are refused for the key.
+# The gateway caches answers without regard to the switch, so extra_body turns its
+# cache off.
 [providers.publicai]
 label = "Public AI gateway"
 url = "https://api.publicai.co/v1"
@@ -71,8 +72,8 @@ output_usd = 2.92
 
 [presets.publicai-apertus]
 provider = "publicai"
-label = "Apertus 70B at every stage"
-models = { writer = "swiss-ai/apertus-v1.5-70b" }
+label = "Apertus 8B, checked by Apertus 70B"
+models = { writer = "swiss-ai/apertus-v1.5-8b", judge = "swiss-ai/apertus-v1.5-70b" }
 
 # Apertus on the CSCS inference API, Lugano: the endpoint of the reference numbers
 # (docs/evaluation.md, 12 October 2026). Access is by application (key_url) and not

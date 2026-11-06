@@ -1534,7 +1534,7 @@ second. German means over the 20 eval pairs:
 
 Four P2 jobs of an installation set to DE and to AT (`texts.region`, here through the
 environment so the developer's settings stayed Swiss), on the `publicai-apertus` preset
-(Apertus 1.5 70B at every stage, no thinking): the two sample Bescheide in decision mode
+(then Apertus 1.5 70B at every stage, no thinking): the two sample Bescheide in decision mode
 (`wohngeld-bescheid.txt`, `familienbeihilfe-bescheid.txt`) and one official page each
 (Köln's Anmeldung des Wohnsitzes, Tirol's Kindergeld Plus). All four ended in
 `needs_review` after 13 to 19 model calls. What the varieties promise held on the model:
@@ -1565,10 +1565,11 @@ hand.
 ### Germany and Austria on the eval pairs (Public AI, Apertus 1.5 70B, 30 October 2026)
 
 P0, P1 and P2 on the 8 German and the 8 Austrian eval pairs (docs/sources.md, "Germany",
-"Austria"; `eval run --region DE|AT --preset publicai-apertus --results
-eval/results-publicai`), the 70B at every stage without thinking, as the Italian run of
-28 October: the 1.5 8B is listed on the gateway but refused for the key, so the
-8B-writer tier of the Swiss numbers could not be run. The tables are in
+"Austria"; `eval run --region DE|AT --preset publicai-apertus --writer
+swiss-ai/apertus-v1.5-70b --results eval/results-publicai`), the 70B at every stage
+without thinking, as the Italian run of 28 October: the 1.5 8B was listed on the gateway
+but refused for the key, so the 8B-writer tier of the Swiss numbers could not be run
+(the gateway serves the 8B again since 6 November 2026). The tables are in
 docs/evaluation-publicai.md, one section per variety; the whole run cost USD 0.67 at
 the list prices (48 jobs and one rerun), 1.9 cents per German and 4.3 cents per
 Austrian P2 page (the Tirol pages are long: 38,000 tokens a page against 17,000).

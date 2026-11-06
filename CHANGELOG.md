@@ -15,6 +15,11 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Changed
 
+- The shipped default preset `publicai-apertus` lets the Apertus 1.5 8B write again and
+  the 70B check, now that the Public AI gateway serves the 8B again; since 28 October
+  2026 it ran every stage on the 70B. Neither model thinks on the gateway. The Public AI
+  tables (docs/evaluation-publicai.md) were measured with the 70B at every stage, which
+  a job still gets with the 70B as its writer model.
 - The New draft form shows the choices a reviewer makes: the level, the document type,
   the sender and the form of address. The language of the document, the title, the AI
   model and the model names sit under "More options", and the pipeline choice is gone
@@ -94,6 +99,16 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   `leichtfacile preset list`, the model page and the New draft form.
 - `eval rescore` keeps each row's region, so rescored rows of Germany and Austria are
   no longer counted as Swiss German.
+- A web page whose `<body>` or page wrapper carries a cookie or consent class, as the
+  WordPress plugin Cookie Notice sets it (`cookies-not-set`), keeps its content: it was
+  taken for a cookie notice and dropped whole, leaving the page title alone.
+- An uploaded text or HTML file is read as the command line reads it: a Windows-1252
+  file keeps its umlauts and apostrophes, a page its declared charset, and a UTF-16 or
+  UTF-32 file (Notepad's "Unicode") is read at all. Every upload that was no PDF was
+  read as UTF-8 with replacement characters.
+- The audit bundle's `final` is the version the review decided, the one that went out;
+  it was the pipeline's final version, reported as not reviewed, when the reviewer had
+  decided another version from the Versions menu.
 
 ### Security
 

@@ -3,7 +3,10 @@ from and who approved it (docs/use-case-canton.md, step 8): the job with who sub
 it (`created_by`), every decision with its stamp and the user who made it (`by`), the
 review with who saved it last, `final.reviewers` (the users who decided, once each) and
 `exported_by`, who downloaded the bundle. The users are the ones the proxy login names
-(web/security.py); without one they are null."""
+(web/security.py); without one they are null. `final` is the version the stored review
+decided, the one that went out (a reviewer may decide another version than the
+pipeline's final one, from the Versions menu); without a review, the pipeline's final
+version."""
 
 from __future__ import annotations
 
@@ -25,10 +28,12 @@ def build_bundle(store: Store, job: Job, *, exported_by: str | None = None) -> d
 
     summary = store.get_artifact_json(job.id, "summary")
     drafts = versions("draft")
-    final_version = (summary or {}).get("final_version") or (
-        drafts[-1]["version"] if drafts else None
-    )
     review_json = store.get_artifact_json(job.id, "review")
+    final_version = (
+        (review_json or {}).get("draft_version")
+        or (summary or {}).get("final_version")
+        or (drafts[-1]["version"] if drafts else None)
+    )
     final: dict[str, Any] | None = None
     draft = (
         store.get_artifact(job.id, "draft", Draft, version=final_version)
