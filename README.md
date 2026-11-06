@@ -230,8 +230,8 @@ adult protection authority (in Germany a Wohngeld-Bescheid and in Austria a
 Familienbeihilfe-Bescheid instead) and letters of a school (all team-written, described
 in the examples' [README.md](data/examples/README.md)). Click one, then **Create draft**:
 the model reads, writes, checks, judges and repairs in a few minutes, and the review
-page opens. Approve, edit or reject each block, save the review and export the text as
-Markdown, HTML or Word. **Check my text** runs the rule checker on any text you paste,
+page opens. Approve, edit or reject each block and export the text as Markdown, HTML or
+Word. **Check my text** runs the rule checker on any text you paste,
 without a model and without storing it.
 
 The [user's guide](docs/user-guide.md) walks through every page with screenshots, for

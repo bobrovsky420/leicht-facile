@@ -451,11 +451,12 @@ status badge ("Needs review" or "Done"). On the right:
 - the "Export" menu (Markdown, HTML, Word since 11 October 2026, audit bundle; links
   as today), and below a rule the three text formats once more with the original
   text appended ("Word with original", since 1 November 2026);
-- the save state (`role=status`): "Saved 10:42" from the newest `Decision.at` of the
-  stored review, "No decisions saved yet", "Unsaved changes" with an amber dot,
-  "Saving...", "Not saved: {detail}";
-- "Save review" (primary, `type=submit form="review-form"`: it sits in the header
-  and submits the form; Ctrl+S does the same).
+- the save state (`role=status`): "Saved 10:42" from the stored review's `saved_at`,
+  "No decisions saved yet", "Saving..." (a manual save only), "Not saved: {detail}";
+  the dot is amber while a save is pending, green after it, red after a failure. Since
+  6 November 2026 the review saves by itself (§6.5) and the header holds no save
+  button: a button `#save-again` appears after a failed save ("Try again") or a
+  conflict ("Reload the page"). Ctrl+S saves at once.
 
 **Row 2, the summary strip:** "German · A2: Leichte Sprache, FALC · P2: full";
 "Version" with one pill per draft version ("v1 · final · 10 blocking", "v2 · 11
@@ -573,8 +574,8 @@ the four panels stack with their headings.
   value with the sentences, and always "Code does not check the meaning: compare it with
   the source sentence"), the rule findings on the sentences (rule id, message), and
   "Add to block b009.2" (primary, small). Adding appends the sentences to the block's
-  text, chooses Edit, selects and scrolls to the block, and marks the review unsaved;
-  the card then says "Added to block ... as an edit". The button becomes "Ask again".
+  text, chooses Edit, selects and scrolls to the block, and books a save; the card
+  then says "Added to block ... as an edit". The button becomes "Ask again".
   No suggestion gives one line in red with the reason (no source sentence, no usable
   answer in two tries, values not in the paragraph, only repeats). The fact's status
   does not change before the next run: the checks stay those of the version.
@@ -630,11 +631,11 @@ markup only.
     original too, as the file will.
   - "Download .html" (primary, full width): the existing export URL with the chosen
     format and version, and `original=1` when ticked.
-  - "Exports use the last saved review. Decisions you have not saved are left out."
-    With unsaved decisions on screen, the existing `js.reader_unsaved` text instead.
+    An export link waits for a pending save (§6.5), so no note about unsaved
+    decisions stands under it (one did until 6 November 2026).
   - "Print or save as PDF" (secondary, full width, JavaScript only, since 8 October
-    2026): prints the reader frame on A4, unsaved decisions included, with the hint
-    to choose "Save as PDF" as the printer for a PDF.
+    2026): prints the reader frame on A4, the decisions on screen included, with the
+    hint to choose "Save as PDF" as the printer for a PDF.
   - "Before publication", three lines from the review state: "{decided} of {total}
     blocks decided" (undecided blocks stay in, as drafted), "{n} blocking problems in
     v{version}" (the version pill's number), "Review marked complete" or "Review not
@@ -736,8 +737,8 @@ list carried the "How it works" strip with its own close button (§5.2).
 ## 6. Behaviour (`app.js`)
 
 Kept: the source tabs, filling an example, the endpoint check, relative times, the
-progress polling, provenance highlighting, decisions, filters, the warning about
-unsaved decisions, saving through the API, the reader view in place.
+progress polling, provenance highlighting, decisions, filters, saving through the API,
+the reader view in place.
 
 New or changed:
 
@@ -766,11 +767,30 @@ New or changed:
      `aria-current="true"`, the others close (the page carries the `js` class);
    - shortcuts only while the focus is in the draft pane (WCAG 2.1.4): J and K, or
      the arrow keys, move; A, E and R decide; N jumps to the next undecided block.
-     Ctrl+S (Cmd+S) saves from anywhere on the page; Esc closes an open menu;
+     Ctrl+S (Cmd+S) saves at once from anywhere on the page; Esc closes an open menu;
    - Approve and Reject move on to the next undecided block;
+   - typing is editing (since 6 November 2026): a text in a block's field that differs
+     from the original (trimmed) chooses Edit by itself and remembers the decision
+     made before in `data-before`; a text set back to the original restores that
+     decision, or clears it. An explicit decision forgets `data-before`. Until then a
+     text typed without choosing Edit was dropped by the save, which sends decided
+     blocks alone;
    - Apply for a suggestion;
    - the decision column follows the radios;
-   - the save state's text and dot, "Saved HH:MM" after a save;
+   - saving by itself (since 6 November 2026): every change counts (`changes`) and
+     books a save after 1 s of quiet, 2 s after a keystroke, at once for "Review
+     complete"; a successful save notes the count it carried (`stored`), and a change
+     made while a save runs books the next one after it, because the API refuses a
+     save that names another `saved_at` than the stored review's (409) and the next
+     save needs the stamp the running one brings back. The state's text changes only
+     with news ("Saved HH:MM", a failure), so the live region does not announce every
+     decision; the dot follows the state. A 409 stops the saving until the page is
+     reloaded ("Reload the page"); any other failure shows "Try again", and the next
+     change retries by itself. An edited block with an empty text is not sent: the
+     state says which block. An export link waits for the pending save; a save still
+     pending when the page closes goes out with `keepalive` (under 60 KB), and the
+     browser's leave prompt remains only when the save cannot be made (one failed or
+     is running, a block is being emptied);
    - the checks tabs, with arrow keys;
    - reader view: the format choice builds the download link; the "Before
      publication" lines follow the decisions on screen.
@@ -962,12 +982,14 @@ reader.blocking.one       {n} blocking problem in v{version}
 reader.blocking.other     {n} blocking problems in v{version}
 reader.complete_hint      Mark it complete in the review once every block is decided.
 
-js.unsaved                Unsaved changes
+js.save_again             Try again
+js.reload                 Reload the page
+js.empty_edit             Not saved: block {block} has no text. Write the text or reject the block.
 js.recover_asking         Asking the model for a sentence from the source paragraph...
 js.recover_title          Suggestion from the model, from the source paragraph only
 js.recover_resolved       Code finds the fact's value with this sentence. Code does not check the meaning: compare it with the source sentence.
 js.recover_add            Add to block {block}
-js.recover_added          Added to block {block} as an edit. Read it and save the review.
+js.recover_added          Added to block {block} as an edit. Read it.
 js.recover_rejected.*     No suggestion: {reason} (no_source, no_answer, foreign, nothing_new)
 js.saved_at               Saved {time}
 js.confirm_delete         Delete this draft and everything it produced? This cannot be undone.
@@ -977,7 +999,6 @@ js.lang_detected          Detected: {lang}
 js.today                  Today
 js.yesterday              Yesterday
 js.download               Download {ext}
-js.saved_only             Exports use the last saved review. Decisions you have not saved are left out.
 js.reader_decided         {decided} of {total} blocks decided
 js.reader_complete        Review marked complete
 js.reader_not_complete    Review not marked complete
@@ -990,8 +1011,7 @@ Existing keys used again: `site.tagline` (empty state), `site.footer`, `site.dra
 `index.level`, `index.condition`, `index.tab.*`, `index.text.*`, `index.url.*`,
 `index.file.label`, `index.examples`, `index.models*`, `review.facts_present`,
 `review.reader.hint`, `review.export*`, `status.*`, `condition.short.*`, `level.*`,
-`who.*`, `step.*`, `detail.*`, `fact.*`, `kind.*`, `core.*`, `js.endpoint.*`,
-`js.reader_unsaved`.
+`who.*`, `step.*`, `detail.*`, `fact.*`, `kind.*`, `core.*`, `js.endpoint.*`.
 
 Since 2 November 2026, for the workspace strip (§5.2): `workspace.title`,
 `workspace.text`, `workspace.copy`, `workspace.new_link`, `js.copied` and
@@ -1048,8 +1068,8 @@ Probably unused afterwards (remove once `grep` confirms): `index.title`,
   (`role=status`, polite); the stepper itself is not live, and the polled fragment is
   replaced only when it changed.
 - Motion: the spinner stops under `prefers-reduced-motion`.
-- The reader iframe has a `title`; unsaved decisions warn before leaving, as today;
-  every delete asks first.
+- The reader iframe has a `title`; a save the page cannot make before it closes warns
+  before leaving (§6.5); every delete asks first.
 
 ## 10. Responsive behaviour
 
@@ -1186,7 +1206,7 @@ Open when the redesign was planned; all four were decided as recommended on 7 Oc
   rows built from the evaluation topics, with made-up counts.
 - The job page's time and tokens in the header come from the polled fragment
   (`data-run`).
-- "Save review" in the header submits the review form through `form="review-form"`.
+- The canvas's "Save review" button is gone: the review saves by itself (§6.5).
 - The shortcuts act only while the focus is in the draft pane; the canvas binds them
   to the selected block.
 - The canvas's accent and density controls are design levers, not product settings
@@ -1197,8 +1217,9 @@ Open when the redesign was planned; all four were decided as recommended on 7 Oc
 - Interface catalogs beyond English, German, French and Italian; French shipped on 8
   October 2026, Italian on 28 October 2026.
 - Settings for the accent or the density (§14).
-- Autosave, and saving decisions without JavaScript (reading the review works without
-  it; saving needs it today and still will).
+- Saving decisions without JavaScript (reading the review works without it; saving
+  needs it today and still will). Autosave was on this list until it shipped on 6
+  November 2026 (§6.5).
 - User accounts, roles, assigning drafts to reviewers.
 - Pagination beyond 50 rows; sorting by other columns.
 - A print stylesheet for the review page.
@@ -1218,8 +1239,9 @@ October 2026. The sections above already follow them.
   name in `title`; the repair rounds as "2 repair rounds" with the stop reason in
   `title`; the tokens and the model time moved to More, Run ("Used"). The version
   pills carry no tooltip, so screen readers read their text.
-- **Save review** names its shortcut with `aria-keyshortcuts="Control+S"` instead of
-  a keycap inside the button, which screen readers read as the button's name.
+- **Save review** named its shortcut with `aria-keyshortcuts="Control+S"` instead of
+  a keycap inside the button, which screen readers read as the button's name; since 6
+  November 2026 there is no button, and the guide names the key.
 - **Texts that `app.js` rewrites** live under `js.*` (character count, language note,
   Today and Yesterday, the download label, the reader view's checklist), so the page
   hands them to the script with the other `js.*` texts. A count that only fills a

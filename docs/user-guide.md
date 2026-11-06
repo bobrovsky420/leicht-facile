@@ -162,7 +162,8 @@ source sentence no block refers to: read it, it may hold something the draft lac
 left of a block shows its worst finding: red for an error, amber for a warning. Open the
 block to see:
 
-- **Edited text**: the field where you change the block.
+- **Edited text**: the field where you change the block. Typing in it makes the block
+  edited.
 - **The findings**, each with the rule and who found it: **Code** (a rule check) or
   **Judge** (the second model). Some come with a suggestion; **Apply** puts it into the
   edited text.
@@ -172,7 +173,9 @@ block to see:
 **How to decide.** Read the block against its source sentences.
 
 - **Approve** when it is correct and easy to read.
-- **Edit** when it needs a change: choose Edit and change the text in the field.
+- **Edit** when it needs a change: change the text in the field, and the block becomes
+  edited by itself. **Edit** or the key **E** puts the cursor in the field. A text set
+  back to the original undoes the edit.
 - **Reject** when it does not belong in the text. A rejected block is left out of the
   export.
 
@@ -181,13 +184,15 @@ entries at the end of the draft are decided like blocks: they go into the export
 
 **Keys** (while the draft column has the focus): **J** and **K** or the arrow keys move
 between blocks, **A**, **E** and **R** approve, edit and reject, **N** jumps to the next
-undecided block, **Ctrl+S** saves.
+undecided block, **Ctrl+S** saves at once.
 
-**Saving.** Your decisions are kept only when you click **Save review** (top right). The
-note next to it says when you last saved. **Approve all undecided** at the bottom approves
-every block you have not decided. When you are done, tick **Review complete** and save:
-the draft's status becomes Done. If a colleague saved the same review in the meantime,
-the app refuses your save and asks you to reload the page, so nobody overwrites the other.
+**Saving.** The app saves your decisions by itself, a moment after each one. The note at
+the top right says when it last saved; its dot is amber while a save is pending and green
+after it. If a save fails, the note says so in red, with **Try again**. **Approve all
+undecided** at the bottom approves every block you have not decided. When you are done,
+tick **Review complete**: the draft's status becomes Done. If a colleague saved the same
+review in the meantime, the app stops saving and asks you to reload the page, so nobody
+overwrites the other.
 
 ## 6. Check the facts
 
@@ -210,7 +215,7 @@ checks the meaning. A fact can be:
 
 For a missing fact, **Suggest a sentence** asks the model for one sentence from the
 source paragraph. Code says whether the sentence holds the value. **Add to block** puts it
-into the block as an edit; read it, then save the review.
+into the block as an edit; read it.
 
 The other tabs:
 
@@ -258,8 +263,7 @@ On the right you choose the export:
 **Print or save as PDF** prints the reader view on A4; choose "Save as PDF" as the
 printer for a PDF.
 
-The export uses the **last saved review**: save before you export. Undecided blocks stay
-in, as drafted. The checklist **Before publication** shows how many blocks are decided,
+The export carries every decision made so far. Undecided blocks stay in, as drafted. The checklist **Before publication** shows how many blocks are decided,
 the blocking problems left in the version and whether the review is marked complete.
 
 The menu of a row in the list of drafts offers the same exports.

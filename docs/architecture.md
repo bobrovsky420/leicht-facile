@@ -1203,8 +1203,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   in place of "Delete": the job ends at its next stage or streamed chunk, keeps the
   stages that finished and reads "The job was stopped", with "Run again".
 - **Review** (`/jobs/{id}` once a draft exists): a header with the view switch
-  (Review, Reader view), the export menu, the save state ("Saved 10:42") and "Save
-  review" (also Ctrl+S); a strip with language, level, pipeline, the draft versions as
+  (Review, Reader view), the export menu and the save state ("Saved 10:42": the review
+  saves by itself a moment after each change, Ctrl+S saves at once, and after a failed
+  save a button offers "Try again", after a conflict "Reload the page"); a strip with
+  language, level, pipeline, the draft versions as
   pills with the blocking problems left after each, the repair rounds and the counts.
   On a window at least 1101 px wide and 600 px high the page fits the window and only
   the three panes scroll; smaller windows stack them. The panes:
@@ -1220,8 +1222,10 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
      "Approve all undecided", the decided count and "Review complete" in the footer.
      Keys, only while the focus is in this pane (WCAG 2.1.4): J and K or the arrows
      move, A, E and R decide, N jumps to the next undecided block; Approve and Reject
-     move on to it. Unsaved decisions warn before leaving. Without JavaScript every
-     block is open. After the blocks, the glossary entries,
+     move on to it. Typing in a block's field makes the block edited; a text set back
+     to the original restores the decision made before. A save still pending when the
+     page closes goes out with it; the browser asks first only when it cannot be made.
+     Without JavaScript every block is open. After the blocks, the glossary entries,
      each with the id `g01`, `g02`, ... in the draft's order, decided like a block:
      approved, edited (the explanation; the term stays) or rejected, with the same keys
      and counts; the review API takes their ids in `block_id`, and the exports carry
@@ -1245,7 +1249,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   /jobs/{id}/preview` shows the saved review and is the fallback without JavaScript),
   next to an export panel: the format (Markdown, HTML, Word, audit bundle), "Add the
   original text" (not for the audit bundle; the reader view then shows it too), the
-  download of the saved review, "Print or save as PDF" (prints the reader view on A4
+  download (a pending save goes first), "Print or save as PDF" (prints the reader view on A4
   with the export's print styles, unsaved decisions included; the frame's sandbox
   allows `print()` but no scripts), and a "Before publication" list (blocks decided,
   blocking problems in this version, review complete). The keys are off while it is

@@ -479,6 +479,8 @@ def test_review_view_groups_findings_sorts_facts_and_offers_apply(env) -> None:
     page = client.get(f"/jobs/{job.id}").text
     assert page.count("data-apply ") == 1 and 'data-evidence="Gesuch"' in page
     assert "Saved 09:30 UTC" in page and RULES["FACT-01"].title in page
+    # The review saves by itself: no save button, a hidden "Try again" for a failed save.
+    assert "Save review" not in page and 'id="save-again" hidden' in page
 
 
 def test_a_fact_the_judge_misses_but_code_finds_is_doubted(env) -> None:

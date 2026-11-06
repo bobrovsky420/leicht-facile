@@ -31,8 +31,11 @@
           {{ menus.export_links(job.id, v.draft.version) }}
         </div>
       </details>
+      {# The review saves by itself a moment after each decision (app.js); the state's
+         dot is amber while a save is pending, green after it, red when one failed. The
+         button appears only then: "Try again", or "Reload the page" after a conflict. #}
       <span class="save-state{% if v.saved_at %} saved{% endif %}" id="save-status" role="status">{% if v.saved_at %}<time datetime="{{ v.saved_at.isoformat() }}" data-saved>{{ t('review.saved_at', time=v.saved_at.strftime('%H:%M') ~ ' UTC') }}</time>{% else %}{{ t('review.never_saved') }}{% endif %}</span>
-      <button type="submit" form="review-form" class="btn btn-primary" aria-keyshortcuts="Control+S">{{ t('review.save') }}</button>
+      <button type="button" class="btn btn-sm js-only" id="save-again" hidden></button>
     </nav>
   </div>
   <div class="strip">
@@ -336,7 +339,7 @@
         </div>
       </fieldset>
       <a class="btn btn-primary btn-lg btn-block" id="export-download" href="/api/v1/jobs/{{ job.id }}/export?format=html&amp;version={{ v.draft.version }}" data-job="{{ job.id }}" data-version="{{ v.draft.version }}">{{ icons.icon('download') }}<span id="export-label">{{ t('js.download', ext='.html') }}</span></a>
-      <p class="hint" id="export-note" style="margin: 10px 0 0">{{ t('js.saved_only') }}</p>
+      <p class="hint bad" id="reader-note" style="margin: 10px 0 0" hidden></p>
       <button type="button" class="btn btn-block js-only" id="reader-print" style="margin-top: 16px">{{ t('reader.print') }}</button>
       <p class="hint js-only" style="margin: 8px 0 0">{{ t('reader.print_hint') }}</p>
     </section>

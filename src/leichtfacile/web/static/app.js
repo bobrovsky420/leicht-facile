@@ -467,13 +467,17 @@
   const draftPane = $(".pane.draft");
   const total = blocks.length;
   let current = null;
-  let dirty = false;
   let view = "review";
   let filter = "all";
 
   const radios = (block) => $$("input[type=radio]", block);
   const chosen = (block) => radios(block).find((r) => r.checked);
   const areaOf = (block) => $("textarea", block);
+  const original = (block) => $(".orig-text", block).textContent.trim();
+  const chooseEdit = (block) => {
+    delete block.dataset.before;
+    radios(block).find((r) => r.value === "edited").checked = true;
+  };
 
   // provenance: the selected block's source sentences, a fact's blocks
   const clearMarks = () => {
@@ -556,26 +560,114 @@
     }
     applyFilter();
   };
-  const exportNote = $("#export-note");
-  const updateExportNote = () => {
-    if (!exportNote) return;
-    exportNote.classList.remove("bad");
-    exportNote.textContent = dirty ? t("reader_unsaved") : t("saved_only");
+
+  // -- saving: by itself, a moment after each change ----------------------------------
+  // `changes` counts the changes on screen, `stored` those the last successful save
+  // carried; between them the review is unsaved. Saves never overlap: the API refuses
+  // a save that names another `saved_at` than the stored review's (409), so the next
+  // save waits for the stamp the running one brings back.
+  const status = $("#save-status");
+  const again = $("#save-again");
+  let changes = 0;
+  let stored = 0;
+  let timer = null;
+  let inflight = false;
+  let failed = null; // "error": the next change or "Try again" saves; "conflict": reload
+  const unsaved = () => changes !== stored;
+  const emptyEdit = () =>
+    blocks.find((b) => {
+      const picked = chosen(b);
+      return picked && picked.value === "edited" && !areaOf(b).value.trim();
+    }) || null;
+  // The state is a live region: its text changes only when there is news (a save, a
+  // failure), so a screen reader does not hear every decision.
+  const showState = (cls, text, title) => {
+    status.className = `save-state ${cls}`.trim();
+    if (text !== undefined && status.textContent !== text) status.textContent = text;
+    if (title) status.title = title;
+    else status.removeAttribute("title");
   };
-  const markDirty = () => {
-    dirty = true;
-    const out = $("#save-status");
-    out.className = "save-state dirty";
-    out.textContent = t("unsaved");
-    out.removeAttribute("title");
-    updateExportNote();
+  const offerAgain = (label) => {
+    again.textContent = label;
+    again.hidden = false;
   };
+  const schedule = (delay) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => save(), delay);
+  };
+  // Every change turns the dot amber and books a save after `delay` ms of quiet:
+  // longer while typing, so a half-written edit is not sent.
+  const markDirty = (delay = 1000) => {
+    changes += 1;
+    if (failed === "conflict") return;
+    failed = null;
+    status.classList.remove("saved", "bad");
+    status.classList.add("dirty");
+    schedule(delay);
+  };
+  const save = async ({ manual = false, keepalive = false } = {}) => {
+    clearTimeout(timer);
+    timer = null;
+    if (!unsaved() || inflight || failed === "conflict") return;
+    const empty = emptyEdit();
+    if (empty) {
+      showState("bad", t("empty_edit", { block: empty.dataset.block }));
+      return;
+    }
+    const count = changes;
+    const body = JSON.stringify(currentReview());
+    inflight = true;
+    again.hidden = true;
+    if (manual) showState("", t("saving"));
+    try {
+      const res = await fetch(`/api/v1/jobs/${form.dataset.job}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        // A save sent while the page closes must outlive it; the browser allows 64 KB.
+        keepalive: keepalive && body.length < 60000,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        stored = count;
+        if (data.saved_at) form.dataset.savedAt = data.saved_at;
+        showState(unsaved() ? "dirty" : "saved", t("saved_at", { time: clock(new Date()) }), t(data.completed ? "saved_complete" : "saved", { n: data.saved }));
+        const badge = $("#job-status");
+        if (badge) {
+          const next = data.completed ? "done" : "needs_review";
+          badge.textContent = t(`status.${next}`);
+          badge.className = `badge status-${next}`;
+        }
+      } else if (res.status === 409) {
+        failed = "conflict";
+        showState("bad", t("conflict"));
+        offerAgain(t("reload"));
+      } else {
+        failed = "error";
+        showState("bad", t("not_saved", { detail: data.detail }));
+        offerAgain(t("save_again"));
+      }
+    } catch (e) {
+      failed = "error";
+      showState("bad", t("no_answer"));
+      offerAgain(t("save_again"));
+    } finally {
+      inflight = false;
+    }
+    if (unsaved() && !failed) schedule(0);
+  };
+  again.addEventListener("click", () => {
+    if (failed === "conflict") window.location.reload();
+    else save({ manual: true });
+  });
+
   const undecidedAfter = (block) => {
     const start = block ? blocks.indexOf(block) : -1;
     const order = blocks.slice(start + 1).concat(blocks.slice(0, start + 1));
     return order.find((b) => !chosen(b) && b !== block) || null;
   };
   const afterDecision = (block, advance) => {
+    delete block.dataset.before;
     markDirty();
     refresh();
     const picked = chosen(block);
@@ -611,9 +703,24 @@
         afterDecision(block, event.detail > 0);
       });
     });
+    // Typing is editing: a text that differs from the original chooses Edit by itself;
+    // a text set back to the original restores the decision made before, or none.
     areaOf(block).addEventListener("input", () => {
-      markDirty();
-      sync(block);
+      const picked = chosen(block);
+      const editing = Boolean(picked) && picked.value === "edited";
+      const changed = areaOf(block).value.trim() !== original(block);
+      if (changed && !editing) {
+        block.dataset.before = picked ? picked.value : "";
+        radios(block).find((r) => r.value === "edited").checked = true;
+      } else if (!changed && editing) {
+        const before = block.dataset.before || "";
+        delete block.dataset.before;
+        radios(block).forEach((r) => {
+          r.checked = r.value === before;
+        });
+      }
+      markDirty(2000);
+      refresh();
     });
     $$("[data-apply]", block).forEach((button) => {
       button.addEventListener("click", () => {
@@ -621,7 +728,7 @@
         const editing = chosen(block) && chosen(block).value === "edited";
         const base = editing ? area.value : $(".orig-text", block).textContent;
         area.value = base.split(button.dataset.evidence).join(button.dataset.suggestion);
-        radios(block).find((r) => r.value === "edited").checked = true;
+        chooseEdit(block);
         markDirty();
         refresh();
         area.focus();
@@ -659,12 +766,16 @@
       event.preventDefault();
     }
   });
-  // Ctrl+S (Cmd+S) saves from anywhere on the page.
+  // Ctrl+S (Cmd+S) saves at once from anywhere on the page.
   document.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "s") {
       event.preventDefault();
-      if (form.requestSubmit) form.requestSubmit();
+      save({ manual: true });
     }
+  });
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    save({ manual: true });
   });
 
   $$(".filter").forEach((button) => {
@@ -689,7 +800,7 @@
 
   const completed = form.elements.completed;
   completed.addEventListener("change", () => {
-    markDirty();
+    markDirty(0);
     const item = $("#check-complete");
     if (item) {
       item.classList.toggle("done", completed.checked);
@@ -697,10 +808,27 @@
     }
   });
 
+  // Leaving the page: a pending save goes out with the page. The browser asks first
+  // only when the save cannot be made (one failed or is still running, a block is
+  // being emptied); its answer is lost then, as the dot and the text say.
+  const flushOnLeave = () => {
+    if (!unsaved()) return true;
+    if (failed || inflight || emptyEdit()) return false;
+    save({ keepalive: true });
+    return true;
+  };
   window.addEventListener("beforeunload", (event) => {
-    if (!dirty) return;
+    if (flushOnLeave()) return;
     event.preventDefault();
     event.returnValue = "";
+  });
+  window.addEventListener("pagehide", flushOnLeave);
+  // An export link waits for the pending save, so the file carries every decision.
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href*="/export?"]');
+    if (!link || !unsaved() || failed || inflight || emptyEdit()) return;
+    event.preventDefault();
+    save().then(() => window.location.assign(link.href));
   });
 
   // The decisions on screen, in the body the review API takes.
@@ -722,41 +850,6 @@
       saved_at: form.dataset.savedAt || null,
     };
   };
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const out = $("#save-status");
-    out.className = "save-state";
-    out.textContent = t("saving");
-    try {
-      const res = await fetch(`/api/v1/jobs/${form.dataset.job}/review`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentReview()),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        dirty = false;
-        if (data.saved_at) form.dataset.savedAt = data.saved_at;
-        out.className = "save-state saved";
-        out.textContent = t("saved_at", { time: clock(new Date()) });
-        out.title = t(data.completed ? "saved_complete" : "saved", { n: data.saved });
-        const badge = $("#job-status");
-        if (badge) {
-          const status = data.completed ? "done" : "needs_review";
-          badge.textContent = t(`status.${status}`);
-          badge.className = `badge status-${status}`;
-        }
-        updateExportNote();
-      } else {
-        out.className = "save-state bad";
-        out.textContent = res.status === 409 ? t("conflict") : t("not_saved", { detail: data.detail });
-      }
-    } catch (e) {
-      out.className = "save-state bad";
-      out.textContent = t("no_answer");
-    }
-  });
 
   // checks pane: tabs (WAI-ARIA tabs pattern), facts and findings that point elsewhere
   const tabs = $$(".pane.checks [role=tab]");
@@ -828,7 +921,7 @@
     const editing = chosen(block) && chosen(block).value === "edited";
     const base = (editing ? area.value : $(".orig-text", block).textContent).trimEnd();
     area.value = [base, ...texts].join(" ");
-    radios(block).find((r) => r.value === "edited").checked = true;
+    chooseEdit(block);
     markDirty();
     refresh();
     select(block, { scroll: true });
@@ -925,7 +1018,6 @@
     reader.hidden = name !== "reader";
     history.replaceState(null, "", name === "reader" ? "#reader" : location.pathname + location.search);
     if (name !== "reader") return;
-    updateExportNote();
     try {
       const original = $("#export-original");
       const query = original && original.checked ? "?original=1" : "";
@@ -936,14 +1028,14 @@
       });
       if (!res.ok) throw new Error(String(res.status));
       frame.srcdoc = await res.text();
+      readerNote.hidden = true;
     } catch (e) {
       frame.srcdoc = "";
-      if (exportNote) {
-        exportNote.textContent = t("reader_failed");
-        exportNote.classList.add("bad");
-      }
+      readerNote.textContent = t("reader_failed");
+      readerNote.hidden = false;
     }
   };
+  const readerNote = $("#reader-note");
   $$(".view-opt").forEach((a) =>
     a.addEventListener("click", (event) => {
       event.preventDefault();

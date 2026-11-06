@@ -20,6 +20,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   model and the model names sit under "More options", and the pipeline choice is gone
   from the form (P2 runs). The form remembers the level, the sender and the form of
   address of the last draft made in the browser.
+- The review saves by itself, a moment after each decision; the "Save review" button
+  is gone. The note at the top right says when it last saved (Ctrl+S saves at once),
+  a failed save shows "Try again", and a review a colleague saved in the meantime asks
+  for a reload before anything is overwritten. An export waits for a pending save, and
+  a save still pending when the page closes goes out with it.
+- Typing in a block's field makes the block edited; a text set back to the original
+  restores the decision made before. Until now a text typed without choosing Edit was
+  not saved.
 - The explanations in the app are one-time hints: the notes on the Facts, Findings and
   Questions tabs and above the glossary of the review page, next to "Results so far"
   while a draft runs, and above Check my text each carry a cross that hides them for
