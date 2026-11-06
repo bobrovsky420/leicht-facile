@@ -138,11 +138,9 @@
         </ol>
       </section>
       <p>{{ t('drafts.empty.text') }}</p>
-      <div class="actions">
-        <a class="btn btn-primary btn-lg" href="/new">{{ icons.icon('plus') }}{{ t('site.new') }}</a>
-        {# In view only while the card of example letters below is hidden (app.js). #}
-        {% if examples %}<button type="button" class="btn btn-quiet btn-lg" data-hint-show="examples">{{ t('drafts.samples.show') }}</button>{% endif %}
-      </div>
+      {# New draft is the button in the page header. This one is in view only while the
+         card of example letters below is hidden (app.js). #}
+      {% if examples %}<div class="actions"><button type="button" class="btn btn-quiet" data-hint-show="examples">{{ t('drafts.samples.show') }}</button></div>{% endif %}
     </div>
     {% endif %}
   </div>

@@ -53,7 +53,7 @@ Before the first draft, the start page explains the four steps, and the card **E
 letters** under it shows the letters that ship with the app, each with a short
 description, those in the language of the interface first. Click one to open the New
 draft form with the letter filled in. The cross on the card hides it in this browser;
-**Show the example letters**, next to the New draft button, brings it back.
+**Show the example letters**, under the four steps, brings it back.
 
 Some pages open with a short explanation in a box, such as the Facts tab of the review
 or Check my text. Once you know it, click the cross: the box stays away in this browser.

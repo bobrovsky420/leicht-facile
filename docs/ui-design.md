@@ -306,8 +306,9 @@ Empty states:
 - No jobs at all: "No drafts yet", the tagline, the four steps "How it works" in a
   sunken box (`.how`: the model reads the text and writes the draft; code checks 45
   rules (`rule_count()`) and every value; a second model judges and flagged blocks are
-  repaired; you review every block and export), one sentence on what to paste, "New
-  draft" and, in view only while the card below is hidden, "Show the example letters".
+  repaired; you review every block and export), one sentence on what to paste and, in
+  view only while the card below is hidden, "Show the example letters". New draft is
+  the page header's button alone (until 6 November 2026 the empty state repeated it).
   Under the list's card a second card "Example letters" (`.samples`, since 6 November
   2026; before, the letters were a row of buttons in the empty state): the sample
   letters (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as
