@@ -18,6 +18,7 @@ from leichtfacile.ingest import (
     ingest_url,
     select_section,
 )
+from tests.conftest import fetch_client
 from tests.ingest import pdfs
 from tests.ingest.test_html import PAGE
 
@@ -113,7 +114,7 @@ def _client(content: bytes, content_type: str) -> httpx.Client:
             return httpx.Response(302, headers={"location": "https://www.example.ch/final"})
         return httpx.Response(200, content=content, headers={"content-type": content_type})
 
-    return httpx.Client(transport=httpx.MockTransport(handler))
+    return fetch_client(handler)
 
 
 def _resolve(host: str, port: int) -> list[str]:

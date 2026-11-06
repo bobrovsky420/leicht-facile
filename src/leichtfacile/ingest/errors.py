@@ -40,7 +40,7 @@ class ExtractionError(IngestError):
 
 
 class NoTextLayerError(ExtractionError):
-    """The PDF has no extractable text, for example a scan.
+    """The PDF, or a page of it, has no extractable text: a scan, a table as an image.
 
     Scans need the model's image input, which the pipeline does not offer yet
     (docs/architecture.md §4.1).

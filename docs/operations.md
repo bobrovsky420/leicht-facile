@@ -298,7 +298,10 @@ is precisely that a fine-tuned 8B makes the 70B unnecessary at runtime.
   the address that was checked, the name in the Host header and as the TLS server
   name, so a DNS answer that changes between the check and the connect cannot redirect
   the fetch (`ingest/fetch.py`). Three budgets end a slow or hostile server's hold on
-  a thread: 30 s per connect and read, 120 s for the whole fetch, 15 MB of body.
+  a thread: 30 s per connect and read; 120 s for the whole fetch, headers included (a
+  watchdog shuts the connection when the time is up, however slowly the bytes come);
+  15 MB of body after decoding, a compressed body inflated no further than that (one
+  coding, gzip or deflate; a coding on a coding is refused).
   The check unwraps an IPv4 address carried in IPv6 (IPv4-mapped, NAT64) and names the
   ranges that CPython 3.12.0 to 3.12.3 still counted as global (6to4 among them), so it
   refuses the same addresses on every supported Python; CI runs the tests on 3.12,

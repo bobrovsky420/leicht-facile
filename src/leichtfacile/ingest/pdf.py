@@ -31,7 +31,10 @@ Words come with font size and font name (`extract_words(extra_attrs=...)`). Step
    counts as a drawn hyphen before that (`hyphens_of_text_layer`).
 
 A PDF without any extractable text raises `NoTextLayerError`: scans need the model's
-image input, which is not available yet.
+image input, which is not available yet. So does a PDF with text in which a page shows
+pictures but no text (a scanned attachment, a table as an image, text turned into
+outlines): the whole PDF, since a job made of the other pages would miss what that page
+says. A blank page, or one with only a rule, a frame or a small logo, is skipped.
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from itertools import pairwise
+from typing import Any
 
 import pdfplumber
 
@@ -114,6 +118,7 @@ class _Page:
     width: float
     height: float
     words: list[_Word]
+    pictured: float = 0.0  # of a page without words: the share under images and fills
 
 
 @dataclass
@@ -141,9 +146,16 @@ def extract_pdf(data: bytes) -> tuple[str | None, list[Unit]]:
             "the PDF has no text layer (a scan?); scanned documents need image input, "
             "which is not available yet"
         )
-    without_text = [page.number for page in pages if not page.words]
-    if without_text:
-        log.warning("PDF pages without a text layer are skipped: %s", without_text)
+    pictured = [p.number for p in pages if not p.words and p.pictured >= _PICTURED]
+    if pictured:
+        raise NoTextLayerError(
+            f"{_page_list(pictured)} of the PDF {'has' if len(pictured) == 1 else 'have'} "
+            "no text layer (a scan or a picture of text?); scanned pages need image input, "
+            "which is not available yet: leave them out of the PDF or paste their text"
+        )
+    blank = [page.number for page in pages if not page.words]
+    if blank:
+        log.info("blank PDF pages are skipped: %s", blank)
     _drop_running_lines(pages)
     blocks = [block for page in pages for block in _page_blocks(page)]
     lines = [line for block in blocks for line in block]
@@ -194,10 +206,36 @@ def _read(data: bytes) -> tuple[str | None, list[_Page]]:
                     for w in raw
                     if w.get("upright", True) and w["text"].strip()
                 ]
-                pages.append(_Page(number, float(page.width), float(page.height), words))
+                width, height = float(page.width), float(page.height)
+                pictured = 0.0 if words else _pictured(page, width, height)
+                pages.append(_Page(number, width, height, words, pictured))
         except Exception as exc:
             raise ExtractionError(f"the PDF could not be read ({type(exc).__name__})") from exc
     return (title if isinstance(title, str) else None), pages
+
+
+# A page without words is a picture of a page (a scan, a table as an image, text turned
+# into outlines) when images and filled shapes cover this share of it; a rule, a frame
+# or a small logo stay below it.
+_PICTURED = 0.05
+
+
+def _pictured(page: Any, width: float, height: float) -> float:
+    """The share of the page under images and filled shapes, their boxes clipped to it."""
+    shapes = [o for o in (*page.rects, *page.curves) if o.get("fill")]
+    area = 0.0
+    for obj in (*page.images, *shapes):
+        w = min(float(obj["x1"]), width) - max(float(obj["x0"]), 0.0)
+        h = min(float(obj["bottom"]), height) - max(float(obj["top"]), 0.0)
+        area += max(w, 0.0) * max(h, 0.0)
+    return min(area / (width * height), 1.0) if width and height else 0.0
+
+
+def _page_list(numbers: list[int]) -> str:
+    """The pages as the error names them: "page 2", "pages 2 and 3", "pages 2, 3 and 5"."""
+    if len(numbers) == 1:
+        return f"page {numbers[0]}"
+    return f"pages {', '.join(map(str, numbers[:-1]))} and {numbers[-1]}"
 
 
 def _round(size: float) -> float:

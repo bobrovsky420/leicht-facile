@@ -1,11 +1,17 @@
 """The safe fetcher (ingest/fetch.py): redirects, the address check on every hop, the
-connection pinned to the checked address. No DNS and no network: the resolver is a stub
-and the transport a mock."""
+connection pinned to the checked address, the budgets. No DNS and no network: the
+resolver is a stub and the transport a mock, but for one server on 127.0.0.1 that
+trickles its headers (the mock has no connection the deadline could shut)."""
 
 from __future__ import annotations
 
+import gzip
 import ipaddress
+import socket
+import threading
 import time
+import tracemalloc
+import zlib
 from datetime import UTC
 
 import httpx
@@ -13,12 +19,14 @@ import pytest
 
 from leichtfacile.ingest.errors import FetchError, PrivateAddressError, UnknownHostError
 from leichtfacile.ingest.fetch import (
+    ACCEPT_ENCODING,
     MAX_REDIRECTS,
     USER_AGENT,
     fetch_url,
     is_public_address,
     resolve_host,
 )
+from tests.conftest import fetch_client
 
 PUBLIC = "93.184.216.34"
 PUBLIC_V6 = "2606:2800:220:1:248:1893:25c8:1946"
@@ -41,7 +49,7 @@ def resolve(host: str, port: int) -> list[str]:
 
 
 def _client(handler) -> httpx.Client:
-    return httpx.Client(transport=httpx.MockTransport(handler))
+    return fetch_client(handler)
 
 
 def _page(request: httpx.Request) -> httpx.Response:
@@ -225,6 +233,111 @@ def test_the_total_budget_ends_a_trickling_download():
         "https://www.example.ch/", total_timeout_s=10, client=_client(handler), resolve=resolve
     )
     assert whole.content == b"x" * 20
+
+
+def _encoded(body: bytes, coding: str) -> httpx.Response:
+    return httpx.Response(
+        200,
+        headers={"content-type": "text/html", "content-encoding": coding},
+        stream=httpx.ByteStream(body),
+    )
+
+
+def test_a_compressed_body_is_inflated_no_further_than_the_size_budget():
+    """One coding, gzip or deflate (zlib-wrapped or raw), inflated chunk by chunk and
+    never past `max_bytes` in memory; a coding on a coding and one the request did not
+    ask for are refused. A 612-byte answer with `gzip, gzip` took 618 MB of memory
+    before the limit was seen."""
+    page = "<p>Prämie 1'500 Franken</p>".encode() * 200
+    raw = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
+    for coding, body in (
+        ("gzip", gzip.compress(page)),
+        ("deflate", zlib.compress(page)),
+        ("deflate", raw.compress(page) + raw.flush()),
+    ):
+        resource = fetch_url(
+            "https://www.example.ch/",
+            client=_client(lambda r, b=body, c=coding: _encoded(b, c)),
+            resolve=resolve,
+        )
+        assert resource.content == page, coding
+
+    # 20 MB of zeros in about 20 kB: inflated up to the limit and no further
+    bomb = zlib.compressobj(9, zlib.DEFLATED, 16 + zlib.MAX_WBITS)
+    payload = b"".join(bomb.compress(bytes(1_000_000)) for _ in range(20)) + bomb.flush()
+    tracemalloc.start()
+    try:
+        with pytest.raises(FetchError, match="larger than 1000000 bytes"):
+            fetch_url(
+                "https://www.example.ch/",
+                max_bytes=1_000_000,
+                client=_client(lambda r: _encoded(payload, "gzip")),
+                resolve=resolve,
+            )
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert peak < 8_000_000, f"{peak:,} bytes at the peak"
+
+    for coding, message in (("gzip, gzip", "encoded more than once"), ("br", "encoded as br")):
+        with pytest.raises(FetchError, match=message):
+            fetch_url(
+                "https://www.example.ch/",
+                client=_client(lambda r, c=coding: _encoded(payload, c)),
+                resolve=resolve,
+            )
+    seen: list[str] = []
+
+    def page_handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.headers["accept-encoding"])
+        return _page(request)
+
+    fetch_url("https://www.example.ch/", client=_client(page_handler), resolve=resolve)
+    assert seen == [ACCEPT_ENCODING] == ["gzip, deflate"]
+
+
+def test_the_total_budget_ends_a_server_that_trickles_its_headers():
+    """The read timeout restarts with every byte, and the budget was asked only between
+    the reads of the body: a server that sent its status line and headers a byte at a
+    time held the fetch far past the budget (3 s ended after 44 s). The deadline shuts
+    the connection; a real socket on 127.0.0.1, since the mock has none."""
+    head = (
+        b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nX-Pad: " + b"a" * 60
+        + b"\r\nContent-Length: 2\r\n\r\nok"
+    )  # fmt: skip
+    server = socket.socket()
+    server.bind(("127.0.0.1", 0))
+    server.listen(1)
+    stop = threading.Event()
+
+    def serve() -> None:
+        conn, _ = server.accept()
+        with conn:
+            conn.recv(65536)
+            for byte in head:  # about 10 s, each byte well within the read timeout
+                if stop.wait(0.1):
+                    return
+                try:
+                    conn.sendall(bytes([byte]))
+                except OSError:
+                    return
+
+    thread = threading.Thread(target=serve, daemon=True)
+    thread.start()
+    start = time.monotonic()
+    try:
+        with pytest.raises(FetchError, match="took longer than 1 s"):
+            fetch_url(
+                f"http://127.0.0.1:{server.getsockname()[1]}/",
+                allow_private=True,
+                timeout_s=0.5,
+                total_timeout_s=1,
+            )
+    finally:
+        stop.set()
+        server.close()
+        thread.join(5)
+    assert time.monotonic() - start < 3
 
 
 def test_the_total_budget_spans_the_redirect_chain():

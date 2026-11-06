@@ -15,10 +15,13 @@ things make the fetch safe:
   changes between the check and the connect (rebinding) cannot redirect the fetch.
 - Every hop uses `Connection: close`, so a pooled connection to one address is never
   reused for another host name.
-- Three budgets: `timeout_s` for each connect and each read, `total_timeout_s` for the
-  whole fetch across its hops (a server that trickles one byte at a time stays under
-  the read timeout and would otherwise hold a thread for hours), `max_bytes` for the
-  body, checked on the declared length and again while it arrives.
+- Three budgets: `timeout_s` for each connect and each read; `total_timeout_s` for the
+  whole fetch across its hops, asked between the reads and held by a watchdog that
+  shuts the connection at the deadline (a server that trickles its headers or its body
+  one byte at a time stays under the read timeout and would otherwise hold a thread
+  for hours); `max_bytes` for the body after decoding, checked on the declared length
+  and while the body arrives, inflated chunk by chunk never further than the budget
+  (one content coding, gzip or deflate; a coding on a coding is refused).
 
 `allow_private=True` lifts the address check for an intranet deployment that needs
 internal pages (`server.allow_private_urls`); the hops are still walked and checked for
@@ -27,13 +30,17 @@ their scheme. `resolve` replaces the system resolver in tests.
 
 from __future__ import annotations
 
+import contextlib
 import ipaddress
 import re
 import socket
+import threading
 import time
+import zlib
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 
@@ -45,6 +52,12 @@ DEFAULT_TIMEOUT_S = 30.0  # each connect, each read
 DEFAULT_TOTAL_TIMEOUT_S = 120.0  # the whole fetch, redirects included
 DEFAULT_MAX_BYTES = 15_000_000
 MAX_REDIRECTS = 5
+# The content codings a fetch asks for and reads, one at a time and inflated here under
+# the size budget (`_Inflater`): httpx inflates a chunk whole and stacks codings, so a
+# 612-byte answer with `Content-Encoding: gzip, gzip` became 300 MB in memory before the
+# budget saw it.
+ACCEPT_ENCODING = "gzip, deflate"
+_CODINGS = frozenset({"gzip", "x-gzip", "deflate"})
 
 Resolver = Callable[[str, int], list[str]]
 """`resolve(host, port)` gives the addresses of a host, or raises `UnknownHostError`."""
@@ -201,19 +214,24 @@ def _fetch_hop(
         "User-Agent": USER_AGENT,
         "Host": target.netloc.decode("ascii"),
         "Connection": "close",
+        "Accept-Encoding": ACCEPT_ENCODING,
     }
-    extensions = {"sni_hostname": host} if target.scheme == "https" else {}
+    extensions: dict[str, Any] = {"sni_hostname": host} if target.scheme == "https" else {}
     unreachable: httpx.ConnectError | None = None
     for address in addresses:  # the next address when one refuses the connection
+        deadline = _Deadline(budget.deadline - time.monotonic())
         try:
-            with http.stream(
-                "GET",
-                target.copy_with(host=address),
-                headers=headers,
-                extensions=extensions,
-                follow_redirects=False,
-                timeout=timeout_s,
-            ) as response:
+            with (
+                deadline,
+                http.stream(
+                    "GET",
+                    target.copy_with(host=address),
+                    headers=headers,
+                    extensions={**extensions, "trace": deadline.trace},
+                    follow_redirects=False,
+                    timeout=timeout_s,
+                ) as response,
+            ):
                 if response.has_redirect_location:
                     return response.headers["location"]
                 response.raise_for_status()
@@ -223,29 +241,122 @@ def _fetch_hop(
                     final_url=str(target),
                     fetched_at=datetime.now(UTC),
                 )
-        except httpx.ConnectError as exc:
-            unreachable = exc
-        except httpx.HTTPStatusError as exc:
-            raise FetchError(f"GET {target} failed: HTTP {exc.response.status_code}") from exc
-        except httpx.TimeoutException as exc:
-            raise FetchError(f"GET {target} timed out after {timeout_s:g} s") from exc
         except httpx.HTTPError as exc:
-            raise FetchError(f"GET {target} failed: {type(exc).__name__}: {exc}") from exc
+            if deadline.fired:
+                raise FetchError(f"{target} took longer than {budget.total_s:g} s") from exc
+            if not isinstance(exc, httpx.ConnectError):
+                raise _hop_error(target, exc, timeout_s) from exc
+            unreachable = exc
     raise FetchError(f"GET {target} failed: ConnectError: {unreachable}") from unreachable
+
+
+def _hop_error(target: httpx.URL, exc: httpx.HTTPError, timeout_s: float) -> FetchError:
+    if isinstance(exc, httpx.HTTPStatusError):
+        return FetchError(f"GET {target} failed: HTTP {exc.response.status_code}")
+    if isinstance(exc, httpx.TimeoutException):
+        return FetchError(f"GET {target} timed out after {timeout_s:g} s")
+    return FetchError(f"GET {target} failed: {type(exc).__name__}: {exc}")
+
+
+class _Deadline:
+    """Shuts the hop's connection when the fetch's time is up. `_Budget` is asked between
+    the reads of the body, and the read timeout restarts with every byte, so a server
+    that trickled its status line and headers one byte at a time held the thread and an
+    ingest slot far past the budget (3 s ended after 44 s). httpcore's trace of the
+    connect and of the TLS handshake hands over the socket; a transport without
+    httpcore (the tests' mock) has none to shut."""
+
+    def __init__(self, seconds: float) -> None:
+        self.fired = False
+        self._socket: socket.socket | None = None
+        self._lock = threading.Lock()
+        self._timer = threading.Timer(max(seconds, 0.0), self._fire)
+        self._timer.daemon = True
+
+    def __enter__(self) -> _Deadline:
+        self._timer.start()
+        return self
+
+    def __exit__(self, *exc_info: object) -> None:
+        self._timer.cancel()
+
+    def trace(self, event: str, info: dict[str, Any]) -> None:
+        if event not in ("connection.connect_tcp.complete", "connection.start_tls.complete"):
+            return
+        stream = info.get("return_value")
+        with self._lock:  # the TLS socket replaces the plain one it wraps
+            self._socket = stream.get_extra_info("socket") if stream is not None else None
+            if self.fired:
+                self._shut()
+
+    def _fire(self) -> None:
+        with self._lock:
+            self.fired = True
+            self._shut()
+
+    def _shut(self) -> None:
+        if self._socket is not None:
+            with contextlib.suppress(OSError):
+                self._socket.shutdown(socket.SHUT_RDWR)
 
 
 def _read_limited(
     response: httpx.Response, target: httpx.URL, max_bytes: int, budget: _Budget
 ) -> bytes:
+    """The body, at most `max_bytes` after decoding, the budget asked before every raw
+    chunk."""
     declared = response.headers.get("content-length", "")
     if declared.isdigit() and int(declared) > max_bytes:
         raise FetchError(f"{target} is larger than {max_bytes} bytes")
-    chunks: list[bytes] = []
-    size = 0
-    for chunk in response.iter_bytes():
-        budget.remaining(target)
-        size += len(chunk)
-        if size > max_bytes:
-            raise FetchError(f"{target} is larger than {max_bytes} bytes")
-        chunks.append(chunk)
-    return b"".join(chunks)
+    inflate = _inflater(response, target)
+    body = bytearray()
+    try:
+        for chunk in response.iter_raw():
+            budget.remaining(target)
+            body += chunk if inflate is None else inflate(chunk, max_bytes + 1 - len(body))
+            if len(body) > max_bytes:
+                raise FetchError(f"{target} is larger than {max_bytes} bytes")
+    except zlib.error as exc:
+        raise FetchError(f"{target} could not be decoded ({exc})") from exc
+    return bytes(body)
+
+
+def _inflater(response: httpx.Response, target: httpx.URL) -> _Inflater | None:
+    """The inflater for the response's content coding, None without one. One coding
+    that the request asked for: a coding on a coding, or another one, is refused."""
+    codings = [c.strip().lower() for c in response.headers.get("content-encoding", "").split(",")]
+    codings = [c for c in codings if c and c != "identity"]
+    if not codings:
+        return None
+    if len(codings) > 1:
+        raise FetchError(f"{target} is encoded more than once ({', '.join(codings)})")
+    if codings[0] not in _CODINGS:
+        raise FetchError(f"{target} is encoded as {codings[0]}, which is not read here")
+    return _Inflater()
+
+
+class _Inflater:
+    """Inflates a gzip or deflate body chunk by chunk, each call to at most `room` bytes
+    (zlib's `max_length`; the input it did not get to waits in `unconsumed_tail`), so a
+    compression bomb never grows past the size budget in memory. Deflate is wrapped in
+    zlib as RFC 9110 says; raw deflate, which some servers send, is read too."""
+
+    def __init__(self) -> None:
+        self._zlib = zlib.decompressobj(32 + zlib.MAX_WBITS)  # a gzip or a zlib header
+        self._fresh = True  # nothing read yet: raw deflate may still be tried
+
+    def __call__(self, chunk: bytes, room: int) -> bytes:
+        out = bytearray()
+        data = chunk
+        while data and len(out) < room:
+            try:
+                out += self._zlib.decompress(data, room - len(out))
+            except zlib.error:
+                if not self._fresh:
+                    raise
+                self._zlib = zlib.decompressobj(-zlib.MAX_WBITS)
+                self._fresh = False
+                continue
+            self._fresh = False
+            data = self._zlib.unconsumed_tail
+        return bytes(out)

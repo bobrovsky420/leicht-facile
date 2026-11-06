@@ -157,3 +157,20 @@ def without_text() -> bytes:
     pdf.add_page()
     pdf.rect(50, 50, 300, 200, style="F")
     return bytes(pdf.output())
+
+
+def with_pages_without_text(*kinds: str) -> bytes:
+    """A page of text, then one page per kind: "scan" (a filled area over most of the
+    page, as a scanned attachment or a table as an image), "blank", "rule" (a line and
+    a small filled logo, nothing to read)."""
+    pdf = new_pdf()
+    pdf.add_page()
+    lines(pdf, 60, 120, ["Die Frist endet am 31. März 2027. Bitte zahlen Sie 500 Franken."])
+    for kind in kinds:
+        pdf.add_page()
+        if kind == "scan":
+            pdf.rect(50, 50, 495, 700, style="F")
+        elif kind == "rule":
+            pdf.line(60, 400, 535, 400)
+            pdf.rect(60, 60, 60, 25, style="F")
+    return bytes(pdf.output())

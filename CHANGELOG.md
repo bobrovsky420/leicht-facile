@@ -109,6 +109,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - The audit bundle's `final` is the version the review decided, the one that went out;
   it was the pipeline's final version, reported as not reviewed, when the reviewer had
   decided another version from the Versions menu.
+- A PDF with a page that shows pictures but no text, such as a scanned attachment or a
+  table as an image, is refused with the page numbers, as a scan is. The page was left
+  out without a word, and the draft missed what it said. Blank pages are skipped as
+  before.
 
 ### Security
 
@@ -119,6 +123,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - The text log format keeps one line per record: control characters in a request
   path (`%0A`) or a user name are written escaped, and a traceback line that begins
   like a record is indented, so a request can no longer forge a log line.
+- Fetching a web page stays within 15 MB of memory for the body however it is
+  compressed: a compressed body is inflated no further than the limit, and one with two
+  codings (`gzip, gzip`) or a coding the request did not ask for is refused. A 612-byte
+  answer took 618 MB before the limit was seen.
+- The 120-second limit for fetching a web page holds while the headers arrive: a server
+  that sent its headers one byte at a time kept a request and an ingest slot busy for
+  as long as it liked.
 
 ## [0.12.0] - 2026-11-04
 

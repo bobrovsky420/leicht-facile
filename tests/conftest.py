@@ -138,6 +138,22 @@ class FakeEndpoint:
         return httpx.Client(transport=httpx.MockTransport(self.handler))
 
 
+def fetch_client(handler: Callable[[httpx.Request], httpx.Response]) -> httpx.Client:
+    """A client on a mock transport for the fetch of a URL (ingest/fetch.py), whose
+    answers stream as a server's do: the fetch reads the raw body (`iter_raw`), and a
+    Response made with `content=` has read its body already. One made with `stream=`
+    passes as it is (a compressed body, a trickle)."""
+
+    def streamed(request: httpx.Request) -> httpx.Response:
+        response = handler(request)
+        if not response.is_stream_consumed:
+            return response
+        body = httpx.ByteStream(response.content)
+        return httpx.Response(response.status_code, headers=response.headers, stream=body)
+
+    return httpx.Client(transport=httpx.MockTransport(streamed))
+
+
 @pytest.fixture
 def endpoint() -> FakeEndpoint:
     return FakeEndpoint()

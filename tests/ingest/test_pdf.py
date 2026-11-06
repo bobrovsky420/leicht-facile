@@ -72,6 +72,21 @@ def test_pdf_without_text_layer():
         extract_pdf(pdfs.without_text())
 
 
+def test_a_pdf_with_a_page_that_shows_pictures_but_no_text_is_refused_whole():
+    """A scanned attachment or a table as an image in a PDF with text: the whole PDF is
+    refused, naming the pages; until 6 November 2026 the page was left out with a log
+    line only, and the draft missed what it said. Blank pages, and pages with only a
+    rule and a small logo, are skipped as before."""
+    with pytest.raises(NoTextLayerError, match=r"^page 2 of the PDF has no text layer"):
+        extract_pdf(pdfs.with_pages_without_text("scan"))
+    with pytest.raises(NoTextLayerError, match=r"^pages 2 and 4 of the PDF have no text"):
+        extract_pdf(pdfs.with_pages_without_text("scan", "blank", "scan"))
+    _, units = extract_pdf(pdfs.with_pages_without_text("blank", "rule"))
+    assert [u.text for u in units] == [
+        "Die Frist endet am 31. März 2027. Bitte zahlen Sie 500 Franken."
+    ]
+
+
 def test_not_a_pdf():
     with pytest.raises(ExtractionError, match="not a readable PDF"):
         extract_pdf(b"Dies ist keine PDF-Datei.")
