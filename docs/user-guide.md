@@ -41,16 +41,20 @@ The bar at the top is the same on every page:
 - **Check my text**: check a text you wrote yourself, without a model.
 - **AI model**: which model writes the drafts. The page appears when more than one model
   is offered.
-- **Model**: the model in use. The dot in front of it is green when the model answers,
-  amber when the provider answers but does not list the model, red when it cannot be
-  reached. Without a model the app makes no drafts, but the review and the text check
-  still work.
+- **Model**: the dot is green when the model answers, amber when the provider answers
+  but does not list the model, red when it cannot be reached. Point at it to see which
+  model is in use. Without a model the app makes no drafts, but the review and the text
+  check still work.
 - **EN DE FR IT**: the language of the interface. The language of your documents is set
   per draft.
-- **Guide**: opens this guide on the project's site, in a new tab.
+- **Help**: opens this guide on the project's site, in a new tab.
 
-Before the first draft, the start page offers the example letters. Click one to open the
-New draft form with the letter filled in.
+Before the first draft, the start page explains the four steps and offers the example
+letters: those in the language of the interface, the others under **More examples**.
+Click one to open the New draft form with the letter filled in.
+
+Some pages open with a short explanation in a box, such as the Facts tab of the review
+or Check my text. Once you know it, click the cross: the box stays away in this browser.
 
 ![The start page before the first draft: the example letters and the New draft button](images/guide/en/01-start.webp)
 
@@ -73,20 +77,28 @@ Click **New draft**. On the left you give the source text, on the right the sett
 The text of a web page or a file has the same limit as pasted text. A longer one is
 refused with its length: split it and make a draft of each part, one chapter at a time.
 
-**The settings.** The defaults fit most letters.
+**The settings.** The defaults fit most letters, and the form keeps the level, the
+sender and the form of address of your last draft.
 
 | Setting | What to choose |
 |---------|----------------|
-| Language of the document | **Detect** works for German, French and Italian. |
 | Level | **A2** for easy language (Leichte Sprache, FALC, lingua facile): short sentences, one statement each, hard words explained. **B1** for plain language (Einfache Sprache, langage clair, linguaggio chiaro), for readers with some reading practice. The level names the set of rules, not a measured reading level. |
-| Pipeline | Keep **P2 full**. P1 leaves out the judge, P0 is a single prompt for comparison. |
 | Document type | **Standard text**, or **Decision letter** for a decision of an authority or a court: then give the addressee and the fixed notice that opens and closes the text. |
 | Sender | **Authority**, **School** or **Other organisation**: the draft speaks in the sender's voice. |
 | Form of address | **Formal** (Sie, vous, Lei), **Informal, one reader** (du, tu) or **Informal, several readers** (ihr, vous, voi). |
+
+**More options** opens the rest; the defaults are right in almost every case.
+
+| Option | What to choose |
+|--------|----------------|
+| Language of the document | **Detect** works for German, French and Italian. |
 | Title | Optional: the name in the list of drafts. Without it, the document's own title is used. |
 | AI model | Only when several are offered: the model for this draft alone. |
+| Models | The model names for the three stages; empty, the chosen model's. For testing other models. |
 
-Leave **Models** closed; it is for testing other models. Click **Create draft**.
+Click **Create draft**. An installation that compares the pipelines also shows a
+**Pipeline** choice: keep **P2 full**; P1 leaves out the judge, P0 is a single prompt
+for comparison.
 
 ## 3. While the model works
 
@@ -122,9 +134,9 @@ exist. **Stop** ends the run. If a run fails, the stages that finished are kept:
 - **Review**: how many blocks you have decided.
 - The menu at the end of a row: **Open**, **Reader view**, the exports and **Delete**.
 
-Search by title, filter by status or language. The box **How it works** above the list
-can be closed with the cross. Depending on the settings of your installation, drafts
-nobody changed for a while are deleted after some days; ask whoever runs the app.
+Search by title, filter by status or language. Depending on the settings of your
+installation, drafts nobody changed for a while are deleted after some days; ask whoever
+runs the app.
 
 ## 5. Review the draft
 

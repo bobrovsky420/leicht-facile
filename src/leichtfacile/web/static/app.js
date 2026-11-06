@@ -103,9 +103,12 @@
       }
       endpoints.forEach((el) => {
         el.dataset.state = state;
-        el.title = text;
+        // The preset in use (data-model) before the status: the app bar shows the dot
+        // and the word "Model" alone, the sentence is its tooltip.
+        const full = el.dataset.model ? `${el.dataset.model}. ${text}` : text;
+        el.title = full;
         const out = $("[data-endpoint-text]", el);
-        if (out) out.textContent = text;
+        if (out) out.textContent = full;
       });
     };
     let cached = null;
@@ -161,17 +164,34 @@
     if (!Number.isNaN(when.getTime())) el.textContent = t("saved_at", { time: clock(when) });
   });
 
-  // -- drafts list: hide the intro strip, filter by language ---------------------------
-  [["#intro-close", "intro-hidden", "lf-intro-hidden"]].forEach(([button, hidden, key]) => {
-    const close = $(button);
-    if (!close) return;
-    close.addEventListener("click", () => {
-      document.documentElement.classList.add(hidden);
-      try {
-        localStorage.setItem(key, "1");
-      } catch (e) {
-        /* hidden until the page reloads */
-      }
+  // -- one-time hints (_hint.html): the cross hides a note for good in this browser ----
+  // The closed names live in localStorage; base.html hides them before the first paint,
+  // and the rule added here keeps a re-rendered fragment (the progress page) without it.
+  const HINTS_KEY = "lf-hints-hidden";
+  document.addEventListener("click", (event) => {
+    const close = event.target.closest("[data-hint-close]");
+    const note = close && close.closest("[data-hint]");
+    if (!note) return;
+    const name = note.dataset.hint;
+    note.hidden = true;
+    const style = $("#lf-hints");
+    if (style && /^[a-z-]+$/.test(name)) style.textContent += `[data-hint="${name}"]{display:none !important}`;
+    try {
+      const closed = JSON.parse(localStorage.getItem(HINTS_KEY) || "[]");
+      const names = Array.isArray(closed) ? closed : [];
+      if (!names.includes(name)) names.push(name);
+      localStorage.setItem(HINTS_KEY, JSON.stringify(names));
+    } catch (e) {
+      /* hidden until the page reloads */
+    }
+  });
+
+  // -- drafts list and New draft: the other example letters, the language filter ------
+  $$("[data-more-examples]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const more = $(".examples-more", button.parentElement);
+      if (more) more.classList.add("open");
+      button.hidden = true;
     });
   });
   $$("select[data-autosubmit]").forEach((select) => {
@@ -201,6 +221,42 @@
     });
     // After a rejected submission, open the tab that holds the user's input.
     if ($("#url") && $("#url").value) show("url");
+
+    // The level, the sender and the form of address of the last draft made in this
+    // browser (localStorage) fill a blank form; an example or a refused submission
+    // carries its own values (no data-remember). A value the form does not offer is
+    // left alone.
+    const form = $("#new-job");
+    const MEMORY = "lf-new-draft";
+    const remembered = ["level", "sender", "address"];
+    const offers = (field, value) => {
+      const options = field.options ? Array.from(field.options) : Array.from(field);
+      return options.some((option) => option.value === value);
+    };
+    if (form && form.dataset.remember !== undefined) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(MEMORY) || "null") || {};
+        remembered.forEach((name) => {
+          const field = form.elements[name];
+          if (field && typeof saved[name] === "string" && offers(field, saved[name])) field.value = saved[name];
+        });
+      } catch (e) {
+        /* nothing remembered */
+      }
+    }
+    if (form) {
+      form.addEventListener("submit", () => {
+        const values = {};
+        remembered.forEach((name) => {
+          if (form.elements[name]) values[name] = form.elements[name].value;
+        });
+        try {
+          localStorage.setItem(MEMORY, JSON.stringify(values));
+        } catch (e) {
+          /* not kept: the next form starts from the defaults */
+        }
+      });
+    }
 
     const area = $("#text");
     const count = $("#char-count");

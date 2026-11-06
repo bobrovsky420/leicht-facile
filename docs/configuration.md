@@ -527,6 +527,7 @@ The web application (`leichtfacile serve`).
 | `rate_limit_per_minute` | `120` | Writes (POST, PUT, PATCH, DELETE) per client address and minute; 0: no limit. |
 | `api_docs` | `false` | The API documentation pages /docs and /redoc, which load Swagger UI and ReDoc from a CDN; off, so the app loads nothing from the internet. /openapi.json is always served. |
 | `workspaces` | `false` | Every browser gets a workspace of its own, a link anyone may open: the drafts list and the job pages show that workspace's jobs alone (docs/architecture.md §7). The login still protects the app. |
+| `offer_pipelines` | `false` | Offer the evaluation's pipelines P1 (no judge) and P0 (one prompt) on the New draft form next to P2, for an installation that compares them; off, the form runs P2. The API and the command line take any pipeline regardless. |
 | `notice` |  | A short text under the app bar on every page (a demo's terms, a test installation): one text, or a table by interface language ({ en = "...", de = "..." }). |
 
 ### `[auth]`

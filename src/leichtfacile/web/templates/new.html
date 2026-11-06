@@ -13,7 +13,7 @@
   <div class="alert form-error" role="alert">{{ icons.sev('warn') }}<p>{{ t('model.none') }} {% if model_page %}<a href="/model">{{ t('model.choose') }}</a>{% endif %}</p></div>
   {% endif %}
 
-  <form method="post" action="/jobs" enctype="multipart/form-data" class="newgrid" id="new-job">
+  <form method="post" action="/jobs" enctype="multipart/form-data" class="newgrid" id="new-job"{% if remember %} data-remember{% endif %}>
     <section class="card src" aria-labelledby="src-h">
       <div class="card-head">
         <h2 id="src-h">{{ t('new.source') }}</h2>
@@ -33,9 +33,15 @@
             <span id="lang-note">{{ t('js.lang_auto') }}</span>
           </div>
           {% if examples %}
+          {# The example letters: those in the interface language first (pages.featured_examples),
+             the others behind "More examples" (app.js; all of them without it). #}
           <div class="examples">
             <span>{{ t('index.examples') }}</span>
             {% for e in examples %}<button type="button" class="linklike" data-example="{{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</button>{% endfor %}
+            {% if more_examples %}
+            <button type="button" class="linklike js-only" data-more-examples>{{ t('index.more_examples') }}</button>
+            <span class="examples-more">{% for e in more_examples %}<button type="button" class="linklike" data-example="{{ e.id }}"{% if e.lang %} lang="{{ e.lang }}"{% endif %}>{{ e.title }}</button>{% endfor %}</span>
+            {% endif %}
             <span class="grow"></span>
             <button type="button" class="btn btn-sm js-only" id="clear-text">{{ t('new.clear') }}</button>
           </div>
@@ -63,15 +69,6 @@
     <section class="card settings" aria-labelledby="set-h">
       <div class="card-head"><h2 id="set-h">{{ t('new.settings') }}</h2></div>
       <div class="card-body">
-        <div>
-          <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
-          <select id="lang" name="lang">
-            <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
-            {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t.language(code) }}</option>{% endfor %}
-            {% for code in coming_langs %}<option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t.language(code)) }}</option>{% endfor %}
-          </select>
-        </div>
-
         <fieldset>
           <legend>{{ t('index.level') }}</legend>
           <div class="optlist">
@@ -84,6 +81,9 @@
           </div>
         </fieldset>
 
+        {# The pipelines P1 and P0 next to P2, for an installation that compares them
+           (server.offer_pipelines); without the choice the submission's default P2 runs. #}
+        {% if pipelines %}
         <fieldset>
           <legend>{{ t('index.condition') }}</legend>
           <div class="optlist">
@@ -103,6 +103,7 @@
           </div>
           {% endfor %}
         </fieldset>
+        {% endif %}
 
         <div>
           <label class="label" for="mode">{{ t('new.mode') }}</label>
@@ -138,33 +139,51 @@
             <p class="hint">{{ t('new.notice.hint') }}</p></div>
         </div>
 
-        <div>
-          <label class="label" for="title">{{ t('index.title_field') }}</label>
-          <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
-        </div>
-
-        {% if endpoints %}
-        {# A choice of model endpoints: for this draft alone, the one in use stays. The
-           script lets the model placeholders below follow the choice. #}
-        <div>
-          <label class="label" for="endpoint">{{ t('new.endpoint') }}</label>
-          <select id="endpoint" name="endpoint">
-            {% for e in endpoints %}<option value="{{ e.name }}"{% if (form.endpoint or endpoints[0].name) == e.name %} selected{% endif %} data-writer="{{ e.writer }}" data-understand="{{ e.understand }}" data-judge="{{ e.judge }}" data-documents="{{ e.documents }}">{{ e.label }}{% if e.provider %} ({{ e.provider }}){% endif %}</option>{% endfor %}
-          </select>
-          <p class="hint">{{ t('new.endpoint.hint') }} <span id="endpoint-documents" class="js-only">{{ t('model.documents.public') }}</span></p>
-        </div>
-        {% endif %}
-
-        <details class="models"{% if form.writer_model or form.understand_model or form.judge_model %} open{% endif %}>
-          <summary>{{ icons.icon('chevron-right', 12) }}{{ t('index.models') }} <span class="muted" style="font-weight: 400">{{ t('new.models_defaults') }}</span></summary>
+        {# The rest is folded: the language is detected, the title is the document's, the
+           preset and the model names are the installation's. Open when the form carries
+           one of them (a refused submission), so nothing is hidden from the user. #}
+        {% set more_open = form.title or (form.lang and form.lang != 'auto') or form.writer_model or form.understand_model or form.judge_model or (endpoints and form.endpoint and form.endpoint != endpoints[0].name) %}
+        <details class="more"{% if more_open %} open{% endif %}>
+          <summary>{{ icons.icon('chevron-right', 12) }}{{ t('new.more') }} <span class="muted" style="font-weight: 400">{{ t('new.more.hint') }}</span></summary>
           <div class="fields">
-            <div><label class="label" for="writer_model">{{ t('index.models.writer') }}</label>
-              <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm.models.writer }}"></div>
-            <div><label class="label" for="understand_model">{{ t('index.models.understand') }}</label>
-              <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.llm.understand_model }}"></div>
-            <div><label class="label" for="judge_model">{{ t('index.models.judge') }}</label>
-              <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.llm.judge_model }}"></div>
-            <p class="hint">{{ t('index.models.hint') }}</p>
+            <div>
+              <label class="label" for="lang">{{ t('new.doc_lang') }}</label>
+              <select id="lang" name="lang">
+                <option value="auto"{% if not form.lang or form.lang == 'auto' %} selected{% endif %}>{{ t('index.lang.auto') }}</option>
+                {% for code in doc_langs %}<option value="{{ code }}"{% if form.lang == code %} selected{% endif %}>{{ t.language(code) }}</option>{% endfor %}
+                {% for code in coming_langs %}<option value="{{ code }}" disabled>{{ t('index.lang.coming', lang=t.language(code)) }}</option>{% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="label" for="title">{{ t('index.title_field') }}</label>
+              <input id="title" name="title" type="text" value="{{ form.title or '' }}" placeholder="{{ t('index.title_field.placeholder') }}">
+            </div>
+
+            {% if endpoints %}
+            {# A choice of model endpoints: for this draft alone, the one in use stays. The
+               script lets the model placeholders below follow the choice. #}
+            <div>
+              <label class="label" for="endpoint">{{ t('new.endpoint') }}</label>
+              <select id="endpoint" name="endpoint">
+                {% for e in endpoints %}<option value="{{ e.name }}"{% if (form.endpoint or endpoints[0].name) == e.name %} selected{% endif %} data-writer="{{ e.writer }}" data-understand="{{ e.understand }}" data-judge="{{ e.judge }}" data-documents="{{ e.documents }}">{{ e.label }}{% if e.provider %} ({{ e.provider }}){% endif %}</option>{% endfor %}
+              </select>
+              <p class="hint">{{ t('new.endpoint.hint') }} <span id="endpoint-documents" class="js-only">{{ t('model.documents.public') }}</span></p>
+            </div>
+            {% endif %}
+
+            <div class="models">
+              <span class="label">{{ t('index.models') }} <span class="muted" style="font-weight: 400">{{ t('new.models_defaults') }}</span></span>
+              <div class="fields">
+                <div><label class="label" for="writer_model">{{ t('index.models.writer') }}</label>
+                  <input id="writer_model" name="writer_model" type="text" value="{{ form.writer_model or '' }}" placeholder="{{ settings.llm.models.writer }}"></div>
+                <div><label class="label" for="understand_model">{{ t('index.models.understand') }}</label>
+                  <input id="understand_model" name="understand_model" type="text" value="{{ form.understand_model or '' }}" placeholder="{{ settings.llm.understand_model }}"></div>
+                <div><label class="label" for="judge_model">{{ t('index.models.judge') }}</label>
+                  <input id="judge_model" name="judge_model" type="text" value="{{ form.judge_model or '' }}" placeholder="{{ settings.llm.judge_model }}"></div>
+                <p class="hint">{{ t('index.models.hint') }}</p>
+              </div>
+            </div>
           </div>
         </details>
       </div>
@@ -173,10 +192,10 @@
           <button type="submit" class="btn btn-primary btn-lg">{{ t('new.create') }}</button>
           <a class="btn btn-lg" href="/">{{ t('new.cancel') }}</a>
         </div>
-        <p class="endpoint-line" data-endpoint role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm.title if model_ready else t('model.none') }}</code></span></p>
+        <p class="endpoint-line" data-endpoint{% if model_ready %} data-model="{{ settings.llm.title }}"{% endif %} role="status"><span class="ep-dot" aria-hidden="true"></span><span data-endpoint-text>{{ t('index.endpoint') }} <code>{{ settings.llm.title if model_ready else t('model.none') }}</code></span></p>
       </div>
     </section>
   </form>
-  {% if examples %}<script type="application/json" id="example-texts">{{ examples | tojson }}</script>{% endif %}
+  {% if examples %}<script type="application/json" id="example-texts">{{ (examples + more_examples) | tojson }}</script>{% endif %}
 </div>
 {% endblock %}

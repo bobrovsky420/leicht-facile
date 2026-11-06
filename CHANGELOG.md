@@ -5,6 +5,33 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Added
+
+- `[server] offer_pipelines = true` shows the pipelines P1 (no judge) and P0 (one
+  prompt) on the New draft form next to P2, for an installation that compares them.
+  The API and the command line take any pipeline as before.
+
+### Changed
+
+- The New draft form shows the choices a reviewer makes: the level, the document type,
+  the sender and the form of address. The language of the document, the title, the AI
+  model and the model names sit under "More options", and the pipeline choice is gone
+  from the form (P2 runs). The form remembers the level, the sender and the form of
+  address of the last draft made in the browser.
+- The explanations in the app are one-time hints: the notes on the Facts, Findings and
+  Questions tabs and above the glossary of the review page, next to "Results so far"
+  while a draft runs, and above Check my text each carry a cross that hides them for
+  good in that browser. The four steps "How it works" show in the empty list of drafts
+  alone, before the first draft.
+- The app bar is for the reviewer: the model indicator shows the dot and the word
+  "Model" (the model's name and status are its tooltip, and a screen reader hears them),
+  the guide link reads "Help", and the API link moved to the foot of the list of drafts,
+  where it appears only when `[server] api_docs` serves the documentation pages. The
+  example letters on the start page and the New draft form show those in the interface
+  language first, the others behind "More examples".
+
 ## [0.12.0] - 2026-11-04
 
 ### Added
@@ -361,6 +388,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...HEAD
 [0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.1...v0.10.2

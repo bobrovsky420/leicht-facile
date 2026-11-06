@@ -223,19 +223,23 @@ buttons carry an `aria-label`; decorative icons `aria-hidden="true"`.
   `apple-touch-icon.png`. Main nav: **Drafts** (`/`) with a count badge of the jobs in
   `needs_review` (`aria-label` "3 drafts need review") and **New draft** (`/new`).
   The current section has a 2 px accent underline and `aria-current`.
-- Right: the model indicator, a dot, "Model" and the preset in use (`settings.llm.title`,
-  mono 12; "No AI model is ready yet" while the preset lacks its key), a link to the
-  model page (§5.9). The dot is grey until `app.js` has the `/readyz` answer: green when
-  the provider is reachable and the model listed, amber when it is reachable without the
-  model, red when it is unreachable or the preset is not ready. The full sentence (the
-  `js.endpoint.*` texts) goes into the indicator's `title` and `aria-label`. `app.js`
-  keeps the answer for 5 minutes in `sessionStorage`, so moving between pages does not
-  call the provider's model list each time. The main nav has a fourth entry, **AI
-  model**, unless an organisation offers one preset alone (`llm.offer`).
-- The language switch (EN | DE, as today), the guide link and the API link. The guide
-  link (`site.guide_url`) opens the user's guide on the project's site in a new tab:
-  the German one for the German interface, the English one for the others
-  (docs/user-guide.md is its source).
+- Right: the model indicator, for the reviewer rather than the operator (since
+  6 November 2026): a dot and the word "Model" ("No model" while the preset lacks its
+  key). The preset in use (`settings.llm.title`, the element's `data-model`) and the
+  status sentence (the `js.endpoint.*` texts) are the indicator's `title` and the text a
+  screen reader hears; before that day the title stood in the bar in mono 12. A link to
+  the model page (§5.9). The dot is grey until `app.js` has the `/readyz` answer: green
+  when the provider is reachable and the model listed, amber when it is reachable without
+  the model, red when it is unreachable or the preset is not ready. `app.js` keeps the
+  answer for 5 minutes in `sessionStorage`, so moving between pages does not call the
+  provider's model list each time. The main nav has a fourth entry, **AI model**, unless
+  an organisation offers one preset alone (`llm.offer`).
+- The language switch (EN | DE, as today) and the help link, "Help" (`site.guide`;
+  "Guide" until 6 November 2026): `site.guide_url` opens the user's guide on the
+  project's site in a new tab, the German one for the German interface, the English one
+  for the others (docs/user-guide.md is its source). The API link left the bar the same
+  day: it sits under the drafts list (§5.2), and only when `server.api_docs` serves the
+  pages it opens (`/docs` answers 404 otherwise).
 - First focusable element: a "Skip to content" link.
 - The tagline leaves the header (it opens the empty state, §5.2); the footer leaves
   every page (the disclaimer moves under the drafts list and into the reader view's
@@ -256,15 +260,15 @@ Layout, at most 1440 px wide with 24 px gutters:
 
 1. Page header: h1 "Drafts", the line "10 drafts. 3 need your review." and the
    primary link button "New draft".
-2. Intro strip "How it works" on one line, four numbered steps: the model reads the
-   text and writes the draft; code checks 45 rules (`rule_count()`) and every value;
-   a second model judges and flagged blocks are repaired; you review every block and
-   export. A close button hides it, and `localStorage` remembers that per browser.
-   Without JavaScript the strip stays and the button is not shown.
+2. Nothing between the header and the card since 6 November 2026. Until then an intro
+   strip "How it works" stood here, four numbered steps on one line with a close button
+   that `localStorage` remembered; the steps are now in the empty state (below), where
+   the person who has made no draft yet reads them, and a list with drafts shows none.
 3. One white card: a toolbar (search field, status filter as a segmented control
    with counts, language select), the table, a footer line ("10 drafts",
    "Newest first").
-4. Under the card: the version and the disclaimer (`site.footer`).
+4. Under the card: the version and the disclaimer (`site.footer`), and the API link
+   (`/docs`) when `server.api_docs` serves the documentation pages.
 
 With workspaces (`server.workspaces`, since 2 November 2026) a strip under the intro,
 built like it (`.ws-strip`; `.workspace` is the review page's pane layout): "Your
@@ -299,10 +303,17 @@ handler.
 
 Empty states:
 
-- No jobs at all: "No drafts yet", the tagline, one sentence on what to paste, the
-  sample letters (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as
-  one-click fills of the New draft form (buttons that open `/new?example=<id>` with the
-  text filled in), and "New draft".
+- No jobs at all: "No drafts yet", the tagline, the four steps "How it works" in a
+  sunken box (`.how`: the model reads the text and writes the draft; code checks 45
+  rules (`rule_count()`) and every value; a second model judges and flagged blocks are
+  repaired; you review every block and export), one sentence on what to paste, "Try an
+  example:" with the sample letters (`src/leichtfacile/letters/`, or the folder
+  `data.examples_dir` names) as one-click fills of the New draft form (buttons that open
+  `/new?example=<id>` with the text filled in), and "New draft". The letters in the
+  interface language come first, else those in the first document language one is
+  written in (`pages.featured_examples`); the others sit behind a "More examples"
+  button (`.examples-more`, since 6 November 2026; without JavaScript all are in the
+  row). The New draft form's example row is split the same way.
 - Nothing matches the filters: "No drafts match. Clear the search or pick another
   status." with a "Clear filters" link to `/`.
 
@@ -336,31 +347,41 @@ them into local time and "Today" or "Yesterday".
     a button ("Choose a file") for the visually hidden file input; the existing hint
     ("PDF with a text layer, HTML or plain text, up to 15 MB"). After a choice, the
     file name and size show. Dropping needs JavaScript; the label works without it.
-- **Settings card**:
-  - Language of the document: select (Detect, German, French, Italian; the Italian
-    entry was a disabled "Italian (follows)" until 28 October 2026).
+- **Settings card**, since 6 November 2026 folded to the choices a reviewer makes;
+  the rest sits under "More options" (before, every field was in view and the
+  Models alone were folded):
   - Level: radio list, "A2 · Leichte Sprache, FALC" ("Easy language: short
     sentences, one statement each, hard words explained.") and "B1 · Einfache
     Sprache, langage clair" ("Plain language for readers with some reading
     practice."). Field name `level`, unchanged.
-  - Pipeline: radio list, "P2 full" with a "Default" tag ("Fact sheet, draft, rule
-    check, judge, repair"), "P1 no judge" ("Fact sheet, draft, rule check"), "P0
+  - Pipeline, only with `server.offer_pipelines` (an installation that compares
+    them; off by default, so the form sends no `condition` and the submission's
+    default P2 runs): radio list, "P2 full" with a "Default" tag ("Fact sheet, draft,
+    rule check, judge, repair"), "P1 no judge" ("Fact sheet, draft, rule check"), "P0
     baseline" ("One prompt, for comparison"). Field name `condition`, unchanged.
     Under it the stages the choice runs, as small chips with Model, code or you
     (from `STEPS_BY_CONDITION`). All three sequences are rendered and CSS shows the
     checked one's (`:has()`), so it works without JavaScript.
-  - Title (optional).
-  - AI model, a select, only when at least two presets are ready (built 24 October
-    2026, presets since 26 October): the one in use first and selected, each option the
-    preset's label and its provider, the hint "For this draft only; the model in use
-    stays", with "public documents only" when the chosen preset takes no personal data.
-    The script lets the Models placeholders below follow the choice. Without a ready
-    preset the page opens with a banner that links to the model page.
-  - Models, a closed `<details>`: Writer, Reader (fact sheet), Judge, with the
-    configured names as placeholders and the existing hint.
-  - The decision mode's fields (§5.7).
+  - Document type, Sender and Form of address, then the decision mode's fields (§5.7).
+  - More options, a closed `<details class="more">` ("More options", muted
+    "language, title, model"), open when a refused submission carries one of its
+    values, so nothing the user typed is hidden:
+    - Language of the document: select (Detect, German, French, Italian; the Italian
+      entry was a disabled "Italian (follows)" until 28 October 2026).
+    - Title (optional).
+    - AI model, a select, only when at least two presets are ready (built 24 October
+      2026, presets since 26 October): the one in use first and selected, each option
+      the preset's label and its provider, the hint "For this draft only; the model in
+      use stays", with "public documents only" when the chosen preset takes no personal
+      data. The script lets the Models placeholders below follow the choice. Without a
+      ready preset the page opens with a banner that links to the model page.
+    - Models: Writer, Reader (fact sheet), Judge, with the configured names as
+      placeholders and the existing hint.
   - Footer: "Create draft" (submit, 36 px, full width) and "Cancel" (link to `/`);
     under them the endpoint status, the same answer as in the app bar.
+- A blank form (`data-remember` on the form: no example, no refused submission)
+  takes the level, the sender and the form of address of the last draft made in this
+  browser (§6).
 
 ### 5.4 Job running (`job.html`, `_progress.html`)
 
@@ -497,9 +518,9 @@ frames: Source (flex 1), Draft (flex 1.35), Checks (400 px).
 - Without JavaScript every row is open, as today; the radios are plain radios.
 - Footer, sticky: "4 of 21 decided" with a meter, "Approve all undecided", and the
   "Review complete" checkbox.
-- After the blocks (since 8 October 2026): a section head "Glossary" with the hint
-  "Explanations of hard words. They go into the export: decide them like the blocks.",
-  then one row per glossary entry (`kind-glossary`, id `g01`, `g02`, ...): the term in
+- After the blocks (since 8 October 2026): a section head "Glossary" and under it the
+  one-time hint (§5.10) "Explanations of hard words. They go into the export: decide
+  them like the blocks.", then one row per glossary entry (`kind-glossary`, id `g01`, `g02`, ...): the term in
   bold, the explanation, and the same decision controls; Edit changes the explanation
   ("Edited explanation"), never the term. The counts, filters and keys include them.
 - The block texts carry the document's `lang`.
@@ -527,8 +548,8 @@ the four panels stack with their headings.
 
 - **Facts:** a summary ("9 of 14 facts present", "facts that must survive"), a
   stacked bar (present green, distorted red, missing red at 55 percent, doubted
-  amber), the counts in words ("2 doubted by the judge" only when there are any), the
-  existing hint. Then the facts, problems first: missing, distorted, doubted ("judge
+  amber), the counts in words ("2 doubted by the judge" only when there are any), and
+  under the summary the one-time hint (§5.10). Then the facts, problems first: missing, distorted, doubted ("judge
   doubts": the judge finds a fact missing whose value code finds in the draft, since
   8 October 2026), unchecked, present, then the background facts (`must_keep` false) marked
   "Background only". Each fact is a button: status icon, id, the expected value as a
@@ -614,9 +635,9 @@ markup only.
 
 ### 5.7 Hooks for the decision mode
 
-- New draft: after Pipeline, "Document type" (Standard text, Decision letter);
-  choosing a decision letter reveals "Addressee" and "Notice", the notice prefilled
-  per language from `pipeline/labels.py`.
+- New draft: after Level (and the Pipeline, when offered), "Document type" (Standard
+  text, Decision letter); choosing a decision letter reveals "Addressee" and "Notice",
+  the notice prefilled per language from `pipeline/labels.py`.
 - Review: the notice as a fixed banner under the summary strip (`--lf-sunken`, a grey
   "Fixed notice" tag, the text), not a block. The reader view shows it
   where the export writes it.
@@ -636,10 +657,11 @@ markup only.
 ### 5.8 Check my text (built 8 October 2026)
 
 A third entry in the app bar, "Check my text" (`/check`). The page is the New draft
-layout without the pipeline: the text card on the left (textarea, character count, the
-line "checked on this server only; no model call, nothing stored"), the settings card
-on the right (document language, level, a hint with the number of rules) and one
-button, "Check". The answer is rendered on the same page under the form: a results card
+layout without the pipeline: under the title the page's explanation (`check.intro`) as
+a one-time hint (§5.10; a lead paragraph until 6 November 2026), the text card on the
+left (textarea, character count, the line "checked on this server only; no model call,
+nothing stored"), the settings card on the right (document language, level, a hint
+with the number of rules) and one button, "Check". The answer is rendered on the same page under the form: a results card
 with a strip of counts (errors, warnings and notes per 100 blocks; blocks, sentences,
 words per sentence, readability; passive, genitive and subordinate-clause shares), then
 every block with its id, its text and its findings (severity icon, rule id, message,
@@ -685,6 +707,22 @@ with an `action` field, so it works without JavaScript:
 - Texts under `model.*` (§8); the groups, locations, documents and statuses are built
   from data (`test_keys_built_from_data_exist`).
 
+### 5.10 One-time hints (`_hint.html`, since 6 November 2026)
+
+The explanations that stood on a page at every visit are notes with a cross: the macro
+`hints.note(name, text, lang=None)` renders `<div class="note" data-hint="<name>">` with
+the text and a quiet icon button ("Hide this hint", `hint.hide`, JavaScript only). The
+names: `facts` (under the facts summary), `findings` and `questions` (at the top of
+their tabs) and `glossary` (under the section head of the draft pane) on the review
+page, `results` (next to "Results so far", while the job runs) on the progress page,
+`check` (under the title) on Check my text. A click on the cross hides the note for
+good in that browser (§6); without JavaScript every note stays and has no cross. The
+note is a bordered 13 px card on a page (`.note`), flat and sunken in a pane of the
+review page (`.pane .note`), and a bare line next to the results title
+(`.results-head .note`). Before that day the review page's hints were `section-intro`
+paragraphs and the facts hint a `hint` paragraph, shown at every visit, and the drafts
+list carried the "How it works" strip with its own close button (§5.2).
+
 ## 6. Behaviour (`app.js`)
 
 Kept: the source tabs, filling an example, the endpoint check, relative times, the
@@ -695,10 +733,18 @@ New or changed:
 
 1. The endpoint indicator on every page, its answer cached for 5 minutes in
    `sessionStorage`; the New draft page reads the same answer.
-2. Drafts: hiding the intro strip (`localStorage`), submitting the language select
-   on change.
+2. Drafts and New draft: "More examples" reveals the example letters of the other
+   languages (`.examples-more`); the language select submits on change. The one-time
+   hints (§5.10): a click on the cross hides the note, adds its rule to the style
+   element `#lf-hints` (so the polled progress fragment comes back without it) and adds
+   the name to `lf-hints-hidden` in `localStorage`; the inline script in `base.html`
+   writes the rules of the closed names into `#lf-hints` before the first paint. Until
+   6 November 2026 the same pair hid the drafts list's intro strip (`lf-intro-hidden`).
 3. New draft: the character count, the language note after an example, the file
-   name and size after a choice, dropping a file on the drop zone.
+   name and size after a choice, dropping a file on the drop zone; the level, the
+   sender and the form of address of the last draft (`localStorage`, `lf-new-draft`),
+   stored when the form is sent and filled into a blank form (`data-remember`), each
+   only when the form offers the stored value.
 4. Job running: copying the fragment's `data-run` line into the page header at every
    poll, replacing the fragment only when it changed, announcing a new stage
    (`data-stage`).
@@ -766,6 +812,7 @@ New keys with their English text (German written during the redesign):
 ```text
 site.skip                 Skip to content
 site.endpoint             Model
+site.no_model             No model                  (since 6 November 2026)
 nav.review_count.one      {n} draft needs review
 nav.review_count.other    {n} drafts need review
 
@@ -778,7 +825,8 @@ drafts.how.read           The model reads the text and writes the draft
 drafts.how.check          Code checks {count} rules and every value
 drafts.how.judge          A second model judges, flagged blocks are repaired
 drafts.how.review         You review every block and export
-drafts.how.hide           Hide how it works
+hint.hide                 Hide this hint            (since 6 November 2026; drafts.how.hide went)
+index.more_examples       More examples             (since 6 November 2026)
 drafts.search             Search by title
 drafts.search_label       Search drafts by title
 drafts.filter             Filter by status
@@ -825,6 +873,8 @@ new.condition.P0.desc     One prompt, for comparison
 new.default               Default
 new.stages                Stages that run
 new.models_defaults       configured defaults
+new.more                  More options
+new.more.hint             language, title, model
 new.endpoint              AI model
 new.endpoint.hint         For this draft only; the model in use stays.
 new.create                Create draft

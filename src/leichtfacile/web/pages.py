@@ -150,6 +150,19 @@ def examples_for_page(t: Translator, folder: Path | None = None) -> list[dict[st
     return out
 
 
+def featured_examples(
+    examples: list[dict[str, str]], ui_lang: str
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    """The example letters shown first and those behind "More examples": first those in
+    the interface language, else those in the first document language (`LANGS`) one is
+    written in; all of them, and none behind, when no letter has a language."""
+    langs = {e["lang"] for e in examples}
+    first = ui_lang if ui_lang in langs else next((lang for lang in LANGS if lang in langs), None)
+    if first is None:
+        return examples, []
+    return [e for e in examples if e["lang"] == first], [e for e in examples if e["lang"] != first]
+
+
 def _example(request: Request, example_id: str) -> dict[str, str] | None:
     """An example letter the installation offers, by its id; None for any other."""
     settings = request.app.state.settings
@@ -201,6 +214,9 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         }
         for key in STATUS_FILTERS
     ]
+    # The empty state offers the example letters, the interface language's first.
+    examples = examples_for_page(t, settings.data.examples_dir) if not total else []
+    featured, more = featured_examples(examples, t.lang)
     return _render(
         request,
         "index.html",
@@ -214,8 +230,8 @@ def index(request: Request, status: str = "all", q: str = "", lang: str = "") ->
         filtered=bool(query or lang or status != "all"),
         filters=filters,
         langs=store.langs(workspace=workspace),
-        # The empty state offers the example texts in the form.
-        examples=examples_for_page(t, settings.data.examples_dir) if not total else [],
+        examples=featured,
+        more_examples=more,
         rule_count=rule_count(),
         workspace_token=current_token(request),  # the strip with the link, when on
         section="drafts",
@@ -241,8 +257,10 @@ def _new(
     request: Request, status_code: int = 200, error: str | None = None, form: dict | None = None
 ) -> HTMLResponse:
     t = translator(request)
+    settings = request.app.state.settings
     written = available_languages()
     form = form or {}
+    featured, more = featured_examples(examples_for_page(t, settings.data.examples_dir), t.lang)
     return _render(
         request,
         "new.html",
@@ -250,19 +268,23 @@ def _new(
         t=t,
         error=error,
         form=form,
-        examples=examples_for_page(t, request.app.state.settings.data.examples_dir),
+        # A blank form takes the browser's last level, sender and form of address
+        # (app.js); an example or a refused submission keeps its own values.
+        remember=not form,
+        examples=featured,  # the interface language's letters; the others behind More
+        more_examples=more,
         doc_langs=[lang for lang in LANGS if lang in written],
         coming_langs=[lang for lang in LANGS if lang not in written],
-        pipelines=_pipelines(t),
+        # The pipeline choice is for an installation that compares them (P1, P0);
+        # otherwise the form has no choice and the submission's default, P2, runs.
+        pipelines=_pipelines(t) if settings.server.offer_pipelines else [],
         endpoints=_endpoint_options(request.app.state),
-        max_chars=request.app.state.settings.texts.max_chars,
+        max_chars=settings.texts.max_chars,
         chars=text_chars(form.get("text") or ""),
         # Decision mode: the authority's notice, prefilled per document language, in the
         # installation's variety (texts.region).
         notice_defaults={
-            lang: variety(lang, request.app.state.settings.texts.region).notice
-            for lang in LANGS
-            if lang in written
+            lang: variety(lang, settings.texts.region).notice for lang in LANGS if lang in written
         },
         section="new",
     )

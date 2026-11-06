@@ -83,14 +83,21 @@ def test_start_page_lists_the_drafts_and_starts_empty_with_the_examples(env) -> 
     page = client.get("/")
     assert page.status_code == 200
     assert "No drafts yet" in page.text
+    assert "rules and every value" in page.text  # the four steps, in the empty state
     assert 'href="/new?example=praemienverbilligung-brief"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
-    assert settings.llm.title in page.text  # the preset in use, in the app bar
+    assert settings.llm.title in page.text  # the preset in use: the app bar's tooltip
+    # The English interface shows the German letters first (no letter is English), the
+    # French and Italian ones behind "More examples".
+    first, more = page.text.split('class="examples-more"')
+    assert "praemienverbilligung-brief" in first and "More examples" in first
+    assert "reduction-primes-lettre" in more and "riduzione-premi-lettera" in more
+    assert "reduction-primes-lettre" not in first
 
     queued_job(store, settings, title="Brief")
     page = client.get("/")
     assert "No drafts yet" not in page.text and ">Brief</a>" in page.text
-    assert "rules and every value" in page.text  # the intro strip
+    assert "rules and every value" not in page.text  # the steps are for the first visit
     assert 'class="badge status-queued"' in page.text and "waiting for the worker" in page.text
 
 
@@ -133,6 +140,41 @@ def test_the_app_bar_counts_the_drafts_to_review(env) -> None:
     assert "1 draft needs review" in page and '<span aria-hidden="true">1</span>' in page
 
 
+def test_the_app_bar_names_the_model_in_its_tooltip_and_the_api_link_needs_the_docs(
+    tmp_path, endpoint, sleeps
+) -> None:
+    """The indicator shows the dot and the word "Model"; the preset's title is its tooltip
+    and the text a screen reader hears. The API link sits under the drafts list, and only
+    when server.api_docs serves the pages it opens."""
+    for api_docs in (False, True):
+        settings = make_settings(data__dir=tmp_path, llm__max_retries=0, server__api_docs=api_docs)
+        llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+        store = Store(tmp_path / f"docs-{api_docs}.sqlite")
+        with TestClient(create_app(settings, llm, store)) as client:
+            page = client.get("/").text
+        store.close()
+        bar, rest = page.split("</header>")
+        assert f'data-model="{settings.llm.title}"' in bar and "<code>" not in bar
+        assert ">Model</span>" in bar and ">Help</a>" in bar and 'href="/docs"' not in bar
+        assert ('href="/docs">API</a>' in rest) is api_docs
+
+
+def test_the_explanations_are_one_time_hints_with_a_cross(env) -> None:
+    """A note with a close button (data-hint; app.js keeps the closed names in the
+    browser, base.html hides them before the first paint): above Check my text, next to
+    "Results so far" while a job runs, and on the review page's Facts, Findings and
+    Questions tabs and above the glossary."""
+    client, app, store, settings, endpoint = env
+    check = client.get("/check").text
+    assert 'data-hint="check"' in check and 'aria-label="Hide this hint"' in check
+    assert '"lf-hints-hidden"' in check  # the early script
+    job = queued_job(store, settings)
+    assert 'data-hint="results"' in client.get(f"/jobs/{job.id}").text
+    review = client.get(f"/jobs/{run_c1(client, app, endpoint)}").text
+    for name in ("facts", "findings", "questions", "glossary"):
+        assert f'data-hint="{name}"' in review, name
+
+
 def test_pages_load_nothing_from_another_host() -> None:
     """Air-gapped use (docs/ui-design.md): stylesheets, scripts and fonts come
     from /static."""
@@ -155,13 +197,59 @@ def test_new_draft_page_offers_the_examples(env) -> None:
     assert page.status_code == 200
     assert "Try an example" in page.text and 'id="example-texts"' in page.text
     assert "Individuelle Prämienverbilligung 2027" in page.text
-    assert 'name="condition" value="P2" checked' in page.text
     assert settings.llm.models.writer in page.text
+    # The letters of the other languages: behind "More examples", in the script's list.
+    first, more = page.text.split('class="examples-more"')
+    assert 'data-example="reduction-primes-lettre"' in more and "More examples" in first
+    assert 'data-example="reduction-primes-lettre"' not in first
+    texts = re.search(r'id="example-texts">(.*?)</script>', page.text, re.DOTALL).group(1)
+    assert '"reduction-primes-lettre"' in texts and '"praemienverbilligung-brief"' in texts
     empty_area = 'data-max="10000"></textarea>'
     assert empty_area in page.text
     filled = client.get("/new", params={"example": "praemienverbilligung-brief"})
     assert 'data-max="10000"># Individuelle Prämienverbilligung 2027' in filled.text
     assert empty_area in client.get("/new?example=nope").text
+
+
+def test_new_draft_form_shows_the_reviewers_choices_and_folds_the_rest(env) -> None:
+    """The level, the document type, the sender and the form of address are in view;
+    the language, the title, the model and the model names sit under More options,
+    which opens when a refused submission carries one of them. No pipeline choice: the
+    submission's default P2 runs. A blank form takes the browser's last choices."""
+    client, _, _, _, _ = env
+    page = client.get("/new").text
+    assert 'name="condition"' not in page and "P1 no judge" not in page
+    assert 'id="new-job" data-remember>' in page
+    for field in ("level", "mode", "sender", "address"):
+        assert f'name="{field}"' in page
+    more = page.index('<details class="more">')
+    assert page.index('name="address"') < more
+    lang, title, writer = (page.index(f'id="{i}"') for i in ("lang", "title", "writer_model"))
+    assert more < lang < title < writer
+    assert "More options" in page and "language, title, model" in page
+    # An example or a refused submission keeps its own values; the fold opens when it
+    # would hide one of them.
+    filled = client.get("/new", params={"example": "praemienverbilligung-brief"}).text
+    assert "data-remember" not in filled and '<details class="more">' in filled
+    refused = client.post("/jobs", data={"text": "", "title": "Brief", "lang": "fr"})
+    assert refused.status_code == 400
+    assert "data-remember" not in refused.text and '<details class="more" open>' in refused.text
+    assert 'value="Brief"' in refused.text and '<option value="fr" selected>' in refused.text
+    assert Submission(text=LETTER).condition == "P2"
+
+
+def test_the_pipeline_choice_is_offered_on_request(tmp_path, endpoint, sleeps) -> None:
+    """server.offer_pipelines: the three pipelines as radios, P2 checked, with the
+    stages each runs."""
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0, server__offer_pipelines=True)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    store = Store(tmp_path / "ui.sqlite")
+    with TestClient(create_app(settings, llm, store, clients={})) as client:
+        page = client.get("/new").text
+        assert 'name="condition" value="P2" checked' in page
+        assert "P1 no judge" in page and 'data-condition="P0"' in page
+        assert "Stages that run" in page
+    store.close()
 
 
 def test_form_passes_model_overrides_to_the_job(env) -> None:

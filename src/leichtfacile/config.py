@@ -589,6 +589,12 @@ class Server(Section):
         "drafts list and the job pages show that workspace's jobs alone "
         "(docs/architecture.md §7). The login still protects the app.",
     )
+    offer_pipelines: bool = Field(
+        False,
+        description="Offer the evaluation's pipelines P1 (no judge) and P0 (one prompt) on the "
+        "New draft form next to P2, for an installation that compares them; off, the form "
+        "runs P2. The API and the command line take any pipeline regardless.",
+    )
     notice: str | dict[str, str] = Field(
         "",
         description="A short text under the app bar on every page (a demo's terms, a test "

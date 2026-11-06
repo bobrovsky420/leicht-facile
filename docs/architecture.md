@@ -1134,10 +1134,13 @@ the reviewer are told apart by a grey tag with a word and an icon ("Model", "Cod
 read without JavaScript; `app.js` adds polling, selection, the keys and saving.
 
 - **App bar** on every page: the wordmark, **Drafts** with a count of the drafts that
-  need review, **New draft**, **Check my text**, **AI model**, the model indicator (the
-  preset in use, a link to the model page; the dot turns green, amber or red from
-  `/readyz`, kept 5 minutes in `sessionStorage`), the EN / DE / FR / IT switch and the API
-  link. A "Skip to content" link comes first.
+  need review, **New draft**, **Check my text**, **AI model**, the model indicator (a
+  dot and the word "Model", a link to the model page; the preset in use and the status
+  are its tooltip; the dot turns green, amber or red from `/readyz`, kept 5 minutes in
+  `sessionStorage`), the EN / DE / FR / IT switch and the help link to the user's guide.
+  A "Skip to content" link comes first. The explanations on the pages (the Facts,
+  Findings and Questions tabs, the glossary, "Results so far", Check my text) are
+  one-time hints: a cross hides each for good in that browser (`localStorage`).
 - **Drafts** (`/`): the work queue as a table. Title and where the text came from,
   language and level, pipeline, status (the stage and time while running, the error
   when failed), the checks of the latest draft (errors, warnings, facts present), the
@@ -1146,23 +1149,28 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   GET parameters, so they work without JavaScript; at most 50 rows, newest first, with
   the counts from the job row (`review.py` counts a draft's findings, facts and
   decisions from its artifacts, without interface text; `lifecycle.py` writes them when
-  a job ends or a review is saved). An intro strip explains the four
-  steps and can be hidden. With no jobs, the empty state offers the team-written sample
-  letters shipped with the package (`src/leichtfacile/letters/`, or the folder
-  `data.examples_dir` names) as one-click fills of the New draft form (buttons to
-  `/new?example=<id>`).
+  a job ends or a review is saved). Under the list, the API link when `server.api_docs`
+  serves the documentation pages. With no jobs, the empty state explains the four steps
+  and offers the team-written sample letters shipped with the package
+  (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as one-click
+  fills of the New draft form (buttons to `/new?example=<id>`): those in the interface
+  language first, the others behind "More examples".
 - **New draft** (`/new`): the source as pasted text, web address or file (drop
   zone), with the team-written example texts as one-click fills
   (`/new?example=<id>` fills the text without JavaScript, and the decision mode's
-  settings from the JSON file next to an example); language, level and
-  pipeline as radio lists, the chosen pipeline's stages shown under it; the document
+  settings from the JSON file next to an example); the level as a radio list; the
+  pipeline as a radio list with the chosen pipeline's stages under it, only with
+  `server.offer_pipelines` (otherwise the submission's default P2 runs); the document
   type (standard text or decision letter), which reveals the addressee and the
   authority's notice, prefilled per document language from `pipeline/labels.py`
   (without JavaScript the two fields stay in view, and an empty notice gets the
-  language's default on the server); title; the AI model for this draft, a select
+  language's default on the server); the sender and the form of address; folded under
+  "More options": the language, the title, the AI model for this draft, a select
   shown when at least two presets are ready (the one in use selected, the job records
-  the choice, `JobConfig.endpoint`); optional model overrides. `POST /jobs` answers 400
-  with the form and the error, also when no preset is ready.
+  the choice, `JobConfig.endpoint`), and optional model overrides. A blank form takes
+  the level, the sender and the form of address of the browser's last draft
+  (`localStorage`). `POST /jobs` answers 400 with the form and the error, also when no
+  preset is ready.
 - **AI model** (`/model`, `web/model.py`): the presets in three
   groups (Switzerland, this computer with the models a local server lists, clouds for
   public documents only), each with its provider, where the text goes, the cost per
