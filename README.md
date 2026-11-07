@@ -285,7 +285,7 @@ fits them best: [Why Apertus for confidential texts](#why-apertus-for-confidenti
 - [use-case-decisions.md](docs/use-case-decisions.md): letters that accompany decisions of child and adult protection authorities and courts (partly planned)
 - [use-case-schools.md](docs/use-case-schools.md): letters from schools and other organisations to parents, students and members
 - [use-cases.md](docs/use-cases.md): all use cases at a glance; the further ones sketched with the checks they need
-- [image-input.md](docs/image-input.md): what Apertus 1.5 reads from a scanned letter, by kind of value
+- [image-input.md](docs/image-input.md): what image input keeps and loses from a scanned letter, by kind of value
 - [hard-texts.md](docs/hard-texts.md): hard words and sentences for tests
 - [evaluation.md](docs/evaluation.md): the evaluation tables, per language and setup
 - [evaluation-publicai.md](docs/evaluation-publicai.md): the Italian tables, run on the Public AI gateway with the Apertus 1.5 70B at every stage (28 October 2026)
