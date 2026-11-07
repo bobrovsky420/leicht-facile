@@ -7,7 +7,7 @@ import codecs
 import pytest
 
 from leichtfacile.ingest import html
-from leichtfacile.ingest.html import decode_html, extract_html
+from leichtfacile.ingest.html import decode_bytes, decode_html, extract_html
 from leichtfacile.ingest.segment import Unit
 
 PAGE = """<!doctype html>
@@ -265,6 +265,20 @@ def test_decode_html():
         codecs.BOM_UTF32_BE + text.encode("utf-32-be"),
     ):
         assert decode_html(data) == text, data[:4]
+
+
+def test_a_stray_byte_does_not_make_a_utf8_page_windows_1252():
+    """One byte that is no UTF-8 (a Windows-1252 dash pasted into a CMS) made the whole
+    page Windows-1252 until 6 November 2026, every umlaut and the apostrophe of 1'500
+    mojibake. The page stays UTF-8 with a replacement character for the byte, as in a
+    browser; a text whose umlauts are all invalid UTF-8 is Windows-1252, whatever it says."""
+    data = "<p>Prämie für Zürich: 1’500 Franken ".encode() + b"\x96 8-12 Uhr</p>"
+    expected = f"<p>Prämie für Zürich: 1’500 Franken {chr(0xFFFD)} 8-12 Uhr</p>"
+    assert decode_bytes(data) == expected
+    assert decode_bytes(data, "utf-8") == expected
+    assert decode_html(data) == expected
+    latin = "<p>Prämie für Zürich</p>".encode("cp1252")
+    assert decode_bytes(latin) == decode_bytes(latin, "utf-8") == "<p>Prämie für Zürich</p>"
 
 
 def test_contact_facts_read_the_bracketed_zero_as_the_trunk_prefix():

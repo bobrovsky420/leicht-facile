@@ -5,7 +5,7 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
-## [Unreleased]
+## [0.13.1] - 2026-11-06
 
 ### Fixed
 
@@ -21,6 +21,26 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - An uploaded Word or OpenDocument file, an image or any other file that is no text is
   refused with a message naming the formats that are read; it became a draft of
   garbage that went to the model.
+- A letter pasted from Word or Outlook (one line per paragraph, no blank lines) keeps
+  its title, salutation and paragraphs apart; it became one long paragraph. An address
+  stays one paragraph, and the closing keeps the signature after it.
+- A pasted or PDF line that holds an amount, an IBAN, a date with its year or a phone
+  number is no heading, so the draft has to keep the value; a bill's total set in bold
+  was a heading, which the fact checks pass over.
+- A PDF whose letterhead or footer repeats on every page keeps one copy of the phone
+  number, e-mail and web address in it; from two pages on they went with the repeated
+  lines.
+- A pasted line that starts with a number, such as "3. Stock, Zimmer 304", keeps the
+  number unless it is part of a numbered list; it became a list item without it. A
+  numbered list with blank lines between its items stays a list.
+- Sentences are split more reliably: "bis 30.6. Ihre Lohnausweise" stays one sentence,
+  "Postf. 123", "Ziff. II", "lu. 8 h" and "lun. 8-12" are not cut, "5 m." and "12 h."
+  can end a sentence, and the number that opens a paragraph ("2. Die Frist ...") is no
+  segment of its own.
+- A web page or text file that is UTF-8 but for one stray byte is read as UTF-8, with a
+  replacement character for that byte; the whole page was read as Windows-1252, every
+  umlaut broken. An en dash or a euro sign written `&#150;` or `&#128;` (old pages,
+  HTML saved from Word) stays; it was deleted, and "8&#150;12 Uhr" read 812.
 
 ## [0.13.0] - 2026-11-06
 
@@ -504,7 +524,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
-[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...HEAD
+[0.13.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.10.2...v0.11.0

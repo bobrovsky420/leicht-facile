@@ -3,6 +3,10 @@
 `normalize_text` makes text from web pages, PDFs and pasted input comparable:
 
 - Unicode NFC;
+- a C1 control character (U+0080 to U+009F) read as the Windows-1252 character it
+  stands for, as browsers read the numeric references of old web pages and of HTML
+  saved from Word (`&#150;` an en dash, `&#128;` the euro sign; "8&#150;12 Uhr" became
+  the number 812 when they were deleted);
 - soft hyphens, zero-width characters and other invisible control characters removed;
 - no-break, thin and other special spaces turned into a plain space;
 - typographic ligatures (fi, fl, ff, ...) expanded;
@@ -68,6 +72,20 @@ _TABLE.update({ord(c): "-" for c in _HYPHENS})
 _TABLE.update({c: None for c in range(0x20) if c not in (0x09, 0x0A)})
 _TABLE.update(dict.fromkeys(range(0x7F, 0xA0)))
 
+
+def _windows_1252(code: int) -> str | None:
+    try:
+        return bytes([code]).decode("cp1252")
+    except UnicodeDecodeError:  # 0x81, 0x8D, 0x8F, 0x90, 0x9D: nothing there
+        return None
+
+
+# The C1 characters Windows-1252 gives a meaning (`_windows_1252`), read before the line
+# breaks: U+0085 is an ellipsis there, not a "next line".
+_C1_AS_WINDOWS_1252 = {
+    code: char for code in range(0x80, 0xA0) if (char := _windows_1252(code)) is not None
+}
+
 # Carriage returns, vertical tab, form feed, next line, line separator.
 _NEWLINES = re.compile(r"\r\n?|[\x0b\x0c\x85\u2028]")
 _PARAGRAPH_SEPARATOR = "\u2029"
@@ -87,6 +105,7 @@ def normalize_newlines(text: str) -> str:
 
 def normalize_text(text: str) -> str:
     """Normalise one text (see the module docstring). The result is stripped."""
+    text = text.translate(_C1_AS_WINDOWS_1252)
     text = unicodedata.normalize("NFC", normalize_newlines(text))
     text = text.translate(_TABLE)
     text = _MEDIOPUNKT_RE.sub(MEDIOPUNKT, text)

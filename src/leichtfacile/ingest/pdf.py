@@ -4,7 +4,9 @@ Words come with font size and font name (`extract_words(extra_attrs=...)`). Step
 
 1. Running headers and footers are removed: lines in the top or bottom tenth of a page
    that repeat (digits ignored) at the same height on at least half of the pages, and
-   page numbers ("3", "Seite 3 | 17", "- 3 -") in those margins.
+   page numbers ("3", "Seite 3 | 17", "- 3 -") in those margins. A running line with a
+   phone number, an e-mail or a web address stays once: a letterhead on its first page,
+   a footer on its last.
 2. Columns: the left edge of a right-hand column is a position between 20 and 85
    percent of the page width where several words start. It is accepted when at most
    two words cross it, there is text on its left, and at least two lines start at it
@@ -53,7 +55,7 @@ import pdfplumber
 
 from leichtfacile.ingest.errors import ExtractionError, NoTextLayerError
 from leichtfacile.ingest.normalize import DOT_LIKE, join_lines, normalize_text
-from leichtfacile.ingest.segment import Unit
+from leichtfacile.ingest.segment import HARD_VALUE, Unit
 from leichtfacile.schemas import SegmentKind
 
 log = logging.getLogger(__name__)
@@ -66,6 +68,14 @@ _PAGE_NUMBER = re.compile(
     re.IGNORECASE,
 )
 _DIGITS = re.compile(r"\d+")
+# A running line with contact data: one copy stays (`_running`), since the letterhead or
+# the footer is often where a letter gives its phone number and e-mail address. A phone
+# number as rules/values.py reads Swiss, German and Austrian ones: "+" and a country code
+# or a leading 0, digits with spaces, slashes, hyphens or brackets, no dots (no date).
+_CONTACT = re.compile(
+    r"@|\bwww\.|https?://"
+    r"|(?<![\w+])(?:\+\d{2}[ /-]?(?:\(0\)[ ]?)?|\(?0)[\d ()/-]{6,19}\d(?!\w)"
+)
 # Bullet glyphs: hyphen, asterisk, bullet, triangular bullet, hyphen bullet, en dash,
 # em dash, middle dot, bullet operator, squares, circles, arrows, check marks, diamonds,
 # and the private-use bullets of the Symbol and Wingdings fonts.
@@ -295,34 +305,56 @@ def _group_lines(words: list[_Word], page: int) -> list[_Line]:
 def _drop_running_lines(pages: list[_Page]) -> None:
     margin_lines: dict[int, list[tuple[_Line, tuple[str, str] | None]]] = {}
     tops: dict[tuple[str, str], list[tuple[int, float]]] = defaultdict(list)
+    contacts: set[tuple[str, str]] = set()
     for page in pages:
         entries: list[tuple[_Line, tuple[str, str] | None]] = []
         for line in _group_lines(page.words, page.number):
             zone = _zone(line, page)
             key = None
             if zone:
-                key = (zone, _DIGITS.sub("#", normalize_text(line.text).lower()))
+                text = normalize_text(line.text)
+                key = (zone, _DIGITS.sub("#", text.lower()))
                 tops[key].append((page.number, line.top))
+                if _CONTACT.search(text):
+                    contacts.add(key)
             entries.append((line, key))
         margin_lines[page.number] = entries
 
-    needed = max(2, math.ceil(len(pages) / 2))
-    running: dict[tuple[str, str], float] = {}
-    for key, places in tops.items():
-        middle = statistics.median(top for _, top in places)
-        if len({number for number, top in places if abs(top - middle) <= 6}) >= needed:
-            running[key] = middle
-
+    running = _running(tops, contacts, len(pages))
     for page in pages:
         kept: list[_Word] = []
         for line, key in margin_lines[page.number]:
-            if key is not None and (
-                (key in running and abs(line.top - running[key]) <= 6)
-                or _PAGE_NUMBER.match(normalize_text(line.text))
-            ):
+            if key is not None and _PAGE_NUMBER.match(normalize_text(line.text)):
                 continue
+            if key in running:
+                top, keep = running[key]
+                if abs(line.top - top) <= 6 and page.number != keep:
+                    continue
             kept.extend(line.words)
         page.words = kept
+
+
+def _running(
+    tops: dict[tuple[str, str], list[tuple[int, float]]],
+    contacts: set[tuple[str, str]],
+    pages: int,
+) -> dict[tuple[str, str], tuple[float, int | None]]:
+    """The margin lines that repeat at the same height on half of the pages (two at
+    least): their height, and the page that keeps them. A letterhead's or a footer's phone
+    number, e-mail or web address stays once, since the facts need it: a letterhead on its
+    first page, a footer on its last, where it cannot split a paragraph that runs over a
+    page break. Other running lines go on all pages."""
+    needed = max(2, math.ceil(pages / 2))
+    running: dict[tuple[str, str], tuple[float, int | None]] = {}
+    for key, places in tops.items():
+        middle = statistics.median(top for _, top in places)
+        numbers = {number for number, top in places if abs(top - middle) <= 6}
+        if len(numbers) >= needed:
+            keep = None
+            if key in contacts:
+                keep = min(numbers) if key[0] == "top" else max(numbers)
+            running[key] = (middle, keep)
+    return running
 
 
 def _zone(line: _Line, page: _Page) -> str | None:
@@ -585,6 +617,8 @@ def _is_heading(paragraph: _Paragraph, text: str, body: float) -> bool:
     words = len(text.split())
     if not words or words > 25 or len(paragraph.lines) > 4:
         return False
+    if HARD_VALUE.search(text):
+        return False  # a bill's total or due date set large or bold is a fact, no heading
     ratio = paragraph.size / body
     if ratio >= 1.25:
         return True

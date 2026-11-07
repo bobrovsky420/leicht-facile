@@ -94,8 +94,11 @@ def decode_html(content: bytes, charset: str | None = None) -> str:
 
 
 def decode_bytes(content: bytes, *charsets: str | None) -> str:
-    """Decode with the first charset that works; Latin-1 labels are read as Windows-1252.
-    A byte order mark decides first: UTF-8, UTF-16 (Notepad's "Unicode") or UTF-32."""
+    """Decode by a byte order mark (UTF-8, UTF-16 as Notepad's "Unicode", UTF-32), else
+    by the first declared charset Python knows, else as UTF-8; Latin-1 labels are read as
+    Windows-1252. UTF-8 with a few stray bytes stays UTF-8, a replacement character for
+    each, as a browser shows it (one such byte made a whole page Windows-1252); text with
+    no valid UTF-8 beyond ASCII is Windows-1252, whatever it declares (`_utf8_or_cp1252`)."""
     if content.startswith(codecs.BOM_UTF8):
         return content[len(codecs.BOM_UTF8) :].decode("utf-8", errors="replace")
     # UTF-32's little-endian mark begins with UTF-16's, so it is looked for first.
@@ -107,19 +110,40 @@ def decode_bytes(content: bytes, *charsets: str | None) -> str:
     ):
         if content.startswith(bom):
             return content.decode(codec, errors="replace")
-    for name in (*charsets, "utf-8"):
-        if not name:
-            continue
-        try:
-            codec = codecs.lookup(name).name
-        except LookupError:
-            continue
-        if codec in ("ascii", "iso8859-1"):
-            codec = "cp1252"  # what browsers do
-        try:
-            return content.decode(codec)
-        except UnicodeDecodeError:
-            continue
+    for name in charsets:
+        declared = _codec(name)
+        if declared == "utf-8":
+            break
+        if declared is not None:
+            return content.decode(declared, errors="replace")
+    return _utf8_or_cp1252(content)
+
+
+def _codec(name: str | None) -> str | None:
+    """Python's name of a declared charset, Latin-1 labels as Windows-1252 (what browsers
+    do); None for none or one Python does not know."""
+    if not name:
+        return None
+    try:
+        codec = codecs.lookup(name).name
+    except LookupError:
+        return None
+    return "cp1252" if codec in ("ascii", "iso8859-1") else codec
+
+
+def _utf8_or_cp1252(content: bytes) -> str:
+    """UTF-8, with a replacement character for a few stray bytes among valid non-ASCII
+    characters (at most one for ten); else Windows-1252: a text whose umlauts are all
+    invalid UTF-8 was written in Windows-1252, whatever it declares."""
+    try:
+        return content.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+    text = content.decode("utf-8", errors="replace")
+    bad = text.count("\ufffd")
+    good = sum(1 for char in text if ord(char) > 0x7F) - bad
+    if good and bad <= max(1, good // 10):
+        return text
     return content.decode("cp1252", errors="replace")
 
 

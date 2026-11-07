@@ -87,7 +87,16 @@ def test_whitespace_runs_collapse_but_line_breaks_stay():
 
 
 def test_control_characters_are_removed():
-    assert normalize_text("Frist\x00 \x07endet\x9c.") == "Frist endet."
+    assert normalize_text("Frist\x00 \x07endet\x9d.") == "Frist endet."  # 0x9D: none in cp1252
+
+
+def test_c1_characters_are_read_as_windows_1252():
+    """Old web pages and HTML saved from Word write `&#150;` for an en dash and `&#128;`
+    for the euro sign, which browsers read through Windows-1252; deleted, "8&#150;12 Uhr"
+    became the number 812 and the euro sign went."""
+    text = "Montag\x96Freitag von 8\x9612 Uhr, Gebühr \x80 30, l\x92année\x85"
+    dash = chr(0x2013)  # the en dash the reference stands for
+    assert normalize_text(text) == f"Montag{dash}Freitag von 8{dash}12 Uhr, Gebühr € 30, l’année…"
 
 
 @pytest.mark.parametrize(

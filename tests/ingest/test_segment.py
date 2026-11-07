@@ -91,6 +91,30 @@ GERMAN = [
         "Das gilt für alle. (Ausnahmen stehen unten.) Danke.",
         ["Das gilt für alle.", "(Ausnahmen stehen unten.)", "Danke."],
     ),
+    # Cut or merged until 6 November 2026.
+    (
+        "Senden Sie bis 30.6. Ihre Lohnausweise. Danke.",
+        ["Senden Sie bis 30.6. Ihre Lohnausweise.", "Danke."],
+    ),
+    (
+        "Senden Sie alles bis 30.6. Danach ist es zu spät.",
+        ["Senden Sie alles bis 30.6.", "Danach ist es zu spät."],
+    ),
+    (
+        "Schreiben Sie an Postf. 123 in Bern. Danke.",
+        ["Schreiben Sie an Postf. 123 in Bern.", "Danke."],
+    ),
+    (
+        "Das steht in Ziff. II des Entscheids. Danke.",
+        ["Das steht in Ziff. II des Entscheids.", "Danke."],
+    ),
+    ("Wir sind Mo. 8-12 Uhr da. Danke.", ["Wir sind Mo. 8-12 Uhr da.", "Danke."]),
+    (
+        "Der Abstand beträgt 5 m. Die Gebühr beträgt 20 Franken.",
+        ["Der Abstand beträgt 5 m.", "Die Gebühr beträgt 20 Franken."],
+    ),
+    ("2. Die Frist beträgt 30 Tage. Danke.", ["2. Die Frist beträgt 30 Tage.", "Danke."]),
+    ("Nein. 85 Mitglieder sagen Ja.", ["Nein.", "85 Mitglieder sagen Ja."]),
 ]
 
 FRENCH = [
@@ -111,6 +135,15 @@ FRENCH = [
     ("Le prix est env. 20 francs. Merci.", ["Le prix est env. 20 francs.", "Merci."]),
     ("Vous payez 20 fr. par mois. Merci.", ["Vous payez 20 fr. par mois.", "Merci."]),
     ("Des formulaires, etc. Merci.", ["Des formulaires, etc.", "Merci."]),
+    ("Écrivez à MM. Dupont et Martin. Merci.", ["Écrivez à MM. Dupont et Martin.", "Merci."]),
+    (
+        "Le guichet est ouvert lu. 8 h à 12 h. Merci.",
+        ["Le guichet est ouvert lu. 8 h à 12 h.", "Merci."],
+    ),
+    (
+        "La distance est de 5 m. Le prix est de 20 francs.",
+        ["La distance est de 5 m.", "Le prix est de 20 francs."],
+    ),
 ]
 
 ITALIAN = [
@@ -134,6 +167,8 @@ ITALIAN = [
         ["Il termine scade il 31 marzo 2026.", "Grazie."],
     ),
     ("Il costo è di fr. 20. Grazie.", ["Il costo è di fr. 20.", "Grazie."]),
+    ("L'ufficio è aperto lun. 8-12. Grazie.", ["L'ufficio è aperto lun. 8-12.", "Grazie."]),
+    ("Sì. I primi risultati arrivano domani.", ["Sì.", "I primi risultati arrivano domani."]),
 ]
 
 

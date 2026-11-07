@@ -88,11 +88,68 @@ def test_letter_structure():
         ("Mehr unter www.musterwil.example", "paragraph"),
         ("Betreff: Staats- und Gemeindesteuern 2025", "heading"),
         ("Prämienverbilligung 2027", "heading"),
+        # A value a fact needs is no heading (headings until 6 November 2026).
+        ("Rechnungsbetrag CHF 1'250.00", "paragraph"),
+        ("IBAN CH93 0076 2011 6238 5295 7", "paragraph"),
+        ("Rechnung Nr. 2026123456 vom Steueramt", "paragraph"),
     ],
 )
 def test_single_short_line(text, kind):
     (unit,) = parse_text(text)
     assert unit.kind == kind
+
+
+def test_a_letter_pasted_from_word_is_one_paragraph_per_line():
+    """Word and Outlook paste a letter with one line break per paragraph and no blank
+    line between them: until 6 November 2026 it was one paragraph, the title and the
+    salutation glued into the sentences. The address stays one paragraph, as does the
+    closing with the signature after it."""
+    letter = """\
+Steueramt Musterhausen
+Bahnhofstrasse 5
+8001 Zürich
+Zürich, 5. Oktober 2026
+Veranlagungsverfügung 2025
+Sehr geehrte Frau Muster
+Wir haben Ihre Steuererklärung 2025 geprüft und die Steuern berechnet.
+Rechnungsbetrag CHF 1'250.00
+Bitte bezahlen Sie den Betrag bis zum 30. November 2026.
+Freundliche Grüsse
+Steueramt Musterhausen
+Hans Beispiel, Sachbearbeiter
+"""
+    assert [(u.kind, u.text) for u in parse_text(letter)] == [
+        ("paragraph", "Steueramt Musterhausen Bahnhofstrasse 5 8001 Zürich"),
+        ("paragraph", "Zürich, 5. Oktober 2026"),
+        ("heading", "Veranlagungsverfügung 2025"),
+        ("paragraph", "Sehr geehrte Frau Muster"),
+        ("paragraph", "Wir haben Ihre Steuererklärung 2025 geprüft und die Steuern berechnet."),
+        ("paragraph", "Rechnungsbetrag CHF 1'250.00"),
+        ("paragraph", "Bitte bezahlen Sie den Betrag bis zum 30. November 2026."),
+        ("paragraph", "Freundliche Grüsse Steueramt Musterhausen Hans Beispiel, Sachbearbeiter"),
+    ]
+
+
+def test_a_numbered_line_is_a_list_item_only_in_a_sequence():
+    """A line that opened with a number was a list item and lost the number until
+    6 November 2026 ("3. Stock, Zimmer 304" became "Stock, Zimmer 304"). A list is the
+    numbers in a row, with blank lines between its items too."""
+    address = "Frau Maria Muster\nVerwaltungsgebäude\n3. Stock, Zimmer 304\n8000 Zürich"
+    assert [(u.kind, u.text) for u in parse_text(address)] == [
+        ("paragraph", "Frau Maria Muster Verwaltungsgebäude 3. Stock, Zimmer 304 8000 Zürich")
+    ]
+    # Not a sequence: "2." comes after "3.".
+    text = f"{address}\n\nDie Rechnung:\n\n2. Rate CHF 400 bis 31. Januar 2027"
+    assert parse_text(text)[-1].text == "2. Rate CHF 400 bis 31. Januar 2027"
+    loose = (
+        "1. Zuständig ist die KESB.\n\n2. Die Frist beträgt 30 Tage:\na) per Post\nb) am Schalter"
+    )
+    assert [(u.kind, u.text) for u in parse_text(loose)] == [
+        ("list_item", "Zuständig ist die KESB."),
+        ("list_item", "Die Frist beträgt 30 Tage:"),
+        ("list_item", "per Post"),
+        ("list_item", "am Schalter"),
+    ]
 
 
 def test_lines_of_a_paragraph_are_joined():

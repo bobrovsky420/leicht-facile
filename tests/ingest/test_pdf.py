@@ -53,6 +53,40 @@ def test_running_footer_is_removed_and_paragraph_continues_on_the_next_page():
     ]
 
 
+def test_contact_lines_of_a_running_letterhead_and_footer_stay_once():
+    """A letterhead or a footer on every page is a running line, but its web address,
+    phone number and e-mail are facts: until 6 November 2026 they went on PDFs of two
+    pages and more. One copy stays, the letterhead on its first page and the footer on
+    its last, so the paragraph over the page break stays one; the page numbers go."""
+    _, units = extract_pdf(pdfs.contacts_in_the_margins())
+    assert [(u.page, u.kind, u.text) for u in units] == [
+        (1, "paragraph", "Steueramt Musterhausen | www.musterhausen.example"),
+        (
+            1,
+            "paragraph",
+            "Wir haben Ihre Steuererklärung geprüft. Bitte bezahlen Sie den Betrag bis zum "
+            "31. März 2027 und schreiben Sie uns, wenn Sie Fragen haben. Die Einsprache muss "
+            "schriftlich begründet werden.",
+        ),
+        (3, "paragraph", "Freundliche Grüsse"),
+        (3, "paragraph", "Telefon 044 123 45 67 | steuern@musterhausen.example"),
+    ]
+
+
+def test_a_line_with_a_value_is_no_heading():
+    """A bill's total in bold and its due date set large were headings until 6 November
+    2026, and a value only in a heading is no fact the draft must keep."""
+    _, units = extract_pdf(pdfs.value_lines_in_bold())
+    assert [(u.kind, u.heading_level, u.text) for u in units] == [
+        ("heading", 1, "Steuerrechnung 2026"),
+        ("paragraph", None, "Wir haben Ihre Steuern für das Jahr 2026 berechnet."),
+        ("paragraph", None, "Total CHF 1'250.00"),
+        ("paragraph", None, "Zahlbar bis 30. November 2026"),
+        ("heading", 2, "Was müssen Sie tun"),
+        ("paragraph", None, "Bezahlen Sie den Betrag mit dem Einzahlungsschein."),
+    ]
+
+
 def test_symbol_font_bullet_between_letters_becomes_a_mediopunkt():
     _, units = extract_pdf(pdfs.mediopunkt_and_symbol_bullets())
     assert units[1].text == "Merk\u2022blatt für Sie. Ergänzungs\u2022leistungen helfen."

@@ -68,8 +68,9 @@ Click **New draft**. On the left you give the source text, on the right the sett
 
 **The source.** Choose one of three ways:
 
-- **Paste text**: copy the text from your document, headings included. Up to the number
-  of characters shown under the field.
+- **Paste text**: copy the text from your document, headings included; a letter copied
+  from Word or Outlook keeps its paragraphs. Up to the number of characters shown under
+  the field.
 - **Web address**: the address of a public web page. The app takes the page's main text
   and drops menus and footers. Pages in a private network are refused.
 - **Upload a file**: a PDF with a text layer, an HTML page, a text or a Markdown file, up

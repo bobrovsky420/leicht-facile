@@ -141,6 +141,48 @@ def two_pages_with_footer() -> bytes:
     return bytes(pdf.output())
 
 
+def contacts_in_the_margins() -> bytes:
+    """Three pages with the same letterhead (a web address) and footer (a phone number,
+    an e-mail and the page number); a paragraph runs over the first page break."""
+    pdf = new_pdf()
+    for number, texts in enumerate(
+        (
+            [
+                "Wir haben Ihre Steuererklärung geprüft. Bitte bezahlen Sie den Betrag",
+                "bis zum 31. März 2027 und schreiben Sie uns, wenn Sie",
+            ],
+            ["Fragen haben. Die Einsprache muss schriftlich begründet werden."],
+            ["Freundliche Grüsse"],
+        ),
+        start=1,
+    ):
+        pdf.add_page()
+        lines(pdf, 60, 40, ["Steueramt Musterhausen | www.musterhausen.example"], size=8)
+        lines(pdf, 60, 120, texts)
+        lines(
+            pdf,
+            60,
+            800,
+            ["Telefon 044 123 45 67 | steuern@musterhausen.example", f"Seite {number} von 3"],
+            size=7,
+        )
+    return bytes(pdf.output())
+
+
+def value_lines_in_bold() -> bytes:
+    """A bill: a large title, a total in bold at body size, a due date set larger and in
+    bold, and a bold heading."""
+    pdf = new_pdf()
+    pdf.add_page()
+    y = lines(pdf, 60, 90, ["Steuerrechnung 2026"], size=18, style="B")
+    y = lines(pdf, 60, y + 14, ["Wir haben Ihre Steuern für das Jahr 2026 berechnet."])
+    y = lines(pdf, 60, y + 11, ["Total CHF 1'250.00"], style="B")
+    y = lines(pdf, 60, y + 11, ["Zahlbar bis 30. November 2026"], size=14, style="B")
+    y = lines(pdf, 60, y + 11, ["Was müssen Sie tun"], style="B")
+    lines(pdf, 60, y, ["Bezahlen Sie den Betrag mit dem Einzahlungsschein."])
+    return bytes(pdf.output())
+
+
 def mediopunkt_and_symbol_bullets() -> bytes:
     """A compound written with a Symbol-font bullet as Mediopunkt."""
     pdf = new_pdf()

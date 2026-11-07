@@ -11,8 +11,11 @@ language (no model download, fast). Two systematic errors of the blank pipelines
 corrected afterwards:
 
 - False splits after abbreviations the tokenizer does not know ("Art. 5", "Dr. med.",
-  French "art. 12 al. 3", "p. ex.", Italian "cpv. 2", "Sig. Rossi") and before a word
-  in lower case are merged again.
+  French "art. 12 al. 3", "p. ex.", Italian "cpv. 2", "Sig. Rossi"; before a number or
+  a Roman numeral "Postf. 123", "Ziff. II" and the days of opening hours, "Mo. 8-12",
+  "lu. 8 h", "lun. 8-12") and before a word in lower case are merged again; "M." and
+  "MM." only in capitals ("5 m. Die Gebühr ..." ends a sentence). The number or letter
+  that opens a paragraph ("2. Die Frist ...", "B. Am 3. Juni ...") ends no sentence.
 - An opening quote or bracket after the period stays with the sentence it opens.
 - Missed splits in German: the tokenizer keeps a number with a period as one token
   (ordinal numbers), so "Die Frist endet am 31. März 2026. Danach ..." comes out as
@@ -20,7 +23,9 @@ corrected afterwards:
   upper case, is not a month name, and either the number is a year, a date or an
   amount, or the next word is a function word ("Wir", "Die", "Danach"). "am 3. Mai" and
   "die 2. Mahnung" stay together. The same applies after an abbreviation that can end
-  a sentence ("usw.", "etc.", "ecc.", "60 Fr.").
+  a sentence ("usw.", "etc.", "ecc.", "60 Fr."). A date without its year ("bis 30.6.")
+  ends a sentence only before a function word that is no form of address: "bis 30.6.
+  Ihre Lohnausweise" is one sentence, "bis 30.6. Danach ..." two.
 """
 
 from __future__ import annotations
@@ -59,10 +64,13 @@ class Unit:
 _LEADING_WORDS = """
     abt abzgl allg betr bspw bzgl bzw ca d.h dipl dr ev evtl exkl fax frl geb gem ggf hr
     hrn i.d.r inkl insb ing iur jur kath kt lic max med mind phil prof rd ref resp sel
-    s.o s.u sog st str tel u.a u.u v.a vgl z.b z.h z.t zb zzgl av bd cf env m me mlle
-    mlles mm mme mmes p.ex pr rte ste vve ad.es arch avv cfr dott dott.ssa egr gent geom
+    s.o s.u sog st str tel u.a u.u v.a vgl z.b z.h z.t zb zzgl av bd cf env me mlle
+    mlles mme mmes p.ex pr rte ste vve ad.es arch avv cfr dott dott.ssa egr gent geom
     on p.es rag sig sig.na sig.ra sig.ri sigg spett vd
 """
+# French "M." and "MM." (Monsieur, Messieurs), in capitals only: "5 m. Die Gebühr ..."
+# (metres) ends a sentence.
+_CAPITAL_LEADING = frozenset({"M", "MM"})
 _LEADING = frozenset(_LEADING_WORDS.split()) | {
     "o.\u00e4",
     "u.\u00e4",
@@ -74,12 +82,14 @@ _LEADING = frozenset(_LEADING_WORDS.split()) | {
 # Before a number: "Art. 5", "Abs. 2", "al. 3", "cpv. 2", "n. 12", "S. 4".
 _REFERENCE_WORDS = """
     abb abs al anm art bd bst buchst cap ch chap cif cpv fig kap let lett lit n no nr p
-    pag pagg par pp rz s tab vol ziff
+    pag pagg par pp rz s tab vol ziff postf jg kl zi
+    mo di mi do sa so lu ma me je ve lun mar mer gio ven sab dom
 """
 _REFERENCE = frozenset(_REFERENCE_WORDS.split())
-# Can end a sentence: "usw.", "etc.", "ecc.", "Es kostet 60 Fr."
+# Can end a sentence: "usw.", "etc.", "ecc.", "Es kostet 60 Fr.", "Der Abstand beträgt 5 m.",
+# "Le guichet ferme à 12 h."
 _FINAL_WORDS = """
-    etc ecc f ff fr jh jhd min mia mio mrd sek std tsd u.s.w usf usw
+    etc ecc f ff fr jh jhd min mia mio mrd sek std tsd u.s.w usf usw m km cm mm kg h
 """
 _FINAL = frozenset(_FINAL_WORDS.split())
 
@@ -100,6 +110,22 @@ MONTHS = frozenset(_MONTHS_WORDS.split()) | {
     "d\u00e9cembre",
     "d\u00e9c",
 }
+_MONTH_NAMES = "|".join(sorted(MONTHS, key=len, reverse=True))
+_CURRENCY = r"(?:CHF|SFr\.|Fr\.|EUR|€|Euro|euros?|Franken|francs?|franchi)"
+# A value a fact holds, which no heading carries: the facts a heading alone holds are
+# background (pipeline/stages.py), so "Rechnungsbetrag CHF 1'250.00" or "IBAN CH93 ..."
+# as a heading lost what the letter asks for. An amount, an IBAN, a date with its year, a
+# Swiss phone number, five digits or more; a year alone ("Prämienverbilligung 2027") is
+# none.
+HARD_VALUE = re.compile(
+    rf"(?<!\w){_CURRENCY}\s?\d|\d[\d'’.,]*\s?{_CURRENCY}(?!\w)"
+    r"|(?-i:\b[A-Z]{2}\d{2}(?:\s?[A-Z\d]{4}){3,})"
+    r"|\b\d{1,2}\.\s?\d{1,2}\.\s?\d{4}\b"
+    rf"|\b\d{{1,2}}(?:\.|er)?\s+(?:{_MONTH_NAMES})\s+\d{{4}}\b"
+    r"|(?<!\d)(?:\+41|0)\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}(?!\d)"
+    r"|\d{5,}",
+    re.IGNORECASE,
+)
 _EXTRA_STARTERS = {
     lang: frozenset(words.split())
     for lang, words in {
@@ -113,7 +139,18 @@ _EXTRA_STARTERS = {
 _OPENING = "([{\u00ab\u2039\u201e\u201c\u201a\u2018\"'"
 _ELISION = re.compile(r"^.*['\u2019]")
 _STREET = re.compile(r"[^\W\d_]{2,}str$")  # "Bahnhofstr. 5"
+# A Roman numeral after a reference ("Ziff. II", "Art. IV"): two letters at least, so the
+# Italian article "I" and an elision ("L'adresse", "C'est") open a sentence as before.
+_ROMAN = re.compile(r"[IVXLC]{2,}\b")
 _NUMBER_END = re.compile(r"(?:^|[\s(\[/\u00ab\u201e\"'])(\d(?:[\d'\u2019.,]*\d)?)\.$")
+# A date without its year at the end ("bis 30.6."): like an ordinal, it ends a sentence
+# only before a sentence starter, and not before the forms of address that follow such a
+# date inside a sentence as often as they open the next ("bis 30.6. Ihre Lohnausweise").
+_DATE_END = re.compile(r"(?:^|[\s(\[/])\d{1,2}\.\d{1,2}\.$")
+_ADDRESS_WORDS = frozenset({"sie", "ihr", "ihre", "ihren", "ihrem", "ihrer", "ihres"})
+# The number or letter that opens a paragraph ("2. Die Frist ...", "B. Lea Muster ...",
+# "IV. Die Kosten ...", "a) Die Frist ...").
+_LEADING_MARKER = re.compile(r"\(?(?:\d{1,3}|[A-Za-z]|[IVXLC]{2,6})[.)](?=\s)")
 _FIRST_WORD = re.compile(rf"[{re.escape(_OPENING)}]*([^\W\d_]+)")
 _CANDIDATE = re.compile(r"\.\s+")
 
@@ -139,11 +176,17 @@ def split_sentences(text: str, lang: str) -> list[str]:
         doc = _pipeline(lang)(text)
     proposed = {_before_opening(text, s.start_char) for s in doc.sents if s.start_char > 0}
     candidates = {m.end() for m in _CANDIDATE.finditer(text) if m.end() < len(text)}
+    marker = _LEADING_MARKER.match(text)
     starts = []
     for pos in sorted(proposed | candidates):
         left = text[max(0, pos - 80) : pos].rstrip()
         right = text[pos : pos + 80]
-        if pos in proposed:
+        if marker and not text[marker.end() : pos].strip():
+            continue  # "2. Die Frist ...": no sentence ends in a paragraph's number
+        if _DATE_END.search(left):
+            if _starts_sentence(right, lang) and _first_word(right) not in _ADDRESS_WORDS:
+                starts.append(pos)
+        elif pos in proposed:
             if not _keeps_together(left, right):
                 starts.append(pos)
         elif _missed_boundary(left, right, lang):
@@ -174,16 +217,28 @@ def _keeps_together(left: str, right: str) -> bool:
     if first.islower():
         return True
     candidates = _abbreviation_candidates(left)
-    if any(c in _LEADING for c in candidates):
+    if any(c in _LEADING for c in candidates) or _monsieur(left):
         return True
     number_end = _NUMBER_END.search(left) is not None
-    if first.isdigit() and (
+    numeral = first.isdigit() or _ROMAN.match(right.lstrip(_OPENING)) is not None
+    if numeral and (
         number_end
         or any(c in _REFERENCE or c in _FINAL for c in candidates)
         or _STREET.search(candidates[0])
     ):
         return True
     return number_end and _first_word(right) in MONTHS
+
+
+def _starts_sentence(right: str, lang: str) -> bool:
+    """The text after a period opens with a capitalised sentence starter: a function
+    word or one of `_EXTRA_STARTERS` ("Wir", "Die", "Danach"), no month."""
+    match = _FIRST_WORD.match(right)
+    if match is None or not match.group(1)[0].isupper():
+        return False
+    first = match.group(1).lower()
+    starters = FUNCTION_WORDS[lang] | _EXTRA_STARTERS.get(lang, frozenset())
+    return first in starters and first not in MONTHS
 
 
 def _missed_boundary(left: str, right: str, lang: str) -> bool:
@@ -201,10 +256,17 @@ def _missed_boundary(left: str, right: str, lang: str) -> bool:
         if any(c in value for c in ".,'\u2019") or sum(c.isdigit() for c in value) >= 4:
             return True  # a year, a date, an amount or a phone number
         return first in starters  # "67. Wir ..." but not "3. Etage"
+    if _monsieur(left):
+        return False  # "M. Dupont", "MM. Dupont et Martin"
     if any(c in _FINAL for c in _abbreviation_candidates(left)):
         # German nouns are capitalised, so only a function word marks a new sentence.
         return lang != "de" or first in starters
     return False
+
+
+def _monsieur(left: str) -> bool:
+    """The word before the final period is French "M." or "MM." in capitals."""
+    return left.rsplit(maxsplit=1)[-1][:-1] in _CAPITAL_LEADING
 
 
 def _abbreviation_candidates(left: str) -> list[str]:
