@@ -18,8 +18,9 @@ from leichtfacile.schemas import (
     PipelineSummary,
     ReviewState,
     RuleFindings,
+    utcnow,
 )
-from leichtfacile.store import SCHEMA_VERSION, SchemaTooNew, Store
+from leichtfacile.store import IDLE_STATUSES, SCHEMA_VERSION, SchemaTooNew, Store
 
 
 def test_jobs_artifacts_and_usage(tmp_path) -> None:
@@ -88,6 +89,9 @@ def test_an_older_database_gets_the_new_columns_on_open(tmp_path) -> None:
     named = store.create_job(JobConfig(), created_by="a.muster")  # created_by, group 8
     assert store.get_job(named.id).created_by == "a.muster"
     assert job.created_by is None  # nobody was recorded before
+    assert store.events("old1") == []  # no event log before: the timeline stays empty
+    assert store.record("old1", "exported", {"format": "json"})  # the table exists, group 9
+    assert [e.kind for e in store.events("old1")] == ["exported"]
     store.close()
     assert Store(path).schema_version == SCHEMA_VERSION  # opening again changes nothing
 
@@ -185,17 +189,19 @@ def test_the_jobs_table_is_the_queue(tmp_path) -> None:
     assert store.claim_next_queued() is None
 
     # Guarded transitions: a running job is neither queued again nor deleted.
-    assert not store.transition(first.id, "queued", only_from=("needs_review", "failed"))
+    assert not store.record(first.id, "queued", only_from=("needs_review", "failed"))
     assert not store.requeue(first.id, delete=["draft"])
     assert not store.delete_job(first.id)
-    assert store.transition(first.id, "failed", only_from=("running",), error="x")
+    assert store.record(first.id, "failed", {"error": "x"}, only_from=("running",))
     assert store.get_job(first.id).error == "x"
-    assert store.transition(first.id, "queued", only_from=("failed",), error=None)
+    assert store.record(first.id, "queued", only_from=("failed",))
     assert store.get_job(first.id).error is None
 
     # A process that stopped left `second` running: queued again on start.
     assert store.requeue_running() == [second.id]
     assert store.count_jobs("queued") == 2
+    assert [e.kind for e in store.events(second.id)] == ["queued", "claimed", "queued"]
+    assert store.events(second.id)[-1].payload == {"reason": "restart"}
     store.close()
 
 
@@ -420,3 +426,97 @@ def test_a_database_of_a_newer_version_is_refused(tmp_path) -> None:
     with pytest.raises(SchemaTooNew, match="newer version"):
         Store(path)
     assert not (tmp_path / "backups").exists()
+
+
+def test_events_are_the_jobs_truth_and_the_queue_follows_the_queued_event(tmp_path) -> None:
+    """Every change of a job's state is an event the store appends and projects onto the
+    row (events.py); the queue orders by the `queued` event, so an export or a review
+    save, which stamp `updated_at`, move no job in the queue."""
+    store = Store(tmp_path / "e.sqlite")
+    first = store.create_job(JobConfig(), title="first", created_by="a.muster")
+    second = store.create_job(JobConfig(), title="second")
+    assert [(e.kind, e.payload) for e in store.events(first.id)] == [("queued", {"by": "a.muster"})]
+    assert store.events(first.id)[0].at == first.created_at
+    assert store.record(first.id, "exported", {"format": "md"})  # stamps the row ...
+    assert store.get_job(first.id).updated_at >= second.created_at
+    assert store.claim_next_queued() == first.id  # ... and leaves it first in the queue
+    assert store.get_job(first.id).status == "running"
+    assert store.record(first.id, "stage_started", {"stage": "write"})
+    assert store.get_job(first.id).stage == "write"
+    assert not store.record(first.id, "queued", only_from=("failed",))  # guarded
+    assert store.record(first.id, "failed", {"error": "boom"})
+    job = store.get_job(first.id)
+    assert (job.status, job.error) == ("failed", "boom")
+    assert store.record(first.id, "queued", {"from": "write"}, only_from=IDLE_STATUSES)
+    job = store.get_job(first.id)
+    assert (job.status, job.stage, job.error) == ("queued", None, None)
+    assert store.claim_next_queued() == second.id  # queued again later than second was
+    assert [e.kind for e in store.events(first.id)] == [
+        "queued", "exported", "claimed", "stage_started", "failed", "queued",
+    ]  # fmt: skip
+    assert not store.record("nobody", "finished")
+    store.close()
+
+
+def test_a_review_save_is_one_guarded_transaction(tmp_path) -> None:
+    """The conflict check and the write of a review are one transaction: two saves that
+    loaded the same stamp cannot both pass. The save records who saved which version and
+    moves a job under review between `needs_review` and `done`."""
+    store = Store(tmp_path / "rv.sqlite")
+    job = store.create_job(JobConfig())
+    store.record(job.id, "claimed")
+    store.record(job.id, "finished", {"stage": "review"})
+    first = ReviewState(draft_version=1, saved_at=utcnow(), saved_by="a")
+    assert store.save_review(job.id, first, expected=None, by="a")
+    assert not store.save_review(job.id, first, expected=None, by="b")  # the stamp moved
+    second = ReviewState(draft_version=1, completed=True, saved_at=utcnow(), saved_by="b")
+    assert store.save_review(job.id, second, expected=first.saved_at, by="b")
+    assert store.get_job(job.id).status == "done"
+    assert store.get_artifact(job.id, "review", ReviewState).saved_by == "b"
+    third = ReviewState(draft_version=1, saved_at=utcnow())
+    assert store.save_review(job.id, third, check=False)  # a client that sent no stamp
+    assert store.get_job(job.id).status == "needs_review"
+    saved = [e for e in store.events(job.id) if e.kind == "review_saved"]
+    assert [e.payload.get("by") for e in saved] == ["a", "b", None]
+    assert saved[1].payload == {"version": 1, "by": "b", "completed": True, "decisions": 0}
+    assert saved[1].at == second.saved_at
+    queued = store.create_job(JobConfig())  # a save on a job that is not under review
+    assert store.save_review(queued.id, first, check=False)
+    assert store.get_job(queued.id).status == "queued"
+    store.close()
+
+
+def test_the_event_log_keeps_the_run_times(tmp_path) -> None:
+    """The time a job ran, its stages' wall-clock time and the durations `/metrics`
+    reports come from the events, so they survive a restart and count the queue wait
+    and code time too."""
+    from leichtfacile.events import durations, run_seconds, stage_seconds
+
+    store = Store(tmp_path / "t.sqlite")
+    job = store.create_job(JobConfig())
+    t0 = datetime(2026, 11, 8, 10, 0, tzinfo=UTC)
+
+    def at(seconds: float) -> datetime:
+        return t0 + timedelta(seconds=seconds)
+
+    store.record(job.id, "claimed", at=at(5))
+    store.record(job.id, "stage_started", {"stage": "understand"}, at=at(5))
+    store.record(job.id, "stage_finished", {"stage": "understand"}, at=at(20))
+    store.record(job.id, "stage_started", {"stage": "write"}, at=at(20))
+    store.record(job.id, "stage_finished", {"stage": "write"}, at=at(50))
+    store.record(job.id, "stage_started", {"stage": "repair 1"}, at=at(50))
+    store.record(job.id, "stage_finished", {"stage": "repair 1"}, at=at(62))
+    store.record(job.id, "stage_started", {"stage": "polish"}, at=at(62))
+    store.record(job.id, "finished", {"stage": "review"}, at=at(70))  # ends the open stage
+    events = store.events(job.id)
+    assert run_seconds(events) == 65.0
+    assert stage_seconds(events) == {"understand": 15.0, "write": 30.0, "repair": 20.0}
+    assert durations(store.run_events()) == [("needs_review", 65.0)]
+    assert store.get_job(job.id).updated_at == at(70)
+    running = store.create_job(JobConfig())
+    store.record(running.id, "claimed", at=at(100))
+    store.record(running.id, "stage_started", {"stage": "write"}, at=at(100))
+    assert run_seconds(store.events(running.id)) is None  # not ended
+    assert stage_seconds(store.events(running.id), now=at(130)) == {"write": 30.0}
+    assert durations(store.run_events()) == [("needs_review", 65.0)]  # the running one left out
+    store.close()

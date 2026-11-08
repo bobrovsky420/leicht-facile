@@ -225,8 +225,9 @@ is precisely that a fine-tuned 8B makes the 70B unnecessary at runtime.
   names nobody): on the job they submit (`created_by`), on every decision they save
   (`by`, with `at`, the time it was first saved in that form; a save that sends a
   decision unchanged keeps the first reviewer's stamp) and on the review (`saved_by`),
-  on the audit bundle they export (`exported_by`, and `final.reviewers`, who decided)
-  and in the Word footer, in the log line of a deletion, which leaves no row, and in
+  on the audit bundle they export (`exported_by`, and `final.reviewers`, who decided),
+  in the job's event log (the bundle's `timeline`: who submitted, stopped, saved and
+  exported) and in the Word footer, in the log line of a deletion, which leaves no row, and in
   the access line (below). The app reads the proxy's `X-Forwarded-For` and
   `X-Forwarded-Proto` itself (`ProxyHeaders`, outside every other layer): the user's
   address for the rate limit and the access line, and the scheme, so the cookies are
@@ -283,7 +284,8 @@ is precisely that a fine-tuned 8B makes the 70B unnecessary at runtime.
   once in 30 s, whoever asks, and answers booleans and the configured names, never the
   endpoint's catalogue, so a caller cannot make the server spend the key's quota or
   learn what the endpoint serves. `/metrics` (architecture.md §7) says how much the
-  service is used and which models it calls, so it stays behind the login when one is
+  service is used, how long the stored jobs ran and which models it calls, so it stays
+  behind the login when one is
   configured; the probes alone are open.
 - Every response carries an `X-Request-ID`: the client's when it is a plain token (a
   reverse proxy sets one, so its log and ours meet), else a new one. Every log line
@@ -434,12 +436,12 @@ What the service stores, where, for how long, and how it leaves:
   application and covers the WAL and temporary files too; the application does not
   encrypt rows itself.
 - **How long.** By default until someone deletes the job. `data.retention_days` (0 by
-  default) makes a housekeeping thread delete, once an hour, every job that nobody
-  changed for that many days, with its artifacts, calls and cache rows; running jobs
-  stay. A deployment that handles letters with personal data should set it to the
+  default) makes a housekeeping thread delete, once an hour, every job without any
+  activity (a run, a review save, an export) for that many days, with its artifacts,
+  calls, events and cache rows; running jobs stay. A deployment that handles letters with personal data should set it to the
   period its records rules allow and export what it must keep.
 - **Deletion.** The row menu of the drafts list, the job and review pages, and
-  `DELETE /api/v1/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
+  `DELETE /api/v1/jobs/{id}` remove a job with its artifacts, calls and events (`ON DELETE
   CASCADE`) and with its rows in the response cache (`Store.delete_job`: the keys of
   the job's calls are recorded in `llm_calls`; a row another job uses too stays), also
   while no model is ready and after the cache was switched off, so no answer about the

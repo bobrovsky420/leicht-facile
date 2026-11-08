@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from statistics import median
 from urllib.parse import urlsplit
 
+from leichtfacile.events import run_end, stage_seconds
 from leichtfacile.export import glossary_ids
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.pipeline.rounds import blocking_count
@@ -544,8 +545,15 @@ def progress_view(
     for step in steps:
         step.usage = by_stage.get(step.key)
 
+    events = store.events(job.id)
     now = now or datetime.now(UTC)
-    end = now if job.status in ("queued", "running") else job.updated_at
+    # A finished job ran until the event that ended its run; a later review or export
+    # stamps the row, but did not lengthen the run.
+    ended = run_end(events)
+    if job.status in ("queued", "running"):
+        end = now
+    else:
+        end = ended.at if ended is not None else job.updated_at
     elapsed = (_aware(end) - _aware(job.created_at)).total_seconds()
     view = ProgressView(
         job=job,
@@ -560,7 +568,10 @@ def progress_view(
         core=core_questions(factsheet, t) if factsheet else [],
     )
     if job.status == "running":
-        view.left_s, view.over = _time_left(steps, _past_stage_seconds(store, job))
+        # What the running stage has used so far: its wall-clock time from the log,
+        # else (a job without stage events) the model time of its calls.
+        used = stage_seconds(events, now) or {k: row.seconds for k, row in by_stage.items()}
+        view.left_s, view.over = _time_left(steps, _past_stage_seconds(store, job), used)
         view.left_text = _left_text(t, view.left_s, view.over)
     _run_line(view, t)
     return view
@@ -570,9 +581,11 @@ PAST_JOBS = 20  # the finished jobs whose stage times give the time left
 
 
 def _past_stage_seconds(store: Store, job: Job) -> dict[str, list[float]]:
-    """Model seconds per step key of the newest finished jobs on the same pipeline,
-    whatever their workspace (timings carry no text), this job left out: the sample the
-    time left is estimated from."""
+    """Seconds per step of the newest finished jobs on the same pipeline, whatever
+    their workspace (timings carry no text), this job left out: the sample the time
+    left is estimated from. Wall-clock time from each job's event log (code time and
+    waits included, events.py); for a job from before the log, the model time of its
+    calls."""
     jobs = [
         past
         for status in ("needs_review", "done")
@@ -580,28 +593,37 @@ def _past_stage_seconds(store: Store, job: Job) -> dict[str, list[float]]:
         if past.id != job.id and past.config.condition == job.config.condition
     ]
     jobs.sort(key=lambda past: past.created_at, reverse=True)
+    ids = [past.id for past in jobs[:PAST_JOBS]]
+    logs = store.events_of(ids)
+    timed = {job_id: stage_seconds(logs.get(job_id, [])) for job_id in ids}
+    usage = store.usage_of([job_id for job_id in ids if not timed[job_id]])
     samples: dict[str, list[float]] = {}
-    for usage in store.usage_of([past.id for past in jobs[:PAST_JOBS]]).values():
-        for key, row in _usage_by_stage(usage).items():
-            samples.setdefault(key, []).append(row.seconds)
+    for job_id in ids:
+        per_step = timed[job_id] or {
+            key: row.seconds for key, row in _usage_by_stage(usage.get(job_id, [])).items()
+        }
+        for key, seconds in per_step.items():
+            samples.setdefault(key, []).append(seconds)
     return samples
 
 
-def _time_left(steps: list[Step], samples: dict[str, list[float]]) -> tuple[float | None, bool]:
-    """Seconds the model stages still need, from the median past time of each: the
-    waiting stages in full, the running one less what it has used. (None, False)
-    without a sample for any of them; the flag says the running stage is past its
-    median and nothing waits ("taking longer than usual")."""
+def _time_left(
+    steps: list[Step], samples: dict[str, list[float]], used: dict[str, float]
+) -> tuple[float | None, bool]:
+    """Seconds the stages still need, from the median past time of each: the waiting
+    stages in full, the running one less what it has `used`. (None, False) without a
+    sample for any of them; the flag says the running stage is past its median and
+    nothing waits ("taking longer than usual")."""
     left, known = 0.0, False
     for step in steps:
-        if step.who != "model" or step.state not in ("running", "pending"):
+        if step.who == "human" or step.state not in ("running", "pending"):
             continue
         sample = samples.get(step.key)
         if not sample:
             continue
         known = True
-        used = step.usage.seconds if step.usage and step.state == "running" else 0.0
-        left += max(median(sample) - used, 0.0)
+        spent = used.get(step.key, 0.0) if step.state == "running" else 0.0
+        left += max(median(sample) - spent, 0.0)
     return (left, left <= 0.0) if known else (None, False)
 
 

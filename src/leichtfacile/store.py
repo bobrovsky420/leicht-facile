@@ -26,6 +26,13 @@ rather than failing midway.
 The store owns the response cache of its data directory (`llm/cache.py`, `cache=`), so
 that a deleted job takes its prompts' answers with it whether or not a model client
 exists (`delete_job`); the clients use the same cache.
+
+Every change of a job's state is an event (`job_events`, events.py) the store appends
+in the same transaction as the artifact it belongs to (`record`, `save_review`,
+`claim_next_queued`, `requeue`): the job row's `status`, `stage` and `error` are what
+the events project (`events.project`), written here and nowhere else, and `updated_at`
+is the time of the last event. The queue orders by the `queued` event, so a stamp from
+an export or a review save moves no job in it.
 """
 
 from __future__ import annotations
@@ -45,6 +52,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
+from leichtfacile.events import RUN_ENDS, project
 from leichtfacile.llm.cache import ResponseCache
 from leichtfacile.llm.client import Usage
 from leichtfacile.schemas import (
@@ -53,6 +61,8 @@ from leichtfacile.schemas import (
     Job,
     JobConfig,
     JobCounts,
+    JobEvent,
+    ReviewState,
     UsageRecord,
     base_lang,
     canonical_condition,
@@ -358,6 +368,19 @@ def _add_created_by(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE jobs ADD COLUMN created_by TEXT")
 
 
+def _add_job_events(conn: sqlite3.Connection) -> None:
+    """8 November 2026: the event log (events.py), appended to in the same transaction as
+    the state it records. The jobs stored before have no events: their timeline in the
+    audit bundle is empty, and their row keeps the columns as they were."""
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS job_events ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "job_id TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE, "
+        "at TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL DEFAULT '{}')"
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS job_events_job ON job_events(job_id, id)")
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -375,6 +398,7 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_rewrite_region_ids,),  # 6 (29 October 2026): CH-01 to CH-03 became REG-01 to REG-03
     (_add_workspace,),  # 7 (2 November 2026): the workspace column and its index
     (_add_created_by,),  # 8 (3 November 2026): who submitted the document
+    (_add_job_events,),  # 9 (8 November 2026): the event log (events.py)
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 BACKUPS_DIR = "backups"  # next to the database: the copy made before a migration
@@ -589,6 +613,7 @@ class Store:
                     workspace,
                 ),
             )
+            self._event(conn, job.id, "queued", _payload(by=created_by), job.created_at)
         return job
 
     def get_job(self, job_id: str, workspace: str | None = None) -> Job | None:
@@ -673,6 +698,10 @@ class Store:
         return cur.rowcount
 
     def update_job(self, job_id: str, **fields: object) -> None:
+        """Write columns of the job row as they are: the title, the config, the counts.
+        `status`, `stage` and `error` too, which the app never writes this way (they are
+        projections of the events, `record`): for the tests and for repairs of a
+        database."""
         with self._tx() as conn:
             conn.execute(*_update(job_id, fields))
 
@@ -683,43 +712,104 @@ class Store:
         with self._tx() as conn:
             conn.execute(*_update(job_id, {"counts": counts}, touch=False))
 
-    def transition(
-        self, job_id: str, status: str, *, only_from: tuple[str, ...], **fields: object
+    def record(
+        self,
+        job_id: str,
+        kind: str,
+        payload: dict[str, Any] | None = None,
+        *,
+        only_from: tuple[str, ...] | None = None,
+        counts: JobCounts | None = None,
+        artifacts: Sequence[tuple[str, BaseModel, int]] = (),
+        at: datetime | None = None,
     ) -> bool:
-        """Set the status, and `fields` with it, only while the job has one of the
-        `only_from` statuses: one guarded UPDATE, so a worker that takes the job in the
-        same moment cannot be overtaken. False when the job has another status or
-        does not exist."""
-        sql, params = _update(job_id, {"status": status, **fields})
-        marks = ", ".join("?" for _ in only_from)
+        """Append an event of the job (`events.EVENT_KINDS`) and write what it projects
+        onto the job row (`events.project`), with `updated_at`, the `artifacts` (name,
+        model, version) that belong to it and the `counts` for the drafts list, in one
+        transaction. With `only_from`, only while the job has one of these statuses (a
+        guarded change, so a worker that takes the job in the same moment is never
+        overtaken). False when the job does not exist or has another status; nothing is
+        written then."""
+        when = at or utcnow()
         with self._tx() as conn:
-            cur = conn.execute(f"{sql} AND status IN ({marks})", (*params, *only_from))
-        return cur.rowcount > 0
+            if not self._event(conn, job_id, kind, dict(payload or {}), when, only_from=only_from):
+                return False
+            for name, model, version in artifacts:
+                self._put(conn, job_id, name, model, version, when)
+            if counts is not None:
+                conn.execute(*_update(job_id, {"counts": counts}, touch=False))
+        return True
+
+    def save_review(
+        self,
+        job_id: str,
+        review: ReviewState,
+        *,
+        expected: datetime | None = None,
+        check: bool = True,
+        by: str | None = None,
+    ) -> bool:
+        """Store the review as the job's one review and record `review_saved`, in one
+        transaction: with `check`, only while the stored review's `saved_at` is
+        `expected`, the stamp the page loaded (None: it saw none), so two saves that
+        loaded the same stamp cannot both pass. The review's `saved_at` is the event's
+        time; a job under review moves between `needs_review` and `done` with
+        `review.completed`. False on a conflict or a missing job, nothing written then."""
+        when = review.saved_at or utcnow()
+        payload = {
+            "version": review.draft_version,
+            "by": by,
+            "completed": review.completed,
+            "decisions": len(review.decisions),
+        }
+        with self._tx() as conn:
+            if check:
+                row = conn.execute(
+                    "SELECT data FROM artifacts WHERE job_id = ? AND name = 'review' "
+                    "ORDER BY version DESC LIMIT 1",
+                    (job_id,),
+                ).fetchone()
+                stored = ReviewState.model_validate_json(row["data"]).saved_at if row else None
+                if stored != expected:
+                    return False
+            if not self._event(conn, job_id, "review_saved", _payload(**payload), when):
+                return False
+            self._put(conn, job_id, "review", review, 0, when)
+        return True
 
     def claim_next_queued(self) -> str | None:
-        """Take the job that has waited longest for a worker: its status becomes
-        `running` in the same transaction, so two workers never take the same job."""
+        """Take the job that has waited longest for a worker, by its `queued` event (a
+        stamp from an export or a review save moves no job in the queue): its status
+        becomes `running` with the `claimed` event in the same transaction, so two
+        workers never take the same job."""
         with self._tx() as conn:
             row = conn.execute(
-                "SELECT id FROM jobs WHERE status = 'queued' ORDER BY updated_at, created_at "
-                "LIMIT 1"
+                "SELECT id FROM jobs WHERE status = 'queued' ORDER BY "
+                "(SELECT MAX(at) FROM job_events WHERE job_id = jobs.id AND kind = 'queued'), "
+                "created_at LIMIT 1"
             ).fetchone()
             if row is None:
                 return None
-            sql, params = _update(row["id"], {"status": "running"})
-            cur = conn.execute(f"{sql} AND status = 'queued'", params)
-            return row["id"] if cur.rowcount else None
+            taken = self._event(conn, row["id"], "claimed", {}, utcnow(), only_from=("queued",))
+            return row["id"] if taken else None
 
-    def requeue(self, job_id: str, *, delete: Sequence[str], trim: Sequence[str] = ()) -> bool:
+    def requeue(
+        self,
+        job_id: str,
+        *,
+        delete: Sequence[str],
+        trim: Sequence[str] = (),
+        from_stage: str | None = None,
+        by: str | None = None,
+    ) -> bool:
         """Queue the job again for a rerun: without the artifacts named in `delete` and
-        without the versions above 1 of those in `trim`, in one transaction, and only
-        while no worker holds it (`IDLE_STATUSES`). False when it is running or does
-        not exist; nothing is deleted then."""
-        sql, params = _update(job_id, {"status": "queued", "stage": None, "error": None})
-        marks = ", ".join("?" for _ in IDLE_STATUSES)
+        without the versions above 1 of those in `trim`, in one transaction with the
+        `queued` event (the stage it reruns from, who asked), and only while no worker
+        holds it (`IDLE_STATUSES`). False when it is running or does not exist; nothing
+        is deleted then."""
+        payload = _payload(**{"from": from_stage, "by": by})
         with self._tx() as conn:
-            cur = conn.execute(f"{sql} AND status IN ({marks})", (*params, *IDLE_STATUSES))
-            if not cur.rowcount:
+            if not self._event(conn, job_id, "queued", payload, utcnow(), only_from=IDLE_STATUSES):
                 return False
             conn.executemany(
                 "DELETE FROM artifacts WHERE job_id = ? AND name = ? AND version > 1",
@@ -732,15 +822,40 @@ class Store:
         return True
 
     def requeue_running(self) -> list[str]:
-        """Jobs left `running` by a process that stopped: queued again, for the start."""
+        """Jobs left `running` by a process that stopped: queued again, for the start,
+        each with a `queued` event that says so (`restart`)."""
+        now = utcnow()
         with self._tx() as conn:
             ids = [
                 r["id"]
                 for r in conn.execute("SELECT id FROM jobs WHERE status = 'running'").fetchall()
             ]
             for job_id in ids:
-                conn.execute(*_update(job_id, {"status": "queued"}))
+                self._event(conn, job_id, "queued", {"reason": "restart"}, now)
         return ids
+
+    def _event(
+        self,
+        conn: sqlite3.Connection,
+        job_id: str,
+        kind: str,
+        payload: dict[str, Any],
+        at: datetime,
+        *,
+        only_from: tuple[str, ...] | None = None,
+    ) -> bool:
+        """Inside a write transaction: append the event and write its projection onto the
+        job row (`events.project`), `updated_at` with it. False when the job is missing
+        or `only_from` excludes its status."""
+        row = conn.execute("SELECT status FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        if row is None or (only_from is not None and row["status"] not in only_from):
+            return False
+        conn.execute(
+            "INSERT INTO job_events (job_id, at, kind, payload) VALUES (?, ?, ?, ?)",
+            (job_id, at.isoformat(), kind, json.dumps(payload, ensure_ascii=False)),
+        )
+        conn.execute(*_update(job_id, project(row["status"], kind, payload), at=at.isoformat()))
+        return True
 
     def delete_job(self, job_id: str) -> bool:
         """Remove the job with its artifacts and calls, and its rows in the response
@@ -779,11 +894,30 @@ class Store:
 
     def put_artifact(self, job_id: str, name: str, model: BaseModel, version: int = 0) -> None:
         with self._tx() as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO artifacts (job_id, name, version, data, created_at) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (job_id, name, version, model.model_dump_json(), utcnow().isoformat()),
-            )
+            self._put(conn, job_id, name, model, version, utcnow())
+
+    def put_artifacts(self, job_id: str, items: Sequence[tuple[str, BaseModel, int]]) -> None:
+        """Several artifacts (name, model, version) in one transaction: a round's new
+        draft version with its repair record, which must never exist without each other."""
+        now = utcnow()
+        with self._tx() as conn:
+            for name, model, version in items:
+                self._put(conn, job_id, name, model, version, now)
+
+    @staticmethod
+    def _put(
+        conn: sqlite3.Connection,
+        job_id: str,
+        name: str,
+        model: BaseModel,
+        version: int,
+        at: datetime,
+    ) -> None:
+        conn.execute(
+            "INSERT OR REPLACE INTO artifacts (job_id, name, version, data, created_at) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (job_id, name, version, model.model_dump_json(), at.isoformat()),
+        )
 
     def get_artifact(
         self, job_id: str, name: str, cls: type[T], version: int | None = None
@@ -829,6 +963,49 @@ class Store:
         out: dict[str, list[int]] = {}
         for r in rows:
             out.setdefault(r["name"], []).append(r["version"])
+        return out
+
+    # -- events -----------------------------------------------------------------------
+
+    def events(self, job_id: str) -> list[JobEvent]:
+        """The job's event log in order (events.py): the audit bundle's timeline."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT at, kind, payload FROM job_events WHERE job_id = ? ORDER BY id", (job_id,)
+            ).fetchall()
+        return [_event_of(r) for r in rows]
+
+    def events_of(self, job_ids: Sequence[str]) -> dict[str, list[JobEvent]]:
+        """The event logs of these jobs, by job: the stage times the progress page
+        estimates from (web/views.py)."""
+        if not job_ids:
+            return {}
+        marks = ",".join("?" * len(job_ids))
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT job_id, at, kind, payload FROM job_events "
+                f"WHERE job_id IN ({marks}) ORDER BY id",
+                list(job_ids),
+            ).fetchall()
+        out: dict[str, list[JobEvent]] = {}
+        for r in rows:
+            out.setdefault(r["job_id"], []).append(_event_of(r))
+        return out
+
+    def run_events(self) -> dict[str, list[JobEvent]]:
+        """The events that start and end a run (`claimed`, `events.RUN_ENDS`) of every
+        stored job, by job: the job durations of `/metrics` (web/observability.py)."""
+        kinds = ("claimed", *RUN_ENDS)
+        marks = ",".join("?" * len(kinds))
+        with self._connection() as conn:
+            rows = conn.execute(
+                f"SELECT job_id, at, kind, payload FROM job_events WHERE kind IN ({marks}) "
+                "ORDER BY id",
+                kinds,
+            ).fetchall()
+        out: dict[str, list[JobEvent]] = {}
+        for r in rows:
+            out.setdefault(r["job_id"], []).append(_event_of(r))
         return out
 
     # -- usage ------------------------------------------------------------------------
@@ -905,9 +1082,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
 
-def _update(job_id: str, fields: dict[str, object], *, touch: bool = True) -> tuple[str, tuple]:
-    """The UPDATE for `fields` (an allowlist of columns), `updated_at` set with them
-    unless `touch` is False."""
+def _update(
+    job_id: str, fields: dict[str, object], *, touch: bool = True, at: str | None = None
+) -> tuple[str, tuple]:
+    """The UPDATE for `fields` (an allowlist of columns), `updated_at` set with them to
+    `at` (an event's time) or to now, unless `touch` is False."""
     allowed = {"status", "stage", "title", "error", "config", "counts"}
     unknown = set(fields) - allowed
     if unknown:
@@ -916,10 +1095,21 @@ def _update(job_id: str, fields: dict[str, object], *, touch: bool = True) -> tu
     for name in ("config", "counts"):
         if isinstance(value := values.get(name), BaseModel):
             values[name] = value.model_dump_json()
-    if touch:
+    if at is not None:
+        values["updated_at"] = at
+    elif touch:
         values["updated_at"] = utcnow().isoformat()
     assignments = ", ".join(f"{k} = ?" for k in values)
     return f"UPDATE jobs SET {assignments} WHERE id = ?", (*values.values(), job_id)
+
+
+def _payload(**fields: object) -> dict[str, Any]:
+    """An event's details without the fields that are None."""
+    return {k: v for k, v in fields.items() if v is not None}
+
+
+def _event_of(row: sqlite3.Row) -> JobEvent:
+    return JobEvent(at=row["at"], kind=row["kind"], payload=json.loads(row["payload"]))
 
 
 def _filters(

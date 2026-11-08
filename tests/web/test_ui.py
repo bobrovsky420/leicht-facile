@@ -447,6 +447,40 @@ def test_the_progress_header_estimates_the_time_left_from_past_jobs(env) -> None
     assert progress_view(store, store.get_job(job.id)).run_line == "In the queue"
 
 
+def test_the_time_left_comes_from_the_event_log_when_a_job_has_one(env) -> None:
+    """With the event log, a past job's stages are measured wall-clock, the code stages
+    and the waits included, and the running stage's time used so far is wall-clock too
+    (events.py); the model time of the calls serves jobs from before the log alone."""
+    _, _, store, settings, _ = env
+    past = queued_job(store, settings, condition="P2")
+    t0 = past.created_at  # the synthetic clock starts when the past job was made
+
+    def at(seconds: float) -> datetime:
+        return t0 + timedelta(seconds=seconds)
+
+    store.record(past.id, "claimed", at=at(0))
+    clock = 0
+    for stage, seconds in (("understand", 20), ("write", 40), ("check", 2), ("judge", 15),
+                           ("repair 1", 50), ("check", 3)):  # fmt: skip
+        store.record(past.id, "stage_started", {"stage": stage}, at=at(clock))
+        clock += seconds
+        store.record(past.id, "stage_finished", {"stage": stage}, at=at(clock))
+    store.record(past.id, "finished", {"stage": "review"}, at=at(clock))
+    store.add_usage(past.id, Usage("write", "m", 100, 50, 1_000))  # a call: not the sample now
+    job = queued_job(store, settings, condition="P2")
+    store.record(job.id, "claimed", at=at(1000))
+    store.record(job.id, "stage_started", {"stage": "understand"}, at=at(1000))
+    store.record(job.id, "stage_finished", {"stage": "understand"}, at=at(1020))
+    store.record(job.id, "stage_started", {"stage": "write"}, at=at(1020))
+    view = progress_view(store, store.get_job(job.id), now=at(1030))
+    # The rest of Write (40 less the 10 s used), then Check (5), Judge (15), Repair (50).
+    assert view.left_s == 30 + 5 + 15 + 50
+    assert view.left_text == "About 2 minutes left"
+    assert view.elapsed_s == (at(1030) - job.created_at).total_seconds()
+    finished = progress_view(store, store.get_job(past.id), now=at(5000))
+    assert finished.elapsed_s == (at(clock) - past.created_at).total_seconds()  # not until now
+
+
 def test_review_page_shows_core_questions_versions_and_counts(env) -> None:
     client, app, _, _, endpoint = env
     job_id = run_c1(client, app, endpoint)

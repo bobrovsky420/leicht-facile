@@ -135,9 +135,12 @@ def test_the_queue_has_a_limit(store, endpoint, sleeps) -> None:
 def test_a_queued_job_is_cancelled_before_it_runs(store, endpoint, sleeps) -> None:
     runner = JobRunner(orchestrator(store, endpoint, sleeps))
     job_id = new_job(store, condition="P1")
-    assert runner.cancel(job_id) == "cancelled"
+    assert runner.cancel(job_id, by="a.muster") == "cancelled"
     job = store.get_job(job_id)
     assert job.status == "failed" and job.error == CANCELLED
+    assert [(e.kind, e.payload) for e in store.events(job_id)][-1] == (
+        "cancelled", {"by": "a.muster"},
+    )  # fmt: skip
     assert runner.cancel(job_id) is None  # neither queued nor running
     assert store.claim_next_queued() is None  # the worker never sees it
     assert endpoint.chat_bodies() == []
@@ -162,11 +165,14 @@ def test_a_running_job_stops_at_its_next_check_and_keeps_its_stages(
     runner.start()
     assert in_call.wait(10)
     assert orch.running() == [job_id]
-    assert runner.cancel(job_id) == "stopping"
+    assert runner.cancel(job_id, by="b.muster") == "stopping"
     release.set()
     assert runner.wait_idle(30)
     job = store.get_job(job_id)
     assert job.status == "failed" and job.error == CANCELLED
+    kinds = [e.kind for e in store.events(job_id)]
+    assert kinds == ["queued", "claimed", "stage_started", "stage_finished", "cancelled"]
+    assert store.events(job_id)[-1].payload == {"by": "b.muster"}
     assert store.get_artifact(job_id, "factsheet", FactSheet) is not None  # kept
     assert store.get_artifact(job_id, "draft", Draft) is None  # never written
     assert len(endpoint.chat_bodies()) == 1
@@ -234,6 +240,7 @@ def test_jobs_left_running_by_a_stopped_process_are_queued_again(store, endpoint
     runner = JobRunner(orchestrator(store, endpoint, sleeps))
     assert runner.recover_on_start() == 1
     assert store.get_job(job_id).status == "queued"
+    assert store.events(job_id)[-1].payload == {"reason": "restart"}
 
 
 def test_two_workers_share_one_orchestrator_without_sharing_run_state(

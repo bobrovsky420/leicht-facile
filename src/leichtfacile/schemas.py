@@ -7,8 +7,9 @@ model never has to produce bookkeeping fields such as ids of the job or versions
 
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, datetime
-from typing import Literal, get_args
+from typing import Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -331,6 +332,12 @@ class Draft(Artifact):
     def text(self) -> str:
         return "\n".join(b.text for b in self.blocks)
 
+    def content_hash(self) -> str:
+        """A hash of the blocks (id, kind and text): what a judge report names as the
+        draft it judged, so a report is reused for this content alone (the orchestrator)."""
+        lines = "\n".join(f"{b.id}\t{b.kind}\t{b.text}" for b in self.blocks)
+        return hashlib.sha256(lines.encode("utf-8")).hexdigest()[:16]
+
 
 # -- checks ------------------------------------------------------------------------
 
@@ -402,6 +409,11 @@ class SemanticFinding(Artifact):
 class JudgeReport(Artifact):
     draft_version: int
     model: str
+    # The hash of the draft the judge saw (`Draft.content_hash`): a stored report is
+    # reused for the version only while its content is the same, else the judge runs
+    # again (a resumed job used to take the old version's report for a new version).
+    # None in reports stored before the hash existed.
+    draft_hash: str | None = None
     fact_checks: list[FactCheck] = Field(default_factory=list)
     unsupported: list[Unsupported] = Field(default_factory=list)
     semantic_findings: list[SemanticFinding] = Field(default_factory=list)
@@ -667,3 +679,12 @@ class Job(Artifact):
     usage: list[UsageRecord] = Field(default_factory=list)
     error: str | None = None
     counts: JobCounts | None = None  # None: a job stored before the column existed
+
+
+class JobEvent(Artifact):
+    """One entry of a job's event log (events.py): when, what, and the event's details
+    (who, which stage, which version), never a text of the document."""
+
+    at: datetime
+    kind: str  # events.EVENT_KINDS
+    payload: dict[str, Any] = Field(default_factory=dict)

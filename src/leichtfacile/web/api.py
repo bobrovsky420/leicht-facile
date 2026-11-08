@@ -217,15 +217,6 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
         if d.decision == "edited" and not (d.text and d.text.strip()):
             raise HTTPException(400, f"block {d.block_id}: an edit needs a text")
     stored = store.get_artifact(job_id, "review", ReviewState)
-    if "saved_at" in body.model_fields_set:
-        current = stored.saved_at if stored else None
-        if current != body.saved_at:
-            raise HTTPException(
-                409,
-                "the review was saved by someone else since this page was loaded"
-                + (f" (at {current.isoformat(timespec='seconds')})" if current else "")
-                + "; reload the page to see their decisions",
-            )
     user = current_user(request)
     now = utcnow()
     review = ReviewState(
@@ -235,11 +226,20 @@ def post_review(request: Request, job_id: str, body: ReviewIn) -> dict:
         saved_at=now,
         saved_by=user,
     )
-    store.put_artifact(job_id, "review", review)
-    fields: dict[str, object] = {"counts": job_counts(store, job)}
-    if job.status in ("needs_review", "done"):
-        fields["status"] = "done" if body.completed else "needs_review"
-    store.update_job(job_id, **fields)
+    # The conflict check and the write are one transaction (`Store.save_review`): two
+    # saves that loaded the same stamp cannot both pass. The event `review_saved` moves
+    # a job under review between needs_review and done.
+    check = "saved_at" in body.model_fields_set
+    if not store.save_review(job_id, review, expected=body.saved_at, check=check, by=user):
+        latest = store.get_artifact(job_id, "review", ReviewState)
+        current = latest.saved_at if latest else None
+        raise HTTPException(
+            409,
+            "the review was saved by someone else since this page was loaded"
+            + (f" (at {current.isoformat(timespec='seconds')})" if current else "")
+            + "; reload the page to see their decisions",
+        )
+    store.fill_counts(job_id, job_counts(store, job))  # the list's counts, no second stamp
     return {
         "saved": len(review.decisions),
         "completed": review.completed,
@@ -264,8 +264,11 @@ def export(
     users who decided (web/security.py)."""
     job = _job_or_404(request, job_id)
     store = _state(request).store
+    user = current_user(request)
     if format == "json":
-        bundle = build_bundle(store, job, exported_by=current_user(request))
+        _exported(store, job_id, format, None, user)  # in the bundle's own timeline too
+        job = store.get_job(job_id) or job  # the row as the event left it
+        bundle = build_bundle(store, job, exported_by=user)
         body = json.dumps(bundle, ensure_ascii=False, indent=2)
         return _download(body, "application/json", f"{job_id}-audit.json")
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
@@ -274,6 +277,7 @@ def export(
     draft = store.get_artifact(job_id, "draft", Draft, version=version)
     if draft is None:
         raise HTTPException(409, "the job has no draft yet")
+    _exported(store, job_id, format, draft.version, user)
     review = store.get_artifact(job_id, "review", ReviewState)
     layout = export_layout(store, job, draft, review, original=original)
     name = f"{job_id}-with-original" if original else job_id
@@ -282,6 +286,13 @@ def export(
     if format == "docx":
         return _download(to_docx(layout, summary=summary), DOCX_TYPE, f"{name}.docx")
     return _download(to_html(layout), "text/html", f"{name}.html")
+
+
+def _exported(store: Store, job_id: str, fmt: str, version: int | None, by: str | None) -> None:
+    """The `exported` event: the format, the version printed (none for the bundle,
+    which holds every version) and the user who downloaded it (events.py)."""
+    details = {"format": fmt, "version": version, "by": by}
+    store.record(job_id, "exported", {k: v for k, v in details.items() if v is not None})
 
 
 def export_layout(
@@ -360,7 +371,7 @@ def rerun(
     _job_or_404(request, job_id)
     state = _state(request)
     try:
-        state.orchestrator.rerun(job_id, from_)
+        state.orchestrator.rerun(job_id, from_, by=current_user(request))
     except JobBusy as exc:
         raise HTTPException(409, BUSY) from exc
     except PipelineError as exc:
@@ -374,9 +385,9 @@ def cancel(request: Request, job_id: str) -> dict:
     """Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at
     its next stage, model attempt or streamed chunk (`stopping`). Either way it is then
     `failed` with the error `cancelled` and keeps the stages that finished; `rerun`
-    takes it up again."""
+    takes it up again. The job's log names the user who asked (events.py)."""
     _job_or_404(request, job_id)
-    outcome = _state(request).runner.cancel(job_id)
+    outcome = _state(request).runner.cancel(job_id, by=current_user(request))
     if outcome is None:
         raise HTTPException(409, f"job {job_id} is neither queued nor running")
     return {"id": job_id, "status": outcome}

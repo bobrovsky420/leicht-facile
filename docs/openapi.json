@@ -564,7 +564,7 @@
     "/api/v1/jobs/{job_id}/cancel": {
       "post": {
         "summary": "Cancel",
-        "description": "Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at\nits next stage, model attempt or streamed chunk (`stopping`). Either way it is then\n`failed` with the error `cancelled` and keeps the stages that finished; `rerun`\ntakes it up again.",
+        "description": "Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at\nits next stage, model attempt or streamed chunk (`stopping`). Either way it is then\n`failed` with the error `cancelled` and keeps the stages that finished; `rerun`\ntakes it up again. The job's log names the user who asked (events.py).",
         "operationId": "cancel_api_v1_jobs__job_id__cancel_post",
         "parameters": [
           {

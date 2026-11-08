@@ -7,8 +7,31 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ## [Unreleased]
 
+### Added
+
+- Every job keeps a log of what happened to it and when: queued and by whom, taken by a
+  worker, each stage's start and end, each round, how the run ended, who stopped it, who
+  saved the review and who exported what. The audit bundle prints it as `timeline`; a
+  job from before this release has an empty one, and the bundle says so.
+
+### Changed
+
+- `/metrics` reports how long every stored job's last run took, read from the job's
+  log, so a restart loses nothing; the progress page's time left comes from the
+  wall-clock time of each stage over past jobs, code time and waits included, where
+  the log has it.
+- The queue takes jobs in the order they were queued: an export or a review save no
+  longer moves a job in it. The retention purge counts from a job's last activity (a
+  run, a review save, an export).
+
 ### Fixed
 
+- A job queued again after a failure, a stop or a restart continues with the round it
+  was in instead of running every round again from the first draft; its stored
+  versions keep their text, and a judge report is reused only for the content it judged.
+- Two reviewers who save at the same moment with the same loaded stamp: the conflict
+  check and the write are one transaction now, so the second save is refused instead
+  of overwriting the first unseen.
 - A web page's hidden elements (`hidden`, `aria-hidden`, an inline `display:none`) no
   longer become content when trafilatura finds nothing or when the contact and section
   rescue passes put blocks back: an outdated contact card a page keeps hidden was read

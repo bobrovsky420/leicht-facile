@@ -8,6 +8,7 @@ import io
 import json
 import logging
 import re
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,6 +16,7 @@ from fastapi.testclient import TestClient
 from leichtfacile import logs
 from leichtfacile.lifecycle import RedactingFilter
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.schemas import JobEvent
 from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
 from leichtfacile.web.observability import Histogram, Metrics, render, request_id_for
@@ -227,7 +229,7 @@ def test_the_exposition_escapes_labels_and_renders_histograms() -> None:
     metrics.observe_request("GET", 200, 0.003)
     metrics.observe_request("GET", 200, 0.3)
     metrics.observe_request("POST", 500, 12.0)
-    metrics.observe_job('odd"status\\', 45.0)
+    taken = datetime(2026, 11, 8, 10, 0, tzinfo=UTC)
 
     class _Store:
         def status_counts(self):
@@ -237,6 +239,10 @@ def test_the_exposition_escapes_labels_and_renders_histograms() -> None:
             row = {"stage": "write", "model": 'm"1', "cached": 1, "calls": 3}
             return [{**row, "tokens_in": 10, "tokens_out": 5, "latency_ms": 1500}]
 
+        def run_events(self):  # one job whose run failed after 45 s
+            return {"j1": [JobEvent(at=taken, kind="claimed"),
+                           JobEvent(at=taken + timedelta(seconds=45), kind="failed")]}  # fmt: skip
+
     class _Runner:
         workers, busy = 2, 1
 
@@ -245,8 +251,9 @@ def test_the_exposition_escapes_labels_and_renders_histograms() -> None:
     assert "leichtfacile_workers 2\n" in text and "leichtfacile_workers_busy 1" in text
     assert 'leichtfacile_llm_calls{stage="write",model="m\\"1",cached="true"} 3' in text
     assert 'leichtfacile_llm_latency_seconds{stage="write",model="m\\"1"} 1.5' in text
-    assert 'leichtfacile_job_duration_seconds_bucket{status="odd\\"status\\\\",le="30"} 0' in text
-    assert 'leichtfacile_job_duration_seconds_bucket{status="odd\\"status\\\\",le="60"} 1' in text
+    assert 'leichtfacile_job_duration_seconds_bucket{status="failed",le="30"} 0' in text
+    assert 'leichtfacile_job_duration_seconds_bucket{status="failed",le="60"} 1' in text
+    assert 'leichtfacile_job_duration_seconds_sum{status="failed"} 45' in text
     assert 'leichtfacile_http_requests_total{method="POST",status="500"} 1' in text
     assert 'leichtfacile_http_request_duration_seconds_bucket{le="0.005"} 1' in text
     assert 'leichtfacile_http_request_duration_seconds_bucket{le="10"} 2' in text
@@ -257,3 +264,26 @@ def test_the_exposition_escapes_labels_and_renders_histograms() -> None:
         hist.observe(value)
     assert hist.cumulative() == [(1.0, 2), (2.0, 3), (float("inf"), 4)]
     assert (hist.sum, hist.count) == (12.0, 4)
+
+
+def test_job_durations_come_from_the_event_log_and_survive_a_restart(
+    tmp_path, endpoint, sleeps
+) -> None:
+    """`/metrics` reads how long each stored job's run took from the store's event log
+    (events.py), not from the process: a new process on the same database reports the
+    runs before it."""
+    settings = make_settings(data__dir=tmp_path, llm__max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    store = Store(tmp_path / "restart.sqlite")
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    first = create_app(settings, llm, store)
+    with TestClient(first) as client:
+        run_job(client, first, text=LETTER, condition="P1")
+        text = client.get("/metrics").text
+        assert 'leichtfacile_job_duration_seconds_count{status="needs_review"} 1' in text
+    second = create_app(settings, llm, store)  # the service restarted on the same data
+    with TestClient(second) as client:
+        text = client.get("/metrics").text
+        assert 'leichtfacile_job_duration_seconds_count{status="needs_review"} 1' in text
+        assert "leichtfacile_job_duration_seconds_sum" in text
+    store.close()

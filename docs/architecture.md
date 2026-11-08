@@ -183,7 +183,11 @@ outbound connections are `llm.url` and the web addresses users submit.
 
 Each stage takes typed artifacts and produces typed artifacts (schemas in §5). The job
 runner executes stages in order and persists each result before starting the next, so
-a failure resumes from the last good stage.
+a failure resumes from the last stored stage; after the first draft, every round stores
+its version with its record, and a job queued again (after a failure, a stop or a
+restart) goes on with the next round: each stored version is checked and judged where
+the crash came first, and a judge report is reused only for the content it judged
+(`draft_hash`). Every change of the job's state is an event in its log (§5).
 
 ### 4.1 Ingest (code)
 
@@ -907,13 +911,23 @@ Job
             line), when the pipeline ends and when a review is saved (counted by
             review.py, written by lifecycle.py), so the list opens no artifact; None
             in a job stored by an older version until its first listing fills it
+
+JobEvent  (the job's log: one row per event, written in the transaction of what it records)
+  at, kind (queued|claimed|stage_started|stage_finished|round_finished|finished|failed|
+            cancelled|review_saved|exported)
+  details: {by?, from?, reason?, stage?, version?, completed?, decisions?, format?, error?,
+            the round's record}   never a text of the document
+            The job row's status, stage and error are what the events project
+            (events.py); updated_at is the last event's time; the audit bundle prints
+            the log as `timeline`
 ```
 
 Storage: one SQLite database (`leichtfacile.sqlite` in `data.dir`) with the tables `jobs`
 (the row above, and the hash of the job's workspace when the server has them, §7),
-`artifacts` (job, name, version, JSON) and `llm_calls` (one row per model call, with
+`artifacts` (job, name, version, JSON), `llm_calls` (one row per model call, with
 the response cache's key when the cache is on, so that a deleted job takes its cached
-answers with it); the response cache is a second file (`llm_cache.sqlite`), which the
+answers with it) and `job_events` (the job's log above, which goes with the job too);
+the response cache is a second file (`llm_cache.sqlite`), which the
 store owns: `Store.delete_job` removes the job's rows there first, in the job's write
 transaction, also while no preset is ready (a row another job uses too stays). Standard
 library only, no ORM. The schema is versioned with `PRAGMA user_version`: the base
@@ -1115,23 +1129,24 @@ keeps it equal to the code and the old prefix out of the schema.
 | `GET /api/v1/jobs/{id}` | Status, current stage, usage totals and per call, artifact versions, links |
 | `GET /api/v1/jobs/{id}/artifacts/{name}?version=` | `source`, `factsheet`, `draft`, `rules`, `judge`, `repair`, `review`, `summary` |
 | `POST /api/v1/jobs/{id}/review` | Block decisions for one draft version, and whether the review is complete. With `saved_at` (the stored review's stamp the client loaded, `null` for none; the page always sends it) the save is refused with 409 when someone else saved since; the answer carries the new `saved_at`. Each decision is stamped with the time it was first saved in that form and the user the login named (operations.md); a decision sent again unchanged keeps its stamp, and the review records who saved it last (`saved_by`) |
-| `GET` or `POST /api/v1/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, operations.md); `original=1` appends the source text to the first three (§4.7) |
+| `GET` or `POST /api/v1/jobs/{id}/export?format=md\|html\|docx\|json&original=` | Download: Markdown, HTML, Word (DOCX), or the JSON audit bundle, which names who exported it (`exported_by`, operations.md) and prints the job's log as `timeline` (§5); every export is an event of that log; `original=1` appends the source text to the first three (§4.7) |
 | `POST /api/v1/jobs/{id}/facts/{fact}/recover?version=` | Sentences for a missing fact from its source paragraph (§4.7), with the block to add them to, the rule findings in the interface language, whether FACT-01 then finds the value, and the source sentences; stores nothing but the call's usage |
 | `POST /api/v1/jobs/{id}/rerun?from=understand\|write\|judge` | Delete the artifacts from that stage on and run again, in one guarded step; 409 while a worker runs the job |
-| `POST /api/v1/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; 409 when it is neither queued nor running |
+| `POST /api/v1/jobs/{id}/cancel` | Stop the job: a waiting one leaves the queue (`cancelled`), a running one ends at its next stage, model attempt or streamed chunk (`stopping`). It is then `failed` with the error `cancelled`, keeps the stages that finished, and `rerun` takes it up again; the job's log names the user who asked; 409 when it is neither queued nor running |
 | `DELETE /api/v1/jobs/{id}` | Remove a job with its artifacts, calls and rows in the response cache; 409 while a worker runs it. The log line names the user the login named, since no row is left to (operations.md) |
 | `GET /healthz` | Liveness: the process answers; no call leaves the server |
 | `GET /readyz` | Readiness: the preset in use ready (its key present), its provider reachable and the configured models listed, asked at most once in 30 s whoever asks, answered as booleans and names, never the endpoint's catalogue |
-| `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, job durations by final status, model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
+| `GET /metrics` | Prometheus text format: jobs by status and the queue depth, workers and busy workers, how long every stored job's last run took by the status it ended in (from the event log, so a restart loses nothing), model calls, tokens and latency per stage and model, requests by method and status; behind the login when one is configured (`web/observability.py`) |
 | `GET /w/{token}` | With `server.workspaces` (below): the link's workspace becomes the browser's (the cookie), then the drafts list; a malformed token is 404, a well-formed one nobody has used opens an empty workspace |
 | `POST /w/new` | With `server.workspaces`: the workspace's jobs move under a new token, which the browser follows; the old link then opens an empty workspace |
 
 Jobs run on `jobs.workers` worker threads (one by default: enough for a reviewer's
 workload; more share an endpoint that serves parallel requests, as vLLM does). The jobs
-table is the queue: a worker takes the job that has waited longest with one guarded
-`UPDATE` (`queued` to `running`), so the workers never take the same job, nothing in
-memory is lost on a restart, and a job left `running` by a stopped process is queued
-again on start (`pipeline/runner.py`). No message broker. `jobs.queue_limit` (50) jobs
+table is the queue: a worker takes the job whose `queued` event is the oldest, in one
+transaction with its `claimed` event (`queued` to `running`), so the workers never take
+the same job, nothing in memory is lost on a restart, and a job left `running` by a
+stopped process is queued again on start (`pipeline/runner.py`) and goes on with the
+round it was in (§4). No message broker. `jobs.queue_limit` (50) jobs
 may wait; a submission beyond it is refused with 429 and `Retry-After`. Each job has a
 time budget, `jobs.time_budget_s` (two hours; 0 for none): over it, or on `cancel`, the
 job ends at its next stage, model attempt or streamed chunk, keeps the stages that
@@ -1139,7 +1154,8 @@ finished and shows why. What belongs to one run (notes, the last round's failure
 budget, the stop signal) lives in a `RunState` the orchestrator makes per run, never on
 the orchestrator, so the workers share one. The rerun and the deletion of a running
 job are refused with 409 (stop it first); a review save names the stored review it
-loaded (above), on every version's page, since one review per job decides one
+loaded (above), and the check and the write are one transaction (`Store.save_review`),
+on every version's page, since one review per job decides one
 version and a save from another version replaces it after the page asks; the shared spaCy pipelines take one text at a time, whoever runs them
 (one lock per language next to the pipeline cache, `rules/nlp.py`). An idle worker
 looks at the queue once a second or when nudged, and a claim that fails is tried again
@@ -1254,7 +1270,7 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   meaning need the pipeline, which the page says.
 - **Job running** (`/jobs/{id}` while queued or running): the header says where the
   job is and how long it still takes ("Stage 5 of 6: Repair · About 1 minute left":
-  the median model time of each stage over the newest 20 finished jobs on the same
+  the median wall-clock time of each stage, from the jobs' event logs (the model time of their calls for jobs from before the log), over the newest 20 finished jobs on the same
   pipeline, the running stage less what it has used; "Taking longer than usual" past
   that; nothing without a finished job to learn from), and the browser tab carries the
   stage; the stages of the chosen condition as a stepper (done, running, waiting,
@@ -1797,6 +1813,7 @@ src/leichtfacile/
   review.py                 the review of a draft from its artifacts: the issues per block, the fact checklist,
                             the counts; no interface text, so the pipeline and the job row never need the web app
   lifecycle.py              the counts on the job row (from review.py), deletion with the cache rows, the purge, the log redaction
+  events.py                 the job's event log (§5): the kinds, the projection onto the job row, the run and stage times read from it
   pdfwords.py               a PDF's words per page (pdfplumber), at most 200 pages; for a file from outside in a
                             child process with a time and a memory limit; imports nothing of the app
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it

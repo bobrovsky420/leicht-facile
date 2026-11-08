@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.pipeline import orchestrator as orchestrator_module
+from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.rounds import blocking_count
 from leichtfacile.schemas import (
@@ -178,9 +180,149 @@ def test_rerun_from_write_deletes_later_artifacts(store, endpoint, sleeps) -> No
     job_id = new_job(store, condition="P1")
     orch = orchestrator(store, endpoint, sleeps)
     orch.run(job_id)
-    orch.rerun(job_id, "write")
+    orch.rerun(job_id, "write", by="a.muster")
     assert set(store.artifact_names(job_id)) == {"source", "factsheet"}
     assert store.get_job(job_id).status == "queued"
+    assert store.events(job_id)[-1].payload == {"from": "write", "by": "a.muster"}
+
+
+def test_a_run_records_its_stages_and_rounds_as_events(store, endpoint, sleeps) -> None:
+    """Every change of the job's state is an event (events.py): the claim, each stage's
+    start and end, each round with its record, the end. The job row's status and stage
+    are what the events project."""
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    job_id = new_job(store, condition="P2")
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    events = store.events(job_id)
+    stages_seen = [e.payload["stage"] for e in events if e.kind == "stage_started"]
+    assert stages_seen == ["understand", "write", "check", "judge", "repair 1", "check", "judge"]
+    assert [e.kind for e in events][:3] == ["queued", "claimed", "stage_started"]
+    assert [e.kind for e in events][-3:] == ["round_finished", "stage_finished", "finished"]
+    round_event = next(e for e in events if e.kind == "round_finished")
+    assert (round_event.payload["kind"], round_event.payload["version"]) == ("repair", 2)
+    assert round_event.payload["blocking_after"] == 0
+    assert events[-1].payload == {"stage": "review"}
+    job = store.get_job(job_id)
+    assert (job.status, job.stage) == ("needs_review", "review")
+    assert job.updated_at == events[-1].at
+    starts = [e for e in events if e.kind == "stage_started"]
+    ends = [e for e in events if e.kind == "stage_finished"]
+    assert len(starts) == len(ends)  # every stage ended before the next began or the run ended
+    judge = store.get_artifact(job_id, "judge", JudgeReport, version=2)
+    assert judge.draft_hash == store.get_artifact(job_id, "draft", Draft, version=2).content_hash()
+
+
+def test_a_job_queued_again_after_a_crash_continues_with_the_next_round(
+    store, endpoint, sleeps, monkeypatch
+) -> None:
+    """A job that failed or was interrupted resumes from what is stored: the rounds
+    already done count as done, their versions keep their text and their judge
+    reports, and the plan goes on with the next round. A resumed job used to run every
+    round again from draft 1, overwrite the stored versions and take the old version's
+    judge report for the new one (audit of 6 November 2026, 2.1.3)."""
+    distorted = {**fx.JUDGE_SECOND, "fact_checks": [
+        *fx.JUDGE_SECOND["fact_checks"][:2],
+        {"fact_id": "f03", "status": "distorted", "block_ids": ["b004"], "note": "Nummer?"},
+    ]}  # fmt: skip
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(distorted)),  # the judge still doubts v2: a round 2 follows
+    )
+    repair, calls = stages.repair, []
+
+    def crashing(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 2:  # the process dies in the middle of round 2
+            raise RuntimeError("power cut")
+        return repair(*args, **kwargs)
+
+    monkeypatch.setattr(stages, "repair", crashing)
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2))
+    orch = orchestrator(store, endpoint, sleeps)
+    orch.run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "failed" and "power cut" in job.error
+    v2 = store.get_artifact(job_id, "draft", Draft, version=2)
+    assert store.versions(job_id, "draft") == [1, 2] and v2 is not None
+
+    endpoint.push(chat_response(fx.as_json(fx.REPAIR)), chat_response(fx.as_json(fx.JUDGE_SECOND)))
+    orch.run(job_id)  # queued again: as the runner does after a restart
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert store.versions(job_id, "draft") == [1, 2, 3]
+    assert store.get_artifact(job_id, "draft", Draft, version=2) == v2  # not written again
+    stages_called = [u.stage for u in job.usage]
+    assert stages_called.count("repair") == 2  # one call per round, round 1 not redone
+    assert stages_called[-2:] == ["repair", "judge"]  # the resumed run: round 2 and its judge
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert [(r.kind, r.number, r.parent_version, r.version) for r in summary.rounds] == [
+        ("repair", 1, 1, 2), ("repair", 2, 2, 3),
+    ]  # fmt: skip
+    assert summary.final_version == 3 and summary.stop_reason == "no_blocking"
+    kinds = [e.kind for e in store.events(job_id)]
+    assert kinds.count("claimed") == 2 and kinds.count("failed") == 1
+    assert kinds.count("round_finished") == 2 and kinds[-1] == "finished"
+
+
+def test_a_resumed_version_without_its_checks_gets_them_and_a_stale_judge_report_is_not_reused(
+    store, endpoint, sleeps, monkeypatch
+) -> None:
+    """The crash came after a round's version was stored and before its rule check: the
+    resumed run checks and judges that version instead of making it again. A judge
+    report counts for a version only while it names the version's content
+    (`draft_hash`): a version written anew gets a new judgement."""
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+    )
+    check, calls = orchestrator_module.check_draft, []
+
+    def crashing(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 2:  # the check of version 2: the version and its record are stored
+            raise RuntimeError("power cut")
+        return check(*args, **kwargs)
+
+    monkeypatch.setattr(orchestrator_module, "check_draft", crashing)
+    job_id = new_job(store, condition="P2")
+    orch = orchestrator(store, endpoint, sleeps)
+    orch.run(job_id)
+    assert store.get_job(job_id).status == "failed"
+    assert store.versions(job_id, "draft") == [1, 2] and store.versions(job_id, "rules") == [1]
+    assert store.versions(job_id, "repair") == [2]  # stored with the version, never apart
+
+    endpoint.push(chat_response(fx.as_json(fx.JUDGE_SECOND)))  # the judge of version 2 alone
+    orch.run(job_id)
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert [u.stage for u in job.usage] == ["understand", "write", "judge", "repair", "judge"]
+    assert store.versions(job_id, "rules") == [1, 2]
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 2 and summary.rounds_of("repair") == 1
+
+    # The same version number with another text: the stored report is stale.
+    stale = store.get_artifact(job_id, "judge", JudgeReport, version=2)
+    changed = store.get_artifact(job_id, "draft", Draft, version=2)
+    changed.blocks[0].text = "Ein ganz anderer Satz."
+    store.put_artifact(job_id, "draft", changed, 2)
+    assert stale.draft_hash != changed.content_hash()
+    store.update_job(job_id, status="failed")
+    endpoint.push(chat_response(fx.as_json(fx.JUDGE_SECOND)))
+    orch.run(job_id)
+    assert [u.stage for u in store.get_job(job_id).usage][-1] == "judge"  # judged again
+    renewed = store.get_artifact(job_id, "judge", JudgeReport, version=2)
+    assert renewed.draft_hash == changed.content_hash()
 
 
 def test_repair_rounds_focus_on_blocking_problems_first() -> None:

@@ -6,7 +6,10 @@ review with who saved it last, `final.reviewers` (the users who decided, once ea
 (web/security.py); without one they are null. `final` is the version the stored review
 decided, the one that went out (a reviewer may decide another version than the
 pipeline's final one, from the Versions menu); without a review, the pipeline's final
-version."""
+version. `timeline` is the job's event log (events.py): when it was submitted and by
+whom, when a worker took it, when each stage and round ran, how the run ended, who
+saved the review and who exported what; a job that ran before the log existed has an
+empty timeline, and `timeline_note` says so."""
 
 from __future__ import annotations
 
@@ -61,11 +64,19 @@ def build_bundle(store: Store, job: Job, *, exported_by: str | None = None) -> d
                 f.model_dump() for f in checker.check_export(lines, draft.level, notice=notice)
             ],
         }
-    return {
+    timeline = [
+        {"at": e.at.isoformat(), "kind": e.kind, "details": e.payload} for e in store.events(job.id)
+    ]
+    bundle: dict[str, Any] = {
         "format": BUNDLE_FORMAT,
         "tool": f"leicht-facile {__version__}",
         "exported_at": utcnow().isoformat(),
         "exported_by": exported_by,
+        "timeline": timeline,
+    }
+    if not timeline:
+        bundle["timeline_note"] = "no events: the job ran before the event log existed"
+    return bundle | {
         "job": job.model_dump(mode="json"),
         "summary": summary,
         "source": store.get_artifact_json(job.id, "source"),

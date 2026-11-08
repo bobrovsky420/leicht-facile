@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import sqlite3
 import threading
 import zipfile
 from datetime import UTC, datetime
@@ -14,6 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from leichtfacile import ingest
+from leichtfacile.export.bundle import build_bundle
 from leichtfacile.export.docx import DOCX_TYPE
 from leichtfacile.ingest.fetch import FetchedResource
 from leichtfacile.llm.client import LLMClient
@@ -254,6 +256,42 @@ def test_the_audit_bundle_describes_the_version_the_review_decided(app_env) -> N
     final = json.loads(client.get(f"/api/v1/jobs/{job_id}/export?format=json").text)["final"]
     assert (final["draft_version"], final["reviewed"], final["review_complete"]) == (1, True, True)
     assert [b["text"] for b in final["blocks"]] == ["Die Frist ist am 31. März 2027."]
+
+
+def test_the_audit_bundle_carries_the_jobs_timeline(app_env) -> None:
+    """The bundle's `timeline` is the job's event log (events.py): when it was queued and
+    taken, when each stage ran, how the run ended, who saved the review and who exported
+    what; a records office reads it without the database. A job from before the log has
+    an empty timeline, and the bundle says so."""
+    client, app, endpoint = app_env
+    endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
+    job_id = run_job(client, app, text=LETTER, condition="P1")
+    review = {"draft_version": 1, "decisions": [{"block_id": "b001", "decision": "approved"}]}
+    assert client.post(f"/api/v1/jobs/{job_id}/review", json=review).status_code == 200
+    assert client.get(f"/api/v1/jobs/{job_id}/export?format=md").status_code == 200
+    bundle = json.loads(client.get(f"/api/v1/jobs/{job_id}/export?format=json").text)
+    timeline = bundle["timeline"]
+    assert [e["kind"] for e in timeline] == [
+        "queued", "claimed",
+        "stage_started", "stage_finished", "stage_started", "stage_finished",
+        "stage_started", "stage_finished", "finished",
+        "review_saved", "exported", "exported",
+    ]  # fmt: skip
+    stages = [e["details"]["stage"] for e in timeline if e["kind"] == "stage_started"]
+    assert stages == ["understand", "write", "check"]
+    assert timeline[-3]["details"] == {"version": 1, "completed": False, "decisions": 1}
+    assert timeline[-2]["details"] == {"format": "md", "version": 1}
+    assert timeline[-1]["details"] == {"format": "json"}  # this very export, recorded first
+    assert [e["at"] for e in timeline] == sorted(e["at"] for e in timeline)  # in order
+    assert "timeline_note" not in bundle
+    stamped = datetime.fromisoformat(bundle["job"]["updated_at"])
+    assert stamped == datetime.fromisoformat(timeline[-1]["at"])  # the last event stamps the row
+
+    store = app.state.store
+    with sqlite3.connect(store.path) as db:  # as a job stored before the log existed
+        db.execute("DELETE FROM job_events WHERE job_id = ?", (job_id,))
+    old = build_bundle(store, store.get_job(job_id))
+    assert old["timeline"] == [] and "before the event log" in old["timeline_note"]
 
 
 def test_another_versions_page_names_the_saved_decisions_and_may_replace_them(app_env) -> None:

@@ -3,7 +3,12 @@
 Conditions (§9): P0 and the P0-ZH pair are single-prompt baselines (one sentence, or the
 Canton of Zurich's prompt); P1 is understand, write and the rule check; P2 adds the judge
 and the rounds of pipeline/rounds.py. Every stage stores its result before the next
-starts, so a failed job resumes from the last good stage.
+starts, and every round its version with its record, so a job that failed or was
+interrupted resumes from what is stored: the stages it has, and after the first draft
+the rounds already done, each version with its checks (`_stored_rounds`), so a restart
+costs at most the round under way. Every change of the job's state is an event the
+store records with it (events.py): the claim, each stage's start and end, each round,
+the end of the run and why.
 
 One orchestrator serves every worker thread. What belongs to one run (the notes, the
 last round's failure, the stage to stop after, the time budget and the stop signal)
@@ -20,6 +25,7 @@ from dataclasses import dataclass, field
 
 from leichtfacile import logs
 from leichtfacile.config import LLM, Settings
+from leichtfacile.events import CANCELLED
 from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
@@ -72,9 +78,8 @@ ARTIFACTS_FROM = {
     "write": ["draft", "rules", "judge", "repair", "summary", "review"],
     "judge": ["judge", "repair", "summary", "review"],
 }
-# The error a job carries when it was stopped (web/templates/_progress.html shows it as
-# such) or ran over its time budget (`jobs.time_budget_s`).
-CANCELLED = "cancelled"
+# The error a job carries when it ran over its time budget (`jobs.time_budget_s`); a
+# stopped one carries `CANCELLED` (events.py; web/templates/_progress.html shows it so).
 OVER_BUDGET = "stopped after the time budget of {seconds} s"
 
 
@@ -102,6 +107,8 @@ class RunState:
     round_failure: str | None = None  # "endpoint" or "output" after a failed round
     limit: RunLimit = field(default_factory=RunLimit)
     llm: LLMClient = None  # type: ignore[assignment]  # the job's endpoint, set by run()
+    stage: str | None = None  # the stage under way, for its `stage_finished` event
+    cancelled_by: str | None = None  # who asked to stop the job (web/security.py's user)
 
     @property
     def stop(self) -> threading.Event:
@@ -181,7 +188,7 @@ class Orchestrator:
             llm = self.client_for(job)
         except PipelineError as exc:  # recorded like any other failure of the job
             log.info("job %s failed: %s", job_id, exc)
-            self._set(job_id, status="failed", error=str(exc))
+            self.store.record(job_id, "failed", {"error": str(exc)})
             return
         budget = self.settings.jobs.time_budget_s
         run = RunState(
@@ -214,14 +221,16 @@ class Orchestrator:
             with self._runs_lock:
                 self._runs.pop(job_id, None)
 
-    def cancel(self, job_id: str) -> bool:
+    def cancel(self, job_id: str, *, by: str | None = None) -> bool:
         """Ask the worker running the job to stop: at the next stage, the next model
         attempt or the next streamed chunk the job fails with `CANCELLED` and keeps the
-        artifacts it has. False when no worker runs it."""
+        artifacts it has; the `cancelled` event names `by`, the user who asked. False
+        when no worker runs it."""
         with self._runs_lock:
             run = self._runs.get(job_id)
         if run is None:
             return False
+        run.cancelled_by = by
         run.stop.set()
         return True
 
@@ -232,7 +241,8 @@ class Orchestrator:
     def _run(self, run: RunState, job: Job) -> None:
         job_id = run.job_id
         try:
-            self._set(job_id, status="running", error=None)
+            if job.status != "running":  # a worker's claim recorded it; a direct run here
+                self.store.record(job_id, "claimed")
             source = self.store.get_artifact(job_id, "source", SourceDocument)
             if source is None:  # raised inside the try: the handler below records it
                 raise PipelineError("the job has no source document")  # noqa: TRY301
@@ -242,45 +252,54 @@ class Orchestrator:
                 self._run_baseline(run, job, source)
             else:
                 self._run_pipeline(run, job, source)
-            self._done(job, status="needs_review", stage="review")
+            self._done(run, job, stage="review")
         except _Stopped as stop:
-            self._done(job, status="needs_review", stage=f"stopped after {stop.stage}")
+            self._done(run, job, stage=f"stopped after {stop.stage}")
         except LLMInterrupted as exc:
-            error = (
-                CANCELLED
-                if exc.reason == "cancelled"
-                else OVER_BUDGET.format(seconds=int(self.settings.jobs.time_budget_s))
-            )
-            log.info("job %s %s", job_id, error)
-            self._set(job_id, status="failed", error=error)
+            self._end_stage(run)
+            if exc.reason == "cancelled":
+                log.info("job %s %s", job_id, CANCELLED)
+                payload = {"by": run.cancelled_by} if run.cancelled_by else {}
+                self.store.record(job_id, "cancelled", payload)
+            else:
+                error = OVER_BUDGET.format(seconds=int(self.settings.jobs.time_budget_s))
+                log.info("job %s %s", job_id, error)
+                self.store.record(job_id, "failed", {"error": error})
         except (LLMError, LLMOutputError) as exc:
             # Known failures carry a message without the document's or the model's
             # words (llm/json_out.redacted_error); no traceback, whose chained cause
             # would print the validation error with its input values (audit V10).
             log.error("job %s failed: %s", job_id, _short(exc))  # noqa: TRY400
-            self._set(job_id, status="failed", error=f"{type(exc).__name__}: {exc}"[:2000])
+            self._failed(run, f"{type(exc).__name__}: {exc}"[:2000])
         except Exception as exc:  # the job fails; the service keeps running
             log.exception("job %s failed", job_id)
-            self._set(job_id, status="failed", error=f"{type(exc).__name__}: {exc}"[:2000])
+            self._failed(run, f"{type(exc).__name__}: {exc}"[:2000])
 
-    def _done(self, job: Job, **fields: object) -> None:
-        """The job ends with the counts the drafts list shows (audit B3). The counts
-        are a convenience: a failure in them never costs a finished job, the list
-        computes them on its first visit instead."""
+    def _failed(self, run: RunState, error: str) -> None:
+        self._end_stage(run)
+        self.store.record(run.job_id, "failed", {"error": error})
+
+    def _done(self, run: RunState, job: Job, *, stage: str) -> None:
+        """The job ends (`finished`) at `stage` with the counts the drafts list shows
+        (audit B3). The counts are a convenience: a failure in them never costs a
+        finished job, the list computes them on its first visit instead."""
+        self._end_stage(run)
+        counts = None
         try:
-            fields["counts"] = job_counts(self.store, job)
+            counts = job_counts(self.store, job)
         except Exception:
             log.exception("job %s: the counts for the drafts list could not be computed", job.id)
-        self._set(job.id, **fields)
+        self.store.record(job.id, "finished", {"stage": stage}, counts=counts)
 
-    def rerun(self, job_id: str, from_stage: str) -> None:
+    def rerun(self, job_id: str, from_stage: str, *, by: str | None = None) -> None:
         """Delete the artifacts from `from_stage` on and queue the job again, in one
-        guarded step: `JobBusy` while a worker runs it (audit V14)."""
+        guarded step: `JobBusy` while a worker runs it (audit V14). The `queued` event
+        names the stage and `by`, the user who asked."""
         names = ARTIFACTS_FROM.get(from_stage)
         if names is None:
             raise PipelineError(f"cannot rerun from {from_stage!r}; use {sorted(ARTIFACTS_FROM)}")
         trim = ("draft", "rules") if from_stage == "judge" else ()
-        if not self.store.requeue(job_id, delete=names, trim=trim):
+        if not self.store.requeue(job_id, delete=names, trim=trim, from_stage=from_stage, by=by):
             if self.store.get_job(job_id) is None:
                 raise PipelineError(f"unknown job {job_id}")
             raise JobBusy(f"job {job_id} is running; stop it first")
@@ -375,38 +394,101 @@ class Orchestrator:
         first: Step,
     ) -> tuple[list[Step], list[RoundRecord], StopReason]:
         """The plan, kind by kind: every version made, one record per round, and why
-        the repair and facts rounds ended. A round that fails leaves the versions so
-        far standing; after a round the endpoint failed, nothing more runs."""
-        history = [first]
+        the repair and facts rounds ended. The rounds a run before this one made
+        (`_stored_rounds`) count as done: their records are rebuilt from their versions
+        and the kind goes on from the next number, or ends where they ended it. A round
+        that fails leaves the versions so far standing; after a round the endpoint
+        failed, nothing more runs."""
+        history, done = self._stored_rounds(run, job, source, factsheet, first)
         records: list[RoundRecord] = []
         reason: StopReason = "no_problems"
         for spec in plan(job.config.pipeline):
             if spec.kind != "repair" and run.round_failure == "endpoint":
                 break
-            for number in range(1, spec.limit + 1):
-                base = best(history) if spec.from_best else history[-1]
-                before = _counts(base)
-                if spec.measure == "missing" and before[1] == 0:
-                    break
-                version = max(h[0].version for h in history) + 1
-                step, ended = self._step(run, job, source, factsheet, spec, base, number, version)
-                if step is None:
-                    if ended:
-                        reason = ended
-                    break
-                history.append(step)
-                after = _counts(step)
-                records.append(_round_record(spec, number, base, step, before, after))
-                ended = _stop_reason(spec, before, after)
-                if ended:
-                    reason = ended
-                    break
-            else:  # every round of the kind ran
-                if spec.kind == "repair":
-                    reason = "max_rounds"
-                elif spec.kind == "facts" and spec.limit:
-                    reason = "max_facts_rounds"
+            stored = [d for d in done if d.kind == spec.kind]
+            ended = _replayed(spec, stored, records)
+            if ended is None:
+                ended = self._kind(
+                    run, job, source, factsheet, spec, history, len(stored) + 1, records
+                )
+            if ended:
+                reason = ended
         return history, records, reason
+
+    def _kind(
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        spec: RoundSpec,
+        history: list[Step],
+        start: int,
+        records: list[RoundRecord],
+    ) -> StopReason | None:
+        """The rounds of one kind from the number `start` on, each version appended to
+        `history` and its record to `records` and the log: the reason the kind ended,
+        None when it leaves the reason as it was."""
+        for number in range(start, spec.limit + 1):
+            base = best(history) if spec.from_best else history[-1]
+            before = _counts(base)
+            if spec.measure == "missing" and before[1] == 0:
+                return None
+            version = max(h[0].version for h in history) + 1
+            step, ended = self._step(run, job, source, factsheet, spec, base, number, version)
+            if step is None:
+                return ended
+            history.append(step)
+            after = _counts(step)
+            record = _round_record(spec, number, base, step, before, after)
+            records.append(record)
+            self.store.record(job.id, "round_finished", record.model_dump())
+            if ended := _stop_reason(spec, before, after):
+                return ended
+        # Every round of the kind ran.
+        if spec.kind == "repair":
+            return "max_rounds"
+        if spec.kind == "facts" and spec.limit:
+            return "max_facts_rounds"
+        return None
+
+    def _stored_rounds(
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        first: Step,
+    ) -> tuple[list[Step], list[_Done]]:
+        """The versions a run before this one made (a job queued again after a stop, a
+        crash or a restart), each with its checks, and the round that made each, in
+        order: what the rounds start from instead of draft 1. A version whose rule
+        findings or judge report the crash came before gets them now, as `_finish`
+        gives them to a new version. A resumed job used to run every round again,
+        overwrite the stored versions and take the old version's judge report for the
+        new one (audit of 6 November 2026)."""
+        history = [first]
+        done: list[_Done] = []
+        by_version = {first[0].version: first}
+        for version in self.store.versions(job.id, "draft"):
+            if version <= first[0].version:
+                continue
+            draft = self.store.get_artifact(job.id, "draft", Draft, version=version)
+            record = self.store.get_artifact(job.id, "repair", RepairRecord, version=version)
+            if draft is None:
+                continue
+            kind = record.kind if record else "repair"
+            parent = record.parent_version if record else version - 1
+            base = by_version.get(parent, history[-1])
+            rules = self.store.get_artifact(job.id, "rules", RuleFindings, version=version)
+            if rules is None:
+                rules = self._check(run, job, draft, source, factsheet)
+            judge = self._judged(run, job, source, factsheet, base, draft)
+            step: Step = (draft, rules, judge)
+            history.append(step)
+            by_version[version] = step
+            done.append(_Done(kind, base, step))
+        return history, done
 
     def _step(
         self,
@@ -576,16 +658,36 @@ class Orchestrator:
         # Before the check: one text for all.
         new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
         new_draft, _ = apply_spelling(new_draft)
-        self.store.put_artifact(job.id, "draft", new_draft, new_draft.version)
-        self.store.put_artifact(job.id, "repair", record, new_draft.version)
+        # The version and its record together: neither ever exists without the other.
+        version = new_draft.version
+        self.store.put_artifacts(
+            job.id, [("draft", new_draft, version), ("repair", record, version)]
+        )
         new_rules = self._check(run, job, new_draft, source, factsheet)
-        if self._judge_again(judge, rules):
-            new_judge = self._judge(run, job, source, factsheet, new_draft)
-        else:
-            new_judge = _carry_over(judge, draft, new_draft) if judge else None
-            if new_judge:
-                self.store.put_artifact(job.id, "judge", new_judge, new_draft.version)
+        new_judge = self._judged(run, job, source, factsheet, (draft, rules, judge), new_draft)
         return new_draft, new_rules, new_judge
+
+    def _judged(
+        self,
+        run: RunState,
+        job: Job,
+        source: SourceDocument,
+        factsheet: FactSheet,
+        base: Step,
+        new_draft: Draft,
+    ) -> JudgeReport | None:
+        """The judge report of a round's new version: the judge runs again when facts
+        or invented statements were involved in the version it started from
+        (`_judge_again`), else that version's findings are carried over to the blocks
+        the round left as they were."""
+        _, rules, judge = base
+        if self._judge_again(judge, rules):
+            return self._judge(run, job, source, factsheet, new_draft)
+        if judge is None:
+            return None
+        carried = _carry_over(judge, base[0], new_draft)
+        self.store.put_artifact(job.id, "judge", carried, new_draft.version)
+        return carried
 
     # -- stages -----------------------------------------------------------------------
 
@@ -610,8 +712,11 @@ class Orchestrator:
         factsheet: FactSheet,
         draft: Draft,
     ) -> JudgeReport | None:
+        # A stored report counts for this version only while it names this content
+        # (`draft_hash`): a resumed job used to take the old version's report for a
+        # new version of the same number (audit of 6 November 2026).
         existing = self.store.get_artifact(job.id, "judge", JudgeReport, version=draft.version)
-        if existing:
+        if existing and existing.draft_hash == draft.content_hash():
             return existing
         self._stage(run, "judge")
         model = job.config.judge_model or run.llm.judge_model()
@@ -630,6 +735,7 @@ class Orchestrator:
             # Without the judge the draft still has its rule and fact checks.
             run.notes.append(f"judge on draft {draft.version} failed: {_short(exc)}")
             return None
+        report = report.model_copy(update={"draft_hash": draft.content_hash()})
         self.store.put_artifact(job.id, "judge", report, draft.version)
         return report
 
@@ -692,12 +798,17 @@ class Orchestrator:
 
     def _stage(self, run: RunState, stage: str) -> None:
         """Enter a stage: a stopped job or one over its budget ends here, before the
-        stage's model call, and a running one shows the stage on its page."""
+        stage's model call; the stage before ends (`stage_finished`), this one starts
+        (`stage_started`), and a running job shows it on its page."""
         run.limit.check()
-        self._set(run.job_id, stage=stage)
+        self._end_stage(run)
+        self.store.record(run.job_id, "stage_started", {"stage": stage})
+        run.stage = stage
 
-    def _set(self, job_id: str, **fields: object) -> None:
-        self.store.update_job(job_id, **fields)
+    def _end_stage(self, run: RunState) -> None:
+        if run.stage is not None:
+            self.store.record(run.job_id, "stage_finished", {"stage": run.stage})
+            run.stage = None
 
 
 def understand_model(
@@ -722,6 +833,7 @@ def _carry_over(judge: JudgeReport, old: Draft, new: Draft) -> JudgeReport:
     return judge.model_copy(
         update={
             "draft_version": new.version,
+            "draft_hash": new.content_hash(),
             "fact_checks": [
                 c.model_copy(update={"block_ids": [b for b in c.block_ids if b in existing]})
                 for c in judge.fact_checks
@@ -734,6 +846,30 @@ def _carry_over(judge: JudgeReport, old: Draft, new: Draft) -> JudgeReport:
 
 
 # -- the rounds' bookkeeping (pipeline/rounds.py) -----------------------------------------
+
+
+@dataclass(frozen=True)
+class _Done:
+    """A round a run before this one made: its kind, the version it started from and
+    the version it made, each with its checks (`_stored_rounds`)."""
+
+    kind: str
+    base: Step
+    step: Step
+
+
+def _replayed(
+    spec: RoundSpec, stored: list[_Done], records: list[RoundRecord]
+) -> StopReason | None:
+    """The records of the rounds of this kind a run before this one made, rebuilt from
+    their versions and appended to `records`, and the reason they ended the kind; None
+    when the kind goes on with the next number."""
+    for number, past in enumerate(stored, 1):
+        before, after = _counts(past.base), _counts(past.step)
+        records.append(_round_record(spec, number, past.base, past.step, before, after))
+        if ended := _stop_reason(spec, before, after):
+            return ended
+    return None
 
 
 def _counts(step: Step) -> tuple[int, int]:

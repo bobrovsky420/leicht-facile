@@ -72,7 +72,6 @@ def create_app(
         workers=settings.jobs.workers,
         queue_limit=settings.jobs.queue_limit,
         retention_days=settings.data.retention_days,
-        on_finished=metrics.observe_job,
     )
 
     @asynccontextmanager

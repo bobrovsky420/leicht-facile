@@ -14,13 +14,14 @@ the proxy login, the user it named (`user`; web/security.py), never the query st
 (`/w/[token]`, web/workspaces.py), and counts the request for `/metrics`. uvicorn's own
 access log, whose line has the query string, is off (`leichtfacile serve`).
 
-`GET /metrics` answers in the Prometheus text format from three sources: the jobs
-table (jobs by status, the queue depth), the runner (workers, busy workers, the
-durations of the jobs this process ran, by final status) and the `llm_calls` table
-(calls, tokens and latency per stage and model, totals over the stored jobs; a deleted
-job takes its calls with it, so these are gauges), plus the requests this process
-answered. Behind the login when one is configured: the figures say how much the
-service is used and which models it calls.
+`GET /metrics` answers in the Prometheus text format from four sources: the jobs
+table (jobs by status, the queue depth), the runner (workers, busy workers), the event
+log (how long every stored job's last run took, from the worker taking it to its end,
+by the status it ended in; events.py, so the figures survive a restart) and the
+`llm_calls` table (calls, tokens and latency per stage and model, totals over the
+stored jobs; a deleted job takes its calls and its events with it, so these are
+gauges), plus the requests this process answered. Behind the login when one is
+configured: the figures say how much the service is used and which models it calls.
 """
 
 from __future__ import annotations
@@ -42,6 +43,7 @@ from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from leichtfacile import __version__, logs
+from leichtfacile.events import durations
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -94,23 +96,28 @@ class Histogram:
 
 class Metrics:
     """What this process counted since it started: requests by method and status
-    with their durations, and the durations of the jobs its workers ran, by final
-    status. Thread-safe; the workers and the handlers write from their threads."""
+    with their durations. Thread-safe; the handlers write from their threads. The
+    jobs' durations are not counted here: `render` reads them from the store's event
+    log, so they survive a restart."""
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.requests: Counter[tuple[str, int]] = Counter()
         self.request_seconds = Histogram(REQUEST_BUCKETS)
-        self.job_seconds: dict[str, Histogram] = {}
 
     def observe_request(self, method: str, status: int, seconds: float) -> None:
         with self._lock:
             self.requests[(method, status)] += 1
             self.request_seconds.observe(seconds)
 
-    def observe_job(self, status: str, seconds: float) -> None:
-        with self._lock:
-            self.job_seconds.setdefault(status, Histogram(JOB_BUCKETS)).observe(seconds)
+
+def job_histograms(samples: list[tuple[str, float]]) -> list[tuple[dict, Histogram]]:
+    """The job durations (`events.durations`: the status a run ended in, its seconds)
+    as one histogram per status, in the order of the statuses."""
+    by_status: dict[str, Histogram] = {}
+    for status, seconds in samples:
+        by_status.setdefault(status, Histogram(JOB_BUCKETS)).observe(seconds)
+    return [({"status": s}, h) for s, h in sorted(by_status.items())]
 
 
 # -- the request id and the access line -------------------------------------------------
@@ -251,15 +258,14 @@ def render(store: Store, runner: JobRunner, metrics: Metrics, settings: Settings
     out.sample("leichtfacile_workers_busy", runner.busy)
 
     with metrics._lock:
-        jobs = [({"status": s}, h) for s, h in sorted(metrics.job_seconds.items())]
         requests = sorted(metrics.requests.items())
         request_seconds = metrics.request_seconds
-        out.histogram(
-            "leichtfacile_job_duration_seconds",
-            "Seconds a job ran, from a worker taking it to its end, by final status; "
-            "the jobs this process ran.",
-            jobs,
-        )
+    out.histogram(
+        "leichtfacile_job_duration_seconds",
+        "Seconds a job ran, from a worker taking it to its end, by the status it ended "
+        "in; every stored job's last run (a deleted job takes its events with it).",
+        job_histograms(durations(store.run_events())),
+    )
 
     totals = store.usage_totals()
     out.metric(
