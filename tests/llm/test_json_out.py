@@ -253,6 +253,19 @@ def test_extract_json_drops_a_broken_unicode_escape():
     assert extract_json(text) == {"texts": ["Masques d'hygine", "médicaments"]}
 
 
+def test_extract_json_writes_unicode_hyphens_as_plain_ones():
+    # gpt-oss-120b, 8 November 2026: "info-sebe@sa.zh.ch" with a non-breaking hyphen.
+    nb, hyphen = "\N{NON-BREAKING HYPHEN}", "\N{HYPHEN}"
+    text = (
+        '{"blocks": [{"text": "E' + nb + "Mail an info" + nb + 'sebe@sa.zh.ch."}], '
+        '"facts": [{"value_norm": "13:30\\u201116:30", "notes": ["Kranken' + hyphen + 'kasse"]}]}'
+    )
+    assert extract_json(text) == {
+        "blocks": [{"text": "E-Mail an info-sebe@sa.zh.ch."}],
+        "facts": [{"value_norm": "13:30-16:30", "notes": ["Kranken-kasse"]}],
+    }
+
+
 def test_extract_json_drops_a_second_value_written_without_a_list():
     # CSCS, 7 October 2026: one field, two values, no list; the job failed in Understand.
     text = (

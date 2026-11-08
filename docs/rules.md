@@ -375,8 +375,9 @@ grouped); LEX-01 offers a split for nouns alone, in every variety (it offered
 same splits); GRAM-01 leaves `geboren wurden` alone and carries the recipe for the
 active voice as its suggestion, since the 24 passives of the 16 P2 drafts (all
 genuine, "werden nicht erstattet", "wird gefördert") survived every repair round with a
-message that said only what was wrong. What stays as it is: the facts round asks for
-at most ten missing facts (`pipeline.missing_per_facts_round`), so a page that lists
+message that said only what was wrong. What stays as it is: the recover round asks for
+at most ten missing values (`pipeline.recover_facts`; a facts round, off by default
+since 8 November 2026, also ten: `pipeline.missing_per_facts_round`), so a page that lists
 thirteen regional offices with their numbers keeps part of the list in the omission
 log; an easy-language text should not reproduce such a directory, and the reader finds
 it on the letter.

@@ -468,13 +468,20 @@ def cost_per_page(llm: LLM) -> float | None:
 
 def model_price(name: str) -> tuple[float, float] | None:
     """A model's prices by its name alone, from the shipped providers' tables (the
-    evaluation's rescoring, which runs without a preset): the first table that prices
-    it; none when a table of a server of one's own (`discover`) names it, since such a
-    build pays for hardware, not tokens."""
+    evaluation's rescoring, which runs without a preset): a table named after the model,
+    else the first table that prices it; none when a table of a server of one's own
+    (`discover`) names it, since such a build pays for hardware, not tokens."""
     for provider in PROVIDERS.values():
         if provider.get("discover") and matching_tables(name, provider.get("models", {})):
             return None
-    for provider in PROVIDERS.values():
+    # The name before any earlier provider's pattern: Groq's *gpt-oss-120b* would price
+    # the Hugging Face router's openai/gpt-oss-120b:ovhcloud otherwise.
+    named = [
+        provider
+        for provider in PROVIDERS.values()
+        if any(key.lower() == name.lower() for key in provider.get("models", {}))
+    ]
+    for provider in [*named, *PROVIDERS.values()]:
         found = LLM(model_settings=provider.get("models", {})).price(name)
         if found is not None:
             return found

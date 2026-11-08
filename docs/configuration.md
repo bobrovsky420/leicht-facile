@@ -159,7 +159,7 @@ models = { writer = "claude-haiku-5-5", judge = "claude-sonnet-5-5" }
 | `vllm` | vLLM, mostly a GPU machine of the organisation (`setup vllm --base-url http://<server>:8000/v1`) (`local`, any) | `http://127.0.0.1:8000/v1` (the app's port too: on one machine start one of them elsewhere), the key `local`, `thinking = "chat-template"`, `discover = true` |
 | `mistral` | Mistral AI (`eu`, public) | the key from `MISTRAL_API_KEY`; no preset: `leichtfacile setup mistral` lists the models |
 | `groq` | Groq, a US cloud with very fast inference (`us`, public) | the key from `GROQ_API_KEY`; no preset, since Groq's catalogue changes (several models are previews): `setup groq` lists it. Thinking stays off: Qwen reasons on Groq only when asked with `reasoning_effort` low, medium or high, and the gpt-oss models refuse `none` |
-| `huggingface` | The Hugging Face Inference Providers router, which sends each request to a third-party provider (`world`, public) | the token from `HF_TOKEN`; no preset: Hugging Face ids with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`), `setup huggingface` lists them; the gpt-oss tables send `reasoning_effort = "low"` |
+| `huggingface` | The Hugging Face Inference Providers router, which sends each request to a third-party provider (`world`, public) | the token from `HF_TOKEN`; Hugging Face ids with an optional provider suffix (`Qwen/Qwen3.5-9B:groq`), `setup huggingface` lists them; the gpt-oss tables send `reasoning_effort = "low"` (gpt-oss always reasons and refuses `none`). Preset `huggingface-gpt-oss-120b-groq`: gpt-oss-120b writes and checks, on Groq's hardware (Canada or the United States); run over the evaluation pairs on 8 November 2026 ([model-comparison.md](model-comparison.md)) |
 
 The three servers of one's own have no preset, since each server names its own models:
 the model page lists them under "This computer" when the server answers, and
@@ -501,7 +501,7 @@ The rounds after the first draft (docs/architecture.md §4.6).
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `repair_rounds` | `3` | Repair rounds on the rule findings and the judge's; 0: none. |
-| `facts_rounds` | `1` | Rounds that ask only for the must-keep facts still missing after the repair rounds; 0: none. |
+| `facts_rounds` | `0` | Rounds that ask only for the must-keep facts still missing after the repair rounds; 0: none. |
 | `missing_per_facts_round` | `10` | Missing facts one such round asks for (a repair round asks for 5). |
 | `recover_facts` | `10` | Must-keep values still missing then, asked for one by one with their source paragraph, as one new version; 0: none. |
 | `polish_rounds` | `1` | Repair rounds on the best version's rule findings alone, at the end; 0: none. |

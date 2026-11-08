@@ -514,7 +514,7 @@ def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoi
         }]})),  # facts 1 still runs: a smaller prompt, a new try
         chat_response(fx.as_json(fx.JUDGE_SECOND)),
     )  # fmt: skip
-    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2))
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2, facts_rounds=1))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.rounds_of("repair") == 0 and summary.rounds_of("facts") == 1
@@ -528,7 +528,7 @@ def test_an_unusable_repair_answer_does_not_cancel_the_facts_round(store, endpoi
         chat_response(fx.as_json(fx.JUDGE_FIRST)),
         error_response(500),
     )
-    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2))
+    job_id = new_job(store, condition="P2", rounds=options(repair_rounds=2, facts_rounds=1))
     orchestrator(store, endpoint, sleeps).run(job_id)
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.stop_reason == "round_failed" and summary.rounds_of("facts") == 0

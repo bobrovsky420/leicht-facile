@@ -138,6 +138,9 @@ def test_the_shipped_catalog_is_complete_and_in_order() -> None:
         assert item.provider and item.writer
         assert (item.cost_per_page is None) == (item.provider == "cscs")
     assert config.model_price("swiss-ai/Apertus-v1.5-8B-thinking") == (0.10, 0.20)
+    # A table named after the model before an earlier provider's pattern (Groq's).
+    assert config.model_price("openai/gpt-oss-120b:ovhcloud") == (0.09, 0.47)
+    assert config.model_price("openai/gpt-oss-120b:groq") == (0.15, 0.75)
 
 
 def test_the_catalog_file_is_checked_when_read(tmp_path) -> None:

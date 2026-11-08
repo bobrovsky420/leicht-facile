@@ -594,7 +594,7 @@ they start from, what measures their progress and how often they run:
 | Kind | Starts from | Asks for | Goes on while | Rounds at most |
 |------|-------------|----------|---------------|----------------|
 | repair | the latest version | the rule errors, the missing values and the judge's problems; the warnings when nothing blocks | the blocking findings fall | `pipeline.repair_rounds` (3) |
-| facts | the latest | the missing must-keep values alone (FACT-01, FACT-08, FACT-10) | the missing values fall | `pipeline.facts_rounds` (1) |
+| facts | the latest | the missing must-keep values alone (FACT-01, FACT-08, FACT-10) | the missing values fall | `pipeline.facts_rounds` (0) |
 | recover | the best | each missing value, with its source paragraph (§4.7) | - | once, for `pipeline.recover_facts` (10) values |
 | polish | the best | the rule errors, else the warnings; no fact, no judge's problem | - | `pipeline.polish_rounds` (1) |
 | vocabulary | the best | the office words (LEX-07) | - | once, with `pipeline.vocabulary` |
@@ -610,14 +610,17 @@ translates (`stop_reason`: `no_blocking`, `no_progress`, `max_rounds`,
 `no_missing_facts`, ...).
 
 When the loop has stopped and must-keep values are still missing (FACT-01), up to
-`pipeline.facts_rounds` (1) more rounds ask for the missing facts alone, no block flagged,
+`pipeline.facts_rounds` more rounds ask for the missing facts alone, no block flagged,
 up to `pipeline.missing_per_facts_round` (10) of them at a time; a repair round asks for at
 most 5 next to its flagged blocks.
 They are measured by the FACT-01 count, not by the whole: the loop above stops on "no
 progress" when a round adds facts and the judge finds as many new problems, which on
 the dev pairs left values missing in nearly every job (docs/prompts.md). A facts round
 goes on while it adds a fact and stops when none is missing, when it adds none, or at
-the limit.
+the limit. Off by default: with the recover round after it, a facts round kept no more
+facts on the 23 evaluation pairs of 8 November 2026 with gpt-oss-120b, the Apertus 70B
+and Claude Haiku, and cost 7 to 8 percent more tokens
+(history/2026-11-08-gpt-oss-tuning.md).
 
 **The recover round** (on by default: `pipeline.recover_facts = 10`;
 0 turns it off). The must-keep values still missing (FACT-01) in the
@@ -651,7 +654,11 @@ else its findings carry over); the choice below keeps it only when it loses no
 must-keep value and adds no blocking finding. On the 12 dev pairs (docs/prompts.md, "The polish
 round on the dev pairs"): German rule errors 1.9 to 1.3 per 100 blocks, warnings 38 to
 34, facts unchanged, no must-keep value lost, about 17 percent more tokens; the final
-draft descends from the polished version in 8 of 12 jobs.
+draft descends from the polished version in 8 of 12 jobs. A second round (`polish_rounds
+= 2`) on the 23 evaluation pairs of 8 November 2026: German rule errors per 100 blocks
+from 2.0 to 1.5 on the Apertus 70B and from 0.5 to 0.1 on gpt-oss-120b, facts unchanged,
+13 to 15 percent more tokens; with Claude Haiku (measured with the facts round off) no
+gain, so the default stays one (history/2026-11-08-gpt-oss-tuning.md).
 
 **The vocabulary round** (part of the vocabulary): after the facts
 rounds, the office words still in the best version (LEX-07) go to one more
@@ -1010,7 +1017,10 @@ midway.
   small model are repaired in code: a run of ids written as a range, a trailing or a
   missing comma, a list or object closed with the wrong bracket, a unicode escape
   with too few digits, a second value without a list where a key belongs, which is
-  dropped because code completion restores any value it carried) and validated with pydantic. On failure the validation error, or the
+  dropped because code completion restores any value it carried; and the Unicode or
+  non-breaking hyphen a model may write for a plain one becomes a plain one, since an
+  e-mail address with one fails when copied or clicked: gpt-oss-120b wrote 101 in 23
+  documents on 8 November 2026) and validated with pydantic. On failure the validation error, or the
   syntax error with its position, is fed back once for a repair. An answer that copies
   the prompt's own example or its style guide (4 of 12 dev drafts on the Public AI 8B
   were the JSON form itself, 6 October 2026; a decision-mode draft carried the style

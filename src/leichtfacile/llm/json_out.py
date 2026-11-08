@@ -61,6 +61,11 @@ _BROKEN_UNICODE = re.compile(r"\\u(?![0-9a-fA-F]{4})[0-9a-fA-F]{0,3}")
 # A list that belongs at the top level, written as a pseudo-block inside "blocks"
 # ({"kind": "omissions": [...]}): the key is restored here and WriteOut hoists the list.
 _NESTED_LIST = re.compile(r'\{\s*"kind"\s*:\s*"(omissions|glossary)"\s*:\s*\[')
+# The Unicode hyphen and the non-breaking hyphen, which gpt-oss writes for a plain one
+# (101 times in 23 documents on 8 November 2026, once inside an e-mail address): an
+# address with one is not the address when a reader copies or clicks it, and a value
+# with one is not found in the source. Built with chr(), as the range markers above.
+_PLAIN_HYPHENS = str.maketrans({chr(0x2010): "-", chr(0x2011): "-"})
 
 
 class JSONExtractionError(ValueError):
@@ -119,6 +124,18 @@ def _expand_id_strings(value: Any) -> Any:
         else:
             out.append(_expand_id_strings(item))
     return out
+
+
+def _plain_hyphens(value: Any) -> Any:
+    """Every Unicode and non-breaking hyphen in the answer's strings as a plain one;
+    after parsing, so that one written as an escape (\\u2011) is caught too."""
+    if isinstance(value, str):
+        return value.translate(_PLAIN_HYPHENS)
+    if isinstance(value, dict):
+        return {k: _plain_hyphens(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_plain_hyphens(v) for v in value]
+    return value
 
 
 def repair_json(text: str, top_keys: Iterable[str] = ()) -> str:
@@ -263,7 +280,8 @@ def extract_json(text: str, top_keys: Iterable[str] = ()) -> Any:
     A value that starts like an answer (it has a key) but breaks further on is repaired,
     and if that fails the syntax error is reported with its position. It is never
     skipped: skipping it would return an object from inside it, and the error that
-    follows would blame the wrong thing.
+    follows would blame the wrong thing. Id ranges are written out and Unicode hyphens
+    become plain ones.
     """
     answer, _ = split_reasoning(text)
     candidates = [m.group(1) for m in _FENCE.finditer(answer)] + [answer]
@@ -275,13 +293,13 @@ def extract_json(text: str, top_keys: Iterable[str] = ()) -> Any:
                 continue
             try:
                 value, _ = decoder.raw_decode(candidate, i)
-                return _expand_id_strings(value)
+                return _plain_hyphens(_expand_id_strings(value))
             except json.JSONDecodeError as exc:
                 if not _KEY.search(candidate, i, exc.pos):
                     continue  # a brace in prose, not the answer: scan on
                 try:
                     value, _ = decoder.raw_decode(repair_json(candidate[i:], top_keys))
-                    return _expand_id_strings(value)
+                    return _plain_hyphens(_expand_id_strings(value))
                 except json.JSONDecodeError:
                     broken = broken or (candidate, exc)
                     break  # the answer is broken: no object from inside it

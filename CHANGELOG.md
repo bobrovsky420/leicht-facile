@@ -5,6 +5,28 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Added
+
+- A preset for gpt-oss-120b, an open-weights model, on the Hugging Face router:
+  `huggingface-gpt-oss-120b-groq` writes and checks on Groq's hardware in Canada or the
+  United States, for public documents (needs `HF_TOKEN` and Hugging Face credits). On a
+  fresh install it is picked only when `HF_TOKEN` is the only key set.
+
+### Changed
+
+- The round that asks only for the facts still missing after the repair rounds is off
+  by default (`pipeline.facts_rounds` 0, was 1): with the recover round after it, it kept
+  no more facts on the evaluation pairs with three models and cost 7 to 8 percent more
+  tokens. `[pipeline] facts_rounds = 1` brings it back.
+
+### Fixed
+
+- A model that writes a Unicode or non-breaking hyphen for a plain one (gpt-oss does,
+  even inside e-mail addresses) no longer leaves it in the draft: an address written so
+  failed when a reader copied or clicked it, and its value counted as missing.
+
 ## [0.13.2] - 2026-11-08
 
 ### Added
@@ -556,6 +578,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.2...HEAD
 [0.13.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...v0.13.0

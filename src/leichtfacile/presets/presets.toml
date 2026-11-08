@@ -406,7 +406,7 @@ documents = "any"
 discover = true
 thinking = "chat-template"
 
-# -- other clouds: no preset, `leichtfacile setup <provider>` lists the models ---------------
+# -- other clouds: `leichtfacile setup <provider>` lists the models, one preset at the end --
 
 [providers.mistral]
 label = "Mistral AI"
@@ -454,7 +454,25 @@ extra_body = { reasoning_effort = "low" }
 input_usd = 0.15
 output_usd = 0.75
 
+# OVHcloud AI Endpoints (Gravelines, France, by its documentation) at the router's prices
+# of 8 November 2026; about ten times slower than Groq (155 s a page).
+[providers.huggingface.models."openai/gpt-oss-120b:ovhcloud"]
+extra_body = { reasoning_effort = "low" }
+input_usd = 0.09
+output_usd = 0.47
+
 [providers.huggingface.models."*gpt-oss-20b*"]
 extra_body = { reasoning_effort = "low" }
 input_usd = 0.10
 output_usd = 0.50
+
+# gpt-oss-120b (open weights, Apache 2.0) at every stage, on Groq's hardware (Canada or the
+# United States). Run over the evaluation pairs on 8 November 2026 (docs/model-comparison.md):
+# 96 % of the hard values kept in German, 0.8 rule errors per 100 blocks, USD 0.007 a page.
+# The 20B wrote worse and gave up on a long document ("I'm sorry, but I can't provide
+# that."), a judge at medium effort asked for repairs that added errors, and the model's
+# own temperature added variance; so effort low and the stages' temperatures stay.
+[presets.huggingface-gpt-oss-120b-groq]
+provider = "huggingface"
+label = "gpt-oss 120B (open weights), on Groq"
+models = { writer = "openai/gpt-oss-120b:groq" }

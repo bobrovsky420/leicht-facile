@@ -199,6 +199,30 @@ thinking = "none: the gateway's 70B ignores the switch, and the 1.5 8B and the -
 text = "Public AI (Metagov Inc., USA) and a compute partner of its choice (maas.phoeniqs.com on this day)"
 prices = "Public AI list prices"
 notes = "the publicai-apertus preset from 3 to 6 November 2026, the shipped default of 0.12.0, run on the same pairs as the CSCS reference; the folder also holds the pairs of Germany, Austria and Italian (docs/evaluation-publicai.md), which the tables leave out"
+[[run]]
+label = "gpt-oss-120b at every stage, effort low (Groq via Hugging Face)"
+results = "eval/results-hf-gpt-oss-120b-groq"
+file = "P2_openai-gpt-oss-120b-groq.jsonl"
+date = 2026-11-08
+endpoint = "Groq through the Hugging Face Inference Providers router"
+writer = "openai/gpt-oss-120b"
+judge = "openai/gpt-oss-120b (itself)"
+thinking = "gpt-oss always reasons; reasoning_effort low on every call"
+text = "Canada or the United States (Groq)"
+prices = "Groq list prices, billed through Hugging Face"
+notes = "the huggingface-gpt-oss-120b-groq preset; of the variants tried the same day (docs/history/2026-11-08-gpt-oss-tuning.md) the 20B writing kept fewer facts and gave up on a long document, a judge at medium effort and the model's own temperature brought nothing"
+[[run]]
+label = "gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face)"
+results = "eval/results-hf-gpt-oss-120b-ovhcloud"
+file = "P2_openai-gpt-oss-120b-ovhcloud.jsonl"
+date = 2026-11-08
+endpoint = "OVHcloud AI Endpoints through the Hugging Face Inference Providers router"
+writer = "openai/gpt-oss-120b"
+judge = "openai/gpt-oss-120b (itself)"
+thinking = "gpt-oss always reasons; reasoning_effort low on every call"
+text = "France (OVHcloud, Gravelines, by its documentation)"
+prices = "OVHcloud's prices on the Hugging Face router"
+notes = "the same model and settings as the Groq run, on the code of that morning (the facts round on, Unicode hyphens kept: three e-mail addresses with a non-breaking hyphen count as values not in the source); about ten times slower"
 ```
 <!-- runs:end -->
 
@@ -217,6 +241,8 @@ notes = "the publicai-apertus preset from 3 to 6 November 2026, the shipped defa
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 2026-10-25 | Anthropic's OpenAI-compatible endpoint | claude-haiku-5-5 | claude-sonnet-5-5 | off on both, through the native thinking field set per model (the provider's models tables): `disabled` for Haiku, `between_tools` for Sonnet | United States (Anthropic) | Anthropic list prices | the writer's Understand and first Write calls are those of the Haiku run and came from the response cache, so the drafts differ from that run only through the judge and the repairs it asked for; cached calls count their tokens but no time, so the seconds per page leave out Understand and the first Write; USD 4.4 paid | `eval/results-anthropic-haiku-sonnet-judge/P2_claude-haiku-5-5.jsonl` |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 2026-10-27 | Anthropic's OpenAI-compatible endpoint | claude-opus-5-5 | claude-opus-5-5 (itself) | always on, at the default effort (medium): Opus 5.5 refuses `disabled` and the endpoint ignores `output_config`; the thinking counts in max_tokens, so every call had 12,000 tokens more (`thinking_tokens`) | United States (Anthropic) | Anthropic list prices | no temperature; with the stages' own budgets the Understand answer of a long document passed 12,000 tokens and the pair failed, so it ran again with the larger budget (the longest Understand answer reached 18,000); four Write answers passed 20,000 tokens and were written in halves; 250 calls, USD 33.5 paid with the failed attempt and six test calls | `eval/results-anthropic-claude-opus-5.5/P2_claude-opus-5-5.jsonl` |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 2026-11-03 | Public AI gateway (api.publicai.co) | swiss-ai/apertus-v1.5-70b | swiss-ai/apertus-v1.5-70b (itself) | none: the gateway's 70B ignores the switch, and the 1.5 8B and the -thinking names answer 400 since 28 October 2026 | Public AI (Metagov Inc., USA) and a compute partner of its choice (maas.phoeniqs.com on this day) | Public AI list prices | the publicai-apertus preset from 3 to 6 November 2026, the shipped default of 0.12.0, run on the same pairs as the CSCS reference; the folder also holds the pairs of Germany, Austria and Italian (docs/evaluation-publicai.md), which the tables leave out | `eval/results-publicai/P2_swiss-ai-apertus-v1-5-70b.jsonl` |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 2026-11-08 | Groq through the Hugging Face Inference Providers router | openai/gpt-oss-120b | openai/gpt-oss-120b (itself) | gpt-oss always reasons; reasoning_effort low on every call | Canada or the United States (Groq) | Groq list prices, billed through Hugging Face | the huggingface-gpt-oss-120b-groq preset; of the variants tried the same day (docs/history/2026-11-08-gpt-oss-tuning.md) the 20B writing kept fewer facts and gave up on a long document, a judge at medium effort and the model's own temperature brought nothing | `eval/results-hf-gpt-oss-120b-groq/P2_openai-gpt-oss-120b-groq.jsonl` |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 2026-11-08 | OVHcloud AI Endpoints through the Hugging Face Inference Providers router | openai/gpt-oss-120b | openai/gpt-oss-120b (itself) | gpt-oss always reasons; reasoning_effort low on every call | France (OVHcloud, Gravelines, by its documentation) | OVHcloud's prices on the Hugging Face router | the same model and settings as the Groq run, on the code of that morning (the facts round on, Unicode hyphens kept: three e-mail addresses with a non-breaking hyphen count as values not in the source); about ten times slower | `eval/results-hf-gpt-oss-120b-ovhcloud/P2_openai-gpt-oss-120b-ovhcloud.jsonl` |
 
 ## German
 
@@ -238,6 +264,8 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 20 | 99 % | 91 % | 0 % | 0.0 | 7.6 | 6.4 | 59 | 48.1 | 0.1 | 0.0 | 58324 | 0.4977 | 128.2 |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 20 | 99 % | 94 % | 0 % | 2.4 | 23.4 | 6.3 | 57 | 43.6 | 1.3 | 0.0 | 28528 | 0.0324 | 39.6 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 20 | 100 % | 97 % | 0 % | 0.5 | 29.1 | 7.2 | 47 | 42.0 | 3.2 | 0.0 | 26702 | 0.0081 | 14.3 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 20 | 100 % | 92 % | 0 % | 1.6 | 26.4 | 6.6 | 46 | 41.9 | 0.5 | 0.3 | 29288 | 0.0054 | 155.3 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -259,6 +287,8 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.8 | 0.0 | 4.6 | 0.1 | 9.1 | 16.5 | 4.1 | 0.0 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 1.1 | 0.0 | 1.0 | 0.0 | 3.7 | 1.7 | 0.4 | 0.0 |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 10.0 | 0.0 | 6.3 | 0.0 | 5.6 | 29.4 | 1.6 | 0.0 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 10.9 | 0.0 | 5.4 | 0.0 | 6.8 | 45.4 | 1.0 | 0.0 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 6.2 | 0.0 | 8.7 | 0.0 | 7.1 | 40.0 | 1.8 | 0.0 |
 
 Fact-rich subset (17 pairs with at least 3 hard facts):
 
@@ -278,6 +308,8 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 17 | 91 % | 100 % | 2 % |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 17 | 89 % | 99 % | 1 % |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 17 | 93 % | 99 % | 1 % |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 17 | 96 % | 100 % | 0 % |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 17 | 91 % | 100 % | 0 % |
 
 Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
@@ -301,6 +333,8 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.0 | 0.0 | 7.3 | 80 | 49.6 | 0.6 | 0.0 | 39165 | 0.3199 | 81.1 |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 100 % | 91 % | 0 % | 3.3 | 19.0 | 6.7 | 76 | 46.3 | 1.8 | 0.0 | 20806 | 0.0246 | 36.7 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.6 | 55.0 | 10.5 | 75 | 45.1 | 1.6 | 0.0 | 16023 | 0.0050 | 8.1 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.0 | 26.7 | 7.7 | 73 | 44.6 | 2.8 | 0.0 | 19427 | 0.0037 | 100.8 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -322,6 +356,8 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 12.5 | 0.0 | 8.8 | 0.0 | 5.8 | 0.0 | 3.4 | 0.0 |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 6.8 | 0.0 | 6.6 | 0.0 | 6.4 | 0.0 | 2.5 | 0.0 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 15.5 | 0.0 | 9.1 | 0.0 | 22.6 | 0.0 | 8.5 | 0.0 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 8.8 | 0.0 | 6.7 | 0.0 | 6.1 | 0.0 | 5.2 | 0.0 |
 
 Fact-rich subset (3 pairs with at least 3 hard facts):
 
@@ -341,6 +377,8 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
 | Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 87 % | 100 % | 2 % |
 | Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 83 % | 100 % | 1 % |
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 91 % | 100 % | 0 % |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 90 % | 100 % | 0 % |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 90 % | 100 % | 0 % |
 <!-- tables:end -->
 
 ## Reading, 25 and 27 October 2026
@@ -400,3 +438,18 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
   Haiku 5.5, `between_tools` on Sonnet 5.5 (the endpoint refuses `adaptive`), so the mixed
   run set the field per model. Opus 5.5 refuses both values and the endpoint ignores
   `output_config`, so Opus thought on every call at its default effort (medium).
+
+## Reading, 8 November 2026
+
+- **gpt-oss-120b** at every stage keeps 97 % of the hard values in German, as many as the
+  Apertus 8B with the 70B judging on CSCS and more than any other run, with 0.5 rule
+  errors per 100 blocks, at USD 0.008 and 14 s a page. Its readability (47) stays low:
+  it writes long words (2.18 syllables per word, the Apertus 70B 2.00). The variants of
+  that day (the 20B writing, a judge at medium effort, the model's own temperature) and
+  the round options measured with it are in
+  [history/2026-11-08-gpt-oss-tuning.md](history/2026-11-08-gpt-oss-tuning.md).
+- **On OVHcloud** the same model ran about ten times slower (155 s a page) at two thirds
+  of the price. It kept 92 % of the hard values: 6 values fewer in three pairs, about as
+  many as two Groq runs differed by on one of those letters. Its three values not in
+  the source are e-mail addresses written with a non-breaking hyphen, which the code
+  writes as plain hyphens since the same day.

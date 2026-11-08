@@ -77,7 +77,8 @@ draft.
 | `local` | the models the server lists | llama.cpp (llama-server, port 8080) on this machine, or another OpenAI-compatible server (`setup local --base-url`); takes any key; switches thinking through the chat template (llama.cpp with `--jinja`) and allows 30 minutes per call; [Running a model yourself](#running-a-model-yourself) |
 | `ollama` | the models `ollama list` shows | Ollama on this machine (port 11434); takes any key; a Qwen model sends `reasoning_effort` none on every call |
 | `vllm` | the models the server lists | vLLM (port 8000), mostly a GPU machine of the organisation: `setup vllm --base-url http://<server>:8000/v1 --model <name>`; switches thinking through the chat template. On one machine vLLM and the app both want port 8000: start one of them elsewhere |
-| `mistral`, `groq`, `huggingface` | the models the provider lists | Mistral AI; Groq; the Hugging Face Inference Providers router. Need the key (`MISTRAL_API_KEY`, `GROQ_API_KEY`, `HF_TOKEN`); `leichtfacile setup groq` lists the models. EU, US and third-party clouds: public documents only |
+| `mistral`, `groq` | the models the provider lists | Mistral AI; Groq. Need the key (`MISTRAL_API_KEY`, `GROQ_API_KEY`); `leichtfacile setup groq` lists the models. EU and US clouds: public documents only |
+| `huggingface` | `huggingface-gpt-oss-120b-groq`: gpt-oss 120B (open weights) writes and checks, on Groq; or the models the router lists | The Hugging Face Inference Providers router; needs a token (`HF_TOKEN`) and Hugging Face credits (pay as you go). Third-party clouds, Groq in Canada or the United States: public documents only |
 | another server | | `leichtfacile setup <name> --base-url <address>`: any OpenAI-compatible endpoint, for example a gateway of the organisation's own |
 
 Flags answer the questions in advance: `--name` (the preset saved for `--model`, or

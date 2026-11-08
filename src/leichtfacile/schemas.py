@@ -511,8 +511,11 @@ class PipelineOptions(Artifact):
     repair_rounds: int = Field(
         3, ge=0, le=10, description="Repair rounds on the rule findings and the judge's; 0: none."
     )
+    # Off since 8 November 2026: with the recover round after them, the facts round kept
+    # no more facts on the 23 evaluation pairs with gpt-oss-120b, the Apertus 70B and
+    # Claude Haiku, at 7 to 8 percent more tokens (docs/history/2026-11-08-gpt-oss-tuning.md).
     facts_rounds: int = Field(
-        1,
+        0,
         ge=0,
         le=5,
         description="Rounds that ask only for the must-keep facts still missing after the "
