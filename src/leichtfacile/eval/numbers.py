@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from math import comb
+from math import exp, lgamma, log, log1p
 from pathlib import Path
 from statistics import fmean
 
@@ -216,10 +216,15 @@ def bootstrap_interval(
 
 
 def exact_interval(k: int, n: int) -> tuple[float, float]:
-    """Clopper-Pearson 95 % interval of a share of k in n, by bisection on the binomial."""
+    """Clopper-Pearson 95 % interval of a share of k in n, by bisection on the binomial.
+    The terms are summed in log space: `comb(n, i)` outgrows a float from about 1,030
+    values on (the pooled silent-loss values stood at 694 on 6 November 2026)."""
+    log_comb = [lgamma(n + 1) - lgamma(i + 1) - lgamma(n - i + 1) for i in range(k + 1)]
 
-    def cdf(p: float, upto: int) -> float:
-        return sum(comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(upto + 1))
+    def cdf(p: float, upto: int) -> float:  # P(X <= upto) for X ~ Binomial(n, p)
+        if p <= 0.0 or p >= 1.0:
+            return 1.0 if p <= 0.0 or upto >= n else 0.0
+        return sum(exp(log_comb[i] + i * log(p) + (n - i) * log1p(-p)) for i in range(upto + 1))
 
     def solve(target: float, upto: int) -> float:  # the p where P(X <= upto) = target
         lo, hi = 0.0, 1.0

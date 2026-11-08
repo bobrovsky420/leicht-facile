@@ -369,3 +369,25 @@ def test_rescore_in_place_scores_a_baseline_again_without_sampling_it_again(
     assert "selection" not in again and "stored_final_version" not in again
     assert len(endpoint.chat_bodies()) == calls  # no model call
     assert (results / "REF.jsonl").exists()
+
+
+def test_reference_rows_keep_the_file_when_a_pair_cannot_be_loaded(
+    pair_env, tmp_path, monkeypatch
+) -> None:
+    """The rows are made before the file is touched: a pair whose text was not cached
+    raised after the file was truncated, and the rows of every selected pair were gone
+    (audit of 6 November 2026)."""
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    path = reference_rows(pairs, results)
+    before = path.read_text(encoding="utf-8")
+    assert before.count("\n") == 2  # the SOURCE and the REF row of the pair
+
+    def not_cached(pair):
+        raise FileNotFoundError(pair.id)
+
+    monkeypatch.setattr("leichtfacile.eval.run.load_pair", not_cached)
+    with pytest.raises(FileNotFoundError):
+        reference_rows(pairs, results)
+    assert path.read_text(encoding="utf-8") == before
+    assert [p.name for p in results.iterdir()] == ["REF.jsonl"]  # no temporary file left

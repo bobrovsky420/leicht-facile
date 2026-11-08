@@ -5,6 +5,33 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Fixed
+
+- A web page's hidden elements (`hidden`, `aria-hidden`, an inline `display:none`) no
+  longer become content when trafilatura finds nothing or when the contact and section
+  rescue passes put blocks back: an outdated contact card a page keeps hidden was read
+  as a fact.
+- `leichtfacile config set` reads its key as TOML, so a model table named with a dot or
+  a colon is addressed in quotes, `providers.mine.models."qwen3.5:9b".thinking_stages`;
+  such a key was split at every dot before.
+- `leichtfacile eval numbers` no longer fails with an overflow from about 1,000 pooled
+  values on, and `eval` writes each result file to a file beside it first, so an
+  interrupted write, or a pair whose text is not cached, leaves the rows it had.
+- The fact sheet and the links between blocks and facts: a fact of the model that cites
+  a later occurrence of a value gets the value instead of a second fact beside it; of
+  two facts with one value, a block that cites a sentence of one conveys that one
+  alone; a plain number in a fact's text ("Art. 5") no longer passes for an amount
+  ("5 Franken"); a fact without a sentence goes into the first section's prompt of a
+  long document instead of none.
+- Repair rounds: an addition placed after a list item lands after the whole list, a
+  recovered sentence under an item included; a title heading above a section heading
+  no longer disappears when a repeated sentence is dropped elsewhere in the draft.
+- Stock phrases of easy language ("Haben Sie Fragen?") that the prompt's example shares
+  with an honest draft no longer count as a copied example on their own; a short draft
+  was sent back and could fail the write stage for them.
+
 ## [0.13.3] - 2026-11-08
 
 ### Added
@@ -594,6 +621,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.3...HEAD
 [0.13.3]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.2...v0.13.3
 [0.13.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...v0.13.1

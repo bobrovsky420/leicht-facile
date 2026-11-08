@@ -304,8 +304,26 @@ def example_keys(lang: str, stage: str) -> frozenset[str]:
 
 
 def copied_sentences(texts: list[str], lang: str, stage: str) -> int:
+    return len(_copied(texts, lang, stage))
+
+
+def _copied(texts: list[str], lang: str, stage: str) -> list[str]:
     keys = example_keys(lang, stage)
-    return sum(1 for t in texts if _example_key(t) in keys)
+    return [t for t in texts if _example_key(t) in keys]
+
+
+_SPECIFIC_STEMS = 3  # content words that make a sentence more than a stock phrase
+
+
+def _specific(text: str, lang: str) -> bool:
+    """Whether a sentence says something of its own: a hard value, or three content
+    words or more (`_stems`). "Haben Sie Fragen?" and "Sie können von Montag bis Freitag
+    anrufen." are stock phrases of easy language that the few-shot example shares with
+    honest drafts: two of them in a draft of three sentences were a copied example, sent
+    back, and a second such answer failed the stage (audit of 6 November 2026)."""
+    if any(v.kind in HARD_KINDS for v in extract_values(text, lang)):
+        return True
+    return len(_stems(text, lang.partition("-")[0])) >= _SPECIFIC_STEMS
 
 
 @lru_cache(maxsize=8)
@@ -357,15 +375,20 @@ def topic_sentences(
 
 def _copy_check(lang: str, stage: str, texts_of):
     """A `check` for complete_json: an answer whose sentences are mostly from the prompt's
-    examples (COPY_LIMIT or more, and more than half of them) is sent back once with a
-    message in the document's language; a second copy fails the stage. A generic
-    sentence or two that an honest draft shares with an example ("Sie haben dafür 14
-    Tage Zeit.") is no copy."""
+    examples (COPY_LIMIT or more, and more than half of them, one of them saying
+    something of its own, `_specific`) is sent back once with a message in the
+    document's language; a second copy fails the stage. A stock phrase or two that an
+    honest draft shares with an example ("Haben Sie Fragen?") is no copy."""
 
     def check(out) -> str | None:
         texts = texts_of(out)
-        copies = copied_sentences(texts, lang, stage)
-        if copies >= COPY_LIMIT and copies * 2 > len(texts):
+        copied = _copied(texts, lang, stage)
+        copies = len(copied)
+        if (
+            copies >= COPY_LIMIT
+            and copies * 2 > len(texts)
+            and any(_specific(t, lang) for t in copied)
+        ):
             log.warning("stage %s: the answer copies %d sentences of the example", stage, copies)
             return label(lang, "copied_example", count=copies)
         return None
@@ -590,6 +613,34 @@ def _only_value(text: str, lang: str, value: Value) -> bool:
     return len(held) == 1 and (matches(value, held[0]) or matches(held[0], value))
 
 
+def _occurrences(
+    values: list[Value], source: SourceDocument, spans: list[tuple[int, int]]
+) -> list[tuple[Value, list[Segment], set[str]]]:
+    """Each hard value of the source text once: the segments of its first occurrence
+    (the fact's sentences and text) and the ids of the segments of every occurrence. A
+    later occurrence joins the first as the first covers it (`matches`, in the direction
+    of `complete_factsheet`'s cover check)."""
+    found: list[tuple[Value, list[Segment], set[str]]] = []
+    for value in values:
+        if value.kind not in HARD_KINDS:
+            continue
+        segments = [
+            seg
+            for seg, (start, end) in zip(source.segments, spans, strict=True)
+            if start < value.end and value.start < end
+        ]
+        if not segments:
+            continue
+        ids = {s.id for s in segments}
+        for first, _, everywhere in found:
+            if matches(value, first):
+                everywhere |= ids
+                break
+        else:
+            found.append((value, segments, ids))
+    return found
+
+
 def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     """Code makes sure no hard value is forgotten: every date, amount, phone number,
     e-mail address, web address, percentage, time, period (`innert 30 Tagen`),
@@ -610,33 +661,28 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     # (the silent-loss metric showed the gap on 7 October 2026). Each value cites
     # the segments it spans.
     text, spans = source.text_with_offsets()
-    for value in extract_values(text, lang):
+    for value, segments, everywhere in _occurrences(extract_values(text, lang), source, spans):
         # Covered means: a reader who searches the fact sheet for this value finds it
         # (the evaluation's silent-loss check asks the same question, in the same
         # direction). A fact with the place alone does not cover the full address,
         # and a bare number does not cover a quantity; the fact for the full value
         # is added next to the model's.
-        if value.kind not in HARD_KINDS or any(matches(value, c) for c in covered):
-            continue
-        segments = [
-            seg
-            for seg, (start, end) in zip(source.segments, spans, strict=True)
-            if start < value.end and value.start < end
-        ]
-        if not segments:
+        if any(matches(value, c) for c in covered):
             continue
         covered.append(value)
-        # The model's fact that holds this value in its text and cites its sentence
-        # becomes the fact for it, not a second fact beside it: the 70B listed "deve
-        # essere pagata entro 30 giorni" without a value, code added the period again
-        # as a fact of its own, and the rounds then wrote both (31 October 2026).
+        # The model's fact that holds this value in its text and cites a sentence it
+        # stands in becomes the fact for it, not a second fact beside it: the 70B listed
+        # "deve essere pagata entro 30 giorni" without a value, code added the period
+        # again as a fact of its own, and the rounds then wrote both (31 October 2026).
+        # Any occurrence counts: searched at the first alone, a fact citing the second
+        # got no value and code added the deadline twice (audit of 6 November 2026).
         holder = next(
             (
                 f
                 for f in facts
                 if f.origin != "code"
                 and not f.value_norm
-                and set(f.segment_ids) & {s.id for s in segments}
+                and set(f.segment_ids) & everywhere
                 and _only_value(f.text, lang, value)
             ),
             None,
@@ -819,12 +865,17 @@ def write(
     known_facts = factsheet.fact_ids()
     pending = list(sections)
     sectioned = len(sections) > 1
+    # A fact without a sentence belongs to no section: the first section written gets
+    # it, since FACT-01 asks for it later (audit of 6 November 2026).
+    unplaced = {f.id for f in factsheet.facts if not f.segment_ids}
     while pending:
         title, segments = pending.pop(0)
         in_section = {s.id for s in segments}
         fact_ids = None
         if sectioned:
-            fact_ids = [f.id for f in factsheet.facts if set(f.segment_ids) & in_section]
+            fact_ids = [
+                f.id for f in factsheet.facts if set(f.segment_ids) & in_section or f.id in unplaced
+            ]
         prompt = render(
             variety,
             "write",
@@ -864,6 +915,7 @@ def write(
             sectioned = True
             continue
         results += res
+        unplaced = set()
         dropped = drop_topical(_write_texts(out), variety, source.text(), "write")
         for b in out.blocks:
             if b.text in dropped:
@@ -918,14 +970,21 @@ def _wording_key(text: str) -> str:
 
 def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
     """A sentence or list item that repeats an earlier one is dropped, and its fact and
-    source references go to the first; a heading left without content goes too. Small
-    models repeat a fact under every heading it answers (the deadline under "What must
-    you do?" and again under "By when?"). After a repair the ids stay as they are."""
+    source references go to the first; a heading this leaves without content goes too.
+    Small models repeat a fact under every heading it answers (the deadline under "What
+    must you do?" and again under "By when?"). After a repair the ids stay as they are."""
     kept: list[Block] = []
     first: dict[str, int] = {}
+    heading: int | None = None  # the index in `kept` of the heading the blocks are under
+    with_content: set[int] = set()  # the headings that keep content below them
+    emptied: set[int] = set()  # the headings whose content this pass removed
     for b in blocks:
+        if b.kind == "heading":
+            kept.append(b)
+            heading = len(kept) - 1
+            continue
         key = _sentence_key(b.text)
-        if b.kind != "heading" and key in first:
+        if key in first:
             i = first[key]
             kept[i] = kept[i].model_copy(
                 update={
@@ -933,17 +992,19 @@ def drop_repeats(blocks: list[Block], *, renumber: bool = True) -> list[Block]:
                     "segment_ids": list(dict.fromkeys(kept[i].segment_ids + b.segment_ids)),
                 }
             )
+            if heading is not None:
+                emptied.add(heading)
             continue
-        if b.kind != "heading":
-            first[key] = len(kept)
+        first[key] = len(kept)
         kept.append(b)
+        if heading is not None:
+            with_content.add(heading)
     if len(kept) == len(blocks):
         return blocks
-    content = [
-        b
-        for k, b in enumerate(kept)
-        if b.kind != "heading" or (k + 1 < len(kept) and kept[k + 1].kind != "heading")
-    ]
+    # A heading goes only when this pass removed everything below it. A title above a
+    # section heading, or a heading the writer left empty, went too whenever a repeat
+    # stood anywhere, and the ids moved (audit of 6 November 2026).
+    content = [b for k, b in enumerate(kept) if k not in emptied or k in with_content]
     if not renumber:
         return content
     return [b.model_copy(update={"id": f"b{i:03d}"}) for i, b in enumerate(content, 1)]
@@ -1046,6 +1107,46 @@ class _FactGroups:
         )
 
 
+def _same_value(target: Value, candidate: Value) -> bool:
+    """`matches` for the values in a fact's text: a plain number stands for itself only,
+    so "Art. 5 des Gesetzes" is not conveyed by "Das kostet 5 Franken", nor the other way
+    round (audit of 6 November 2026). A fact's `value_norm` keeps `matches` as it is: a
+    fact "30" written as "30 Tage" is still found."""
+    if "number" in (target.kind, candidate.kind) and target.kind != candidate.kind:
+        return False
+    return matches(target, candidate)
+
+
+def _own_sentences(b: Block, source_ids: set[str] | None) -> list[str]:
+    """The source sentences the block names itself, those the source has."""
+    if source_ids is None:
+        return list(b.segment_ids)
+    # An id the source does not have names no sentence: the 8B cited a block id
+    # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
+    return [s for s in b.segment_ids if s in source_ids]
+
+
+def _held_facts(
+    holding: list[tuple[str, Value, list[str]]], cited: set[str]
+) -> list[tuple[str, list[str]]]:
+    """The facts whose value the block contains (fact id, its sentences). Of two facts
+    with one value (a revoked decision and a filing deadline, both of 31 March 2026), a
+    block that cites a sentence of one conveys that one alone; both when it cites a
+    sentence of neither. The block about the deadline used to get both, so FACT-02 was
+    satisfied for the wrong fact and a judge "missing" was routed to that block (audit
+    of 6 November 2026)."""
+    kept: list[tuple[str, list[str]]] = []
+    for fact_id, target, segments in holding:
+        rivals = [
+            s
+            for other, t, s in holding
+            if other != fact_id and (matches(target, t) or matches(t, target))
+        ]
+        if set(segments) & cited or not any(set(s) & cited for s in rivals):
+            kept.append((fact_id, segments))
+    return kept
+
+
 def _cited_sentences(
     b: Block,
     facts: _FactGroups,
@@ -1057,11 +1158,7 @@ def _cited_sentences(
     takes those of the facts whose values it contains (`held`: fact id, its sentences),
     else those of the facts it names, else, with the `source`, the sentence it says in
     other words (`wording_source`)."""
-    segment_ids = list(b.segment_ids)
-    if source_ids is not None:
-        # An id the source does not have names no sentence: the 8B cited a block id
-        # (`s0009.2`) in the German example letter (CSCS, 8 October 2026).
-        segment_ids = [s for s in segment_ids if s in source_ids]
+    segment_ids = _own_sentences(b, source_ids)
     if segment_ids or b.kind == "heading":
         return segment_ids
     for _, fact_segments in held:
@@ -1082,15 +1179,16 @@ def _block_links(
     source_ids: set[str] | None,
 ) -> tuple[list[str], list[str]]:
     """The fact ids and the sentence ids one block ends up with: the ids it names that
-    the sheet has and the facts whose value it contains, then, by the sentences it cites
-    (`_cited_sentences`), the parts and plain facts of a cited sentence and the worded
-    facts all of whose values it contains."""
+    the sheet has and the facts whose value it contains (`_held_facts`), then, by the
+    sentences it cites (`_cited_sentences`), the parts and plain facts of a cited
+    sentence and the worded facts all of whose values it contains (`_same_value`)."""
     values = extract_values(b.text, variety) if facts.targets or facts.worded else []
-    held = [
-        (fact_id, fact_segments)
+    holding = [
+        (fact_id, target, fact_segments)
         for fact_id, target, fact_segments in facts.targets
         if contains(target, b.text, values)
     ]
+    held = _held_facts(holding, set(_own_sentences(b, source_ids)))
     segment_ids = _cited_sentences(b, facts, held, source, source_ids)
     ids = [f for f in b.fact_ids if f in facts.known]
     for fact_id, _ in held:
@@ -1103,7 +1201,7 @@ def _block_links(
         if (
             fact_id not in ids
             and segments & set(segment_ids)
-            and all(any(matches(t, v) for v in values) for t in in_text)
+            and all(any(_same_value(t, v) for v in values) for t in in_text)
         ):
             ids.append(fact_id)
     return ids, segment_ids
@@ -1121,9 +1219,9 @@ def _with_spread_facts(
             continue
         citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
         held = {i: extract_values(blocks[i].text, variety) for i in citing}
-        if citing and all(any(matches(t, v) for i in citing for v in held[i]) for t in in_text):
+        if citing and all(any(_same_value(t, v) for i in citing for v in held[i]) for t in in_text):
             for i in citing:
-                if any(matches(t, v) for t in in_text for v in held[i]):
+                if any(_same_value(t, v) for t in in_text for v in held[i]):
                     blocks[i] = blocks[i].model_copy(
                         update={"fact_ids": [*blocks[i].fact_ids, fact_id]}
                     )
@@ -1693,10 +1791,15 @@ def apply_repairs(
     given = _Given.of(draft, request, factsheet, repaired=set(repairs))
     new = _NewVersion(dropped, taken=set(draft.by_id()))
     # Sentences added after a list item go after the list, not between its items
-    # (10 October 2026: the example letters' lists of enclosures were split by them).
+    # (10 October 2026: the example letters' lists of enclosures were split by them). A
+    # sentence a recover round placed after an item (`b005.1`) is part of the list, as
+    # `list_end` counts it (`_in_list`; the additions flushed at the first block that was
+    # no item landed inside the list, audit of 6 November 2026).
     pending: list[tuple[str, list[AdditionItem]]] = []
+    by_id = draft.by_id()
     for b in draft.blocks:
-        if pending and b.kind != "list_item":
+        in_list = _in_list(b, by_id)
+        if pending and not in_list:
             for anchor_id, adds in pending:
                 _append_additions(anchor_id, adds, given, new)
             pending.clear()
@@ -1706,7 +1809,7 @@ def apply_repairs(
         else:
             new.blocks.append(b)
         adds = additions.get(b.id, [])
-        if adds and b.kind == "list_item":
+        if adds and in_list:
             pending.append((b.id, adds))
         elif adds:
             _append_additions(b.id, adds, given, new)
@@ -1956,17 +2059,19 @@ def recover_fact(
     return recovery, results
 
 
+def _in_list(b: Block, by_id: dict[str, Block]) -> bool:
+    """Whether a block is part of a list: an item, or a sentence placed after an item
+    under its id (`b005.1`, a recovered fact). `apply_repairs` and `list_end` share the
+    rule, so an addition after an item lands after such a sentence too."""
+    base = by_id.get(b.id.split(".")[0])
+    return b.kind == "list_item" or ("." in b.id and base is not None and base.kind == "list_item")
+
+
 def list_end(blocks: list[Block], at: int) -> int:
-    """From `at`, the index after the list the blocks there belong to: its items and the
-    sentences placed after an item under its id (`b005.1`)."""
+    """From `at`, the index after the list the blocks there belong to (`_in_list`)."""
     by_id = {b.id: b for b in blocks}
-    while at < len(blocks):
-        b = blocks[at]
-        base = by_id.get(b.id.split(".")[0])
-        if b.kind == "list_item" or ("." in b.id and base is not None and base.kind == "list_item"):
-            at += 1
-        else:
-            break
+    while at < len(blocks) and _in_list(blocks[at], by_id):
+        at += 1
     return at
 
 

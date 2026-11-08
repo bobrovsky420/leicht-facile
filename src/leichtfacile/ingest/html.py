@@ -61,6 +61,11 @@ outside links that the extraction lacks is put back the same way (see
 `_rescue_sections`; 30 October 2026).
 
 If trafilatura finds nothing, a simple fallback converts the prepared page itself.
+
+What is still hidden once the panels are revealed (`hidden`, `aria-hidden="true"`, an
+inline `display:none` or `visibility:hidden`) stays out of the fallback and of the
+rescue passes, as trafilatura leaves it out: an outdated contact card a page keeps
+hidden became a fact (audit of 6 November 2026).
 """
 
 from __future__ import annotations
@@ -235,6 +240,18 @@ _SR_ONLY = re.compile(
 _HIDING_STYLE = re.compile(
     r"(?:display\s*:\s*none|visibility\s*:\s*hidden)\s*(?:!\s*important)?\s*;?", re.IGNORECASE
 )
+
+
+def _is_hidden(element: Any) -> bool:
+    """Whether the page hides the element as trafilatura reads it (`_reveal_panels` has
+    unhidden the accordion and tab panels before): the `hidden` attribute,
+    `aria-hidden="true"`, or an inline style that hides it."""
+    if element.get("hidden") is not None or (element.get("aria-hidden") or "").lower() == "true":
+        return True
+    style = element.get("style")
+    return bool(style and _HIDING_STYLE.search(style))
+
+
 _HEADING_TAGS = frozenset({"h1", "h2", "h3", "h4", "h5", "h6"})
 _BLOCK_TAGS = (
     "address",
@@ -647,7 +664,8 @@ def _walk_html(  # noqa: C901
         if not isinstance(child.tag, str):
             pieces.append((child.tail or "", False))
             continue
-        if child.tag in skip or (child.get("role") or "").lower() in _CHROME_ROLES:
+        chrome = (child.get("role") or "").lower() in _CHROME_ROLES
+        if child.tag in skip or chrome or _is_hidden(child):
             pieces.append((child.tail or "", False))
             continue
         if child.tag in _HTML_BLOCKS:
@@ -709,7 +727,7 @@ def _rescue_contacts(tree: Any, units: list[Unit]) -> list[Unit]:
     def visit(element: Any) -> None:
         if not isinstance(element.tag, str) or element.tag in _RESCUE_SKIP:
             return
-        if (element.get("role") or "").lower() in _CHROME_ROLES:
+        if (element.get("role") or "").lower() in _CHROME_ROLES or _is_hidden(element):
             return
         text = element.text_content()
         if not _facts(text) - have:
@@ -757,6 +775,8 @@ def _rescue_sections(tree: Any, units: list[Unit], ids: list[str]) -> list[Unit]
     for anchor in ids:
         target = root.get_element_by_id(anchor, None)
         if target is None or not isinstance(target.tag, str) or target.tag in _RESCUE_SKIP:
+            continue
+        if _is_hidden(target):
             continue
         if any(
             target is b or b in target.iterancestors() or target in b.iterancestors()

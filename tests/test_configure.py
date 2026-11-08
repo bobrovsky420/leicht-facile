@@ -278,6 +278,25 @@ def test_config_set_checks_before_it_writes(home) -> None:
     assert unset_value(home, "server.port", say=said.append) == 1
 
 
+def test_config_set_reads_the_key_as_toml_so_a_model_name_may_hold_a_dot(home) -> None:
+    """A model table is named after the model (`qwen3.5:9b`, `gpt-5.4-nano`): split at
+    every dot, the key wrote a table `qwen3` with a sub-table `5:9b` (audit of
+    6 November 2026). The key is read as TOML, such a name in quotes."""
+    said: list[str] = []
+    key = 'providers.ollama.models."qwen3.5:9b".thinking_stages'
+    set_value(home, key, '["understand"]', say=said.append)
+    assert toml(home) == {
+        "providers": {"ollama": {"models": {"qwen3.5:9b": {"thinking_stages": ["understand"]}}}}
+    }
+    assert said[0] == f"{key} set in {home}."
+    with pytest.raises(ConfigError, match="in quotes"):
+        set_value(home, "providers.ollama.models.qwen3.5:9b.thinking_stages", "[]")
+    with pytest.raises(ConfigError, match="section.key"):
+        set_value(home, "port", "8001")
+    assert unset_value(home, key, say=said.append) == 0
+    assert "thinking_stages" not in toml(home)["providers"]["ollama"]["models"]["qwen3.5:9b"]
+
+
 def test_a_project_file_wins_and_setting_the_user_file_says_so(home) -> None:
     Path("leichtfacile.toml").write_text("[server]\nport = 9000\n", encoding="utf-8")
     said: list[str] = []

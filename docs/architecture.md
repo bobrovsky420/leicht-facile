@@ -189,7 +189,7 @@ a failure resumes from the last good stage.
 
 | Input | Method | Output |
 |-------|--------|--------|
-| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at), and a cookie notice (an element whose class or id names cookies or consent, as parlament.gv.at's `div.cookie`) is dropped, and the sections the page's own jump list names are put back when trafilatura drops them (stadt.muenchen.de's "Dauer und Kosten"); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page | `SourceDocument` |
+| HTML URL | `httpx` fetch; content hidden in tabs and accordions is revealed and `tel:`/`mailto:` links unwrapped, and two inline elements that touch without a space get one (the icon label and the value of a contact box, `AdresseMeinhardstraße 16` on tirol.gv.at), and a cookie notice (an element whose class or id names cookies or consent, as parlament.gv.at's `div.cookie`) is dropped, and the sections the page's own jump list names are put back when trafilatura drops them (stadt.muenchen.de's "Dauer und Kosten"); then `trafilatura` main-content extraction (XML output) keeping headings, lists and tables; a rescue pass puts back contact blocks whose phone number or e-mail address the extraction dropped, at their place in the page; what the page keeps hidden (`hidden`, `aria-hidden`, an inline display:none) stays out of the rescue passes and of the fallback, as trafilatura leaves it out | `SourceDocument` |
 | PDF with text layer | `pdfplumber`, page by page (`pdfwords.py`: at most 200 pages; reading stops past twice `texts.max_chars`; an upload or a fetched PDF is read in a child process that ends after 60 s and, on Linux, may take 1 GB of address space, so that a small file that unpacks to gigabytes cannot take the service's memory); a soft hyphen in the text layer counts as a drawn hyphen (InDesign and Word map the hyphen glyph to U+00AD: the DRV brochure's Martin-Luther-Straße 2-4 would read MartinLutherStraße 24); words are assigned to columns when a page has a gutter (a glossary side column is read after the main text); headings by font size and bold, but no line that holds an amount, an IBAN, a date with its year or a phone number (a bill's bold total is a fact, and a value only in a heading is none); repeated headers, footers and page numbers removed, but one copy of a repeated line with a phone number, an e-mail or a web address stays (a letterhead on its first page, a footer on its last, where it cannot split a paragraph); hyphenated line ends joined; a paragraph running over a page break is merged | `SourceDocument` |
 | PDF without text layer, photo | Not supported yet: a clear error, also for a PDF with text in which a page shows pictures but no text (a scanned attachment, a table as an image), whose pages the error names; a blank page is skipped. Planned: read by a language model with image input or by another technology such as text recognition (OCR); which one is open. Check 4 of the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md) passed on the Public AI gateway: the 8B read a rendered letter and answered with its deadline, so image input works through an OpenAI-compatible Apertus endpoint (vLLM at Juelich); the same on CSCS the same day. The go/no-go spike (a no-go, its code removed; docs/image-input.md): every page of the scanned letters in `data/examples/print/scans/` goes to the model at a long side of 1600 px with a "transcribe word for word" prompt, and the transcription is measured against the printed text by character error rate and hard values found. On CSCS (7 October 2026) the 8B at 1,600 px declined the German page and read the French letter with wrong digits; at full resolution the 8B and the 70B read both letters but turned the IBANs, the AVS number and a 78-day period into other plausible numbers (docs/prompts.md, "Image input spike"). A no-go for a mode that feeds the fact contract: image input stays future work. On 9 October a probe showed where the digits go: the server keeps at most 1400 x 1400 pixels of an image (about 7,900 tokens), so a whole page arrives at about 140 dpi. `--strips` sends the printed area in strips at the scan's resolution (`ink_box`, `strip_boxes`); the 8B then keeps every digit of both scans and loses only an invented place name inside addresses, e-mails and the URL. The no-go stands; a future ingest through a language model sends strips, never a whole page. The write-up by kind of value: `docs/image-input.md`. | - |
 | Pasted text, `.txt`, `.md` | Paragraphs at blank lines, or one per line in a block whose lines are not wrapped (a letter pasted from Word or Outlook), where short lines in a row (an address, a letterhead) stay one paragraph and a closing keeps its signature; Markdown headings; bullet lists, and numbered lists when the numbers follow in sequence (blank lines between the items do not matter; a lone "3. Stock, Zimmer 304" keeps its number); short stand-alone lines as headings, unless they hold a value a fact needs | `SourceDocument` |
@@ -211,8 +211,9 @@ stopword frequencies for German, French and Italian, which needs no extra model 
 three languages; the user can override it.
 
 Chunking is not needed for understanding - Apertus 1.5 has a 262,144-token context -
-but documents over 3,000 words are **written** section by section (sharing one fact
-sheet), to keep output quality.
+but documents over 3,000 words are **written** section by section, to keep output
+quality: each section's prompt lists the facts of the shared fact sheet that cite its
+sentences, and the first section's those that cite none.
 
 ### 4.2 Understand (model)
 
@@ -255,7 +256,8 @@ facts that cite a common sentence, are of one kind, both to keep or both not, an
 in their values (the normalised value, else the hard values in the fact's text) become
 one, the one with the normalised value, else the first, with the sentences of both; and
 a hard value of the source that a fact of the model holds in its text, without a
-normalised value, becomes that fact's value instead of a fact of its own beside it (the
+normalised value, citing a sentence of any of its occurrences, becomes that fact's
+value instead of a fact of its own beside it (the
 70B listed the Italian camp letter's "deve essere pagata entro 30 giorni" without a
 value, code added the period again, and a repair round then wrote both). Code's own
 facts take their ids after the highest one, so none repeats an id a merge left
@@ -324,19 +326,22 @@ the setting rests on the endpoint checks of 6 October 2026 on CSCS (history/2026
 An answer cut off at `max_tokens` is never used (its last objects are incomplete);
 the part of the document it was for is written again as two halves, down to six
 sentences. Code assigns the block ids (`b001`, …), drops fact ids that do not exist, and links a
-block to every fact whose exact value it contains, so fact bookkeeping does not depend
-on the model. A sentence id the source does not have is dropped (the 8B cited a
+block to every fact whose exact value it contains (of two facts with one value, to the
+one whose sentence the block cites; to both when it cites a sentence of neither), so
+fact bookkeeping does not depend on the model. A sentence id the source does not have is dropped (the 8B cited a
 block id). A block that cites no source sentence takes the sentences of those facts,
 else those of the facts it names, else the source sentence it says in other words: the
 one it shares the most distinctive words with, by a clear margin (`wording_source`;
 without it, FACT-03 flags the block and the judge, which sees only the cited
 sentences, is apt to call it invented). A fact without a value whose text holds values (a contact with its phone number and
 e-mail) is linked to a block that cites one of its sentences and contains all of them,
-or to the blocks of its sentences that together hold all of them, each that holds one;
+or to the blocks of its sentences that together hold all of them, each that holds one
+(a plain number in such a text, `Art. 5`, stands for itself only, never for an amount);
 a fact without a value and without values in its text to every block that cites one of
 its sentences (the writer put the two income limits into two
 sentences, and renders a sentence without its tag). FACT-03 skips a question block, since a question states nothing. A sentence that repeats an earlier one is dropped and its references go
-to the first, and a heading left without content goes too: small models repeat a fact
+to the first, and a heading this leaves without content goes too (a title above a
+section heading stays): small models repeat a fact
 under every heading it answers (the deadline under "What must you do?" and again under
 "By when?").
 
@@ -523,7 +528,7 @@ drafts worse (docs/prompts.md, "Judge doubts on values").
 Only flagged blocks are sent back, each with its findings (rule and judge, with the
 checker's suggestion where there is one) and the facts it must keep. The model returns
 one to three sentences per flagged block and new sentences for missing facts, each
-placed after a named block, or after the list when that block is a list item (10
+placed after a named block, or after the whole list when that block is a list item (a sentence recovered under an item is part of the list) (10
 October 2026). A round first asks only for what blocks the draft (rule
 errors, missing fact values, the judge's problems), with at most 5 missing facts at a
 time, the most important kinds first; the warnings get one round once nothing blocking
@@ -1025,7 +1030,8 @@ midway.
   the prompt's own example or its style guide (4 of 12 dev drafts on the Public AI 8B
   were the JSON form itself, 6 October 2026; a decision-mode draft carried the style
   guide as a section, 7 October) is recognised by code and sent back once in the same
-  way.
+  way; stock phrases the example shares with honest drafts ("Haben Sie Fragen?") count
+  only next to a copied sentence with a value or three content words of its own.
   The Public AI gateway (vLLM) accepts `response_format={"type":"json_object"}`,
   but it made no difference in the endpoint checks of 6 October 2026 (history/2026-10-06-endpoint-checks.md),
   so it is not used.

@@ -521,7 +521,7 @@ def set_value(
         loaded = save(path, _with(path, parts, raw))  # a model named 8 or true is still a name
     say(f"{key} set in {path}.")
     warn_unusual(loaded, say, key)
-    if other := overridden(key, path):
+    if other := overridden(".".join(parts), path):
         say(f"Note: {other} sets it too and wins over {path}.")
     return 0
 
@@ -723,10 +723,27 @@ def _with(path: Path, parts: list[str], value: Any) -> tomlkit.TOMLDocument:
 
 
 def _parts(key: str) -> list[str]:
-    parts = key.strip().split(".")
-    if len(parts) < 2 or not all(parts):
-        raise ConfigError(f"{key!r}: name a setting as section.key (server.port); "
-                          "`leichtfacile config show` lists them")  # fmt: skip
+    """The parts of a dotted key, read as TOML reads one: a name with a dot or a colon
+    goes in quotes (`providers.mine.models."qwen3.5:9b".thinking_stages`). Split at every
+    dot, a model named `qwen3.5:9b` became a table `qwen3` with a sub-table `5:9b`
+    (audit of 6 November 2026)."""
+    hint = (
+        f"{key!r}: name a setting as section.key (server.port), a name with a dot or a "
+        'colon in quotes (providers.mine.models."qwen3.5:9b".thinking_stages); '
+        "`leichtfacile config show` lists them"
+    )
+    try:
+        node: Any = tomllib.loads(f"{key.strip()} = 0")
+    except tomllib.TOMLDecodeError:
+        raise ConfigError(hint) from None
+    parts: list[str] = []
+    while isinstance(node, dict):
+        if len(node) != 1:
+            raise ConfigError(hint)
+        ((part, node),) = node.items()
+        parts.append(part)
+    if len(parts) < 2:
+        raise ConfigError(hint)
     return parts
 
 

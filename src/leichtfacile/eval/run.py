@@ -62,12 +62,19 @@ def _done(path: Path) -> set[str]:
     return {r["pair_id"] for r in completed(read_jsonl(path))}
 
 
+def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    """The rows as the file's whole content, written to a file next to it and moved into
+    its place: a Ctrl-C or an error in the middle of the write leaves the file as it
+    was (a run of hours is in it)."""
+    tmp = path.with_name(path.name + ".tmp")
+    lines = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
+    tmp.write_text(lines, encoding="utf-8")
+    tmp.replace(path)
+
+
 def _write_row(path: Path, row: dict[str, Any]) -> None:
     """Add the row, replacing an earlier row of the same pair (a failed run)."""
-    rows = [r for r in read_jsonl(path) if r["pair_id"] != row["pair_id"]] + [row]
-    path.write_text(
-        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
-    )
+    _write_rows(path, [r for r in read_jsonl(path) if r["pair_id"] != row["pair_id"]] + [row])
 
 
 def reference_rows(pairs: list[Pair], results_dir: Path = RESULTS) -> Path:
@@ -77,15 +84,15 @@ def reference_rows(pairs: list[Pair], results_dir: Path = RESULTS) -> Path:
     results_dir.mkdir(parents=True, exist_ok=True)
     path = results_dir / "REF.jsonl"
     ids = {pair.id for pair in pairs}
-    kept = [r for r in read_jsonl(path) if r.get("pair_id") not in ids] if path.exists() else []
-    with path.open("w", encoding="utf-8") as fh:
-        for row in kept:
-            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-        for pair in pairs:
-            standard, easy = load_pair(pair)
-            for row in (score_source(standard), score_reference(standard, easy)):
-                row.update(pair_id=pair.id, role=pair.role, lang=pair.lang, region=pair.region)
-                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+    # Every row is made before the file is touched: a pair whose text is not cached
+    # raises in `load_pair`, and the file keeps the rows it had.
+    rows = [r for r in read_jsonl(path) if r.get("pair_id") not in ids]
+    for pair in pairs:
+        standard, easy = load_pair(pair)
+        for row in (score_source(standard), score_reference(standard, easy)):
+            row.update(pair_id=pair.id, role=pair.role, lang=pair.lang, region=pair.region)
+            rows.append(row)
+    _write_rows(path, rows)
     return path
 
 

@@ -106,8 +106,8 @@ def _shown(text: str) -> dict[str, Any]:
 
 
 def _as_list(value: object) -> list[Any]:
-    """A list from TOML, or from a variable as JSON or comma-separated text; a single
-    value as a list of one."""
+    """A list from TOML, or from a variable as comma-separated text; a single value as a
+    list of one."""
     if isinstance(value, str):
         return [part.strip() for part in value.split(",") if part.strip()]
     return value if isinstance(value, list) else [value]

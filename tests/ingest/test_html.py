@@ -395,3 +395,34 @@ def test_rescue_puts_back_the_sections_of_the_pages_jump_list():
     assert [
         u.text for u in html._rescue_sections(tree, html._rescue_sections(tree, kept, ids), ids)
     ] == texts
+
+
+HIDDEN_PAGE = """<html><body><main><h1>Kontakt</h1>
+<p>Rufen Sie uns an: 044 123 45 67.</p>
+<div class="card" hidden><p>Alte Nummer: 044 999 99 99.</p></div>
+<div class="card" style="display: none"><p>Noch eine alte: alt@amt.example</p></div>
+<p aria-hidden="true">Dekoration 044 888 88 88</p>
+<div class="accordion"><button aria-expanded="false" aria-controls="p1"><h2>Mehr</h2></button>
+<div id="p1" hidden><p>Im Panel: 044 777 77 77.</p></div></div>
+</main></body></html>"""
+
+
+def test_hidden_elements_stay_out_of_the_fallback_and_the_rescue():
+    """What the page hides (`hidden`, `aria-hidden`, display:none), trafilatura leaves
+    out; the fallback and the rescue passes do the same, so an outdated contact card a
+    page keeps hidden is no fact (audit of 6 November 2026). The accordion panel that
+    `_prepare` reveals on purpose is not hidden any more."""
+    tree = html._prepare(html._parse(HIDDEN_PAGE))
+    texts = [u.text for u in html._fallback_units(tree)]
+    assert "Rufen Sie uns an: 044 123 45 67." in texts and "Im Panel: 044 777 77 77." in texts
+    hidden = ("999 99 99", "alt@amt", "888 88 88")
+    assert not any(h in t for t in texts for h in hidden), texts
+    kept = [
+        Unit("heading", "Kontakt", heading_level=1),
+        Unit("paragraph", "Rufen Sie uns an: 044 123 45 67."),
+        Unit("heading", "Mehr", heading_level=2),
+        Unit("paragraph", "Im Panel: 044 777 77 77."),
+    ]
+    assert html._rescue_contacts(tree, kept) == kept  # the hidden numbers are not missing
+    _, units = extract_html("<h2>Kurz</h2><p>Nur ein Satz.</p><p hidden>Alt: 044 999 99 99.</p>")
+    assert [u.text for u in units] == ["Kurz", "Nur ein Satz."]

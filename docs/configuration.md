@@ -313,7 +313,9 @@ no limit.
 `--api-key` ends up in the shell history; leave it out to be asked. So does a secret
 given to `config set`: `leichtfacile config set auth.token` without the value asks for
 it. A value of `config set` is read as TOML (`8001`, `true`, `["understand"]`), else
-taken as text.
+taken as text. A key is read as TOML too, so a table name with a dot or a colon goes in
+quotes: `leichtfacile config set 'providers.mine.models."qwen3.5:9b".thinking_stages'
+'["understand"]'`.
 Every change is checked with all the other sources before it is written: a key the app
 does not know, a wrong value or an app published without a login leaves the file
 unchanged. The file keeps its comments and order. `--local` makes `preset use`,

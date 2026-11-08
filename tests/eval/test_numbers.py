@@ -107,6 +107,10 @@ def test_exact_interval_matches_clopper_pearson() -> None:
     # the values of scipy.stats.beta.ppf, the textbook form of the interval
     assert (round(low, 5), round(high, 5)) == (0.07842, 0.17327)
     assert exact_interval(5, 5)[1] == 1.0
+    # 1,100 pooled values: comb(1100, 550) is no float (OverflowError, 6 November 2026).
+    low, high = exact_interval(550, 1100)
+    assert (round(low, 5), round(high, 5)) == (0.47003, 0.52997)
+    assert abs(low + high - 1) < 1e-9  # the interval of a half is symmetric
 
 
 def test_paired_comparison_counts_pairs_and_brackets_the_mean(tmp_path: Path) -> None:

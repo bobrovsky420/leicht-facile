@@ -1469,3 +1469,184 @@ def test_an_addition_that_repeats_a_repaired_block_before_it_is_dropped() -> Non
         ("b001", "Neu eins!"), ("b002", "Alt zwei."), ("b002.1", "Neu zwei."),
     ]  # fmt: skip
     assert [(d.reason, d.block_id, d.text) for d in dropped] == [("repeat", "b002", "Neu eins.")]
+
+
+# -- audit of 6 November 2026 ---------------------------------------------------------
+
+
+def test_a_block_conveys_the_fact_whose_sentence_it_cites_when_two_share_a_value() -> None:
+    """Two facts with one value (a revoked decision and a filing deadline, both of
+    31 March 2026): the block about the deadline got both, so FACT-02 was satisfied for
+    the wrong fact and a judge "missing" was routed to that block. A block that cites a
+    sentence of one fact conveys that one; a block that cites a sentence of neither, or
+    none, conveys both."""
+    fs = FactSheet(doc_id="doc", facts=[
+        Fact(id="f01", kind="deadline", text="Das Gesuch muss bis 31. März 2026 da sein.",
+             value_norm="2026-03-31", segment_ids=["s0003"]),
+        Fact(id="f02", kind="other", text="Der alte Entscheid gilt ab 31. März 2026 nicht mehr.",
+             value_norm="2026-03-31", segment_ids=["s0007"]),
+    ])  # fmt: skip
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Schicken Sie das Gesuch bis 31. März 2026.",
+              segment_ids=["s0003"]),
+        Block(id="b002", kind="sentence", text="Ab 31. März 2026 gilt der alte Entscheid nicht.",
+              segment_ids=["s0007"]),
+        Block(id="b003", kind="sentence", text="Der Stichtag ist der 31. März 2026.",
+              segment_ids=["s0009"]),
+        Block(id="b004", kind="sentence", text="Merken Sie sich den 31. März 2026."),
+    ])  # fmt: skip
+    linked = link_facts(draft, fs)
+    assert [b.fact_ids for b in linked.blocks] == [["f01"], ["f02"], ["f01", "f02"], ["f01", "f02"]]
+    assert linked.blocks[3].segment_ids == ["s0003", "s0007"]  # the sentences of both
+
+
+def test_a_models_fact_citing_a_later_occurrence_of_a_value_gets_the_value() -> None:
+    """The holder of a value was searched at its first occurrence only: a fact of the
+    model without a value that cites the sentence of the second occurrence got none,
+    and code added a second fact for the same deadline, the case `merge_twin_facts`
+    exists for."""
+    texts = [
+        ("heading", "Gesuch", 1),
+        ("paragraph", "Das Gesuch ist bis 31. März 2026 einzureichen.", None),
+        ("paragraph", "Die Gemeinde prüft das Gesuch.", None),
+        ("paragraph", "Gesuche nach dem 31. März 2026 werden nicht mehr behandelt.", None),
+    ]
+    doc = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=[
+        Segment(id=f"s{i:04d}", kind=k, text=t, heading_level=h, para=i)
+        for i, (k, t, h) in enumerate(texts, 1)
+    ])  # fmt: skip
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id="f01", kind="deadline", segment_ids=["s0004"],
+             text="Späte Gesuche nach dem 31. März 2026 werden nicht behandelt."),
+    ])  # fmt: skip
+    facts = complete_factsheet(fs, doc).facts
+    dated = [(f.id, f.origin) for f in facts if f.value_norm == "2026-03-31"]
+    assert dated == [("f01", "model")]
+
+
+def test_an_addition_after_a_list_item_lands_after_a_recovered_sentence_of_the_list() -> None:
+    """`apply_repairs` flushed the additions waiting for a list's end at the first block
+    that was no item, while `list_end` counts a sentence placed after an item under its
+    id (`b003.1`, a recovered fact) as part of the list: the addition landed inside the
+    list. One rule for both."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins.", segment_ids=["s0003"]),
+        Block(id="b002", kind="list_item", text="das Formular"),
+        Block(id="b003", kind="list_item", text="eine Kopie"),
+        Block(id="b003.1", kind="sentence", text="Die Kopie darf alt sein."),
+        Block(id="b004", kind="sentence", text="Alt vier.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [],
+        "additions": [{"after": "b002", "texts": ["Neu nach der Liste: 044 123 45 67."],
+                       "fact_ids": ["f03"]}],
+    })  # fmt: skip
+    new = apply_repairs(draft, out, RepairRequest({}, [fs.facts[2]]), fs)
+    assert [b.id for b in new.blocks] == ["b001", "b002", "b003", "b003.1", "b002.1", "b004"]
+
+
+def test_a_title_above_a_section_heading_survives_a_repeat_elsewhere() -> None:
+    """A heading followed by a heading was dropped whenever an unrelated repeat existed,
+    and kept otherwise: the title of a draft went and the ids moved. A heading goes only
+    when the pass removed its content."""
+    blocks = [
+        Block(id="b001", kind="heading", text="Prämien·verbilligung"),
+        Block(id="b002", kind="heading", text="Was müssen Sie tun?"),
+        Block(id="b003", kind="sentence", text="Schicken Sie das Gesuch bis 31. März 2026."),
+        Block(id="b004", kind="heading", text="Bis wann?"),
+        Block(id="b005", kind="sentence", text="Schicken Sie das Gesuch bis 31. März 2026."),
+        Block(id="b006", kind="heading", text="Fragen?"),
+    ]
+    out = drop_repeats(blocks)
+    assert [(b.id, b.text) for b in out] == [
+        ("b001", "Prämien·verbilligung"), ("b002", "Was müssen Sie tun?"),
+        ("b003", "Schicken Sie das Gesuch bis 31. März 2026."), ("b004", "Fragen?"),
+    ]  # fmt: skip
+
+
+def test_a_fact_without_a_sentence_goes_into_the_first_section_of_a_long_write(
+    endpoint, monkeypatch
+) -> None:
+    """In a sectioned write each section's sheet held the facts that cite its
+    sentences, so a fact with no sentence stood in no section's sheet, yet FACT-01
+    required it later."""
+    from leichtfacile.llm.client import LLMClient
+    from leichtfacile.pipeline.stages import write
+    from tests.conftest import chat_response, make_settings
+
+    segments: list[Segment] = []
+    for part in range(3):
+        segments.append(
+            Segment(
+                id=f"s{len(segments) + 1:04d}",
+                kind="heading",
+                text=f"Teil {part}",
+                heading_level=2,
+                para=part * 100,
+            )
+        )
+        for i in range(40):
+            segments.append(
+                Segment(
+                    id=f"s{len(segments) + 1:04d}",
+                    kind="paragraph",
+                    text="Wort " * 30,
+                    para=part * 100 + 1 + i,
+                )
+            )
+    doc = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=segments)
+    sections = split_sections(doc)
+    assert len(sections) == 3
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id="f01", kind="amount", text="Es kostet 20 Franken.", value_norm="20",
+             segment_ids=["s0050"]),
+        Fact(id="f02", kind="other", text="Ohne Satz im Dokument.", segment_ids=[]),
+    ])  # fmt: skip
+    sheets: list[list[str] | None] = []
+    original = r.factsheet_text
+
+    def spy(sheet, fact_ids=None, lang="de"):
+        sheets.append(None if fact_ids is None else list(fact_ids))
+        return original(sheet, fact_ids, lang)
+
+    monkeypatch.setattr(r, "factsheet_text", spy)
+    llm = LLMClient(make_settings(llm__max_retries=0), http_client=endpoint.http_client())
+    endpoint.push(*(chat_response(fx.as_json(fx.WRITE)) for _ in sections))
+    write(llm, doc, fs, level="A2")
+    assert sheets == [["f02"], ["f01"], []]
+
+
+def test_stock_phrases_of_easy_language_alone_are_no_copied_example() -> None:
+    """The stock phrases "Haben Sie Fragen?" and "Sie können von Montag bis Freitag
+    anrufen." stand in the few-shot example and in honest drafts: two of them in a draft
+    of three sentences were a majority of copies, sent back, and a second such answer
+    failed the stage. A copy needs a sentence that says something of its own."""
+    from leichtfacile.pipeline.stages import _copy_check, _write_texts
+
+    check = _copy_check("de-CH", "write", _write_texts)
+    honest = WriteOut.model_validate({"blocks": [
+        {"kind": "sentence", "text": "Haben Sie Fragen?"},
+        {"kind": "sentence", "text": "Sie können von Montag bis Freitag anrufen."},
+        {"kind": "sentence", "text": "Das Steueramt ist am Bahnhofplatz 3."},
+    ]})  # fmt: skip
+    assert check(honest) is None
+    assert check(WriteOut.model_validate(COPIED_WRITE)) is not None  # the example itself
+
+
+def test_a_plain_number_in_a_facts_text_is_not_an_amount() -> None:
+    """The fact "Art. 5 des Gesetzes" was linked to "Das kostet 5 Franken" because
+    `matches` equates a number and an amount: for the values in a fact's text a plain
+    number stands for itself only."""
+    fs = FactSheet(doc_id="doc", facts=[
+        Fact(id="f04", kind="other", segment_ids=["s0006"],
+             text="Rechtsgrundlage ist Art. 5 des Einführungsgesetzes."),
+    ])  # fmt: skip
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Das kostet 5 Franken.",
+              segment_ids=["s0004", "s0006"]),
+        Block(id="b002", kind="sentence", text="Die Regel steht in Artikel 5 vom Gesetz.",
+              segment_ids=["s0006"]),
+    ])  # fmt: skip
+    linked = link_facts(draft, fs)
+    assert [b.fact_ids for b in linked.blocks] == [[], ["f04"]]
