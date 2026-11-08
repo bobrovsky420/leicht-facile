@@ -4,10 +4,11 @@
 # like keys and are none, allowed by the whole line: a message key is the identifier of a
 # checker finding (rules/messages.py), written as "message_key" in audit bundles and
 # tests, the fixture of tests/llm/test_json_out.py plays a secret that must not reach the
-# logs, tests/test_configure.py plays a key written into the settings file by hand, the
-# replay files of October 2026 (no longer in the tree) hold the SHA-256 keys of cached
-# model answers, and the CI job of the container image sent its dummy token in a curl
-# header once.
+# logs, tests/test_configure.py plays a key written into the settings file by hand and
+# one set as a provider's header (which `config show` masks), the recorded runs of the
+# sample letters (samples/, and the replay files of October 2026) hold the SHA-256 keys
+# of cached model answers, and the CI job of the container image sent its dummy token in
+# a curl header once.
 title = "Leicht·Facile"
 
 [extend]
@@ -21,6 +22,7 @@ regexes = [
   '''message_key == "[A-Za-z0-9._-]+"''',
   '''secret = "Zebrastreifen4711"''',
   '''api_key = "plain-key-1234"''',
+  '''key = "sk-proj-AbCdEfGhIjKlMnOpQrStUv0123456789"''',
   '''"key": "[0-9a-f]{64}"''',
   '''Authorization: Bearer ci-token''',
 ]
