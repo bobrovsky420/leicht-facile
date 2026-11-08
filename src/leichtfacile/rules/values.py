@@ -94,7 +94,12 @@ PHONE_RE = re.compile(
     r")(?!\d)"
 )
 DATE_ISO_RE = re.compile(r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)")
-DATE_NUM_RE = re.compile(r"(?<![\d.])(\d{1,2})\.[ ]?(\d{1,2})\.(?:[ ]?(\d{4}|\d{2})(?!\d))?")
+# 31.3., 31.3.26, 31.3.2026, 31. 3. 2026. A space stands only before a four-digit year (`am
+# 1.3. 20 Personen` is a date and a count), and no digit right after a date without a
+# year (`Ziffer 3.2.1` is a section of a text, not the 3rd of February).
+DATE_NUM_RE = re.compile(
+    r"(?<![\d.])(\d{1,2})\.[ ]?(\d{1,2})\.(?:(?:[ ](?=\d{4}(?!\d)))?(\d{4}|\d{2})(?!\d)|(?!\d))"
+)
 DATE_SLASH_RE = re.compile(r"(?<![\d/])(\d{1,2})/(\d{1,2})/(\d{4}|\d{2})(?![\d/])")
 DATE_TEXT_RE = re.compile(
     r"(?<!\d)(1er|1°|1º|\d{1,2})\.?[ ]?(" + _MONTH_RE + r")(?:[ ](\d{4}))?(?!\w)",
@@ -115,12 +120,13 @@ DATE_RANGE_RE = re.compile(
 )
 TIME_RE = re.compile(
     r"(?<![\d.:'])(?:"
-    # 9.00 Uhr, 09:00; Italian ore 9.00, alle 9.00, dalle 8.00 (a dotted time counts
-    # without Uhr only with such a word before it: 1.50 is an amount or a decimal)
-    r"(?:(?:ore|alle|dalle)[ ])?(\d{1,2})[.:](\d{2})(?!\d)(?![.,']\d)(?:[ ]?Uhr)?"
+    # 9.00 Uhr, 09:00; Italian ore 9.00, alle 9.00, dalle 8.00, also at a sentence start
+    # (Ore 9.00 apertura). A dotted time counts without Uhr only with such a word before
+    # it, and only in an Italian text (`_time`): 1.50 is an amount or a decimal.
+    r"(?:\b(?i:ore|alle|dalle)[ ])?(\d{1,2})[.:](\d{2})(?!\d)(?![.,']\d)(?:[ ]?Uhr)?"
     r"|(\d{1,2})[ ]?h[ ]?(\d{2})?(?!\w)"  # 9 h 00, 9h
     r"|(\d{1,2})[ ]?Uhr"  # 9 Uhr
-    r"|ore[ ](\d{1,2})(?![\d:])(?![.,]\d)"  # Italian alle ore 9
+    r"|\b(?i:ore)[ ](\d{1,2})(?![\d:])(?![.,]\d)"  # Italian alle ore 9
     r")"
 )
 TIME_RANGE_RE = re.compile(
@@ -140,10 +146,24 @@ NUMBER_RE = re.compile(
     r"(?:([.,])(\d{1,2}|[" + DASHES + r"]{1,2})(?!\d))?(?![\d'])"
 )
 _CURRENCY_BEFORE = re.compile(r"(?:CHF|Fr\.|SFr\.|sFr\.|EUR|€)[ ]?$")
+# A Fr. joined to another day of the week is Friday, not francs: `Mo.-Fr. 8.00-12.00`,
+# `Mo. bis Fr.`, `Di, Do, Fr.` (and `So kostet es Fr. 3.50` an amount).
+_WEEKDAY_BEFORE_RE = re.compile(
+    r"\b(?:Mo|Di|Mi|Do|Sa|So)\.?[ ]?(?:[" + DASHES + r"/,]|bis|und)[ ]?$"
+)
 _CURRENCY_AFTER = re.compile(
-    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|Rappen|francs?|franchi|franco|EUR|Euro|€)",
+    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|francs?|franchi|franco|EUR|Euro|€)(?![\w·])",
     re.IGNORECASE,
-)  # `2 millions de francs`; the euro of the German and Austrian letters (29 October 2026)
+)  # `2 millions de francs`; the euro of the German and Austrian letters (29 October 2026);
+# a word that only begins so is none (`3 francophones`, `20 Europäer`)
+# Rappen, centimes and cents are hundredths: `70 Rappen` is the amount of `CHF 0.70`,
+# not of `CHF 70` (a cent of the euro is written with a capital, a French cent is 100).
+_SUBUNIT_AFTER = re.compile(
+    r"^[ ]?(?:Rappen|Rp\.|centimes?|centesim[oi]|(?-i:Cent))(?![\w·])", re.IGNORECASE
+)
+# The text after a number that the two patterns above read: long enough for the longest
+# of them (` di franchi`) and the letter after it.
+_AFTER_WINDOW = 16
 # Germany and Austria write the thousands with a dot and the decimals with a comma
 # (`1.500,00 €`, `€ 1.500,--`); a dot before one or two digits is read as a decimal
 # point all the same (`1.5 Mio.`). The Swiss varieties keep NUMBER_RE above. The style
@@ -567,6 +587,26 @@ def mask_numbers(text: str) -> str:
     return mask(text, spans)
 
 
+def after_currency(text: str, start: int) -> bool:
+    """Whether a currency stands right before `start`: `CHF 20`, `Fr. 3.10.`, but not the
+    Friday of `Mo.-Fr. 8.00`."""
+    before = text[max(0, start - 16) : start]
+    m = _CURRENCY_BEFORE.search(before)
+    if m is None:
+        return False
+    return not (m.group(0).startswith("Fr") and _WEEKDAY_BEFORE_RE.search(before[: m.start()]))
+
+
+def amount_range(text: str, start: int, end: int) -> bool:
+    """Whether the range of decimals from `start` to `end` is one of amounts, not of times
+    (NUM-04): a currency right before or after it, `CHF 1.50-2.50 pro Stück`, `1.50-2.50
+    Franken`."""
+    after = text[end : end + _AFTER_WINDOW]
+    return after_currency(text, start) or bool(
+        _CURRENCY_AFTER.search(after) or _SUBUNIT_AFTER.search(after)
+    )
+
+
 def canonical_phone(text: str) -> str:
     """The national digits: +41, +43 and +49 (and 0041, ...) become the leading 0."""
     stripped = text.strip()
@@ -758,7 +798,7 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
         spans.append(m.span())
     masked = mask(masked, spans)
     take("date", DATE_TEXT_RE, lambda m: _text_date(m, language))
-    take("date", DATE_NUM_RE, _numeric_date)
+    take("date", DATE_NUM_RE, numeric_date)
     take(
         "date",
         DATE_SLASH_RE,
@@ -777,34 +817,47 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
                     )
             spans.append(m.span())
     masked = mask(masked, spans)
-    take("time", TIME_RE, _time)
+    take("time", TIME_RE, lambda m: _time(m, language == "it"))
     take("period", _PERIOD_RE.get(language, _PERIOD_RE["de"]), lambda m: _period(m, language))
 
-    for m in (_NUMBER_DE_RE if german else NUMBER_RE).finditer(masked):
-        integer, _, decimals = _number_parts(m, german)
-        dash_decimals = bool(decimals and not decimals.isdigit())  # "500.-" is 500
-        canonical = canonical_number(
-            integer, None if dash_decimals else decimals, _SEP_DE if german else _SEP
-        )
-        if canonical is None:
-            continue
-        before = text[max(0, m.start() - 6) : m.start()]
-        end = m.end()
-        if multiplier := _MULTIPLIER_AFTER.match(text[end : end + 12]):
-            canonical = _scaled(canonical, _multiplier(multiplier.group("word")))
-            end += multiplier.end()
-        after = text[end : end + 10]
-        is_amount = dash_decimals or bool(
-            _CURRENCY_BEFORE.search(before) or _CURRENCY_AFTER.search(after)
-        )
-        kind: ValueKind = "amount" if is_amount else "number"
-        found.append(Value(kind, canonical, text[m.start() : end], m.start(), end))
+    numbers = (
+        _number(m, text, german) for m in (_NUMBER_DE_RE if german else NUMBER_RE).finditer(masked)
+    )
+    found.extend(value for value in numbers if value is not None)
     found.sort(key=lambda v: v.start)
     return found
 
 
-def _scaled(canonical: str, factor: int) -> str:
-    """1.5 by a million is 1500000."""
+def _number(m: re.Match[str], text: str, german: bool) -> Value | None:
+    """An amount or a plain number, with the multiplier after it (`1,5 Mio.`) and in
+    francs when its unit is a hundredth (`70 Rappen` is 0.7)."""
+    integer, _, decimals = _number_parts(m, german)
+    dash_decimals = bool(decimals and not decimals.isdigit())  # "500.-" is 500
+    canonical = canonical_number(
+        integer, None if dash_decimals else decimals, _SEP_DE if german else _SEP
+    )
+    if canonical is None:
+        return None
+    end = m.end()
+    if multiplier := _MULTIPLIER_AFTER.match(text[end : end + 12]):
+        canonical = _scaled(canonical, _multiplier(multiplier.group("word")))
+        end += multiplier.end()
+    after = text[end : end + _AFTER_WINDOW]
+    hundredths = bool(_SUBUNIT_AFTER.search(after))
+    if hundredths:
+        canonical = _scaled(canonical, Decimal("0.01"))
+    is_amount = (
+        dash_decimals
+        or hundredths
+        or after_currency(text, m.start())
+        or bool(_CURRENCY_AFTER.search(after))
+    )
+    kind: ValueKind = "amount" if is_amount else "number"
+    return Value(kind, canonical, text[m.start() : end], m.start(), end)
+
+
+def _scaled(canonical: str, factor: int | Decimal) -> str:
+    """1.5 by a million is 1500000, 70 by a hundredth 0.7."""
     return format((Decimal(canonical) * factor).normalize(), "f")
 
 
@@ -830,21 +883,32 @@ def _text_date(m: re.Match[str], lang: str) -> str | None:
     return canonical_date(int(day_text), month, year)
 
 
-def _numeric_date(m: re.Match[str]) -> str | None:
+def numeric_date(m: re.Match[str]) -> str | None:
+    """The date of a DATE_NUM_RE match; none without a year after a currency, where the
+    dots are those of a price and the sentence: `Das kostet Fr. 3.10.`"""
     year = int(m.group(3)) if m.group(3) else None
+    if year is None and after_currency(m.string, m.start()):
+        return None
     return canonical_date(int(m.group(1)), int(m.group(2)), year)
 
 
-def _time(m: re.Match[str]) -> str | None:
+_ITALIAN_TIME_WORDS = ("ore", "alle", "dalle")
+
+
+def _time(m: re.Match[str], italian: bool) -> str | None:
+    """`italian`: the text is Italian, where ore, alle or dalle before a dotted hour make
+    it a time (in German `für alle 3.50 Franken` is an amount)."""
     if m.group(1):
         hour, minute = int(m.group(1)), int(m.group(2))
-        italian = m.group(0).startswith(("ore", "alle", "dalle"))
-        if "Uhr" not in m.group(0) and ":" not in m.group(0) and not italian:
+        word = italian and m.group(0).lower().startswith(_ITALIAN_TIME_WORDS)
+        if "Uhr" not in m.group(0) and ":" not in m.group(0) and not word:
             return None  # "1.50" is an amount or a decimal, not a time
     elif m.group(3):
         hour, minute = int(m.group(3)), int(m.group(4) or 0)
-    else:
+    elif m.group(5) or italian:
         hour, minute = int(m.group(5) or m.group(6)), 0
+    else:
+        return None  # ore 9 of a text that is not Italian
     if hour > 24 or minute > 59:
         return None
     return f"{hour:02d}:{minute:02d}"

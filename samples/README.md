@@ -76,8 +76,12 @@ default is this package's folder (`LETTERS` in `leichtfacile_samples/__init__.py
 
 ## The recorded runs (`leichtfacile_samples/recordings/`)
 
-Version 0.5.0 holds none yet: the app is ready to replay them, and the first recordings
-come with a later minor version. One recorded run per letter and preset,
+Version 0.6.0 holds the runs of the preset `huggingface-gpt-oss-120b-groq` (gpt-oss-120b
+on the Hugging Face router, recorded on 8 November 2026) for 8 of the 12 letters: the
+premium-reduction letter in German, French and Italian and five of the six school
+letters. The KESB decision and the Bescheide of Germany and Austria had no clean run in
+six attempts, and the French camp letter always one finding left (a link the judge
+missed); these four run live. One recorded run per letter and preset,
 `recordings/<preset>/<letter>.json`, so that a first visitor sees a sample letter go through the pipeline in seconds instead of
 minutes, and at no cost. A recording holds the model's answers in call order, each
 keyed by the hash the response cache uses (the model, the messages and the request's

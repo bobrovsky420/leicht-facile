@@ -27,6 +27,7 @@ from leichtfacile.rules.values import (
     DASHES,
     EMAIL_RE,
     URL_RE,
+    amount_range,
     mask,
     mask_numbers,
 )
@@ -1158,6 +1159,8 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         second = _parse_time(m.group(2) or m.group(4))
         if first is None or second is None:
             continue
+        if "h" not in m.group(0) and amount_range(text, *m.span()):
+            continue  # CHF 1.50-2.50 par pièce is a range of amounts
         spans.append(m.span())
         expected = f"de {_time_text(*first)} à {_time_text(*second)}"
         yield hit(

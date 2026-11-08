@@ -535,3 +535,14 @@ def test_an_invented_dose_or_scheme_is_a_fact_06_error() -> None:
         if f.rule_id == "FACT-06"
     }  # fmt: skip
     assert found == {"FACT-06.quantity", "FACT-06.schedule"}
+
+
+def test_italian_time_words_count_in_any_case_and_only_in_italian() -> None:
+    """Before 8 November 2026 `Ore 9.00` at a sentence start was the number 9, `valore
+    9.00` the time 09:00, and the German `alle 3.50 Franken` the time 03:50."""
+    assert keys("Ore 9.00 apertura dello sportello.", "it") == [("time", "09:00")]
+    assert keys("Ore 9 apertura dello sportello.", "it") == [("time", "09:00")]
+    assert keys("Dalle 8.00 alle 11.30", "it") == [("time", "08:00"), ("time", "11:30")]
+    assert keys("il valore 9.00 è stato raggiunto", "it") == [("number", "9")]
+    assert keys("für alle 3.50 Franken") == [("amount", "3.5")]
+    assert keys("Alle 3.50 Franken gehen an den Verein.") == [("amount", "3.5")]

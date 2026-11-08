@@ -32,6 +32,7 @@ from leichtfacile.rules.values import (
     DASHES,
     EMAIL_RE,
     URL_RE,
+    amount_range,
     mask,
     mask_numbers,
 )
@@ -1118,7 +1119,9 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     text = mask_numbers(block.text)
     spans: list[tuple[int, int]] = []
     for m in TIME_RANGE_RE.finditer(text):
-        is_time = "Uhr" in m.group(0) or m.group(2) or m.group(4)
+        is_time = "Uhr" in m.group(0) or (
+            (m.group(2) or m.group(4)) and not amount_range(text, *m.span())
+        )  # CHF 1.50-2.50 pro Stück is a range of amounts
         if not is_time or int(m.group(1)) > 24 or int(m.group(3)) > 24:
             continue
         spans.append(m.span())

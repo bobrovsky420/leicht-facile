@@ -7,7 +7,7 @@
 # are a minor version.
 [project]
 name = "leichtfacile-samples"
-version = "0.5.0"
+version = "0.6.0"
 description = "The sample letters of Leicht·Facile and the recorded runs its web app answers them from."
 readme = "README.md"
 license = "Apache-2.0"

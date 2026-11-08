@@ -29,6 +29,7 @@ from leichtfacile.rules.values import (
     mask,
     mask_links,
     mask_numbers,
+    numeric_date,
 )
 from leichtfacile.rules.vocabulary import find_terms, office_words
 from leichtfacile.schemas import variety as variety_key
@@ -303,7 +304,10 @@ def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
                 y, mo, d = m.group(1), m.group(2), m.group(3)
             else:
                 d, mo, y = m.group(1), m.group(2), m.group(3)
-            canonical = canonical_date(int(d), int(mo), int(y) if y else None)
+            if regex is DATE_NUM_RE:
+                canonical = numeric_date(m)  # none for a price: Das kostet Fr. 3.10.
+            else:
+                canonical = canonical_date(int(d), int(mo), int(y) if y else None)
             if canonical is None:
                 continue
             yield hit(

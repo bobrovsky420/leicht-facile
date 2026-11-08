@@ -101,6 +101,9 @@ def test_formatting_in_the_german_varieties() -> None:
     assert format_identifier("AT611904300234573201") == "AT61 1904 3002 3457 3201"
     assert display_value(Value("amount", "1500"), "de-DE") == "1.500 Euro"
     assert display_value(Value("amount", "1500"), "de") == "1'500 Franken"
+    # the cents with two digits: 70 Rappen and CHF 0.70 are the amount 0.7
+    assert display_value(Value("amount", "0.7"), "de") == "0.70 Franken"
+    assert display_value(Value("amount", "1500.5"), "de-DE") == "1.500,50 Euro"
     assert display_value(Value("date", "2027-01-01"), "de-AT") == "1. Jänner 2027"
     assert display_value(Value("phone", "05544332211"), "de-AT") == "0 55 44 33 22 11"
 

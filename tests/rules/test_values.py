@@ -168,3 +168,41 @@ def test_a_range_without_a_month_is_no_date(text: str) -> None:
 )
 def test_a_word_may_stand_between_the_street_and_the_postcode(text: str, canonical: str) -> None:
     assert [v.canonical for v in extract_values(text) if v.kind == "address"] == [canonical]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Before 8 November 2026 a price at a sentence end was the 3rd of October, the
+        # section of a court decision the 3rd of February, and the count after a date
+        # its year (2020).
+        ("Das kostet Fr. 3.10.", [("amount", "3.1")]),
+        ("Das kostet CHF 3.10.", [("amount", "3.1")]),
+        ("Siehe Ziffer 3.2.1 der Weisung.", [("number", "3.2")]),
+        ("am 1.3. 20 Personen", [("date", "--03-01"), ("number", "20")]),
+        ("am 1.3. 2026", [("date", "2026-03-01")]),
+        ("Frist: 31.3.", [("date", "--03-31")]),
+        # the Friday of opening hours is no franc: `Mo.-Fr.` before a time
+        ("Mo.-Fr. 8.00-12.00", [("number", "8"), ("number", "12")]),
+        ("Mo. bis Fr. 8.00", [("number", "8")]),
+        ("So kostet es Fr. 3.50.", [("amount", "3.5")]),
+    ],
+)
+def test_a_price_a_section_or_a_count_after_a_date_is_read_as_it_is(
+    text: str, expected: list[tuple[str, str]]
+) -> None:
+    assert kinds(text) == expected
+
+
+def test_a_currency_word_is_a_whole_word_and_rappen_are_hundredths() -> None:
+    assert kinds("20 Europäer") == [("number", "20")]
+    assert [v.key for v in extract_values("3 francophones", "fr")] == [("number", "3")]
+    assert kinds("50 Rappen") == [("amount", "0.5")]
+    assert [v.key for v in extract_values("50 centimes", "fr")] == [("amount", "0.5")]
+    assert [v.key for v in extract_values("50 Cent", "de-DE")] == [("amount", "0.5")]
+    assert not matches(Value("amount", "50"), extract_values("50 Rappen")[0])
+    # The easy version of a cost sheet (data/cache/pairs/sg-el-costs-de) writes in
+    # Rappen what the source writes in francs: the same amount.
+    source = "Bei Fahrten mit einem PKW werden max. CHF 0.70 pro Kilometer vergütet."
+    easy = "Dann bezahlt die SVA für die Fahrt mit dem Privat·auto 70 Rappen pro Kilometer."
+    assert hard_values(source) == hard_values(easy) == {("amount", "0.7")}

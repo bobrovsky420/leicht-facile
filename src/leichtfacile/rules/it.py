@@ -28,7 +28,14 @@ from leichtfacile.rules.base import BlockInfo, Context, Hit, rule
 from leichtfacile.rules.lexicon import is_known, zipf
 from leichtfacile.rules.messages import hit
 from leichtfacile.rules.recipes import recipe_it
-from leichtfacile.rules.values import DASHES, EMAIL_RE, URL_RE, mask, mask_numbers
+from leichtfacile.rules.values import (
+    DASHES,
+    EMAIL_RE,
+    URL_RE,
+    amount_range,
+    mask,
+    mask_numbers,
+)
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 from leichtfacile.schemas import Severity
 
@@ -1201,6 +1208,8 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         second = _parse_time(m.group(2) or m.group(4))
         if first is None or second is None:
             continue
+        if not m.group(0).lower().startswith("ore") and amount_range(block.text, *m.span()):
+            continue  # CHF 1.50-2.50 al pezzo is a range of amounts
         spans.append(m.span())
         expected = f"dalle {_time_text(*first)} alle {_time_text(*second)}"
         yield hit(

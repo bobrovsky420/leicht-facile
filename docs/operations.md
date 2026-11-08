@@ -109,9 +109,10 @@ another folder of letters. A letter's job settings, such as the decision mode an
 addressee, come from a JSON file next to it (`examples.py`). When the samples package
 brings a recorded run of a letter for the preset in use, the letter sent unchanged is
 answered from it in seconds and at no cost; any change of the text, the level or the
-preset, and a step run again, go to the model (`llm/replay.py`). Version 0.5.0 of the
-package brings none yet; a newer one comes with an upgrade of the dependencies, without
-a new version of the app.
+preset, and a step run again, go to the model (`llm/replay.py`). Version 0.6.0 of the
+package brings the runs of the preset `huggingface-gpt-oss-120b-groq` for 8 of the
+letters (samples/README.md); a newer one comes with an upgrade of the dependencies,
+without a new version of the app.
 
 `leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
 the first thing to run after `setup`.

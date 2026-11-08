@@ -1,0 +1,104 @@
+{
+ "letter": "settimana-di-stage-lettera-allievi",
+ "preset": "huggingface-gpt-oss-120b-groq",
+ "models": {
+  "writer": "openai/gpt-oss-120b:groq",
+  "judge": "openai/gpt-oss-120b:groq"
+ },
+ "recorded_at": "2026-11-08T15:13:11+00:00",
+ "version": "0.13.2",
+ "endpoint": "https://router.huggingface.co",
+ "seconds": 22.6,
+ "calls": 8,
+ "result": {
+  "job": "00a3510ab086",
+  "final_version": 5,
+  "errors": 0,
+  "warnings": 4,
+  "blocking": 0,
+  "facts_present": 11,
+  "facts_total": 11
+ },
+ "answers": [
+  {
+   "key": "e615b955e501558fc57e121620b5bf106e01af54d0e8db3617799f049c7a2024",
+   "stage": "understand",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 4218,
+   "tokens_in": 1941,
+   "tokens_out": 1820,
+   "finish_reason": "stop",
+   "text": "{\n  \"doc_type\": \"Informativa scolastica\",\n  \"audience\": \"Studenti di quarta media e loro genitori\",\n  \"core\": {\n    \"what\": {\n      \"text\": \"Settimana di stage di orientamento per le classi di quarta media.\",\n      \"segment_ids\": [\"s0003\"]\n    },\n    \"must_do\": {\n      \"text\": \"Svolgere lo stage, consegnare l'attestato entro il 19‑02‑2027 e il rapporto entro il 02‑04‑2027.\",\n      \"segment_ids\": [\"s0003\", \"s0008\", \"s0021\"]\n    },\n    \"deadline\": {\n      \"text\": \"L'attestato deve essere consegnato entro il 19‑02‑2027.\",\n      \"segment_ids\": [\"s0008\"]\n    },\n    \"cost\": {\n      \"text\": \"Rimborso massimo di CHF 30 alla settimana per i trasporti pubblici.\",\n      \"segment_ids\": [\"s0017\"]\n    },\n    \"contact\": {\n      \"text\": \"Docente di classe o segreteria della scuola (segreteria@sm-esempiopoli.example).\",\n      \"segment_ids\": [\"s0023\"]\n    }\n  },\n  \"facts\": [\n    {\n      \"id\": \"f01\",\n      \"kind\": \"deadline\",\n      \"text\": \"L'attestato compilato e firmato deve essere consegnato entro il 19‑02‑2027.\",\n      \"value_norm\": \"2027-02-19\",\n      \"segment_ids\": [\"s0008\"],\n      \"must_keep\": true\n    },\n    {\n      \"id\": \"f02\",\n      \"kind\": \"deadline\",\n      \"text\": \"Se non si ha ancora un posto, bisogna informare la docente entro il 05‑02‑2027.\",\n      \"value_norm\": \"2027-02-05\",\n      \"segment_ids\": [\"s0009\"],\n      \"must_keep\": true\n    },\n    {\n      \"id\": \"f03\",\n      \"kind\": \"deadline\",\n      \"text\": \"Il rapporto di stage deve essere consegnato entro il 02‑04‑2027.\",\n      \"value_norm\": \"2027-04-02\",\n      \"segment_ids\": [\"s0021\"],\n      \"must_keep\": true\n    },\n    {\n      \"id\": \"f04\",\n      \"kind\": \"amount\",\n      \"text\": \"La scuola rimborsa al massimo CHF 30 alla settimana per i trasporti pubblici.\",\n      \"value_norm\": \"30\",\n      \"segment_ids\": [\"s0017\"],\n      \"must_keep\": true\n    },\n    {\n      \"id\": \"f05\",\n      \"kind\": \"obligation\",\n      \"text\": \"Le spese per i pasti e per il tragitto sono a carico dei genitori.\",\n      \"value_norm\": null,\n      \"segment_ids\": [\"s0016\"],\n      \"must_keep\": true\n    },\n    {\n      \"id\": \"f06\",\n      \"kind\": \"contact\",\n      \"text\": \"Ufficio dell'orientamento scolastico e professionale, Via della Stazione 10, 6899 Esempiopoli.\",\n      \"value_norm\": null,\n      \"segment_ids\": [\"s0010\"],\n      \"must_keep\": false\n    },\n    {\n      \"id\": \"f07\",\n      \"kind\": \"contact\",\n      \"text\": \"Telefono della segreteria scuola: 0911234570.\",\n      \"value_norm\": \"0911234570\",\n      \"segment_ids\": [\"s0013\"],\n      \"must_keep\": false\n    },\n    {\n      \"id\": \"f08\",\n      \"kind\": \"contact\",\n      \"text\": \"E‑mail della segreteria: segreteria@sm-esempiopoli.example.\",\n      \"value_norm\": \"segreteria@sm-esempiopoli.example\",\n      \"segment_ids\": [\"s0023\"],\n      \"must_keep\": false\n    }\n  ],\n  \"hard_terms\": [\n    {\n      \"term\": \"Ufficio dell'orientamento scolastico e professionale\",\n      \"explanation\": \"Ufficio della scuola che aiuta gli studenti a trovare un posto di stage. Fornisce consigli e supporto.\",\n      \"segment_ids\": [\"s0010\"]\n    },\n    {\n      \"term\": \"CHF\",\n      \"explanation\": \"Abbreviazione del franco svizzero, la moneta della Svizzera. Indica l'importo del rimborso.\",\n      \"segment_ids\": [\"s0017\"]\n    },\n    {\n      \"term\": \"dossier di orientamento\",\n      \"explanation\": \"Raccolta di documenti che l’alunno usa per il percorso di orientamento. Include il diario di stage.\",\n      \"segment_ids\": [\"s0020\"]\n    },\n    {\n      \"term\": \"segretaria\",\n      \"explanation\": \"Persona che gestisce le pratiche amministrative della scuola. È il punto di contatto per domande.\",\n      \"segment_ids\": [\"s0023\"]\n    }\n  ],\n  \"omit_candidates\": [\n    {\n      \"segment_ids\": [\"s0001\"],\n      \"reason\": \"Titolo informativo, non necessario per la comprensione dei compiti.\"\n    },\n    {\n      \"segment_ids\": [\"s0025\", \"s0026\", \"s0027\"],\n      \"reason\": \"Saluti e firma finale, non contengono informazioni operative.\"\n    },\n    {\n      \"segment_ids\": [\"s0011\", \"s0012\"],\n      \"reason\": \"Dettagli sugli orari aziendali, non rilevanti per la lettura semplificata.\"\n    }\n  ]\n}"
+  },
+  {
+   "key": "c9b2ab9927900fecea7ea6a5608fd62c53dd3dea3062bbea8be4f1fe817e6f6f",
+   "stage": "write",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 4319,
+   "tokens_in": 4464,
+   "tokens_out": 1777,
+   "finish_reason": "stop",
+   "text": "{\n  \"blocks\": [\n    {\"kind\": \"heading\", \"text\": \"Che cosa è la settimana di stage?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"La settimana di stage è dal 15 al 19 marzo 2027.\", \"fact_ids\": [\"f09\", \"f10\"], \"segment_ids\": [\"s0001\", \"s0003\"]},\n    {\"kind\": \"sentence\", \"text\": \"Durante questi giorni non ci sono lezioni normali.\", \"fact_ids\": [], \"segment_ids\": [\"s0006\"]},\n    {\"kind\": \"heading\", \"text\": \"Che cosa devo fare durante la settimana?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu trovi un posto di stage da solo.\", \"fact_ids\": [], \"segment_ids\": [\"s0007\"]},\n    {\"kind\": \"sentence\", \"text\": \"Tu fai lo stage in un’azienda che scegli.\", \"fact_ids\": [], \"segment_ids\": [\"s0004\"]},\n    {\"kind\": \"sentence\", \"text\": \"Tu tieni il diario di stage.\", \"fact_ids\": [], \"segment_ids\": [\"s0020\"]},\n    {\"kind\": \"heading\", \"text\": \"Che cosa devo consegnare?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu consegni l’attestato firmato entro il 19 febbraio 2027.\", \"fact_ids\": [\"f01\"], \"segment_ids\": [\"s0008\"]},\n    {\"kind\": \"sentence\", \"text\": \"Tu consegni il rapporto di stage entro il 2 aprile 2027.\", \"fact_ids\": [\"f03\", \"f15\"], \"segment_ids\": [\"s0021\"]},\n    {\"kind\": \"heading\", \"text\": \"Cosa succede se non ho ancora un posto?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu informi la tua docente entro il 5 febbraio 2027.\", \"fact_ids\": [\"f02\"], \"segment_ids\": [\"s0009\"]},\n    {\"kind\": \"heading\", \"text\": \"Quanto costa e cosa viene rimborsato?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"La scuola rimborsa al massimo 30 franchi alla settimana per i trasporti pubblici.\", \"fact_ids\": [\"f04\"], \"segment_ids\": [\"s0017\"]},\n    {\"kind\": \"sentence\", \"text\": \"Le spese per i pasti e per il tragitto sono a carico dei genitori.\", \"fact_ids\": [\"f05\"], \"segment_ids\": [\"s0016\"]},\n    {\"kind\": \"heading\", \"text\": \"A chi devo parlare per domande o problemi?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu chiami la segreteria della scuola al 091 123 45 70.\", \"fact_ids\": [\"f07\"], \"segment_ids\": [\"s0023\"]},\n    {\"kind\": \"sentence\", \"text\": \"Tu scrivi alla segreteria all’indirizzo segreteria@sm-esempiopoli.example.\", \"fact_ids\": [\"f08\"], \"segment_ids\": [\"s0023\"]},\n    {\"kind\": \"sentence\", \"text\": \"Tu vai all’Ufficio dell’orientamento in Via della Stazione 10, 6899 Esempiopoli.\", \"fact_ids\": [\"f06\"], \"segment_ids\": [\"s0010\"]},\n    {\"kind\": \"heading\", \"text\": \"Cosa fare in caso di malattia o infortunio?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu avvisi l’azienda e la segreteria entro le ore 7.30.\", \"fact_ids\": [\"f13\"], \"segment_ids\": [\"s0013\"]},\n    {\"kind\": \"sentence\", \"text\": \"Se sei assente più di 2 giorni, tu porti un certificato medico.\", \"fact_ids\": [\"f14\"], \"segment_ids\": [\"s0014\"]},\n    {\"kind\": \"heading\", \"text\": \"Dove trovo i moduli e le informazioni?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"Tu trovi il modello di attestato e il diario di stage su www.sm-esempiopoli.example/orientamento.\", \"fact_ids\": [\"f16\"], \"segment_ids\": [\"s0024\"]},\n    {\"kind\": \"heading\", \"text\": \"Quali orari ha l’Ufficio dell’orientamento?\", \"fact_ids\": [], \"segment_ids\": []},\n    {\"kind\": \"sentence\", \"text\": \"L’ufficio è aperto dal lunedì al giovedì dalle 13.30 alle 17.30.\", \"fact_ids\": [\"f11\", \"f12\"], \"segment_ids\": [\"s0010\"]}\n  ],\n  \"omissions\": [\n    {\"what\": \"Titolo informativo\", \"why\": \"Non necessario per le istruzioni\", \"segment_ids\": [\"s0001\"]},\n    {\"what\": \"Saluti finali\", \"why\": \"Non contiene informazioni operative\", \"segment_ids\": [\"s0025\", \"s0026\", \"s0027\"]},\n    {\"what\": \"Dettagli sugli orari aziendali\", \"why\": \"Non rilevanti per lo studente\", \"segment_ids\": [\"s0011\", \"s0012\"]},\n    {\"what\": \"Informazioni sull’assicurazione\", \"why\": \"Non richieste per le attività quotidiane\", \"segment_ids\": [\"s0018\", \"s0019\"]},\n    {\"what\": \"Regolamento interno dell’azienda\", \"why\": \"Non necessario per la comprensione\", \"segment_ids\": [\"s0011\"]},\n    {\"what\": \"Informazioni sulla pagella\", \"why\": \"Non legate alle attività di stage\", \"segment_ids\": [\"s0015\"]}\n  ],\n  \"glossary\": [\n    {\"term\": \"Ufficio dell’orientamento scolastico e professionale\", \"explanation\": \"Ufficio della scuola che aiuta gli studenti a trovare un posto di stage. Fornisce consigli e supporto.\"},\n    {\"term\": \"CHF\", \"explanation\": \"Abbreviazione del franco svizzero, la moneta della Svizzera.\"},\n    {\"term\": \"attestato\", \"explanation\": \"Documento che prova che lo stage è stato svolto.\"},\n    {\"term\": \"diario di stage\", \"explanation\": \"Quaderno dove annoti le attività fatte durante lo stage.\"},\n    {\"term\": \"rapporto di stage\", \"explanation\": \"Documento che riassume il lavoro fatto e la valutazione dell’azienda.\"},\n    {\"term\": \"segretaria\", \"explanation\": \"Persona che gestisce le pratiche amministrative della scuola.\"},\n    {\"term\": \"certificato medico\", \"explanation\": \"Documento del medico che conferma la tua malattia.\"}\n  ]\n}"
+  },
+  {
+   "key": "0bf0aa6e711b1a973436cfbea6682d74663a1633dc79711fe57ae5c63fd1306f",
+   "stage": "judge",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 3852,
+   "tokens_in": 3571,
+   "tokens_out": 1481,
+   "finish_reason": "stop",
+   "text": "{\n  \"fact_checks\": [\n    {\"fact_id\": \"f01\", \"status\": \"present\", \"block_ids\": [\"b009\"], \"note\": \"\"},\n    {\"fact_id\": \"f02\", \"status\": \"present\", \"block_ids\": [\"b012\"], \"note\": \"\"},\n    {\"fact_id\": \"f03\", \"status\": \"present\", \"block_ids\": [\"b010\"], \"note\": \"\"},\n    {\"fact_id\": \"f04\", \"status\": \"present\", \"block_ids\": [\"b014\"], \"note\": \"\"},\n    {\"fact_id\": \"f05\", \"status\": \"present\", \"block_ids\": [\"b015\"], \"note\": \"\"},\n    {\"fact_id\": \"f06\", \"status\": \"present\", \"block_ids\": [\"b019\"], \"note\": \"\"},\n    {\"fact_id\": \"f07\", \"status\": \"present\", \"block_ids\": [\"b017\"], \"note\": \"\"},\n    {\"fact_id\": \"f08\", \"status\": \"present\", \"block_ids\": [\"b018\"], \"note\": \"\"},\n    {\"fact_id\": \"f09\", \"status\": \"present\", \"block_ids\": [\"b002\"], \"note\": \"\"},\n    {\"fact_id\": \"f10\", \"status\": \"present\", \"block_ids\": [\"b002\"], \"note\": \"\"},\n    {\"fact_id\": \"f11\", \"status\": \"present\", \"block_ids\": [\"b026\"], \"note\": \"\"},\n    {\"fact_id\": \"f12\", \"status\": \"present\", \"block_ids\": [\"b026\"], \"note\": \"\"},\n    {\"fact_id\": \"f13\", \"status\": \"present\", \"block_ids\": [\"b021\"], \"note\": \"\"},\n    {\"fact_id\": \"f14\", \"status\": \"present\", \"block_ids\": [\"b022\"], \"note\": \"\"},\n    {\"fact_id\": \"f15\", \"status\": \"distorted\", \"block_ids\": [\"b010\"], \"note\": \"Manca la precisazione che il rapporto deve essere consegnato entro due settimane dalla settimana di stage.\"},\n    {\"fact_id\": \"f16\", \"status\": \"present\", \"block_ids\": [\"b024\"], \"note\": \"\"}\n  ],\n  \"unsupported\": [\n    {\"block_id\": \"b001\", \"quote\": \"# Che cosa è la settimana di stage?\", \"note\": \"L'originale non contiene questo titolo.\"}\n  ],\n  \"semantic_findings\": [\n    {\"block_id\": \"b014\", \"rule_id\": \"SEM-05\", \"note\": \"Usa la parola 'franchi' senza spiegazione; il glossario fornisce solo 'CHF'.\"}\n  ]\n}"
+  },
+  {
+   "key": "502f50f29de6af83f3d0f233a6ee89375a5cf85ff942bc7f8aa1b29edac19716",
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 1943,
+   "tokens_in": 4146,
+   "tokens_out": 629,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b013\",\n      \"texts\": [\n        \"La scuola ti rimborsa al massimo CHF 30 alla settimana per i trasporti pubblici.\",\n        \"Le altre spese le paghi tu.\"\n      ]\n    },\n    {\n      \"id\": \"b026\",\n      \"texts\": [\n        \"L’Ufficio dell’orientamento scolastico e professionale ti accoglie dal lunedì al giovedì.\",\n        \"L’ufficio è aperto dalle 13.30 alle 17.30.\"\n      ]\n    },\n    {\n      \"id\": \"b014\",\n      \"texts\": [\n        \"La scuola ti rimborsa al massimo CHF 30 alla settimana per i trasporti pubblici.\"\n      ]\n    },\n    {\n      \"id\": \"b010\",\n      \"texts\": [\n        \"Tu consegni il rapporto di stage entro il 2 aprile 2027.\"\n      ]\n    }\n  ],\n  \"additions\": [\n    {\n      \"after\": \"b010\",\n      \"texts\": [\n        \"Il rapporto di stage, con la valutazione dell'azienda, va consegnato alla tua docente o al tuo docente di classe entro due settimane dalla settimana di stage, quindi entro il 2 aprile 2027.\"\n      ],\n      \"fact_ids\": [\"f15\"],\n      \"segment_ids\": []\n    }\n  ]\n}"
+  },
+  {
+   "key": "51e639f6499f37fbea80b8eefaeeb68313350a0764af7bef3891920e55b32d26",
+   "stage": "judge",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 3663,
+   "tokens_in": 3702,
+   "tokens_out": 1522,
+   "finish_reason": "stop",
+   "text": "{\n  \"fact_checks\": [\n    {\"fact_id\": \"f01\", \"status\": \"present\", \"block_ids\": [\"b009\"], \"note\": \"\"},\n    {\"fact_id\": \"f02\", \"status\": \"present\", \"block_ids\": [\"b012\"], \"note\": \"\"},\n    {\"fact_id\": \"f03\", \"status\": \"present\", \"block_ids\": [\"b010\"], \"note\": \"\"},\n    {\"fact_id\": \"f04\", \"status\": \"present\", \"block_ids\": [\"b013\", \"b014\"], \"note\": \"\"},\n    {\"fact_id\": \"f05\", \"status\": \"present\", \"block_ids\": [\"b015\"], \"note\": \"\"},\n    {\"fact_id\": \"f06\", \"status\": \"present\", \"block_ids\": [\"b019\"], \"note\": \"\"},\n    {\"fact_id\": \"f07\", \"status\": \"present\", \"block_ids\": [\"b017\"], \"note\": \"\"},\n    {\"fact_id\": \"f08\", \"status\": \"present\", \"block_ids\": [\"b018\"], \"note\": \"\"},\n    {\"fact_id\": \"f09\", \"status\": \"present\", \"block_ids\": [\"b002\"], \"note\": \"\"},\n    {\"fact_id\": \"f10\", \"status\": \"present\", \"block_ids\": [\"b002\"], \"note\": \"\"},\n    {\"fact_id\": \"f11\", \"status\": \"present\", \"block_ids\": [\"b026.1\"], \"note\": \"\"},\n    {\"fact_id\": \"f12\", \"status\": \"present\", \"block_ids\": [\"b026.1\"], \"note\": \"\"},\n    {\"fact_id\": \"f13\", \"status\": \"present\", \"block_ids\": [\"b021\"], \"note\": \"\"},\n    {\"fact_id\": \"f14\", \"status\": \"present\", \"block_ids\": [\"b022\"], \"note\": \"\"},\n    {\"fact_id\": \"f15\", \"status\": \"present\", \"block_ids\": [\"b010.1\"], \"note\": \"\"},\n    {\"fact_id\": \"f16\", \"status\": \"present\", \"block_ids\": [\"b024\"], \"note\": \"\"}\n  ],\n  \"unsupported\": [\n    {\"block_id\": \"b001\", \"quote\": \"# Che cosa è la settimana di stage?\", \"note\": \"L'originale non contiene questo titolo.\"},\n    {\"block_id\": \"b013.1\", \"quote\": \"# Le altre spese le paghi tu.\", \"note\": \"L'originale non menziona le altre spese.\"},\n    {\"block_id\": \"b025\", \"quote\": \"# Quali orari ha l’Ufficio dell’orientamento?\", \"note\": \"L'originale non contiene questo titolo.\"}\n  ],\n  \"semantic_findings\": []\n}"
+  },
+  {
+   "key": "8a489bcd43efb0059178b44bbf0c4a8ba41507593bb0618fcd56bf6f81b4293a",
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 1271,
+   "tokens_in": 3901,
+   "tokens_out": 362,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b010.1\",\n      \"texts\": [\n        \"Consegni il rapporto di stage con la valutazione dell'azienda al tuo docente di classe.\",\n        \"Devi farlo entro due settimane dalla settimana di stage, quindi entro il 2 aprile 2027.\"\n      ]\n    },\n    {\n      \"id\": \"b026.1\",\n      \"texts\": [\n        \"L'ufficio dell'orientamento apre dal lunedì al giovedì.\",\n        \"L'ufficio apre dalle 13.30 alle 17.30.\"\n      ]\n    }\n  ],\n  \"additions\": []\n}"
+  },
+  {
+   "key": "006e8487477a74e95f5f365295786df2c07a43cedd6adde1a7851c9b92581443",
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 1704,
+   "tokens_in": 3920,
+   "tokens_out": 430,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b006\",\n      \"texts\": [\n        \"Tu scegli l’azienda dove fai lo stage.\",\n        \"Tu fai lo stage in quell’azienda.\"\n      ]\n    },\n    {\n      \"id\": \"b010.1.1\",\n      \"texts\": [\n        \"Devi consegnare il rapporto entro 2 settimane dalla settimana di stage.\",\n        \"Quindi la scadenza è il 2 aprile 2027.\"\n      ]\n    },\n    {\n      \"id\": \"b022\",\n      \"texts\": [\n        \"Assenze superiori a 2 giorni richiedono un certificato medico.\"\n      ]\n    }\n  ],\n  \"additions\": []\n}"
+  },
+  {
+   "key": "e0b66ba7c227ba95a177d198d7af8406a4001e671cfdc59adbc82ddcd669cede",
+   "stage": "repair",
+   "model": "openai/gpt-oss-120b:groq",
+   "latency_ms": 1627,
+   "tokens_in": 3784,
+   "tokens_out": 296,
+   "finish_reason": "stop",
+   "text": "{\n  \"repairs\": [\n    {\n      \"id\": \"b010.1.1.1\",\n      \"texts\": [\n        \"L'ultimo giorno è il 2 aprile 2027.\"\n      ]\n    },\n    {\n      \"id\": \"b015\",\n      \"texts\": [\n        \"Tu devi pagare le spese per i pasti.\",\n        \"Tu devi pagare le spese per il tragitto.\"\n      ]\n    }\n  ],\n  \"additions\": []\n}"
+  }
+ ]
+}

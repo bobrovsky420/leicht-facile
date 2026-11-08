@@ -258,18 +258,23 @@ NUM-03:
     - Die Frist endet am 31. März 2026.
     - Das kostet 1.50 Franken.
     - Das Büro öffnet um 9.00 Uhr.
+    - Das kostet Fr. 3.10.
+    - Lesen Sie Ziffer 3.2.1 der Weisung.
 
 NUM-04:
   positive:
     - Das Büro ist von 08:00 bis 12:00 offen.
     - Das Büro ist von 8-12 Uhr offen.
     - Kommen Sie um 9h.
+    - Das Büro ist Mo.-Fr. 8.00-12.00 offen.
   negative:
     - Das Büro ist von 8.00 Uhr bis 12.00 Uhr offen.
     - Kommen Sie um 9.30 Uhr.
     - Das kostet 2.50 Franken.
     - Kommen Sie um 9 Uhr.
     - Das Büro ist von 8.30 bis 11.30 Uhr offen.
+    - Ein Heft kostet CHF 1.50-2.50 im Laden.
+    - Ein Heft kostet 1.50-2.50 Franken.
 
 NUM-05:
   positive:

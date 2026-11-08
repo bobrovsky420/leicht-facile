@@ -13,6 +13,8 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   `huggingface-gpt-oss-120b-groq` writes and checks on Groq's hardware in Canada or the
   United States, for public documents (needs `HF_TOKEN` and Hugging Face credits). On a
   fresh install it is picked only when `HF_TOKEN` is the only key set.
+- On that preset, 8 of the 12 sample letters sent unchanged are answered in seconds and
+  at no cost from recorded runs (`leichtfacile-samples` 0.6.0); the other four run live.
 
 ### Changed
 
@@ -26,6 +28,20 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - A model that writes a Unicode or non-breaking hyphen for a plain one (gpt-oss does,
   even inside e-mail addresses) no longer leaves it in the draft: an address written so
   failed when a reader copied or clicked it, and its value counted as missing.
+- Rappen, centimes and cents count as hundredths: `70 Rappen` is now the amount of
+  `CHF 0.70`, so a draft that writes one for the other keeps the value, and `50 Rappen`
+  no longer passes for `CHF 50`. A word that only begins like a currency
+  (`francophones`, `Europäer`) no longer makes an amount.
+- A price at the end of a sentence (`Das kostet Fr. 3.10.`) and a section number
+  (`Ziffer 3.2.1`) are no longer read as dates, and `am 1.3. 20 Personen` keeps its
+  count instead of becoming 1 March 2020; NUM-03 stops suggesting dates for them.
+- NUM-04 no longer reads a range of prices (`CHF 1.50-2.50`) as times, in German,
+  French and Italian.
+- Italian times at the start of a sentence (`Ore 9.00`) count as times; a word that
+  ends in `ore` (`San Salvatore 3`) and the German `alle` before a price no longer make
+  one.
+- A draft that addresses the reader with `Sie` only at the start of its sentences no
+  longer gets the LEX-06 reminder that it never addresses the reader.
 
 ## [0.13.2] - 2026-11-08
 

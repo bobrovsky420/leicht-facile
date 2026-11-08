@@ -59,7 +59,9 @@ def display_value(value: Value, lang: str) -> str:  # noqa: C901
     if value.kind == "date":
         return format_date(value.canonical, lang)
     if value.kind == "amount":
-        return units["amount"].format(format_thousands(value.canonical, lang))
+        integer, _, cents = value.canonical.partition(".")
+        amount = f"{integer}.{cents.ljust(2, '0')}" if cents else integer  # 0.7 is 0.70
+        return units["amount"].format(format_thousands(amount, lang))
     if value.kind == "percent":
         return units["percent"].format(value.canonical)
     if value.kind == "time":

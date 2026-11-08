@@ -61,17 +61,20 @@ def source_as_draft(doc: SourceDocument, level: Level = "A2") -> Draft:
 
 # The text talks to the reader: Sie or du (German), vous or tu (French), Lei or voi
 # (Italian). The writer asks for the formal form, but a text in the informal one does
-# address the reader, so LEX-06 must not add the reminder that it never does. The
-# capitalised Italian forms count inside a sentence and at its start; voi in any case.
+# address the reader, so LEX-06 must not add the reminder that it never does. A capital
+# Sie and Lei count inside a sentence and at its start, also at the start of a block
+# (the draft's text has one block per line: a heading ends without a full stop); the
+# other capitalised Italian forms inside a sentence only; du and voi in any case.
 _ADDRESS_RE = {
     "de": re.compile(
         r"\b(?:Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres)\b|(?<=[a-zäöü,] )Sie\b"
+        r"|(?:(?m:^)|[.!?:]\s+)Sie\b"
         r"|(?i:\b(?:du|dich|dir|dein|deine|deinen|deinem|deiner|deines"
         r"|euch|euer|eure|euren|eurem|eurer|eures)\b)"
     ),
     "fr": re.compile(r"\b(?:vous|votre|vos|tu|toi|te|ton|ta|tes)\b|\bt['’](?=\w)", re.IGNORECASE),
     "it": re.compile(
-        r"(?<=[a-zàèéìòù,] )(?:Lei|La|Le|Suo|Sua|Suoi|Sue)\b|(?:^|[.!?:]\s+)Lei\b"
+        r"(?<=[a-zàèéìòù,] )(?:Lei|La|Le|Suo|Sua|Suoi|Sue)\b|(?:(?m:^)|[.!?:]\s+)Lei\b"
         r"|(?i:\b(?:voi|vostr[oaie]|tu|ti|tuo|tua|tuoi|tue)\b)"
     ),
 }
