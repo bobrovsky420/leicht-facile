@@ -16,11 +16,13 @@ are in [CONTRIBUTING.md](../CONTRIBUTING.md); what a release may change is in
 3. In CHANGELOG.md, `## [Unreleased]` becomes `## [<version>] - <YYYY-MM-DD>`, with its
    link `[<version>]: .../compare/v<previous>...v<version>` at the end of the file; no
    empty `## [Unreleased]` stays behind.
-4. The version in four places, in the same commit: `pyproject.toml`,
-   `src/leichtfacile/__init__.py` (`__version__`), `publiccode.yml` (`softwareVersion`)
-   and the wheel's URL in every install command of `quickstart.md`. `uv lock` writes
+4. The version in two places, in the same commit: `pyproject.toml` and `publiccode.yml`
+   (`softwareVersion`). The package reads `__version__` from its metadata, and no
+   document names the version: the commands install the newest release, and the
+   quickstart's one command for a particular release takes a past release as its
+   example (0.13.2), which stays as it is. `uv lock` writes
    the new version into `uv.lock` (CI installs `--frozen`), and
-   `uv run pytest -q tests/test_release.py` checks that all of them agree.
+   `uv run pytest -q tests/test_release.py` checks all of it.
 5. Commit on `main`, push, and wait for CI.
 
 ## The tag and the release workflow

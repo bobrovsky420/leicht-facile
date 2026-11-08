@@ -168,7 +168,7 @@ uvx leichtfacile serve publicai-apertus
 
 - `uvx` (short for `uv tool run`) checks PyPI at every start and runs the newest release
   ([Updates](#updates)); uv keeps each release in its cache, so a start without a new one
-  is quick. `uvx leichtfacile@0.13.2 serve` runs that version.
+  is quick.
 - Nothing lands on the PATH or in the current folder: uv unpacks the app with its
   dependencies into its cache, a Python it downloads goes to its Python folder.
   `uv cache dir` and `uv python dir` print both; by default:
@@ -296,9 +296,9 @@ uv tool install leichtfacile
 pip install leichtfacile
 ```
 
-Every release's wheel is also on the
-[releases page](https://github.com/bobrovsky420/leicht-facile/releases), for this one:
-`uv tool install https://github.com/bobrovsky420/leicht-facile/releases/download/v0.13.2/leichtfacile-0.13.2-py3-none-any.whl`.
+To install one particular release instead of the newest, name it, for example
+`uv tool install leichtfacile==0.13.2` (pip the same way; the
+[releases page](https://github.com/bobrovsky420/leicht-facile/releases) lists them).
 Every release made after 31 October 2026 carries signed provenance and a bill of
 materials, for the wheel and for the container image;
 [SECURITY.md](../SECURITY.md#verifying-a-release) has the commands that verify a
@@ -529,7 +529,7 @@ it with `leichtfacile setup local` and run it as in way 5.
 
 The image `ghcr.io/bobrovsky420/leichtfacile` holds the app with every dependency, the
 language packages of the checker among them, so a container needs no network but the
-model endpoint. One tag per release (`:0.13.2`) and `:latest`, x86-64, built from the
+model endpoint. The tag `:latest` is the newest release, x86-64, built from the
 `Dockerfile` of the checkout and published by a release. The app runs as a user of its
 own and keeps everything it writes in `/data` (the config file, the `.env` with the key,
 the database). On this machine, for the browser on it, as with `leichtfacile serve`:
@@ -537,7 +537,7 @@ the database). On this machine, for the browser on it, as with `leichtfacile ser
 ```bash
 docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   -e LEICHTFACILE_SERVER__PUBLISHED_ON=127.0.0.1 -e PUBLICAI_API_KEY=<key> \
-  ghcr.io/bobrovsky420/leichtfacile:0.13.2
+  ghcr.io/bobrovsky420/leichtfacile:latest
 ```
 
 - The app listens on every interface of its container, and `-p` says where Docker
@@ -558,15 +558,15 @@ docker run -d --name leichtfacile -p 127.0.0.1:8000:8000 -v leichtfacile:/data \
   variable (`PUBLICAI_API_KEY`, `CSCS_API_KEY`, ...), and the first preset whose key is set
   is in use. Or run setup inside the container once, which writes the preset and the key
   into the volume: `docker run --rm -it -v leichtfacile:/data
-  ghcr.io/bobrovsky420/leichtfacile:0.13.2 leichtfacile setup`. The model page is
+  ghcr.io/bobrovsky420/leichtfacile:latest leichtfacile setup`. The model page is
   read-only on a published server, as in way 5.
 - The named volume `leichtfacile` holds `config.toml`, `.env` and the database (a folder
   of the host does too, when the user 10001 may write to it). `/healthz` and `/readyz`
   answer without a login, and the image's own health check asks `/healthz`.
 
 `compose.yaml` in the repository does the same with `docker compose up -d`: the settings
-and the keys in a `.env` next to it (`PUBLICAI_API_KEY=...`; `LEICHTFACILE_VERSION=0.13.2` pins
-the tag), the data in the volume `leichtfacile_data`, the port published on this machine
+and the keys in a `.env` next to it (`PUBLICAI_API_KEY=...`), the data
+in the volume `leichtfacile_data`, the port published on this machine
 alone and the app told so, without a login; `LEICHTFACILE_PUBLISH=0.0.0.0` in `.env`
 publishes it on every interface, and the app then needs its login there too
 (`LEICHTFACILE_AUTH__TOKEN=...`). It also starts the model server
@@ -587,8 +587,8 @@ docker compose run --rm app leichtfacile setup vllm --model swiss-ai/Apertus-v1.
 
 (`setup local --name llamacpp --model apertus-v1.5-8b-q4-llamacpp` for the other
 profile.) Air-gapped, as way 6 for containers: on a connected machine
-`docker save ghcr.io/bobrovsky420/leichtfacile:0.13.2 | gzip > leichtfacile-0.13.2.tar.gz`,
-carry it over, `docker load < leichtfacile-0.13.2.tar.gz`; the model server's image and its
+`docker save ghcr.io/bobrovsky420/leichtfacile:latest | gzip > leichtfacile.tar.gz`,
+carry it over, `docker load < leichtfacile.tar.gz`; the model server's image and its
 weights the same way. A build from a checkout: `docker build -t leichtfacile .` (or
 `docker compose up -d --build`; `make run` does that and opens the web UI). CI builds the image, starts it with a token against an
 unreachable endpoint, checks the probes and the login and scans it for vulnerabilities
@@ -609,11 +609,11 @@ them under the same records rules as the data.
 |-----|-------------------------|---------|
 | 1. `uvx leichtfacile` | at the next start: uvx checks PyPI each time and trusts its list for up to 10 minutes, so a release arrives at the latest 10 minutes after it is out | `uvx leichtfacile@latest serve` checks at once |
 | 2. A checkout | after a pull | `git pull`; the next `uv run` installs what changed |
-| 3. `uv tool install leichtfacile` | never by itself | `uv tool upgrade leichtfacile`. An install of one version (`leichtfacile==0.7.0`) or of a wheel's address stays on it even then: `uv tool install leichtfacile@latest` |
+| 3. `uv tool install leichtfacile` | never by itself | `uv tool upgrade leichtfacile`. An install of one particular release stays on it even then: `uv tool install leichtfacile@latest` |
 | 3. `pip install leichtfacile` | never by itself | `pip install -U leichtfacile` |
 | 5. On a server | never by itself | `sudo /opt/leichtfacile/bin/pip install -U leichtfacile`, then `sudo systemctl restart leichtfacile` |
 | 6. Offline | never by itself | a new wheelhouse from a connected machine, then `/opt/leichtfacile/bin/pip install -U --no-index --find-links wheelhouse leichtfacile` |
-| 7. A container | never by itself | `docker compose pull && docker compose up -d` (or `docker run` with the new tag); the volume keeps the config file, the key and the data |
+| 7. A container | never by itself | `docker compose pull && docker compose up -d` (or `docker pull` of `:latest` and a new `docker run`); the volume keeps the config file, the key and the data |
 
 With the command installed (way 3), `uvx leichtfacile` runs the installed version, not
 the newest one; `uvx leichtfacile@latest` runs the newest and leaves the installed one as

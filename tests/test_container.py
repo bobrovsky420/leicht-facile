@@ -10,7 +10,6 @@ import re
 from pathlib import Path
 
 from leichtfacile.config import Server
-from tests.test_release import VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE = "ghcr.io/bobrovsky420/leichtfacile"
@@ -59,7 +58,7 @@ def test_the_build_context_holds_the_package_alone() -> None:
 
 def test_the_image_name_and_the_version_agree() -> None:
     """release.yml publishes the image, compose.yaml pulls it, and the docs name it with
-    the tag of this version or `latest`."""
+    `latest` alone, never another tag (tests/test_release.py)."""
     release = _read(".github/workflows/release.yml")
     assert re.search(rf"^\s+IMAGE: {re.escape(IMAGE)}$", release, re.MULTILINE)
     assert f"image: {IMAGE}:${{LEICHTFACILE_VERSION:-latest}}" in _read("compose.yaml")
@@ -67,8 +66,9 @@ def test_the_image_name_and_the_version_agree() -> None:
         text = _read(doc)
         assert IMAGE in text, doc
         tags = re.findall(re.escape(IMAGE) + r":([\w.-]+)", text)
-        assert set(tags) <= {VERSION, "latest"}, (doc, tags)
-    assert VERSION in re.findall(re.escape(IMAGE) + r":([\w.-]+)", _read("docs/quickstart.md"))
+        assert set(tags) <= {"latest"}, (doc, tags)
+    quickstart = _read("docs/quickstart.md")
+    assert f"{IMAGE}:latest" in quickstart and f"{IMAGE}:<version>" not in quickstart
 
 
 def test_ci_starts_the_image_as_the_serve_job_does() -> None:

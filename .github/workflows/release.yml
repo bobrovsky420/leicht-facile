@@ -7,8 +7,8 @@
 # spaCy models come as the dependencies leichtfacile-model-de and -fr, published
 # beforehand by models.yml, and the sample letters as leichtfacile-samples, published
 # beforehand by samples.yml with a version of its own. The tag must match the version in
-# pyproject.toml; tests/test_release.py keeps that version, the package's
-# __version__, publiccode.yml and the install commands (docs/quickstart.md) in step. The
+# pyproject.toml; tests/test_release.py keeps publiccode.yml in step with it and the
+# documents free of exact versions (the package reads its own from its metadata). The
 # image job runs after the wheel's, so a release whose tests fail publishes no image; it
 # pushes with the workflow's own token (packages: write), and the package's visibility is
 # set once by hand on GitHub (a package starts private).

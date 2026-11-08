@@ -1,9 +1,10 @@
-"""The version lives in pyproject.toml, the package's __version__ and publiccode.yml, and
-docs/quickstart.md names the release wheel of that version in its install
-commands (AGENTS.md); the README links there instead of naming the wheel. A version bump
-that misses one of them fails here, before the tag (.github/workflows/release.yml runs
-this file too). The samples package (samples/) has a version of its own, which the app's
-range admits."""
+"""The version lives in pyproject.toml and publiccode.yml (AGENTS.md); the package reads
+its __version__ from the installed package, and the documents name no version in their
+commands: they install the newest release (`uvx leichtfacile`, `:latest`), and only the
+quickstart's one command for a particular release names one, a past release as the
+example. A version bump that misses one fails here, before the tag
+(.github/workflows/release.yml runs this file too). The samples package (samples/) has a
+version of its own, which the app's range admits."""
 
 from __future__ import annotations
 
@@ -15,9 +16,10 @@ from leichtfacile import __version__
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-WHEEL_URL = (
-    "https://github.com/bobrovsky420/leicht-facile/releases/download/"
-    f"v{VERSION}/leichtfacile-{VERSION}-py3-none-any.whl"
+# An exact version of the app in a command: a pinned uvx or pip install, an image tag, the
+# compose variable, a release wheel.
+PINNED = re.compile(
+    r"leichtfacile(?:@|==|:|-)\d+\.\d+\.\d+|LEICHTFACILE_VERSION=\d|releases/download/v\d"
 )
 
 
@@ -47,10 +49,23 @@ def test_publiccode_has_the_project_version() -> None:
     assert re.search(r'^softwareVersion: "([^"]+)"$', text, re.MULTILINE)[1] == VERSION
 
 
-def test_the_install_commands_name_the_wheel_of_this_version() -> None:
-    text = (ROOT / "docs/quickstart.md").read_text(encoding="utf-8")
-    urls = re.findall(r"https://github\.com/bobrovsky420/\S+?\.whl", text)
-    assert urls and set(urls) == {WHEEL_URL}
+def test_the_documents_name_no_version_in_their_commands() -> None:
+    """The commands install the newest release, so a release changes no document but the
+    changelog; one advanced command in the quickstart installs a particular release, with
+    a release that has its section in CHANGELOG.md as the example."""
+    found = {
+        path.relative_to(ROOT).as_posix(): PINNED.findall(path.read_text(encoding="utf-8"))
+        for path in [ROOT / "README.md", ROOT / "SECURITY.md", *sorted(ROOT.glob("docs/*.md"))]
+    }
+    (example,) = found.pop("docs/quickstart.md")
+    assert not any(found.values()), found
+    assert example.startswith("leichtfacile==")
+    released = example.removeprefix("leichtfacile==")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    section = rf"^## \[{re.escape(released)}\] - \d{{4}}-\d\d-\d\d$"
+    assert re.search(section, changelog, re.MULTILINE), released
+    for name in ("README.md", "docs/quickstart.md"):
+        assert "<version>" not in (ROOT / name).read_text(encoding="utf-8"), name
 
 
 def test_the_project_address_agrees() -> None:
