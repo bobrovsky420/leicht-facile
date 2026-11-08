@@ -325,6 +325,7 @@
             {% if v.summary.judge_model %}<dt>{{ t('progress.judge') }}</dt><dd>{{ v.summary.judge_model }}</dd>{% endif %}
           {% endif %}
           </dl>
+          {% if recorded %}<p class="hint">{{ t('replay.note', date=recorded.recorded_at.strftime('%d.%m.%Y'), preset=recorded.preset, time=duration(recorded.seconds)) }}</p>{% endif %}
           {% if v.summary and v.summary.notes %}<ul class="notes">{% for n in v.summary.notes %}<li class="hint">{{ n }}</li>{% endfor %}</ul>{% endif %}
           <form method="post" action="/jobs/{{ job.id }}/rerun" class="rerun">
             <label class="hint" for="rerun-stage">{{ t('review.rerun_from') }}</label>

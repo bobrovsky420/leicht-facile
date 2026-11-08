@@ -18,7 +18,9 @@ unless you prefer otherwise.
 - The `leichtfacile` package on PyPI and the wheel of each GitHub release.
 - The container image `ghcr.io/bobrovsky420/leichtfacile` and `compose.yaml`.
 - The language packages `leichtfacile-model-de`, `-fr` and `-it`, as this repository
-  builds them (`scripts/model_packages.py`, `scripts/lexicon_package.py`).
+  builds them (`scripts/model_packages.py`, `scripts/lexicon_package.py`), and the
+  samples package `leichtfacile-samples` (the sample letters and their recorded runs,
+  `samples/`).
 - This repository's workflows.
 
 Out of scope: the text a model writes (a draft is reviewed by a person by design), the

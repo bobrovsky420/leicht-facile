@@ -5,7 +5,8 @@
 # PyPI takes it by trusted publishing: pypi.org trusts this workflow (the project's
 # publisher settings name the repository and release.yml), so no token is stored. The
 # spaCy models come as the dependencies leichtfacile-model-de and -fr, published
-# beforehand by models.yml. The tag must match the version in
+# beforehand by models.yml, and the sample letters as leichtfacile-samples, published
+# beforehand by samples.yml with a version of its own. The tag must match the version in
 # pyproject.toml; tests/test_release.py keeps that version, the package's
 # __version__, publiccode.yml and the install commands (docs/quickstart.md) in step. The
 # image job runs after the wheel's, so a release whose tests fail publishes no image; it
@@ -60,9 +61,10 @@ jobs:
           uv run pytest -q tests/test_release.py
       - name: Build the wheel
         run: uv build --wheel --out-dir dist
-      # A clean environment outside the checkout: the models come as a user gets them
-      # (the model packages from PyPI), and the rule checker loads them, so a missing
-      # package or model fails here, not on a user's machine.
+      # A clean environment outside the checkout: the models and the sample letters come
+      # as a user gets them (the model packages and the samples package from PyPI), the
+      # rule checker loads the models and the app lists the letters, so a missing package,
+      # model or letter fails here, not on a user's machine.
       - name: Install it in a clean environment and run the checker
         working-directory: ${{ runner.temp }}
         run: |
@@ -71,6 +73,8 @@ jobs:
           smoke/bin/leichtfacile --version
           printf 'Sie müssen die Rechnung bis zum 30. November 2026 bezahlen.\n' > text.txt
           LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/leichtfacile check text.txt --lang de
+          LEICHTFACILE_DATA__DIR="$RUNNER_TEMP/data" smoke/bin/python -c \
+            "from leichtfacile.examples import example_sources; assert example_sources()"
       - name: The bill of materials of the locked dependencies (CycloneDX, from uv.lock)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:

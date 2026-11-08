@@ -470,7 +470,7 @@ Anything public needs either consent or an article-5 text:
 | Artifact | Rule |
 |----------|------|
 | Screenshots and screen recordings | Article-5 texts as the main material. Protected pages only as short excerpts that illustrate how the tool works (quotation right, article 25). |
-| Example letters in `src/leichtfacile/letters/` and `data/examples/print/` | Article-5 texts or synthetic letters written by the team, since the repository is public. |
+| Example letters in `samples/leichtfacile_samples/letters/` and `data/examples/print/` | Article-5 texts or synthetic letters written by the team, since the repository is public. |
 | Test fixtures in `tests/fixtures/` | Article-5 texts or synthetic letters, including recorded model outputs. |
 | Evaluation tables in `docs/evaluation.md` | Metrics and tables freely; short quoted excerpts with the source named. |
 

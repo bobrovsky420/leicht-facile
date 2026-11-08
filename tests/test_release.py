@@ -2,7 +2,8 @@
 docs/quickstart.md names the release wheel of that version in its install
 commands (AGENTS.md); the README links there instead of naming the wheel. A version bump
 that misses one of them fails here, before the tag (.github/workflows/release.yml runs
-this file too)."""
+this file too). The samples package (samples/) has a version of its own, which the app's
+range admits."""
 
 from __future__ import annotations
 
@@ -22,6 +23,23 @@ WHEEL_URL = (
 
 def test_the_package_has_the_project_version() -> None:
     assert __version__ == VERSION
+
+
+def test_the_app_admits_the_major_version_of_the_samples_package() -> None:
+    """The samples package has a version of its own (samples/pyproject.toml): the app
+    depends on every release of one major version from the one it needs on, so new
+    letters and recorded runs reach the installations without a release of the app."""
+    samples = tomllib.loads((ROOT / "samples/pyproject.toml").read_text(encoding="utf-8"))
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    major, minor, _ = (int(part) for part in samples["project"]["version"].split("."))
+    (pin,) = [d for d in project["dependencies"] if d.startswith("leichtfacile-samples")]
+    found = re.fullmatch(r"leichtfacile-samples>=(\d+)\.(\d+),<(\d+)", pin)
+    assert found, pin
+    lowest, highest = (int(found[1]), int(found[2])), int(found[3])
+    assert lowest <= (major, minor) and highest == lowest[0] + 1 == major + 1
+    assert samples["project"]["license"] == project["license"]
+    license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    assert (ROOT / "samples/LICENSE").read_text(encoding="utf-8") == license_text
 
 
 def test_publiccode_has_the_project_version() -> None:

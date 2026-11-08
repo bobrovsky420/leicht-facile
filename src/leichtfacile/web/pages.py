@@ -20,14 +20,24 @@ from fastapi.templating import Jinja2Templates
 from leichtfacile import __version__
 from leichtfacile.examples import example_sources, examples_dir
 from leichtfacile.export.html import to_html
+from leichtfacile.llm.replay import Recording
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.pipeline.runner import QueueFull
 from leichtfacile.rules.base import RULES, checked_languages
-from leichtfacile.schemas import LANGS, LEVELS, Decision, Draft, PipelineSummary, ReviewState
+from leichtfacile.schemas import (
+    LANGS,
+    LEVELS,
+    Decision,
+    Draft,
+    Job,
+    PipelineSummary,
+    ReviewState,
+)
 from leichtfacile.varieties import region_for, variety
 from leichtfacile.web import api
 from leichtfacile.web.i18n import COOKIE, Translator, pick_language, ui_languages
 from leichtfacile.web.jobs import (
+    EXAMPLE_FIELDS,
     ServerBusy,
     Submission,
     SubmissionError,
@@ -318,8 +328,7 @@ def _endpoint_options(state) -> list[dict[str, str]]:
 def _example_form(example: dict[str, str]) -> dict[str, str]:
     """The New draft form filled in with an example letter: its text and the decision
     mode's settings from the file next to it, if any."""
-    keys = ("mode", "addressee", "notice", "sender", "address")
-    settings = {k: example[k] for k in keys if example.get(k)}
+    settings = {k: example[k] for k in EXAMPLE_FIELDS if example.get(k)}
     return {"text": example["text"], **settings}
 
 
@@ -465,6 +474,7 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
                 "review.html",
                 job=job,
                 v=view,
+                recorded=_recording(request, job),
                 t=t,
                 title=title,
                 section="drafts",
@@ -476,11 +486,18 @@ def job_page(request: Request, job_id: str, version: int | None = None) -> HTMLR
         job=job,
         job_llm=state.orchestrator.llm_for(job),
         p=progress,
+        recorded=_recording(request, job),
         t=t,
         title=title,
         rule_count=rule_count(),
         section="drafts",
     )
+
+
+def _recording(request: Request, job: Job) -> Recording | None:
+    """The recorded run a job's answers came from (llm/replay.py), if any."""
+    replay = request.app.state.replay
+    return replay.recording_for(request.app.state.store.cache_keys(job.id)) if replay else None
 
 
 @router.get("/jobs/{job_id}/progress", response_class=HTMLResponse)
@@ -495,6 +512,7 @@ def job_progress(request: Request, job_id: str) -> HTMLResponse:
         job=job,
         job_llm=state.orchestrator.llm_for(job),
         p=progress_view(state.store, job, t=t),
+        recorded=_recording(request, job),
         t=t,
         rule_count=rule_count(),
     )

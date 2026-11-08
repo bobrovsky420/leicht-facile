@@ -1040,6 +1040,32 @@ midway.
   repository ships with an empty cache: the live run must work from the endpoint.
   An answer that cannot be used (no valid JSON, a copy of the example) is dropped
   from the cache again, so a rerun of a failed pair asks the model.
+- **Recorded runs of the sample letters** (`llm/replay.py`). A first visitor should
+  see a sample letter go through the pipeline in seconds, at no cost.
+  `scripts/record_samples.py` sends each letter of the package leichtfacile-samples
+  through the pipeline as the New draft form sends it unchanged (`example_submission`,
+  `create_job`), on a preset (the default, `publicai-apertus`) in an installation with
+  the shipped settings and no time budget, with a `Recorder` as the response cache:
+  unlike the cache it keeps the answers the pipeline threw away and asked again for, so
+  a replay takes the recorded path. Of up to `--attempts` runs the clean one (no error,
+  nothing blocking, every fact, no stage skipped) with the fewest warnings that replays
+  is written to `samples/leichtfacile_samples/recordings/<preset>/<letter>.json`: the
+  answers in call order with stage, model, tokens and latency, keyed by the cache's
+  hash, without prompts and without reasoning, plus the preset, models, date, version,
+  endpoint and result. The web app loads them read-only (`Replay`, web/app.py) and gives
+  them to the registry's clients; inside `LLMClient.replaying`, which the orchestrator
+  turns on for a job's first run only (no call billed yet), a recorded answer comes
+  before the cache. Only a byte-identical prompt matches, so no recording carries
+  settings to compare: an edited letter, another level, preset or model, a rerun and
+  every other text go to the endpoint; the command line, the smoke run and the
+  evaluation never load them. A replayed call is billed as cached with 0 ms, the job
+  and review pages say the answers were recorded, when, on which preset and how long
+  the recorded run took, and a deleted job or the daily purge leaves the recordings as
+  they are. `examples.check_recording` replays one without an endpoint (one that
+  refuses every call); tests/test_samples.py runs it for every recording before
+  `samples.yml` publishes the package, which has a version of its own, so new
+  recordings need no release of the app. A recording made for one version of the app
+  replays on the later ones while their prompts stay the same.
 - **Control tokens.** Servers that print special tokens (llama.cpp with `-sp`, which
   is needed to see the reasoning markers) also print `<|assistant_end|>`; every
   `<|...|>` token is removed from answers.
@@ -1170,9 +1196,9 @@ read without JavaScript; `app.js` adds polling, selection, the keys and saving.
   decisions from its artifacts, without interface text; `lifecycle.py` writes them when
   a job ends or a review is saved). Under the list, the API link when `server.api_docs`
   serves the documentation pages. With no jobs, the empty state explains the four steps,
-  and a card "Example letters" under it offers the team-written sample letters shipped
-  with the package (`src/leichtfacile/letters/`, or the folder `data.examples_dir`
-  names) as mini-cards, each a one-click fill of the New draft form
+  and a card "Example letters" under it offers the team-written sample letters of the
+  package leichtfacile-samples (`samples/`, or the folder `data.examples_dir` names) as
+  mini-cards, each a one-click fill of the New draft form
   (`/new?example=<id>`) with the title, the short description from the letter's JSON
   file and its language and sender, those in the interface language first; the card's
   cross hides it in that browser, a button in the empty state shows it again.
@@ -1701,8 +1727,11 @@ SECURITY.md                 how to report a vulnerability, the scope, the respon
 .github/workflows/release.yml  on a tag v<version>: the wheel built, installed in a clean venv, published as a release;
                             the image built, checked and pushed to ghcr.io/bobrovsky420/leichtfacile; both
                             attested (provenance) with a CycloneDX bill of materials each
+.github/workflows/samples.yml  by hand: every recorded run of the sample letters replayed on the commit's app, the
+                            samples package built, installed in a clean venv and published to PyPI
 Dockerfile, .dockerignore   the container image: the environment from uv.lock in a build stage, a slim Python image
-                            with that environment alone; the build context is the package, its metadata and the lockfile
+                            with that environment alone; the build context is the package, the samples package,
+                            their metadata and the lockfile
 compose.yaml                the image as a service with a volume, and the model servers (vLLM, llama.cpp) as profiles
 Makefile                    `make run`: the image built from the checkout and started with compose.yaml, the web UI opened; `make stop`, `make logs`
 pyproject.toml, uv.lock     dependencies (uv), Python 3.12+, the `leichtfacile` command; .python-version pins 3.14
@@ -1755,11 +1784,11 @@ src/leichtfacile/
   pdfwords.py               a PDF's words per page (pdfplumber), at most 200 pages; for a file from outside in a
                             child process with a time and a memory limit; imports nothing of the app
   logs.py                   the log output: a text or a JSON line per record, the request and job ids on it
-  letters/                  the example letters shipped with the package
   presets/presets.toml      the known providers with their models tables and prices, and the presets on them
   varieties/                the national varieties (§8): varieties.toml, one table per variety, and its reader
   senders/                  the senders and the forms of address (§4.3): senders.toml and its reader
-  llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py
+  llm/                      client.py, registry.py (the presets' clients, made anew on a change), json_out.py, reasoning.py, cache.py,
+                            replay.py (the recorded runs of the sample letters)
   llm/prompts/<lang>/       the stage templates of a language, one set for its varieties: understand.md,
                             write.md, judge.md, repair.md, baseline.md, recover.md, and medication.md
   llm/prompts/<key>/        what a variety has of its own (de-CH, de-DE, de-AT, fr-CH, it-CH): examples/
@@ -1793,7 +1822,12 @@ scripts/                    config_reference.py (the settings reference in confi
                             replayed by tests/pipeline/test_repair_replay.py, §5),
                             model_packages.py (spaCy's models as the packages leichtfacile-model-de and -fr),
                             lexicon_package.py and morphit.py (the Italian pipeline leichtfacile-model-it
-                            from the Morph-it! lexicon)
+                            from the Morph-it! lexicon), record_samples.py (the recorded runs of the sample
+                            letters, §6; --check replays them)
+samples/                    the package leichtfacile-samples, a member of the uv workspace, with a version of its
+                            own (the app admits one major version): leichtfacile_samples/letters/ (the sample letters, each with
+                            its .json of job settings) and recordings/<preset>/<letter>.json (their recorded
+                            runs, §6); README.md describes both
 data/
   pairs/manifest.jsonl      URLs + licence notes (committed)
   examples/                 README.md and printable letters

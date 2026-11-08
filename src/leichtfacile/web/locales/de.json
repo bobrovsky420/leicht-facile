@@ -336,6 +336,7 @@
   "review.reader.hint": "Der Text, wie ihn Leserinnen und Leser bekommen, mit Ihren Entscheiden: abgelehnte Blöcke fehlen, Änderungen sind eingesetzt.",
   "review.facts_present": "{present} von {total} Fakten vorhanden",
   "review.cost": "{tokens} Tokens, {time} Modellzeit",
+  "replay.note": "Die Antworten des Modells stammen aus einem Lauf, der am {date} mit {preset} aufgezeichnet wurde und {time} Modellzeit dauerte. Starten Sie einen Schritt neu oder ändern Sie den Text, dann antwortet das Modell live.",
   "review.versions_label": "Versionen des Entwurfs",
   "review.versions": "Versionen",
   "review.final": "final",

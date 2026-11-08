@@ -315,6 +315,7 @@
   "review.reader.hint": "Le texte tel qu'une lectrice ou un lecteur le reçoit, avec vos décisions : blocs rejetés retirés, modifications en place.",
   "review.facts_present": "{present} faits présents sur {total}",
   "review.cost": "{tokens} jetons, {time} de temps de modèle",
+  "replay.note": "Les réponses du modèle proviennent d'une exécution enregistrée le {date} avec {preset}, qui a pris {time} de temps de modèle. Relancez une étape ou modifiez le texte, et le modèle répond en direct.",
   "review.versions_label": "Versions du brouillon",
   "review.versions": "Versions",
   "review.final": "finale",

@@ -99,14 +99,19 @@ the published address and is judged instead. The database goes to `data.dir`, by
 default `%LOCALAPPDATA%\leichtfacile` (Windows),
 `~/Library/Application Support/leichtfacile` (macOS), else
 `$XDG_DATA_HOME/leichtfacile` or `~/.local/share/leichtfacile`. While the drafts list
-is empty, it offers the example letters shipped with the package in
-`src/leichtfacile/letters/` as one-click fills of the New draft form
-([architecture.md §7](architecture.md#7-web-application)): `data/examples/README.md`
+is empty, it offers the example letters of the package leichtfacile-samples, a
+dependency of the app (`samples/`), as one-click fills of the New draft form
+([architecture.md §7](architecture.md#7-web-application)): [samples/README.md](../samples/README.md)
 lists them, the premium-reduction letter in German, French and Italian, the KESB
 decision, the German and Austrian Bescheide, and two school letters in the three
 languages, to parents and, in the du form, to students; `data.examples_dir` names
 another folder of letters. A letter's job settings, such as the decision mode and the
-addressee, come from a JSON file next to it (`examples.py`).
+addressee, come from a JSON file next to it (`examples.py`). When the samples package
+brings a recorded run of a letter for the preset in use, the letter sent unchanged is
+answered from it in seconds and at no cost; any change of the text, the level or the
+preset, and a step run again, go to the model (`llm/replay.py`). Version 0.5.0 of the
+package brings none yet; a newer one comes with an upgrade of the dependencies, without
+a new version of the app.
 
 `leichtfacile check-llm` lists the endpoint's models and makes one short call; it is
 the first thing to run after `setup`.

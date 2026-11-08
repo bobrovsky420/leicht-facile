@@ -1,6 +1,6 @@
 [project]
 name = "leichtfacile"
-version = "0.13.1"
+version = "0.13.2"
 description = "Drafts easy-language versions of official texts from Switzerland, Germany and Austria with a large language model."
 # README.md with absolute links for pypi.org (the hook below)
 dynamic = ["readme"]
@@ -26,7 +26,10 @@ requires-python = ">=3.12"
 # leichtfacile-model-de and -fr: spaCy's models for German and French, republished on
 # PyPI (the tables [tool.leichtfacile.spacy-models] below, the same versions);
 # leichtfacile-model-it: the Italian pipeline built on the Morph-it! lexicon (the table
-# [tool.leichtfacile.lexicon-models.it] below, the same version).
+# [tool.leichtfacile.lexicon-models.it] below, the same version); leichtfacile-samples:
+# the sample letters and their recorded runs (samples/), with a version of its own
+# (samples.yml publishes it): the range admits every release of its major version, so
+# new letters and recorded runs come without a release of the app.
 dependencies = [
     "fastapi>=0.142",
     "uvicorn[standard]>=0.54",
@@ -45,6 +48,7 @@ dependencies = [
     "leichtfacile-model-de==3.8.0",
     "leichtfacile-model-fr==3.8.0",
     "leichtfacile-model-it==1.0.1",
+    "leichtfacile-samples>=0.5,<1",
 ]
 
 [project.urls]
@@ -120,6 +124,15 @@ license = "CC-BY-SA-2.0 OR LGPL-2.1-or-later"
 [tool.uv]
 exclude-newer = "7 days"
 exclude-newer-package = { leichtfacile-model-de = false, leichtfacile-model-fr = false, leichtfacile-model-it = false }
+
+# The samples package lives in samples/, a member of this workspace: a checkout and the
+# container image install it from there, the wheel names it as the dependency it is on
+# PyPI.
+[tool.uv.workspace]
+members = ["samples"]
+
+[tool.uv.sources]
+leichtfacile-samples = { workspace = true }
 
 [build-system]
 requires = ["hatchling>=1.27", "hatch-fancy-pypi-readme>=24.1"]

@@ -1,0 +1,51 @@
+# The sample letters and their recorded runs as the package leichtfacile-samples on PyPI
+# (samples/, samples/README.md), with a version of its own: the app depends on a range of
+# it (pyproject.toml), so new letters or recorded runs reach the installations without a
+# release of the app. Run by hand (Actions, Samples, Run workflow) after a change of
+# samples/ and of its version in samples/pyproject.toml.
+#
+# Every recorded run is replayed on this commit's app first (tests/test_samples.py with
+# LEICHTFACILE_RELEASE_CHECK=1), so a stale one is never published. PyPI takes the wheel
+# by trusted publishing, as models.yml does: the job has an environment of its own
+# (pypi-samples), and the project's publisher names this repository, samples.yml and
+# that environment. A version already on PyPI is skipped. Every action is pinned to a
+# commit; the comment after the hash names the release.
+
+name: Samples
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  samples:
+    name: leichtfacile-samples
+    runs-on: ubuntu-latest
+    environment: pypi-samples
+    permissions:
+      id-token: write  # trusted publishing to PyPI
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: true
+      - name: The app reads every letter and admits this version, and every recorded run replays
+        env:
+          LEICHTFACILE_RELEASE_CHECK: "1"
+        run: |
+          uv sync --frozen
+          uv run pytest -q tests/test_samples.py tests/test_examples.py tests/test_release.py
+      - name: Build it
+        run: uv build --package leichtfacile-samples --wheel --out-dir dist/samples
+      - name: Install it in a clean environment and list the letters
+        working-directory: ${{ runner.temp }}
+        run: |
+          uv venv smoke
+          uv pip install --python smoke "$GITHUB_WORKSPACE"/dist/samples/*.whl
+          smoke/bin/python -c "import leichtfacile_samples as s; n = len(list(s.LETTERS.glob('*.txt'))); print(n, 'letters'); assert n"
+      - name: Publish to PyPI
+        run: |
+          uv publish --trusted-publishing always --check-url https://pypi.org/simple/ \
+            dist/samples/*.whl

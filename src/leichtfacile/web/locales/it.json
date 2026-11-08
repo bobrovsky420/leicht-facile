@@ -315,6 +315,7 @@
   "review.reader.hint": "Il testo come lo riceve chi legge, con le Sue decisioni: blocchi rifiutati tolti, modifiche al loro posto.",
   "review.facts_present": "{present} fatti presenti su {total}",
   "review.cost": "{tokens} token, {time} di tempo del modello",
+  "replay.note": "Le risposte del modello provengono da un'esecuzione registrata il {date} con {preset}, che ha richiesto {time} di tempo del modello. Riesegua un passo o modifichi il testo, e il modello risponde dal vivo.",
   "review.versions_label": "Versioni della bozza",
   "review.versions": "Versioni",
   "review.final": "finale",

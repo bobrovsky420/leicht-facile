@@ -554,7 +554,7 @@ Where the app keeps its data. A relative folder is taken from the folder of the 
 | Key | Default | Meaning |
 |-----|---------|---------|
 | `dir` | the user's app-data folder | The database and the caches. |
-| `examples_dir` | the letters shipped with the package | A folder of example letters for the New draft form and the empty drafts list (.txt or .md; next to each a .json with its job settings and a short description in the letter's language). |
+| `examples_dir` | the letters of the package leichtfacile-samples | A folder of example letters for the New draft form and the empty drafts list (.txt or .md; next to each a .json with its job settings and a short description in the letter's language). |
 | `retention_days` | `0` | Jobs nobody changed for this many days are deleted; 0 keeps everything. |
 
 ### `[log]`

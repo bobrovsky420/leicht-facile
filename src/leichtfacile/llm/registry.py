@@ -5,7 +5,8 @@ A registry built from the settings makes a preset's client on first use and drop
 client when the settings change (`reload`: the model page of the web app saved a choice
 or a key), so that the next draft runs on the new preset while a job already running
 keeps the client it started with. The clients it makes share the response cache it is
-given (`llm.cache`), which the store owns (web/app.py), not the registry. A registry
+given (`llm.cache`), which the store owns (web/app.py), not the registry, and the
+recorded runs of the sample letters (llm/replay.py), which the web app loads. A registry
 given its clients (the tests, a command with one client) keeps them as they are. A
 local provider's models are listed on request (`discover`), with the answer kept for a
 short while, since the model page and the New draft form ask on every visit.
@@ -22,6 +23,7 @@ from leichtfacile import config
 from leichtfacile.config import LLM, Available, ConfigError, Loaded, Settings
 from leichtfacile.llm.cache import ResponseCache
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.llm.replay import Replay
 
 log = logging.getLogger(__name__)
 DISCOVER_CACHE_S = 30.0
@@ -38,10 +40,12 @@ class Registry:
         loader: Callable[..., Loaded] | None = None,
         clock: Callable[[], float] = time.monotonic,
         cache: ResponseCache | None = None,
+        replay: Replay | None = None,
     ) -> None:
         """`llm` is the client of the preset in use and `clients` the other ready ones
         by preset name, both kept as given; without them `loader` (config.load) makes
-        the clients from the settings, with `cache` (None: no cache)."""
+        the clients from the settings, with `cache` (None: no cache) and `replay` (None:
+        no recorded runs)."""
         self.settings = settings
         self._fixed: dict[str, LLMClient] = {}
         if llm is not None:
@@ -53,16 +57,22 @@ class Registry:
         self._built: dict[str, LLMClient] = {}
         self._ready: dict[str, bool] = {}
         self._cache = cache
+        self._replay = replay
         self._listed: dict[str, tuple[float, list[str] | None]] = {}
         # How a preset's client is made (the tests put one on a fake endpoint here).
         self.make_client: Callable[[Settings, ResponseCache | None], LLMClient] = _make_client
 
     @classmethod
     def from_settings(
-        cls, settings: Settings | None = None, *, cache: ResponseCache | None = None
+        cls,
+        settings: Settings | None = None,
+        *,
+        cache: ResponseCache | None = None,
+        replay: Replay | None = None,
     ) -> Registry:
         """A registry on the settings as they are now, the clients made on first use."""
-        return cls(settings or config.load(strict=False).settings, loader=config.load, cache=cache)
+        settings = settings or config.load(strict=False).settings
+        return cls(settings, loader=config.load, cache=cache, replay=replay)
 
     # -- the preset in use and the others -------------------------------------------------
 
@@ -89,7 +99,10 @@ class Registry:
                 raise KeyError(name)
             if name not in self._built:
                 settings = self._loader(preset=name).settings
-                self._built[name] = self.make_client(settings, self._cache)
+                client = self.make_client(settings, self._cache)
+                if self._replay is not None:
+                    client.replay = self._replay
+                self._built[name] = client
             return self._built[name]
 
     def is_ready(self, name: str | None = None) -> bool:

@@ -336,6 +336,7 @@
   "review.reader.hint": "The text as a reader gets it, with your decisions: rejected blocks left out, edits in place.",
   "review.facts_present": "{present} of {total} facts present",
   "review.cost": "{tokens} tokens, {time} of model time",
+  "replay.note": "The model's answers come from a run recorded on {date} with {preset}, which took {time} of model time. Run a step again, or change the text, and the model answers live.",
   "review.versions_label": "Draft versions",
   "review.versions": "Versions",
   "review.final": "final",

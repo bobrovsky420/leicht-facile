@@ -205,7 +205,7 @@ Two decisions went through P2 on CSCS (8B writer, 70B judge), each once with the
 decision-mode prompts that exist so far (the partial and the addressee, without
 protected segments) and once as a standard job:
 
-- **The team's KESB decision** (`src/leichtfacile/letters/entscheid-beistandschaft-musterwil.txt`,
+- **The team's KESB decision** (`samples/leichtfacile_samples/letters/entscheid-beistandschaft-musterwil.txt`,
   1,000 words, 26 hard values). Every identifier, address and the 30 days that the draft
   carried came back exactly. But in decision mode the Understand model computed an end
   of the appeal period ("Die Beschwerdefrist endet am 15. November 2026") that the

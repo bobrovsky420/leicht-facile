@@ -226,10 +226,11 @@ The interface speaks English, German, French or Italian (switch at the top right
 Before the first draft, the start page offers the example letters: a municipality's
 letter about premium reduction in German, French and Italian, a decision of a child and
 adult protection authority (in Germany a Wohngeld-Bescheid and in Austria a
-Familienbeihilfe-Bescheid instead) and letters of a school (all team-written, described
-in the examples' [README.md](data/examples/README.md)). Click one, then **Create draft**:
-the model reads, writes, checks, judges and repairs in a few minutes, and the review
-page opens. Approve, edit or reject each block and export the text as Markdown, HTML or
+Familienbeihilfe-Bescheid instead) and letters of a school (all team-written, in the
+package leichtfacile-samples that comes with the app, described in its
+[README.md](samples/README.md)). Click one, then **Create draft**: the model reads,
+writes, checks, judges and repairs in a few minutes, and the review page opens.
+Approve, edit or reject each block and export the text as Markdown, HTML or
 Word. **Check my text** runs the rule checker on any text you paste,
 without a model and without storing it.
 

@@ -5,7 +5,22 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
-## [Unreleased]
+## [0.13.2] - 2026-11-08
+
+### Added
+
+- The web app can answer a sample letter sent unchanged from the New draft form from a
+  recorded run of it, in seconds and at no cost, and the job and review pages then say
+  so; a changed text, another level or preset, and a step run again go to the model as
+  before, and the command line never replays. The recordings come with a later version
+  of the samples package (below), without a new version of the app.
+
+### Changed
+
+- The sample letters come in their own package, `leichtfacile-samples`, which the app
+  installs with it: the letters and their recorded runs, apart from the code, with a
+  version of their own (0.5.0; the app takes any later 0.x). `data.examples_dir` still points the
+  app at a folder of your own letters.
 
 ### Security
 
@@ -541,7 +556,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
-[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...HEAD
+[0.13.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0

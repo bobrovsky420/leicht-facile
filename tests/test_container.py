@@ -49,7 +49,7 @@ def test_the_build_context_holds_the_package_alone() -> None:
     lines = [line for line in _read(".dockerignore").splitlines() if line and line[0] != "#"]
     assert lines[0] == "*"
     allowed = {line[1:].rstrip("/") for line in lines if line.startswith("!")}
-    assert allowed == {"pyproject.toml", "uv.lock", "README.md", "LICENSE", "src"}
+    assert allowed == {"pyproject.toml", "uv.lock", "README.md", "LICENSE", "src", "samples"}
     copies = re.findall(r"^COPY (?!--from=)(.+?) \S+$", DOCKERFILE, re.MULTILINE)
     assert copies, "the Dockerfile copies from the build context"
     for sources in copies:

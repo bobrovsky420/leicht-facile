@@ -26,13 +26,17 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /build
 
 # The dependencies first, in a layer of their own: a change of the code leaves it in the
-# build cache. The uv cache is a mount at build time and never part of the image.
+# build cache. The uv cache is a mount at build time and never part of the image. The
+# lockfile names the samples package as a member of the workspace (samples/), so its
+# metadata comes along; the workspace's packages are not installed yet.
 COPY pyproject.toml uv.lock ./
+COPY samples ./samples
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project
+    uv sync --frozen --no-dev --no-install-workspace
 
-# Then the package itself, built and installed as a wheel (not editable): the runtime
-# stage needs the environment alone. The README is the package's long description.
+# Then the package itself and the samples package, built and installed as wheels (not
+# editable): the runtime stage needs the environment alone. The README is the package's
+# long description.
 COPY README.md LICENSE ./
 COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \

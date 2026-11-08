@@ -57,6 +57,8 @@ FORM_FIELDS = (
     "text", "url", "lang", "level", "condition", "endpoint", "title", "writer_model",
     "understand_model", "judge_model", "mode", "addressee", "notice", "sender", "address",
 )  # fmt: skip
+# What an example letter's file next to it sets in the form (examples.py, app.js).
+EXAMPLE_FIELDS = ("mode", "addressee", "notice", "sender", "address")
 
 
 class SubmissionError(ValueError):
@@ -131,6 +133,21 @@ class Submission:
     def form(self) -> dict[str, str]:
         """The fields as the New draft form shows them again after a refusal."""
         return {key: getattr(self, key) or "" for key in FORM_FIELDS}
+
+
+def example_submission(example: dict[str, str]) -> Submission:
+    """What the New draft form sends for an example letter (`example_sources`) left as it
+    is: the text with the browser's CR LF line breaks, the language detected, level A2,
+    P2, the preset in use, no title, and the letter's own settings. Its recorded run
+    (llm/replay.py) is made, and checked, with this submission."""
+    return Submission(
+        text=example["text"].replace("\r\n", "\n").replace("\n", "\r\n"),
+        mode=example.get("mode") or "standard",
+        addressee=example.get("addressee") or None,
+        notice=example.get("notice") or None,
+        sender=example.get("sender") or "authority",
+        address=example.get("address") or "formal",
+    )
 
 
 def _model(name: str | None) -> str | None:

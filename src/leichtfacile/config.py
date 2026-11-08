@@ -44,6 +44,7 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from dotenv import dotenv_values
+from leichtfacile_samples import LETTERS
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -77,8 +78,8 @@ ENV_PREFIX = "LEICHTFACILE_"
 # A checkout's own settings and secrets, in the folder the command starts from.
 PROJECT_FILE = Path("leichtfacile.toml")
 LOCAL_ENV_FILE = Path(".env")
-# The example letters shipped with the package (examples.py).
-LETTERS_DIR = Path(__file__).parent / "letters"
+# The example letters of the package leichtfacile-samples (samples/, examples.py).
+LETTERS_DIR = LETTERS
 # The 8B of an Apertus family (swiss-ai/Apertus-v1.5-8B, swiss-ai/apertus-v1.5-8b), whose
 # 70B judges by default when the endpoint serves it.
 _APERTUS_8B = re.compile(r"(apertus\S*-)8(b)$", re.IGNORECASE)
@@ -688,7 +689,7 @@ class Data(Section):
         description="A folder of example letters for the New draft form and the empty drafts "
         "list (.txt or .md; next to each a .json with its job settings and a short "
         "description in the letter's language).",
-        json_schema_extra=_shown("the letters shipped with the package"),
+        json_schema_extra=_shown("the letters of the package leichtfacile-samples"),
     )
     # Checked every hour (lifecycle.py); the job's cache rows go with it.
     retention_days: int = Field(

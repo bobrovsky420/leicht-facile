@@ -1,0 +1,38 @@
+# The sample letters of Leicht·Facile and their recorded runs: data alone, apart from the
+# app's code (README.md here). A member of the repository's uv workspace, so a checkout
+# has it installed (editable) with `uv sync`. Its version is its own, published by
+# .github/workflows/samples.yml: the major version changes when the app needs a change to
+# read it (a new field in a letter's .json, another format of a recording), and the app's
+# range admits one major version (tests/test_release.py); new letters and recorded runs
+# are a minor version.
+[project]
+name = "leichtfacile-samples"
+version = "0.5.0"
+description = "The sample letters of Leicht·Facile and the recorded runs its web app answers them from."
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "Alexander Bobrovsky", email = "bobrovsky@seznam.cz" },
+    { name = "Ivan Kuzmych", email = "i.kuzmych@hotmail.com" },
+]
+keywords = ["easy language", "Leichte Sprache", "FALC", "lingua facile", "plain language"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Natural Language :: French",
+    "Natural Language :: German",
+    "Natural Language :: Italian",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.urls]
+Homepage = "https://leichtfacile.ch"
+Source = "https://github.com/bobrovsky420/leicht-facile/tree/main/samples"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["leichtfacile_samples"]

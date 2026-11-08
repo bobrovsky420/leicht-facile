@@ -319,7 +319,8 @@ Empty states:
   the page header's button alone (until 6 November 2026 the empty state repeated it).
   Under the list's card a second card "Example letters" (`.samples`, since 6 November
   2026; before, the letters were a row of buttons in the empty state): the sample
-  letters (`src/leichtfacile/letters/`, or the folder `data.examples_dir` names) as
+  letters (the package leichtfacile-samples, `samples/`, or the folder
+  `data.examples_dir` names) as
   mini-cards (`.sample`, each a link to `/new?example=<id>`, which opens the New draft
   form with the text filled in), three to a row at 1280 px: the title and the short
   description from the letter's `.json` (`description`, in the letter's language), then
@@ -436,7 +437,11 @@ them into local time and "Today" or "Yesterday".
   time) and a total, "Running for 2 min 01 s", then the endpoint and the writer and
   judge model names. Until then every stage carried a usage line ("1 call · 2,813
   tokens · 47 s") and the models stood in the strip. `app.js` keeps the block open
-  across polls once it was opened.
+  across polls once it was opened. A job answered from a recorded run of a sample
+  letter (since 8 November 2026, architecture.md §6) has a hint line before "Running
+  for": `replay.note`, the date, the preset and the recorded run's model time, and that
+  a step run again or a changed text goes to the model; the review page's "Run" section
+  repeats it under its list.
 - Right, "Results so far" with "Shown as each stage finishes. The review opens by
   itself when the pipeline is done." Two cards side by side:
   - Fact sheet (Model tag, "14 facts"): the five core questions, label above
@@ -1015,6 +1020,7 @@ review.more.facts         Facts present
 review.more.blocking      Blocking problems
 js.todo_undecided.*       {n} blocks undecided
 review.run.cost           Used
+replay.note               The model's answers come from a run recorded on {date} with {preset}, which took {time} of model time. Run a step again, or change the text, and the model answers live.   (since 8 November 2026, the four)
 review.sentences.one      {n} sentence
 review.sentences.other    {n} sentences
 review.blocks.one         {n} block

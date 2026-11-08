@@ -20,6 +20,7 @@ from leichtfacile.config import Settings
 from leichtfacile.llm.cache import open_cache
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.llm.registry import Registry
+from leichtfacile.llm.replay import Replay
 from leichtfacile.logs import configure_logging
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.runner import JobRunner
@@ -36,6 +37,7 @@ def create_app(
     llm: LLMClient | None = None,
     store: Store | None = None,
     clients: dict[str, LLMClient] | None = None,
+    replay: Replay | None = None,
 ) -> FastAPI:
     """The application on a registry of the presets' clients (`llm/registry.py`): with
     `llm` (the client of the preset in use) and `clients` (the other ready presets, by
@@ -43,7 +45,10 @@ def create_app(
     first use and made anew when the model page changes the settings. The app starts
     without a ready preset: its model page asks for the key. The store owns the response
     cache (`open_cache`), so that a deleted job takes its rows with it while no preset
-    is ready too; the registry's clients use it."""
+    is ready too; the registry's clients use it. `replay` is the recorded runs of the
+    sample letters (llm/replay.py), by default those of the package leichtfacile-samples;
+    the registry's clients answer a job's first run from them, given clients keep their
+    own."""
     if llm is not None and settings is None:
         raise TypeError("a client needs its settings")
     settings = settings or config.load(strict=False).settings
@@ -53,11 +58,12 @@ def create_app(
     store = store or Store(
         settings.data.dir / DATABASE_NAME, cache=open_cache(settings.data.dir, settings.llm.cache)
     )
+    replay = replay if replay is not None else Replay.load()
     if llm is not None:
         registry = Registry(settings, llm=llm, clients=clients)
     else:
         registry = Registry.from_settings(
-            settings, cache=store.cache if settings.llm.cache else None
+            settings, cache=store.cache if settings.llm.cache else None, replay=replay
         )
     orchestrator = Orchestrator(store, registry)
     metrics = observability.Metrics()  # what this process counts for /metrics
@@ -90,6 +96,7 @@ def create_app(
     )
     app.state.settings = settings  # replaced when the model page changes the settings
     app.state.registry = registry
+    app.state.replay = replay  # the pages say when a draft's answers were recorded
     app.state.store = store
     app.state.orchestrator = orchestrator
     app.state.runner = runner
