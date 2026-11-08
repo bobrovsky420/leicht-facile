@@ -29,6 +29,7 @@ import httpx
 
 from leichtfacile.ingest.detect import detect_language
 from leichtfacile.ingest.errors import (
+    DocumentTooLongError,
     ExtractionError,
     IngestError,
     SectionNotFoundError,
@@ -48,6 +49,7 @@ DEFAULT_LANG: Lang = "de"
 
 # The entry points and the errors callers handle; the other errors live in ingest/errors.py.
 __all__ = [
+    "DocumentTooLongError",
     "ExtractionError",
     "IngestError",
     "SectionNotFoundError",
@@ -115,9 +117,12 @@ def ingest_pdf(
     lang: str | None = None,
     doc_id: str | None = None,
     license_note: str | None = None,
+    max_chars: int | None = None,
+    isolated: bool = False,
 ) -> SourceDocument:
-    """A PDF with a text layer. Raises `NoTextLayerError` for scans."""
-    title, units = extract_pdf(data)
+    """A PDF with a text layer. Raises `NoTextLayerError` for scans. `max_chars` and
+    `isolated` bound the reading of a file from outside (`extract_pdf`)."""
+    title, units = extract_pdf(data, max_chars=max_chars, isolated=isolated)
     return _build(
         units,
         SourceInfo(type="pdf", uri=filename, license_note=license_note),
@@ -136,11 +141,14 @@ def ingest_url(
     client: httpx.Client | None = None,
     allow_private: bool = False,
     resolve: Resolver | None = None,
+    max_chars: int | None = None,
+    isolated: bool = False,
 ) -> SourceDocument:
     """Download a URL and ingest it as HTML, PDF or plain text by its content type.
 
     The fetch refuses URLs and redirects into the private network unless
-    `allow_private` (ingest/fetch.py); `resolve` replaces the system resolver in tests."""
+    `allow_private` (ingest/fetch.py); `resolve` replaces the system resolver in tests.
+    `max_chars` and `isolated` bound the reading of a PDF (`extract_pdf`)."""
     resource = fetch_url(url, client=client, allow_private=allow_private, resolve=resolve)
     kind = _content_kind(resource)
     source_type = "html" if kind == "html" else "pdf" if kind == "pdf" else "text"
@@ -151,7 +159,7 @@ def ingest_url(
         license_note=license_note,
     )
     if kind == "pdf":
-        title, units = extract_pdf(resource.content)
+        title, units = extract_pdf(resource.content, max_chars=max_chars, isolated=isolated)
     elif kind == "html":
         html = decode_html(resource.content, resource.charset)
         title, units = extract_html(html, resource.final_url)

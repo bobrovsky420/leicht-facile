@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import sys
+
 import pytest
 
+from leichtfacile import pdfwords
 from leichtfacile.ingest import ingest_pdf
-from leichtfacile.ingest.errors import ExtractionError, NoTextLayerError
-from leichtfacile.ingest.pdf import extract_pdf, hyphens_of_text_layer
+from leichtfacile.ingest.errors import DocumentTooLongError, ExtractionError, NoTextLayerError
+from leichtfacile.ingest.pdf import extract_pdf
+from leichtfacile.pdfwords import hyphens_of_text_layer
 from tests.ingest import pdfs
 
 
@@ -119,6 +123,43 @@ def test_a_pdf_with_a_page_that_shows_pictures_but_no_text_is_refused_whole():
     assert [u.text for u in units] == [
         "Die Frist endet am 31. März 2027. Bitte zahlen Sie 500 Franken."
     ]
+
+
+def test_a_pdf_over_the_page_limit_is_refused_before_its_pages_are_read():
+    """Audit 2.6.18: a thousand pages from 159 kB took 4.2 s; the count is checked before
+    a page is parsed."""
+    assert len(extract_pdf(pdfs.pages(pdfwords.MAX_PAGES))[1]) == pdfwords.MAX_PAGES
+    with pytest.raises(ExtractionError, match=r"^the PDF has 201 pages; at most 200 are read"):
+        extract_pdf(pdfs.pages(201))
+
+
+def test_reading_stops_past_twice_the_text_limit():
+    """The whole PDF was read before the text limit refused it; reading stops when the
+    words pass twice the limit (running lines and page numbers go later, so the job's
+    own check decides below that)."""
+    data = pdfs.contacts_in_the_margins()
+    with pytest.raises(DocumentTooLongError) as refused:
+        extract_pdf(data, max_chars=40)
+    assert refused.value.chars > 80
+    assert extract_pdf(data, max_chars=10_000) == extract_pdf(data)
+
+
+def test_an_isolated_read_gives_the_same_units_and_ends_at_its_time_limit():
+    """A file from outside is read in a child process (pdfwords.read_isolated): the same
+    result as in this process, and a child that takes too long is stopped."""
+    assert extract_pdf(pdfs.letter(), isolated=True) == extract_pdf(pdfs.letter())
+    with pytest.raises(pdfwords.Refused, match=r"^the PDF took more than 0 s to read"):
+        pdfwords.read_isolated(pdfs.letter(), time_limit_s=0.01)
+    with pytest.raises(ExtractionError, match=r"^not a readable PDF"):
+        extract_pdf(b"Dies ist keine PDF-Datei.", isolated=True)
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="the address-space limit is Linux's")
+def test_an_isolated_read_stops_at_its_memory_limit():
+    """A compressed stream of 300 kB that unpacks to 300 MB, read under a limit of 200 MB:
+    refused with the reason, the service's own memory untouched."""
+    with pytest.raises(pdfwords.Refused, match="more memory than one file may take"):
+        pdfwords.read_isolated(pdfs.unpacking(300), memory_limit=200_000_000)
 
 
 def test_not_a_pdf():

@@ -8,6 +8,8 @@ or a list bullet. All texts are invented.
 
 from __future__ import annotations
 
+import zlib
+
 from fpdf import FPDF
 
 LEADING = 1.4  # line distance as a multiple of the font size
@@ -167,6 +169,47 @@ def contacts_in_the_margins() -> bytes:
             size=7,
         )
     return bytes(pdf.output())
+
+
+def pages(count: int) -> bytes:
+    """`count` pages with a line each."""
+    pdf = new_pdf()
+    for number in range(1, count + 1):
+        pdf.add_page()
+        lines(pdf, 60, 120, [f"Seite {number}: Die Frist endet am 31. März 2027."])
+    return bytes(pdf.output())
+
+
+def unpacking(megabytes: int) -> bytes:
+    """One page whose compressed content stream unpacks to `megabytes` of spaces after
+    a line of text: a file of a thousandth of that size (written by hand, since fpdf
+    keeps no such stream)."""
+    packer = zlib.compressobj(9)
+    text = b"BT /F1 12 Tf 72 720 Td (Die Frist endet am 31. Maerz 2027.) Tj ET\n"
+    spaces = b" " * 1_000_000
+    stream = b"".join([packer.compress(text), *(packer.compress(spaces) for _ in range(megabytes))])
+    stream += packer.flush()
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [4 0 R] /Count 1 >>",
+        b"<< /Length %d /Filter /FlateDecode >>\nstream\n%b\nendstream" % (len(stream), stream),
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 3 0 R "
+        b"/Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for number, body in enumerate(objects, 1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n%b\nendobj\n" % (number, body)
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    out += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
+    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (
+        len(objects) + 1,
+        xref,
+    )
+    return bytes(out)
 
 
 def value_lines_in_bold() -> bytes:

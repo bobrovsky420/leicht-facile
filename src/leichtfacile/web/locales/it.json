@@ -442,6 +442,7 @@
   "error.one_source": "Indichi esattamente una fonte: un testo incollato, un URL o un file.",
   "error.text_too_long": "Il testo supera {max} caratteri.",
   "error.document_too_long": "Il documento ha {chars} caratteri di testo, il limite è {max}. Lo accorci o lo divida in più parti.",
+  "error.document_too_long_more": "Il documento ha più di {chars} caratteri di testo, il limite è {max}. Lo accorci o lo divida in più parti.",
   "error.url_scheme": "L'URL deve iniziare con http:// o https://.",
   "error.file_too_large": "Il file supera {mb} MB.",
   "error.upload_format": "Questo file non può essere letto. Carichi un PDF con un livello di testo, una pagina HTML, oppure un file di testo o Markdown.",

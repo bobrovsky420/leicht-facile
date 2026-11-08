@@ -35,7 +35,7 @@ def make_env(tmp_path, endpoint: FakeEndpoint, sleeps):
         settings = make_settings(data__dir=tmp_path, llm__max_retries=0, **overrides)
         llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append,
                         cache=cache)  # fmt: skip
-        store = Store(tmp_path / f"lifecycle-{len(made)}.sqlite")
+        store = Store(tmp_path / f"lifecycle-{len(made)}.sqlite", cache=cache)
         app = create_app(settings, llm, store)
         client = TestClient(app)
         client.__enter__()
@@ -244,7 +244,6 @@ def test_deleting_a_job_drops_its_rows_in_the_response_cache(make_env, endpoint,
     assert len(keys) == 2 and all(cache.get(k) is not None for k in keys)
     assert client.delete(f"/api/v1/jobs/{job_id}").status_code == 200
     assert all(cache.get(k) is None for k in keys)
-    cache.close()
 
 
 def test_a_failed_job_carries_no_word_of_the_answer_in_its_error_or_the_logs(

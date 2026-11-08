@@ -1,6 +1,9 @@
 """PDFs with a text layer: pdfplumber words to units.
 
-Words come with font size and font name (`extract_words(extra_attrs=...)`). Steps:
+Words come with font size and font name (`extract_words(extra_attrs=...)`), read by
+pdfwords.py: at most 200 pages (`pdfwords.MAX_PAGES`), reading stops when the words
+pass twice the text limit, and a file from outside is read in a child process with a
+time and a memory limit (`isolated`). Steps:
 
 1. Running headers and footers are removed: lines in the top or bottom tenth of a page
    that repeat (digits ignored) at the same height on at least half of the pages, and
@@ -30,7 +33,7 @@ Words come with font size and font name (`extract_words(extra_attrs=...)`). Step
    that is set in another size or font than the text or starts several lines of the
    column. Following lines at the indentation of the item text continue the item.
 7. Hyphenated line breaks are joined (`join_lines`); a soft hyphen in the text layer
-   counts as a drawn hyphen before that (`hyphens_of_text_layer`).
+   counts as a drawn hyphen before that (`pdfwords.hyphens_of_text_layer`).
 
 A PDF without any extractable text raises `NoTextLayerError`: scans need the model's
 image input, which is not available yet. So does a PDF with text in which a page shows
@@ -41,7 +44,6 @@ says. A blank page, or one with only a rule, a frame or a small logo, is skipped
 
 from __future__ import annotations
 
-import io
 import logging
 import math
 import re
@@ -49,11 +51,9 @@ import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from itertools import pairwise
-from typing import Any
 
-import pdfplumber
-
-from leichtfacile.ingest.errors import ExtractionError, NoTextLayerError
+from leichtfacile import pdfwords
+from leichtfacile.ingest.errors import DocumentTooLongError, ExtractionError, NoTextLayerError
 from leichtfacile.ingest.normalize import DOT_LIKE, join_lines, normalize_text
 from leichtfacile.ingest.segment import HARD_VALUE, Unit
 from leichtfacile.schemas import SegmentKind
@@ -148,9 +148,13 @@ class _Paragraph:
         self.texts += [line.text for line in self.lines[1:]]
 
 
-def extract_pdf(data: bytes) -> tuple[str | None, list[Unit]]:
-    """Return the title and the units of a PDF with a text layer."""
-    meta_title, pages = _read(data)
+def extract_pdf(
+    data: bytes, *, max_chars: int | None = None, isolated: bool = False
+) -> tuple[str | None, list[Unit]]:
+    """Return the title and the units of a PDF with a text layer. `max_chars`: the text
+    limit, past which reading stops (`DocumentTooLongError`); `isolated`: read in a child
+    process with a time and a memory limit, for a file from outside (pdfwords.py)."""
+    meta_title, pages = _read(data, max_chars, isolated)
     if not any(page.words for page in pages):
         raise NoTextLayerError(
             "the PDF has no text layer (a scan?); scanned documents need image input, "
@@ -180,65 +184,28 @@ def extract_pdf(data: bytes) -> tuple[str | None, list[Unit]]:
 # -- reading -------------------------------------------------------------------------
 
 
-SOFT_HYPHEN = "­"
-
-
-def hyphens_of_text_layer(text: str) -> str:
-    """A soft hyphen in a PDF's text layer is a drawn hyphen: InDesign and Word map the
-    hyphen glyph to U+00AD, so the normaliser, which drops soft hyphens as invisible,
-    read the DRV brochure's Martin-Luther-Straße 2-4 as MartinLutherStraße 24 and its
-    Telefon 06232 17-0 as 170 (30 October 2026). As a plain hyphen it goes through the
-    line-end dehyphenation of `join_lines` like any other."""
-    return text.replace(SOFT_HYPHEN, "-")
-
-
-def _read(data: bytes) -> tuple[str | None, list[_Page]]:
+def _read(data: bytes, max_chars: int | None, isolated: bool) -> tuple[str | None, list[_Page]]:
+    """The pages with their words (pdfwords.py), in a child process with `isolated`.
+    Reading stops at twice `max_chars` characters of words: the text of the job is
+    shorter than the words add up to (running lines and page numbers go), and the job's
+    own length check decides below that."""
+    read = pdfwords.read_isolated if isolated else pdfwords.read
     try:
-        pdf = pdfplumber.open(io.BytesIO(data))
-    except Exception as exc:  # pdfminer raises many exception types for broken files
-        raise ExtractionError(f"not a readable PDF ({type(exc).__name__})") from exc
-    pages = []
-    with pdf:
-        try:
-            title = (pdf.metadata or {}).get("Title")
-            for number, page in enumerate(pdf.pages, start=1):
-                raw = page.extract_words(extra_attrs=["size", "fontname"])
-                words = [
-                    _Word(
-                        hyphens_of_text_layer(w["text"]),
-                        float(w["x0"]),
-                        float(w["x1"]),
-                        float(w["top"]),
-                        float(w["bottom"]),
-                        float(w["size"]),
-                        str(w["fontname"]),
-                    )
-                    for w in raw
-                    if w.get("upright", True) and w["text"].strip()
-                ]
-                width, height = float(page.width), float(page.height)
-                pictured = 0.0 if words else _pictured(page, width, height)
-                pages.append(_Page(number, width, height, words, pictured))
-        except Exception as exc:
-            raise ExtractionError(f"the PDF could not be read ({type(exc).__name__})") from exc
-    return (title if isinstance(title, str) else None), pages
+        title, pages = read(data, 2 * max_chars if max_chars else None)
+    except pdfwords.TooLong as exc:
+        raise DocumentTooLongError(exc.chars) from None
+    except pdfwords.Refused as exc:
+        raise ExtractionError(str(exc)) from None
+    return title, [
+        _Page(page.number, page.width, page.height, [_Word(*w) for w in page.words], page.pictured)
+        for page in pages
+    ]
 
 
 # A page without words is a picture of a page (a scan, a table as an image, text turned
 # into outlines) when images and filled shapes cover this share of it; a rule, a frame
 # or a small logo stay below it.
 _PICTURED = 0.05
-
-
-def _pictured(page: Any, width: float, height: float) -> float:
-    """The share of the page under images and filled shapes, their boxes clipped to it."""
-    shapes = [o for o in (*page.rects, *page.curves) if o.get("fill")]
-    area = 0.0
-    for obj in (*page.images, *shapes):
-        w = min(float(obj["x1"]), width) - max(float(obj["x0"]), 0.0)
-        h = min(float(obj["bottom"]), height) - max(float(obj["top"]), 0.0)
-        area += max(w, 0.0) * max(h, 0.0)
-    return min(area / (width * height), 1.0) if width and height else 0.0
 
 
 def _page_list(numbers: list[int]) -> str:

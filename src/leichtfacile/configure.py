@@ -732,13 +732,30 @@ def _parts(key: str) -> list[str]:
 
 def _shown(key: str, value: Any) -> str:
     if key in SECRETS or isinstance(value, SecretStr):
-        secret = value.get_secret_value() if isinstance(value, SecretStr) else ""
-        return "" if not secret else "****" + secret[-4:] if len(secret) > 11 else "****"
+        return _mask(value.get_secret_value() if isinstance(value, SecretStr) else "")
     if value is None or value == "":
         return ""
     if isinstance(value, str | Path):
         return str(value)
+    if isinstance(value, dict):  # llm.headers, llm.extra_body: a key in them is masked too
+        value = _masked(value)
     return config.toml_value(value)
+
+
+def _mask(secret: str) -> str:
+    return "" if not secret else "****" + secret[-4:] if len(secret) > 11 else "****"
+
+
+def _masked(table: dict[str, Any]) -> dict[str, Any]:
+    """A table with the entries that hold a credential masked (`config.is_secret_entry`)."""
+    return {
+        name: _masked(value)
+        if isinstance(value, dict)
+        else _mask(value)
+        if config.is_secret_entry(name, value)
+        else value
+        for name, value in table.items()
+    }
 
 
 def _label(source: str) -> str:

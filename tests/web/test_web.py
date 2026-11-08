@@ -22,6 +22,7 @@ from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
 from leichtfacile.web.jobs import Submission, SubmissionError, ingest_submission
 from tests.conftest import chat_response, make_settings
+from tests.ingest import pdfs
 from tests.pipeline import fixtures as fx
 
 LETTER = """# Prämienverbilligung 2026
@@ -385,6 +386,28 @@ def test_the_text_limit_holds_for_pasted_text_files_and_pages(app_env, monkeypat
     assert ingest_submission(page, max_chars=limit).segments
     with pytest.raises(SubmissionError, match="characters of text; the limit is 99"):
         ingest_submission(page, max_chars=99)
+
+
+def test_a_pdf_upload_or_page_is_read_apart_and_no_further_than_the_limit(monkeypatch) -> None:
+    """Audit 2.6.18: a PDF from outside is read in a child process with a time and a
+    memory limit (pdfwords.py), and reading stops past twice the text limit, so the
+    message says "more than": the rest was never read."""
+    data = pdfs.contacts_in_the_margins()
+    upload = Submission(file_name="brief.pdf", file_data=data)
+    assert ingest_submission(upload, max_chars=10_000).segments
+    too_long = r"has more than [\d,]+ characters of text; the limit is 40\."
+    with pytest.raises(SubmissionError, match=too_long):
+        ingest_submission(upload, max_chars=40)
+
+    def fetch(url: str, **kwargs) -> FetchedResource:
+        return FetchedResource(
+            content=data, content_type="application/pdf", final_url=url,
+            fetched_at=datetime.now(UTC),
+        )  # fmt: skip
+
+    monkeypatch.setattr(ingest, "fetch_url", fetch)
+    with pytest.raises(SubmissionError, match=too_long):
+        ingest_submission(Submission(url="https://public.example/brief.pdf"), max_chars=40)
 
 
 def test_an_upload_is_decoded_as_the_command_line_decodes_a_file() -> None:

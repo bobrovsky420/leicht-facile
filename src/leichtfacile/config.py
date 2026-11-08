@@ -767,12 +767,52 @@ class Settings(Section):
         return self
 
 
+# An entry of a headers or extra_body table that holds a credential, by its name:
+# Authorization, X-Api-Key, Ocp-Apim-Subscription-Key, a token, a cookie (`max_tokens`
+# and `api-version` are none).
+_SECRET_NAME = re.compile(
+    r"(?:^|[-_])(?:authorization|auth|api[-_]?key|apikey|key|token|secret|password|passwd|"
+    r"cookie|session|credentials?)(?:$|[-_])",
+    re.IGNORECASE,
+)
+
+
+def is_secret_entry(name: str, value: object) -> bool:
+    """Whether an entry of a headers or extra_body table holds a credential: by its name
+    (`_SECRET_NAME`), or by a value that looks like one, a bearer token or a run of 24
+    letters and digits with both in it, as keys have and model names do not."""
+    if not isinstance(value, str) or not value.strip():
+        return False
+    if _SECRET_NAME.search(name):
+        return True
+    text = value.strip()
+    if re.match(r"(?:bearer|basic|token)\s+\S", text, re.IGNORECASE):
+        return True
+    return any(
+        len(run) >= 24 and any(c.isdigit() for c in run) and any(c.isalpha() for c in run)
+        for run in re.findall(r"[A-Za-z0-9]+", text)
+    )
+
+
+def secret_entries(table: Mapping[str, Any], prefix: str = "") -> list[str]:
+    """The dotted names of a table's entries that hold a credential (`is_secret_entry`),
+    nested tables included."""
+    found: list[str] = []
+    for name, value in table.items():
+        if isinstance(value, Mapping):
+            found += secret_entries(value, f"{prefix}{name}.")
+        elif is_secret_entry(str(name), value):
+            found.append(f"{prefix}{name}")
+    return found
+
+
 def unusual(loaded: Loaded) -> dict[str, str]:
     """Values that are valid but probably not meant, by key, with why: `setup`, `config
     set`, `config edit`, `config show` and `serve` warn about them. Among them a secret
     written into a settings file as a value (`auth.token = "..."`, a provider's
     `api_key`): it belongs in the `.env` next to the config file or in the environment,
-    named by `token_env` or `api_key_env`, which is where `config set` puts it."""
+    named by `token_env` or `api_key_env`, which is where `config set` puts it; and a key
+    in a `headers` or `extra_body` table, which has no such place (`secret_entries`)."""
     found: dict[str, str] = {}
     settings = loaded.settings
     files = {str(path) for path in setting_files()}
@@ -791,6 +831,18 @@ def unusual(loaded: Loaded) -> dict[str, str]:
             f"config file or in the environment, named by {name}_env; `leichtfacile config "
             f"set {name} <key>` stores it so."
         )
+    for name, item in loaded.flat.items():
+        if item.source not in files or not isinstance(item.value, Mapping):
+            continue
+        if name.rpartition(".")[2] in ("headers", "extra_body") or _MODEL_TABLES.fullmatch(name):
+            for entry in secret_entries(item.value):
+                found[f"{name}.{entry}"] = (
+                    f"{name}.{entry} looks like a key and is written in {item.source}, where "
+                    "whoever reads the file reads it too. A provider's key belongs in "
+                    "providers.<name>.api_key, which `leichtfacile config set` keeps in the "
+                    ".env next to the config file; a provider that wants it in a header of "
+                    "its own needs the file readable by the service's user alone."
+                )
     chars = settings.texts.max_chars
     low, high = USUAL_MAX_CHARS
     if chars < low:

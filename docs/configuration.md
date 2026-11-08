@@ -242,7 +242,10 @@ or `providers.<name>.api_key` it stores the value in the `.env` next to the file
 `LEICHTFACILE_TOKEN` or the provider's variable, and names the variable in the file
 (`token_env`, `api_key_env`); without the value it asks for it, hidden. A secret written
 into a settings file by hand is read, with a warning from `config show`, `config edit`
-and `serve`.
+and `serve`. A `headers` or `extra_body` table has no variable to name: an entry in it
+that looks like a key (by its name, such as `Authorization` or `X-Api-Key`, or by a
+token-like value) stays in the file, with the same warning from `config set` too, and
+`config show` masks it; the file should then be readable by the service's user alone.
 
 The model page and `leichtfacile setup` take the key (hidden input on the command line;
 the page never shows it again) and write it into the `.env` next to the config file,

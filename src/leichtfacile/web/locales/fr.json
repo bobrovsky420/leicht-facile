@@ -442,6 +442,7 @@
   "error.one_source": "Indiquez exactement une source : un texte collé, une URL ou un fichier.",
   "error.text_too_long": "Le texte dépasse {max} caractères.",
   "error.document_too_long": "Le document compte {chars} caractères de texte, la limite est de {max}. Raccourcissez-le ou divisez-le en plusieurs parties.",
+  "error.document_too_long_more": "Le document compte plus de {chars} caractères de texte, la limite est de {max}. Raccourcissez-le ou divisez-le en plusieurs parties.",
   "error.url_scheme": "L'URL doit commencer par http:// ou https://.",
   "error.file_too_large": "Le fichier dépasse {mb} Mo.",
   "error.upload_format": "Ce fichier ne peut pas être lu. Téléversez un PDF avec une couche de texte, une page HTML, ou un fichier texte ou Markdown.",

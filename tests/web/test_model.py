@@ -12,8 +12,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from leichtfacile import config, configure
-from leichtfacile.llm.client import LLMClient
+from leichtfacile.llm.client import LLMClient, Usage
 from leichtfacile.llm.registry import Registry
+from leichtfacile.schemas import JobConfig
 from leichtfacile.store import Store
 from leichtfacile.web.app import create_app
 from tests.conftest import FakeEndpoint, sse_response
@@ -215,6 +216,26 @@ def test_the_fine_tune_panel_saves_a_preset_of_ones_own(app, home) -> None:
         "claude-sonnet-5-5",
     )
     assert "needs a key" in client.get("/model").text  # of its own, still without the key
+
+
+def test_a_deleted_job_takes_its_cache_rows_while_no_preset_is_ready(home, monkeypatch) -> None:
+    """Audit 2.1.2: the deletion went through the preset's client, which does not exist
+    while the preset has no key, so a deleted job's answers stayed in the response cache.
+    The store owns the cache now, and opens it while the cache is off too when the file
+    is there from a time it was on."""
+    for cache_on in ("true", "false"):
+        monkeypatch.setenv("LEICHTFACILE_LLM__CACHE", cache_on)
+        app = create_app()
+        store = app.state.store
+        assert app.state.registry.llm is None and store.cache is not None
+        job = store.create_job(JobConfig(), title="Brief")
+        store.update_job(job.id, status="needs_review")
+        store.add_usage(job.id, Usage("write", "m", 1, 2, 3, cache_key=f"key-{cache_on}"))
+        store.cache.put(f"key-{cache_on}", "m", {"text": "Ihre Prämienverbilligung ..."})
+        client = TestClient(app)  # no lifespan: no worker to take the job
+        assert client.delete(f"/api/v1/jobs/{job.id}").status_code == 200
+        assert store.cache.get(f"key-{cache_on}") is None
+        store.close()
 
 
 def test_the_choice_is_editable_in_a_container_published_on_this_machine(

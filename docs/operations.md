@@ -302,6 +302,11 @@ is precisely that a fine-tuned 8B makes the 70B unnecessary at runtime.
   watchdog shuts the connection when the time is up, however slowly the bytes come);
   15 MB of body after decoding, a compressed body inflated no further than that (one
   coding, gzip or deflate; a coding on a coding is refused).
+- A PDF, uploaded or fetched, is read in a child process (`pdfwords.py`) that is
+  stopped after 60 s and, on Linux, may take 1 GB of address space, since a compressed
+  stream of a few hundred kilobytes can unpack to gigabytes; a PDF of more than 200
+  pages is refused before a page is read, and reading stops once the words pass twice
+  `texts.max_chars`. One upload costs about a second more for the child's start.
   The check unwraps an IPv4 address carried in IPv6 (IPv4-mapped, NAT64) and names the
   ranges that CPython 3.12.0 to 3.12.3 still counted as global (6to4 among them), so it
   refuses the same addresses on every supported Python; CI runs the tests on 3.12,
@@ -407,8 +412,9 @@ What the service stores, where, for how long, and how it leaves:
   draft version with its rule findings, judge reports and repair records, the review
   with the reviewer's edits, the pipeline summary, and one row per model call (stage,
   model, tokens, latency, no text). With `llm.cache = true`, the response cache keeps
-  every prompt (which contains the document) and answer, keyed by their hash; it is off
-  by default and meant for development and evaluation.
+  every answer (fact sheets and drafts, so the document's content) under a hash of its
+  prompt, not the prompt itself; it is off by default and meant for development and
+  evaluation.
 - **Where.** `data.dir` (by default the user's data folder, such as
   `~/.local/share/leichtfacile` or `%LOCALAPPDATA%\leichtfacile`, §3; on a server a
   folder on a disk the organisation controls): `leichtfacile.sqlite` and, with the
@@ -428,9 +434,10 @@ What the service stores, where, for how long, and how it leaves:
   period its records rules allow and export what it must keep.
 - **Deletion.** The row menu of the drafts list, the job and review pages, and
   `DELETE /api/v1/jobs/{id}` remove a job with its artifacts and calls (`ON DELETE
-  CASCADE`) and with its rows in the response cache (`lifecycle.remove_job`: the keys
-  of the job's calls are recorded in `llm_calls`), so no prompt with the document
-  outlives the job. A running job is stopped first.
+  CASCADE`) and with its rows in the response cache (`Store.delete_job`: the keys of
+  the job's calls are recorded in `llm_calls`; a row another job uses too stays), also
+  while no model is ready and after the cache was switched off, so no answer about the
+  document outlives the job. A running job is stopped first.
 - **What leaves the machine.** Only the model calls: the document text, the fact sheet
   and the drafts go to the endpoint named by `llm.url`, nowhere else; §5 and the
   endpoint profiles in [architecture.md §6](architecture.md#6-the-llm-client) say which

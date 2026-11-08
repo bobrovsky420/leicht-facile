@@ -13,14 +13,10 @@ from __future__ import annotations
 import logging
 import re
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
 
 from leichtfacile.review import load_review, review_counts
 from leichtfacile.schemas import Job, JobCounts, SourceDocument
 from leichtfacile.store import Store
-
-if TYPE_CHECKING:
-    from leichtfacile.llm.client import LLMClient
 
 log = logging.getLogger(__name__)
 
@@ -59,18 +55,15 @@ def job_counts(store: Store, job: Job) -> JobCounts:
 # -- deletion and retention ------------------------------------------------------------
 
 
-def remove_job(store: Store, llm: LLMClient | None, job_id: str, *, by: str | None = None) -> bool:
-    """Delete the job with its artifacts and calls, and its prompts and answers from the
-    response cache (`llm.cache`), which carry the document (`llm` None: no client in
-    use, so no cache to clean). False when the job does not exist or a worker is
-    running it. A deleted job leaves no row to name who deleted it, so the log line
-    does: `by` is the user the login named (web/security.py), None for the purge or
-    without a login."""
-    keys = store.cache_keys(job_id)
+def remove_job(store: Store, job_id: str, *, by: str | None = None) -> bool:
+    """Delete the job with its artifacts and calls, and its answers in the response
+    cache, which carry the document (`Store.delete_job`; also while no preset is ready,
+    when no client exists). False when the job does not exist or a worker is running
+    it. A deleted job leaves no row to name who deleted it, so the log line does: `by`
+    is the user the login named (web/security.py), None for the purge or without a
+    login."""
     if not store.delete_job(job_id):
         return False
-    if keys and llm is not None:
-        llm.forget_keys(keys)
     if by:
         log.info("job %s deleted by %s", job_id, by)
     else:
@@ -78,16 +71,14 @@ def remove_job(store: Store, llm: LLMClient | None, job_id: str, *, by: str | No
     return True
 
 
-def purge_expired(
-    store: Store, llm: LLMClient | None, days: int, *, now: datetime | None = None
-) -> list[str]:
+def purge_expired(store: Store, days: int, *, now: datetime | None = None) -> list[str]:
     """Delete every job not changed for `days` days (`data.retention_days`), with its
     artifacts, calls and cache rows; running jobs stay. 0 days
     keeps everything. The ids deleted."""
     if days <= 0:
         return []
     cutoff = (now or datetime.now(UTC)) - timedelta(days=days)
-    deleted = [job.id for job in store.jobs_older_than(cutoff) if remove_job(store, llm, job.id)]
+    deleted = [job.id for job in store.jobs_older_than(cutoff) if remove_job(store, job.id)]
     if deleted:
         log.info("retention: %d jobs older than %d days deleted", len(deleted), days)
     return deleted

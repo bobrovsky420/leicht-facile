@@ -22,6 +22,10 @@ timeout (`BUSY_TIMEOUT_S`) is left for the writers of another process, the comma
 while the app runs (audit B4). A write transaction begins with `BEGIN IMMEDIATE`, which
 takes the write lock up front, so a writer waits its turn before its first statement
 rather than failing midway.
+
+The store owns the response cache of its data directory (`llm/cache.py`, `cache=`), so
+that a deleted job takes its prompts' answers with it whether or not a model client
+exists (`delete_job`); the clients use the same cache.
 """
 
 from __future__ import annotations
@@ -41,6 +45,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
+from leichtfacile.llm.cache import ResponseCache
 from leichtfacile.llm.client import Usage
 from leichtfacile.schemas import (
     LANGS,
@@ -424,9 +429,14 @@ IDLE_STATUSES: tuple[str, ...] = ("queued", "needs_review", "done", "failed")
 
 
 class Store:
-    def __init__(self, path: Path, pool_size: int = POOL_SIZE) -> None:
+    def __init__(
+        self, path: Path, pool_size: int = POOL_SIZE, *, cache: ResponseCache | None = None
+    ) -> None:
+        """`cache`: the response cache whose rows a deleted job takes with it; the store
+        closes it with its connections."""
         path.parent.mkdir(parents=True, exist_ok=True)
         self.path = path
+        self.cache = cache
         self._idle: queue.LifoQueue[sqlite3.Connection] = queue.LifoQueue()
         self._size = max(1, pool_size)
         self._open = 0  # connections made, idle or in use
@@ -527,6 +537,8 @@ class Store:
             count = self._open
         for _ in range(count):
             self._idle.get().close()
+        if self.cache is not None:
+            self.cache.close()
 
     @property
     def connections(self) -> int:
@@ -731,11 +743,27 @@ class Store:
         return ids
 
     def delete_job(self, job_id: str) -> bool:
-        """Remove the job with its artifacts and calls, unless a worker is running it.
-        False when nothing was deleted; `get_job` tells the two reasons apart."""
+        """Remove the job with its artifacts and calls, and its rows in the response
+        cache (`cache`), which hold answers about the document, unless a worker is
+        running it. A cache row that another job's calls use too stays (the same text
+        twice). The rows go first, inside the job's write transaction: when they cannot
+        be deleted the job stays, so a job is never gone while its answers are left. False
+        when nothing was deleted; `get_job` tells the two reasons apart."""
         with self._tx() as conn:
-            cur = conn.execute("DELETE FROM jobs WHERE id = ? AND status != 'running'", (job_id,))
-        return cur.rowcount > 0
+            row = conn.execute("SELECT status FROM jobs WHERE id = ?", (job_id,)).fetchone()
+            if row is None or row["status"] == "running":
+                return False
+            if self.cache is not None:
+                rows = conn.execute(
+                    "SELECT DISTINCT cache_key FROM llm_calls WHERE job_id = ? "
+                    "AND cache_key IS NOT NULL AND cache_key NOT IN "
+                    "(SELECT cache_key FROM llm_calls WHERE job_id != ? "
+                    "AND cache_key IS NOT NULL)",
+                    (job_id, job_id),
+                ).fetchall()
+                self.cache.delete_many(r["cache_key"] for r in rows)
+            conn.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+        return True
 
     def jobs_older_than(self, cutoff: datetime) -> list[Job]:
         """Jobs last changed before `cutoff` that no worker holds, for the purge."""
@@ -853,8 +881,8 @@ class Store:
         return [dict(r) for r in rows]
 
     def cache_keys(self, job_id: str) -> list[str]:
-        """The response-cache keys of the job's model calls, so that a deleted job
-        takes its cached prompts and answers with it (llm/cache.py)."""
+        """The response-cache keys of the job's model calls (llm/cache.py), the rows a
+        deleted job takes with it (`delete_job`)."""
         with self._connection() as conn:
             rows = conn.execute(
                 "SELECT DISTINCT cache_key FROM llm_calls WHERE job_id = ? "

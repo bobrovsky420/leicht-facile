@@ -388,7 +388,7 @@ def delete(request: Request, job_id: str) -> dict:
     left to."""
     _job_or_404(request, job_id)
     state = _state(request)
-    if not remove_job(state.store, state.registry.llm, job_id, by=current_user(request)):
+    if not remove_job(state.store, job_id, by=current_user(request)):
         raise HTTPException(409, BUSY)
     return {"deleted": job_id}
 

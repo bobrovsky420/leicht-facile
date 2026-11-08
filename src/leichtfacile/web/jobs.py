@@ -22,7 +22,12 @@ from fastapi import File, Form, UploadFile
 from fastapi.concurrency import run_in_threadpool
 
 from leichtfacile.config import Settings
-from leichtfacile.ingest.errors import IngestError, PrivateAddressError, UnknownHostError
+from leichtfacile.ingest.errors import (
+    DocumentTooLongError,
+    IngestError,
+    PrivateAddressError,
+    UnknownHostError,
+)
 from leichtfacile.lifecycle import source_counts
 from leichtfacile.pipeline.prompts import available_languages
 from leichtfacile.schemas import (
@@ -248,14 +253,20 @@ def ingest_submission(  # noqa: C901, PLR0912
                 raise SubmissionError("no_host")
             # The fetch refuses every hop into the private network, redirects included,
             # and connects to the address it checked (ingest/fetch.py).
-            source = ingest.ingest_url(url, lang=lang, allow_private=allow_private_urls)
+            source = ingest.ingest_url(
+                url, lang=lang, allow_private=allow_private_urls, max_chars=max_chars, isolated=True
+            )
         else:
             data = sub.file_data or b""
             if len(data) > MAX_FILE_BYTES:
                 raise SubmissionError("file_too_large", mb=MAX_FILE_BYTES // 1_000_000)
             name = (sub.file_name or "upload").lower()
             if name.endswith(".pdf") or data[:5] == b"%PDF-":
-                source = ingest.ingest_pdf(data, filename=sub.file_name, lang=lang)
+                # In a child process with a time and a memory limit, and no further than
+                # the text limit (pdfwords.py): a small file can unpack to gigabytes.
+                source = ingest.ingest_pdf(
+                    data, filename=sub.file_name, lang=lang, max_chars=max_chars, isolated=True
+                )
             elif _not_text(data):
                 raise SubmissionError("upload_format")
             else:
@@ -274,6 +285,8 @@ def ingest_submission(  # noqa: C901, PLR0912
         raise SubmissionError("private_url", host=exc.host) from exc
     except UnknownHostError as exc:
         raise SubmissionError("unknown_host", host=exc.host) from exc
+    except DocumentTooLongError as exc:  # a PDF whose reading stopped at the limit
+        raise SubmissionError("document_too_long_more", chars=exc.chars, max=max_chars) from exc
     except IngestError as exc:
         raise SubmissionError("ingest", detail=str(exc)) from exc
     if (chars := len(source.text())) > max_chars:

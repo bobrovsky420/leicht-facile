@@ -15,8 +15,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from leichtfacile import __version__
+from leichtfacile import __version__, config
 from leichtfacile.config import Settings
+from leichtfacile.llm.cache import open_cache
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.llm.registry import Registry
 from leichtfacile.logs import configure_logging
@@ -40,18 +41,24 @@ def create_app(
     `llm` (the client of the preset in use) and `clients` (the other ready presets, by
     name) given, on those; else on the settings as they are now, the clients made on
     first use and made anew when the model page changes the settings. The app starts
-    without a ready preset: its model page asks for the key."""
-    if llm is not None:
-        if settings is None:
-            raise TypeError("a client needs its settings")
-        registry = Registry(settings, llm=llm, clients=clients)
-    else:
-        registry = Registry.from_settings(settings)
-    settings = registry.settings
+    without a ready preset: its model page asks for the key. The store owns the response
+    cache (`open_cache`), so that a deleted job takes its rows with it while no preset
+    is ready too; the registry's clients use it."""
+    if llm is not None and settings is None:
+        raise TypeError("a client needs its settings")
+    settings = settings or config.load(strict=False).settings
     # One line per record, text or JSON, with the request and job ids (logs.py); no
     # excerpt of a document or an answer in an error's line (docs/operations.md).
     configure_logging(settings.log.level, settings.log.format)
-    store = store or Store(settings.data.dir / DATABASE_NAME)
+    store = store or Store(
+        settings.data.dir / DATABASE_NAME, cache=open_cache(settings.data.dir, settings.llm.cache)
+    )
+    if llm is not None:
+        registry = Registry(settings, llm=llm, clients=clients)
+    else:
+        registry = Registry.from_settings(
+            settings, cache=store.cache if settings.llm.cache else None
+        )
     orchestrator = Orchestrator(store, registry)
     metrics = observability.Metrics()  # what this process counts for /metrics
     runner = JobRunner(

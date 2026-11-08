@@ -4,10 +4,11 @@ ones a draft may pick in the New draft form.
 A registry built from the settings makes a preset's client on first use and drops every
 client when the settings change (`reload`: the model page of the web app saved a choice
 or a key), so that the next draft runs on the new preset while a job already running
-keeps the client it started with. One response cache serves them all (`llm.cache`). A
-registry given its clients (the tests, a command with one client) keeps them as they
-are. A local provider's models are listed on request (`discover`), with the answer kept
-for a short while, since the model page and the New draft form ask on every visit.
+keeps the client it started with. The clients it makes share the response cache it is
+given (`llm.cache`), which the store owns (web/app.py), not the registry. A registry
+given its clients (the tests, a command with one client) keeps them as they are. A
+local provider's models are listed on request (`discover`), with the answer kept for a
+short while, since the model page and the New draft form ask on every visit.
 """
 
 from __future__ import annotations
@@ -36,10 +37,11 @@ class Registry:
         clients: Mapping[str, LLMClient] | None = None,
         loader: Callable[..., Loaded] | None = None,
         clock: Callable[[], float] = time.monotonic,
+        cache: ResponseCache | None = None,
     ) -> None:
         """`llm` is the client of the preset in use and `clients` the other ready ones
         by preset name, both kept as given; without them `loader` (config.load) makes
-        the clients from the settings."""
+        the clients from the settings, with `cache` (None: no cache)."""
         self.settings = settings
         self._fixed: dict[str, LLMClient] = {}
         if llm is not None:
@@ -50,15 +52,17 @@ class Registry:
         self._lock = threading.Lock()
         self._built: dict[str, LLMClient] = {}
         self._ready: dict[str, bool] = {}
-        self._cache: ResponseCache | None = None
+        self._cache = cache
         self._listed: dict[str, tuple[float, list[str] | None]] = {}
         # How a preset's client is made (the tests put one on a fake endpoint here).
         self.make_client: Callable[[Settings, ResponseCache | None], LLMClient] = _make_client
 
     @classmethod
-    def from_settings(cls, settings: Settings | None = None) -> Registry:
+    def from_settings(
+        cls, settings: Settings | None = None, *, cache: ResponseCache | None = None
+    ) -> Registry:
         """A registry on the settings as they are now, the clients made on first use."""
-        return cls(settings or config.load(strict=False).settings, loader=config.load)
+        return cls(settings or config.load(strict=False).settings, loader=config.load, cache=cache)
 
     # -- the preset in use and the others -------------------------------------------------
 
@@ -85,7 +89,7 @@ class Registry:
                 raise KeyError(name)
             if name not in self._built:
                 settings = self._loader(preset=name).settings
-                self._built[name] = self.make_client(settings, self._shared_cache())
+                self._built[name] = self.make_client(settings, self._cache)
             return self._built[name]
 
     def is_ready(self, name: str | None = None) -> bool:
@@ -102,11 +106,6 @@ class Registry:
             except ConfigError:
                 self._ready[name] = False
         return self._ready[name]
-
-    def _shared_cache(self) -> ResponseCache | None:
-        if self._cache is None and self.settings.llm.cache:
-            self._cache = ResponseCache(self.settings.data.dir / "llm_cache.sqlite")
-        return self._cache
 
     def available(self) -> list[Available]:
         """Every preset with what it lacks, the shipped ones first (config.available);
@@ -187,7 +186,7 @@ class Registry:
 
 
 def _make_client(settings: Settings, cache: ResponseCache | None) -> LLMClient:
-    return LLMClient.from_settings(settings, **({"cache": cache} if cache else {}))
+    return LLMClient(settings, cache=cache)
 
 
 def _available_fixed(name: str, llm: LLM) -> Available:

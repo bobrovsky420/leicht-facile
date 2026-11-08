@@ -342,7 +342,7 @@ def _config(args: argparse.Namespace) -> int:
 def _backup(folder: Path) -> int:
     """A consistent copy of the job database into `folder` (`store.backup_database`,
     while the app runs or not), named with the moment it was made. The response cache
-    is not copied: a deleted job's prompts must not outlive it there either
+    is not copied: a deleted job's answers must not outlive it there either
     (docs/operations.md, "Data lifecycle")."""
     from datetime import UTC, datetime
 

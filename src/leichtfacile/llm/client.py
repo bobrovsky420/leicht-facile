@@ -31,7 +31,7 @@ import openai
 
 from leichtfacile import __version__
 from leichtfacile.config import ModelSettings, Settings, merge_tables
-from leichtfacile.llm.cache import ResponseCache, cache_key
+from leichtfacile.llm.cache import CACHE_NAME, ResponseCache, cache_key
 from leichtfacile.llm.reasoning import split_reasoning
 
 log = logging.getLogger(__name__)
@@ -161,13 +161,8 @@ class LLMClient:
     @classmethod
     def from_settings(cls, settings: Settings, **kwargs: Any) -> LLMClient:
         if settings.llm.cache and "cache" not in kwargs:
-            kwargs["cache"] = ResponseCache(settings.data.dir / "llm_cache.sqlite")
+            kwargs["cache"] = ResponseCache(settings.data.dir / CACHE_NAME)
         return cls(settings, **kwargs)
-
-    @property
-    def cache(self) -> ResponseCache | None:
-        """The response cache, shared with the clients of the other presets."""
-        return self._cache
 
     # -- model resolution -------------------------------------------------------------
 
@@ -267,15 +262,6 @@ class LLMClient:
         evaluation reruns failed pairs with the cache on."""
         if self._cache and result.cache_key:
             self._cache.delete(result.cache_key)
-
-    def forget_keys(self, keys: list[str]) -> int:
-        """Drop these responses from the cache: a deleted job takes its prompts, which
-        carry the document, with it (`Store.cache_keys`). The number dropped."""
-        if not self._cache:
-            return 0
-        for key in keys:
-            self._cache.delete(key)
-        return len(keys)
 
     def list_models(self, timeout_s: float = 10.0) -> list[str]:
         page = self._client.with_options(timeout=timeout_s).models.list()

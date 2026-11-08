@@ -39,6 +39,15 @@ class ExtractionError(IngestError):
     """The document could not be parsed, or it contains no usable text."""
 
 
+class DocumentTooLongError(IngestError):
+    """Reading stopped early: the words read so far add up to more characters (`chars`)
+    than the text limit allows (a PDF, ingest/pdf.py)."""
+
+    def __init__(self, chars: int) -> None:
+        self.chars = chars
+        super().__init__(f"the document has more than {chars:,} characters of text")
+
+
 class NoTextLayerError(ExtractionError):
     """The PDF, or a page of it, has no extractable text: a scan, a table as an image.
 

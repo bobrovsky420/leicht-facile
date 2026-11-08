@@ -130,7 +130,7 @@ class JobRunner:
 
     def purge(self) -> list[str]:
         """Delete the jobs older than the retention; the ids deleted."""
-        return purge_expired(self.store, self.orchestrator.llm, self.retention_days)
+        return purge_expired(self.store, self.retention_days)
 
     # -- threads ------------------------------------------------------------------------
 

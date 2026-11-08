@@ -217,7 +217,7 @@ def test_a_rerun_or_a_deletion_waits_for_a_running_job(store, endpoint, sleeps, 
     assert in_call.wait(10)
     with pytest.raises(JobBusy):
         orch.rerun(job_id, "understand")
-    assert not remove_job(store, orch.llm, job_id)
+    assert not remove_job(store, job_id)
     assert not runner.submit(job_id)
     release.set()
     assert runner.wait_idle(30)
@@ -225,7 +225,7 @@ def test_a_rerun_or_a_deletion_waits_for_a_running_job(store, endpoint, sleeps, 
     runner.stop()  # so that the requeued job is not taken before the deletion
     orch.rerun(job_id, "write")  # idle now: allowed
     assert store.get_job(job_id).status == "queued"
-    assert remove_job(store, orch.llm, job_id)
+    assert remove_job(store, job_id)
 
 
 def test_jobs_left_running_by_a_stopped_process_are_queued_again(store, endpoint, sleeps) -> None:
@@ -272,9 +272,10 @@ def test_two_workers_share_one_orchestrator_without_sharing_run_state(
 
 
 def test_the_purge_deletes_old_jobs_with_their_cache_rows_and_keeps_the_recent_ones(
-    store, endpoint, sleeps, tmp_path
+    endpoint, sleeps, tmp_path
 ) -> None:
     cache = ResponseCache(tmp_path / "cache.sqlite")
+    store = Store(tmp_path / "purge.sqlite", cache=cache)  # the store owns the cache
     cfg = make_settings(llm__max_retries=0)
     llm = LLMClient(cfg, http_client=endpoint.http_client(), sleep=sleeps.append, cache=cache)
     orch = Orchestrator(store, llm, cfg)
@@ -289,8 +290,12 @@ def test_the_purge_deletes_old_jobs_with_their_cache_rows_and_keeps_the_recent_o
     long_ago = (datetime.now(UTC) - timedelta(days=31)).isoformat()
     with sqlite3.connect(store.path) as db:  # back-dated behind the store's back
         db.execute("UPDATE jobs SET updated_at = ? WHERE id = ?", (long_ago, old))
-    assert purge_expired(store, llm, 0) == []  # 0: keep everything
-    assert purge_expired(store, llm, 30) == [old]
+    assert purge_expired(store, 0) == []  # 0: keep everything
+    assert purge_expired(store, 30) == [old]
     assert store.get_job(old) is None and store.get_job(recent) is not None
-    assert all(cache.get(k) is None for k in keys)  # the prompts with the document are gone
-    cache.close()
+    # The recent job is the same letter, so its calls used the same rows: they stay
+    # until it goes too.
+    assert set(store.cache_keys(recent)) == set(keys) and all(cache.get(k) for k in keys)
+    assert remove_job(store, recent)
+    assert all(cache.get(k) is None for k in keys)  # the answers about the document are gone
+    store.close()

@@ -467,6 +467,7 @@
   "error.one_source": "Geben Sie genau eines an: eingefügten Text, eine Adresse oder eine Datei.",
   "error.text_too_long": "Der Text ist länger als {max} Zeichen.",
   "error.document_too_long": "Das Dokument hat {chars} Zeichen Text, die Grenze liegt bei {max}. Kürzen Sie es oder teilen Sie es in mehrere Teile auf.",
+  "error.document_too_long_more": "Das Dokument hat mehr als {chars} Zeichen Text, die Grenze liegt bei {max}. Kürzen Sie es oder teilen Sie es in mehrere Teile auf.",
   "error.url_scheme": "Die Adresse muss mit http:// oder https:// beginnen.",
   "error.file_too_large": "Die Datei ist grösser als {mb} MB.",
   "error.upload_format": "Diese Datei kann nicht gelesen werden. Laden Sie ein PDF mit Textebene, eine HTML-Seite oder eine Text- oder Markdown-Datei hoch.",

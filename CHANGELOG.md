@@ -5,6 +5,23 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Security
+
+- Deleting a draft, by hand or by the retention purge, removes its answers from the
+  response cache also while no AI model is ready (no key yet) and after the cache was
+  switched off; they stayed, with the document's fact sheet and drafts in them. An
+  answer that another draft of the same text still uses stays until that draft goes.
+- An uploaded or fetched PDF is read in a separate process that is stopped after 60
+  seconds and, on Linux, may take 1 GB of memory, so a small file that unpacks to
+  gigabytes can no longer exhaust the server; a PDF of more than 200 pages is refused,
+  and one far over the text limit is refused without being read to the end. A PDF
+  takes about a second longer to read.
+- A key put into a provider's `headers` (or `extra_body`) is masked by `config show`,
+  and `config set`, `config show` and `serve` warn that it sits in the config file in
+  plain; `config show` printed it whole.
+
 ## [0.13.1] - 2026-11-06
 
 ### Fixed
@@ -524,6 +541,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...HEAD
 [0.13.1]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.11.0...v0.12.0

@@ -367,6 +367,26 @@ def test_config_show_names_sources_and_hides_keys(home, monkeypatch) -> None:
     assert "****1234" in rows["llm.api_key"] and "secret" not in "\n".join(said)
 
 
+def test_a_key_in_a_header_is_masked_by_show_and_warned_about(home) -> None:
+    """Audit 2.5.5: `config set providers.<name>.headers.X-Api-Key sk-...` wrote the key
+    into the config file in plain and `config show` printed it whole. It still goes there
+    (a header has no variable), but show masks it, and set and show warn."""
+    run_setup(preset="cscs-apertus", api_key="secret-key-1234", ask=never, say=lambda line: None)
+    said: list[str] = []
+    key = "sk-proj-AbCdEfGhIjKlMnOpQrStUv0123456789"
+    set_value(home, "providers.cscs.headers.X-Api-Key", key, say=said.append)
+    warning = "Warning: providers.cscs.headers.X-Api-Key looks like a key and is written in"
+    assert any(line.startswith(warning) for line in said)
+    said.clear()
+    show(say=said.append)
+    rows = {line.split()[0]: line for line in said if line[:1].isalpha() and "  " in line}
+    assert '"X-Api-Key" = "****6789"' in rows["llm.headers"] and key not in "\n".join(said)
+    assert any(line.startswith(warning) for line in said)
+    # The headers the presets ship are no keys.
+    assert config.secret_entries({"anthropic-version": "2023-06-01"}) == []
+    assert config.secret_entries({"HTTP-Referer": "https://leichtfacile.ch"}) == []
+
+
 def test_edit_opens_the_editor_until_the_file_is_valid(home, monkeypatch) -> None:
     monkeypatch.setenv("EDITOR", "my-editor --wait")
     texts = iter(["[server]\nprot = 1\n", "[server]\nport = 8001\n"])

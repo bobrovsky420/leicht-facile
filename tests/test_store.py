@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from leichtfacile.llm.cache import ResponseCache
 from leichtfacile.llm.client import Usage
 from leichtfacile.schemas import (
     Block,
@@ -212,6 +213,30 @@ def test_a_rerun_removes_the_artifacts_in_the_same_step_as_the_requeue(tmp_path)
     assert loaded.status == "queued" and loaded.stage is None and loaded.error is None
     assert store.versions(job.id, "draft") == [1]
     store.close()
+
+
+def test_a_deleted_job_takes_its_cache_rows_and_leaves_those_another_job_uses(tmp_path) -> None:
+    """The store owns the response cache, so a deletion needs no model client (audit
+    2.1.2: with no preset ready, the rows stayed). A row of the same text's other job
+    stays until that job goes too; a running job keeps everything."""
+    cache = ResponseCache(tmp_path / "cache.sqlite")
+    store = Store(tmp_path / "d.sqlite", cache=cache)
+    one, two = store.create_job(JobConfig()), store.create_job(JobConfig())
+    store.add_usage(one.id, Usage("understand", "m", 1, 2, 3, cache_key="own"))
+    store.add_usage(one.id, Usage("write", "m", 1, 2, 3, cache_key="shared"))
+    store.add_usage(two.id, Usage("write", "m", 1, 2, 3, cache_key="shared"))
+    for key in ("own", "shared"):
+        cache.put(key, "m", {"text": key})
+    store.update_job(one.id, status="running")
+    assert not store.delete_job(one.id)
+    assert cache.get("own") == {"text": "own"}  # a running job keeps its rows
+    store.update_job(one.id, status="needs_review")
+    assert store.delete_job(one.id)
+    assert cache.get("own") is None and cache.get("shared") == {"text": "shared"}
+    assert store.delete_job(two.id)
+    assert cache.get("shared") is None
+    assert not store.delete_job(two.id)  # gone already
+    store.close()  # closes the cache with it
 
 
 def test_list_filters_counts_and_languages_in_sql(tmp_path) -> None:
