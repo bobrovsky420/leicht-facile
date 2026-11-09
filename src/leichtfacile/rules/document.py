@@ -5,11 +5,12 @@ the rules the judge decides (docs/rules.md, "Facts", "Layout", "Readability",
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 
 from leichtfacile.rules.base import Context, Hit, declare, rule, sev
 from leichtfacile.rules.messages import hit
+from leichtfacile.rules.value_index import ValueIndex
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
@@ -35,6 +36,34 @@ class DocInput:
     factsheet: FactSheet | None = None
     sentences: list[str] = field(default_factory=list)  # sentences of non-heading blocks
     mode: str = "standard"  # the job mode (schemas.JobMode): FACT-08 runs for decisions only
+    # The values of the draft's blocks and of the source, extracted once per check for
+    # every rule and the metrics, and FACT-01's coverage, computed once for FACT-01,
+    # FACT-02 and the metrics; the checker used to extract each block's values four
+    # times and the source's seven times per check.
+    _values: ValueIndex | None = field(default=None, init=False, repr=False)
+    _source_values: ValueIndex | None = field(default=None, init=False, repr=False)
+    _coverage: FactCoverage | None = field(default=None, init=False, repr=False)
+
+    def values(self, lang: str) -> ValueIndex:
+        """The draft's values, block by block."""
+        if self._values is None:
+            self._values = ValueIndex.of_blocks(self.draft.blocks, lang)
+        return self._values
+
+    def source_values(self, lang: str) -> ValueIndex | None:
+        """The source's values with the segments that hold them; None without a source."""
+        if self._source_values is None and self.source is not None:
+            self._source_values = ValueIndex.of_source(self.source, lang)
+        return self._source_values
+
+    def coverage(self, lang: str) -> FactCoverage | None:
+        """FACT-01's coverage of the fact sheet's must-keep values; None without a sheet."""
+        if self._coverage is None and self.factsheet is not None:
+            self._coverage = fact_coverage(
+                self.draft, self.factsheet, lang, self.source,
+                values=self.values(lang), source_values=self.source_values(lang),
+            )  # fmt: skip
+        return self._coverage
 
 
 # -- facts ---------------------------------------------------------------------------
@@ -94,8 +123,8 @@ class FactCoverage:
 
 
 def source_values(source: SourceDocument, lang: str) -> list[Value]:
-    """The values of a source, its title included."""
-    return [v for part in (source.title, source.text()) if part for v in extract_values(part, lang)]
+    """The values of a source, its title included (`ValueIndex.of_source`)."""
+    return list(ValueIndex.of_source(source, lang).values)
 
 
 def full_text(source: SourceDocument) -> str:
@@ -110,28 +139,33 @@ def _plain(text: str) -> str:
 
 
 def fact_coverage(
-    draft: Draft, factsheet: FactSheet, lang: str, source: SourceDocument | None = None
+    draft: Draft,
+    factsheet: FactSheet,
+    lang: str,
+    source: SourceDocument | None = None,
+    *,
+    values: ValueIndex | None = None,
+    source_values: ValueIndex | None = None,
 ) -> FactCoverage:
     """FACT-01: which must-keep facts with a normalised value appear in the draft. With
     the source, a fact whose value the source does not contain is not checkable: the
     model computed or invented it (FACT-05 warns), and the draft may not carry it
-    (FACT-06), so it cannot be required either."""
-    values_by_block = {b.id: extract_values(b.text, lang) for b in draft.blocks}
-    texts = {b.id: b.text for b in draft.blocks}
-    in_source = source_values(source, lang) if source is not None else None
-    source_text = full_text(source) if source is not None else ""
+    (FACT-06), so it cannot be required either. `values` and `source_values`: the
+    draft's and the source's indexes when the caller has them (`DocInput`)."""
+    index = values or ValueIndex.of_blocks(draft.blocks, lang)
+    in_source = source_values
+    if in_source is None and source is not None:
+        in_source = ValueIndex.of_source(source, lang)
     checkable, missing = [], []
     found: dict[str, list[str]] = {}
     for fact in factsheet.must_keep():
         target = parse_value_norm(fact.value_norm, fact.kind, lang)
         if target is None:
             continue
-        if in_source is not None and not contains(target, source_text, in_source):
+        if in_source is not None and not in_source.contains(target):
             continue
         checkable.append(fact)
-        blocks = [
-            bid for bid, values in values_by_block.items() if contains(target, texts[bid], values)
-        ]
+        blocks = [b.id for b in draft.blocks if index.part_contains(target, b.id)]
         if blocks:
             found[fact.id] = blocks
         else:
@@ -147,9 +181,9 @@ def fact_coverage(
     scope="document",
 )
 def fact_01(doc: DocInput, ctx: Context) -> Iterator[Hit]:
-    if not doc.factsheet:
+    coverage = doc.coverage(ctx.variety)
+    if coverage is None:
         return
-    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.variety, doc.source)
     for fact in coverage.missing:
         target = parse_value_norm(fact.value_norm, fact.kind, ctx.variety)
         expected = display_value(target, ctx.variety) if target else fact.value_norm or ""
@@ -176,8 +210,8 @@ def fact_02(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         return
     referenced = {fid for b in doc.draft.blocks for fid in b.fact_ids}
     # A value that is missing is FACT-01's finding: one missing fact, one error.
-    coverage = fact_coverage(doc.draft, doc.factsheet, ctx.variety, doc.source)
-    missing = {f.id for f in coverage.missing}
+    coverage = doc.coverage(ctx.variety)
+    missing = {f.id for f in coverage.missing} if coverage else set()
     for fact in doc.factsheet.must_keep():
         if fact.origin == "code" and not fact.value_norm:
             continue  # a protected part of a decision: FACT-08 checks it by its segments
@@ -265,8 +299,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not (doc.factsheet and doc.source):
         return
     by_id = doc.source.by_id()
-    all_values = source_values(doc.source, ctx.variety)
-    source_text = full_text(doc.source)
+    index = doc.source_values(ctx.variety)
     for fact in doc.factsheet.facts:
         unknown = [s for s in fact.segment_ids if s not in by_id]
         if unknown:
@@ -284,7 +317,7 @@ def fact_05(doc: DocInput, ctx: Context) -> Iterator[Hit]:
         if contains(target, cited, extract_values(cited, ctx.variety)):
             continue
         yield hit(
-            "FACT-05.cited" if contains(target, source_text, all_values) else "FACT-05",
+            "FACT-05.cited" if index is not None and index.contains(target) else "FACT-05",
             fact=fact.id,
             value=fact.value_norm or "",
             evidence=fact.text,
@@ -328,8 +361,16 @@ class KnownValues:
     source_text: str = ""  # the source as `_plain` writes it, for an address word for word
 
     @classmethod
-    def of(cls, source: SourceDocument, factsheet: FactSheet | None, lang: str) -> KnownValues:
-        values = source_values(source, lang)
+    def of(
+        cls,
+        source: SourceDocument,
+        factsheet: FactSheet | None,
+        lang: str,
+        *,
+        index: ValueIndex | None = None,
+    ) -> KnownValues:
+        """`index`: the source's values when the caller has them (`DocInput`)."""
+        values = list(index.values) if index is not None else source_values(source, lang)
         fact_values: list[Value] = []
         if factsheet:
             for fact in factsheet.facts:
@@ -373,11 +414,11 @@ class KnownValues:
 
     def foreign(self, text: str) -> list[Value]:
         """The hard values of a text that neither the source nor the fact sheet has."""
-        return [
-            v
-            for v in extract_values(text, self.lang)
-            if v.kind in HARD_KINDS and not self.supports(v)
-        ]
+        return self.foreign_of(extract_values(text, self.lang))
+
+    def foreign_of(self, values: Iterable[Value]) -> list[Value]:
+        """Of a text's values, the hard ones that neither the source nor the fact sheet has."""
+        return [v for v in values if v.kind in HARD_KINDS and not self.supports(v)]
 
     def suggestion(self, value: Value) -> str | None:
         """The source's only contact of the value's kind, if it has exactly one."""
@@ -388,17 +429,25 @@ class KnownValues:
 
 
 def foreign_values(
-    draft: Draft, source: SourceDocument, factsheet: FactSheet | None, lang: str
+    draft: Draft,
+    source: SourceDocument,
+    factsheet: FactSheet | None,
+    lang: str,
+    *,
+    values: ValueIndex | None = None,
+    source_values: ValueIndex | None = None,
 ) -> list[ForeignValue]:
     """FACT-06: the dates, amounts, phone numbers, e-mail and web addresses, percentages,
     times, periods, identifiers and postal addresses in the draft that neither the
     source nor the fact sheet contains, in draft order. Plain numbers are not checked;
-    "zwei Wochen" may become "14 Tage" (the periods are equal)."""
-    known = KnownValues.of(source, factsheet, lang)
+    "zwei Wochen" may become "14 Tage" (the periods are equal). `values` and
+    `source_values`: the draft's and the source's indexes when the caller has them."""
+    known = KnownValues.of(source, factsheet, lang, index=source_values)
+    index = values or ValueIndex.of_blocks(draft.blocks, lang)
     return [
         ForeignValue(block.id, value, known.suggestion(value))
         for block in draft.blocks
-        for value in known.foreign(block.text)
+        for value in known.foreign_of(index.of_part(block.id))
     ]
 
 
@@ -412,7 +461,10 @@ def foreign_values(
 def fact_06(doc: DocInput, ctx: Context) -> Iterator[Hit]:
     if not doc.source:
         return
-    for item in foreign_values(doc.draft, doc.source, doc.factsheet, ctx.variety):
+    for item in foreign_values(
+        doc.draft, doc.source, doc.factsheet, ctx.variety,
+        values=doc.values(ctx.variety), source_values=doc.source_values(ctx.variety),
+    ):  # fmt: skip
         yield hit(
             f"FACT-06.{item.value.kind}",  # one message per kind: the date, the amount, ...
             value=item.value.text,

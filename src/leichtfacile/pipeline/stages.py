@@ -35,6 +35,7 @@ from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.medication import has_doses, names_medication
 from leichtfacile.rules.nlp import parse
 from leichtfacile.rules.styleguide import style_guide
+from leichtfacile.rules.value_index import ValueIndex
 from leichtfacile.rules.values import (
     HARD_KINDS,
     Value,
@@ -614,24 +615,20 @@ def _only_value(text: str, lang: str, value: Value) -> bool:
 
 
 def _occurrences(
-    values: list[Value], source: SourceDocument, spans: list[tuple[int, int]]
+    index: ValueIndex, source: SourceDocument
 ) -> list[tuple[Value, list[Segment], set[str]]]:
     """Each hard value of the source text once: the segments of its first occurrence
     (the fact's sentences and text) and the ids of the segments of every occurrence. A
     later occurrence joins the first as the first covers it (`matches`, in the direction
-    of `complete_factsheet`'s cover check)."""
+    of `complete_factsheet`'s cover check). A value of the title alone belongs to no
+    segment and makes no fact."""
     found: list[tuple[Value, list[Segment], set[str]]] = []
-    for value in values:
-        if value.kind not in HARD_KINDS:
+    by_id = source.by_id()
+    for value, holders in zip(index.values, index.holders, strict=True):
+        if value.kind not in HARD_KINDS or not holders:
             continue
-        segments = [
-            seg
-            for seg, (start, end) in zip(source.segments, spans, strict=True)
-            if start < value.end and value.start < end
-        ]
-        if not segments:
-            continue
-        ids = {s.id for s in segments}
+        segments = [by_id[i] for i in holders]
+        ids = set(holders)
         for first, _, everywhere in found:
             if matches(value, first):
                 everywhere |= ids
@@ -660,8 +657,8 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     # (`Gerichtsstrasse 12` / `8000 Musterwil`) is one value, found in neither alone
     # (the silent-loss metric showed the gap on 7 October 2026). Each value cites
     # the segments it spans.
-    text, spans = source.text_with_offsets()
-    for value, segments, everywhere in _occurrences(extract_values(text, lang), source, spans):
+    index = ValueIndex.of_source(source, lang)
+    for value, segments, everywhere in _occurrences(index, source):
         # Covered means: a reader who searches the fact sheet for this value finds it
         # (the evaluation's silent-loss check asks the same question, in the same
         # direction). A fact with the place alone does not cover the full address,
@@ -1177,12 +1174,13 @@ def _block_links(
     variety: str,
     source: SourceDocument | None,
     source_ids: set[str] | None,
+    values: list[Value],
 ) -> tuple[list[str], list[str]]:
     """The fact ids and the sentence ids one block ends up with: the ids it names that
     the sheet has and the facts whose value it contains (`_held_facts`), then, by the
     sentences it cites (`_cited_sentences`), the parts and plain facts of a cited
-    sentence and the worded facts all of whose values it contains (`_same_value`)."""
-    values = extract_values(b.text, variety) if facts.targets or facts.worded else []
+    sentence and the worded facts all of whose values it contains (`_same_value`).
+    `values`: the block's values (`ValueIndex.of_blocks`)."""
     holding = [
         (fact_id, target, fact_segments)
         for fact_id, target, fact_segments in facts.targets
@@ -1208,7 +1206,7 @@ def _block_links(
 
 
 def _with_spread_facts(
-    blocks: list[Block], worded: list[tuple[str, set[str], list[Value]]], variety: str
+    blocks: list[Block], worded: list[tuple[str, set[str], list[Value]]], index: ValueIndex
 ) -> list[Block]:
     """The blocks with each worded fact (`_FactGroups.worded`) no block conveys yet whose
     values the writer spread over the blocks that cite its sentences (the two income
@@ -1218,7 +1216,7 @@ def _with_spread_facts(
         if any(fact_id in b.fact_ids for b in blocks):
             continue
         citing = [i for i, b in enumerate(blocks) if segments & set(b.segment_ids)]
-        held = {i: extract_values(blocks[i].text, variety) for i in citing}
+        held = {i: index.of_part(blocks[i].id) for i in citing}
         if citing and all(any(_same_value(t, v) for i in citing for v in held[i]) for t in in_text):
             for i in citing:
                 if any(_same_value(t, v) for t in in_text for v in held[i]):
@@ -1244,14 +1242,17 @@ def link_facts(draft: Draft, factsheet: FactSheet, source: SourceDocument | None
     sentence and leaves the tag out; the judge's fact check still reads the meaning)."""
     facts = _FactGroups.of(factsheet, draft.variety)
     source_ids = source.segment_ids() if source is not None else None
+    index = ValueIndex.of_blocks(draft.blocks, draft.variety)  # the values once per block
     blocks: list[Block] = []
     for b in draft.blocks:
-        ids, segment_ids = _block_links(b, facts, draft.variety, source, source_ids)
+        ids, segment_ids = _block_links(
+            b, facts, draft.variety, source, source_ids, index.of_part(b.id)
+        )
         if ids == b.fact_ids and segment_ids == b.segment_ids:
             blocks.append(b)
         else:
             blocks.append(b.model_copy(update={"fact_ids": ids, "segment_ids": segment_ids}))
-    blocks = _with_spread_facts(blocks, facts.worded, draft.variety)
+    blocks = _with_spread_facts(blocks, facts.worded, index)
     return draft.model_copy(update={"blocks": blocks})
 
 

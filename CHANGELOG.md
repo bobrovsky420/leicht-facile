@@ -20,6 +20,14 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Changed
 
+- The value checks read each language's own words: the month names, the clock and time
+  words, the percent, currency and multiplier words, the number words and the period
+  units come from `rules/data/values_<lang>.toml`, one file per language with its
+  varieties' number formats. A French month in a German text is no longer a date, and
+  `2 h` in a German text is a duration, not the time 02:00.
+- The rule check extracts the values of a draft and of its source once instead of four
+  and seven times, and computes the fact coverage once for FACT-01, FACT-02 and the
+  metrics.
 - `/metrics` reports how long every stored job's last run took, read from the job's
   log, so a restart loses nothing; the progress page's time left comes from the
   wall-clock time of each stage over past jobs, code time and waits included, where
@@ -30,6 +38,8 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Fixed
 
+- Italian number words in compounds count in periods: `entro ventuno giorni` is 21 days,
+  as the German and French compounds were.
 - A job queued again after a failure, a stop or a restart continues with the round it
   was in instead of running every round again from the first draft; its stored
   versions keep their text, and a judge report is reused only for the content it judged.

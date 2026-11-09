@@ -22,7 +22,7 @@ from leichtfacile.rules.base import (
     params_for,
     rules_for,
 )
-from leichtfacile.rules.document import DocInput, fact_coverage
+from leichtfacile.rules.document import DocInput, FactCoverage, fact_coverage
 from leichtfacile.rules.nlp import has_analysis, parse, pipeline
 from leichtfacile.schemas import (
     SEVERITY_RANK,
@@ -160,7 +160,7 @@ class RuleChecker:
             for spec, check in rules_for(self.variety, scope):
                 findings += self._findings(spec.id, check(doc, ctx), ctx, None)
 
-        metrics = self.metrics(infos, draft, factsheet, source)
+        metrics = self.metrics(infos, draft, factsheet, source, coverage=doc.coverage(self.variety))
         return RuleFindings(
             draft_version=draft.version,
             level=draft.level,
@@ -207,7 +207,10 @@ class RuleChecker:
         draft: Draft,
         factsheet: FactSheet | None,
         source: SourceDocument | None = None,
+        *,
+        coverage: FactCoverage | None = None,
     ) -> DocMetrics:
+        """`coverage`: FACT-01's coverage when the check computed it already."""
         from leichtfacile.rules.readability import readability
 
         sentences = [s for i in infos if i.kind != "heading" for s in i.sentences]
@@ -235,7 +238,7 @@ class RuleChecker:
             readability_formula=result.formula,
         )
         if factsheet:
-            coverage = fact_coverage(draft, factsheet, self.variety, source)
+            coverage = coverage or fact_coverage(draft, factsheet, self.variety, source)
             metrics.facts_total = len(coverage.checkable)
             metrics.facts_found = len(coverage.found)
             ratio = coverage.ratio

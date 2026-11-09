@@ -1120,7 +1120,7 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
     spans: list[tuple[int, int]] = []
     for m in TIME_RANGE_RE.finditer(text):
         is_time = "Uhr" in m.group(0) or (
-            (m.group(2) or m.group(4)) and not amount_range(text, *m.span())
+            (m.group(2) or m.group(4)) and not amount_range(text, *m.span(), lang=ctx.variety)
         )  # CHF 1.50-2.50 pro Stück is a range of amounts
         if not is_time or int(m.group(1)) > 24 or int(m.group(3)) > 24:
             continue

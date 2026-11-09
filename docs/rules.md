@@ -144,7 +144,18 @@ office loses nothing; what is ambiguous follows the variety: the thousands dot a
 decimal comma, the loose German phone shapes and the bare five-digit postcode are read
 in de-DE and de-AT only, and the Swiss varieties read exactly as before (the parity
 check of `scripts/parity.py`). The month and period words, the number words and the
-time forms are the language's.
+time forms are the language's. They are data: `rules/data/values_<lang>.toml` holds, per
+language, the month names and abbreviations, the clock and time words, the percent,
+currency, subunit and multiplier words, the number words and how they compound, the
+period units, adjectives and frequency words, and the number format, the phone shapes
+and the postcode rule of its varieties (`[variety.DE]`, `[variety.AT]`);
+`rules/value_grammar.py` reads a file and builds the patterns, and the shapes (the digits
+of a date, an IBAN, a phone number, an address) stay in `rules/values.py`. A text is read
+with its own language's words alone: `mars` is a planet in German and a month in French,
+`2 h` a duration in German and a time in French. The values of a draft and of its source
+are extracted once per check (`rules/value_index.py`, `ValueIndex`: each value with the
+blocks or segments that hold it) and read by FACT-01, FACT-02, FACT-05, FACT-06, the
+metrics, the code completion of the fact sheet and the linking of facts to blocks.
 
 | Kind | Found as | Canonical form and matching |
 |------|----------|-----------------------------|

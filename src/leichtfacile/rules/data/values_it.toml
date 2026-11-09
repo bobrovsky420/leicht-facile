@@ -1,0 +1,138 @@
+# The Italian value grammar: the words and formats rules/values.py reads values with
+# (docs/rules.md, "Value kinds"; rules/value_grammar.py reads this file; values_de.toml
+# explains every key). Swiss Italian: the thousands take an apostrophe, the amounts are
+# francs, the times are written with ore and without a clock word.
+
+[dates]
+month_names = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio",
+               "agosto", "settembre", "ottobre", "novembre", "dicembre"]
+abbreviations = []
+day = "{day}"
+# dal 7 al 11 giugno, dal 7 all'11 giugno, il 15 e 16 marzo
+range_words = ["al", "e", "all'"]
+
+[dates.months]
+gennaio = 1
+febbraio = 2
+marzo = 3
+aprile = 4
+maggio = 5
+giugno = 6
+luglio = 7
+agosto = 8
+settembre = 9
+ottobre = 10
+novembre = 11
+dicembre = 12
+
+[time]
+clock_word = ""
+hour_letter = false
+# ore 9.00, alle 9.00, dalle 8.00, also at a sentence start (Ore 9.00 apertura); a dotted
+# hour without such a word is an amount or a decimal (il costo è di 9.00 franchi).
+prefix_words = ["ore", "alle", "dalle"]
+# alle ore 9
+bare_hour_words = ["ore"]
+range_words = []
+# dalle 8.00 alle 11.30, dalle ore 8.30 alle ore 11.30, tra le 11.00 e le 15.00
+range_before = ["dalle", "tra le", "fra le"]
+range_between = ["alle", "e le"]
+
+[percent]
+words = ["per cento", "percento"]
+
+[currency]
+before = ["CHF", "Fr.", "SFr.", "sFr.", "EUR", "€"]
+after = ["CHF", "Fr.", "franchi", "franco", "EUR", "euro", "€"]
+# 2 miliardi di franchi
+link_words = ["di"]
+subunits = ["centesimi", "centesimo"]
+weekday_abbreviations = []
+weekday_joiners = []
+
+[currency.multipliers]
+"milione" = 1000000
+"milioni" = 1000000
+"Mio." = 1000000
+"Mio" = 1000000
+"miliardo" = 1000000000
+"miliardi" = 1000000000
+"Mrd." = 1000000000
+"Mrd" = 1000000000
+
+[numbers]
+thousands = ["'", "’", "ʼ", " ", "\u00a0", "\u202f", "\u2009"]
+decimal = [".", ","]
+dot_decimals = false
+writes_thousands = "'"
+writes_decimal = "."
+
+[number_words]
+# ventuno, trentotto, duecento, duemila: the words are joined, a final vowel elided
+# before uno and otto.
+compound = "joined"
+
+[number_words.table]
+un = 1
+uno = 1
+una = 1
+due = 2
+tre = 3
+quattro = 4
+cinque = 5
+sei = 6
+sette = 7
+otto = 8
+nove = 9
+dieci = 10
+undici = 11
+dodici = 12
+tredici = 13
+quattordici = 14
+quindici = 15
+sedici = 16
+diciassette = 17
+diciotto = 18
+diciannove = 19
+venti = 20
+trenta = 30
+quaranta = 40
+cinquanta = 50
+sessanta = 60
+settanta = 70
+ottanta = 80
+novanta = 90
+cento = 100
+mille = 1000
+
+[periods]
+# nei prossimi tre mesi
+adjectives = ["prossimo", "prossima", "prossimi", "prossime",
+              "ultimo", "ultima", "ultimi", "ultime",
+              "primo", "prima", "primi", "prime",
+              "successivo", "successiva", "successivi", "successive",
+              "intero", "intera", "interi", "intere"]
+# tre giorni alla settimana
+frequency_words = ["per", "alla", "al"]
+frequency_cycles = ["settimana", "mese", "anno"]
+
+[periods.units]
+wd = ["giorno lavorativo", "giorni lavorativi"]
+d = ["giorno", "giorni"]
+w = ["settimana", "settimane"]
+m = ["mese", "mesi"]
+y = ["anno", "anni"]
+
+[periods.names]
+d = ["giorno", "giorni"]
+w = ["settimana", "settimane"]
+m = ["mese", "mesi"]
+y = ["anno", "anni"]
+wd = ["giorno lavorativo", "giorni lavorativi"]
+
+[phone]
+style = "swiss"
+
+[addresses]
+five_digit_postcodes = false
+street_word = "strasse"

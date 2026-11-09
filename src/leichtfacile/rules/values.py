@@ -10,6 +10,11 @@ date, "1'500 Franken", "CHF 1500.-" and "1 500.00" the same amount, "30 Tagen",
 the same quantity. A medication name is no pattern (there is no drug list): the fact
 sheet gives it as the value of a fact of kind `medication`, and it is searched as
 written, case-insensitive, ignoring the Mediopunkt.
+
+The shapes are code; the words a language says (its months, its clock word, its
+currency, multiplier and number words, its period units) and the formats of its
+varieties are data in rules/data/values_<lang>.toml, read by rules/value_grammar.py:
+a text is read with its own language's words alone.
 """
 
 from __future__ import annotations
@@ -21,7 +26,14 @@ from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Literal
 
-from leichtfacile.schemas import base_lang
+from leichtfacile.rules.value_grammar import (
+    DASHES,
+    PERIOD_UNITS,
+    QUOTES,
+    Grammar,
+    grammar_for,
+    languages,
+)
 
 ValueKind = Literal[
     "date", "amount", "number", "phone", "email", "url", "percent", "time",
@@ -34,53 +46,19 @@ HARD_KINDS: tuple[ValueKind, ...] = (
     "period", "identifier", "address", "quantity", "schedule",
 )  # fmt: skip
 
-MONTHS: dict[str, dict[str, int]] = {
-    "de": {
-        "januar": 1, "jan": 1, "jänner": 1, "jaenner": 1, "jän": 1, "februar": 2, "feb": 2,
-        "feber": 2, "märz": 3, "maerz": 3, "mär": 3,
-        "april": 4, "apr": 4, "mai": 5, "juni": 6, "jun": 6, "juli": 7, "jul": 7,
-        "august": 8, "aug": 8, "september": 9, "sept": 9, "sep": 9, "oktober": 10,
-        "okt": 10, "november": 11, "nov": 11, "dezember": 12, "dez": 12,
-    },
-    "fr": {
-        "janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5,
-        "juin": 6, "juillet": 7, "août": 8, "aout": 8, "septembre": 9, "octobre": 10,
-        "novembre": 11, "décembre": 12, "decembre": 12,
-    },
-    "it": {
-        "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4, "maggio": 5, "giugno": 6,
-        "luglio": 7, "agosto": 8, "settembre": 9, "ottobre": 10, "novembre": 11,
-        "dicembre": 12,
-    },
-}  # fmt: skip
-MONTH_NAMES = {
-    "de": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
-           "September", "Oktober", "November", "Dezember"],
-    # Austria writes Jänner (the varieties, docs/architecture.md section 8); the other
-    # German varieties take the "de" names.
-    "de-AT": ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
-              "September", "Oktober", "November", "Dezember"],
-    "fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
-           "septembre", "octobre", "novembre", "décembre"],
-    "it": ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio",
-           "agosto", "settembre", "ottobre", "novembre", "dicembre"],
-}  # fmt: skip
-
-DASHES = "-\u2010\u2011\u2012\u2013\u2014"
-_SEP = r"[ '\u2019\u02bc\u00a0\u202f\u2009]"  # thousands separators seen in Swiss texts
-_QUOTES = "\"'\u00ab\u00bb\u201c\u201d\u201e"
-_ALL_MONTHS = sorted({m for names in MONTHS.values() for m in names}, key=len, reverse=True)
-_ABBREVIATED = {"jan", "jän", "feb", "mär", "apr", "jun", "jul", "aug", "sep", "sept", "okt", "nov",
-                "dez"}  # fmt: skip
-# Abbreviated months may carry a dot (31. Jan. 2026); full names may not, so a
-# sentence-final dot is never part of the date.
-_MONTH_RE = "|".join(re.escape(m) + (r"\.?" if m in _ABBREVIATED else "") for m in _ALL_MONTHS)
+# The month tables of the languages, from their grammars, for callers that list every
+# month name (eval/diagnose.py): name or abbreviation to number, and the names written.
+MONTHS: dict[str, dict[str, int]] = {lang: grammar_for(lang).months for lang in languages()}
+MONTH_NAMES: dict[str, list[str]] = {
+    **{lang: list(grammar_for(lang).month_names) for lang in languages()},
+    "de-AT": list(grammar_for("de-AT").month_names),
+}
 
 EMAIL_RE = re.compile(r"(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-zA-Z]{2,}(?![\w-])")
 URL_RE = re.compile(
-    r"(?:(?:https?://|www\.)[^\s<>()" + _QUOTES + r"]+"
+    r"(?:(?:https?://|www\.)[^\s<>()" + QUOTES + r"]+"
     r"|(?<![\w@.-])(?:[a-z0-9-]+\.)+(?:ch|swiss|com|org|net|info|li|eu|de|fr|it)"
-    r"(?:/[^\s<>()" + _QUOTES + r"]*)?)(?![\w@-])",
+    r"(?:/[^\s<>()" + QUOTES + r"]*)?)(?![\w@-])",
     re.IGNORECASE,
 )
 # Service numbers (free 0800, shared-cost 084x, premium 090x) have ten digits and come
@@ -101,207 +79,19 @@ DATE_NUM_RE = re.compile(
     r"(?<![\d.])(\d{1,2})\.[ ]?(\d{1,2})\.(?:(?:[ ](?=\d{4}(?!\d)))?(\d{4}|\d{2})(?!\d)|(?!\d))"
 )
 DATE_SLASH_RE = re.compile(r"(?<![\d/])(\d{1,2})/(\d{1,2})/(\d{4}|\d{2})(?![\d/])")
-DATE_TEXT_RE = re.compile(
-    r"(?<!\d)(1er|1°|1º|\d{1,2})\.?[ ]?(" + _MONTH_RE + r")(?:[ ](\d{4}))?(?!\w)",
-    re.IGNORECASE,
-)
-# Two days of one month with the month (and the year) written once: `vom 7. bis 11.
-# Juni 2027`, `7.-11. Juni`, `15. und 16. März`, `du 7 au 11 juin 2027`, `les 1er et 2
-# juin`, `dal 7 al 11 giugno`, `dal 7 all'11 giugno`. The first day is a date of that
-# month too (31 October 2026: FACT-01 had asked for 7 June 2027 next to such a range in
-# the school letters, and the rounds then added the source sentence beside it).
-DATE_RANGE_RE = re.compile(
-    r"(?<!\d)(1er|\d{1,2})\.?(?:[ ](?:bis|und|au|et|al|e)[ ]|[ ]?all[\u2019']|[ ]?["
-    + DASHES
-    + r"/][ ]?)(1er|1°|1º|\d{1,2})\.?[ ]?("
-    + _MONTH_RE
-    + r")(?:[ ](\d{4}))?(?!\w)",
-    re.IGNORECASE,
-)
-TIME_RE = re.compile(
-    r"(?<![\d.:'])(?:"
-    # 9.00 Uhr, 09:00; Italian ore 9.00, alle 9.00, dalle 8.00, also at a sentence start
-    # (Ore 9.00 apertura). A dotted time counts without Uhr only with such a word before
-    # it, and only in an Italian text (`_time`): 1.50 is an amount or a decimal.
-    r"(?:\b(?i:ore|alle|dalle)[ ])?(\d{1,2})[.:](\d{2})(?!\d)(?![.,']\d)(?:[ ]?Uhr)?"
-    r"|(\d{1,2})[ ]?h[ ]?(\d{2})?(?!\w)"  # 9 h 00, 9h
-    r"|(\d{1,2})[ ]?Uhr"  # 9 Uhr
-    r"|\b(?i:ore)[ ](\d{1,2})(?![\d:])(?![.,]\d)"  # Italian alle ore 9
-    r")"
-)
-TIME_RANGE_RE = re.compile(
-    r"(?<![\d.:'])(\d{1,2})[.:](\d{2})[ ]?(?:Uhr[ ]?)?(?:bis|-|\u2013)[ ]?"
-    r"(\d{1,2})[.:](\d{2})(?:[ ]?Uhr)"
-)  # 8.30 bis 11.30 Uhr: the first time has no "Uhr" of its own
-TIME_RANGE_IT_RE = re.compile(
-    r"(?<![\d.:'])(?:dalle|tra le|fra le)[ ](?:ore[ ])?(\d{1,2})[.:](\d{2})"
-    r"[ ](?:alle|e le)[ ](?:ore[ ])?(\d{1,2})[.:](\d{2})(?!\d)",
-    re.IGNORECASE,
-)  # Italian dalle 8.00 alle 11.30, dalle ore 8.30 alle ore 11.30, tra le 11.00 e le 15.00
-PERCENT_RE = re.compile(
-    r"(?<![\d.,])(\d+(?:[.,]\d+)?)[ ]?(?:%|Prozent|pour[ ]?cent|per[ ]?cento)", re.IGNORECASE
-)
-NUMBER_RE = re.compile(
-    r"(?<![\d.,'/])(\d{1,3}(?:" + _SEP + r"\d{3})+|\d+)"
-    r"(?:([.,])(\d{1,2}|[" + DASHES + r"]{1,2})(?!\d))?(?![\d'])"
-)
-_CURRENCY_BEFORE = re.compile(r"(?:CHF|Fr\.|SFr\.|sFr\.|EUR|€)[ ]?$")
-# A Fr. joined to another day of the week is Friday, not francs: `Mo.-Fr. 8.00-12.00`,
-# `Mo. bis Fr.`, `Di, Do, Fr.` (and `So kostet es Fr. 3.50` an amount).
-_WEEKDAY_BEFORE_RE = re.compile(
-    r"\b(?:Mo|Di|Mi|Do|Sa|So)\.?[ ]?(?:[" + DASHES + r"/,]|bis|und)[ ]?$"
-)
-_CURRENCY_AFTER = re.compile(
-    r"^[ ]?(?:d[ei][ ])?(?:CHF|Fr\.|Franken|francs?|franchi|franco|EUR|Euro|€)(?![\w·])",
-    re.IGNORECASE,
-)  # `2 millions de francs`; the euro of the German and Austrian letters (29 October 2026);
-# a word that only begins so is none (`3 francophones`, `20 Europäer`)
-# Rappen, centimes and cents are hundredths: `70 Rappen` is the amount of `CHF 0.70`,
-# not of `CHF 70` (a cent of the euro is written with a capital, a French cent is 100).
-_SUBUNIT_AFTER = re.compile(
-    r"^[ ]?(?:Rappen|Rp\.|centimes?|centesim[oi]|(?-i:Cent))(?![\w·])", re.IGNORECASE
-)
-# The text after a number that the two patterns above read: long enough for the longest
-# of them (` di franchi`) and the letter after it.
+# The text after a number that the currency, subunit and multiplier words are read in:
+# long enough for the longest of them (` di franchi`) and the letter after it.
 _AFTER_WINDOW = 16
-# Germany and Austria write the thousands with a dot and the decimals with a comma
-# (`1.500,00 €`, `€ 1.500,--`); a dot before one or two digits is read as a decimal
-# point all the same (`1.5 Mio.`). The Swiss varieties keep NUMBER_RE above. The style
-# follows the variety key (`de-DE`, `de-AT`: `_german_style`).
-_SEP_DE = r"[. '\u2019\u00a0\u202f\u2009]"
-_NUMBER_DE_RE = re.compile(
-    r"(?<![\d.,'/])(\d{1,3}(?:" + _SEP_DE + r"\d{3})+|\d+)"
-    r"(?:(,)(\d{1,2}|[" + DASHES + r"]{1,2})(?!\d)|(\.)(\d{1,2})(?!\d))?(?![\d'])"
-)
-_GERMAN_REGIONS = ("DE", "AT")
-
-
-def _german_style(lang: str) -> bool:
-    """Whether a language or variety key writes numbers the German and Austrian way."""
-    return lang.partition("-")[2] in _GERMAN_REGIONS
-
-
-def _number_parts(m: re.Match[str], german: bool) -> tuple[str, str | None, str | None]:
-    """The integer, the separator and the decimals of a number match, for either style."""
-    if not german:
-        return m.group(1), m.group(2), m.group(3)
-    if m.group(2):
-        return m.group(1), m.group(2), m.group(3)
-    return m.group(1), m.group(4), m.group(5)
-
-
 # German and Austrian numbers have area codes of two to five digits and subscriber
 # numbers of three to eight, written with spaces, slashes, hyphens or brackets, never
 # with dots: `030 1234567`, `0221 / 12 34 56`, `(05544) 332211`, `0 55 44 33 22 11`,
 # `01 53115-0` (Vienna), `+49 30 1234567`, `+43 1 711 00-0`. Seven to thirteen digits in
-# the national form (`_phone_de`); PHONE_RE above runs first and takes what it fits.
+# the national form (`_phone_de`); PHONE_RE above runs first and takes what it fits. Read
+# where the grammar says so (`phone.style = "german"`: the varieties of Germany and
+# Austria).
 _PHONE_DE_RE = re.compile(
     r"(?<![\w+])(?:(?:\+4[39]|004[39])[ /-]?(?:\(0\)[ ]?)?|\(?0)[\d ()/-]{6,19}\d(?!\w)"
 )
-# A multiplier after a number scales it (since 12 October 2026): `CHF 1,5 Mio.` and
-# `1'500'000 Franken` are the same amount, `20 Millionen Franken` is an amount, not the
-# plain number 20 (found on the Fedlex Answer snippets, docs/rules.md). A billion is
-# `Mrd.`, the Swiss `Mia.` and every word with "iard" (Milliarde, milliard, miliardo),
-# a million the rest; the first three letters said "mil" for both.
-_MULTIPLIER_AFTER = re.compile(
-    r"^[ ]?(?P<word>Mio\.?|Millionen|Million|Mrd\.?|(?-i:Mia\.)|Milliarden?|millions?"
-    r"|milliards?|milion[ei]|miliard[oi])(?![\w·])",
-    re.IGNORECASE,
-)
-_BILLION = re.compile(r"^(?:mrd|mia)|iard", re.IGNORECASE)
-
-
-def _multiplier(word: str) -> int:
-    return 1_000_000_000 if _BILLION.search(word) else 1_000_000
-
-
-# -- periods: a count with days, weeks, months or years --------------------------------
-
-# Number words for periods (`dreissig Tage`, `deux semaines`). NUM-01 keeps its own
-# table for the rule; a period also needs ein/eine and the teens.
-_NUMBER_WORDS: dict[str, dict[str, int]] = {
-    "de": {
-        "ein": 1, "eine": 1, "einem": 1, "einen": 1, "einer": 1, "eines": 1, "zwei": 2,
-        "zweier": 2, "drei": 3, "dreier": 3,  # the genitive: innert dreier Monate
-        "vier": 4, "fünf": 5, "sechs": 6, "sieben": 7, "acht": 8, "neun": 9,
-        "zehn": 10, "elf": 11, "zwölf": 12, "dreizehn": 13, "vierzehn": 14, "fünfzehn": 15,
-        "sechzehn": 16, "siebzehn": 17, "achtzehn": 18, "neunzehn": 19, "zwanzig": 20,
-        "dreissig": 30, "dreißig": 30, "vierzig": 40, "fünfzig": 50, "sechzig": 60,
-        "siebzig": 70, "achtzig": 80, "neunzig": 90, "hundert": 100,
-    },
-    "fr": {
-        "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7,
-        "huit": 8, "neuf": 9, "dix": 10, "onze": 11, "douze": 12, "treize": 13,
-        "quatorze": 14, "quinze": 15, "seize": 16, "dix-sept": 17, "dix-huit": 18,
-        "dix-neuf": 19, "vingt": 20, "trente": 30, "quarante": 40, "cinquante": 50,
-        "soixante": 60, "soixante-dix": 70, "septante": 70, "quatre-vingt": 80,
-        "quatre-vingts": 80, "huitante": 80, "octante": 80, "quatre-vingt-dix": 90,
-        "nonante": 90, "cent": 100,
-    },
-    "it": {
-        "un": 1, "uno": 1, "una": 1, "due": 2, "tre": 3, "quattro": 4, "cinque": 5, "sei": 6,
-        "sette": 7, "otto": 8, "nove": 9, "dieci": 10, "undici": 11, "dodici": 12,
-        "tredici": 13, "quattordici": 14, "quindici": 15, "sedici": 16, "diciassette": 17,
-        "diciotto": 18, "diciannove": 19, "venti": 20, "trenta": 30, "quaranta": 40,
-        "cinquanta": 50, "sessanta": 60, "settanta": 70, "ottanta": 80, "novanta": 90,
-        "cento": 100,
-    },
-}  # fmt: skip
-# The unit as written: d(ays), w(eeks), m(onths), y(ears), wd (working days). The
-# canonical form keeps count and unit ("2w"); `matches` makes weeks equal to days and
-# years to months, and working days equal to nothing else. Adjective forms (`30-tägige
-# Frist`, `einjährig`) count too; a Mediopunkt inside a compound unit is allowed.
-_PERIOD_UNITS: dict[str, str] = {
-    "de": (
-        r"(?P<wd>(?:Arbeits|Werk)·?tag(?:e|en|es)?)"
-        r"|(?P<d>(?:Kalender·?)?tag(?:e|en|es)?|tägig(?:e[nmrs]?)?)"
-        r"|(?P<w>wochen?|wöchig(?:e[nmrs]?)?)"
-        r"|(?P<m>monat(?:e|en|s)?|monatig(?:e[nmrs]?)?)"
-        r"|(?P<y>jahr(?:e|en|es)?|jährig(?:e[nmrs]?)?)"
-    ),
-    "fr": (
-        r"(?P<wd>jours?[ ]ouvr(?:able|é)s?)|(?P<d>jours?)|(?P<w>semaines?)|(?P<m>mois)"
-        r"|(?P<y>ans?|années?)"
-    ),
-    "it": (
-        r"(?P<wd>giorn[oi][ ]lavorativ[oi])|(?P<d>giorn[oi])|(?P<w>settiman[ae])"
-        r"|(?P<m>mes[ei])|(?P<y>ann[oi])"
-    ),
-}
-# One adjective may stand between the count and the unit: `die zwei folgenden Wochen`,
-# `les quatre derniers mois` (since 12 October 2026).
-_PERIOD_ADJECTIVE = (
-    r"(?:folgende[nmrs]?|nächste[nmrs]?|weitere[nmrs]?|letzte[nmrs]?|kommende[nmrs]?"
-    r"|vergangene[nmrs]?|volle[nmrs]?|ganze[nmrs]?"
-    r"|derni[eè]re?s?|prochaine?s?|premi[eè]re?s?|suivante?s?|pleine?s?|enti[eè]re?s?"
-    r"|prossim[oaie]|ultim[oaie]|prim[oaie]|successiv[oaie]|inter[oaie])"
-)
-# An apostrophe before the count is an elision (`d'un mois`, `d'une semaine`), unless a
-# digit stands before it: `1'000 jours` is not `000 jours` (since 12 October 2026).
-_PERIOD_RE: dict[str, re.Pattern[str]] = {
-    lang: re.compile(
-        r"(?<![\w·.,-])(?<!\d['’])"
-        r"(?P<num>\d{1,4}|(?:[a-zäöüéèêß]+[ ]et[ ])?[a-zäöüéèêß]+(?:-[a-zäöüéèê]+)*)"
-        r"(?:[ -]?|[ ]" + _PERIOD_ADJECTIVE + r"[ ])(?:" + units + r")(?![\w·])",
-        re.IGNORECASE,
-    )
-    for lang, units in _PERIOD_UNITS.items()
-}
-# A count of days per week or month is a frequency: "vier Tage pro Woche", "2 jours par
-# semaine", "tre giorni alla settimana".
-_FREQUENCY_AFTER = re.compile(
-    r"[ ]+(?:pro|je|in[ ]der|im|par|à[ ]la|per|alla|al)[ ]+"
-    r"(?:Woche|Monat|Jahr|semaine|mois|an|année|settimana|mese|anno)(?![\w·])",
-    re.IGNORECASE,
-)
-_PERIOD_WORDS: dict[str, dict[str, tuple[str, str]]] = {
-    "de": {"d": ("Tag", "Tage"), "w": ("Woche", "Wochen"), "m": ("Monat", "Monate"),
-           "y": ("Jahr", "Jahre"), "wd": ("Arbeitstag", "Arbeitstage")},
-    "fr": {"d": ("jour", "jours"), "w": ("semaine", "semaines"), "m": ("mois", "mois"),
-           "y": ("an", "ans"), "wd": ("jour ouvrable", "jours ouvrables")},
-    "it": {"d": ("giorno", "giorni"), "w": ("settimana", "settimane"), "m": ("mese", "mesi"),
-           "y": ("anno", "anni"), "wd": ("giorno lavorativo", "giorni lavorativi")},
-}  # fmt: skip
 
 # -- identifiers: AHV number, IBAN, postal account, UID, a reference after a keyword ----
 
@@ -461,8 +251,8 @@ ADDRESS_RE = re.compile(
     + r"+"
     + _PLACE
     + r"(?![\w·'’-])"
-)  # five digits are a German postcode: taken in the German varieties, elsewhere only
-# with a street, a Postfach or the country letter in front (`_address`)
+)  # five digits are a German postcode: taken where the grammar reads them, elsewhere
+# only with a street, a Postfach or the country letter in front (`_address`)
 # What may follow a postcode and place that have no street in front: the end, a
 # punctuation mark, a line break, a digit (the phone number) or a capitalised word
 # (Telefon). A lowercase word means a count ("6000 Stimmberechtigte können ...").
@@ -560,8 +350,12 @@ def canonical_date(day: int, month: int, year: int | None) -> str | None:
     return f"{year:04d}-{month:02d}-{day:02d}" if year else f"--{month:02d}-{day:02d}"
 
 
-def canonical_number(integer: str, decimals: str | None = None, seps: str = _SEP) -> str | None:
-    digits = re.sub(seps, "", integer)
+def canonical_number(
+    integer: str, decimals: str | None = None, seps: str | None = None
+) -> str | None:
+    """`seps`: the character class of the thousands separators the integer may carry,
+    the Swiss ones by default (the grammar's `numbers.thousands`)."""
+    digits = re.sub(seps or grammar_for("de").thousands_class, "", integer)
     if not digits.isdigit():
         return None
     try:
@@ -587,23 +381,28 @@ def mask_numbers(text: str) -> str:
     return mask(text, spans)
 
 
-def after_currency(text: str, start: int) -> bool:
+def after_currency(text: str, start: int, lang: str = "de") -> bool:
     """Whether a currency stands right before `start`: `CHF 20`, `Fr. 3.10.`, but not the
-    Friday of `Mo.-Fr. 8.00`."""
+    Friday of `Mo.-Fr. 8.00` (the language's weekday abbreviations)."""
+    g = grammar_for(lang)
     before = text[max(0, start - 16) : start]
-    m = _CURRENCY_BEFORE.search(before)
+    m = g.currency_before_re.search(before)
     if m is None:
         return False
-    return not (m.group(0).startswith("Fr") and _WEEKDAY_BEFORE_RE.search(before[: m.start()]))
+    weekday = g.weekday_before_re
+    return not (
+        m.group(0).startswith("Fr") and weekday is not None and weekday.search(before[: m.start()])
+    )
 
 
-def amount_range(text: str, start: int, end: int) -> bool:
+def amount_range(text: str, start: int, end: int, lang: str = "de") -> bool:
     """Whether the range of decimals from `start` to `end` is one of amounts, not of times
     (NUM-04): a currency right before or after it, `CHF 1.50-2.50 pro Stück`, `1.50-2.50
     Franken`."""
+    g = grammar_for(lang)
     after = text[end : end + _AFTER_WINDOW]
-    return after_currency(text, start) or bool(
-        _CURRENCY_AFTER.search(after) or _SUBUNIT_AFTER.search(after)
+    return after_currency(text, start, lang) or bool(
+        g.currency_after_re.search(after) or (g.subunit_re and g.subunit_re.search(after))
     )
 
 
@@ -642,19 +441,15 @@ def canonical_url(text: str) -> str:
 
 def format_date(canonical: str, lang: str = "de") -> str:
     """Render a canonical date the way easy language writes it: 4. Februar 2020, 4
-    février 2020; `lang` may be a variety key (`de-AT`: 4. Jänner 2020)."""
+    février 2020, 1er mars; `lang` may be a variety key (`de-AT`: 4. Jänner 2020)."""
     m = re.fullmatch(r"(\d{4}|-)-(\d{2})-(\d{2})", canonical)
     if not m:
         return canonical
+    g = grammar_for(lang)
     year = None if m.group(1) == "-" else int(m.group(1))
     month, day = int(m.group(2)), int(m.group(3))
-    language = base_lang(lang)
-    names = MONTH_NAMES.get(lang) or MONTH_NAMES.get(language, MONTH_NAMES["de"])
-    name = names[month - 1]
-    if language == "de":
-        out = f"{day}. {name}"
-    else:
-        out = f"{'1er' if language == 'fr' and day == 1 else day} {name}"
+    day_text = g.first_day if day == 1 and g.first_day else g.day_format.format(day=day)
+    out = f"{day_text} {g.month_names[month - 1]}"
     return f"{out} {year}" if year else out
 
 
@@ -669,7 +464,7 @@ def format_phone(canonical: str, lang: str = "de") -> str:
     Netzwerk Leichte Sprache writes them (`0 55 44 33 22 11`, rule Z8); the area code
     is not known, so an odd count ends in a group of three."""
     digits = re.sub(r"\D", "", canonical)
-    if _german_style(lang) and 7 <= len(digits) <= 13:
+    if grammar_for(lang).german_phones and 7 <= len(digits) <= 13:
         rest = digits[1:]
         groups = [rest[i : i + 2] for i in range(0, len(rest) - len(rest) % 2, 2)]
         if len(rest) % 2:
@@ -684,18 +479,17 @@ def format_phone(canonical: str, lang: str = "de") -> str:
 
 def format_thousands(canonical: str, lang: str = "de") -> str:
     """500000 -> 500'000 (Swiss German, Italian), 500 000 (French), 500.000 (Germany and
-    Austria, where the decimals take a comma: 20,50)."""
+    Austria, where the decimals take a comma: 20,50): the grammar's `writes_thousands`
+    and `writes_decimal`."""
+    g = grammar_for(lang)
     integer, _, decimals = canonical.partition(".")
-    german = _german_style(lang)
-    sep = " " if base_lang(lang) == "fr" else "." if german else "'"
-    point = "," if german else "."
     groups: list[str] = []
     while len(integer) > 3:
         groups.insert(0, integer[-3:])
         integer = integer[:-3]
     groups.insert(0, integer)
-    out = sep.join(groups)
-    return f"{out}{point}{decimals}" if decimals else out
+    out = g.writes_thousands.join(groups)
+    return f"{out}{g.writes_decimal}{decimals}" if decimals else out
 
 
 def period_parts(canonical: str) -> tuple[int, str]:
@@ -709,7 +503,7 @@ def period_parts(canonical: str) -> tuple[int, str]:
 def format_period(canonical: str, lang: str = "de") -> str:
     """ "30d" -> 30 Tage, "1y" -> 1 Jahr, "5wd" -> 5 jours ouvrables (French)."""
     count, unit = period_parts(canonical)
-    one, many = _PERIOD_WORDS.get(base_lang(lang), _PERIOD_WORDS["de"])[unit]
+    one, many = grammar_for(lang).period_names[unit]
     return f"{count} {one if count == 1 else many}"
 
 
@@ -723,6 +517,12 @@ def format_identifier(canonical: str) -> str:
 def format_address(canonical: str) -> str:
     """ "Gerichtsstrasse 12||8000 Musterwil" -> Gerichtsstrasse 12, 8000 Musterwil."""
     return ", ".join(part for part in canonical.split("|") if part)
+
+
+def number_word(word: str, lang: str = "de") -> int | None:
+    """The number a word of the language names: dreissig -> 30, einundzwanzig -> 21,
+    vingt-cinq -> 25, ventuno -> 21, duecento -> 200; None for a word that is none."""
+    return grammar_for(lang).number_word(word)
 
 
 # -- extraction ----------------------------------------------------------------------
@@ -741,13 +541,14 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
     """All values in the text, in order of appearance, without overlaps. Each kind is
     taken from the text with the earlier kinds masked, so an IBAN is never also a
     phone number and the count of a period never also a plain number. `lang` is a
-    language or a variety key: the German and Austrian varieties (`de-DE`, `de-AT`) read
-    the thousands dot and the decimal comma, their phone shapes and five-digit
-    postcodes; the month and period words are the language's."""
+    language or a variety key, whose grammar (rules/data/values_<lang>.toml) gives the
+    words: the month, time, percent, currency, multiplier and number words and the
+    period units are the language's alone, and the number format, the phone shapes and
+    the five-digit postcodes the variety's (`de-DE`, `de-AT`: the thousands dot and the
+    decimal comma)."""
     found: list[Value] = []
     masked = text
-    language = base_lang(lang)
-    german = _german_style(lang)
+    g = grammar_for(lang)
 
     def take(
         kind: ValueKind, pattern: re.Pattern[str], canon, trim: str = "", group: int | str = 0
@@ -775,9 +576,9 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
     take("identifier", REFERENCE_RE, _reference, group="code")
     take("schedule", _SCHEDULE_RE, _schedule)
     take("quantity", _QUANTITY_RE, _quantity)  # before addresses: "1000 IE" is no postcode
-    take("address", ADDRESS_RE, lambda m: _address(m, german))
+    take("address", ADDRESS_RE, lambda m: _address(m, g))
     take("phone", PHONE_RE, lambda m: canonical_phone(m.group(0)))
-    if german:
+    if g.german_phones:
         take("phone", _PHONE_DE_RE, _phone_de)
     take(
         "date",
@@ -785,8 +586,8 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
         lambda m: canonical_date(int(m.group(3)), int(m.group(2)), int(m.group(1))),
     )
     spans = []
-    for m in DATE_RANGE_RE.finditer(masked):  # before the single dates, which it holds
-        month = _month(m.group(3), language)
+    for m in g.date_range_re.finditer(masked):  # before the single dates, which it holds
+        month = g.month(m.group(3))
         if month is None:
             continue
         year = int(m.group(4)) if m.group(4) else None
@@ -797,16 +598,16 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
                 found.append(Value("date", canonical, text[start:end], start, end))
         spans.append(m.span())
     masked = mask(masked, spans)
-    take("date", DATE_TEXT_RE, lambda m: _text_date(m, language))
-    take("date", DATE_NUM_RE, numeric_date)
+    take("date", g.date_text_re, lambda m: _text_date(m, g))
+    take("date", DATE_NUM_RE, lambda m: numeric_date(m, lang))
     take(
         "date",
         DATE_SLASH_RE,
         lambda m: canonical_date(int(m.group(1)), int(m.group(2)), int(m.group(3))),
     )
-    take("percent", PERCENT_RE, lambda m: canonical_number(*_split_decimal(m.group(1))))
+    take("percent", g.percent_re, lambda m: canonical_number(*_split_decimal(m.group(1))))
     spans = []
-    for pattern in (TIME_RANGE_RE, TIME_RANGE_IT_RE):
+    for pattern in g.time_range_res:
         for m in pattern.finditer(masked):
             for h, mi in ((1, 2), (3, 4)):
                 hour, minute = int(m.group(h)), int(m.group(mi))
@@ -817,40 +618,44 @@ def extract_values(text: str, lang: str = "de") -> list[Value]:  # noqa: C901, P
                     )
             spans.append(m.span())
     masked = mask(masked, spans)
-    take("time", TIME_RE, lambda m: _time(m, language == "it"))
-    take("period", _PERIOD_RE.get(language, _PERIOD_RE["de"]), lambda m: _period(m, language))
+    take("time", g.time_re, lambda m: _time(m, g))
+    take("period", g.period_re, lambda m: _period(m, g))
 
-    numbers = (
-        _number(m, text, german) for m in (_NUMBER_DE_RE if german else NUMBER_RE).finditer(masked)
-    )
+    numbers = (_number(m, text, g) for m in g.number_re.finditer(masked))
     found.extend(value for value in numbers if value is not None)
     found.sort(key=lambda v: v.start)
     return found
 
 
-def _number(m: re.Match[str], text: str, german: bool) -> Value | None:
+def _number_parts(m: re.Match[str], dot_decimals: bool) -> tuple[str, str | None, str | None]:
+    """The integer, the separator and the decimals of a number match; with `dot_decimals`
+    (Germany, Austria) the pattern has a second pair of groups for a dotted decimal."""
+    if not dot_decimals or m.group(2):
+        return m.group(1), m.group(2), m.group(3)
+    return m.group(1), m.group(4), m.group(5)
+
+
+def _number(m: re.Match[str], text: str, g: Grammar) -> Value | None:
     """An amount or a plain number, with the multiplier after it (`1,5 Mio.`) and in
     francs when its unit is a hundredth (`70 Rappen` is 0.7)."""
-    integer, _, decimals = _number_parts(m, german)
+    integer, _, decimals = _number_parts(m, g.dot_decimals)
     dash_decimals = bool(decimals and not decimals.isdigit())  # "500.-" is 500
-    canonical = canonical_number(
-        integer, None if dash_decimals else decimals, _SEP_DE if german else _SEP
-    )
+    canonical = canonical_number(integer, None if dash_decimals else decimals, g.thousands_class)
     if canonical is None:
         return None
     end = m.end()
-    if multiplier := _MULTIPLIER_AFTER.match(text[end : end + 12]):
-        canonical = _scaled(canonical, _multiplier(multiplier.group("word")))
+    if g.multiplier_re and (multiplier := g.multiplier_re.match(text[end : end + 12])):
+        canonical = _scaled(canonical, g.multiplier(multiplier.group("word")))
         end += multiplier.end()
     after = text[end : end + _AFTER_WINDOW]
-    hundredths = bool(_SUBUNIT_AFTER.search(after))
+    hundredths = bool(g.subunit_re and g.subunit_re.search(after))
     if hundredths:
         canonical = _scaled(canonical, Decimal("0.01"))
     is_amount = (
         dash_decimals
         or hundredths
-        or after_currency(text, m.start())
-        or bool(_CURRENCY_AFTER.search(after))
+        or after_currency(text, m.start(), g.key)
+        or bool(g.currency_after_re.search(after))
     )
     kind: ValueKind = "amount" if is_amount else "number"
     return Value(kind, canonical, text[m.start() : end], m.start(), end)
@@ -866,80 +671,57 @@ def _split_decimal(number: str) -> tuple[str, str | None]:
     return integer, decimals or None
 
 
-def _month(name: str, lang: str) -> int | None:
-    """The number of a month name: the language's names first, then every language's."""
-    for names in (MONTHS.get(base_lang(lang), {}), *MONTHS.values()):
-        if month := names.get(name.lower().rstrip(".")):
-            return month
-    return None
-
-
-def _text_date(m: re.Match[str], lang: str) -> str | None:
+def _text_date(m: re.Match[str], g: Grammar) -> str | None:
     day_text = re.sub(r"\D", "", m.group(1)) or "1"
-    month = _month(m.group(2), lang)
+    month = g.month(m.group(2))
     if month is None:
         return None
     year = int(m.group(3)) if m.group(3) else None
     return canonical_date(int(day_text), month, year)
 
 
-def numeric_date(m: re.Match[str]) -> str | None:
+def numeric_date(m: re.Match[str], lang: str = "de") -> str | None:
     """The date of a DATE_NUM_RE match; none without a year after a currency, where the
     dots are those of a price and the sentence: `Das kostet Fr. 3.10.`"""
     year = int(m.group(3)) if m.group(3) else None
-    if year is None and after_currency(m.string, m.start()):
+    if year is None and after_currency(m.string, m.start(), lang):
         return None
     return canonical_date(int(m.group(1)), int(m.group(2)), year)
 
 
-_ITALIAN_TIME_WORDS = ("ore", "alle", "dalle")
-
-
-def _time(m: re.Match[str], italian: bool) -> str | None:
-    """`italian`: the text is Italian, where ore, alle or dalle before a dotted hour make
-    it a time (in German `für alle 3.50 Franken` is an amount)."""
-    if m.group(1):
-        hour, minute = int(m.group(1)), int(m.group(2))
-        word = italian and m.group(0).lower().startswith(_ITALIAN_TIME_WORDS)
-        if "Uhr" not in m.group(0) and ":" not in m.group(0) and not word:
-            return None  # "1.50" is an amount or a decimal, not a time
-    elif m.group(3):
-        hour, minute = int(m.group(3)), int(m.group(4) or 0)
-    elif m.group(5) or italian:
-        hour, minute = int(m.group(5) or m.group(6)), 0
+def _time(m: re.Match[str], g: Grammar) -> str | None:
+    """A dotted hour without the clock word (`9.00`) counts only with a colon or with one
+    of the grammar's time words before it (Italian `ore 9.00`, `dalle 8.00`): otherwise
+    it is an amount or a decimal (`1.50`, the German `für alle 3.50 Franken`)."""
+    groups = m.groupdict()
+    if groups.get("h1"):
+        hour, minute = int(groups["h1"]), int(groups["m1"])
+        text = m.group(0)
+        clock = bool(g.clock_word) and g.clock_word in text
+        word = text.lower().startswith(tuple(w.lower() for w in g.time_prefix_words))
+        if not clock and ":" not in text and not word:
+            return None
+    elif groups.get("h2"):
+        hour, minute = int(groups["h2"]), int(groups.get("m2") or 0)
+    elif groups.get("h3"):
+        hour, minute = int(groups["h3"]), 0
+    elif groups.get("h4"):
+        hour, minute = int(groups["h4"]), 0
     else:
-        return None  # ore 9 of a text that is not Italian
+        return None
     if hour > 24 or minute > 59:
         return None
     return f"{hour:02d}:{minute:02d}"
 
 
-def _number_word(word: str, lang: str) -> int | None:
-    """dreissig -> 30, einundzwanzig -> 21, vingt-cinq -> 25, quatre-vingt-onze -> 91."""
-    lang = base_lang(lang)
-    table = _NUMBER_WORDS.get(lang, _NUMBER_WORDS["de"])
-    word = word.replace(" et ", "-").replace("-et-", "-")
-    if word in table:
-        return table[word]
-    if lang == "de":
-        first, _, rest = word.partition("und")
-        if first in table and rest in table and table[first] < 10 <= table[rest]:
-            return table[first] + table[rest]
-        return None
-    head, _, last = word.rpartition("-")
-    if head in table and last in table and table[last] < 20 <= table[head]:
-        return table[head] + table[last]
-    return None
-
-
-def _period(m: re.Match[str], lang: str) -> str | None:
+def _period(m: re.Match[str], g: Grammar) -> str | None:
     num = m.group("num")
-    count = int(num) if num.isdigit() else _number_word(num.lower(), lang)
+    count = int(num) if num.isdigit() else g.number_word(num)
     if count is None:
         return None  # "pro Tag", "Montag": no count in front of the unit
-    if _FREQUENCY_AFTER.match(m.string, m.end()):
+    if g.frequency_re and g.frequency_re.match(m.string, m.end()):
         return None  # "an vier Tagen pro Woche": how often, not how long
-    unit = next(u for u in ("wd", "d", "w", "m", "y") if m.group(u))
+    unit = next(u for u in PERIOD_UNITS if m.groupdict().get(u))
     return f"{count}{unit}"
 
 
@@ -994,15 +776,15 @@ def _clean(text: str) -> str:
     return " ".join(text.replace("·", "").split())
 
 
-def _address(m: re.Match[str], german: bool = False) -> str | None:
+def _address(m: re.Match[str], g: Grammar) -> str | None:
     """street number|Postfach|postcode place; empty parts for what the text lacks. A
     postcode without a street, Postfach or CH- in front counts only after a boundary
     (line start, comma, colon) and never in 1900-2099 (a year followed by a noun). A
-    five-digit postcode is German: taken as it stands in the German varieties
-    (`german`), elsewhere only with a street, a Postfach or `D-` in front."""
+    five-digit postcode is German: taken as it stands where the grammar reads them
+    (`five_digit_postcodes`), elsewhere only with a street, a Postfach or `D-` in front."""
     plz, place = m.group("plz"), m.group("place")
     strong = bool(m.group("street") or m.group("pobox") or m.group("ch"))
-    if len(plz) == 5 and not (german or strong):
+    if len(plz) == 5 and not (g.five_digit_postcodes or strong):
         return None
     if place.split()[0].lower().replace("·", "") in _NOT_A_PLACE:
         return None
@@ -1014,13 +796,13 @@ def _address(m: re.Match[str], german: bool = False) -> str | None:
         before = m.string[: m.start()].rstrip(" " + _NBSP)
         if before and before[-1] not in ",:;(\n":
             return None
-        if _CURRENCY_BEFORE.search(before):
+        if g.currency_before_re.search(before):
             return None
     street = ""
     if m.group("street"):
         street = _clean(f"{m.group('street')} {m.group('house')}")
         street = re.sub(r"[ ](?:in|à|a)$", "", street)  # the word before the postcode
-        street = re.sub(r"(?i)str\.(?=[ ])", "straße" if german else "strasse", street)
+        street = re.sub(r"(?i)str\.(?=[ ])", g.street_word, street)
     pobox = _clean(m.group("pobox")) if m.group("pobox") else ""
     return f"{street}|{pobox}|{plz} {_clean(place)}"
 

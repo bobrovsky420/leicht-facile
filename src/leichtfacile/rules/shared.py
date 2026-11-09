@@ -305,7 +305,7 @@ def num_03(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
             else:
                 d, mo, y = m.group(1), m.group(2), m.group(3)
             if regex is DATE_NUM_RE:
-                canonical = numeric_date(m)  # none for a price: Das kostet Fr. 3.10.
+                canonical = numeric_date(m, ctx.variety)  # none for a price: Fr. 3.10.
             else:
                 canonical = canonical_date(int(d), int(mo), int(y) if y else None)
             if canonical is None:

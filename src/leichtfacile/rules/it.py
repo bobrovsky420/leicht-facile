@@ -35,6 +35,7 @@ from leichtfacile.rules.values import (
     amount_range,
     mask,
     mask_numbers,
+    number_word,
 )
 from leichtfacile.rules.vocabulary import covered_offsets, easy_for, find_terms, office_words
 from leichtfacile.schemas import Severity
@@ -1109,40 +1110,15 @@ def lex_05(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
 
 # -- numbers, dates, times, amounts -----------------------------------------------
 
-_UNITS = {
-    "uno": 1, "una": 1, "due": 2, "tre": 3, "quattro": 4, "cinque": 5, "sei": 6, "sette": 7,
-    "otto": 8, "nove": 9, "dieci": 10, "undici": 11, "dodici": 12, "tredici": 13,
-    "quattordici": 14, "quindici": 15, "sedici": 16, "diciassette": 17, "diciotto": 18,
-    "diciannove": 19,
-}  # fmt: skip
-_TENS = {"venti": 20, "trenta": 30, "quaranta": 40, "cinquanta": 50, "sessanta": 60,
-         "settanta": 70, "ottanta": 80, "novanta": 90}  # fmt: skip
 _ORDINALS = {"terz": 3, "quart": 4, "quint": 5, "sest": 6, "settim": 7, "ottav": 8, "non": 9,
              "decim": 10}  # fmt: skip
 ORDINAL_RE = re.compile(r"^(terz|quart|quint|sest|settim|ottav|decim)[oaie]$")
 
 
 def italian_number(word: str) -> int | None:
-    """due -> 2, ventuno -> 21, trentotto -> 38, duecento -> 200, mille -> 1000."""
-    w = word.lower().replace("é", "e").replace("è", "e")
-    if w in _UNITS:
-        return _UNITS[w]
-    if w in _TENS:
-        return _TENS[w]
-    if w in ("cento", "mille"):
-        return 100 if w == "cento" else 1000
-    for tens, value in _TENS.items():
-        if w.startswith(tens) and w[len(tens) :] in _UNITS and _UNITS[w[len(tens) :]] < 10:
-            return value + _UNITS[w[len(tens) :]]
-        stem = tens[:-1]
-        if w.startswith(stem) and w[len(stem) :] in ("uno", "otto"):
-            return value + _UNITS[w[len(stem) :]]
-    for prefix, value in list(_UNITS.items())[:9]:
-        if w == prefix + "cento":
-            return value * 100
-        if w == prefix + "mila":
-            return value * 1000
-    return None
+    """due -> 2, ventuno -> 21, trentotto -> 38, duecento -> 200, mille -> 1000: the
+    number words of rules/data/values_it.toml and their joined compounds."""
+    return number_word(word, "it")
 
 
 @rule(
@@ -1208,7 +1184,9 @@ def num_04(block: BlockInfo, ctx: Context) -> Iterator[Hit]:
         second = _parse_time(m.group(2) or m.group(4))
         if first is None or second is None:
             continue
-        if not m.group(0).lower().startswith("ore") and amount_range(block.text, *m.span()):
+        if not m.group(0).lower().startswith("ore") and amount_range(
+            block.text, *m.span(), lang=ctx.variety
+        ):
             continue  # CHF 1.50-2.50 al pezzo is a range of amounts
         spans.append(m.span())
         expected = f"dalle {_time_text(*first)} alle {_time_text(*second)}"

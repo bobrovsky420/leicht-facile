@@ -1474,7 +1474,8 @@ medication partial, one set per language, and the checks a language's varieties 
 The Canton of Zurich's prompt is Swiss and is not inherited. The value
 parser reads the variety's conventions and writes a value back in them (`rules/values.py`: the
 thousands dot and the decimal comma, the euro, the German
-and Austrian phone shapes, five-digit postcodes, Jänner; [rules.md](rules.md), "Value
+and Austrian phone shapes, five-digit postcodes, Jänner, from the language's grammar file
+`rules/data/values_<lang>.toml` with the variety's keys, `rules/value_grammar.py`; [rules.md](rules.md), "Value
 kinds"), and the fact rules, the code completion, the repair and recover prompts, the
 export layout and the evaluation pass the variety to it. The facts of a
 variety (its label, the Word export's language tag, the hyphenation dictionary, the
@@ -1856,8 +1857,11 @@ src/leichtfacile/
   pipeline/                 models.py, prompts.py, render.py, stages.py, rounds.py (the plan of
                             the rounds after the first draft), orchestrator.py, runner.py
   rules/                    base.py, messages.py, de.py, fr.py, it.py, document.py, layout.py, values.py,
+                            value_grammar.py (the words and formats of data/values_<lang>.toml),
+                            value_index.py (the values of a text once per check),
                             lexicon.py, readability.py, styleguide.py, checker.py, nlp.py,
-                            vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml, vocabulary_it.toml),
+                            vocabulary.py, data/ (vocabulary_de.toml, vocabulary_fr.toml, vocabulary_it.toml,
+                            values_de.toml, values_fr.toml, values_it.toml),
                             recipes.py (clause recipes), mediopunkt.py,
                             glossary.py (glossary entries from the vocabulary)
   web/                      app.py, api.py, pages.py, model.py (the model page), jobs.py, views.py, i18n.py,

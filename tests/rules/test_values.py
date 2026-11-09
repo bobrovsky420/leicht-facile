@@ -28,8 +28,6 @@ def kinds(text: str) -> list[tuple[str, str]]:
         ("am 2026-03-31", ("date", "2026-03-31")),
         ("bis 31.3.", ("date", "--03-31")),
         ("bis 31. Jan. 2026", ("date", "2026-01-31")),
-        ("le 1er mars 2026", ("date", "2026-03-01")),
-        ("entro il 15 luglio 2026", ("date", "2026-07-15")),
         ("CHF 20.-", ("amount", "20")),
         ("Fr. 1'500.00", ("amount", "1500")),
         ("1\u2019500 Franken", ("amount", "1500")),
@@ -133,22 +131,22 @@ def test_formatting() -> None:
 
 
 @pytest.mark.parametrize(
-    ("text", "expected"),
+    ("text", "lang", "expected"),
     [
-        ("vom 7. bis 11. Juni 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
-        ("7.-11. Juni", [("date", "--06-07"), ("date", "--06-11")]),
-        ("am 15. und 16. März", [("date", "--03-15"), ("date", "--03-16")]),
-        ("du 7 au 11 juin 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
-        ("les 1er et 2 juin", [("date", "--06-01"), ("date", "--06-02")]),
-        ("dal 7 all'11 giugno 2027", [("date", "2027-06-07"), ("date", "2027-06-11")]),
-        ("dal 7 al 11 giugno", [("date", "--06-07"), ("date", "--06-11")]),
+        ("vom 7. bis 11. Juni 2027", "de", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("7.-11. Juni", "de", [("date", "--06-07"), ("date", "--06-11")]),
+        ("am 15. und 16. März", "de", [("date", "--03-15"), ("date", "--03-16")]),
+        ("du 7 au 11 juin 2027", "fr", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("les 1er et 2 juin", "fr", [("date", "--06-01"), ("date", "--06-02")]),
+        ("dal 7 all'11 giugno 2027", "it", [("date", "2027-06-07"), ("date", "2027-06-11")]),
+        ("dal 7 al 11 giugno", "it", [("date", "--06-07"), ("date", "--06-11")]),
     ],
 )
-def test_a_range_of_days_in_one_month_gives_both_dates(text: str, expected) -> None:
-    assert kinds(text) == expected
-    first = parse_value_norm("2027-06-07", "deadline")
+def test_a_range_of_days_in_one_month_gives_both_dates(text: str, lang: str, expected) -> None:
+    assert [(v.kind, v.canonical) for v in extract_values(text, lang)] == expected
+    first = parse_value_norm("2027-06-07", "deadline", lang)
     if expected[0][1].endswith("06-07"):
-        assert find_value(first, text)  # FACT-01 finds the first day of the range
+        assert find_value(first, text, lang)  # FACT-01 finds the first day of the range
 
 
 @pytest.mark.parametrize(

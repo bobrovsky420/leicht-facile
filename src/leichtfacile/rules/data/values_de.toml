@@ -1,0 +1,215 @@
+# The German value grammar: the words and formats rules/values.py reads values with
+# (docs/rules.md, "Value kinds"; rules/value_grammar.py reads this file). The shapes a
+# value takes (the digits of a date, an IBAN, a phone number, a postal address) are
+# code; what the language says is here, so that a German text reads German words
+# alone. The varieties of Germany and Austria replace keys below under [variety.DE]
+# and [variety.AT]; the Swiss variety is the file as it stands.
+
+[dates]
+# The names for writing a date, January to December.
+month_names = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August",
+               "September", "Oktober", "November", "Dezember"]
+# Abbreviations may carry a dot (31. Jan. 2026); full names may not, so a sentence-final
+# dot is never part of the date.
+abbreviations = ["jan", "jän", "feb", "mär", "apr", "jun", "jul", "aug", "sep", "sept", "okt",
+                 "nov", "dez"]
+# How the day is written: the ordinal dot (4. Februar 2026).
+day = "{day}."
+# Two days of one month with the month written once: vom 7. bis 11. Juni, 15. und 16. März.
+range_words = ["bis", "und"]
+
+# A month's names and abbreviations as the texts write them, in lower case, to its
+# number; Jänner and Feber are Austrian and read in every German variety.
+[dates.months]
+januar = 1
+jan = 1
+"jänner" = 1
+jaenner = 1
+"jän" = 1
+februar = 2
+feb = 2
+feber = 2
+"märz" = 3
+maerz = 3
+"mär" = 3
+april = 4
+apr = 4
+mai = 5
+juni = 6
+jun = 6
+juli = 7
+jul = 7
+august = 8
+aug = 8
+september = 9
+sept = 9
+sep = 9
+oktober = 10
+okt = 10
+november = 11
+nov = 11
+dezember = 12
+dez = 12
+
+[time]
+# The word after an hour (9 Uhr, 9.00 Uhr); a dotted hour without it is an amount or a
+# decimal (1.50).
+clock_word = "Uhr"
+# Whether `9 h 00` and `9h` are times: French writes them so; in German `2 h` is a duration.
+hour_letter = false
+# Words before a dotted hour that make it a time without the clock word (Italian ore 9.00).
+prefix_words = []
+# Words before a bare hour (Italian alle ore 9).
+bare_hour_words = []
+# A span of two hours with the clock word once, at its end: 8.30 bis 11.30 Uhr.
+range_words = ["bis"]
+# A span introduced and joined by words (Italian dalle 8.00 alle 11.30).
+range_before = []
+range_between = []
+
+[percent]
+words = ["Prozent"]
+
+[currency]
+# Before a number: CHF 20, Fr. 3.10.
+before = ["CHF", "Fr.", "SFr.", "sFr.", "EUR", "€"]
+# After a number: 20 Franken, 20 Euro; a word that only begins so is none (20 Europäer).
+after = ["CHF", "Fr.", "Franken", "EUR", "Euro", "€"]
+# A word between a multiplier and the currency (French 2 millions de francs).
+link_words = []
+# Hundredths: 70 Rappen is the amount 0.70.
+subunits = ["Rappen", "Rp.", "Cent"]
+# A Fr. after one of these, joined by a dash or a word, is Friday, not francs: Mo.-Fr. 8.00.
+weekday_abbreviations = ["Mo", "Di", "Mi", "Do", "Sa", "So"]
+weekday_joiners = ["bis", "und"]
+
+# A word after a number that scales it: CHF 1,5 Mio. is 1'500'000 francs, 20 Millionen
+# Franken an amount, not the plain number 20. A billion is Mrd., the Swiss Mia. and
+# Milliarde; the first three letters once said "mil" for a million and a billion alike.
+[currency.multipliers]
+"Mio." = 1000000
+"Mio" = 1000000
+"Million" = 1000000
+"Millionen" = 1000000
+"Mrd." = 1000000000
+"Mrd" = 1000000000
+"Mia." = 1000000000
+"Milliarde" = 1000000000
+"Milliarden" = 1000000000
+
+[numbers]
+# The thousands separators the texts write (1'500, 1 500: the apostrophes, the space and
+# the no-break, narrow and thin spaces) and the decimal marks (1.50, 1,50).
+thousands = ["'", "’", "ʼ", " ", "\u00a0", "\u202f", "\u2009"]
+decimal = [".", ","]
+# Whether a dot before one or two digits is a decimal point although the thousands take
+# a dot (Germany: 1.5 Mio.).
+dot_decimals = false
+# How a value is written back: 1'500.50.
+writes_thousands = "'"
+writes_decimal = "."
+
+[number_words]
+# How the words combine: "und" (einundzwanzig), "hyphen" (vingt-cinq), "joined" (ventuno).
+compound = "und"
+
+# Number words for periods (dreissig Tage); NUM-01 keeps its own table for the rule. A
+# period needs ein and eine, the genitive (innert dreier Monate) and the teens.
+[number_words.table]
+ein = 1
+eine = 1
+einem = 1
+einen = 1
+einer = 1
+eines = 1
+zwei = 2
+zweier = 2
+drei = 3
+dreier = 3
+vier = 4
+"fünf" = 5
+sechs = 6
+sieben = 7
+acht = 8
+neun = 9
+zehn = 10
+elf = 11
+"zwölf" = 12
+dreizehn = 13
+vierzehn = 14
+"fünfzehn" = 15
+sechzehn = 16
+siebzehn = 17
+achtzehn = 18
+neunzehn = 19
+zwanzig = 20
+dreissig = 30
+"dreißig" = 30
+vierzig = 40
+"fünfzig" = 50
+sechzig = 60
+siebzig = 70
+achtzig = 80
+neunzig = 90
+hundert = 100
+
+[periods]
+# An adjective that may stand between the count and the unit: die zwei folgenden Wochen.
+adjectives = ["folgende", "folgenden", "folgendem", "folgender", "folgendes",
+              "nächste", "nächsten", "nächstem", "nächster", "nächstes",
+              "weitere", "weiteren", "weiterem", "weiterer", "weiteres",
+              "letzte", "letzten", "letztem", "letzter", "letztes",
+              "kommende", "kommenden", "kommendem", "kommender", "kommendes",
+              "vergangene", "vergangenen", "vergangenem", "vergangener", "vergangenes",
+              "volle", "vollen", "vollem", "voller", "volles",
+              "ganze", "ganzen", "ganzem", "ganzer", "ganzes"]
+# A count of days per week or month is a frequency, not a period: vier Tage pro Woche.
+frequency_words = ["pro", "je", "in der", "im"]
+frequency_cycles = ["Woche", "Monat", "Jahr"]
+
+# The units as written, by key: wd (working days), d, w, m, y. Adjective forms count too
+# (30-tägige Frist, einjährig), and a Mediopunkt may stand inside any form (Kalender·tag).
+[periods.units]
+wd = ["Arbeitstag", "Arbeitstage", "Arbeitstagen", "Arbeitstages",
+      "Werktag", "Werktage", "Werktagen", "Werktages"]
+d = ["Tag", "Tage", "Tagen", "Tages", "Kalendertag", "Kalendertage", "Kalendertagen",
+     "Kalendertages", "tägig", "tägige", "tägigen", "tägigem", "tägiger", "tägiges"]
+w = ["Woche", "Wochen", "wöchig", "wöchige", "wöchigen", "wöchigem", "wöchiger", "wöchiges"]
+m = ["Monat", "Monate", "Monaten", "Monats", "monatig", "monatige", "monatigen", "monatigem",
+     "monatiger", "monatiges"]
+y = ["Jahr", "Jahre", "Jahren", "Jahres", "jährig", "jährige", "jährigen", "jährigem",
+     "jähriger", "jähriges"]
+
+# The unit when a period is written back: for one, for many.
+[periods.names]
+d = ["Tag", "Tage"]
+w = ["Woche", "Wochen"]
+m = ["Monat", "Monate"]
+y = ["Jahr", "Jahre"]
+wd = ["Arbeitstag", "Arbeitstage"]
+
+[phone]
+# "swiss": the Swiss shapes alone; "german": the loose shapes of Germany and Austria too
+# (030 1234567, 0221 / 12 34 56, +43 1 711 00-0), written back in pairs after the 0.
+style = "swiss"
+
+[addresses]
+# Whether a bare five-digit postcode is read (Germany); elsewhere only with a street, a
+# Postfach or a country letter in front.
+five_digit_postcodes = false
+# What the abbreviation str. stands for when an address is written back.
+street_word = "strasse"
+
+# Germany writes the thousands with a dot and the decimals with a comma (1.500,00 €), a
+# dot before one or two digits still being a decimal point (1.5 Mio.).
+[variety.DE]
+numbers = { thousands = [".", " ", "’", "'", "\u00a0", "\u202f", "\u2009"], decimal = [","], dot_decimals = true, writes_thousands = ".", writes_decimal = "," }
+phone = { style = "german" }
+addresses = { five_digit_postcodes = true, street_word = "straße" }
+
+# Austria the same, and it writes Jänner.
+[variety.AT]
+dates = { month_names = ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"] }
+numbers = { thousands = [".", " ", "’", "'", "\u00a0", "\u202f", "\u2009"], decimal = [","], dot_decimals = true, writes_thousands = ".", writes_decimal = "," }
+phone = { style = "german" }
+addresses = { five_digit_postcodes = true, street_word = "straße" }

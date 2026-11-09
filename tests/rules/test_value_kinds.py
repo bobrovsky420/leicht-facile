@@ -104,6 +104,8 @@ def test_german_values(text: str, expected: tuple[str, str]) -> None:
 @pytest.mark.parametrize(
     ("lang", "text", "expected"),
     [
+        ("fr", "le 1er mars 2026", ("date", "2026-03-01")),
+        ("it", "entro il 15 luglio 2026", ("date", "2026-07-15")),
         ("fr", "dans les trente jours", ("period", "30d")),
         ("fr", "un délai de 10 jours ouvrables", ("period", "10wd")),
         ("fr", "quatre-vingt-onze jours", ("period", "91d")),
