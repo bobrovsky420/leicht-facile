@@ -245,6 +245,14 @@ runs on that preset whatever the configuration selects; `--cache` reuses the cac
 answers, so an interrupted run resumes cheaply. `uv run leichtfacile eval --help` lists
 every evaluation command.
 
+`eval replay` runs the stored jobs again on their recorded answers, without a model
+call: the app's database by default, an evaluation folder's with `--store
+eval/results-cscs/store.sqlite`. It writes what the current code makes of them, with
+every difference from the stored artifacts, to `eval/replay`. Run it before a change of
+the code with `--out eval/replay/before` and after the change with `--against
+eval/replay/before`: the report then says what the change made of the same answers over
+every stored job, before a run against a model.
+
 ```bash
 # the pairs, and the rule checker on the official easy-language pages (no model)
 uv run leichtfacile eval fetch --role all

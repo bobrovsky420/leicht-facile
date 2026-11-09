@@ -1057,6 +1057,17 @@ class Store:
             ).fetchall()
         return [dict(r) for r in rows]
 
+    def call_keys(self, job_id: str) -> list[tuple[str, str, str | None]]:
+        """The job's model calls in the order made, each as (stage, model, the response
+        cache's key or None when no cache was on): what a stored job is replayed from
+        (eval/replay.py)."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT stage, model, cache_key FROM llm_calls WHERE job_id = ? ORDER BY id",
+                (job_id,),
+            ).fetchall()
+        return [(r["stage"], r["model"], r["cache_key"]) for r in rows]
+
     def cache_keys(self, job_id: str) -> list[str]:
         """The response-cache keys of the job's model calls (llm/cache.py), the rows a
         deleted job takes with it (`delete_job`)."""

@@ -118,6 +118,40 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:  # noqa: PLR0915
     )
     res.set_defaults(handler=_rescore)
 
+    rpl = evsub.add_parser(
+        "replay", help="run the stored jobs again on their recorded answers (no model)"
+    )
+    rpl.add_argument(
+        "--store",
+        type=Path,
+        help="the job database (default: the data folder's leichtfacile.sqlite; an "
+        "evaluation folder's is <results>/store.sqlite)",
+    )
+    rpl.add_argument(
+        "--ids",
+        nargs="*",
+        help="only these jobs (an id or its beginning); default: every job that reached the review",
+    )
+    rpl.add_argument("--limit", type=int, help="at most this many jobs")
+    rpl.add_argument(
+        "--out",
+        type=Path,
+        default=Path("eval/replay"),
+        help="the folder for one JSON per job and report.md (default: eval/replay)",
+    )
+    rpl.add_argument(
+        "--against",
+        type=Path,
+        help="an --out folder written before a change: report what the change made of "
+        "the same recorded answers",
+    )
+    rpl.add_argument(
+        "--preset",
+        help="compute the prompts' cache keys with this preset's settings (default: the "
+        "preset each job ran on, else the configured one)",
+    )
+    rpl.set_defaults(handler=_replay)
+
     rep = evsub.add_parser("report", help="Markdown tables from the results")
     rep.add_argument("--results", type=Path, default=Path("eval/results"))
     rep.add_argument("--role", default="eval", choices=["dev", "eval", "all"])
@@ -279,6 +313,72 @@ def _rescore(args: argparse.Namespace) -> int:
         f"rescored rows: {out} (render them with: eval report --results {out} --role {args.role})"
     )
     return 0
+
+
+def _replay(args: argparse.Namespace) -> int:
+    from leichtfacile.cli import settings_or_exit
+    from leichtfacile.eval.replay import REPORT_NAME, render_line, replay_jobs
+    from leichtfacile.llm.cache import CACHE_NAME, ResponseCache
+    from leichtfacile.store import Store
+
+    base = settings_or_exit(strict=False, preset=args.preset)
+    store_path = args.store or base.data.dir / "leichtfacile.sqlite"
+    cache_path = base.data.dir / CACHE_NAME
+    if not store_path.exists():
+        print(f"no job database at {store_path}", file=sys.stderr)
+        return 1
+    if not cache_path.exists():
+        print(
+            f"no response cache at {cache_path}: the recorded answers live there (llm.cache)",
+            file=sys.stderr,
+        )
+        return 1
+    store, cache = Store(store_path), ResponseCache(cache_path)
+    try:
+        replay = replay_jobs(
+            store, cache, args.out, settings_for=_settings_for(base, fixed=bool(args.preset)),
+            ids=args.ids, limit=args.limit, against=args.against,
+            on_job=lambda job: print(render_line(job, args.against)),
+        )  # fmt: skip
+    finally:
+        store.close()
+        cache.close()
+    if not replay.jobs:
+        print(f"no stored job to replay in {store_path}", file=sys.stderr)
+        return 1
+    failed = sum(1 for j in replay.jobs if j.status not in ("needs_review", "done"))
+    print(
+        f"{len(replay.jobs)} jobs: {replay.agreeing} agree with the stored artifacts, "
+        f"{len(replay.jobs) - replay.agreeing - failed} differ, {failed} did not reach the review"
+    )
+    for job in replay.jobs:
+        for line in job.differences:
+            print(f"  {job.job_id}: {line}")
+        for line in job.changes or []:
+            print(f"  {job.job_id} against {args.against}: {line}")
+    print(f"written: {args.out / REPORT_NAME}")
+    return 0
+
+
+def _settings_for(base, *, fixed: bool):
+    """The settings a job's prompts are keyed with, by the name of the preset it ran on:
+    that preset's, so the keys match its prompts; `base` (the command's) when `fixed`
+    (--preset names one), for a job without a preset and for one that is unknown."""
+    from leichtfacile.config import ConfigError, Settings, load
+
+    by_preset: dict[str, Settings] = {}
+
+    def settings_for(name: str | None) -> Settings:
+        if fixed or not name:
+            return base
+        if name not in by_preset:
+            try:
+                by_preset[name] = load(strict=False, preset=name).settings
+            except ConfigError:
+                by_preset[name] = base
+        return by_preset[name]
+
+    return settings_for
 
 
 def _numbers(args: argparse.Namespace) -> int:

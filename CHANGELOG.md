@@ -13,6 +13,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   worker, each stage's start and end, each round, how the run ended, who stopped it, who
   saved the review and who exported what. The audit bundle prints it as `timeline`; a
   job from before this release has an empty one, and the bundle says so.
+- `leichtfacile eval replay` runs the stored jobs again on their recorded answers, without
+  a model call, and reports what the current code makes of them against the stored
+  artifacts and, with `--against`, against an earlier replay: what a change of the code
+  does to every stored job, before a run against a model.
 
 ### Changed
 

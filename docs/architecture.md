@@ -1425,7 +1425,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
 | `leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
-| `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again |
+| `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore\|replay` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again; `replay` runs stored jobs again on their recorded answers, without a model call, and reports what the code makes of them against the stored artifacts and, `--against` an earlier replay, what a change made of the same answers (§9) |
 
 ## 8. Languages and levels
 
@@ -1710,6 +1710,30 @@ where P2 is better, worse or level; and, pooled over the pairs, the hard values 
 side lost without a trace with an exact (Clopper-Pearson) 95 % interval. The intervals
 cover the choice of pairs, not a second sample of the same pairs.
 
+### Replay of stored jobs
+
+`eval replay` runs stored jobs again on their recorded answers, without a model call
+(`eval/replay.py`). Every call of a job is in `llm_calls` with its stage and the
+response cache's key (§5), and the cache holds the answer while `llm.cache` is on. The
+job is made again in a scratch store, with its settings and its source, and run through
+the pipeline on a client that answers each call from those answers and asks no
+endpoint: by key when the prompt is byte for byte the recorded one, else with the first
+recorded answer of the stage that no call took yet, so that a change of the code
+between a prompt and the model's answer (a fact sheet completed differently alters the
+write prompt) does not end the replay but applies the recorded answer to what the code
+makes now. A call the run never made (the code asks once more than the run did, or the
+cache lost the answer) fails as an endpoint failure does, and the report says where.
+What the code makes of the answers, the fact sheet, every draft version with its rule
+findings, judge report and round record, and the summary, is written in a canonical
+form, one JSON file per job and `report.md`, to `--out` (`eval/replay`, git-ignored),
+with every difference from the stored artifacts; `--against` a folder written before a
+change of the code says what the change made of the same recorded answers over every
+stored job: the measure of a change to the code between the prompts and the drafts,
+before a run against a model. `--store` names the job database (the app's by default,
+or an evaluation folder's `store.sqlite`), `--ids` picks jobs, and `--preset` the
+settings the prompts' keys are computed with (by default those of the preset each job
+ran on).
+
 ## 10. Deployment and sovereignty
 
 How the service is installed, configured and run, where the model runs, what protects
@@ -1846,7 +1870,8 @@ src/leichtfacile/
   eval/                     dataset.py, calibrate.py, score.py (prices from presets.toml), run.py, results.py (the one reader
                             of the result rows), report.py, compare.py, metrics.py,
                             labels.py, diagnose.py (why facts go missing),
-                            numbers.py (the headline numbers), cli.py
+                            numbers.py (the headline numbers), replay.py (stored jobs run again on their
+                            recorded answers), cli.py
 scripts/                    config_reference.py (the settings reference in configuration.md), openapi.py (the
                             API's description in docs/openapi.json), print_letters.py,
                             hooks/pre-commit (ruff and gitleaks on the staged changes; `git config core.hooksPath scripts/hooks`),

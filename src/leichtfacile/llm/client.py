@@ -208,18 +208,10 @@ class LLMClient:
         stage: str = "adhoc",
         response_format: dict[str, Any] | None = None,
     ) -> LLMResult:
-        name, thinking_body = self.resolve_model(model, thinking)
-        settings = self.settings.llm.for_model(name)  # the provider's, the model's, the preset's
-        extra_body = merge_tables(settings.extra_body, thinking_body)
-        max_tokens += settings.thinking_tokens
-        params: dict[str, Any] = {settings.max_tokens_key: max_tokens}
-        if settings.send_temperature:
-            params["temperature"] = temperature
-        if response_format:
-            params["response_format"] = response_format
-        if extra_body:
-            params["extra_body"] = extra_body
-
+        name, params, settings = self._prepare(
+            model, thinking, temperature, max_tokens, response_format
+        )
+        max_tokens = params[settings.max_tokens_key]
         check_limit()
         replay = self.replay if _REPLAYING.get() else None
         key = cache_key(name, messages, params) if self._cache or replay else None
@@ -267,6 +259,30 @@ class LLMClient:
                 },
             )
         return result
+
+    def _prepare(
+        self,
+        model: str | None,
+        thinking: bool,
+        temperature: float,
+        max_tokens: int,
+        response_format: dict[str, Any] | None,
+    ) -> tuple[str, dict[str, Any], ModelSettings]:
+        """The model name and the request parameters of a call, as they are sent and as
+        the response cache keys them, with the model's settings (the provider's, the
+        model's table's, the preset's). A replay computes a call's key from them without
+        making it (eval/replay.py)."""
+        name, thinking_body = self.resolve_model(model, thinking)
+        settings = self.settings.llm.for_model(name)
+        extra_body = merge_tables(settings.extra_body, thinking_body)
+        params: dict[str, Any] = {settings.max_tokens_key: max_tokens + settings.thinking_tokens}
+        if settings.send_temperature:
+            params["temperature"] = temperature
+        if response_format:
+            params["response_format"] = response_format
+        if extra_body:
+            params["extra_body"] = extra_body
+        return name, params, settings
 
     def forget(self, result: LLMResult) -> None:
         """Drop a response from the cache: an answer that could not be used (no valid
