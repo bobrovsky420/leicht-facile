@@ -38,6 +38,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 ### Fixed
 
+- "Suggest a sentence" on a draft without blocks says that there is no block to put the
+  sentence after, instead of failing.
+- The model's answers are read more faithfully: a judge finding with a rule id that is no
+  SEM rule (`LEX-01`, a block id) is dropped instead of being read as one; a repair that
+  names one block twice keeps both repairs instead of the last; segment ids given in one
+  string separated by spaces are read as the ids; and the block a recovered sentence
+  follows is read in every spelling (`b5`).
 - Italian number words in compounds count in periods: `entro ventuno giorni` is 21 days,
   as the German and French compounds were.
 - A job queued again after a failure, a stop or a restart continues with the round it

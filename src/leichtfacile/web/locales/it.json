@@ -570,6 +570,7 @@
   "js.recover_rejected.no_answer": "Nessuna proposta: il modello non ha dato una frase utilizzabile in due tentativi.",
   "js.recover_rejected.foreign": "Nessuna proposta: la frase aveva valori che il paragrafo della fonte non ha ({values}).",
   "js.recover_rejected.nothing_new": "Nessuna proposta: ogni frase ripeteva la bozza.",
+  "js.recover_rejected.no_blocks": "Nessuna proposta: la bozza non ha un blocco dopo cui mettere la frase.",
   "finding.LEN-01": "La frase ha {words} parole; il limite per {level} è {limit}.",
   "finding.LEN-02.sub": "Subordinata ('{opener}'): {clauses} proposizioni in una frase. Al massimo {limit} per {level}: un'informazione per frase.",
   "finding.LEN-02.main": "{clauses} proposizioni principali in una frase. Al massimo {limit} per {level}: un'informazione per frase.",

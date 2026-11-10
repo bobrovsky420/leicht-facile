@@ -11,7 +11,7 @@ from leichtfacile.pipeline import stages
 from leichtfacile.pipeline.models import RepairOut
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.rounds import build_request
-from leichtfacile.pipeline.stages import RepairRequest, apply_repairs
+from leichtfacile.pipeline.versions import RepairRequest, apply_repairs
 from leichtfacile.rules.glossary import MAX_ADDED, fill_glossary, unexplained_terms
 from leichtfacile.rules.vocabulary import OFFICE_RULES, explained_term, load_vocabulary
 from leichtfacile.schemas import (

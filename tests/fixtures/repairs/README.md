@@ -1,6 +1,6 @@
 # Recorded repair rounds
 
-Replay cases of `stages.apply_repairs`, the function that makes the new draft version
+Replay cases of `versions.apply_repairs`, the function that makes the new draft version
 out of a repair round's answer: for each, the version the round started from, the
 job's fact sheet, the blocks and facts the round asked for, the model's answer as code
 applied it (the example sentences `stages.repair` drops already taken out), and what

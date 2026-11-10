@@ -596,5 +596,6 @@
   "js.recover_rejected.no_source": "No suggestion: the fact has no source sentence.",
   "js.recover_rejected.no_answer": "No suggestion: the model gave no usable sentence in two tries.",
   "js.recover_rejected.foreign": "No suggestion: the sentence had values the source paragraph does not have ({values}).",
-  "js.recover_rejected.nothing_new": "No suggestion: every sentence repeated the draft."
+  "js.recover_rejected.nothing_new": "No suggestion: every sentence repeated the draft.",
+  "js.recover_rejected.no_blocks": "No suggestion: the draft has no block to put the sentence after."
 }

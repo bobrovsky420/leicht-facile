@@ -6,7 +6,8 @@ import pytest
 
 from leichtfacile.llm.client import LLMClient
 from leichtfacile.pipeline.models import UnderstandOut
-from leichtfacile.pipeline.stages import fact_window, recover_fact, to_factsheet
+from leichtfacile.pipeline.stages import recover_fact, to_factsheet
+from leichtfacile.pipeline.versions import add_sentences, fact_window
 from leichtfacile.schemas import Block, Draft
 from tests.conftest import chat_response, make_settings
 from tests.pipeline import fixtures as fx
@@ -122,7 +123,6 @@ def test_the_window_without_a_block_from_the_paragraph() -> None:
 
 
 def test_sentences_of_two_facts_after_one_block_keep_their_order() -> None:
-    from leichtfacile.pipeline.stages import add_sentences
 
     fs = factsheet()
     d = add_sentences(draft(), "b002", ["Erster Satz."], fs.facts[0])
@@ -142,7 +142,6 @@ def test_sentences_after_a_list_item_go_after_the_list() -> None:
     """10 October 2026: in the example letters the sentences recovered after an item of
     the list of enclosures split the list. They go after its last item now, and a
     second fact's sentences after the first fact's."""
-    from leichtfacile.pipeline.stages import add_sentences
 
     fs = factsheet()
     d = Draft(doc_id="doc", lang="de", level="A2", blocks=[
@@ -156,3 +155,11 @@ def test_sentences_after_a_list_item_go_after_the_list() -> None:
     d = add_sentences(d, "b003", ["Zweiter Satz."], fs.facts[1])
     assert [b.id for b in d.blocks] == ["b001", "b002", "b003", "b004", "b002.1", "b003.1", "b005"]
     assert d.blocks[4].kind == "sentence" and d.blocks[5].text == "Zweiter Satz."
+
+
+def test_a_draft_without_blocks_gets_no_suggestion(llm) -> None:
+    """The round used to fail with an IndexError when it looked for the block to place
+    the sentence after (audit of 6 November 2026)."""
+    empty = draft().model_copy(update={"blocks": []})
+    rec, results = recover_fact(llm, fx.letter(), factsheet(), empty, "f01")
+    assert rec.rejected == "no_blocks" and rec.texts == [] and results == []

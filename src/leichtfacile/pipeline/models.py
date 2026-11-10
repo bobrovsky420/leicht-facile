@@ -59,16 +59,24 @@ class LLMOut(BaseModel):
         return data
 
 
+def _id_list(value: Any) -> list:
+    """Ids as a list: one string holds several when commas or spaces separate them
+    (`"s0001 s0002"` used to be one bogus id; audit of 6 November 2026)."""
+    if isinstance(value, str):
+        return [p for p in re.split(r"[,\s]+", value) if p]
+    return _as_list(value)
+
+
 def _segment_ids(value: Any) -> list[str]:
-    return [i for i in (normalize_id(v, "s", 4) for v in _as_list(value)) if i]
+    return [i for i in (normalize_id(v, "s", 4) for v in _id_list(value)) if i]
 
 
 def _fact_ids(value: Any) -> list[str]:
-    return [i for i in (normalize_id(v, "f", 2) for v in _as_list(value)) if i]
+    return [i for i in (normalize_id(v, "f", 2) for v in _id_list(value)) if i]
 
 
 def _block_ids(value: Any) -> list[str]:
-    return [i for i in (normalize_id(v, "b", 3) for v in _as_list(value)) if i]
+    return [i for i in (normalize_id(v, "b", 3) for v in _id_list(value)) if i]
 
 
 # -- understand ---------------------------------------------------------------------
@@ -351,8 +359,13 @@ class SemanticOut(LLMOut):
     @field_validator("rule_id", mode="before")
     @classmethod
     def _rid(cls, v: Any) -> str:
-        m = re.search(r"(\d+)", str(v))
-        return f"SEM-{int(m.group(1)):02d}" if m else str(v)
+        """`SEM-3`, `sem 03`, `3` -> `SEM-03`; another family's id (`LEX-01`) or a block
+        id (`b004`) stays as written, and `to_judge_report` drops it (it used to become
+        SEM-01 or SEM-04; audit of 6 November 2026)."""
+        m = re.match(r"\s*(?:(?P<family>[A-Za-z]+)[\s_-]*)?(?P<n>\d+)", str(v))
+        if m and (m.group("family") is None or m.group("family").lower() == "sem"):
+            return f"SEM-{int(m.group('n')):02d}"
+        return str(v).strip()
 
 
 class JudgeOut(LLMOut):
@@ -414,6 +427,13 @@ class RecoverOut(LLMOut):
 
     after: str | None = None
     texts: list[str] = Field(default_factory=list)
+
+    @field_validator("after", mode="before")
+    @classmethod
+    def _after(cls, v: Any) -> str | None:
+        # `b5` for `b005`, as AdditionItem reads it; an answer so written used to be
+        # ignored, and the sentence landed after the paragraph's last block.
+        return normalize_id(v, "b", 3) if v else None
 
     @field_validator("texts", mode="before")
     @classmethod

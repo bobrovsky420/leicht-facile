@@ -1,4 +1,4 @@
-"""Recorded repair rounds replayed through `stages.apply_repairs`
+"""Recorded repair rounds replayed through `versions.apply_repairs`
 (tests/fixtures/repairs/README.md): the new version and the dropped sentences must be
 what the export made of the same round. A change of the function that alters either
 fails here; a deliberate change exports the cases again (scripts/repair_fixtures.py)."""
@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from leichtfacile.pipeline.models import RepairOut
-from leichtfacile.pipeline.stages import RepairRequest, _sentences, apply_repairs
+from leichtfacile.pipeline.versions import RepairRequest, apply_repairs, sentences_of
 from leichtfacile.schemas import Draft, DroppedText, FactSheet
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "repairs"
@@ -66,7 +66,7 @@ def test_a_recorded_round_is_a_real_case(path: Path) -> None:
     given = {
         t
         for item in [*case["answer"]["repairs"], *case["answer"]["additions"]]
-        for t in _sentences(list(item["texts"]), lang)  # as the function reads them
+        for t in sentences_of(list(item["texts"]), lang)  # as the function reads them
     }
     before = {b["text"] for b in case["draft"]["blocks"]}
     after = {b.text for b in new.blocks}

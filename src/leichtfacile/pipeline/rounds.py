@@ -33,7 +33,8 @@ from typing import Literal
 
 from leichtfacile.pipeline import render
 from leichtfacile.pipeline.labels import label
-from leichtfacile.pipeline.stages import RepairRequest, shared_stems
+from leichtfacile.pipeline.stages import shared_stems
+from leichtfacile.pipeline.versions import RepairRequest
 from leichtfacile.rules.vocabulary import OFFICE_RULES
 from leichtfacile.schemas import (
     Draft,

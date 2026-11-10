@@ -3,7 +3,7 @@
 A case is one recorded round (`RepairRecord`) of a job on a shipped example letter
 (src/leichtfacile/letters/): the draft version the round started from, the job's fact
 sheet, what the round asked for, the model's answer as code applied it, and what
-`stages.apply_repairs` makes of it with the code of today, the new version and the
+`versions.apply_repairs` makes of it with the code of today, the new version and the
 sentences left out. tests/pipeline/test_repair_replay.py replays every case and
 compares, so a change of the function that alters an output fails there; a deliberate
 change exports the cases again in the same commit, and the diff of the fixtures shows
@@ -19,7 +19,7 @@ in call order, each record the first unused answer with its texts. The calls rig
 that answer with the same texts are retries of the same round (an answer the checks sent
 back); when one of them differs in a field the function reads, only the checks could
 tell which was applied, and the round is left out as ambiguous. Of the replayable rounds
-the script keeps a small set, chosen greedily, that runs every branch of stages.py
+the script keeps a small set, chosen greedily, that runs every branch of versions.py
 coverage.py measures (an alternative on one line is no branch to it, so a few shapes of
 answer are picked by name as well), plus one round per variety and round kind and one
 per letter; --all keeps every one. The letters are invented, so the fixtures carry no
@@ -42,16 +42,16 @@ from pydantic import ValidationError
 from leichtfacile import __version__
 from leichtfacile.config import LETTERS_DIR
 from leichtfacile.llm.json_out import JSONExtractionError, extract_json
-from leichtfacile.pipeline import stages
+from leichtfacile.pipeline import versions
 from leichtfacile.pipeline.models import RepairOut
-from leichtfacile.pipeline.stages import RepairRequest, _sentences, apply_repairs
+from leichtfacile.pipeline.versions import RepairRequest, apply_repairs, sentences_of
 from leichtfacile.schemas import Draft, DroppedText, FactSheet, RepairRecord, SourceDocument
 from leichtfacile.store import SCHEMA_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "tests" / "fixtures" / "repairs"
 FORMAT = "repair-replay@1"
-STAGES_FILE = str(Path(stages.__file__).resolve())
+VERSIONS_FILE = str(Path(versions.__file__).resolve())
 CACHE_KEYS_SINCE = 1  # the schema version from which every model call keeps its cache key
 
 
@@ -97,7 +97,7 @@ class Case:
         repairs, additions = self.answer["repairs"], self.answer["additions"]
         dropped = self.expected["dropped"]
         found = {f"a sentence dropped as {d['reason']}" for d in dropped}
-        repaired = {t for r in repairs for t in _sentences(list(r["texts"]), lang)}
+        repaired = {t for r in repairs for t in sentences_of(list(r["texts"]), lang)}
         if any(d["reason"] == "repeat" and d["text"] in repaired for d in dropped):
             found.add("a repair text dropped as a repeat")
         if any(len(r["texts"]) > 1 for r in repairs):
@@ -340,11 +340,11 @@ def replay_one(case: Case) -> tuple[Draft, list[DroppedText]]:
 
 
 def replay(cases: list[Case]) -> None:
-    """Fill in the expected output of every case, measuring which branches of stages.py
+    """Fill in the expected output of every case, measuring which branches of versions.py
     each one runs."""
     # The checkout's coverage settings (pyproject.toml) are for the test suite; the
     # C tracer, since the sys.monitoring one keeps no contexts.
-    cov = coverage.Coverage(branch=True, data_file=None, include=[STAGES_FILE], config_file=False)
+    cov = coverage.Coverage(branch=True, data_file=None, include=[VERSIONS_FILE], config_file=False)
     cov.set_option("run:core", "ctrace")
     cov.start()
     try:
@@ -361,9 +361,9 @@ def replay(cases: list[Case]) -> None:
     data = cov.get_data()
     for case in cases:
         data.set_query_context(case.name)
-        case.arcs = set(data.arcs(STAGES_FILE) or [])
+        case.arcs = set(data.arcs(VERSIONS_FILE) or [])
     universe = set().union(*(c.arcs for c in cases)) if cases else set()
-    print(f"{len(universe)} branches of stages.py run by the rounds")
+    print(f"{len(universe)} branches of versions.py run by the rounds")
 
 
 def choose(cases: list[Case]) -> list[Case]:
@@ -434,12 +434,12 @@ def readme(cases: list[Case], *, everything: bool, total: int) -> str:
         f"all {total} replayable rounds of the store"
         if everything
         else f"{len(cases)} of the {total} replayable rounds of the store: a small set, chosen "
-        "greedily, that runs every branch of `stages.py` any of them runs, plus one round "
+        "greedily, that runs every branch of `versions.py` any of them runs, plus one round "
         "per shape of answer, per variety and round kind, and per letter"
     )
     return f"""# Recorded repair rounds
 
-Replay cases of `stages.apply_repairs`, the function that makes the new draft version
+Replay cases of `versions.apply_repairs`, the function that makes the new draft version
 out of a repair round's answer: for each, the version the round started from, the
 job's fact sheet, the blocks and facts the round asked for, the model's answer as code
 applied it (the example sentences `stages.repair` drops already taken out), and what

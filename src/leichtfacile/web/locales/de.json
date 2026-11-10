@@ -597,6 +597,7 @@
   "js.recover_rejected.no_answer": "Kein Vorschlag: Das Modell hat in zwei Versuchen keinen brauchbaren Satz geschrieben.",
   "js.recover_rejected.foreign": "Kein Vorschlag: Der Satz hatte Werte, die nicht im Absatz des Originals stehen ({values}).",
   "js.recover_rejected.nothing_new": "Kein Vorschlag: Jeder Satz wiederholte den Entwurf.",
+  "js.recover_rejected.no_blocks": "Kein Vorschlag: Der Entwurf hat keinen Block, hinter den der Satz passt.",
 
   "finding.LEN-01": "Der Satz hat {words} Wörter; die Grenze für {level} ist {limit}.",
   "finding.LEN-02.sub": "Nebensatz ('{opener}'): {clauses} Teilsätze in einem Satz. Höchstens {limit} für {level}: eine Aussage pro Satz.",

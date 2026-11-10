@@ -43,7 +43,7 @@ from leichtfacile.pipeline.rounds import (
     plan,
     request_for,
 )
-from leichtfacile.pipeline.stages import RepairRequest
+from leichtfacile.pipeline.versions import RepairRequest, add_sentences, value_present
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.decision import protect_factsheet
 from leichtfacile.rules.glossary import fill_glossary
@@ -595,7 +595,7 @@ class Orchestrator:
         )
         current = draft
         for fact in wanted:
-            if stages.value_present(fact, current):
+            if value_present(fact, current):
                 continue  # a recovery before it in this round brought the value
             try:
                 rec, _ = stages.recover_fact(
@@ -625,7 +625,7 @@ class Orchestrator:
                     segment_ids=list(fact.segment_ids),
                 )
             )
-            current = stages.add_sentences(current, rec.block_id, rec.texts, fact)
+            current = add_sentences(current, rec.block_id, rec.texts, fact)
         if not record.additions:
             return None
         new_draft = current.model_copy(

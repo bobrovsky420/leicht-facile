@@ -10,16 +10,14 @@ from leichtfacile.pipeline import render as r
 from leichtfacile.pipeline.models import RepairOut, UnderstandOut, WriteOut, normalize_id
 from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, level_name, render
 from leichtfacile.pipeline.stages import (
-    RepairRequest,
-    apply_repairs,
     complete_factsheet,
-    drop_repeats,
     link_facts,
     merge_twin_facts,
     split_sections,
     text_to_blocks,
     to_factsheet,
 )
+from leichtfacile.pipeline.versions import RepairRequest, apply_repairs, drop_repeats
 from leichtfacile.rules import check_draft, style_guide
 from leichtfacile.schemas import (
     Block,
@@ -671,7 +669,7 @@ def test_a_restatement_far_from_its_sentence_is_found_by_the_source_sentence() -
 
 
 def test_the_recover_round_skips_a_value_the_draft_has_meanwhile() -> None:
-    from leichtfacile.pipeline.stages import value_present
+    from leichtfacile.pipeline.versions import value_present
 
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
     phone = next(f for f in fs.facts if f.id == "f03")

@@ -641,7 +641,7 @@ it, and a value one of them brought is not asked for again (the
 70B's sentence for the departure time named the return time too, and the next call then
 wrote the return time twice more). The accepted sentences go after their blocks, or after the list a block belongs
 to, as new blocks carrying the fact
-(`stages.add_sentences`), in one new version with the next free number and the best
+(`versions.add_sentences`), in one new version with the next free number and the best
 version as its parent; code's edits, the rule check and the judge follow as after a
 round, and its repair record has the kind `recover`. A fact without a suggestion, or
 with one FACT-01 does not accept, is left out with a note in the summary. It runs before
@@ -1854,7 +1854,9 @@ src/leichtfacile/
                             templates when mode is "decision"); de-CH/baseline_zh.md (Zurich's prompt, verbatim)
   ingest/                   fetch.py (the safe URL download), html.py, pdf.py, text.py, segment.py,
                             normalize.py, detect.py, errors.py
-  pipeline/                 models.py, prompts.py, render.py, stages.py, rounds.py (the plan of
+  pipeline/                 models.py, prompts.py, render.py, stages.py (the model calls and their
+                            parsing), versions.py (a new draft version from an answer: ids, lists,
+                            repeats, what is left out), rounds.py (the plan of
                             the rounds after the first draft), orchestrator.py, runner.py
   rules/                    base.py, messages.py, de.py, fr.py, it.py, document.py, layout.py, values.py,
                             value_grammar.py (the words and formats of data/values_<lang>.toml),
