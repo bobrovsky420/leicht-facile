@@ -7,7 +7,7 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.llm.client import LLMClient
-from leichtfacile.pipeline import stages
+from leichtfacile.pipeline import facts
 from leichtfacile.pipeline.models import RepairOut
 from leichtfacile.pipeline.orchestrator import Orchestrator
 from leichtfacile.pipeline.rounds import build_request
@@ -58,7 +58,7 @@ def test_the_fact_sheet_gets_the_checked_explanations_and_the_terms_of_the_sourc
             HardTerm(term="Sozialamt", explanation="Ein Amt."),
         ],
     )
-    out = stages.vocabulary_terms(fs, source)
+    out = facts.vocabulary_terms(fs, source)
     by_term = {t.term: t for t in out.hard_terms}
     listed = by_term["Prämien·verbilligung"]
     assert listed.explanation == _explanation("de", "Prämienverbilligung")
@@ -68,7 +68,7 @@ def test_the_fact_sheet_gets_the_checked_explanations_and_the_terms_of_the_sourc
     assert {"Gesuch", "Anspruch"} <= {t.term for t in added}
     assert all(t.origin == "vocabulary" and t.segment_ids for t in added)
     assert by_term["Gesuch"].segment_ids == ["s0003"]
-    assert len(out.hard_terms) <= stages.MAX_HARD_TERMS
+    assert len(out.hard_terms) <= facts.MAX_HARD_TERMS
 
 
 def test_the_glossary_gets_the_missing_hard_terms_once() -> None:
@@ -105,7 +105,7 @@ def test_the_glossary_and_the_fact_sheet_take_the_varietys_vocabulary() -> None:
     assert "Entscheid" in {g.term: g.explanation for g in swiss.glossary}[term]
     source = fx.letter().model_copy(update={"region": "AT"})
     fs = FactSheet(doc_id=source.id, hard_terms=[HardTerm(term=term, explanation="Ein Recht.")])
-    out = stages.vocabulary_terms(fs, source)
+    out = facts.vocabulary_terms(fs, source)
     assert out.hard_terms[0].explanation == _explanation("de-AT", term)
     assert out.hard_terms[0].origin == "vocabulary"
 

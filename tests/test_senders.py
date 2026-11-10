@@ -4,8 +4,7 @@ guide and the checker follow the form."""
 
 from __future__ import annotations
 
-from leichtfacile.pipeline.prompts import render
-from leichtfacile.pipeline.stages import mode_context
+from leichtfacile.pipeline.prompts import mode_context, render
 from leichtfacile.rules import check_draft, style_guide
 from leichtfacile.rules.base import RULES
 from leichtfacile.schemas import ADDRESS_FORMS, LANGS, SENDERS, Block, Draft

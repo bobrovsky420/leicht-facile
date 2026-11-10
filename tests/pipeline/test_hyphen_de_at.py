@@ -4,8 +4,8 @@ rule proposes it, the prompts show it, and the values and the copy guard read it
 
 from __future__ import annotations
 
-from leichtfacile.pipeline.prompts import render
-from leichtfacile.pipeline.stages import _example_key, mode_context, topic_sentences
+from leichtfacile.pipeline.checks import example_key, topic_sentences
+from leichtfacile.pipeline.prompts import mode_context, render
 from leichtfacile.rules import check_draft, style_guide
 from leichtfacile.rules.mediopunkt import apply_mediopunkt
 from leichtfacile.rules.values import extract_values
@@ -75,7 +75,7 @@ def test_the_values_and_the_copy_guard_read_the_hyphenated_compounds() -> None:
     assert ("identifier", "K-4711") in {
         (v.kind, v.canonical) for v in extract_values("Geschäfts-Nummer: K-4711", "de-DE")
     }
-    assert _example_key("Die Hunde-Steuer kostet 120 Euro.") == "die hundesteuer kostet 120 euro"
+    assert example_key("Die Hunde-Steuer kostet 120 Euro.") == "die hundesteuer kostet 120 euro"
     assert topic_sentences(["Sie melden den Hund beim Bürger-Amt an."], "de-DE", "Ein Brief.") == [
         "Sie melden den Hund beim Bürger-Amt an."
     ]

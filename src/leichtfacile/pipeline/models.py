@@ -46,7 +46,10 @@ def _as_list(value: Any) -> list:
 
 
 class LLMOut(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    # An answer is read, never changed: what code leaves out of it is left out of a copy
+    # (pipeline/versions.py, pipeline/facts.py), so the record of what the model answered
+    # cannot drift from what was applied.
+    model_config = ConfigDict(extra="ignore", frozen=True)
     # The main list of the answer. A model that answers with just that list (seen in a
     # local run of the judge) is read as if it had wrapped it in an object.
     _list_field: ClassVar[str | None] = None

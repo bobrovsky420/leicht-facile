@@ -18,8 +18,7 @@ import pytest
 from jinja2 import FileSystemLoader
 
 from leichtfacile.pipeline import prompts
-from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, render
-from leichtfacile.pipeline.stages import mode_context
+from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, mode_context, render
 from leichtfacile.rules import style_guide
 from leichtfacile.rules.lexicon import hyphenated
 from leichtfacile.senders import senders

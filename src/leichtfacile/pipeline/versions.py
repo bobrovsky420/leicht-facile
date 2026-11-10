@@ -1,6 +1,9 @@
 """A new draft version from a model's answer, without a model call (docs/architecture.md
 §4.6): the pure half of the write, repair and recover rounds, which `stages.write`,
-`stages.repair` and `stages.recover_fact` hand their parsed answers to.
+`stages.repair` and `stages.recover_fact` hand their parsed answers to. An answer is
+read, never changed (the answer models are frozen): what a version leaves out of it is
+left out of a copy, so the record of what the model answered and what code applied
+cannot drift apart.
 
 One module decides what every round shares: how a sentence is keyed to find a repeat
 (`sentence_key`, `wording_key`), what a repeat removes (the newcomer, never the block it
@@ -14,11 +17,12 @@ tests/fixtures/repairs/ replay `apply_repairs` and pin what it makes of a real a
 from __future__ import annotations
 
 import re
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 
 from leichtfacile.ingest.detect import STOPWORDS
 from leichtfacile.ingest.segment import split_sentences
-from leichtfacile.pipeline.models import AdditionItem, RepairItem, RepairOut
+from leichtfacile.pipeline.models import AdditionItem, RepairOut, WriteOut, clean_text
 from leichtfacile.rules.lexicon import MEDIOPUNKT
 from leichtfacile.rules.values import (
     HARD_KINDS,
@@ -29,12 +33,18 @@ from leichtfacile.rules.values import (
     parse_value_norm,
 )
 from leichtfacile.schemas import (
+    AnsweredAddition,
+    AnsweredRepair,
     Block,
     Draft,
     DroppedText,
     DropReason,
     Fact,
     FactSheet,
+    GlossaryEntry,
+    Level,
+    Omission,
+    RepairRecord,
     SourceDocument,
 )
 
@@ -184,6 +194,63 @@ def repeats(
     return bool(hard) and all(any(matches(v, d) for d in draft_values) for v in hard)
 
 
+# -- the write stage's answers ---------------------------------------------------------------
+
+
+def first_version(
+    source: SourceDocument,
+    factsheet: FactSheet,
+    answers: Iterable[tuple[WriteOut, Collection[str]]],
+    *,
+    level: Level,
+    address: str = "formal",
+) -> Draft:
+    """Version 1 from the write stage's answers, one per section in the source's order,
+    each with the texts left out of it (about the prompt's own examples,
+    checks.drop_topical): the blocks numbered b001, b002, ... across the sections, with
+    the fact ids the sheet has; the omissions; the glossary, a term once; and no sentence
+    twice (`drop_repeats`)."""
+    known_facts = factsheet.fact_ids()
+    blocks: list[Block] = []
+    omissions: list[Omission] = []
+    glossary: dict[str, GlossaryEntry] = {}
+    for out, left_out in answers:
+        for b in out.blocks:
+            if b.text in left_out:
+                continue
+            blocks.append(
+                Block(
+                    id=f"b{len(blocks) + 1:03d}",
+                    kind=b.kind,
+                    text=b.text,
+                    fact_ids=[f for f in b.fact_ids if f in known_facts],
+                    segment_ids=b.segment_ids,
+                )
+            )
+        omissions += [
+            Omission(what=clean_text(o.what), why=clean_text(o.why), segment_ids=o.segment_ids)
+            for o in out.omissions
+            if o.what or o.segment_ids
+        ]
+        for g in out.glossary:
+            glossary.setdefault(
+                g.term.strip().lower(),
+                GlossaryEntry(term=clean_text(g.term), explanation=clean_text(g.explanation)),
+            )
+    return Draft(
+        doc_id=source.id,
+        lang=source.lang,
+        region=source.region,
+        level=level,
+        address=address,
+        version=1,
+        origin="write",
+        blocks=drop_repeats(blocks),
+        omissions=omissions,
+        glossary=list(glossary.values()),
+    )
+
+
 # -- the repair round's answer ------------------------------------------------------------
 
 
@@ -224,23 +291,21 @@ def _answer_by_block(
     the additions by the block they follow (None: a block the draft does not have, or
     none named). A repair of a block the round had not flagged goes to `dropped`: the
     prompt says only the flagged blocks. A block the answer repairs twice gets the texts
-    of both (the second used to replace the first)."""
-    items: list[RepairItem | AdditionItem] = [*out.repairs, *out.additions]
-    for item in items:  # the answer's texts as sentences
-        item.texts = sentences_of(item.texts, draft.lang)
+    of both (the second used to replace the first). The answer is not changed: an
+    addition comes back as a copy with its texts as sentences."""
     repairs: dict[str, list[str]] = {}
     for item in out.repairs:
+        texts = sentences_of(item.texts, draft.lang)
         if item.id in request.problems:
-            repairs.setdefault(item.id, []).extend(item.texts)
+            repairs.setdefault(item.id, []).extend(texts)
         else:  # the prompt says: only the flagged blocks
-            dropped += [
-                DroppedText(text=t, reason="not_flagged", block_id=item.id) for t in item.texts
-            ]
+            dropped += [DroppedText(text=t, reason="not_flagged", block_id=item.id) for t in texts]
     additions: dict[str | None, list[AdditionItem]] = {}
     block_ids = set(draft.by_id())
     for add in out.additions:
         anchor = add.after if add.after in block_ids else None
-        additions.setdefault(anchor, []).append(add)
+        sentences = add.model_copy(update={"texts": sentences_of(add.texts, draft.lang)})
+        additions.setdefault(anchor, []).append(sentences)
     return repairs, additions
 
 
@@ -512,6 +577,81 @@ def apply_repairs(
             "code_edits": [],  # each version records the edits made on it
         }
     )
+
+
+def without_texts(out: RepairOut, texts: Collection[str]) -> RepairOut:
+    """The answer without these texts, as a copy: a repair or an addition that keeps no
+    text goes whole."""
+    if not texts:
+        return out
+    repairs = [
+        item.model_copy(update={"texts": kept})
+        for item in out.repairs
+        if (kept := [t for t in item.texts if t not in texts])
+    ]
+    additions = [
+        add.model_copy(update={"texts": kept})
+        for add in out.additions
+        if (kept := [t for t in add.texts if t not in texts])
+    ]
+    return out.model_copy(update={"repairs": repairs, "additions": additions})
+
+
+def repair_version(
+    draft: Draft,
+    out: RepairOut,
+    request: RepairRequest,
+    factsheet: FactSheet,
+    *,
+    topical: Collection[str] = (),
+    kind: str = "repair",
+    version: int | None = None,
+) -> tuple[Draft, RepairRecord]:
+    """One round's new version and its record: what was asked, what the model answered
+    and what code left out. The answer's sentences about the prompt's own examples
+    (`topical`, checks.drop_topical) are left out as `example` before the rest is placed
+    (`apply_repairs`). `version`: the new version's number, when it is not the next
+    after `draft` (the vocabulary round starts from the best version, not the latest)."""
+    version = version if version is not None else draft.version + 1
+    record = RepairRecord(
+        draft_version=version,
+        parent_version=draft.version,
+        kind=kind,
+        requested_blocks=list(request.problems),
+        requested_facts=[f.id for f in request.missing],
+        repairs=[AnsweredRepair(block_id=i.id, texts=list(i.texts)) for i in out.repairs],
+        additions=[
+            AnsweredAddition(
+                after=a.after,
+                kind=a.kind,
+                texts=list(a.texts),
+                fact_ids=list(a.fact_ids),
+                segment_ids=list(a.segment_ids),
+            )
+            for a in out.additions
+        ],
+    )
+    for item in out.repairs:
+        record.dropped += [
+            DroppedText(text=t, reason="example", block_id=item.id)
+            for t in item.texts
+            if t in topical
+        ]
+    for add in out.additions:
+        record.dropped += [
+            DroppedText(text=t, reason="example", block_id=add.after, fact_ids=add.fact_ids)
+            for t in add.texts
+            if t in topical
+        ]
+    new_draft = apply_repairs(
+        draft,
+        without_texts(out, topical),
+        request,
+        factsheet,
+        dropped=record.dropped,
+        version=version,
+    )
+    return new_draft, record
 
 
 # -- the recover round's sentences ---------------------------------------------------------

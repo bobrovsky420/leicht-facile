@@ -14,8 +14,8 @@ from leichtfacile.llm.json_out import (
     complete_json,
     extract_json,
 )
+from leichtfacile.pipeline.facts import complete_factsheet, link_facts, to_factsheet
 from leichtfacile.pipeline.models import UnderstandOut, WriteOut
-from leichtfacile.pipeline.stages import complete_factsheet, link_facts, to_factsheet
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.values import parse_value_norm
 from leichtfacile.schemas import Block, Draft, SourceDocument

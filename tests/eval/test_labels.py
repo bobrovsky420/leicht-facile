@@ -11,8 +11,8 @@ from leichtfacile.eval.labels import (
     sample_items,
     write_sheets,
 )
+from leichtfacile.pipeline.facts import to_factsheet
 from leichtfacile.pipeline.models import UnderstandOut
-from leichtfacile.pipeline.stages import to_factsheet
 from leichtfacile.schemas import (
     Block,
     Draft,

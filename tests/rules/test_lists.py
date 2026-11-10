@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 from leichtfacile.ingest import ingest_text
+from leichtfacile.pipeline.facts import complete_factsheet
 from leichtfacile.pipeline.rounds import build_request, missing_count
-from leichtfacile.pipeline.stages import complete_factsheet
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.lists import list_facts, protect_lists, source_lists
 from leichtfacile.rules.messages import render_finding

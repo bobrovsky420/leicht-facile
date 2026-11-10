@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.llm.client import LLMClient
+from leichtfacile.pipeline.facts import to_factsheet
 from leichtfacile.pipeline.models import UnderstandOut
-from leichtfacile.pipeline.stages import recover_fact, to_factsheet
+from leichtfacile.pipeline.stages import recover_fact
 from leichtfacile.pipeline.versions import add_sentences, fact_window
 from leichtfacile.schemas import Block, Draft
 from tests.conftest import chat_response, make_settings

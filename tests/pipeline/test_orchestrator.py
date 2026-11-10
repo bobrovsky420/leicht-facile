@@ -339,8 +339,8 @@ def test_repair_rounds_focus_on_blocking_problems_first() -> None:
         Finding(block_id="b002", rule_id="LEX-01", severity="warn", key="legacy",
                 params={"text": "long word"}),
     ])  # fmt: skip
+    from leichtfacile.pipeline.facts import to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut
-    from leichtfacile.pipeline.stages import to_factsheet
     from tests.pipeline.fixtures import UNDERSTAND
 
     fs = to_factsheet(UnderstandOut.model_validate(UNDERSTAND), "d")
@@ -395,9 +395,9 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
 
 
 def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
+    from leichtfacile.pipeline.facts import to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut
     from leichtfacile.pipeline.rounds import build_request
-    from leichtfacile.pipeline.stages import to_factsheet
     from leichtfacile.schemas import (
         Block,
         Draft,
@@ -436,9 +436,9 @@ def test_a_fact_the_judge_misses_in_a_block_that_carries_it_is_repaired_there() 
     fact ids are loose); only a fact no block carries is asked for as new sentences, and
     a heading carries nothing. A facts-only round, which flags no block, leaves the
     carried fact alone."""
+    from leichtfacile.pipeline.facts import to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut
     from leichtfacile.pipeline.rounds import build_request
-    from leichtfacile.pipeline.stages import to_factsheet
     from leichtfacile.schemas import Block, Draft, FactCheck, JudgeReport, RuleFindings
     from tests.pipeline.fixtures import UNDERSTAND
 
@@ -553,9 +553,9 @@ def test_facts_rounds_stop_without_progress_and_are_off_with_the_repair(
 
 
 def test_a_facts_only_request_flags_no_block() -> None:
+    from leichtfacile.pipeline.facts import to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut
     from leichtfacile.pipeline.rounds import build_request, missing_count
-    from leichtfacile.pipeline.stages import to_factsheet
     from leichtfacile.schemas import Block, Draft, Finding, RuleFindings
     from tests.pipeline.fixtures import UNDERSTAND
 

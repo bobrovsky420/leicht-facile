@@ -229,7 +229,7 @@ def test_fact_08_is_silent_in_standard_mode() -> None:
 
 def test_the_parts_of_a_decision_do_not_trip_fact_02() -> None:
     # The part facts have no value, so blocks are linked to them by the sentences they
-    # cite (stages.link_facts); FACT-02 leaves them to FACT-08, and the fee's missing
+    # cite (facts.link_facts); FACT-02 leaves them to FACT-08, and the fee's missing
     # value to FACT-01.
     doc = source(WITH_HEADINGS)
     fs = protect_factsheet(factsheet(doc), doc)

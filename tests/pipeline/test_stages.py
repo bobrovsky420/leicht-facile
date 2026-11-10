@@ -7,16 +7,15 @@ import re
 import pytest
 
 from leichtfacile.pipeline import render as r
-from leichtfacile.pipeline.models import RepairOut, UnderstandOut, WriteOut, normalize_id
-from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, level_name, render
-from leichtfacile.pipeline.stages import (
+from leichtfacile.pipeline.facts import (
     complete_factsheet,
     link_facts,
     merge_twin_facts,
-    split_sections,
-    text_to_blocks,
     to_factsheet,
 )
+from leichtfacile.pipeline.models import RepairOut, UnderstandOut, WriteOut, normalize_id
+from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, level_name, render
+from leichtfacile.pipeline.stages import split_sections, text_to_blocks
 from leichtfacile.pipeline.versions import RepairRequest, apply_repairs, drop_repeats
 from leichtfacile.rules import check_draft, style_guide
 from leichtfacile.schemas import (
@@ -745,18 +744,18 @@ def test_write_output_hoists_a_list_written_as_a_block() -> None:
 
 
 def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
-    from leichtfacile.pipeline.stages import _example_key, copied_sentences, example_keys
+    from leichtfacile.pipeline.checks import copied_sentences, example_key, example_keys
 
     keys = example_keys("de", "write")
-    assert _example_key("Die Hunde·steuer kostet 120 Franken pro Hund.") in keys  # JSON example
-    assert _example_key("Bringen Sie den Impf·ausweis von Ihrem Hund mit.") in keys  # few-shot
-    assert _example_key("fact_ids") not in keys
+    assert example_key("Die Hunde·steuer kostet 120 Franken pro Hund.") in keys  # JSON example
+    assert example_key("Bringen Sie den Impf·ausweis von Ihrem Hund mit.") in keys  # few-shot
+    assert example_key("fact_ids") not in keys
     # The style guide's lines, at both levels and without the list marker: a draft on
     # the 8B carried the guide as a section (8 October 2026).
     guide = "Telefon·nummern schreibst du mit Abständen: 044 123 45 67."
-    assert _example_key(guide) in keys and _example_key(guide) in example_keys("de", "repair")
-    assert _example_key("Schreibe kurze Sätze: höchstens 12 Wörter pro Satz.") in keys
-    assert _example_key("Schreibe kurze Sätze: höchstens 15 Wörter pro Satz.") in keys
+    assert example_key(guide) in keys and example_key(guide) in example_keys("de", "repair")
+    assert example_key("Schreibe kurze Sätze: höchstens 12 Wörter pro Satz.") in keys
+    assert example_key("Schreibe kurze Sätze: höchstens 15 Wörter pro Satz.") in keys
     passive = (
         "Kein Passiv. Sag, wer etwas tut. "
         "Nicht: Das Formular wird geprüft. Sondern: Das Amt prüft das Formular."
@@ -775,7 +774,7 @@ def test_example_keys_hold_the_sentences_of_the_prompt_examples() -> None:
         ("it", "repair"),
     ):
         assert example_keys(lang, stage)  # fmt: skip
-    assert _example_key("Annunci il Suo cane al controllo abitanti.") in example_keys("it", "write")
+    assert example_key("Annunci il Suo cane al controllo abitanti.") in example_keys("it", "write")
     assert copied_sentences(["Die Hundesteuer kostet 120 Franken pro Hund"], "de", "write") == 1
     assert copied_sentences(["Das Gesuch muss bis 31. März 2026 da sein."], "de", "write") == 0
 
@@ -814,7 +813,7 @@ def test_a_draft_that_copies_the_example_is_sent_back_once(endpoint, sleeps) -> 
 
 def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, sleeps) -> None:
     from leichtfacile.llm.client import LLMClient
-    from leichtfacile.pipeline.stages import RepairRequest, repair
+    from leichtfacile.pipeline.stages import repair
     from leichtfacile.schemas import Block, Draft
     from tests.conftest import chat_response, make_settings
 
@@ -847,7 +846,8 @@ def test_a_repair_with_a_value_not_in_the_document_is_sent_back_once(endpoint, s
 
 def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps) -> None:
     from leichtfacile.llm.client import LLMClient
-    from leichtfacile.pipeline.stages import topic_sentences, write
+    from leichtfacile.pipeline.checks import topic_sentences
+    from leichtfacile.pipeline.stages import write
     from tests.conftest import chat_response, make_settings
 
     assert topic_sentences(["Melden Sie neue Hunde an."], "de", "Prämien.") == [
@@ -907,7 +907,7 @@ def test_a_sentence_about_the_examples_topic_is_example_content(endpoint, sleeps
 
 
 def test_the_examples_office_is_example_content_unless_the_source_names_it() -> None:
-    from leichtfacile.pipeline.stages import topic_sentences
+    from leichtfacile.pipeline.checks import topic_sentences
 
     # The repair example's addition, with a number of the document (CSCS, 8 Oct 2026).
     leak = "Rufen Sie die Einwohner·kontrolle an: 044 123 45 67."
@@ -923,7 +923,8 @@ def test_the_examples_office_is_example_content_unless_the_source_names_it() -> 
 
 def test_understand_keeps_only_hard_terms_of_the_source(endpoint, sleeps) -> None:
     from leichtfacile.llm.client import LLMClient
-    from leichtfacile.pipeline.stages import in_source, understand
+    from leichtfacile.pipeline.facts import in_source
+    from leichtfacile.pipeline.stages import understand
     from tests.conftest import chat_response, make_settings
 
     source = fx.letter()
@@ -991,7 +992,7 @@ def test_write_output_hoists_entries_written_as_blocks_of_that_kind() -> None:
 
 def test_the_repair_record_keeps_the_answer_and_what_code_dropped(endpoint, sleeps) -> None:
     from leichtfacile.llm.client import LLMClient
-    from leichtfacile.pipeline.stages import RepairRequest, repair
+    from leichtfacile.pipeline.stages import repair
     from leichtfacile.schemas import Block, Draft
     from tests.conftest import chat_response, make_settings
 
@@ -1068,7 +1069,7 @@ def test_the_exact_form_of_a_missing_value() -> None:
 
 
 def test_the_decision_partial_renders_only_in_decision_mode() -> None:
-    from leichtfacile.pipeline.stages import mode_context
+    from leichtfacile.pipeline.prompts import mode_context
 
     source = fx.letter()
     fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), source.id)
@@ -1121,7 +1122,6 @@ def test_code_completion_works_on_the_document_text_and_keeps_percentages_checka
     """Found by the silent-loss metric on the dev pairs (7 October 2026): a percentage
     completed as a bare number never matched again, and an address over two sentences
     was completed as its postcode and place alone."""
-    from leichtfacile.pipeline.stages import complete_factsheet
     from leichtfacile.rules.document import fact_coverage
     from leichtfacile.schemas import FactSheet, OmitCandidate, SourceInfo
 
@@ -1171,7 +1171,6 @@ def test_code_completion_adds_the_full_value_next_to_a_partial_model_fact() -> N
     """A model fact with the place alone, or a bare number for a quantity, does not cover
     the source's full address or quantity: the reader who searches the fact sheet for the
     full value must find it (the silent-loss check asks the same question)."""
-    from leichtfacile.pipeline.stages import complete_factsheet
     from leichtfacile.schemas import Fact, FactSheet, SourceInfo
 
     segments = [
@@ -1620,9 +1619,9 @@ def test_stock_phrases_of_easy_language_alone_are_no_copied_example() -> None:
     anrufen." stand in the few-shot example and in honest drafts: two of them in a draft
     of three sentences were a majority of copies, sent back, and a second such answer
     failed the stage. A copy needs a sentence that says something of its own."""
-    from leichtfacile.pipeline.stages import _copy_check, _write_texts
+    from leichtfacile.pipeline.checks import copy_check, write_texts
 
-    check = _copy_check("de-CH", "write", _write_texts)
+    check = copy_check("de-CH", "write", write_texts)
     honest = WriteOut.model_validate({"blocks": [
         {"kind": "sentence", "text": "Haben Sie Fragen?"},
         {"kind": "sentence", "text": "Sie können von Montag bis Freitag anrufen."},

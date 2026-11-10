@@ -128,7 +128,7 @@ def render(lang: str, stage: str, **context: object) -> str:
     context.setdefault("v", v)
     # The sender's phrases (`s`: writes, document, judged) and the form of address's
     # note, from senders/senders.toml (31 October 2026); the job's options come in as
-    # `sender` and `address` (stages.mode_context), whose defaults render the templates
+    # `sender` and `address` (`mode_context`), whose defaults render the templates
     # word for word as before the options existed.
     profile = sender(str(context.pop("sender", "authority")))
     context.setdefault("s", profile.for_prompt(lang, v.prompt))
@@ -141,6 +141,28 @@ def render(lang: str, stage: str, **context: object) -> str:
     # where the shared templates, the examples and the style guide write the Mediopunkt
     # (rules/lexicon.hyphenated; the Swiss rendering is untouched).
     return hyphenated(text) if v.compound_mark == "hyphen" else text
+
+
+def mode_context(
+    stage: str,
+    mode: str = "standard",
+    addressee: str | None = None,
+    sender: str = "authority",
+    address: str = "formal",
+) -> dict:
+    """The job's options in a prompt's context. The standard templates carry one line
+    each, `{% if mode is defined and mode == "decision" %}{% include %}{% endif %}`,
+    which renders to nothing for a standard job (same prompt, same cache key) and pulls
+    in the section of the decision partial for this stage (docs/use-case-decisions.md).
+    `sender` and `address` become the sender's phrases and the form's note in
+    `render`; their defaults render the templates as before (31 October 2026)."""
+    return {
+        "mode": mode,
+        "stage_name": stage,
+        "addressee": addressee or "",
+        "sender": sender,
+        "address": address,
+    }
 
 
 @lru_cache(maxsize=64)

@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import pytest
 
+from leichtfacile.pipeline.facts import complete_factsheet
 from leichtfacile.pipeline.models import FactOut
-from leichtfacile.pipeline.prompts import level_name, render
+from leichtfacile.pipeline.prompts import level_name, mode_context, render
 from leichtfacile.pipeline.rounds import repairable
-from leichtfacile.pipeline.stages import complete_factsheet, mode_context
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.medication import (
     has_doses,

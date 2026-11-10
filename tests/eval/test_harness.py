@@ -251,8 +251,8 @@ def test_a_baseline_in_a_fresh_store_is_scored_against_a_completed_fact_sheet(
 
 def test_silent_losses_need_a_checklist_or_an_omission_log() -> None:
     from leichtfacile.eval.score import silent_losses
+    from leichtfacile.pipeline.facts import complete_factsheet, to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut
-    from leichtfacile.pipeline.stages import complete_factsheet, to_factsheet
     from leichtfacile.schemas import Block, Draft, Omission
 
     standard = fx.letter()  # three hard values: 31 March 2026, CHF 20, the phone number
@@ -281,7 +281,7 @@ def test_silent_losses_need_a_checklist_or_an_omission_log() -> None:
 
 def test_a_completed_percentage_is_told_and_not_a_silent_loss() -> None:
     from leichtfacile.eval.score import silent_losses
-    from leichtfacile.pipeline.stages import complete_factsheet
+    from leichtfacile.pipeline.facts import complete_factsheet
     from leichtfacile.schemas import Block, Draft, FactSheet, Segment, SourceDocument, SourceInfo
 
     source = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=[

@@ -189,6 +189,18 @@ restart) goes on with the next round: each stored version is checked and judged 
 the crash came first, and a judge report is reused only for the content it judged
 (`draft_hash`). Every change of the job's state is an event in its log (§5).
 
+A model stage renders its prompt, calls the model and hands the answer on
+(`pipeline/stages.py`); the answer itself is never changed. What code makes of an answer
+lies in three modules without a model call: the checks on its texts
+(`pipeline/checks.py`: a copy of the prompt's examples, their topics, values the source
+lacks), the fact sheet and its links (`pipeline/facts.py`) and the draft versions
+(`pipeline/versions.py`). What code changes after a stage is declared once
+(`pipeline/transforms.py`): after Understand the hard values as facts, the protected
+parts of a decision, the items of the lists and the vocabulary's terms (§4.2); after
+the write stage and after every round the fact links, the glossary entries from the
+vocabulary, the compound marks and the variety's spelling (§4.3, §4.6), each edit
+recorded on the version (`code_edits`).
+
 ### 4.1 Ingest (code)
 
 | Input | Method | Output |
@@ -290,7 +302,7 @@ Selbstbehalt explained alike, the Urne as the place of the vote; CSCS dev run of
 7 October 2026). Terms of the source the model did not list are added, the rarest
 first, up to 6 and 12 hard terms in all. Context-dependent words (Leistung, Wartezeit)
 are never added by code. A hard term of the model that the source does not contain,
-neither as written nor word for word in another form, is dropped (`stages.in_source`):
+neither as written nor word for word in another form, is dropped (`facts.in_source`):
 the 8B listed the Understand example's own office (Einwohnerkontrolle, contrôle des
 habitants) for 6 documents of the CSCS evaluation, and the writer then sent the reader
 to it. `pipeline.vocabulary = false` switches this and the other uses below off, only
@@ -353,7 +365,7 @@ Code then completes the glossary (`rules/glossary.py`): a hard term of the vocab
 that a block uses and the glossary does not explain gets the vocabulary's entry, at most
 6 per version and up to 10 entries in all, the rarest first. The vocabulary is the
 draft's variety's (`draft.variety`, as the fact sheet's hard terms in
-`stages.vocabulary_terms` are the source's variety's): until the smoke run of 29 October
+`facts.vocabulary_terms` are the source's variety's): until the smoke run of 29 October
 2026 both read the Swiss files for every German draft, and an Austrian glossary explained
 the Beschwerde with an Entscheid and an Einsprache. A glossary term the model copied from
 the hyphenated draft (Familien-Beihilfe) names the vocabulary's compound as the Mediopunkt
@@ -1855,7 +1867,9 @@ src/leichtfacile/
   ingest/                   fetch.py (the safe URL download), html.py, pdf.py, text.py, segment.py,
                             normalize.py, detect.py, errors.py
   pipeline/                 models.py, prompts.py, render.py, stages.py (the model calls and their
-                            parsing), versions.py (a new draft version from an answer: ids, lists,
+                            parsing), checks.py (the checks on an answer's texts), facts.py (the fact
+                            sheet and its links), transforms.py (code's steps after a stage, declared
+                            once), versions.py (a new draft version from an answer: ids, lists,
                             repeats, what is left out), rounds.py (the plan of
                             the rounds after the first draft), orchestrator.py, runner.py
   rules/                    base.py, messages.py, de.py, fr.py, it.py, document.py, layout.py, values.py,

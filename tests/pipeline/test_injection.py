@@ -7,9 +7,10 @@ from __future__ import annotations
 import pytest
 
 from leichtfacile.pipeline import render as r
+from leichtfacile.pipeline.facts import to_factsheet
 from leichtfacile.pipeline.models import UnderstandOut
 from leichtfacile.pipeline.prompts import examples, level_name, render
-from leichtfacile.pipeline.stages import style_guide, to_factsheet
+from leichtfacile.rules.styleguide import style_guide
 from leichtfacile.schemas import JobConfig, Segment, SourceDocument
 from leichtfacile.store import Store
 from tests.conftest import chat_response

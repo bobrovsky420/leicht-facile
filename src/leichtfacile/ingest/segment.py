@@ -113,7 +113,7 @@ MONTHS = frozenset(_MONTHS_WORDS.split()) | {
 _MONTH_NAMES = "|".join(sorted(MONTHS, key=len, reverse=True))
 _CURRENCY = r"(?:CHF|SFr\.|Fr\.|EUR|€|Euro|euros?|Franken|francs?|franchi)"
 # A value a fact holds, which no heading carries: the facts a heading alone holds are
-# background (pipeline/stages.py), so "Rechnungsbetrag CHF 1'250.00" or "IBAN CH93 ..."
+# background (pipeline/facts.py), so "Rechnungsbetrag CHF 1'250.00" or "IBAN CH93 ..."
 # as a heading lost what the letter asks for. An amount, an IBAN, a date with its year, a
 # Swiss phone number, five digits or more; a year alone ("Prämienverbilligung 2027") is
 # none.

@@ -30,7 +30,7 @@ from leichtfacile.lifecycle import job_counts
 from leichtfacile.llm.client import LLMClient, LLMError, LLMInterrupted, RunLimit
 from leichtfacile.llm.json_out import LLMOutputError
 from leichtfacile.llm.registry import Registry
-from leichtfacile.pipeline import stages
+from leichtfacile.pipeline import stages, transforms
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.rounds import (
     MISSING_PRIORITY,
@@ -45,12 +45,6 @@ from leichtfacile.pipeline.rounds import (
 )
 from leichtfacile.pipeline.versions import RepairRequest, add_sentences, value_present
 from leichtfacile.rules import check_draft
-from leichtfacile.rules.decision import protect_factsheet
-from leichtfacile.rules.glossary import fill_glossary
-from leichtfacile.rules.lists import protect_lists
-from leichtfacile.rules.medication import medication_names
-from leichtfacile.rules.mediopunkt import apply_mediopunkt
-from leichtfacile.rules.swiss import apply_spelling
 from leichtfacile.rules.vocabulary import vocabulary_version
 from leichtfacile.schemas import (
     BASELINE_CONDITIONS,
@@ -329,6 +323,7 @@ class Orchestrator:
 
     def _run_pipeline(self, run: RunState, job: Job, source: SourceDocument) -> None:
         cfg = job.config
+        ctx = _context(job, source)  # what code's steps after a stage read
         factsheet = self.store.get_artifact(job.id, "factsheet", FactSheet)
         if factsheet is None:
             self._stage(run, "understand")
@@ -341,12 +336,7 @@ class Orchestrator:
                 addressee=cfg.addressee,
                 sender=cfg.sender,
             )
-            factsheet = stages.complete_factsheet(factsheet, source)
-            if cfg.mode == "decision":
-                factsheet = protect_factsheet(factsheet, source)
-            factsheet = protect_lists(factsheet, source)  # after the decision's parts
-            if cfg.pipeline.vocabulary:
-                factsheet = stages.vocabulary_terms(factsheet, source)
+            factsheet = transforms.completed(factsheet, ctx)
             self.store.put_artifact(job.id, "factsheet", factsheet)
         self._maybe_stop(run, "understand")
 
@@ -364,12 +354,8 @@ class Orchestrator:
                 sender=cfg.sender,
                 address=cfg.address,
             )
-            draft = stages.link_facts(draft, factsheet, source)
-            if cfg.pipeline.vocabulary:  # before the Mediopunkt: it splits the terms too
-                draft, _ = fill_glossary(draft)
             # P1 and P2 only; a baseline measures the prompt
-            draft, _ = apply_mediopunkt(draft, keep=medication_names(factsheet))
-            draft, _ = apply_spelling(draft)
+            draft, _ = transforms.edited(transforms.AFTER_WRITE, draft, factsheet, ctx)
             self.store.put_artifact(job.id, "draft", draft, draft.version)
         self._maybe_stop(run, "write")
         rules = self._check(run, job, draft, source, factsheet)
@@ -652,12 +638,10 @@ class Orchestrator:
     ) -> Step:
         """A round's new version after the model: code's edits, stored, checked and
         judged (again when facts were involved, else the judge's findings carried over)."""
-        new_draft = stages.link_facts(new_draft, factsheet, source)
-        if job.config.pipeline.vocabulary:  # a repair can bring a new hard term
-            new_draft, _ = fill_glossary(new_draft)
         # Before the check: one text for all.
-        new_draft, _ = apply_mediopunkt(new_draft, keep=medication_names(factsheet))
-        new_draft, _ = apply_spelling(new_draft)
+        new_draft, _ = transforms.edited(
+            transforms.AFTER_ROUND, new_draft, factsheet, _context(job, source)
+        )
         # The version and its record together: neither ever exists without the other.
         version = new_draft.version
         self.store.put_artifacts(
@@ -809,6 +793,13 @@ class Orchestrator:
         if run.stage is not None:
             self.store.record(run.job_id, "stage_finished", {"stage": run.stage})
             run.stage = None
+
+
+def _context(job: Job, source: SourceDocument) -> transforms.Context:
+    """What code's steps after a stage read of the job (pipeline/transforms.py)."""
+    return transforms.Context(
+        source, mode=job.config.mode, vocabulary=job.config.pipeline.vocabulary
+    )
 
 
 def understand_model(

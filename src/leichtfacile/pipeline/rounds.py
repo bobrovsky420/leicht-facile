@@ -32,8 +32,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 from leichtfacile.pipeline import render
+from leichtfacile.pipeline.facts import shared_stems
 from leichtfacile.pipeline.labels import label
-from leichtfacile.pipeline.stages import shared_stems
 from leichtfacile.pipeline.versions import RepairRequest
 from leichtfacile.rules.vocabulary import OFFICE_RULES
 from leichtfacile.schemas import (
@@ -179,7 +179,7 @@ def build_request(  # noqa: C901, PLR0912
                     problems[block_id].append(f"  - {wrong}")
             elif c.status == "missing" and fact.must_keep:
                 # A fact a block already carries by code's links (a value it contains, a
-                # sentence it cites: stages.link_facts) is asked for on that block, not
+                # sentence it cites: facts.link_facts) is asked for on that block, not
                 # as new sentences: the 70B called obligations missing that stood there
                 # in other words ("Papier vom Arzt" for the Arztzeugnis), and every round
                 # then added a paraphrase of the block (the school letters, 31 October

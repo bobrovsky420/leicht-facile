@@ -44,7 +44,12 @@ from leichtfacile.config import LETTERS_DIR
 from leichtfacile.llm.json_out import JSONExtractionError, extract_json
 from leichtfacile.pipeline import versions
 from leichtfacile.pipeline.models import RepairOut
-from leichtfacile.pipeline.versions import RepairRequest, apply_repairs, sentences_of
+from leichtfacile.pipeline.versions import (
+    RepairRequest,
+    apply_repairs,
+    sentences_of,
+    without_texts,
+)
 from leichtfacile.schemas import Draft, DroppedText, FactSheet, RepairRecord, SourceDocument
 from leichtfacile.store import SCHEMA_VERSION
 
@@ -217,17 +222,7 @@ def answer_of(record: RepairRecord, candidates: list[Answer], used: set[int]) ->
 def without_examples(out: RepairOut, record: RepairRecord) -> RepairOut:
     """The answer as `apply_repairs` saw it: the example sentences `stages.repair`
     drops before it (`DroppedText.reason == "example"`) taken out, on a copy."""
-    out = out.model_copy(deep=True)
-    examples = {d.text for d in record.dropped if d.reason == "example"}
-    if not examples:
-        return out
-    for item in out.repairs:
-        item.texts = [t for t in item.texts if t not in examples]
-    out.repairs = [item for item in out.repairs if item.texts]
-    for add in out.additions:
-        add.texts = [t for t in add.texts if t not in examples]
-    out.additions = [add for add in out.additions if add.texts]
-    return out
+    return without_texts(out, {d.text for d in record.dropped if d.reason == "example"})
 
 
 def artifact(
@@ -331,7 +326,7 @@ def replay_one(case: Case) -> tuple[Draft, list[DroppedText]]:
     """The round as the test replays it (tests/pipeline/test_repair_replay.py)."""
     facts = {f.id: f for f in case.factsheet.facts}
     request = RepairRequest({b: ["replay"] for b in case.blocks}, [facts[i] for i in case.facts])
-    out = RepairOut.model_validate(case.answer)  # a copy: the function edits the texts
+    out = RepairOut.model_validate(case.answer)
     dropped: list[DroppedText] = []
     draft = apply_repairs(
         case.draft, out, request, case.factsheet, dropped=dropped, version=case.version

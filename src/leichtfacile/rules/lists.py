@@ -9,7 +9,7 @@ of the camp letter's packing list in German and none in French (the school lette
 checks missed it. As the decision mode does for the operative part (rules/decision.py,
 FACT-08), code adds one fact without a value per item after the fact sheet is
 completed (`protect_lists`), so that the writer sees the items among the facts it must
-keep, a block that cites the item carries the fact (`stages.link_facts`), and a dropped
+keep, a block that cites the item carries the fact (`facts.link_facts`), and a dropped
 item is asked for in a repair round like a missing value (rounds.MISSING_RULES).
 
 An item that a code fact already cites (an item that is a value, such as the pocket
@@ -41,7 +41,7 @@ from leichtfacile.rules.messages import hit
 from leichtfacile.schemas import Block, Fact, FactSheet, Segment, SourceDocument
 
 MAX_ITEMS = 20
-_WORD_RE = re.compile(r"[^\W\d_]{4,}")  # content words, as stages._stems reads them
+_WORD_RE = re.compile(r"[^\W\d_]{4,}")  # content words, as versions.stems reads them
 _STEM_LETTERS = 5
 
 
@@ -69,7 +69,7 @@ def _key(text: str) -> str:
 
 def _stems(text: str, lang: str) -> set[str]:
     """The stems of a text's content words (words of four letters or more that are
-    no function words, by their first five letters, like `stages._stems`)."""
+    no function words, by their first five letters, like `versions.stems`)."""
     stop = STOPWORDS.get(lang, frozenset())
     words = _WORD_RE.findall(text.lower().replace(MEDIOPUNKT, ""))
     return {w[:_STEM_LETTERS] for w in words if w not in stop}

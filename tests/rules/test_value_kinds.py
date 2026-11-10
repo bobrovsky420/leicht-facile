@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from leichtfacile.pipeline.stages import complete_factsheet, link_facts
+from leichtfacile.pipeline.facts import complete_factsheet, link_facts
 from leichtfacile.rules import check_draft
 from leichtfacile.rules.messages import render_finding
 from leichtfacile.rules.values import (

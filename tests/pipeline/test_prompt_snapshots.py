@@ -19,9 +19,16 @@ from pathlib import Path
 import pytest
 
 from leichtfacile.pipeline import render as r
+from leichtfacile.pipeline.facts import to_factsheet
 from leichtfacile.pipeline.models import UnderstandOut
-from leichtfacile.pipeline.prompts import PROMPTS_DIR, examples, has_prompt, level_name, render
-from leichtfacile.pipeline.stages import mode_context, to_factsheet
+from leichtfacile.pipeline.prompts import (
+    PROMPTS_DIR,
+    examples,
+    has_prompt,
+    level_name,
+    mode_context,
+    render,
+)
 from leichtfacile.rules import style_guide
 from leichtfacile.schemas import LANGS, Block, Draft, variety
 from tests.pipeline import fixtures as fx
