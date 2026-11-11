@@ -416,6 +416,18 @@ key_url = "https://console.mistral.ai/api-keys"
 location = "eu"
 documents = "public"
 
+# Mistral Small 4 (open weights, Apache 2.0) reasons when asked (reasoning_effort high, its
+# only level besides none) and then sends its answer as a list of thinking and text
+# chunks; none on every call keeps it from thinking. Run over the evaluation pairs on
+# 10 and 11 November 2026 (docs/model-comparison.md): thinking in Understand and Judge
+# kept a few more German hard facts (91 and 92 % in two runs, 85 to 89 % without) at more
+# than twice the price and four times the time. Prices: Mistral's list as OpenRouter shows
+# Mistral's own endpoint (10 November 2026).
+[providers.mistral.models."mistral-small-2603"]
+extra_body = { reasoning_effort = "none" }
+input_usd = 0.15
+output_usd = 0.60
+
 # Groq (US cloud, very fast inference). The models come and go (several are previews).
 # Thinking stays off: Qwen reasons on Groq only when asked with reasoning_effort low,
 # medium or high (checked 25 October 2026), and the gpt-oss models refuse "none". Prices:

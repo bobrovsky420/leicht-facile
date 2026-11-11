@@ -17,6 +17,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   a model call, and reports what the current code makes of them against the stored
   artifacts and, with `--against`, against an earlier replay: what a change of the code
   does to every stored job, before a run against a model.
+- Mistral Small 4 (`mistral-small-2603` on the `mistral` provider) has a model table: it
+  runs without thinking (`reasoning_effort` none) and the cost per page shows its price.
+  It was run over the evaluation pairs, with and without thinking
+  (docs/model-comparison.md).
 
 ### Changed
 
@@ -43,6 +47,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - A model that sends its answer as a list of chunks, as Mistral's models do when they
   think, is read: the thinking goes to the reasoning, the text to the answer. Such a
   call failed before.
+- A repair answer in which one block's texts are empty keeps its other repairs: the
+  empty one is dropped and its block stays as it was. Before, the whole repair round
+  failed and the rounds after it never ran (Mistral Small 4: 5 of 20 German evaluation
+  pages).
 - The model's answers are read more faithfully: a judge finding with a rule id that is no
   SEM rule (`LEX-01`, a block id) is dropped instead of being read as one; a repair that
   names one block twice keeps both repairs instead of the last; segment ids given in one

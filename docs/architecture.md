@@ -1050,7 +1050,9 @@ midway.
   small model are repaired in code: a run of ids written as a range, a trailing or a
   missing comma, a list or object closed with the wrong bracket, a unicode escape
   with too few digits, a second value without a list where a key belongs, which is
-  dropped because code completion restores any value it carried; and the Unicode or
+  dropped because code completion restores any value it carried; a repair or an
+  addition without text, which goes while the answer's other items stay, since the
+  repair format has no deletion and the block stays as it was; and the Unicode or
   non-breaking hyphen a model may write for a plain one becomes a plain one, since an
   e-mail address with one fails when copied or clicked: gpt-oss-120b wrote 101 in 23
   documents on 8 November 2026) and validated with pydantic. On failure the validation error, or the

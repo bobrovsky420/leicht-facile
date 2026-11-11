@@ -382,13 +382,28 @@ class JudgeOut(LLMOut):
 # -- repair ---------------------------------------------------------------------------
 
 
+def _clean_texts(v: Any) -> list[str]:
+    """The texts of a repair or an addition: cleaned, the empty ones and nulls dropped
+    (a null used to become the text "None")."""
+    texts = [clean_text(str(t)) for t in (v if isinstance(v, list) else [v]) if t is not None]
+    return [t for t in texts if t]
+
+
 def _texts(v: Any) -> list[str]:
-    """The texts of a repair or an addition: cleaned, the empty ones dropped."""
-    texts = [clean_text(str(t)) for t in (v if isinstance(v, list) else [v])]
-    texts = [t for t in texts if t]
+    texts = _clean_texts(v)
     if not texts:
         raise ValueError("a repair needs at least one text")
     return texts
+
+
+def _with_texts(items: Any) -> Any:
+    """The repairs or additions of an answer that carry a text. One without goes and the
+    others stay: the format has no deletion, so its block stays as it was, findings and
+    all. Mistral Small 4 left a repair's texts empty in 5 of 20 German evaluation jobs
+    (10 November 2026), and the whole answer, its valid repairs with it, failed."""
+    if not isinstance(items, list):
+        return items
+    return [i for i in items if not isinstance(i, dict) or _clean_texts(i.get("texts"))]
 
 
 class RepairItem(LLMOut):
@@ -453,3 +468,5 @@ class RepairOut(LLMOut):
 
     repairs: list[RepairItem] = Field(default_factory=list)
     additions: list[AdditionItem] = Field(default_factory=list)
+
+    _items = field_validator("repairs", "additions", mode="before")(_with_texts)

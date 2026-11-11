@@ -248,6 +248,34 @@ def test_apply_repairs_splits_and_adds_blocks() -> None:
     assert new.version == 2 and new.parent_version == 1 and new.origin == "repair"
 
 
+def test_a_repair_without_text_goes_and_the_rest_of_the_answer_stays() -> None:
+    """Mistral Small 4 left a repair's texts empty (10 November 2026): the whole answer
+    failed validation, its valid repair with it. Now the empty items go, and their
+    blocks stay as they were."""
+    fs = to_factsheet(UnderstandOut.model_validate(fx.UNDERSTAND), "doc")
+    draft = Draft(doc_id="doc", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Alt eins.", segment_ids=["s0003"]),
+        Block(id="b002", kind="sentence", text="Alt zwei.", segment_ids=["s0004"]),
+        Block(id="b003", kind="sentence", text="Alt drei.", segment_ids=["s0004"]),
+    ])  # fmt: skip
+    out = RepairOut.model_validate({
+        "repairs": [{"id": "b001", "texts": ["Neu eins."]},
+                    {"id": "b002", "texts": []},
+                    {"id": "b003", "texts": ["", " "]},
+                    {"id": "b003", "texts": None},
+                    {"id": "b003"}],
+        "additions": [{"after": "b001", "texts": [], "fact_ids": ["f03"]}],
+    })  # fmt: skip
+    assert [r.id for r in out.repairs] == ["b001"] and out.additions == []
+    request = RepairRequest({"b001": ["x"], "b002": ["x"], "b003": ["x"]}, [])
+    new = apply_repairs(draft, out, request, fs)
+    assert [(b.id, b.text) for b in new.blocks] == [
+        ("b001", "Neu eins."), ("b002", "Alt zwei."), ("b003", "Alt drei."),
+    ]  # fmt: skip
+    mixed = RepairOut.model_validate({"repairs": [{"id": "b001", "texts": [None, "Neu."]}]})
+    assert mixed.repairs[0].texts == ["Neu."]  # a null is no text "None"
+
+
 def test_additions_after_a_list_item_land_after_the_list() -> None:
     """A repair's addition placed after a list item goes after the list's last item,
     not between the items (10 October 2026)."""

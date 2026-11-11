@@ -223,6 +223,30 @@ thinking = "gpt-oss always reasons; reasoning_effort low on every call"
 text = "France (OVHcloud, Gravelines, by its documentation)"
 prices = "OVHcloud's prices on the Hugging Face router"
 notes = "the same model and settings as the Groq run, on the code of that morning (the facts round on, Unicode hyphens kept: three e-mail addresses with a non-breaking hyphen count as values not in the source); about ten times slower"
+[[run]]
+label = "Mistral Small 4 at every stage, no thinking (Mistral AI)"
+results = "eval/results-mistral-small-4"
+file = "P2_mistral-small-2603.jsonl"
+date = 2026-11-11
+endpoint = "Mistral AI API (api.mistral.ai)"
+writer = "mistral-small-2603"
+judge = "mistral-small-2603 (itself)"
+thinking = "reasoning_effort none on every call (the provider's models table)"
+text = "the EU (Mistral AI)"
+prices = "Mistral list prices"
+notes = "the run of 10 November, before a repair answer with one empty item kept its other items, failed its repair round in 5 of 20 German pairs and kept 89 % of the hard values, as did those answers rerun with the fix; on this day the first draft of one long letter lost 8 of its 33 values and the rounds did not bring them back; 233 calls, USD 0.44"
+[[run]]
+label = "Mistral Small 4, thinking in Understand and Judge (Mistral AI)"
+results = "eval/results-mistral-small-4-mixed"
+file = "P2_mistral-small-2603.jsonl"
+date = 2026-11-11
+endpoint = "Mistral AI API (api.mistral.ai)"
+writer = "mistral-small-2603"
+judge = "mistral-small-2603 (itself)"
+thinking = "reasoning_effort high in Understand and Judge, none elsewhere; every call 12,000 tokens more (`thinking_tokens`): with the stages' own budgets the judge's thinking ran out and it answered without"
+text = "the EU (Mistral AI)"
+prices = "Mistral list prices"
+notes = "the thinking comes back as thinking chunks in the answer's content; the run of 10 November kept 91 % of the German hard values, and one of its streams stalled until the job passed its two hours (that pair ran again); no stall on this day; 220 calls, USD 0.95"
 ```
 <!-- runs:end -->
 
@@ -243,6 +267,8 @@ notes = "the same model and settings as the Groq run, on the code of that mornin
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 2026-11-03 | Public AI gateway (api.publicai.co) | swiss-ai/apertus-v1.5-70b | swiss-ai/apertus-v1.5-70b (itself) | none: the gateway's 70B ignores the switch, and the 1.5 8B and the -thinking names answer 400 since 28 October 2026 | Public AI (Metagov Inc., USA) and a compute partner of its choice (maas.phoeniqs.com on this day) | Public AI list prices | the publicai-apertus preset from 3 to 6 November 2026, the shipped default of 0.12.0, run on the same pairs as the CSCS reference; the folder also holds the pairs of Germany, Austria and Italian (docs/evaluation-publicai.md), which the tables leave out | `eval/results-publicai/P2_swiss-ai-apertus-v1-5-70b.jsonl` |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 2026-11-08 | Groq through the Hugging Face Inference Providers router | openai/gpt-oss-120b | openai/gpt-oss-120b (itself) | gpt-oss always reasons; reasoning_effort low on every call | Canada or the United States (Groq) | Groq list prices, billed through Hugging Face | the huggingface-gpt-oss-120b-groq preset; of the variants tried the same day (docs/history/2026-11-08-gpt-oss-tuning.md) the 20B writing kept fewer facts and gave up on a long document, a judge at medium effort and the model's own temperature brought nothing | `eval/results-hf-gpt-oss-120b-groq/P2_openai-gpt-oss-120b-groq.jsonl` |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 2026-11-08 | OVHcloud AI Endpoints through the Hugging Face Inference Providers router | openai/gpt-oss-120b | openai/gpt-oss-120b (itself) | gpt-oss always reasons; reasoning_effort low on every call | France (OVHcloud, Gravelines, by its documentation) | OVHcloud's prices on the Hugging Face router | the same model and settings as the Groq run, on the code of that morning (the facts round on, Unicode hyphens kept: three e-mail addresses with a non-breaking hyphen count as values not in the source); about ten times slower | `eval/results-hf-gpt-oss-120b-ovhcloud/P2_openai-gpt-oss-120b-ovhcloud.jsonl` |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 2026-11-11 | Mistral AI API (api.mistral.ai) | mistral-small-2603 | mistral-small-2603 (itself) | reasoning_effort none on every call (the provider's models table) | the EU (Mistral AI) | Mistral list prices | the run of 10 November, before a repair answer with one empty item kept its other items, failed its repair round in 5 of 20 German pairs and kept 89 % of the hard values, as did those answers rerun with the fix; on this day the first draft of one long letter lost 8 of its 33 values and the rounds did not bring them back; 233 calls, USD 0.44 | `eval/results-mistral-small-4/P2_mistral-small-2603.jsonl` |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 2026-11-11 | Mistral AI API (api.mistral.ai) | mistral-small-2603 | mistral-small-2603 (itself) | reasoning_effort high in Understand and Judge, none elsewhere; every call 12,000 tokens more (`thinking_tokens`): with the stages' own budgets the judge's thinking ran out and it answered without | the EU (Mistral AI) | Mistral list prices | the thinking comes back as thinking chunks in the answer's content; the run of 10 November kept 91 % of the German hard values, and one of its streams stalled until the job passed its two hours (that pair ran again); no stall on this day; 220 calls, USD 0.95 | `eval/results-mistral-small-4-mixed/P2_mistral-small-2603.jsonl` |
 
 ## German
 
@@ -266,6 +292,8 @@ Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 20 | 99 % | 94 % | 0 % | 2.4 | 23.4 | 6.3 | 57 | 43.6 | 1.3 | 0.0 | 28528 | 0.0324 | 39.6 |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 20 | 100 % | 97 % | 0 % | 0.5 | 29.1 | 7.2 | 47 | 42.0 | 3.2 | 0.0 | 26702 | 0.0081 | 14.3 |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 20 | 100 % | 92 % | 0 % | 1.6 | 26.4 | 6.6 | 46 | 41.9 | 0.5 | 0.3 | 29288 | 0.0054 | 155.3 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 20 | 100 % | 85 % | 0 % | 0.8 | 28.1 | 7.0 | 53 | 44.5 | 7.3 | 0.0 | 29284 | 0.0071 | 30.2 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 20 | 100 % | 92 % | 0 % | 1.2 | 24.4 | 6.8 | 54 | 45.0 | 1.4 | 0.0 | 47315 | 0.0178 | 122.2 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -289,6 +317,8 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 10.0 | 0.0 | 6.3 | 0.0 | 5.6 | 29.4 | 1.6 | 0.0 |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 10.9 | 0.0 | 5.4 | 0.0 | 6.8 | 45.4 | 1.0 | 0.0 |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 6.2 | 0.0 | 8.7 | 0.0 | 7.1 | 40.0 | 1.8 | 0.0 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 11.9 | 0.0 | 4.9 | 0.0 | 8.0 | 30.9 | 1.5 | 0.0 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 10.0 | 0.0 | 7.1 | 0.1 | 5.7 | 23.0 | 0.8 | 0.0 |
 
 Fact-rich subset (17 pairs with at least 3 hard facts):
 
@@ -310,6 +340,8 @@ Fact-rich subset (17 pairs with at least 3 hard facts):
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 17 | 93 % | 99 % | 1 % |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 17 | 96 % | 100 % | 0 % |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 17 | 91 % | 100 % | 0 % |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 17 | 88 % | 100 % | 4 % |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 17 | 91 % | 100 % | 18 % |
 
 Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disability-de.
 
@@ -335,6 +367,8 @@ Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 100 % | 91 % | 0 % | 3.3 | 19.0 | 6.7 | 76 | 46.3 | 1.8 | 0.0 | 20806 | 0.0246 | 36.7 |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.6 | 55.0 | 10.5 | 75 | 45.1 | 1.6 | 0.0 | 16023 | 0.0050 | 8.1 |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.0 | 26.7 | 7.7 | 73 | 44.6 | 2.8 | 0.0 | 19427 | 0.0037 | 100.8 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 3 | 97 % | 77 % | 0 % | 0.0 | 23.6 | 7.5 | 75 | 47.7 | 12.8 | 0.0 | 18887 | 0.0046 | 18.7 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 3 | 100 % | 91 % | 0 % | 1.6 | 28.1 | 8.8 | 79 | 47.5 | 2.0 | 0.0 | 23701 | 0.0086 | 56.7 |
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -358,6 +392,8 @@ Rule findings (errors and warnings) per 100 blocks, by family. "LEX by code" is 
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 6.8 | 0.0 | 6.6 | 0.0 | 6.4 | 0.0 | 2.5 | 0.0 |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 15.5 | 0.0 | 9.1 | 0.0 | 22.6 | 0.0 | 8.5 | 0.0 |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 8.8 | 0.0 | 6.7 | 0.0 | 6.1 | 0.0 | 5.2 | 0.0 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 7.0 | 0.0 | 7.5 | 0.0 | 6.3 | 0.0 | 2.8 | 0.0 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 11.7 | 0.0 | 7.0 | 0.0 | 9.4 | 0.0 | 1.5 | 0.0 |
 
 Fact-rich subset (3 pairs with at least 3 hard facts):
 
@@ -379,6 +415,8 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
 | Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 91 % | 100 % | 0 % |
 | gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 90 % | 100 % | 0 % |
 | gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 90 % | 100 % | 0 % |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 3 | 77 % | 97 % | 9 % |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 3 | 91 % | 100 % | 1 % |
 <!-- tables:end -->
 
 ## Reading, 25 and 27 October 2026
@@ -453,3 +491,37 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
   many as two Groq runs differed by on one of those letters. Its three values not in
   the source are e-mail addresses written with a non-breaking hyphen, which the code
   writes as plain hyphens since the same day.
+
+## Reading, 11 November 2026
+
+- **Mistral Small 4 without thinking** keeps 85 % of the German hard values, with 0.8
+  rule errors per 100 blocks and a readability of 53, at USD 0.007 and 30 s a page. Its
+  run of 10 November kept 89 %: the difference is mostly one long letter whose first
+  draft lost 8 of its 33 values, which the rounds did not bring back. The two runs
+  differ by 6 points already in the first drafts (86 and 80 % of the hard values), so
+  one run of 20 pairs places this model only within a few points.
+- **With thinking in Understand and Judge** it keeps 92 % (91 % on 10 November), as many
+  as Claude Haiku and fewer than gpt-oss-120b on Groq (97 %) and the Apertus 70B on
+  Public AI (94 %), with 1.2 rule errors, at USD 0.018 and 122 s a page: 2.5 times the
+  price and 4 times the time of the run without thinking. Its first drafts keep no more
+  values (84 and 82 % against 80 and 86 % without thinking), so the gain comes in the
+  rounds. Thinking in every stage was not run: thinking in Understand did not make the
+  first drafts better, and the two thinking stages already cost 2.5 times as much.
+- **Its judge** with thinking left out more than half of the fact sheet in 38 of its 100
+  answers, often listing only the facts it found a problem with (37 of 102 on 10
+  November; without thinking none of 102, and 9 of 98 on 10 November; the other runs'
+  judges in at most 8 % of their answers). The judge columns count the facts a judge
+  listed, so its 18 % distorted facts in the German fact-rich subset are a share of
+  those, not of the fact sheet.
+- **French** (3 pairs): 77 % without thinking and 91 % with, against 87 and 78 % on 10
+  November; three pairs do not tell the two settings apart.
+- **The repair fix.** On 10 November 5 of the 20 German jobs without thinking ended on a
+  failed repair round: one repair in an answer had empty texts, and the whole answer
+  was refused. Since then the empty item goes and the others stay. Those runs repeated
+  on the same model answers ran their rounds to the end and kept the same hard values
+  (89 %), with a few more warnings: the fix ends a failure, it does not change this
+  model's scores. With thinking no repair round failed.
+- **Streams, data and cost.** No stream stalled on this day; on 10 November one stream with thinking
+  stalled until its job passed the two hours. The text stays in the EU (Mistral AI);
+  the Mistral runs and trials of the two days, those before the fix included, cost
+  about USD 3 at the list prices.
