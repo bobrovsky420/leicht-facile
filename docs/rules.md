@@ -134,6 +134,21 @@ drug name, so the model names the medications. It is asked to only for a source 
 a dose or a dosing scheme, through the partial `medication.md` (docs/prompts.md); every
 other document gets the standard prompt word for word.
 
+**Which values must be kept.** A value the model's fact sheet lacks becomes a fact of
+its own, must-keep unless it stands in a passage the model listed as droppable: then it
+is a background fact, which FACT-01 does not ask for and the review lists. A `phone`, an
+`email` and an `address` are the exception (11 November 2026; `pipeline/facts.py`,
+`_keep_contacts`): they are must-keep in any case, also in a fact the model itself
+marked as background, and the sentences they stand in are no omit candidates any more,
+so the other values of such a sentence are kept with them. On the evaluation pairs the
+fact sheets of thirteen runs had left 33 such values droppable, 23 of which the official
+easy-language versions keep, among them the address, the phone number and the e-mail
+address of the office a page is about. A `url` and a `time` stay the model's call: the
+official versions keep two in five of those a fact sheet left out, and a list of links
+or of opening hours is often what a translator drops
+([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)). In
+decision mode the protected parts decide after this step (FACT-08).
+
 **The varieties** (29 October 2026; docs/architecture.md §8). `extract_values`,
 `parse_value_norm`, the formatting helpers and `display_value` take the variety key the
 job carries (`de-CH`, `de-DE`, `de-AT`, `fr-CH`, `it-CH`); the fact rules, the code completion of

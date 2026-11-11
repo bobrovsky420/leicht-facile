@@ -452,6 +452,21 @@ STEPS_BY_CONDITION = {
     "P1": ("understand", "write", "check", "review"),
     "P2": ("understand", "write", "check", "judge", "repair", "review"),
 }
+# The full pipeline of a job whose judge reads the final draft alone
+# (`JobConfig.judge_role` report): the rounds first, on the rule findings.
+STEPS_REPORT = ("understand", "write", "check", "repair", "judge", "review")
+
+
+def step_keys(job: Job) -> tuple[str, ...]:
+    """The steps of a job's pipeline, in the order they run."""
+    if job.config.condition == "P2" and job.config.judge_role == "report":
+        return STEPS_REPORT
+    return STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["P2"])
+
+
+def _judge_last(keys: tuple[str, ...]) -> bool:
+    """Whether the judge comes after the rounds in these steps."""
+    return "judge" in keys and "repair" in keys and keys.index("judge") > keys.index("repair")
 
 
 @dataclass
@@ -518,7 +533,7 @@ class ProgressView:
 def progress_view(
     store: Store, job: Job, now: datetime | None = None, t: Translator = ENGLISH
 ) -> ProgressView:
-    keys = STEPS_BY_CONDITION.get(job.config.condition, STEPS_BY_CONDITION["P2"])
+    keys = step_keys(job)
     names = store.artifact_names(job.id)
     drafts = names.get("draft", [])
     factsheet = store.get_artifact(job.id, "factsheet", FactSheet)
@@ -526,15 +541,18 @@ def progress_view(
     rules = None
     if draft is not None:
         rules = store.get_artifact(job.id, "rules", RuleFindings, version=draft.version)
-    judge_v1 = store.get_artifact(job.id, "judge", JudgeReport, version=1)
     rules_v1 = store.get_artifact(job.id, "rules", RuleFindings, version=1)
     summary = store.get_artifact(job.id, "summary", PipelineSummary)
+    # The judge step's report: the first draft's, or the final version's when the judge
+    # reads that one alone (known once the summary names it).
+    judged = (summary.final_version if summary else None) if _judge_last(keys) else 1
+    report = store.get_artifact(job.id, "judge", JudgeReport, version=judged) if judged else None
 
     current = _current_step(job, keys, drafts)
     idx = keys.index(current) if current in keys else -1
     steps = _steps(keys, idx, job, t)
     for step in steps:
-        _add_detail(step, store, job, drafts, factsheet, draft, rules_v1, judge_v1, summary, t)
+        _add_detail(step, store, job, drafts, factsheet, draft, rules_v1, report, summary, t)
         if step.state == "failed" and job.error:
             step.detail = job.error
     if job.status == "queued" and steps:
@@ -653,7 +671,8 @@ def _run_line(view: ProgressView, t: Translator) -> None:
 def _current_step(job: Job, keys: tuple[str, ...], drafts: list[int]) -> str | None:
     """The step the job is at: the review once the pipeline is through, None while
     queued, else the step of the job's stage (the first step when the stage names
-    none); a check or judge after the first draft belongs to the repair rounds."""
+    none); a check or judge after the first draft belongs to the repair rounds, but
+    for the judge that reads the final draft alone, which is a step of its own."""
     stage = job.stage or ""
     stage_key = stage.split(" ")[0]
     if stage_key in ROUND_KINDS:  # every kind of round shows as the repair step
@@ -663,6 +682,8 @@ def _current_step(job: Job, keys: tuple[str, ...], drafts: list[int]) -> str | N
     if job.status == "queued":
         return None
     current = stage_key if stage_key in keys else keys[0]
+    if current == "judge" and _judge_last(keys):
+        return current
     in_loop = len(drafts) > 1 or stage_key == "repair"
     if current in ("check", "judge") and in_loop and "repair" in keys:
         return "repair"
@@ -721,11 +742,12 @@ def _add_detail(
     factsheet: FactSheet | None,
     draft: Draft | None,
     rules_v1: RuleFindings | None,
-    judge_v1: JudgeReport | None,
+    report: JudgeReport | None,
     summary: PipelineSummary | None,
     t: Translator,
 ) -> None:
-    """One line per step from the artifacts that exist so far."""
+    """One line per step from the artifacts that exist so far; `report` is the judge
+    step's (`progress_view`)."""
     if step.key == "understand":
         _understand_detail(step, factsheet, t)
     elif step.key in ("write", "baseline"):
@@ -733,7 +755,7 @@ def _add_detail(
     elif step.key == "check":
         _check_detail(step, rules_v1, t)
     elif step.key == "judge":
-        _judge_detail(step, judge_v1, summary, t)
+        _judge_detail(step, report, summary, t)
     elif step.key == "repair":
         _repair_detail(step, job, drafts, summary, t)
     elif step.key == "review":
@@ -770,17 +792,18 @@ def _check_detail(step: Step, rules_v1: RuleFindings | None, t: Translator) -> N
 
 
 def _judge_detail(
-    step: Step, judge_v1: JudgeReport | None, summary: PipelineSummary | None, t: Translator
+    step: Step, report: JudgeReport | None, summary: PipelineSummary | None, t: Translator
 ) -> None:
-    """The first judge report's counts; a judge that never ran shows as skipped, with
+    """The counts of the judge step's report (the first draft's, or the final version's
+    when the judge reads that one alone); a judge that never ran shows as skipped, with
     the summary's note on it when there is one."""
-    if judge_v1:
-        present = sum(1 for c in judge_v1.fact_checks if c.status == "present")
+    if report:
+        present = sum(1 for c in report.fact_checks if c.status == "present")
         step.detail = t(
             "detail.judged",
-            n=len(judge_v1.unsupported),
+            n=len(report.unsupported),
             present=present,
-            total=len(judge_v1.fact_checks),
+            total=len(report.fact_checks),
         )
     elif step.state == "done":
         step.state = "skipped"

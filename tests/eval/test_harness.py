@@ -98,6 +98,8 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
     assert row["status"] == "needs_review", row.get("error")
     assert row["fact_coverage"] == 1.0
     assert row["hard_facts_found"] == row["hard_facts_total"] == 3  # 31 March, CHF 20, phone
+    assert row["reference_facts_found"] == row["reference_facts_total"] == 3
+    assert row["reference_fact_recall"] == 1.0  # the official version keeps all three
     assert row["silent_losses"] == 0 and row["silent_loss_share"] == 0.0
     assert row["calls"] == 5 and row["usd_per_page"] is not None
     assert 0 <= row["sari"] <= 100
@@ -122,9 +124,56 @@ def test_reference_run_and_report(pair_env, tmp_path, endpoint, sleeps) -> None:
 
     report = render_report(results, role="eval")
     assert "| Silent losses |" in report and "zero by design" in report
+    assert "| Hard facts kept | Reference facts kept |" in report
     assert "Original (standard language)" in report
     assert "Official easy-language version" in report
     assert "P2 full: pipeline with judge and repair" in report
+
+
+def test_a_run_takes_the_judges_role_and_its_rows_name_it(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    """`eval run --judge-role report`: the rounds on the rule findings, one judge call on
+    the final draft, whose report fills the row's judge columns; a run without the
+    option takes the setting of the model that judges (the loop)."""
+    import argparse
+
+    from leichtfacile.eval.cli import add_eval_parser
+
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    settings = make_settings(llm__max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    path = run_condition(
+        pairs, "P2", settings=settings, llm=llm, results_dir=tmp_path / "report",
+        judge_role="report",
+    )  # fmt: skip
+    (row,) = _rows(path)
+    assert row["status"] == "needs_review", row.get("error")
+    assert row["judge_role"] == "report" and row["calls"] == 4
+    assert row["judge_missing"] == 0.0 and row["fact_coverage"] == 1.0
+
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=tmp_path / "loop")
+    (row,) = _rows(path)
+    assert row["judge_role"] == "loop" and row["calls"] == 5
+
+    parser = argparse.ArgumentParser()
+    add_eval_parser(parser.add_subparsers(dest="command"))
+    args = parser.parse_args(["eval", "run", "--condition", "P2", "--judge-role", "off"])
+    assert args.judge_role == "off"
+    assert parser.parse_args(["eval", "run", "--condition", "P2"]).judge_role is None
 
 
 def test_hybrid_run_gets_its_own_file_and_label(pair_env, tmp_path, endpoint, sleeps) -> None:
@@ -369,6 +418,110 @@ def test_rescore_in_place_scores_a_baseline_again_without_sampling_it_again(
     assert "selection" not in again and "stored_final_version" not in again
     assert len(endpoint.chat_bodies()) == calls  # no model call
     assert (results / "REF.jsonl").exists()
+
+
+def test_rescore_only_adds_a_measure_and_leaves_the_scores_of_the_day(
+    pair_env, tmp_path, endpoint, sleeps
+) -> None:
+    """A measure the stored rows do not have yet reaches them without a model call and
+    without a change of their other numbers: a published run keeps the scores of its
+    day (docs/model-comparison.md)."""
+    from leichtfacile.cli import main
+    from leichtfacile.eval.run import rescore
+
+    pairs = dataset.select(dataset.load_manifest(pair_env), role="eval")
+    results = tmp_path / "results"
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.JUDGE_FIRST)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    settings = make_settings(llm__max_retries=0)
+    llm = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+    path = run_condition(pairs, "P2", settings=settings, llm=llm, results_dir=results)
+    (row,) = _rows(path)
+    calls = len(endpoint.chat_bodies())
+    # A row as an earlier version stored it: without the measure, with the scores of its day.
+    old = {k: v for k, v in row.items() if not k.startswith("reference_")}
+    old["errors_per_100"] = 99.0
+    path.write_text(json.dumps(old) + "\n", encoding="utf-8")
+
+    measures = ["reference_fact_recall", "reference_facts_total", "reference_facts_found"]
+    out = rescore(results, pairs=pairs, condition="P2", role="eval", in_place=True, only=measures)
+    (again,) = _rows(path)
+    assert out == results and len(endpoint.chat_bodies()) == calls  # no model call
+    assert again["reference_fact_recall"] == 1.0 and again["reference_facts_total"] == 3
+    assert again["errors_per_100"] == 99.0 and "rescored" not in again
+    assert {k: v for k, v in again.items() if k not in measures} == old
+
+    with pytest.raises(ValueError, match="in_place"):
+        rescore(results, pairs=pairs, condition="P2", role="eval", only=measures)
+    with pytest.raises(ValueError, match="no such measure"):
+        rescore(results, pairs=pairs, condition="P2", role="eval", in_place=True, only=["nope"])
+    assert main(["eval", "rescore", "--manifest", str(pair_env), "--results", str(results),
+                 "--role", "eval", "--in-place", "--only", "nope"]) == 2  # fmt: skip
+    assert _rows(path) == [again]  # a refused measure writes nothing
+
+
+def test_rows_move_into_place_when_the_file_is_held_for_a_moment(tmp_path, monkeypatch) -> None:
+    """A sync client or a virus scanner on Windows has the rows file open for a moment
+    and refuses the move: tried again, and only a file that stays held is an error."""
+    from pathlib import Path
+
+    from leichtfacile.eval import run
+
+    path = tmp_path / "P2_m.jsonl"
+    path.write_text('{"pair_id": "old"}\n', encoding="utf-8")
+    move, tries = Path.replace, []
+
+    def held_twice(self, target):
+        tries.append(target)
+        if len(tries) < 3:
+            raise PermissionError(5, "Access is denied")
+        return move(self, target)
+
+    monkeypatch.setattr(run.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(Path, "replace", held_twice)
+    run._write_rows(path, [{"pair_id": "a"}])
+    assert len(tries) == 3 and _rows(path) == [{"pair_id": "a"}]
+
+    def held(self, target):
+        raise PermissionError(5, "Access is denied")
+
+    monkeypatch.setattr(Path, "replace", held)
+    with pytest.raises(PermissionError):
+        run._write_rows(path, [{"pair_id": "b"}])
+    assert _rows(path) == [{"pair_id": "a"}]  # the file as it was
+
+
+def test_reference_facts_ask_for_what_the_official_version_keeps() -> None:
+    from leichtfacile.eval.score import hard_values_of, reference_facts
+    from leichtfacile.schemas import Block, Draft
+
+    standard = fx.letter()  # three hard values: 31 March 2026, CHF 20, the phone number
+    draft = Draft(doc_id="d", lang="de", level="A2", blocks=[
+        Block(id="b001", kind="sentence", text="Schicken Sie das Gesuch bis 31. März 2026."),
+        Block(id="b002", kind="sentence", text="Rufen Sie an: 044 123 45 67."),
+    ])  # fmt: skip
+    hard = hard_values_of(draft, standard)
+    assert len(hard.found) == 2 and len(hard.keys) == 3  # the amount is lost
+    # The official version keeps all three: the draft keeps two of them.
+    assert reference_facts(hard, easy_doc()) == {
+        "reference_facts_total": 3, "reference_facts_found": 2, "reference_fact_recall": 0.667,
+    }  # fmt: skip
+    # An official version that leaves the amount out too: nothing it keeps is lost.
+    official = easy_doc()
+    without_amount = official.model_copy(
+        update={"segments": [s for s in official.segments if "Franken" not in s.text]}
+    )
+    assert reference_facts(hard, without_amount) == {
+        "reference_facts_total": 2, "reference_facts_found": 2, "reference_fact_recall": 1.0,
+    }  # fmt: skip
+    # An official version without a hard value: no share.
+    empty = official.model_copy(update={"segments": official.segments[:2]})
+    assert reference_facts(hard, empty)["reference_fact_recall"] is None
 
 
 def test_reference_rows_keep_the_file_when_a_pair_cannot_be_loaded(

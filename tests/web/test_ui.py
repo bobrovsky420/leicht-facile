@@ -376,6 +376,47 @@ def test_progress_view_follows_the_stage_and_shows_what_exists(env) -> None:
     assert next(s for s in view.steps if s.key == "judge").state == "skipped"
 
 
+def test_a_judge_that_reports_stands_after_the_rounds(env) -> None:
+    """`judge_role` report, the setting of the judge's model, is fixed with the job when
+    it is created: the rounds come before the judge, which reads the final draft alone,
+    and its step shows that draft's report."""
+    client, _, store, settings, _ = env
+    llm = settings.llm.model_copy(update={"judge_role": "report"})
+    reporting = settings.model_copy(update={"llm": llm})
+    job = create_job(store, reporting, Submission(text=LETTER, condition="P2"))
+    assert job.config.judge_role == "report"
+    assert queued_job(store, settings, condition="P2").config.judge_role == "loop"
+    assert queued_job(store, settings, condition="P1").config.judge_role is None  # no judge
+    # A job on another ready preset takes that preset's setting.
+    elsewhere = create_job(
+        store, settings, Submission(text=LETTER, condition="P2", endpoint="other"),
+        presets={"test": settings.llm, "other": llm},
+    )  # fmt: skip
+    assert elsewhere.config.judge_role == "report"
+
+    page = client.get(f"/jobs/{job.id}").text
+    assert re.findall(r'step-title">([^<]+)<', page) == [
+        "Read", "Write", "Check", "Repair", "Judge", "Review",
+    ]  # fmt: skip
+    block = Block(id="b001", kind="sentence", text="Sie bezahlen 20 Franken.")
+    draft = Draft(doc_id="x", lang="de", level="A2", blocks=[block])
+    store.put_artifact(job.id, "draft", draft, 1)
+    store.put_artifact(job.id, "draft", draft.model_copy(update={"version": 2}), 2)
+    store.update_job(job.id, status="running", stage="check")
+    assert progress_view(store, store.get_job(job.id)).current.key == "repair"  # in a round
+    store.update_job(job.id, stage="judge")
+    view = progress_view(store, store.get_job(job.id))
+    assert view.current.key == "judge" and view.current_index == 5
+    assert {s.key for s in view.steps if s.state == "pending"} == {"review"}
+
+    # In the loop, a judge after the first draft belongs to the repair step.
+    looping = queued_job(store, settings, condition="P2")
+    store.put_artifact(looping.id, "draft", draft, 1)
+    store.put_artifact(looping.id, "draft", draft.model_copy(update={"version": 2}), 2)
+    store.update_job(looping.id, status="running", stage="judge")
+    assert progress_view(store, store.get_job(looping.id)).current.key == "repair"
+
+
 def test_two_polls_of_a_running_job_differ_only_where_app_js_copies_in_place(
     env, monkeypatch
 ) -> None:

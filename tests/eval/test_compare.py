@@ -72,9 +72,10 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
         "\n".join([
             _row(pair_id="a", hard_fact_recall=1.0, fact_coverage=1.0, errors_per_100=2.0,
                  usd_per_page=0.01, hard_facts_total=4, judge_distorted=0.0,
-                 by_family_per_100={"LEN": 2.0}, mediopunkt_per_100=5.0),
+                 by_family_per_100={"LEN": 2.0}, mediopunkt_per_100=5.0,
+                 reference_fact_recall=1.0),
             _row(pair_id="b", hard_fact_recall=0.5, fact_coverage=0.9, errors_per_100=4.0,
-                 usd_per_page=0.03, hard_facts_total=2),
+                 usd_per_page=0.03, hard_facts_total=2, reference_fact_recall=0.8),
             _row(pair_id="c", status="failed", error="boom"),
             _row(pair_id="d", role="dev", hard_fact_recall=0.0),  # another split: not counted
         ]) + "\n",
@@ -106,8 +107,10 @@ def test_compare_fills_the_tables_from_the_declared_runs(tmp_path) -> None:
     assert facts in text
     assert "| Original (standard language) | 1 | - | 100 % |" in text
     assert "| Official easy-language version | 1 | - | 50 % |" in text
-    # two pairs in the means (the failed one and the dev one are not), USD 0.02 per page
-    assert "| Model M | 2 | 95 % | 75 % | - | 3.0 |" in text and "| 0.0200 |" in text
+    # two pairs in the means (the failed one and the dev one are not), USD 0.02 per page;
+    # the reference facts kept after the hard facts, a dash for a run stored without them
+    assert "| Model M | 2 | 95 % | 75 % | 90 % | - | 3.0 |" in text and "| 0.0200 |" in text
+    assert "| Model N | 1 | 100 % | 100 % | - | - |" in text
     assert "| Model M | 1.0 | 0.0 | 0.0 | 0.0 | 0.0 | 5.0 | 0.0 | 0.0 |" in text  # families
     assert "| Model M | 1 | 100 % | 100 % | 0 % |" in text  # the fact-rich subset: pair a
     assert "Failed runs (not in the means): Model M: c." in text

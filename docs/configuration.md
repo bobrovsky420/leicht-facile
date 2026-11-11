@@ -222,6 +222,34 @@ the provider, the model's table and the preset set them for the model a stage ca
 `leichtfacile check-llm --thinking` makes its test call with thinking and says whether
 reasoning came back.
 
+### The judge's role
+
+`judge_role` says what the judge does when a model judges. It is set like the thinking
+switch, on a provider, in a model's table or on a preset, for the model that judges, and
+a job keeps the role it was created with:
+
+- `loop` (the default): the judge reads the first draft and the versions after it, and
+  its findings go into the repair rounds;
+- `report`: the repair rounds run on the rule findings alone, and the judge reads the
+  final draft once. The review page shows its findings as before; no round answers them;
+- `off`: no judge. The draft has its rule checks and its fact checks.
+
+```toml
+[presets.claude-haiku-5-5]            # a table named like a shipped preset extends it
+judge_role = "report"
+```
+
+The judge in the loop was about half of a job's price and more than half of its time on
+the two models measured, and how much of what a judge flags the rounds resolve differs
+from judge to judge
+([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)): with
+`report` the reviewer decides on those findings instead of a repair round. They are
+doubts to look at, not errors: of the blocks that the one judge checked against blind
+labels called unsupported, one in four was a statement without a source. The facts a
+draft must keep do not depend on it, since code checks them. Every shipped preset keeps
+the judge in the loop; `leichtfacile simplify --judge-role` and `leichtfacile eval run
+--judge-role` set the role for one run.
+
 ## Keys
 
 A key is given in a file or named by a variable:
@@ -433,6 +461,7 @@ Where models run and how to reach them. Its request settings apply to every mode
 | `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
+| `judge_role` | `"loop"` | What the judge does when this model judges: loop (it reads every version, and its findings go into the repair rounds), report (the rounds run on the rule findings alone, and it reads the final draft once, for the reviewer) or off (no judge). |
 | `label` |  | The name the interface shows. |
 | `url` |  | The endpoint's address, for most servers ending in /v1. Required. |
 | `api_key` |  | The key, written into the file. A server of your own takes any key. |
@@ -462,6 +491,7 @@ What the calls to a model take and cost. Set on a provider for all its models, i
 | `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
+| `judge_role` | `"loop"` | What the judge does when this model judges: loop (it reads every version, and its findings go into the repair rounds), report (the rounds run on the rule findings alone, and it reads the final draft once, for the reviewer) or off (no judge). |
 
 ### `[presets.<name>]`
 
@@ -482,6 +512,7 @@ A provider with the models that write, read and check: what the user picks. Any 
 | `extra_body` | `{}` | Fields sent with every request: a gateway's switches, a model's thinking switch. A later table's fields add to the earlier ones. |
 | `input_usd` |  | USD per million input tokens, for the cost per page. |
 | `output_usd` |  | USD per million output tokens. |
+| `judge_role` | `"loop"` | What the judge does when this model judges: loop (it reads every version, and its findings go into the repair rounds), report (the rounds run on the rule findings alone, and it reads the final draft once, for the reviewer) or off (no judge). |
 | `label` |  | The name the interface shows. Default: the preset's name. |
 | `models.writer` |  | The model that reads, writes and repairs. Required. |
 | `models.understand` |  | The Understand stage's model, when it differs from the writer. |

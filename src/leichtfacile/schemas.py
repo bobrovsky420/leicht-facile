@@ -137,6 +137,13 @@ StopReason = Literal[
     "max_facts_rounds",
 ]
 STOP_REASONS: tuple[str, ...] = get_args(StopReason)
+# What the judge does in the full pipeline. loop: it reads the first draft and the
+# versions after it, and its findings go into the repair rounds. report: the rounds run
+# on the rule findings alone and it reads the final draft once, for the reviewer. off:
+# no judge. A setting of the judge's model (`judge_role`, config.ModelSettings), since
+# what the loop brings differs between judges (docs/history/2026-11-11-prompt-variants.md).
+JudgeRole = Literal["loop", "report", "off"]
+JUDGE_ROLES: tuple[str, ...] = get_args(JudgeRole)
 
 
 def utcnow() -> datetime:
@@ -598,6 +605,9 @@ class PipelineSummary(Artifact):
     writer_model: str = ""
     understand_model: str | None = None  # only when it differs from the writer
     judge_model: str | None = None
+    # What the judge did (P2): in the loop, a report on the final version, or off. None
+    # for the other conditions and in a summary stored before 11 November 2026.
+    judge_role: JudgeRole | None = None
     prompt_versions: dict[str, str] = Field(default_factory=dict)
     blocking_findings: list[int] = Field(default_factory=list)  # per draft version
     notes: list[str] = Field(default_factory=list)  # stages that failed and were skipped
@@ -623,7 +633,9 @@ class JobConfig(Artifact):
     writer_model: str | None = None  # None: llm.models.writer
     understand_model: str | None = None  # None: llm.models.understand, else the writer
     judge_model: str | None = None  # None: llm.models.judge
-    use_judge: bool = True  # P2 only: False repairs on rule findings alone
+    # P2 only. None: the setting of the judge's model (`judge_role`). `use_judge` until
+    # 11 November 2026: true is loop, false is off (the store rewrites it, group 10).
+    judge_role: JudgeRole | None = None
     # The rounds after the first draft (P2 only): the [pipeline] settings when the job was
     # created, so a settings change never alters a stored job.
     pipeline: PipelineOptions = Field(default_factory=PipelineOptions)

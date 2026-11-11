@@ -12,9 +12,20 @@ block and the prose are written by hand, the tables are not.
 ## How to read the tables
 
 - The columns that code measures compare across runs: fact coverage, hard facts kept,
-  silent losses, values not in the source, rule errors and warnings, words per sentence,
+  reference facts kept, silent losses, values not in the source, rule errors and
+  warnings, words per sentence,
   readability (Amstad for German, Kandel-Moles for French), SARI, tokens and USD per page
   (a page is 250 words of the source).
+- Hard facts kept counts every date, amount, number and address of the source, also
+  those the official easy-language version leaves out; reference facts kept counts only
+  those the official version keeps. A run whose fact sheets call droppable what the
+  human translators dropped too (the date a law came into force, a contact for the
+  press) loses under the first and not under the second, so the two are read together:
+  the first rises with a fact sheet that leaves little out, the second says how much of
+  what was left out a translator kept. Every run's rows got the second on 11 November
+  2026, read with the value reader of that day (`eval rescore --in-place --only`),
+  their other numbers as they were
+  ([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)).
 - The judge columns (unsupported statements, distorted facts) do not: every run has its
   own judge, and a model judging its own drafts flags differently from a larger model
   judging another's.
@@ -274,26 +285,28 @@ notes = "the thinking comes back as thinking chunks in the answer's content; the
 
 Pairs: 20 (eval split). Means over pairs; a dash means not applicable.
 
-| Run | Pairs | Fact coverage | Hard facts kept | Silent losses | Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability | SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks | Tokens / page | USD / page | Seconds / page |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Original (standard language) | 20 | - | 100 % | 0 % | 31.3 | 164.5 | 9.8 | 36 | - | - | 0.0 | - | - | - |
-| Official easy-language version | 20 | - | 67 % | 33 % | 2.7 | 27.7 | 6.1 | 62 | - | - | 2.8 | - | - | - |
-| Apertus 1.5 8B, the 70B judges (CSCS) | 20 | 100 % | 97 % | 0 % | 3.7 | 41.5 | 7.0 | 52 | 42.2 | 2.7 | 0.0 | 33392 | 0.0159 | 59.6 |
-| Apertus 1.5 70B everywhere (CSCS) | 19 | 100 % | 96 % | 0 % | 0.5 | 22.2 | 6.5 | 57 | 42.9 | 1.0 | 0.0 | 22295 | 0.0250 | 60.0 |
-| Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 20 | 99 % | 94 % | 0 % | 3.0 | 37.6 | 6.8 | 53 | 42.3 | 1.4 | 0.0 | 24307 | 0.0145 | 31.8 |
-| Qwen 3.5 9B on Ollama, no thinking, judges itself (laptop) | 20 | 99 % | 87 % | 1 % | 0.3 | 27.9 | 6.7 | 55 | 41.3 | 4.7 | 0.0 | 28876 | - | 587.5 |
-| gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 20 | 100 % | 94 % | 0 % | 1.7 | 31.9 | 6.9 | 46 | 40.8 | 0.7 | 0.0 | 20197 | 0.0051 | 11.5 |
-| gpt-5.4-nano, no thinking, judges itself (OpenAI) | 20 | 99 % | 93 % | 0 % | 0.7 | 34.3 | 7.3 | 48 | 41.6 | 2.1 | 0.0 | 38935 | 0.0185 | 86.6 |
-| gpt-5.6-luna, no thinking, judges itself (OpenAI) | 20 | 100 % | 90 % | 1 % | 0.4 | 21.0 | 6.7 | 44 | 44.4 | 3.1 | 0.0 | 38070 | 0.0167 | 84.0 |
-| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 92 % | 0 % | 0.9 | 29.9 | 6.9 | 57 | 44.1 | 8.6 | 0.3 | 46648 | 0.0085 | 33.3 |
-| Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 91 % | 0 % | 0.0 | 17.5 | 6.5 | 59 | 47.4 | 2.2 | 0.0 | 68069 | 0.2386 | 73.3 |
-| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
-| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 20 | 99 % | 91 % | 0 % | 0.0 | 7.6 | 6.4 | 59 | 48.1 | 0.1 | 0.0 | 58324 | 0.4977 | 128.2 |
-| Apertus 1.5 70B at every stage, no thinking (Public AI) | 20 | 99 % | 94 % | 0 % | 2.4 | 23.4 | 6.3 | 57 | 43.6 | 1.3 | 0.0 | 28528 | 0.0324 | 39.6 |
-| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 20 | 100 % | 97 % | 0 % | 0.5 | 29.1 | 7.2 | 47 | 42.0 | 3.2 | 0.0 | 26702 | 0.0081 | 14.3 |
-| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 20 | 100 % | 92 % | 0 % | 1.6 | 26.4 | 6.6 | 46 | 41.9 | 0.5 | 0.3 | 29288 | 0.0054 | 155.3 |
-| Mistral Small 4 at every stage, no thinking (Mistral AI) | 20 | 100 % | 85 % | 0 % | 0.8 | 28.1 | 7.0 | 53 | 44.5 | 7.3 | 0.0 | 29284 | 0.0071 | 30.2 |
-| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 20 | 100 % | 92 % | 0 % | 1.2 | 24.4 | 6.8 | 54 | 45.0 | 1.4 | 0.0 | 47315 | 0.0178 | 122.2 |
+| Run | Pairs | Fact coverage | Hard facts kept | Reference facts kept | Silent losses | Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability | SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks | Tokens / page | USD / page | Seconds / page |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Original (standard language) | 20 | - | 100 % | - | 0 % | 31.3 | 164.5 | 9.8 | 36 | - | - | 0.0 | - | - | - |
+| Official easy-language version | 20 | - | 67 % | - | 33 % | 2.7 | 27.7 | 6.1 | 62 | - | - | 2.8 | - | - | - |
+| Apertus 1.5 8B, the 70B judges (CSCS) | 20 | 100 % | 97 % | 99 % | 0 % | 3.7 | 41.5 | 7.0 | 52 | 42.2 | 2.7 | 0.0 | 33392 | 0.0159 | 59.6 |
+| Apertus 1.5 70B everywhere (CSCS) | 19 | 100 % | 96 % | 100 % | 0 % | 0.5 | 22.2 | 6.5 | 57 | 42.9 | 1.0 | 0.0 | 22295 | 0.0250 | 60.0 |
+| Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 20 | 99 % | 94 % | 97 % | 0 % | 3.0 | 37.6 | 6.8 | 53 | 42.3 | 1.4 | 0.0 | 24307 | 0.0145 | 31.8 |
+| Qwen 3.5 9B on Ollama, no thinking, judges itself (laptop) | 20 | 99 % | 87 % | 92 % | 1 % | 0.3 | 27.9 | 6.7 | 55 | 41.3 | 4.7 | 0.0 | 28876 | - | 587.5 |
+| gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 20 | 100 % | 94 % | 97 % | 0 % | 1.7 | 31.9 | 6.9 | 46 | 40.8 | 0.7 | 0.0 | 20197 | 0.0051 | 11.5 |
+| gpt-5.4-nano, no thinking, judges itself (OpenAI) | 20 | 99 % | 93 % | 95 % | 0 % | 0.7 | 34.3 | 7.3 | 48 | 41.6 | 2.1 | 0.0 | 38935 | 0.0185 | 86.6 |
+| gpt-5.6-luna, no thinking, judges itself (OpenAI) | 20 | 100 % | 90 % | 96 % | 1 % | 0.4 | 21.0 | 6.7 | 44 | 44.4 | 3.1 | 0.0 | 38070 | 0.0167 | 84.0 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 92 % | 97 % | 0 % | 0.9 | 29.9 | 6.9 | 57 | 44.1 | 8.6 | 0.3 | 46648 | 0.0085 | 33.3 |
+| Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 20 | 100 % | 91 % | 94 % | 0 % | 0.0 | 17.5 | 6.5 | 59 | 47.4 | 2.2 | 0.0 | 68069 | 0.2386 | 73.3 |
+| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 20 | 100 % | 93 % | 99 % | 0 % | 1.0 | 33.5 | 7.1 | 56 | 44.7 | 5.6 | 0.2 | 46667 | 0.0765 | 28.8 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 20 | 99 % | 91 % | 96 % | 0 % | 0.0 | 7.6 | 6.4 | 59 | 48.1 | 0.1 | 0.0 | 58324 | 0.4977 | 128.2 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 20 | 99 % | 94 % | 98 % | 0 % | 2.4 | 23.4 | 6.3 | 57 | 43.6 | 1.3 | 0.0 | 28528 | 0.0324 | 39.6 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 20 | 100 % | 97 % | 100 % | 0 % | 0.5 | 29.1 | 7.2 | 47 | 42.0 | 3.2 | 0.0 | 26702 | 0.0081 | 14.3 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 20 | 100 % | 92 % | 94 % | 0 % | 1.6 | 26.4 | 6.6 | 46 | 41.9 | 0.5 | 0.3 | 29288 | 0.0054 | 155.3 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 20 | 100 % | 85 % | 89 % | 0 % | 0.8 | 28.1 | 7.0 | 53 | 44.5 | 7.3 | 0.0 | 29284 | 0.0071 | 30.2 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 20 | 100 % | 92 % | 96 % | 0 % | 1.2 | 24.4 | 6.8 | 54 | 45.0 | 1.4 | 0.0 | 47315 | 0.0178 | 122.2 |
+
+Reference facts kept: of the source's hard values that the official easy-language version keeps, the share the text keeps too. "Hard facts kept" counts every value of the source, also those the official version leaves out, so a text that leaves the same ones out loses there and not here. A pair whose official version keeps no hard value is not in this mean.
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -349,26 +362,28 @@ Failed runs (not in the means): Apertus 1.5 70B everywhere (CSCS): zh-sebe-disab
 
 Pairs: 3 (eval split). Means over pairs; a dash means not applicable.
 
-| Run | Pairs | Fact coverage | Hard facts kept | Silent losses | Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability | SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks | Tokens / page | USD / page | Seconds / page |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Original (standard language) | 3 | - | 100 % | 0 % | 36.4 | 85.8 | 10.1 | 59 | - | - | 0.0 | - | - | - |
-| Official easy-language version | 3 | - | 56 % | 44 % | 2.9 | 21.7 | 6.6 | 85 | - | - | 0.8 | - | - | - |
-| Apertus 1.5 8B, the 70B judges (CSCS) | 3 | 100 % | 72 % | 0 % | 3.5 | 25.8 | 8.2 | 70 | 40.2 | 8.4 | 0.0 | 23493 | 0.0156 | 43.5 |
-| Apertus 1.5 70B everywhere (CSCS) | 3 | 100 % | 89 % | 0 % | 3.4 | 17.4 | 7.7 | 80 | 47.3 | 0.5 | 0.0 | 14704 | 0.0177 | 39.2 |
-| Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 3 | 95 % | 87 % | 0 % | 8.8 | 45.5 | 8.7 | 73 | 42.4 | 13.6 | 0.0 | 26369 | 0.0157 | 38.9 |
-| Qwen 3.5 9B on Ollama, no thinking, judges itself (laptop) | 3 | 100 % | 72 % | 0 % | 0.0 | 12.5 | 8.2 | 81 | 44.4 | 5.7 | 0.0 | 19084 | - | 236.7 |
-| gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 3 | 100 % | 83 % | 0 % | 0.0 | 46.3 | 10.2 | 70 | 42.8 | 2.5 | 0.0 | 24993 | 0.0070 | 15.5 |
-| gpt-5.4-nano, no thinking, judges itself (OpenAI) | 3 | 100 % | 93 % | 0 % | 0.4 | 40.4 | 9.2 | 71 | 44.4 | 2.7 | 0.0 | 27641 | 0.0128 | 40.2 |
-| gpt-5.6-luna, no thinking, judges itself (OpenAI) | 3 | 100 % | 80 % | 0 % | 0.5 | 22.8 | 7.7 | 74 | 48.5 | 1.2 | 0.0 | 17570 | 0.0073 | 36.1 |
-| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.9 | 21.3 | 7.6 | 80 | 46.6 | 7.7 | 0.0 | 35250 | 0.0063 | 23.9 |
-| Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 91 % | 0 % | 0.4 | 10.9 | 7.2 | 79 | 50.6 | 3.1 | 0.0 | 32037 | 0.1187 | 41.9 |
-| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
-| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 0 % | 0.0 | 0.0 | 7.3 | 80 | 49.6 | 0.6 | 0.0 | 39165 | 0.3199 | 81.1 |
-| Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 100 % | 91 % | 0 % | 3.3 | 19.0 | 6.7 | 76 | 46.3 | 1.8 | 0.0 | 20806 | 0.0246 | 36.7 |
-| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.6 | 55.0 | 10.5 | 75 | 45.1 | 1.6 | 0.0 | 16023 | 0.0050 | 8.1 |
-| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 100 % | 90 % | 0 % | 0.0 | 26.7 | 7.7 | 73 | 44.6 | 2.8 | 0.0 | 19427 | 0.0037 | 100.8 |
-| Mistral Small 4 at every stage, no thinking (Mistral AI) | 3 | 97 % | 77 % | 0 % | 0.0 | 23.6 | 7.5 | 75 | 47.7 | 12.8 | 0.0 | 18887 | 0.0046 | 18.7 |
-| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 3 | 100 % | 91 % | 0 % | 1.6 | 28.1 | 8.8 | 79 | 47.5 | 2.0 | 0.0 | 23701 | 0.0086 | 56.7 |
+| Run | Pairs | Fact coverage | Hard facts kept | Reference facts kept | Silent losses | Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability | SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks | Tokens / page | USD / page | Seconds / page |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Original (standard language) | 3 | - | 100 % | - | 0 % | 36.4 | 85.8 | 10.1 | 59 | - | - | 0.0 | - | - | - |
+| Official easy-language version | 3 | - | 56 % | - | 44 % | 2.9 | 21.7 | 6.6 | 85 | - | - | 0.8 | - | - | - |
+| Apertus 1.5 8B, the 70B judges (CSCS) | 3 | 100 % | 72 % | 83 % | 0 % | 3.5 | 25.8 | 8.2 | 70 | 40.2 | 8.4 | 0.0 | 23493 | 0.0156 | 43.5 |
+| Apertus 1.5 70B everywhere (CSCS) | 3 | 100 % | 89 % | 86 % | 0 % | 3.4 | 17.4 | 7.7 | 80 | 47.3 | 0.5 | 0.0 | 14704 | 0.0177 | 39.2 |
+| Apertus 1.5 8B writes, the 70B reads and judges (CSCS) | 3 | 95 % | 87 % | 86 % | 0 % | 8.8 | 45.5 | 8.7 | 73 | 42.4 | 13.6 | 0.0 | 26369 | 0.0157 | 38.9 |
+| Qwen 3.5 9B on Ollama, no thinking, judges itself (laptop) | 3 | 100 % | 72 % | 83 % | 0 % | 0.0 | 12.5 | 8.2 | 81 | 44.4 | 5.7 | 0.0 | 19084 | - | 236.7 |
+| gpt-oss-20b writes, gpt-oss-120b judges, effort low (Groq via Hugging Face) | 3 | 100 % | 83 % | 97 % | 0 % | 0.0 | 46.3 | 10.2 | 70 | 42.8 | 2.5 | 0.0 | 24993 | 0.0070 | 15.5 |
+| gpt-5.4-nano, no thinking, judges itself (OpenAI) | 3 | 100 % | 93 % | 100 % | 0 % | 0.4 | 40.4 | 9.2 | 71 | 44.4 | 2.7 | 0.0 | 27641 | 0.0128 | 40.2 |
+| gpt-5.6-luna, no thinking, judges itself (OpenAI) | 3 | 100 % | 80 % | 75 % | 0 % | 0.5 | 22.8 | 7.7 | 74 | 48.5 | 1.2 | 0.0 | 17570 | 0.0073 | 36.1 |
+| Claude Haiku 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 86 % | 0 % | 0.9 | 21.3 | 7.6 | 80 | 46.6 | 7.7 | 0.0 | 35250 | 0.0063 | 23.9 |
+| Claude Sonnet 5.5, no thinking, judges itself (Anthropic) | 3 | 100 % | 91 % | 97 % | 0 % | 0.4 | 10.9 | 7.2 | 79 | 50.6 | 3.1 | 0.0 | 32037 | 0.1187 | 41.9 |
+| Claude Haiku 5.5 writes, Sonnet 5.5 judges, no thinking (Anthropic) | 3 | 100 % | 87 % | 86 % | 0 % | 1.2 | 29.3 | 8.1 | 77 | 47.2 | 7.7 | 0.0 | 28761 | 0.0526 | 19.6 |
+| Claude Opus 5.5, always thinking, judges itself (Anthropic) | 3 | 100 % | 83 % | 97 % | 0 % | 0.0 | 0.0 | 7.3 | 80 | 49.6 | 0.6 | 0.0 | 39165 | 0.3199 | 81.1 |
+| Apertus 1.5 70B at every stage, no thinking (Public AI) | 3 | 100 % | 91 % | 97 % | 0 % | 3.3 | 19.0 | 6.7 | 76 | 46.3 | 1.8 | 0.0 | 20806 | 0.0246 | 36.7 |
+| gpt-oss-120b at every stage, effort low (Groq via Hugging Face) | 3 | 100 % | 90 % | 94 % | 0 % | 0.6 | 55.0 | 10.5 | 75 | 45.1 | 1.6 | 0.0 | 16023 | 0.0050 | 8.1 |
+| gpt-oss-120b at every stage, effort low (OVHcloud via Hugging Face) | 3 | 100 % | 90 % | 97 % | 0 % | 0.0 | 26.7 | 7.7 | 73 | 44.6 | 2.8 | 0.0 | 19427 | 0.0037 | 100.8 |
+| Mistral Small 4 at every stage, no thinking (Mistral AI) | 3 | 97 % | 77 % | 78 % | 0 % | 0.0 | 23.6 | 7.5 | 75 | 47.7 | 12.8 | 0.0 | 18887 | 0.0046 | 18.7 |
+| Mistral Small 4, thinking in Understand and Judge (Mistral AI) | 3 | 100 % | 91 % | 97 % | 0 % | 1.6 | 28.1 | 8.8 | 79 | 47.5 | 2.0 | 0.0 | 23701 | 0.0086 | 56.7 |
+
+Reference facts kept: of the source's hard values that the official easy-language version keeps, the share the text keeps too. "Hard facts kept" counts every value of the source, also those the official version leaves out, so a text that leaves the same ones out loses there and not here. A pair whose official version keeps no hard value is not in this mean.
 
 Silent losses: the share of the source's hard values that the text lost without a trace. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent; for P1 and P2 every hard value is a fact in the review checklist or lies in a listed omission, so their share is zero by design, and a value above zero names one the code completion missed.
 
@@ -521,6 +536,19 @@ Fact-rich subset (3 pairs with at least 3 hard facts):
   on the same model answers ran their rounds to the end and kept the same hard values
   (89 %), with a few more warnings: the fix ends a failure, it does not change this
   model's scores. With thinking no repair round failed.
+- **Reference facts kept**, the column added on this day. Of the values the official
+  versions keep, the runs keep 89 to 100 % in German: gpt-oss-120b on Groq and the
+  Apertus 70B on CSCS all of them, the Apertus 8B with the 70B judging and Haiku with
+  Sonnet judging 99 %, the Apertus 70B on Public AI 98 %, Haiku, gpt-oss-20b and the
+  hybrid 97 %, Opus, luna and Mistral Small 4 with thinking 96 %, nano 95 %, Sonnet and
+  gpt-oss-120b on OVHcloud 94 %, Qwen 92 %, Mistral Small 4 without thinking 89 %.
+  Every run stands 2 to 6 points above its hard facts kept; Haiku, Opus, luna and Qwen
+  gain 5 to 6. The fact sheets of the Claude and OpenAI models call about a quarter
+  of the sentences droppable (the Apertus 8B's 7 %), and over thirteen runs the
+  official versions leave out two thirds of the values in such passages as well.
+  Mistral Small 4 without thinking stays last under both
+  measures: its fact sheets leave out contact details and opening hours that the
+  official versions keep. French (3 pairs): 75 to 100 %.
 - **Streams, data and cost.** No stream stalled on this day; on 10 November one stream with thinking
   stalled until its job passed the two hours. The text stays in the EU (Mistral AI);
   the Mistral runs and trials of the two days, those before the fix included, cost

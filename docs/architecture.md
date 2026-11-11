@@ -266,7 +266,15 @@ the completion wrote such an address without its street). A
 percentage is stored as `10%`, the form the prompt asks for; as a bare number it
 parsed as a plain number and never matched again. Values in passages the model marked as
 droppable become background facts; all others must be kept. The first local test run
-showed why: the model listed 3 facts for a letter with 11 checkable values. One fact
+showed why: the model listed 3 facts for a letter with 11 checkable values. What a reader
+needs to reach someone is no such judgement of the model's: a phone number, an e-mail
+address and a postal address are must-keep whatever it marked, also in a fact it called
+background, and the sentences they stand in leave the omit candidates, so a value code
+added in such a sentence is kept with them (`facts._keep_contacts`; in decision mode the
+protected parts decide after it, §4.6). Models had listed the contact details of the
+office a page is about as not needed by the reader, and a rule in the Understand prompt
+made two of three models list more of them
+([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)). One fact
 per statement: before code adds its facts, two of the model's
 facts that cite a common sentence, are of one kind, both to keep or both not, and agree
 in their values (the normalised value, else the hard values in the fact's text) become
@@ -530,6 +538,30 @@ provider lists it, else the writer's model, §6; on CSCS `swiss-ai/Apertus-v1.5-
 thinking through its `-thinking` name), temperature
 0. The judge never rewrites; it only reports. Its reliability is measured, not
 assumed (§9).
+
+**What the judge does in a job** is a setting of the model that judges, `judge_role`
+(a provider's models table or a preset, §6), fixed with the job when it is created
+(`JobConfig.judge_role`; a job without it takes the setting when it runs):
+
+- `loop`, the default: the judge reads the first draft and, while a fact or an
+  unsupported statement is open, every version after it; its findings go into the
+  repair rounds and count when the final version is chosen (§4.6).
+- `report`: the rounds run on the rule findings alone, and the judge reads the version
+  they end with once. Its findings are the reviewer's: the review page shows them as
+  in the loop, no round answers them, and the version is chosen before the judge reads
+  it, since a report on one version alone would count against that version.
+- `off`: no judge; the draft has its rule and fact checks.
+
+How much of what a judge flags the loop resolves differs between judges, and so does
+what the loop costs. With the judge out of the loop two models kept the same hard facts
+and must-keep facts at half the price and with fewer rule warnings, while the judge
+found more to object to in the final draft, much more for one model and a little more
+for the other; two strong judges that agree on the facts share about one in seven
+of their findings on single blocks; and of the blocks one of them called unsupported in
+its report, blind labels confirmed one in four, while its own note cleared another one
+in four
+([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)).
+Every shipped preset keeps the judge in the loop.
 
 A `missing` on a fact whose value FACT-01 finds in the draft is shown on the review page
 in amber as "judge doubts", with the judge's note, not as a red "missing": code decides
@@ -898,7 +930,8 @@ PipelineSummary
   condition, mode, final_version, stop_reason (a code: no_blocking, no_progress,
   max_rounds, no_missing_facts, ...), endpoint? (the endpoint the job ran on),
   writer_model, understand_model? (only when another model read the source),
-  judge_model?, prompt_versions {stage: hash}, blocking_findings[] (per draft version),
+  judge_model?, judge_role? (loop|report|off: what the judge did, P2 only, §4.5),
+  prompt_versions {stage: hash}, blocking_findings[] (per draft version),
   vocabulary? (hash of the vocabulary file the job used)
   rounds[]: {kind (repair|facts|recover|polish|vocabulary), number, parent_version,
              version, blocking_before, blocking_after, missing_before, missing_after}
@@ -910,7 +943,9 @@ Job
                a login, from the command line, or in a job stored by an older version)
   config: {lang, region (the installation's texts.region when the job was created, §8),
            level, condition (P0|P1|P2), endpoint? (picked in the New draft form),
-           writer_model, understand_model, judge_model, use_judge,
+           writer_model, understand_model, judge_model,
+           judge_role? (loop|report|off, §4.5: the setting of the judge's model when
+                        the job was created; null in a job that has no judge stage),
            pipeline (the [pipeline] settings when the job was created: repair_rounds,
                      facts_rounds, missing_per_facts_round, recover_facts, polish_rounds,
                      vocabulary),
@@ -951,8 +986,8 @@ downgrade restores (`backup_database`, also behind `leichtfacile backup`); a dat
 written by a newer version is refused with a message (`SchemaTooNew`) rather than read
 with the wrong models. The later groups rewrite what the first weeks stored differently (the
 conditions C0 to C2, the retired `live` field, a review without its stamp, the summary's
-round counters, a finding's English text), so the models read one shape and carry no
-fallbacks for old data. The jobs
+round counters, a finding's English text, a job's `use_judge`, which is its `judge_role`
+now), so the models read one shape and carry no fallbacks for old data. The jobs
 table is also the work queue (§7). The connections are a small pool (8): an operation
 takes one and gives it back, the database runs in WAL mode, so the web handlers read
 while a worker writes. The store's writers queue on a lock before they take a connection
@@ -1440,7 +1475,7 @@ starts without one, and its model page asks for the key. They and `eval run` tak
 | `leichtfacile check-llm [--thinking]` | List the provider's models and make one call |
 | `leichtfacile ingest <file\|url> [--section]` | Print the segments |
 | `leichtfacile check <file\|url> [--level]` | Rule checker on an existing easy-language text |
-| `leichtfacile simplify <file\|url> [--condition] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
+| `leichtfacile simplify <file\|url> [--condition] [--judge-role loop\|report\|off] [--no-judge] [--no-repair] [--stop-after] [--mode decision --addressee --notice]` | The pipeline without the web app; all artifacts and exports go to `--out` |
 | `leichtfacile eval fetch\|calibrate\|reference\|run\|report\|sample\|kappa\|diagnose\|rescore\|replay` | The evaluation harness (§9); `diagnose` says why must-keep facts are missing from the final drafts of a run; `rescore` scores stored jobs again from their artifacts, without a model call, under either rule for the final version (`--select facts\|blocking`); with `--in-place` it replaces the rows of the results folder, so a baseline whose prompt did not change is scored again against the newest P2 fact sheet of its pair instead of being sampled again; `replay` runs stored jobs again on their recorded answers, without a model call, and reports what the code makes of them against the stored artifacts and, `--against` an earlier replay, what a change made of the same answers (§9) |
 
 ## 8. Languages and levels
@@ -1697,6 +1732,7 @@ day, against the 82 percent above.
 | Judge reliability | Agreement (Cohen's κ) between the judge and 30 hand-labelled outputs; `eval sample` writes the sheets (facts stratified by the judge's verdict, blocks half flagged and half passed, verdicts in a separate key file), `eval kappa` scores a filled sheet | Is the judge trustworthy? |
 | Cost and speed | Tokens, latency and estimated cost per page (250 words), 8B vs. 70B; cost in USD at the list prices of `src/leichtfacile/presets/presets.toml` (Public AI for Apertus, Groq for gpt-oss) as an order of magnitude | Is it affordable at scale? |
 | Hard facts kept | Share of the source's dates, amounts, phone numbers, e-mail addresses, web addresses, percentages, times, periods, identifiers, postal addresses, quantities and dosing schemes found in the output (exact, code, no model; the last five kinds raised the count on the 20 German eval pairs from 138 to 195 when they were added) | A fact measure that does not depend on any model, comparable with the official version |
+| Reference facts kept | Of the source's hard values that the official easy-language version keeps, the share the output keeps too (exact, code, no model; `eval.score.reference_facts`); no share for a pair whose official version keeps none. A run stored before the measure gets it with `eval rescore --in-place --only`, which leaves the run's other numbers as they were | Hard facts kept asks for every value of the source, also for those the human translators left out, so it rises with a fact sheet that calls little droppable; this measure asks only for what they kept, and the two are read together ([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)) |
 | Silent losses | Share of the source's hard values that the output lost without a trace: not in the text, and nowhere a reviewer would see them. A single prompt and the official version have no fact checklist and no omission log, so every value they lose is silent (the share is 100 minus hard facts kept); for P1 and P2 a lost value is told when the fact sheet carries it (the review checklist lists every fact with its status) or when its source sentence is a listed omission, so their share is zero by design, and a value above zero names one the code completion missed (`eval.score.silent_losses`; the first dev run showed 5 percent and led to two fixes of the completion, percentages and addresses over two sentences) | The property the headline rests on when the pipeline keeps fewer facts than a single prompt (case B of `eval numbers`): nothing is lost in silence |
 
 Two rows need no model and frame the conditions: SOURCE (the standard-language

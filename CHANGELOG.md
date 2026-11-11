@@ -21,6 +21,21 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
   runs without thinking (`reasoning_effort` none) and the cost per page shows its price.
   It was run over the evaluation pairs, with and without thinking
   (docs/model-comparison.md).
+- What the judge does is a setting, `judge_role`, of the model that judges (a provider's
+  models table or a preset): `loop`, the default and what every job did so far, sends
+  its findings into the repair rounds; `report` runs the rounds on the rule findings
+  alone and lets the judge read the final draft once, for the reviewer; `off` runs no
+  judge. `leichtfacile simplify --judge-role` and `leichtfacile eval run --judge-role`
+  set it for one run. The progress page shows the judge after the rounds when it
+  reports, and the audit bundle says what it did. With the judge out of the loop two
+  models kept the same facts at half the price and with fewer rule warnings, and the
+  judge found more to object to in the final draft
+  (docs/history/2026-11-11-prompt-variants.md).
+- The evaluation reports a second fact measure next to the hard facts kept, the
+  reference facts kept: of the source's dates, amounts, numbers and addresses that the
+  official easy-language version keeps, the share the text keeps too. `leichtfacile eval
+  rescore --in-place --only <measure>` adds a measure to the rows of a stored run and
+  leaves its other numbers as they were.
 
 ### Changed
 
@@ -39,6 +54,13 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - The queue takes jobs in the order they were queued: an export or a review save no
   longer moves a job in it. The retention purge counts from a job's last activity (a
   run, a review save, an export).
+- A phone number, an e-mail address and a postal address are always facts to keep: the
+  fact sheet no longer takes them as background, and the sentences they stand in are no
+  longer among the passages a draft may leave out. On the evaluation pages models had
+  listed the contact details of the very office a page was about as not needed.
+- A job's `use_judge` is `judge_role` (in the audit bundle and in the job the API
+  returns): `loop` for a job that ran with the judge, `off` for one without. Stored jobs
+  are rewritten when the database is opened, with a copy of the database made first.
 
 ### Fixed
 
@@ -86,6 +108,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - Stock phrases of easy language ("Haben Sie Fragen?") that the prompt's example shares
   with an honest draft no longer count as a copied example on their own; a short draft
   was sent back and could fail the write stage for them.
+- `leichtfacile eval` moves a result file into its place again when Windows refuses the
+  move for a moment, as it does while a sync client or a virus scanner has the file
+  open; a rescoring in a synced folder ended with "Access is denied".
 
 ## [0.13.3] - 2026-11-08
 

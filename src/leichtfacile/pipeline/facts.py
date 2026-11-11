@@ -247,7 +247,9 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
     no fact carries becomes a fact of its own, or the value of the model's fact that
     holds it in its text without a normalised value. Values in passages the model
     marked as droppable become background facts; the rest must be kept. Before that,
-    two of the model's facts for one statement become one (`merge_twin_facts`)."""
+    two of the model's facts for one statement become one (`merge_twin_facts`); after
+    it, what a reader needs to reach someone is kept whatever the model marked
+    (`_keep_contacts`)."""
     lang = source.variety  # the values are read in the source's variety (de-DE: 1.500,00 €)
     facts = merge_twin_facts(list(fs.facts), lang)
     covered = [v for f in facts if (v := parse_value_norm(f.value_norm, f.kind, lang))]
@@ -307,7 +309,52 @@ def complete_factsheet(fs: FactSheet, source: SourceDocument) -> FactSheet:
             )
         )
         next_id += 1
-    return fs.model_copy(update={"facts": facts})
+    facts, omit = _keep_contacts(facts, fs.omit_candidates, source)
+    return fs.model_copy(update={"facts": facts, "omit_candidates": omit})
+
+
+# The values a reader needs to reach someone. Web addresses and opening hours are not
+# among them: the official versions keep two in five of those a fact sheet left out.
+CONTACT_KINDS = frozenset({"phone", "email", "address"})
+
+
+def _keep_contacts(
+    facts: list[Fact], omit: list[OmitCandidate], source: SourceDocument
+) -> tuple[list[Fact], list[OmitCandidate]]:
+    """A phone number, an e-mail address and a postal address are must-keep whatever the
+    model marked, and the sentences they stand in are no omit candidates: the facts and
+    the candidates as they are then. A value code added in such a sentence is decided
+    again, as the completion decides it, on the candidates that are left.
+
+    Of the 33 such values the fact sheets of thirteen evaluation runs left droppable or
+    marked as background, the official easy-language versions keep 23 ("contact
+    information of the cantonal office, not needed by the reader" for the office the
+    page is about). A rule in the Understand prompt did not do it: one model followed
+    it, and two listed exactly these sentences as droppable when the prompt named them
+    (docs/history/2026-11-11-prompt-variants.md)."""
+    lang = source.variety
+    values = {f.id: parse_value_norm(f.value_norm, f.kind, lang) for f in facts}
+    contacts = {f.id for f in facts if (v := values[f.id]) is not None and v.kind in CONTACT_KINDS}
+    held = {s for f in facts if f.id in contacts for s in f.segment_ids}
+    if not held:
+        return facts, omit
+    left = [
+        o.model_copy(update={"segment_ids": [s for s in o.segment_ids if s not in held]})
+        for o in omit
+    ]
+    left = [o for o in left if o.segment_ids]
+    omitted = {s for o in left for s in o.segment_ids}
+    headings = {s.id for s in source.segments if s.kind == "heading"}
+    kept: list[Fact] = []
+    for fact in facts:
+        if fact.id in contacts:
+            keep = True
+        elif fact.origin == "code" and values[fact.id] is not None:
+            keep = any(s not in omitted and s not in headings for s in fact.segment_ids)
+        else:
+            keep = fact.must_keep
+        kept.append(fact if keep == fact.must_keep else fact.model_copy(update={"must_keep": keep}))
+    return kept, left
 
 
 # The vocabulary (rules/data/vocabulary_<lang>.toml) in the fact sheet.

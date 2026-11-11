@@ -88,15 +88,22 @@ def render_tables(groups: list[Group], *, role: str, column: str = "Setup") -> s
         f"Pairs: {len({r['pair_id'] for r in rows})} ({role} split). "
         "Means over pairs; a dash means not applicable.",
         "",
-        f"| {column} | Pairs | Fact coverage | Hard facts kept | Silent losses "
+        f"| {column} | Pairs | Fact coverage | Hard facts kept | Reference facts kept "
+        "| Silent losses "
         "| Errors / 100 blocks | Warnings / 100 blocks | Words / sentence | Readability "
         "| SARI | Unsupported / 100 blocks (judge) | Values not in source / 100 blocks "
         "| Tokens / page "
         "| USD / page | Seconds / page |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     out += [_metrics_row(g.label, found) for g, found in ok]
     out += [
+        "",
+        "Reference facts kept: of the source's hard values that the official easy-language "
+        'version keeps, the share the text keeps too. "Hard facts kept" counts every value '
+        "of the source, also those the official version leaves out, so a text that leaves "
+        "the same ones out loses there and not here. A pair whose official version keeps no "
+        "hard value is not in this mean.",
         "",
         "Silent losses: the share of the source's hard values that the text lost without a "
         "trace. A single prompt and the official version have no fact checklist and no "
@@ -156,6 +163,7 @@ def _metrics_row(label: str, rows: list[Row]) -> str:
     return (
         f"| {label} | {len(rows)} | {fmt(mean(rows, 'fact_coverage'), pct=True)} "
         f"| {fmt(mean(rows, 'hard_fact_recall'), pct=True)} "
+        f"| {fmt(mean(rows, 'reference_fact_recall'), pct=True)} "
         f"| {fmt(mean(rows, 'silent_loss_share'), pct=True)} "
         f"| {fmt(mean(rows, 'errors_per_100'))} | {fmt(mean(rows, 'warnings_per_100'))} "
         f"| {fmt(mean(rows, 'avg_words'))} | {fmt(mean(rows, 'readability'), 0)} "

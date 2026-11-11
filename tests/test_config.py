@@ -191,6 +191,34 @@ def test_a_models_table_and_the_preset_set_what_a_model_takes(home, monkeypatch)
     assert mixed.for_model("claude-opus-5-5").extra_body == {}
 
 
+def test_the_judges_role_is_a_setting_of_the_model_that_judges(home, monkeypatch) -> None:
+    """`judge_role`: every shipped judge is in the loop; a preset sets it for the models
+    it calls, a models table for one model, and the preset wins over the table."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    shipped = load(preset="claude-haiku-5-5-sonnet").settings.llm
+    assert shipped.judge_role_for() == shipped.judge_role_for("claude-haiku-5-5") == "loop"
+    # A models table: the role of that model as judge, the other models as they were.
+    sonnet = """[providers.anthropic.models.claude-sonnet-5-5]
+extra_body = { thinking = { type = "between_tools" } }
+judge_role = "off"
+"""
+    write(home, sonnet)
+    llm = load(preset="claude-haiku-5-5-sonnet").settings.llm
+    assert llm.judge_model == "claude-sonnet-5-5" and llm.judge_role_for() == "off"
+    assert llm.judge_role_for("claude-haiku-5-5") == "loop"  # a job that names another judge
+    # The preset's setting reaches every model it calls, over the model's table.
+    preset = """
+[presets.claude-haiku-5-5-sonnet]
+judge_role = "report"
+"""
+    write(home, sonnet + preset)
+    llm = load(preset="claude-haiku-5-5-sonnet").settings.llm
+    assert llm.judge_role_for() == llm.judge_role_for("claude-haiku-5-5") == "report"
+    write(home, preset.replace("report", "sometimes"))
+    with pytest.raises(ConfigError, match="judge_role"):
+        load(preset="claude-haiku-5-5-sonnet")
+
+
 def test_a_users_table_extends_a_shipped_preset_or_provider(home, monkeypatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     write(home, '[llm]\npreset = "claude-haiku-5-5"\n\n'

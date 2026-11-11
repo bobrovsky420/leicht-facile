@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -62,14 +64,27 @@ def _done(path: Path) -> set[str]:
     return {r["pair_id"] for r in completed(read_jsonl(path))}
 
 
+_MOVE_ATTEMPTS = 6
+
+
 def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
     """The rows as the file's whole content, written to a file next to it and moved into
     its place: a Ctrl-C or an error in the middle of the write leaves the file as it
-    was (a run of hours is in it)."""
+    was (a run of hours is in it). On Windows a sync client or a virus scanner that has
+    the file open for a moment refuses the move (WinError 5; 5 of 24 rewrites in a
+    OneDrive folder, 11 November 2026), so it is tried a few times before the error."""
     tmp = path.with_name(path.name + ".tmp")
     lines = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
     tmp.write_text(lines, encoding="utf-8")
-    tmp.replace(path)
+    for attempt in range(1, _MOVE_ATTEMPTS + 1):
+        try:
+            tmp.replace(path)
+        except PermissionError:
+            if attempt == _MOVE_ATTEMPTS:
+                raise
+            time.sleep(0.2 * attempt)
+        else:
+            return
 
 
 def _write_row(path: Path, row: dict[str, Any]) -> None:
@@ -108,10 +123,12 @@ def run_condition(
     judge: str | None = None,
     judge_all: bool = False,
     redo: bool = False,
+    judge_role: str | None = None,
 ) -> Path:
     """Run one condition on every pair that has no result yet (all of them with `redo`,
     after a prompt change; the old rows are replaced). `understand` names another model
-    for the Understand stage (default: llm.models.understand, else the writer)."""
+    for the Understand stage (default: llm.models.understand, else the writer);
+    `judge_role` says what the judge does in P2 (default: the judge model's setting)."""
     results_dir.mkdir(parents=True, exist_ok=True)
     store = Store(results_dir / "store.sqlite")
     orchestrator = Orchestrator(store, llm, settings)
@@ -123,6 +140,9 @@ def run_condition(
         reader_name = None  # no Understand stage, or the writer reads too
     out = results_file(results_dir, condition, writer_name, reader_name)
     done = set() if redo else _done(out)
+    role = None  # P2 only: the option, else the setting of the model that judges
+    if condition == "P2":
+        role = judge_role or settings.llm.judge_role_for(judge)
     for pair in pairs:
         if pair.id in done:
             log.info("%s %s: done already", condition, pair.id)
@@ -141,6 +161,7 @@ def run_condition(
             writer_model=writer,
             understand_model=understand,
             judge_model=judge,
+            judge_role=role,
             pipeline=settings.pipeline,
         )
         job = store.create_job(config, title=pair.id)
@@ -206,10 +227,22 @@ def _score(
     ]
     row = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
     if summary:
-        row.update(rounds=summary.rounds_of("repair"), stop_reason=summary.stop_reason)
-        if summary.vocabulary:
-            row["vocabulary"] = summary.vocabulary
+        row.update(_run_facts(summary))
     return row
+
+
+def _run_facts(summary: PipelineSummary) -> dict[str, Any]:
+    """What a row says about how its job ran: the repair rounds, why they ended, and,
+    where the job has them, the vocabulary's version and what the judge did."""
+    facts: dict[str, Any] = {
+        "rounds": summary.rounds_of("repair"),
+        "stop_reason": summary.stop_reason,
+    }
+    if summary.vocabulary:
+        facts["vocabulary"] = summary.vocabulary
+    if summary.judge_role:
+        facts["judge_role"] = summary.judge_role
+    return facts
 
 
 def _pair_factsheet(store: Store, pair: Pair, job_id: str) -> FactSheet | None:
@@ -286,7 +319,16 @@ def _best_version(
 _KEPT_FIELDS = ("pair_id", "role", "lang", "region", "writer", "understand", "job_id", "status")
 
 
-def rescore(  # noqa: C901, PLR0912
+def _row_version(row: dict[str, Any], summary: PipelineSummary | None, versions: list[int]) -> int:
+    """The draft version a stored row's numbers are of: the one it names, else the
+    summary's final one, else the latest."""
+    for version in (row.get("draft_version"), summary.final_version if summary else None):
+        if version in versions:
+            return version
+    return versions[-1]
+
+
+def rescore(  # noqa: C901, PLR0912, PLR0915
     results_dir: Path,
     *,
     pairs: list[Pair],
@@ -295,6 +337,7 @@ def rescore(  # noqa: C901, PLR0912
     select: str = "facts",
     out_dir: Path | None = None,
     in_place: bool = False,
+    only: Sequence[str] = (),
 ) -> Path:
     """Score a condition's completed jobs again from their stored artifacts, without
     a model call: after a change of the metrics, or to compare the rules for the final
@@ -304,9 +347,14 @@ def rescore(  # noqa: C901, PLR0912
     With `in_place` the rows replace those of the results folder (since 13 October
     2026): a baseline whose prompt did not change is scored again against the newest
     P1 or P2 fact sheet of its pair, as `run` scores it, instead of being sampled
-    again."""
+    again. With `only` (and `in_place`) the stored rows take just these measures from
+    the new scoring, computed on the version their other numbers are of: a new measure
+    reaches a run that keeps the scores of its day (docs/model-comparison.md)."""
     if select not in SELECTIONS:
         raise ValueError(f"unknown selection {select!r}; use one of {SELECTIONS}")
+    if only and not in_place:
+        raise ValueError("only: the measures are added to the stored rows, so with in_place")
+    known: set[str] = set()  # the measures of `only` some row was scored for
     if in_place:
         out_dir = results_dir
     else:
@@ -335,18 +383,29 @@ def rescore(  # noqa: C901, PLR0912
             if not versions or factsheet is None:
                 continue
             standard, easy = load_pair(pair)
-            version, _, judge_report = _best_version(store, job.id, versions, select)
+            summary = store.get_artifact(job.id, "summary", PipelineSummary)
+            if only:
+                version = _row_version(row, summary, versions)
+                judge_report = store.get_artifact(job.id, "judge", JudgeReport, version=version)
+            else:
+                version, _, judge_report = _best_version(store, job.id, versions, select)
             draft = store.get_artifact(job.id, "draft", Draft, version=version)
             if draft is None:
                 continue
             edits = [edit for v in versions if v <= version for edit in _edits_of(store, job.id, v)]
-            summary = store.get_artifact(job.id, "summary", PipelineSummary)
+            scored = score_output(job, draft, standard, easy, factsheet, judge_report, edits)
+            name = results_file(
+                out_dir, condition, row.get("writer", "?"), row.get("understand")
+            ).name
+            if only:
+                known |= scored.keys() & set(only)
+                added = {key: scored[key] for key in only if key in scored}
+                written.setdefault(name, []).append({**row, **added})
+                continue
             new_row = {k: v for k, v in row.items() if k in _KEPT_FIELDS}
-            new_row.update(score_output(job, draft, standard, easy, factsheet, judge_report, edits))
+            new_row.update(scored)
             if summary:
-                new_row.update(rounds=summary.rounds_of("repair"), stop_reason=summary.stop_reason)
-                if summary.vocabulary:
-                    new_row["vocabulary"] = summary.vocabulary
+                new_row.update(_run_facts(summary))
             if in_place:
                 new_row["rescored"] = True  # the model's answers are the run's, the scores new
             else:
@@ -354,16 +413,17 @@ def rescore(  # noqa: C901, PLR0912
                     selection=select,
                     stored_final_version=summary.final_version if summary else None,
                 )
-            name = results_file(
-                out_dir, condition, row.get("writer", "?"), row.get("understand")
-            ).name
             written.setdefault(name, []).append(new_row)
     finally:
         store.close()
+    if written and (unknown := sorted(set(only) - known)):
+        raise ValueError(f"no such measure in the scores: {', '.join(unknown)}")
     for name, rows in written.items():
         if in_place:
-            for new_row in rows:
-                _write_row(out_dir / name, new_row)
+            # One write per file, each row in the place of its pair's.
+            new = {r["pair_id"]: r for r in rows}
+            kept = [new.pop(r["pair_id"], r) for r in read_jsonl(out_dir / name)]
+            _write_rows(out_dir / name, [*kept, *new.values()])
             continue
         (out_dir / name).write_text(
             "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"

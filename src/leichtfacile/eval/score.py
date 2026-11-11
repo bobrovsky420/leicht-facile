@@ -1,9 +1,10 @@
 """Scores for one output: the metrics of docs/architecture.md §9.
 
 Every condition is scored the same way: language rules recomputed on the final text,
-fact coverage against one fact sheet per pair, hard facts found by code, readability,
-SARI against the official easy version, judge statistics where a judge ran, and the
-cost of the model calls that produced the output.
+fact coverage against one fact sheet per pair, hard facts found by code (all of the
+source's, and those the official easy version keeps), readability, SARI against the
+official easy version, judge statistics where a judge ran, and the cost of the model
+calls that produced the output.
 """
 
 from __future__ import annotations
@@ -178,6 +179,25 @@ def silent_losses(
     }
 
 
+def reference_facts(hard: HardValues, easy: SourceDocument) -> dict[str, Any]:
+    """The source's hard values that the official easy-language version keeps, and those
+    of them the output keeps too. "Hard facts kept" asks for every value of the source,
+    also for those a human translator left out (the date a law came into force, a
+    contact for the press), so an output that leaves the same ones out loses there and
+    not here: 281 values the fact sheets of thirteen runs left droppable, 93 of them
+    kept by the official versions (11 November 2026). No share for a pair whose official
+    version keeps no hard value."""
+    official = extract_values(easy.text(), easy.variety)
+    wanted = [key for key in hard.keys if hard_value_found(key, official)]
+    kept = set(hard.found)
+    found = sum(1 for key in wanted if key in kept)
+    return {
+        "reference_facts_total": len(wanted),
+        "reference_facts_found": found,
+        "reference_fact_recall": round(found / len(wanted), 3) if wanted else None,
+    }
+
+
 def kept_code_splits(final: Draft, edits: list[CodeEdit]) -> int:
     """Edits made by code on any version up to `final` whose split word is still in it.
     A repair gets the split text and mostly keeps the dot, and each version records only
@@ -206,6 +226,7 @@ def score_output(
     hard = hard_values_of(draft, standard)
     row: dict[str, Any] = {"setup": job.config.condition, **text_metrics(draft, standard, hard)}
     row.update(silent_losses(draft, standard, factsheet, condition=job.config.condition, hard=hard))
+    row.update(reference_facts(hard, easy))
     # Compounds split by code that stand in the final version (rules/mediopunkt.py, P1 and
     # P2 only): the deterministic share of the LEX improvement, reported next to the LEX
     # family.

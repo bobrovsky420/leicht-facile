@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import codecs
 import threading
-from collections.abc import Collection, Iterator
+from collections.abc import Collection, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Annotated, Any
@@ -21,7 +21,7 @@ from urllib.parse import urlsplit
 from fastapi import File, Form, UploadFile
 from fastapi.concurrency import run_in_threadpool
 
-from leichtfacile.config import Settings
+from leichtfacile.config import LLM, Settings
 from leichtfacile.ingest.errors import (
     DocumentTooLongError,
     IngestError,
@@ -214,7 +214,7 @@ async def start_job(
         state.settings,
         sub,
         state.ingest_slots,
-        presets=[name for name, _ in state.registry.ready()],
+        presets=dict(state.registry.ready()),
         workspace=workspace,
         created_by=created_by,
     )
@@ -317,14 +317,15 @@ def create_job(  # noqa: C901
     sub: Submission,
     slots: threading.Semaphore | None = None,
     *,
-    presets: Collection[str] | None = None,
+    presets: Mapping[str, LLM] | Collection[str] | None = None,
     workspace: str | None = None,
     created_by: str | None = None,
 ) -> Job:
     """The job for a submission, queued and with its source stored. `slots` limits how
     many submissions are read at once (`ingest_slot`); `presets` are the ready presets
-    a submission may pick, the one in use among them when it is ready (None: no
-    check, a command's own client); `workspace` is the hash of the workspace the job
+    a submission may pick, the one in use among them when it is ready, by name with
+    their settings, or the names alone (None: no check, a command's own client);
+    `workspace` is the hash of the workspace the job
     belongs to (web/workspaces.py; None: none); `created_by` the user the login named
     (None: no login)."""
     if sub.level not in LEVELS:
@@ -363,6 +364,13 @@ def create_job(  # noqa: C901
     notice = (sub.notice or "").strip() or None
     if sub.mode == "decision" and notice is None:
         notice = variety(source.variety).notice  # the authority's text, per variety
+    # What the judge does is the job's from here on, like its rounds: the setting of the
+    # judge's model on the job's preset (`judge_role`), so the pages know it while the
+    # job runs and a later change of the settings leaves the job as it was.
+    llm = presets.get(endpoint or settings.llm.preset) if isinstance(presets, Mapping) else None
+    judge_role = None
+    if condition == "P2":
+        judge_role = (llm or settings.llm).judge_role_for(sub.judge_model or None)
     config = JobConfig(
         lang=source.lang,
         region=region,
@@ -372,6 +380,7 @@ def create_job(  # noqa: C901
         writer_model=sub.writer_model or None,
         understand_model=sub.understand_model or None,
         judge_model=sub.judge_model or None,
+        judge_role=judge_role,
         pipeline=settings.pipeline,
         mode=sub.mode,
         sender=sub.sender,

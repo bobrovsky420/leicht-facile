@@ -345,7 +345,9 @@ leichtfacile check-llm                                             # lists the m
   review.
 - Its options: `--lang` (de, fr, it; detected when left out), `--level` (A2, B1),
   `--condition` (P0, P1 or P2; default P2, the full pipeline), `--writer`, `--understand`
-  and `--judge` (models other than the settings'), and `--mode decision` with
+  and `--judge` (models other than the settings'), `--judge-role` (loop, report or off:
+  what the judge does, [configuration.md](configuration.md#the-judges-role)), and
+  `--mode decision` with
   `--addressee` and `--notice` for the letter that goes out with a decision
   ([docs/use-case-decisions.md](use-case-decisions.md)); without `--notice` the export
   carries the default notice of the installation's variety (`varieties.toml`), as the

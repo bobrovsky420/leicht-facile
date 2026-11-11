@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 import time
@@ -395,6 +396,31 @@ def test_the_swiss_rule_ids_become_the_regions_on_open(tmp_path) -> None:
     assert [e.rule_id for e in store.get_artifact(job.id, "draft", Draft).code_edits] == [
         "REG-01", "LEX-01",
     ]  # fmt: skip
+    store.close()
+
+
+def test_use_judge_becomes_the_judges_role_on_open(tmp_path) -> None:
+    """Migration 10 (11 November 2026): a job's `use_judge` became `judge_role`. A job
+    stored with the judge keeps it in the loop, one stored without has none, whatever
+    the setting of its judge's model says when it runs again."""
+    path = tmp_path / "s.sqlite"
+    store = Store(path)
+    with_judge = store.create_job(JobConfig(), title="With")
+    without = store.create_job(JobConfig(), title="Without")
+    with sqlite3.connect(path) as db:
+        for job, used in ((with_judge, True), (without, False)):
+            config = json.loads(db.execute(
+                "SELECT config FROM jobs WHERE id = ?", (job.id,)
+            ).fetchone()[0])  # fmt: skip
+            assert config.pop("judge_role") is None
+            config["use_judge"] = used  # as every version before stored it
+            db.execute("UPDATE jobs SET config = ? WHERE id = ?", (json.dumps(config), job.id))
+        db.execute("PRAGMA user_version = 9")
+    store.close()
+    store = Store(path)
+    assert store.schema_version == SCHEMA_VERSION
+    assert store.get_job(with_judge.id).config.judge_role == "loop"
+    assert store.get_job(without.id).config.judge_role == "off"
     store.close()
 
 

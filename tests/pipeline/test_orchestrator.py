@@ -90,6 +90,7 @@ def test_c2_runs_understand_write_judge_and_repair(store, endpoint, sleeps) -> N
     summary = store.get_artifact(job_id, "summary", PipelineSummary)
     assert summary.final_version == 2 and summary.rounds_of("repair") == 1
     assert summary.stop_reason == "no_blocking"
+    assert summary.judge_role == "loop"  # the default: the judge in the loop
     assert summary.prompt_versions["write"] != "none"
 
     # The model ran with the settings of each stage.
@@ -167,12 +168,102 @@ def test_invalid_json_gets_one_repair_round(store, endpoint, sleeps) -> None:
 
 def test_no_judge_and_no_repair_switches(store, endpoint, sleeps) -> None:
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P2", use_judge=False, rounds=options(repair_rounds=0))
+    job_id = new_job(store, condition="P2", judge_role="off", rounds=options(repair_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert store.get_job(job_id).status == "needs_review"
     names = store.artifact_names(job_id)
     assert "judge" not in names and names["draft"] == [1]
-    assert store.get_artifact(job_id, "summary", PipelineSummary).judge_model is None
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.judge_model is None and summary.judge_role == "off"
+
+
+def test_the_judge_as_a_report_reads_the_final_draft_once(store, endpoint, sleeps) -> None:
+    """`judge_role` report: the rounds run on the rule findings alone, and the judge
+    reads the version they end with once, for the reviewer. With the judge out of the
+    loop two models kept the same hard facts at half the price (11 November 2026)."""
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    job_id = new_job(store, condition="P2", judge_role="report")
+    orchestrator(store, endpoint, sleeps).run(job_id)
+
+    job = store.get_job(job_id)
+    assert job.status == "needs_review", job.error
+    assert [u.stage for u in job.usage] == ["understand", "write", "repair", "judge"]
+    assert store.artifact_names(job_id)["judge"] == [2]  # the final version alone
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 2 and summary.stop_reason == "no_blocking"
+    assert summary.judge_role == "report" and summary.judge_model == "swiss-ai/Apertus-v1.5-70B"
+    # The round asked for what the rules found (the passive, the wrong number): the
+    # block only a judge would have flagged stands as it was written.
+    v2 = store.get_artifact(job_id, "draft", Draft, version=2)
+    assert v2.by_id()["b005"].text == "Sie haben wenig Geld."
+    assert v2.by_id()["b004"].text.endswith("044 123 45 67.")
+    report = store.get_artifact(job_id, "judge", JudgeReport, version=2)
+    assert [c.status for c in report.fact_checks] == ["present"] * 3
+
+
+def test_a_report_does_not_change_which_version_is_final(store, endpoint, sleeps) -> None:
+    """The version is chosen before the judge reads it: a report on one version alone
+    would count against that version, and the draft of the round before, which nobody
+    judged, would win."""
+    no_number = {"repairs": [{"id": "b004", "texts": ["Rufen Sie das Sozial·amt an."]}],
+                 "additions": []}  # fmt: skip
+    flags = {
+        "fact_checks": [{"fact_id": "f03", "status": "missing", "block_ids": []}],
+        "unsupported": [{"block_id": "b003", "note": "Woher?"},
+                        {"block_id": "b005", "note": "Woher?"}],
+    }  # fmt: skip
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(no_number)),
+        chat_response(fx.as_json(flags)),
+    )
+    job_id = new_job(store, condition="P2", judge_role="report", rounds=options(repair_rounds=1))
+    orchestrator(store, endpoint, sleeps).run(job_id)
+    summary = store.get_artifact(job_id, "summary", PipelineSummary)
+    assert summary.final_version == 2 and store.artifact_names(job_id)["judge"] == [2]
+    first, final = summary.blocking_findings
+    assert final == first - 1 + 3  # the wrong number is gone; the report's three findings
+
+
+def test_the_judges_role_is_its_models_setting(store, endpoint, sleeps) -> None:
+    """A job that names no role takes the setting of the model that judges it
+    (`judge_role`): the preset's or the provider's, and its models table's over them."""
+
+    def run(**llm) -> tuple[list[str], PipelineSummary]:
+        settings = make_settings(
+            llm__models__judge="swiss-ai/Apertus-v1.5-70B", llm__max_retries=0, **llm
+        )
+        client = LLMClient(settings, http_client=endpoint.http_client(), sleep=sleeps.append)
+        job_id = new_job(store, condition="P2")
+        Orchestrator(store, client, settings).run(job_id)
+        stages_run = [u.stage for u in store.get_job(job_id).usage]
+        return stages_run, store.get_artifact(job_id, "summary", PipelineSummary)
+
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    stages_run, summary = run(llm__judge_role="report")
+    assert stages_run == ["understand", "write", "repair", "judge"]
+    assert summary.judge_role == "report"
+
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+    )
+    table = {"swiss-ai/Apertus-v1.5-70B": {"judge_role": "off"}}
+    stages_run, summary = run(llm__judge_role="report", llm__model_settings=table)
+    assert stages_run == ["understand", "write", "repair"]
+    assert summary.judge_role == "off" and summary.judge_model is None
 
 
 def test_rerun_from_write_deletes_later_artifacts(store, endpoint, sleeps) -> None:
@@ -547,7 +638,7 @@ def test_facts_rounds_stop_without_progress_and_are_off_with_the_repair(
 
     # Without repair rounds there are no facts rounds either.
     endpoint.push(chat_response(fx.as_json(fx.UNDERSTAND)), chat_response(fx.as_json(fx.WRITE)))
-    job_id = new_job(store, condition="P2", use_judge=False, rounds=options(repair_rounds=0))
+    job_id = new_job(store, condition="P2", judge_role="off", rounds=options(repair_rounds=0))
     orchestrator(store, endpoint, sleeps).run(job_id)
     assert store.get_artifact(job_id, "summary", PipelineSummary).rounds_of("facts") == 0
 
@@ -868,3 +959,63 @@ def test_a_job_runs_on_the_endpoint_it_picked(store, endpoint, sleeps) -> None:
     job = store.get_job(gone)
     assert job.status == "failed" and "preset gone is not available" in job.error
     assert orch.llm_for(job) is settings.llm
+
+
+LETTER_TEXT = """# Prämienverbilligung 2026
+
+Personen mit geringem Einkommen haben Anspruch auf eine Prämienverbilligung.
+Das Gesuch ist bis spätestens 31. März 2026 bei der Gemeinde einzureichen.
+
+Für die Bearbeitung wird eine Gebühr von CHF 20.- erhoben.
+
+Auskunft erteilt das Sozialamt unter Telefon 044 123 45 67.
+
+Rechtsgrundlage ist Art. 5 des Einführungsgesetzes.
+"""
+
+
+def test_simplify_takes_the_judges_role_from_its_options(
+    tmp_path, endpoint, sleeps, monkeypatch
+) -> None:
+    """`leichtfacile simplify --judge-role report` and `--no-judge` (off): the job keeps
+    the role, and its bundle says what the judge did."""
+    import json
+
+    from leichtfacile import cli
+
+    settings = make_settings(
+        data__dir=tmp_path, llm__max_retries=0, pipeline__vocabulary=False,
+        pipeline__recover_facts=0, pipeline__polish_rounds=0,
+    )  # fmt: skip
+    monkeypatch.setattr("leichtfacile.config.get_settings", lambda: settings)
+    monkeypatch.setattr(
+        LLMClient,
+        "from_settings",
+        lambda s: LLMClient(s, http_client=endpoint.http_client(), sleep=sleeps.append),
+    )
+    letter = tmp_path / "brief.txt"
+    letter.write_text(LETTER_TEXT, encoding="utf-8")
+
+    def bundle_of(out, *options) -> dict:
+        assert cli.main(["simplify", str(letter), "--out", str(out), *options]) == 0
+        (folder,) = out.iterdir()
+        return json.loads((folder / "bundle.json").read_text(encoding="utf-8"))
+
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+        chat_response(fx.as_json(fx.JUDGE_SECOND)),
+    )
+    bundle = bundle_of(tmp_path / "report", "--judge-role", "report")
+    assert bundle["job"]["config"]["judge_role"] == "report"
+    assert bundle["summary"]["judge_role"] == "report" and len(endpoint.chat_bodies()) == 4
+
+    endpoint.push(
+        chat_response(fx.as_json(fx.UNDERSTAND)),
+        chat_response(fx.as_json(fx.WRITE)),
+        chat_response(fx.as_json(fx.REPAIR)),
+    )
+    bundle = bundle_of(tmp_path / "off", "--no-judge")
+    assert bundle["job"]["config"]["judge_role"] == "off"
+    assert bundle["summary"]["judge_model"] is None and len(endpoint.chat_bodies()) == 7

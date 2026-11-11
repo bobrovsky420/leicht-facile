@@ -55,6 +55,7 @@ from leichtfacile.schemas import (
     Job,
     JobConfig,
     JudgeReport,
+    JudgeRole,
     PipelineSummary,
     RepairRecord,
     RoundRecord,
@@ -364,10 +365,20 @@ class Orchestrator:
             self._summary(run, job, source, [(draft, rules, None)], reason="p1")
             return
 
-        judge = self._judge(run, job, source, factsheet, draft) if cfg.use_judge else None
+        role = self._judge_role(run, cfg)
+        judge = self._judge(run, job, source, factsheet, draft) if role == "loop" else None
         self._maybe_stop(run, "judge")
         history, records, reason = self._rounds(run, job, source, factsheet, (draft, rules, judge))
-        self._summary(run, job, source, history, rounds=records, reason=reason)
+        final = best(history)
+        if role == "report":
+            # The judge reads the final version once, for the reviewer: no round answers
+            # its findings, and the version stays the final one whatever it finds (chosen
+            # before, since a report on one version alone would count against it).
+            report = self._judge(run, job, source, factsheet, final[0])
+            history = [(final[0], final[1], report) if step is final else step for step in history]
+        self._summary(
+            run, job, source, history, rounds=records, reason=reason, final=final[0], role=role
+        )
 
     # -- the rounds after the first draft (pipeline/rounds.py) ----------------------------
 
@@ -740,11 +751,14 @@ class Orchestrator:
         *,
         reason: StopReason,
         rounds: list[RoundRecord] | None = None,
+        final: Draft | None = None,
+        role: JudgeRole | None = None,
     ) -> None:
-        """The summary of the run: the best version is final (`best`), one record per
-        round, the blocking findings of every version."""
+        """The summary of the run: the best version is final (`best`; `final` names it
+        when the caller chose it before a report was added), one record per round, the
+        blocking findings of every version, and what the judge did (`role`, P2 only)."""
         cfg = job.config
-        final = best(history)[0]
+        final = final or best(history)[0]
         writer = run.llm.resolve_model(cfg.writer_model, False)[0]
         reader = run.llm.resolve_model(self._understand_model(run, cfg), False)[0]
         pipeline = cfg.condition not in BASELINE_CONDITIONS
@@ -758,8 +772,9 @@ class Orchestrator:
             writer_model=writer,
             understand_model=reader if pipeline and reader != writer else None,
             judge_model=(cfg.judge_model or run.llm.judge_model())
-            if cfg.condition == "P2" and cfg.use_judge
+            if role in ("loop", "report")
             else None,
+            judge_role=role,
             prompt_versions=prompt_versions(source.variety),
             blocking_findings=[blocking_count(h[1], h[2]) for h in history],
             notes=list(run.notes),
@@ -770,6 +785,15 @@ class Orchestrator:
         self.store.put_artifact(job.id, "summary", summary)
 
     # -- helpers ----------------------------------------------------------------------
+
+    @staticmethod
+    def _judge_role(run: RunState, cfg: JobConfig) -> JudgeRole:
+        """What the judge does in this job: what the job carries, else the setting of
+        the model that judges it (`judge_role`, the provider's, its models table's or
+        the preset's)."""
+        if cfg.judge_role is not None:
+            return cfg.judge_role
+        return run.llm.settings.llm.judge_role_for(cfg.judge_model or run.llm.judge_model())
 
     def _understand_model(self, run: RunState, cfg: JobConfig) -> str | None:
         return understand_model(

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from leichtfacile.eval.dataset import MANIFEST
-from leichtfacile.schemas import CONDITIONS
+from leichtfacile.schemas import CONDITIONS, JUDGE_ROLES
 
 if TYPE_CHECKING:
     from leichtfacile.eval.dataset import Side
@@ -56,6 +56,12 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:  # noqa: PLR0915
         help="model for the Understand stage (default: llm.models.understand, else the writer)",
     )
     run.add_argument("--judge", help="judge model (default: llm.models.judge)")
+    run.add_argument(
+        "--judge-role",
+        choices=list(JUDGE_ROLES),
+        help="P2: what the judge does: loop, report (the final draft once) or off "
+        "(default: the judge model's judge_role)",
+    )
     run.add_argument("--judge-all", action="store_true", help="also judge P0 and P1 outputs")
     run.add_argument("--limit", type=int, help="at most this many pairs")
     run.add_argument(
@@ -115,6 +121,14 @@ def add_eval_parser(sub: argparse._SubParsersAction) -> None:  # noqa: PLR0915
     )
     res.add_argument(
         "--out", type=Path, help="results folder to write (default: next to --results)"
+    )
+    res.add_argument(
+        "--only",
+        nargs="+",
+        default=[],
+        metavar="MEASURE",
+        help="with --in-place: the stored rows take only these measures from the new "
+        "scoring (reference_fact_recall ...), every other number stays as it is",
     )
     res.set_defaults(handler=_rescore)
 
@@ -244,7 +258,7 @@ def _run(args: argparse.Namespace) -> int:
     path = run_condition(
         pairs, args.condition, settings=settings, llm=llm, results_dir=args.results,
         writer=args.writer, understand=args.understand, judge=args.judge,
-        judge_all=args.judge_all, redo=args.redo,
+        judge_all=args.judge_all, redo=args.redo, judge_role=args.judge_role,
     )  # fmt: skip
     print(f"results: {path}")
     return 0
@@ -300,15 +314,20 @@ def _rescore(args: argparse.Namespace) -> int:
     from leichtfacile.eval.dataset import load_manifest
     from leichtfacile.eval.run import rescore
 
-    out = rescore(
-        args.results,
-        pairs=load_manifest(args.manifest),
-        condition=args.condition,
-        role=args.role,
-        select=args.select,
-        out_dir=args.out,
-        in_place=args.in_place,
-    )
+    try:
+        out = rescore(
+            args.results,
+            pairs=load_manifest(args.manifest),
+            condition=args.condition,
+            role=args.role,
+            select=args.select,
+            out_dir=args.out,
+            in_place=args.in_place,
+            only=args.only,
+        )
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
     print(
         f"rescored rows: {out} (render them with: eval report --results {out} --role {args.role})"
     )

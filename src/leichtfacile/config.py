@@ -56,7 +56,7 @@ from pydantic import (
 )
 from pydantic.fields import FieldInfo
 
-from leichtfacile.schemas import PipelineOptions, Region
+from leichtfacile.schemas import JudgeRole, PipelineOptions, Region
 
 ThinkingMode = Literal["model-suffix", "chat-template", "reasoning-effort", "off"]
 ThinkingStage = Literal["understand", "write", "judge", "repair", "baseline", "recover"]
@@ -191,6 +191,16 @@ class ModelSettings(Section):
         None, ge=0, description="USD per million input tokens, for the cost per page."
     )
     output_usd: float | None = Field(None, ge=0, description="USD per million output tokens.")
+    # With the judge out of the loop the same hard facts were kept at half the price on
+    # two models; how much of what a judge flags the loop resolves differs between judges
+    # (docs/history/2026-11-11-prompt-variants.md).
+    judge_role: JudgeRole = Field(
+        "loop",
+        description="What the judge does when this model judges: loop (it reads every "
+        "version, and its findings go into the repair rounds), report (the rounds run on "
+        "the rule findings alone, and it reads the final draft once, for the reviewer) "
+        "or off (no judge).",
+    )
 
     _thinking_stages = field_validator("thinking_stages", mode="before")(_as_list)
 
@@ -385,6 +395,11 @@ class LLM(Connection):
         name, colon, suffix = self.models.writer.partition(":")
         larger = _APERTUS_8B.sub(r"\g<1>70\g<2>", name)
         return larger + colon + suffix if larger != name else None
+
+    def judge_role_for(self, judge: str | None = None) -> JudgeRole:
+        """What the judge does on this preset (`judge_role`): the setting of the judge's
+        model, the one a job names (`judge`), else the preset's."""
+        return self.for_model(judge or self.judge_model).judge_role
 
     def judge_for(self, models: Iterable[str]) -> str:
         """The judge's model: models.judge when set; else the 70B of the writer's family

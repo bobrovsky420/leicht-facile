@@ -1220,6 +1220,49 @@ def test_code_completion_adds_the_full_value_next_to_a_partial_model_fact() -> N
     assert added == ["Gerichtsstrasse 12, 8000 Musterwil", "2 Tablette"]
 
 
+def test_a_contact_value_is_kept_whatever_the_model_marked() -> None:
+    """A phone number, an e-mail address and a postal address are must-keep in a passage
+    the model listed as droppable and in a fact it marked as background, and their
+    sentences are no omit candidates any more, so the other values of such a sentence
+    are kept with it; a date in a droppable passage stays background. On the evaluation
+    pairs a model had listed the contact details of the office its page was about as
+    "not needed by the reader" (11 November 2026)."""
+    from leichtfacile.schemas import Fact, FactSheet, OmitCandidate, SourceInfo
+
+    segments = [
+        Segment(id="s0001", kind="paragraph", text="Die Beratung ist kostenlos.", para=1),
+        Segment(id="s0002", kind="paragraph", text="Opferhilfestelle, Gerichtsstrasse 12", para=2),
+        Segment(id="s0003", kind="paragraph", text="8000 Musterwil.", para=2),
+        Segment(id="s0004", kind="paragraph",
+                text="Telefon 044 123 45 67, Montag bis Freitag 8.30 bis 11.30 Uhr.", para=3),
+        Segment(id="s0005", kind="paragraph", text="Das Gesetz gilt seit 1. Januar 2020.", para=4),
+        Segment(id="s0006", kind="paragraph", text="Auskunft: auskunft@example.ch.", para=5),
+    ]  # fmt: skip
+    source = SourceDocument(id="d", lang="de", source=SourceInfo(type="text"), segments=segments)
+    background = Fact(id="f01", kind="contact", text="E-Mail für Auskunft",
+                      value_norm="auskunft@example.ch", segment_ids=["s0006"],
+                      must_keep=False)  # fmt: skip
+    candidates = [
+        OmitCandidate(segment_ids=["s0002", "s0003", "s0004"], reason="Kontakt, nicht nötig"),
+        OmitCandidate(segment_ids=["s0005"], reason="Gesetz"),
+    ]
+    sheet = FactSheet(doc_id="d", facts=[background], omit_candidates=candidates)
+    fs = complete_factsheet(sheet, source)
+    by_value = {f.value_norm: f for f in fs.facts}
+    assert by_value["Gerichtsstrasse 12, 8000 Musterwil"].must_keep
+    assert by_value["0441234567"].must_keep
+    assert by_value["auskunft@example.ch"].must_keep and by_value["auskunft@example.ch"].id == "f01"
+    assert by_value["08:30"].must_keep and by_value["11:30"].must_keep  # the number's sentence
+    assert not by_value["2020-01-01"].must_keep
+    assert [o.segment_ids for o in fs.omit_candidates] == [["s0005"]]
+
+    # Without a contact value in them, the candidates and the facts stand as they were.
+    law_only = FactSheet(doc_id="d", omit_candidates=candidates[1:])
+    plain = complete_factsheet(law_only, source)
+    assert plain.omit_candidates == candidates[1:]
+    assert {f.value_norm for f in plain.facts if not f.must_keep} == {"2020-01-01"}
+
+
 def test_an_unsupported_verdict_needs_its_quote_in_the_draft() -> None:
     """Since 10 October 2026 the judge quotes the words it objects to. A verdict stays on
     its block when the quote is there (Mediopunkt aside), moves to the block that holds

@@ -383,9 +383,13 @@ endpoint, not the weights.
   to supplies the source does list.
 - **Cost.** In the 31 stored Public AI jobs the judge was 55 % of the model time (3.7
   calls of 19.6 s per job), and 95 % of its 3,165 fact verdicts said "present".
-- The other models judged their own drafts, so their judge columns do not compare; the
-  blind-label check was only made for the Apertus judge. The 8B as judge was never
-  measured on the eval pairs.
+- The other models judged their own drafts, so their judge columns do not compare. One
+  of them was checked against blind labels the same way, on other drafts and another
+  day: Claude Haiku's judge on its final drafts of 11 November, blocks 63 % agreement,
+  κ 0.27 (4 of the 15 blocks it listed were statements without a source), facts 67 %,
+  κ 0.50 (9 of its 10 "missing" verdicts confirmed)
+  ([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)). The
+  8B as judge was never measured on the eval pairs.
 - **What the project built:** every fact number comes from code; the judge must quote the
   words it objects to, and a verdict whose quote is not in the draft is dropped; a
   "missing" that code contradicts is shown as a doubt.
@@ -506,7 +510,9 @@ ended on 31 October):
 - **Facts kept with the pipeline.** 97 % of the hard facts in German (8B with the 70B
   judging) and 96 % (70B), the best of all runs with gpt-oss-120b; every other model 85
   to 94 %. No silent loss, and no value that is not in the source, in any Apertus final
-  draft; only Claude Haiku's and one gpt-oss run's had such values.
+  draft; only Claude Haiku's and one gpt-oss run's had such values. Of the values the
+  official easy-language versions keep, the Apertus runs keep 97 to 100 %, the other
+  models 89 to 100 % (§7, the first limit).
 - **Readable wording from the 70B.** Amstad 57 on CSCS and on Public AI, behind only
   Sonnet and Opus (59) and ahead of gpt-oss (46 to 47) and the OpenAI small models (44
   to 48). Its words are shorter than gpt-oss's (2.00 syllables per word against 2.18;
@@ -537,7 +543,15 @@ ended on 31 October):
 - **The pipeline was built on the 8B.** Prompts, guards and repairs were developed against
   Apertus from 5 October; the other models ran on the same code unchanged. That favours
   Apertus on the pipeline's final numbers and hides its raw behaviour; the first-draft
-  table in §3 and the P1 numbers in §4.1 show more of it.
+  table in §3 and the P1 numbers in §4.1 show more of it. The hard facts kept favour it
+  in one more way: they count every value of the source, also those a translator
+  drops, and the 8B's fact sheets call the fewest passages droppable (7 % of the
+  sentences, the Claude and OpenAI models about a quarter). Every run finds 99 to
+  100 % of the facts its own fact sheet says to keep; counted against what the
+  official versions keep, gpt-oss-120b keeps as much as the Apertus 70B (100 %) and
+  Claude Haiku 97 % against the 8B's 99 %
+  ([model-scorecard.md](model-scorecard.md) §3.1,
+  [history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)).
 - **Small samples, one run per setup.** 20 German and 3 French pairs. Two runs of the same
   pipeline on the same dev pairs kept 100 and 82 of 140 hard facts, and two runs of
   Mistral Small 4 without thinking 89 and 85 % of the German eval hard facts; the

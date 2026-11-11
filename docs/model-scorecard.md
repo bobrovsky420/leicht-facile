@@ -59,6 +59,7 @@ German unless the task says French; the numbers are those of §3.
 | Task | Best | Worst |
 |---|---|---|
 | Hard facts kept in the final draft | Apertus 8B, 70B judges; gpt-oss-120b on Groq (97 %) | Mistral Small 4 (85 %) |
+| Reference facts kept: of the values the official version keeps | Apertus 70B on CSCS, gpt-oss-120b on Groq (100 %) | Mistral Small 4 (89 %) |
 | Pairs with every hard fact kept (of 20) | Apertus 8B, 70B judges (17) | Qwen 3.5 9B and Mistral Small 4 (10) |
 | Hard facts kept in the first draft | Claude Haiku and Sonnet, Mistral Small 4 with thinking (84 %) | Apertus 8B (61 %) |
 | Must-keep facts found in the first draft | Mistral Small 4 (94 %) | Apertus 8B (61 %) |
@@ -99,52 +100,53 @@ stages brings it to 92 % at 2.5 times the price.
 
 The share of the source's hard values (dates, amounts, deadlines, phone numbers,
 addresses and other exact values) that the final draft carries, found by code;
-"must-keep facts found" is measured against each run's own fact sheet, "silent losses"
-are values lost without being listed for the reviewer. German:
+"reference facts kept" counts only those of them that the official easy-language
+version keeps; "must-keep facts found" is measured against each run's own fact sheet,
+"silent losses" are values lost without being listed for the reviewer. German:
 
-| Run | Pairs | Hard facts kept | Fact-rich pairs: hard facts kept | Pairs with every hard fact kept | Must-keep facts found | Silent losses | Values not in source / 100 blocks |
-|---|---|---|---|---|---|---|---|
-| Original (standard language) | 20 | 100 % | 100 % | - | - | 0 % | 0.0 |
-| Official easy-language version | 20 | 67 % | 61 % | - | - | 33 % | 2.8 |
-| Apertus 8B, 70B judges (CSCS) | 20 | **97 % ▲** | **97 % ▲** | **17 ▲** | 100 % | 0 % | 0.0 |
-| Apertus 8B writes, 70B reads and judges (CSCS) | 20 | 94 % | 96 % | 14 | 99 % | 0 % | 0.0 |
-| Apertus 70B (CSCS) | 19 | 96 % | 96 % | 16 | 100 % | 0 % | 0.0 |
-| Apertus 70B, no thinking (Public AI) | 20 | 94 % | 93 % | 15 | 99 % | 0 % | 0.0 |
-| Qwen 3.5 9B (laptop) | 20 | 87 % | *84 % ▼* | *10 ▼* | 99 % | *1 % ▼* | 0.0 |
-| gpt-oss-20b, 120b judges (Groq) | 20 | 94 % | 93 % | 16 | 100 % | 0 % | 0.0 |
-| gpt-oss-120b (Groq) | 20 | **97 % ▲** | 96 % | 15 | 100 % | 0 % | 0.0 |
-| gpt-oss-120b (OVHcloud) | 20 | 92 % | 91 % | 14 | 100 % | 0 % | *0.3 ▼* |
-| Mistral Small 4 | 20 | *85 % ▼* | 88 % | *10 ▼* | 100 % | 0 % | 0.0 |
-| Mistral Small 4, thinking | 20 | 92 % | 91 % | 13 | 100 % | 0 % | 0.0 |
-| GPT-5.4-nano | 20 | 93 % | 92 % | 15 | 99 % | 0 % | 0.0 |
-| GPT-5.6-luna | 20 | 90 % | 88 % | 11 | 100 % | *1 % ▼* | 0.0 |
-| Claude Haiku 5.5 | 20 | 92 % | 90 % | 12 | 100 % | 0 % | *0.3 ▼* |
-| Haiku writes, Sonnet judges | 20 | 93 % | 91 % | 13 | 100 % | 0 % | 0.2 |
-| Claude Sonnet 5.5 | 20 | 91 % | 89 % | 11 | 100 % | 0 % | 0.0 |
-| Claude Opus 5.5 | 20 | 91 % | 89 % | 13 | 99 % | 0 % | 0.0 |
+| Run | Pairs | Hard facts kept | Reference facts kept | Fact-rich pairs: hard facts kept | Pairs with every hard fact kept | Must-keep facts found | Silent losses | Values not in source / 100 blocks |
+|---|---|---|---|---|---|---|---|---|
+| Original (standard language) | 20 | 100 % | - | 100 % | - | - | 0 % | 0.0 |
+| Official easy-language version | 20 | 67 % | - | 61 % | - | - | 33 % | 2.8 |
+| Apertus 8B, 70B judges (CSCS) | 20 | **97 % ▲** | 99 % | **97 % ▲** | **17 ▲** | 100 % | 0 % | 0.0 |
+| Apertus 8B writes, 70B reads and judges (CSCS) | 20 | 94 % | 97 % | 96 % | 14 | 99 % | 0 % | 0.0 |
+| Apertus 70B (CSCS) | 19 | 96 % | **100 % ▲** | 96 % | 16 | 100 % | 0 % | 0.0 |
+| Apertus 70B, no thinking (Public AI) | 20 | 94 % | 98 % | 93 % | 15 | 99 % | 0 % | 0.0 |
+| Qwen 3.5 9B (laptop) | 20 | 87 % | 92 % | *84 % ▼* | *10 ▼* | 99 % | *1 % ▼* | 0.0 |
+| gpt-oss-20b, 120b judges (Groq) | 20 | 94 % | 97 % | 93 % | 16 | 100 % | 0 % | 0.0 |
+| gpt-oss-120b (Groq) | 20 | **97 % ▲** | **100 % ▲** | 96 % | 15 | 100 % | 0 % | 0.0 |
+| gpt-oss-120b (OVHcloud) | 20 | 92 % | 94 % | 91 % | 14 | 100 % | 0 % | *0.3 ▼* |
+| Mistral Small 4 | 20 | *85 % ▼* | *89 % ▼* | 88 % | *10 ▼* | 100 % | 0 % | 0.0 |
+| Mistral Small 4, thinking | 20 | 92 % | 96 % | 91 % | 13 | 100 % | 0 % | 0.0 |
+| GPT-5.4-nano | 20 | 93 % | 95 % | 92 % | 15 | 99 % | 0 % | 0.0 |
+| GPT-5.6-luna | 20 | 90 % | 96 % | 88 % | 11 | 100 % | *1 % ▼* | 0.0 |
+| Claude Haiku 5.5 | 20 | 92 % | 97 % | 90 % | 12 | 100 % | 0 % | *0.3 ▼* |
+| Haiku writes, Sonnet judges | 20 | 93 % | 99 % | 91 % | 13 | 100 % | 0 % | 0.2 |
+| Claude Sonnet 5.5 | 20 | 91 % | 94 % | 89 % | 11 | 100 % | 0 % | 0.0 |
+| Claude Opus 5.5 | 20 | 91 % | 96 % | 89 % | 13 | 99 % | 0 % | 0.0 |
 
 French:
 
-| Run | Pairs | Hard facts kept | Pairs with every hard fact kept | Must-keep facts found | Silent losses | Values not in source / 100 blocks |
-|---|---|---|---|---|---|---|
-| Original (standard language) | 3 | 100 % | - | - | 0 % | 0.0 |
-| Official easy-language version | 3 | 56 % | - | - | 44 % | 0.8 |
-| Apertus 8B, 70B judges (CSCS) | 3 | *72 % ▼* | 1 | 100 % | 0 % | 0.0 |
-| Apertus 8B writes, 70B reads and judges (CSCS) | 3 | 87 % | 1 | *95 % ▼* | 0 % | 0.0 |
-| Apertus 70B (CSCS) | 3 | 89 % | 1 | 100 % | 0 % | 0.0 |
-| Apertus 70B, no thinking (Public AI) | 3 | 91 % | 1 | 100 % | 0 % | 0.0 |
-| Qwen 3.5 9B (laptop) | 3 | *72 % ▼* | 1 | 100 % | 0 % | 0.0 |
-| gpt-oss-20b, 120b judges (Groq) | 3 | 83 % | 1 | 100 % | 0 % | 0.0 |
-| gpt-oss-120b (Groq) | 3 | 90 % | 1 | 100 % | 0 % | 0.0 |
-| gpt-oss-120b (OVHcloud) | 3 | 90 % | 1 | 100 % | 0 % | 0.0 |
-| Mistral Small 4 | 3 | 77 % | *0 ▼* | 97 % | 0 % | 0.0 |
-| Mistral Small 4, thinking | 3 | 91 % | 1 | 100 % | 0 % | 0.0 |
-| GPT-5.4-nano | 3 | **93 % ▲** | **2 ▲** | 100 % | 0 % | 0.0 |
-| GPT-5.6-luna | 3 | 80 % | 1 | 100 % | 0 % | 0.0 |
-| Claude Haiku 5.5 | 3 | 83 % | *0 ▼* | 100 % | 0 % | 0.0 |
-| Haiku writes, Sonnet judges | 3 | 87 % | *0 ▼* | 100 % | 0 % | 0.0 |
-| Claude Sonnet 5.5 | 3 | 91 % | 1 | 100 % | 0 % | 0.0 |
-| Claude Opus 5.5 | 3 | 83 % | 1 | 100 % | 0 % | 0.0 |
+| Run | Pairs | Hard facts kept | Reference facts kept | Pairs with every hard fact kept | Must-keep facts found | Silent losses | Values not in source / 100 blocks |
+|---|---|---|---|---|---|---|---|
+| Original (standard language) | 3 | 100 % | - | - | - | 0 % | 0.0 |
+| Official easy-language version | 3 | 56 % | - | - | - | 44 % | 0.8 |
+| Apertus 8B, 70B judges (CSCS) | 3 | *72 % ▼* | 83 % | 1 | 100 % | 0 % | 0.0 |
+| Apertus 8B writes, 70B reads and judges (CSCS) | 3 | 87 % | 86 % | 1 | *95 % ▼* | 0 % | 0.0 |
+| Apertus 70B (CSCS) | 3 | 89 % | 86 % | 1 | 100 % | 0 % | 0.0 |
+| Apertus 70B, no thinking (Public AI) | 3 | 91 % | 97 % | 1 | 100 % | 0 % | 0.0 |
+| Qwen 3.5 9B (laptop) | 3 | *72 % ▼* | 83 % | 1 | 100 % | 0 % | 0.0 |
+| gpt-oss-20b, 120b judges (Groq) | 3 | 83 % | 97 % | 1 | 100 % | 0 % | 0.0 |
+| gpt-oss-120b (Groq) | 3 | 90 % | 94 % | 1 | 100 % | 0 % | 0.0 |
+| gpt-oss-120b (OVHcloud) | 3 | 90 % | 97 % | 1 | 100 % | 0 % | 0.0 |
+| Mistral Small 4 | 3 | 77 % | 78 % | *0 ▼* | 97 % | 0 % | 0.0 |
+| Mistral Small 4, thinking | 3 | 91 % | 97 % | 1 | 100 % | 0 % | 0.0 |
+| GPT-5.4-nano | 3 | **93 % ▲** | **100 % ▲** | **2 ▲** | 100 % | 0 % | 0.0 |
+| GPT-5.6-luna | 3 | 80 % | *75 % ▼* | 1 | 100 % | 0 % | 0.0 |
+| Claude Haiku 5.5 | 3 | 83 % | 86 % | *0 ▼* | 100 % | 0 % | 0.0 |
+| Haiku writes, Sonnet judges | 3 | 87 % | 86 % | *0 ▼* | 100 % | 0 % | 0.0 |
+| Claude Sonnet 5.5 | 3 | 91 % | 97 % | 1 | 100 % | 0 % | 0.0 |
+| Claude Opus 5.5 | 3 | 83 % | 97 % | 1 | 100 % | 0 % | 0.0 |
 
 - Every pipeline run keeps far more than the official easy-language versions (67 % in
   German, 56 % in French), and none loses a value without a trace beyond 1 %: that is
@@ -153,6 +155,20 @@ French:
   judge and gpt-oss-120b on Groq lead with 97 %, Mistral Small 4 without thinking
   trails with 85 % and Qwen 3.5 9B with 87 %; the Claude models end at 91 to 93 %, the
   OpenAI small models at 90 to 93 %, Mistral Small 4 with thinking at 92 %.
+- Most of that spread is what each model's fact sheet calls droppable, not what its
+  drafts lose: every run finds 99 to 100 % of the facts its own sheet says to keep,
+  and of the values a run did not keep, 63 to 100 % stood in passages its fact sheet
+  had listed as droppable or marked as background (the Apertus 8B lists 7 % of the
+  sentences, the
+  Claude and OpenAI models about a quarter, Mistral Small 4 without thinking 43 %).
+  Over thirteen runs the official versions leave out two thirds of the values in such
+  passages too. Counted against what the official versions keep, the runs stand at
+  89 to 100 % in German: the Apertus 70B on CSCS and gpt-oss-120b on Groq keep all of
+  it, the Apertus 8B and Haiku with Sonnet judging 99 %, Haiku 97 %, Opus 96 %,
+  Sonnet 94 %; Mistral Small 4 without thinking is last here too (89 %), since its
+  fact sheets leave out contact details and opening hours that the official
+  versions keep
+  ([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)).
 - Values that are not in the source appear only in drafts of Claude Haiku (0.3 per 100
   blocks, 0.2 with Sonnet judging) and of gpt-oss-120b on OVHcloud, whose three were
   e-mail addresses written with a non-breaking hyphen (fixed in code since).
@@ -517,8 +533,11 @@ These results have no counterpart from another model and are not compared here:
   ([evaluation-publicai.md](evaluation-publicai.md)).
 - The school letters and the forms of address: Apertus 1.5 70B on Public AI
   ([use-case-schools.md](use-case-schools.md)).
-- The judge against blind labels: the Apertus 70B only ([prompts.md](prompts.md),
-  "Judge agreement with blind labels").
+- The judge against blind labels: the Apertus 70B on dev drafts of 6 October
+  ([prompts.md](prompts.md), "Judge agreement with blind labels") and Claude Haiku on
+  its final drafts of 11 November, read once after the rounds
+  ([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)):
+  other drafts, another day and another role, so the two do not compare.
 - One NVIDIA L4 on premises: Apertus 1.5 8B
   ([hardware/aws-l4-2026-10-10/](hardware/aws-l4-2026-10-10/README.md)).
 - The gpt-oss variants (the 20B writing, a judge at medium effort, the model's own
@@ -532,6 +551,11 @@ These results have no counterpart from another model and are not compared here:
   against the Apertus 8B from 5 October 2026; the other models ran on the same code
   unchanged. That favours Apertus on the final numbers; the first drafts (§3.2) show
   more of each model.
+- **Hard facts kept rises with a fact sheet that leaves little out.** It counts every
+  value of the source, also those a human translator drops, and the Apertus 8B calls
+  the fewest passages droppable. The reference facts kept (§3.1) count only what the
+  official versions keep; the two columns are read together, and neither says that a
+  value was needed.
 - **Small samples, one run per setup:** 20 German and 3 French pairs; see the noise
   under "How to read the marks". Mistral Small 4 ran each setup twice; the tables show
   the second run, of 11 November, after a fix to the repair answers.

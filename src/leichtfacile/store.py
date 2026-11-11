@@ -381,6 +381,19 @@ def _add_job_events(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS job_events_job ON job_events(job_id, id)")
 
 
+def _judge_role(config: dict[str, Any]) -> dict[str, Any]:
+    if "use_judge" in config:
+        config["judge_role"] = "loop" if config.pop("use_judge") else "off"
+    return config
+
+
+def _rewrite_judge_role(conn: sqlite3.Connection) -> None:
+    """11 November 2026: a job's `use_judge` became `judge_role` (schemas.JudgeRole). A
+    stored job keeps what it ran with, the judge in the loop or none, whatever its
+    model's setting says on a rerun."""
+    _rewrite_json(conn, "jobs", "config", _judge_role)
+
+
 # One group per schema version after the base; `PRAGMA user_version` counts the groups
 # applied. Never change a group once it has shipped: add the next one.
 _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
@@ -399,6 +412,7 @@ _MIGRATIONS: tuple[tuple[Migration, ...], ...] = (
     (_add_workspace,),  # 7 (2 November 2026): the workspace column and its index
     (_add_created_by,),  # 8 (3 November 2026): who submitted the document
     (_add_job_events,),  # 9 (8 November 2026): the event log (events.py)
+    (_rewrite_judge_role,),  # 10 (11 November 2026): use_judge became judge_role
 )
 SCHEMA_VERSION = len(_MIGRATIONS)
 BACKUPS_DIR = "backups"  # next to the database: the copy made before a migration

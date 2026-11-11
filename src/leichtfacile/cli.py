@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING
 
 from leichtfacile import __version__, configure
 from leichtfacile.config import PRESETS, PROVIDERS, ConfigError, use_overrides
-from leichtfacile.schemas import CONDITIONS, REGIONS
+from leichtfacile.schemas import CONDITIONS, JUDGE_ROLES, REGIONS
 from leichtfacile.store import SchemaTooNew
 
 if TYPE_CHECKING:
@@ -204,7 +204,16 @@ def _add_simplify(sub: argparse._SubParsersAction) -> None:
         help="model for the Understand stage (default: llm.models.understand, else the writer)",
     )
     simplify.add_argument("--judge", help="judge model (default: llm.models.judge)")
-    simplify.add_argument("--no-judge", action="store_true", help="P2 without the judge")
+    simplify.add_argument(
+        "--judge-role",
+        choices=list(JUDGE_ROLES),
+        help="P2: what the judge does: loop (its findings go into the repair rounds), "
+        "report (it reads the final draft once) or off (default: the judge model's "
+        "judge_role)",
+    )
+    simplify.add_argument(
+        "--no-judge", action="store_true", help="P2 without the judge (--judge-role off)"
+    )
     simplify.add_argument("--no-repair", action="store_true", help="P2 without repair rounds")
     simplify.add_argument(
         "--mode",
@@ -577,6 +586,10 @@ def _simplify(args: argparse.Namespace) -> int:
     rounds = settings.pipeline
     if args.no_repair:  # no repair rounds, and so none of the rounds after them
         rounds = rounds.model_copy(update={"repair_rounds": 0, "facts_rounds": 0})
+    judge_role = None
+    if args.condition == "P2":  # as the job keeps it: the option, else the judge model's
+        judge_role = "off" if args.no_judge else args.judge_role
+        judge_role = judge_role or settings.llm.judge_role_for(args.judge)
     config = JobConfig(
         lang=source.lang,
         region=region,
@@ -586,7 +599,7 @@ def _simplify(args: argparse.Namespace) -> int:
         writer_model=args.writer,
         understand_model=args.understand,
         judge_model=args.judge,
-        use_judge=not args.no_judge,
+        judge_role=judge_role,
         pipeline=rounds,
         mode=args.mode,
         addressee=args.addressee,
