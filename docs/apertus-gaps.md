@@ -148,7 +148,7 @@ CSCS 19):
 
 | Run | Words | Hard facts kept | Must-keep facts found | Errors / 100 blocks | Warnings / 100 blocks | Readability | Values not in source / 100 blocks |
 |---|---|---|---|---|---|---|---|
-| Apertus 8B (CSCS) | 268 | 61 % | 62 % | 9.6 | 45.7 | 49 | 0.14 |
+| Apertus 8B (CSCS) | 268 | 61 % | 61 % | 9.6 | 45.7 | 49 | 0.14 |
 | Apertus 70B (CSCS) | 145 | 69 % | 72 % | 3.7 | 23.6 | 57 | 0.00 |
 | Apertus 70B, no thinking (Public AI) | 191 | 71 % | 78 % | 3.2 | 24.7 | 56 | 0.16 |
 | Qwen 3.5 9B | 143 | 68 % | 79 % | 4.5 | 30.9 | 53 | 0.38 |
@@ -156,11 +156,11 @@ CSCS 19):
 | gpt-oss-120b | 143 | 81 % | 84 % | 7.2 | 45.1 | 46 | 0.00 |
 | GPT-5.4-nano | 454 | 79 % | 86 % | 2.1 | 33.2 | 48 | 0.00 |
 | GPT-5.6-luna | 380 | 82 % | 93 % | 1.2 | 19.6 | 45 | 0.14 |
-| Claude Haiku 5.5 | 239 | 84 % | 92 % | 4.7 | 33.4 | 55 | 0.33 |
+| Claude Haiku 5.5 | 239 | 84 % | 91 % | 4.7 | 33.4 | 55 | 0.33 |
 | Claude Sonnet 5.5 | 414 | 84 % | 91 % | 0.3 | 14.8 | 61 | 0.09 |
-| Claude Opus 5.5 | 441 | 81 % | 88 % | 0.0 | 9.6 | 59 | 0.00 |
+| Claude Opus 5.5 | 441 | 80 % | 88 % | 0.0 | 9.6 | 59 | 0.00 |
 
-- The Apertus first drafts keep 10 to 23 points fewer hard facts than gpt-oss, the
+- The Apertus first drafts keep 8 to 23 points fewer hard facts than gpt-oss, the
   OpenAI and the Claude models; the 70B is at the level of Qwen 3.5 9B. "Hard facts
   kept" needs no fact sheet (it counts the source's dates, amounts, numbers and
   addresses in the draft), so this column compares across runs; "must-keep facts found"
