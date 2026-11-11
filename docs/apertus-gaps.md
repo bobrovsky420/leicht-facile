@@ -1,10 +1,10 @@
 # Apertus 1.5 in Leicht·Facile: where it falls short, with evidence
 
-Status: 10 November 2026. Written for the Apertus development team. It collects every
+Status: 11 November 2026. Written for the Apertus development team. It collects every
 measurement and observation the project made with Apertus 1.5 8B and 70B between 5
 October and 8 November 2026, set against the other models that ran the same pipeline on
-the same pages: Qwen 3.5 9B, gpt-oss-20b and -120b, GPT-5.4-nano, GPT-5.6-luna and
-Claude Haiku, Sonnet and Opus 5.5. The aim is to show, with numbers and examples, where
+the same pages: Qwen 3.5 9B, gpt-oss-20b and -120b, Mistral Small 4, GPT-5.4-nano,
+GPT-5.6-luna and Claude Haiku, Sonnet and Opus 5.5. The aim is to show, with numbers and examples, where
 Apertus needed the most help and what would help it most. Where Apertus did as well as
 or better than the others, this document says so too (§6), and §7 names the limits of
 the evidence. Sources are the project's records in this folder
@@ -20,19 +20,19 @@ Leicht·Facile drafts easy-language versions (Leichte Sprache, FALC, lingua faci
 official texts and promises that every date, amount, deadline and contact detail
 survives exactly, checked by code. With the full pipeline around it, Apertus keeps the
 hard facts as well as any model we tried: 97 % of them in German with the 8B writing
-and the 70B judging, the best of the fourteen published runs, tied with gpt-oss-120b.
+and the 70B judging, the best of the sixteen published runs, tied with gpt-oss-120b.
 Most of that is the pipeline's doing, though. The pipeline was built on the 8B, and a
 good part of its code exists because of what the 8B did. The gaps, most important first:
 
 1. **The first draft keeps the fewest facts and needs the most repair.** Scored with
    the same rules, the first drafts of Apertus keep 61 % (8B) and 69 to 71 % (70B) of
-   the source's hard facts in German; those of gpt-oss, the OpenAI and the Claude models
-   keep 79 to 84 %, Qwen 3.5 9B 68 % (§3). The judge, repair and recover rounds bring
-   the 8B to 97 %. Even after those rounds the 8B's drafts carry the most rule errors
-   and warnings of every run in German (3.7 errors and 41.5 warnings per 100 blocks,
-   against 0.0 to 1.7 and 7.6 to 34.3 for the eight other models). In French all three
-   Apertus runs end with the most errors (3.3 to 3.5 per 100 blocks, every other run 0.0
-   to 1.2).
+   the source's hard facts in German; those of gpt-oss, Mistral Small 4, the OpenAI and
+   the Claude models keep 79 to 84 %, Qwen 3.5 9B 68 % (§3). The judge, repair and
+   recover rounds bring the 8B to 97 %. Even after those rounds the 8B's drafts carry the
+   most rule errors and warnings of every run in German (3.7 errors and 41.5 warnings per
+   100 blocks, against 0.0 to 1.7 and 7.6 to 34.3 for the nine other models). In French
+   all three Apertus runs end with the most errors (3.3 to 3.5 per 100 blocks, every
+   other run 0.0 to 1.6).
 2. **Instruction following in long, structured prompts.** The 8B copies the prompt's
    own examples into real drafts: the JSON form word for word (4 of 12 drafts on one
    day), the examples' phone numbers (8 of 12 final drafts of the same run), the topic
@@ -98,6 +98,7 @@ judge columns are each run's own judge.
 | Qwen 3.5 9B (Q4_K_M) | 24 Oct | Ollama on a laptop | none |
 | gpt-oss-20b writes, 120b judges | 25 Oct | Groq via Hugging Face | always, effort low |
 | gpt-oss-120b everywhere | 8 Nov | Groq via Hugging Face | always, effort low |
+| Mistral Small 4 everywhere, twice | 11 Nov | Mistral AI | none, and in Understand and Judge (effort high) |
 | GPT-5.4-nano, GPT-5.6-luna | 25 Oct | OpenAI | none |
 | Claude Haiku 5.5, Sonnet 5.5 | 25 Oct | Anthropic | none |
 | Claude Opus 5.5 | 27 Oct | Anthropic | always (cannot be switched off) |
@@ -117,6 +118,8 @@ run had its own judge.
 | Qwen 3.5 9B (laptop) | 87 % | 0.3 | 27.9 | 55 | 28.2 | 28,876 | - | 588 |
 | gpt-oss-20b, 120b judges | 94 % | 1.7 | 31.9 | 46 | 43.6 | 20,197 | 0.005 | 12 |
 | gpt-oss-120b | 97 % | 0.5 | 29.1 | 47 | 45.4 | 26,702 | 0.008 | 14 |
+| Mistral Small 4 | 85 % | 0.8 | 28.1 | 53 | 30.9 | 29,284 | 0.007 | 30 |
+| Mistral Small 4, thinking | 92 % | 1.2 | 24.4 | 54 | 23.0 | 47,315 | 0.018 | 122 |
 | GPT-5.4-nano | 93 % | 0.7 | 34.3 | 48 | 47.2 | 38,935 | 0.019 | 87 |
 | GPT-5.6-luna | 90 % | 0.4 | 21.0 | 44 | 19.9 | 38,070 | 0.017 | 84 |
 | Claude Haiku 5.5 | 92 % | 0.9 | 29.9 | 57 | 15.6 | 46,648 | 0.009 | 33 |
@@ -133,6 +136,8 @@ French, 3 pairs (too few for more than a direction):
 | Qwen 3.5 9B | 72 % | 0.0 | 12.5 | 81 |
 | gpt-oss-20b, 120b judges | 83 % | 0.0 | 46.3 | 70 |
 | gpt-oss-120b | 90 % | 0.6 | 55.0 | 75 |
+| Mistral Small 4 | 77 % | 0.0 | 23.6 | 75 |
+| Mistral Small 4, thinking | 91 % | 1.6 | 28.1 | 79 |
 | GPT-5.4-nano | 93 % | 0.4 | 40.4 | 71 |
 | GPT-5.6-luna | 80 % | 0.5 | 22.8 | 74 |
 | Claude Haiku 5.5 | 83 % | 0.9 | 21.3 | 80 |
@@ -142,9 +147,9 @@ French, 3 pairs (too few for more than a direction):
 **The first drafts.** The tables above show what the pipeline makes of each model. The
 first draft, one Write call on the model's own fact sheet before any judge or repair
 round, shows more of the model itself. Scored for this document on 10 November 2026 with
-the rules of that day, from the stored jobs of the same runs (the final drafts, scored
-the same way, reproduce the tables above within 2 points). German, 20 pairs (the 70B on
-CSCS 19):
+the rules of that day (Mistral Small 4 on 11 November), from the stored jobs of the same
+runs (the final drafts, scored the same way, reproduce the tables above within 2
+points). German, 20 pairs (the 70B on CSCS 19):
 
 | Run | Words | Hard facts kept | Must-keep facts found | Errors / 100 blocks | Warnings / 100 blocks | Readability | Values not in source / 100 blocks |
 |---|---|---|---|---|---|---|---|
@@ -154,14 +159,16 @@ CSCS 19):
 | Qwen 3.5 9B | 143 | 68 % | 79 % | 4.5 | 30.9 | 53 | 0.38 |
 | gpt-oss-20b | 135 | 81 % | 87 % | 14.2 | 57.4 | 42 | 0.50 |
 | gpt-oss-120b | 143 | 81 % | 84 % | 7.2 | 45.1 | 46 | 0.00 |
+| Mistral Small 4 | 302 | 80 % | 94 % | 4.3 | 27.7 | 55 | 0.15 |
+| Mistral Small 4, thinking | 294 | 84 % | 92 % | 4.4 | 31.0 | 52 | 0.09 |
 | GPT-5.4-nano | 454 | 79 % | 86 % | 2.1 | 33.2 | 48 | 0.00 |
 | GPT-5.6-luna | 380 | 82 % | 93 % | 1.2 | 19.6 | 45 | 0.14 |
 | Claude Haiku 5.5 | 239 | 84 % | 91 % | 4.7 | 33.4 | 55 | 0.33 |
 | Claude Sonnet 5.5 | 414 | 84 % | 91 % | 0.3 | 14.8 | 61 | 0.09 |
 | Claude Opus 5.5 | 441 | 80 % | 88 % | 0.0 | 9.6 | 59 | 0.00 |
 
-- The Apertus first drafts keep 8 to 23 points fewer hard facts than gpt-oss, the
-  OpenAI and the Claude models; the 70B is at the level of Qwen 3.5 9B. "Hard facts
+- The Apertus first drafts keep 8 to 23 points fewer hard facts than gpt-oss, Mistral
+  Small 4, the OpenAI and the Claude models; the 70B is at the level of Qwen 3.5 9B. "Hard facts
   kept" needs no fact sheet (it counts the source's dates, amounts, numbers and
   addresses in the draft), so this column compares across runs; "must-keep facts found"
   is measured against each run's own fact sheet.
@@ -195,7 +202,8 @@ endpoint, not the weights.
   70 % kept) but still needs the rounds for its 94 %.
 - **Against the other models,** the first drafts of every Apertus run keep the fewest
   hard facts: 61 % (8B) and 69 to 71 % (70B) in German, against 79 to 84 % for gpt-oss,
-  GPT-5.4-nano, GPT-5.6-luna and the three Claude models (§3, "The first drafts").
+  Mistral Small 4, GPT-5.4-nano, GPT-5.6-luna and the three Claude models (§3, "The
+  first drafts").
 - **Missing values per first draft.** In 31 stored jobs of the 70B on Public AI (the
   seven sample letters, 26 to 31 October), 135 of the 185 error findings of the first
   drafts were missing must-keep values (FACT-01), 4.4 per draft.
@@ -216,7 +224,7 @@ endpoint, not the weights.
   the OpenAI small models (44 to 48), which write short sentences with long words.
 - **French is the weakest language for both sizes.** After every round the three Apertus
   runs keep 3.3 to 3.5 rule errors per 100 blocks in French (the hybrid, 70B reads and
-  8B writes, 8.8); every other run 0.0 to 1.2. Three pairs only, but the gap is
+  8B writes, 8.8); every other run 0.0 to 1.6. Three pairs only, but the gap is
   consistent across all three Apertus runs, and for the 70B it comes from the rounds:
   its French first drafts have 0.9 and 2.1 errors (§3).
 - **Passives carried over from administrative German.** On the pages of Germany and
@@ -314,8 +322,9 @@ endpoint, not the weights.
 - **The French petitions page** (`ne-disability-petitions-fr`, 4,165 words): the 8B wrote
   117 words and kept 4 of 15 hard facts, every loss listed for the reviewer, the fewest
   of all runs. On the same page Qwen 3.5 9B kept 5, GPT-5.6-luna 7, gpt-oss-20b and Opus
-  8, Haiku 9, the 70B 11 (CSCS) and 12 (Public AI), and gpt-oss-120b, GPT-5.4-nano and
-  Sonnet 12 (Sonnet in 1,580 words). The page is hard for every small model: the 70B's
+  8, Haiku and Mistral Small 4 without thinking 9, the 70B 11 (CSCS) and 12 (Public AI),
+  and gpt-oss-120b, GPT-5.4-nano, Sonnet and Mistral Small 4 with thinking 12 (Sonnet in
+  1,580 words). The page is hard for every small model: the 70B's
   first drafts kept none of the 15 values, Qwen's and gpt-oss-20b's one.
 - **Pages with many values.** On a 2,422-word pension brochure with 45 hard values the
   70B wrote 293 words and kept 17; part of that is the pipeline's cap of missing values
@@ -346,10 +355,11 @@ endpoint, not the weights.
   the gateway without it, thinking raised fact coverage from 43 to 96 % but lowered
   readability from 66 to 53 and raised rule errors from 3.6 to 7.1 per 100 blocks.
 - **The others.** Runaway reasoning is not unique to Apertus: Qwen 3.5 9B and gpt-oss at
-  its default effort also ran to the budget's end. The difference is the control:
-  gpt-oss and the OpenAI models take an effort level, the Claude models a thinking
-  field; Apertus, like Qwen on Ollama, has only on or off (`enable_thinking`, or the
-  `-thinking` model names on CSCS). gpt-oss ran its whole evaluation with a little
+  its default effort also ran to the budget's end, and Mistral Small 4's judge with
+  thinking reasoned past 12,000 tokens. The difference is the control: gpt-oss and the
+  OpenAI models take an effort level, the Claude models a thinking field; Apertus, like
+  Qwen on Ollama and Mistral Small 4 (`reasoning_effort` none or high), has only on or
+  off (`enable_thinking`, or the `-thinking` model names on CSCS). gpt-oss ran its whole evaluation with a little
   thinking at effort low; Apertus could think fully or not at all.
 - **What the project built:** thinking per stage, generous output budgets, a fallback
   without thinking when the reasoning runs out of tokens, Write never with thinking.
@@ -398,6 +408,9 @@ endpoint, not the weights.
 - On the positive side: on a short letter 20 of 20 Understand answers parsed with and
   without `response_format` (6 October), and the 70B on Public AI ran more than 150 jobs
   from 28 to 31 October without a failed stage.
+- Other models slip too: Mistral Small 4 left one repair's texts empty in 5 of 20 German
+  jobs (10 November), which failed the round until code dropped such items, and its
+  judge with thinking often listed only the facts it found a problem with.
 
 ### 4.9 Image input
 
@@ -429,7 +442,7 @@ Measured on CSCS on 7 and 9 October 2026 on two printed and scanned letters
   22 to 63 minutes there.
 - **Price** at Public AI's list prices (CSCS charged nothing): USD 0.016 per page for the
   8B setup and 0.025 to 0.032 for the 70B, against 0.005 to 0.008 for gpt-oss on Groq,
-  0.009 for Haiku, 0.017 to 0.019 for the OpenAI small models, 0.24 for Sonnet and 0.50
+  0.007 to 0.018 for Mistral Small 4 (without and with thinking), 0.009 for Haiku, 0.017 to 0.019 for the OpenAI small models, 0.24 for Sonnet and 0.50
   for Opus.
 
 ## 5. Serving and availability
@@ -491,7 +504,7 @@ ended on 31 October):
 ## 6. Where Apertus held up
 
 - **Facts kept with the pipeline.** 97 % of the hard facts in German (8B with the 70B
-  judging) and 96 % (70B), the best of all runs with gpt-oss-120b; every other model 87
+  judging) and 96 % (70B), the best of all runs with gpt-oss-120b; every other model 85
   to 94 %. No silent loss, and no value that is not in the source, in any Apertus final
   draft; only Claude Haiku's and one gpt-oss run's had such values.
 - **Readable wording from the 70B.** Amstad 57 on CSCS and on Public AI, behind only
@@ -526,18 +539,19 @@ ended on 31 October):
   Apertus on the pipeline's final numbers and hides its raw behaviour; the first-draft
   table in §3 and the P1 numbers in §4.1 show more of it.
 - **Small samples, one run per setup.** 20 German and 3 French pairs. Two runs of the same
-  pipeline on the same dev pairs kept 100 and 82 of 140 hard facts; the single prompts
-  moved by up to 8 points between days on unchanged templates. Differences of a few
-  points are within the noise.
+  pipeline on the same dev pairs kept 100 and 82 of 140 hard facts, and two runs of
+  Mistral Small 4 without thinking 89 and 85 % of the German eval hard facts; the
+  single prompts moved by up to 8 points between days on unchanged templates.
+  Differences of a few points are within the noise.
 - **Thinking differs.** Apertus thought in Understand and Judge on CSCS and nowhere on
   Public AI; Qwen, the OpenAI models, Haiku and Sonnet ran without thinking, gpt-oss and
-  Opus with it.
+  Opus with it, Mistral Small 4 once without and once in Understand and Judge.
 - **Judges differ.** Each model judged its own drafts, except the 8B (judged by the 70B);
   the judge columns are not compared here. The blind labels are an AI assistant's, not
   people's.
 - **Scores of different days.** The published Apertus CSCS rows carry the rules of 12
   October, the later runs the rules of their day; the first-draft table scores every run
-  with the rules of 10 November.
+  with the rules of 10 November (Mistral Small 4 with those of 11 November).
 - **Our own instruments.** The rule checker and the fact matcher are the project's,
   calibrated on the official easy-language versions. A bug of ours split compounds
   wrongly until 6 November (`Sozial·versicherung·samt`); such marks in earlier drafts are
