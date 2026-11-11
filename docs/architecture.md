@@ -1038,7 +1038,9 @@ midway.
   summary names the step that failed.
 - **Reasoning removal.** A thinking model's reasoning is taken from the separate
   `reasoning_content` field when the server provides one (vLLM with
-  `--reasoning-parser apertus`), and otherwise cut from the text, whether wrapped in
+  `--reasoning-parser apertus`), from the `thinking` chunks when the content comes as a
+  list of chunks (Mistral's models when they think), and otherwise cut from the text,
+  whether wrapped in
   `<|inner_prefix|> … <|inner_suffix|>` or `<think> … </think>`. Output cut off by
   `max_tokens` while still reasoning is flagged as truncated.
 - **Structured output.** Neither the CSCS docs nor the vLLM guide document

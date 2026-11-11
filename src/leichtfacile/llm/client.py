@@ -381,9 +381,10 @@ class LLMClient:
                 **params,
             )
             choice = response.choices[0]
+            text, thought = _content_parts(choice.message.content)
             return _Reply(
-                choice.message.content or "",
-                _reasoning_field(choice.message),
+                text,
+                _reasoning_field(choice.message) or thought.strip() or None,
                 choice.finish_reason,
                 getattr(response.usage, "prompt_tokens", 0) or 0,
                 getattr(response.usage, "completion_tokens", 0) or 0,
@@ -415,11 +416,11 @@ class LLMClient:
                 for choice in chunk.choices or []:
                     delta = choice.delta
                     if delta is not None:
-                        if delta.content:
-                            content.append(delta.content)
-                        piece = _reasoning_piece(delta)
-                        if piece:
-                            reasoning.append(piece)
+                        text, thought = _delta_parts(delta)
+                        if text:
+                            content.append(text)
+                        if thought:
+                            reasoning.append(thought)
                     if choice.finish_reason:
                         finish_reason = choice.finish_reason
         if not saw_usage and not self._warned_no_usage:
@@ -475,6 +476,42 @@ class LLMClient:
             self._usage_sink(usage)
         if (sink := _RECORDING.get()) is not None:
             sink(usage)
+
+
+def _content_parts(content: Any) -> tuple[str, str]:
+    """The answer and the reasoning in a message's or a streamed chunk's content: a
+    string, or a list of chunks (Mistral's models when they think, 10 November 2026),
+    `text` ones with the answer and `thinking` ones with the reasoning as a list of text
+    chunks. The reasoning is unstripped: a stream's pieces are joined later."""
+    if not content:
+        return "", ""
+    if isinstance(content, str):
+        return content, ""
+    text: list[str] = []
+    thought: list[str] = []
+    for part in content:
+        kind = _part_field(part, "type")
+        if kind == "text":
+            text.append(_part_field(part, "text") or "")
+        elif kind == "thinking":
+            inner = _part_field(part, "thinking")
+            if isinstance(inner, str):
+                thought.append(inner)
+            else:
+                thought.extend(_part_field(piece, "text") or "" for piece in inner or [])
+    return "".join(text), "".join(thought)
+
+
+def _delta_parts(delta: Any) -> tuple[str, str]:
+    """The answer and the reasoning in one streamed chunk, unstripped: the reasoning
+    from a field of its own or from thinking chunks in the content."""
+    text, thought = _content_parts(delta.content)
+    return text, _reasoning_piece(delta) + thought
+
+
+def _part_field(part: Any, name: str) -> Any:
+    """A field of one content chunk: a dict as the SDK passes it on, or an object."""
+    return part.get(name) if isinstance(part, dict) else getattr(part, name, None)
 
 
 def _reasoning_field(message: Any) -> str | None:

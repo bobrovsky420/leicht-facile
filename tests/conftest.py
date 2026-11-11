@@ -73,7 +73,7 @@ def make_settings(**overrides: Any) -> Settings:
 
 
 def chat_response(
-    content: str | None,
+    content: str | list[dict[str, Any]] | None,
     *,
     reasoning_content: str | None = None,
     finish_reason: str = "stop",
@@ -204,10 +204,26 @@ def sse_response(
 ) -> httpx.Response:
     """A streamed chat completion: reasoning and text in a few chunks, the finish
     reason, then the usage chunk that `stream_options.include_usage` asks for."""
-    events = []
+    deltas: list[dict[str, Any]] = []
     if reasoning_content:
-        events += [_chunk({"reasoning_content": p}) for p in _pieces(reasoning_content, pieces)]
-    events += [_chunk({"content": p}) for p in _pieces(content or "", pieces)]
+        deltas += [{"reasoning_content": p} for p in _pieces(reasoning_content, pieces)]
+    deltas += [{"content": p} for p in _pieces(content or "", pieces)]
+    return sse_deltas(
+        *deltas, finish_reason=finish_reason, prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens, usage=usage,
+    )  # fmt: skip
+
+
+def sse_deltas(
+    *deltas: dict[str, Any],
+    finish_reason: str = "stop",
+    prompt_tokens: int = 11,
+    completion_tokens: int = 7,
+    usage: bool = True,
+) -> httpx.Response:
+    """A streamed chat completion of these deltas as the server sends them, then the
+    finish reason and the usage chunk."""
+    events = [_chunk(delta) for delta in deltas]
     events.append(_chunk({}, finish_reason))
     if usage:
         events.append(

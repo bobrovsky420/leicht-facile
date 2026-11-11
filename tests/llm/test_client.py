@@ -11,6 +11,7 @@ from tests.conftest import (
     chat_response,
     error_response,
     make_settings,
+    sse_deltas,
     sse_response,
 )
 
@@ -175,6 +176,20 @@ def test_reasoning_inline_tokens_are_stripped(endpoint, make_client):
     result = make_client().complete(MSG, thinking=True)
     assert result.text == "42"
     assert result.reasoning == "Ich rechne."
+
+
+def test_content_as_a_list_of_thinking_and_text_chunks(endpoint, make_client):
+    # Mistral's models answer so when they think (10 November 2026).
+    endpoint.push(
+        chat_response([
+            {"type": "thinking", "thinking": [{"type": "text", "text": "17 plus 25 "},
+                                              {"type": "text", "text": "ergibt 42."}]},
+            {"type": "text", "text": "42"},
+        ])
+    )  # fmt: skip
+    result = make_client().complete(MSG, thinking=True)
+    assert result.text == "42"
+    assert result.reasoning == "17 plus 25 ergibt 42."
 
 
 def test_truncated_output_is_flagged(endpoint, make_client):
@@ -366,6 +381,26 @@ def test_streaming_without_usage_counts_zero_tokens(endpoint, make_client):
     result = make_client(make_settings(llm__stream=True)).complete(MSG)
     assert result.text == "ok"
     assert (result.usage.tokens_in, result.usage.tokens_out) == (0, 0)
+
+
+def test_streaming_chunks_of_thinking_then_text(endpoint, make_client):
+    # Mistral's stream when its model thinks: lists of thinking chunks, one list that
+    # closes the thinking and opens the answer, then plain strings (10 November 2026).
+    def thinking(text, **extra):
+        return {"type": "thinking", "thinking": [{"type": "text", "text": text}], **extra}
+
+    endpoint.push(
+        sse_deltas(
+            {"role": "assistant", "content": ""},
+            {"content": [thinking("17 plus 25 ")]},
+            {"content": [thinking("ergibt 42.", closed=True)]},
+            {"content": [thinking("", closed=True), {"type": "text", "text": '{"zahl": '}]},
+            {"content": "42}"},
+        )
+    )
+    result = make_client(make_settings(llm__stream=True)).complete(MSG, thinking=True)
+    assert result.text == '{"zahl": 42}'
+    assert result.reasoning == "17 plus 25 ergibt 42."
 
 
 def test_streaming_results_are_cached(endpoint, make_client, tmp_path):

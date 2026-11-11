@@ -40,6 +40,9 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 
 - "Suggest a sentence" on a draft without blocks says that there is no block to put the
   sentence after, instead of failing.
+- A model that sends its answer as a list of chunks, as Mistral's models do when they
+  think, is read: the thinking goes to the reasoning, the text to the answer. Such a
+  call failed before.
 - The model's answers are read more faithfully: a judge finding with a rule id that is no
   SEM rule (`LEX-01`, a block id) is dropped instead of being read as one; a repair that
   names one block twice keeps both repairs instead of the last; segment ids given in one

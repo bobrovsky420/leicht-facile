@@ -111,12 +111,12 @@ run had its own judge.
 
 | Run | Hard facts kept | Errors / 100 blocks | Warnings / 100 blocks | Readability (Amstad) | Compounds left to code / 100 blocks | Tokens / page | USD / page | s / page |
 |---|---|---|---|---|---|---|---|---|
-| Apertus 8B, 70B judges (CSCS) | **97 %** | **3.7** | **41.5** | 52 | 34.1 | 33,392 | 0.016 | 60 |
+| Apertus 8B, 70B judges (CSCS) | 97 % | 3.7 | 41.5 | 52 | 34.1 | 33,392 | 0.016 | 60 |
 | Apertus 70B (CSCS, 19 pairs) | 96 % | 0.5 | 22.2 | 57 | 29.2 | 22,295 | 0.025 | 60 |
 | Apertus 70B, no thinking (Public AI) | 94 % | 2.4 | 23.4 | 57 | 29.4 | 28,528 | 0.032 | 40 |
 | Qwen 3.5 9B (laptop) | 87 % | 0.3 | 27.9 | 55 | 28.2 | 28,876 | - | 588 |
 | gpt-oss-20b, 120b judges | 94 % | 1.7 | 31.9 | 46 | 43.6 | 20,197 | 0.005 | 12 |
-| gpt-oss-120b | **97 %** | 0.5 | 29.1 | 47 | 45.4 | 26,702 | 0.008 | 14 |
+| gpt-oss-120b | 97 % | 0.5 | 29.1 | 47 | 45.4 | 26,702 | 0.008 | 14 |
 | GPT-5.4-nano | 93 % | 0.7 | 34.3 | 48 | 47.2 | 38,935 | 0.019 | 87 |
 | GPT-5.6-luna | 90 % | 0.4 | 21.0 | 44 | 19.9 | 38,070 | 0.017 | 84 |
 | Claude Haiku 5.5 | 92 % | 0.9 | 29.9 | 57 | 15.6 | 46,648 | 0.009 | 33 |
@@ -127,9 +127,9 @@ French, 3 pairs (too few for more than a direction):
 
 | Run | Hard facts kept | Errors / 100 blocks | Warnings / 100 blocks | Readability (Kandel-Moles) |
 |---|---|---|---|---|
-| Apertus 8B, 70B judges (CSCS) | **72 %** | **3.5** | 25.8 | 70 |
-| Apertus 70B (CSCS) | 89 % | **3.4** | 17.4 | 80 |
-| Apertus 70B, no thinking (Public AI) | 91 % | **3.3** | 19.0 | 76 |
+| Apertus 8B, 70B judges (CSCS) | 72 % | 3.5 | 25.8 | 70 |
+| Apertus 70B (CSCS) | 89 % | 3.4 | 17.4 | 80 |
+| Apertus 70B, no thinking (Public AI) | 91 % | 3.3 | 19.0 | 76 |
 | Qwen 3.5 9B | 72 % | 0.0 | 12.5 | 81 |
 | gpt-oss-20b, 120b judges | 83 % | 0.0 | 46.3 | 70 |
 | gpt-oss-120b | 90 % | 0.6 | 55.0 | 75 |
@@ -148,9 +148,9 @@ CSCS 19):
 
 | Run | Words | Hard facts kept | Must-keep facts found | Errors / 100 blocks | Warnings / 100 blocks | Readability | Values not in source / 100 blocks |
 |---|---|---|---|---|---|---|---|
-| Apertus 8B (CSCS) | 268 | **61 %** | 62 % | 9.6 | 45.7 | 49 | 0.14 |
-| Apertus 70B (CSCS) | 145 | **69 %** | 72 % | 3.7 | 23.6 | 57 | 0.00 |
-| Apertus 70B, no thinking (Public AI) | 191 | **71 %** | 78 % | 3.2 | 24.7 | 56 | 0.16 |
+| Apertus 8B (CSCS) | 268 | 61 % | 62 % | 9.6 | 45.7 | 49 | 0.14 |
+| Apertus 70B (CSCS) | 145 | 69 % | 72 % | 3.7 | 23.6 | 57 | 0.00 |
+| Apertus 70B, no thinking (Public AI) | 191 | 71 % | 78 % | 3.2 | 24.7 | 56 | 0.16 |
 | Qwen 3.5 9B | 143 | 68 % | 79 % | 4.5 | 30.9 | 53 | 0.38 |
 | gpt-oss-20b | 135 | 81 % | 87 % | 14.2 | 57.4 | 42 | 0.50 |
 | gpt-oss-120b | 143 | 81 % | 84 % | 7.2 | 45.1 | 46 | 0.00 |
