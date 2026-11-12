@@ -11,10 +11,11 @@
 # publisher per repository, workflow and environment, so each package publishes from a
 # job with an environment of its own (pypi-model-de, pypi-model-fr, pypi-model-it), and
 # its publisher names this repository, models.yml and that environment. A wheel already
-# on PyPI is skipped (the same input builds the same bytes); the wheels name the project's
-# Homepage, so the versions on PyPI built before it became https://leichtfacile.ch (28
-# October 2026) differ and fail a rebuild. Every action is pinned to a
-# commit; the comment after the hash names the release.
+# on PyPI is skipped: with a notice when the rebuild gives the same bytes, with a warning
+# when it differs. The wheels name the project's Homepage, so the versions on PyPI built
+# before it became https://leichtfacile.ch (28 October 2026), the de and fr 3.8.0, differ
+# from a rebuild and get the warning. Every action is pinned to a commit; the comment
+# after the hash names the release.
 
 name: Models
 
@@ -76,7 +77,22 @@ jobs:
           assert doc.has_annotation(os.environ["ANNOTATION"]) and doc.has_annotation("MORPH")
           print(" ".join(f"{t.text}/{t.pos_}/{t.dep_ or t.tag_}" for t in doc))
           EOF
+      # PyPI takes a file once. A wheel already there is not published again: a notice
+      # when this build gives the same bytes, a warning when it differs (a change that
+      # needs a new version in the table).
       - name: Publish to PyPI
         run: |
-          uv publish --trusted-publishing always --check-url https://pypi.org/simple/ \
-            dist/models/*.whl
+          wheel=$(ls dist/models/*.whl)
+          file=$(basename "$wheel")
+          name=$(echo "$file" | cut -d- -f1 | tr _ -)
+          version=$(echo "$file" | cut -d- -f2)
+          remote=$(curl -sf "https://pypi.org/pypi/$name/$version/json" \
+            | jq -r --arg f "$file" '.urls[] | select(.filename == $f) | .digests.sha256' || true)
+          built=$(sha256sum "$wheel" | cut -d' ' -f1)
+          if [ -z "$remote" ]; then
+            uv publish --trusted-publishing always "$wheel"
+          elif [ "$remote" = "$built" ]; then
+            echo "::notice::$file is on PyPI already, the same bytes"
+          else
+            echo "::warning::$file is on PyPI already and differs from this build; a change needs a new version in pyproject.toml"
+          fi
