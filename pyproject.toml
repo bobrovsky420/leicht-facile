@@ -47,7 +47,7 @@ dependencies = [
     "python-dotenv>=1.1",
     "leichtfacile-model-de==3.8.0",
     "leichtfacile-model-fr==3.8.0",
-    "leichtfacile-model-it==1.0.1",
+    "leichtfacile-model-it==1.0.2",
     "leichtfacile-samples>=0.5,<1",
 ]
 
