@@ -579,7 +579,11 @@ one to three sentences per flagged block and new sentences for missing facts, ea
 placed after a named block, or after the whole list when that block is a list item (a sentence recovered under an item is part of the list) (10
 October 2026). A round first asks only for what blocks the draft (rule
 errors, missing fact values, the judge's problems), with at most 5 missing facts at a
-time, the most important kinds first; the warnings get one round once nothing blocking
+time, the most important kinds first (`rounds.missing_order`: medication, deadline,
+amount, obligation, condition, right, then a value of no such kind, as a date or a
+period that code added, then the contact values, of which a page that lists its offices
+has dozens and which took every place of a round while they came first, then the
+rest); the warnings get one round once nothing blocking
 is left. Code drops a repaired or added sentence that repeats one already in the draft
 (a repair that brings nothing else leaves its block as it was),
 also when an addition lands before the block it repeats, and a repair text that ends

@@ -184,9 +184,11 @@ def test_every_bucket_once(tmp_path) -> None:
     a = jobs["pair-a"]
     assert not a.recorded and a.checkable == 7 and len(a.missing) == 5
     buckets = {m.fact_id: (m.bucket, m.reason) for m in a.missing}
-    assert buckets["f06"][0] == "a" and "cap" in buckets["f06"][1]  # behind f01 f05 f02 f04 f03
+    # The contact value stands behind f01 f05 f02 f04 and the value of the kind `other`,
+    # f06 (rounds.missing_order).
+    assert buckets["f03"][0] == "a" and "cap" in buckets["f03"][1]
     assert buckets["f07"] == ("a", "never flagged by FACT-01 in the stored findings")
-    for fid in ("f03", "f04", "f05"):
+    for fid in ("f04", "f05", "f06"):
         assert buckets[fid][0] == "x" and "not recorded" in buckets[fid][1], fid
     assert {m.asked_in[0] for m in a.missing if m.bucket == "x"} == {2}
 

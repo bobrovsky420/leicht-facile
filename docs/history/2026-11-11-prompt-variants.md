@@ -304,15 +304,9 @@ the key) labelled them, and `eval kappa` scored the sheets:
   3). On the fact sheets of this day it reaches further on the dev pages: Haiku had left
   33 contact values droppable in 7 of the 30 pairs, 20 of them on one page of
   counselling centres, the Apertus 8B 12 and the 70B 6 on one page of shelters, Mistral
-  Small 4 10, gpt-oss 1. Haiku in the loop on its 7 pairs: hard facts kept from 71 to
-  85 % (the algae page from 25 to 69 %, the counselling page from 32 to 51 %). On that
-  last page 18 of its 37 values stay missing, every one flagged for the reviewer and
-  none asked for: a repair round asks for 5 missing facts and the recover round for 10
-  (`pipeline.recover_facts`), limits set for a small model. The default preset (the
-  Apertus 8B writing, the 70B judging) on the shelters page, with and without the rule:
-  the draft carries all 12 hard values both times; without the rule none of them is a
-  fact the draft is held to, with it all 12 are, at one repair round and 7 calls
-  instead of 5.
+  Small 4 10, gpt-oss 1. What it does to the drafts is measured below ("The contact
+  rule, measured"): a gain on Haiku, none on the Apertus models, and a change to the
+  order in which the rounds ask for missing facts.
 - **The judge's role** is a setting of the model that judges (`judge_role`: loop,
   report, off; architecture.md §4.5), the loop by default, and no shipped preset
   changed.
@@ -321,10 +315,83 @@ Not built: prompts of a model's own, and switches in the templates for a model. 
 with the third Understand wording is the one case that would use one; the contact rule
 covers the part of it that the official versions back.
 
+## The contact rule, measured
+
+**Claude Haiku, the judge in the loop, the 7 pages whose fact sheet the rule changes.**
+Two samples of each arm on the same fact sheets, fresh from the Write call on (the
+second one the evening of the same day, both arms on the code as built, the rule
+switched off for one of them):
+
+| Measure | Without the rule | With the rule | Difference (90 % interval over the pages) |
+|---|---|---|---|
+| Hard facts kept | 70 % | 85 % | +15* (+7 to +24) |
+| Reference facts kept (6 pages) | 76 % | 90 % | +14* (+5 to +24) |
+| Must-keep found | 100 % | 93 % | -7 (-21 to 0) |
+| Errors / 100 blocks | 0.6 | 0.8 | +0.3 (-0.5 to +1.0) |
+| Warnings / 100 blocks | 27.5 | 28.9 | +1.4 (-2.7 to +5.6) |
+| Readability | 57.1 | 55.2 | -1.9* (-3.3 to -0.6) |
+| Words | 450 | 520 | +70* (+23 to +117) |
+| Model calls | 11.4 | 13.5 | +2.1* (+0.6 to +3.6) |
+| USD / page | 0.0087 | 0.0098 | +0.0010 (-0.0001 to +0.0023) |
+| Seconds / page | 28.9 | 33.6 | +4.7* (+1.2 to +8.6) |
+
+The samples one by one: 71 to 85 % and 70 to 86 %. Every page is better with the rule,
+the algae page most (4 to 11 of its 16 values) and the page of counselling centres (12
+and 13 to 19 of 37); two samples of one arm differ by one value on at most two pages,
+and no page loses a value of another kind. Over all 30 pages hard facts kept go from 88
+to 91 % (the first sample). On the counselling page 18 of the 37 values stay missing,
+every one flagged for the reviewer: a repair round asks for 5 missing facts and the
+recover round for 10 (`pipeline.recover_facts`), limits set for a small model.
+
+**Where the rule hurt: the order of the missing facts.** The German pension page
+(`drv-contribution-refund-de`) has 45 hard values, 34 of them the addresses, phone
+numbers and e-mail addresses of sixteen regional offices; the official version keeps
+three periods and no contact value. The Apertus 70B writing and judging on Public AI,
+three samples of each arm on one fact sheet:
+
+| | Without the rule | With the rule | With the rule, values asked for before contacts |
+|---|---|---|---|
+| Must-keep facts, of 59 | 31 | 58 | 58 |
+| Hard values kept, of 45 | 16, 15, 26 | 19, 18, 19 | 16, 27, 16 |
+| Dates and periods kept, of 8 | 8, 7, 7 | 3, 2, 7 | 8, 8, 8 |
+| Values the official version keeps, of 3 | 3, 3, 3 | 1, 1, 2 | 3, 3, 3 |
+| Contact values kept, of 34 | 5, 5, 16 | 13, 13, 9 | 5, 16, 5 |
+| Must-keep values missing in the final version | 2, 2, 2 | 24, 25, 25 | 27, 17, 27 |
+
+With the rule, 33 to 35 contact facts and five dates and periods were missing after the
+first draft. A round asked for missing facts by their kind, a contact before a fact of
+the kind `other`, which is what code gives a date or a period it adds: every place of
+the recover rounds and every place but one of the repair rounds went to a contact
+value, and the periods the page is about were never asked for. Since this measurement a
+value of no listed kind is asked for just before the contact values
+(`rounds.missing_order`). With that order the three samples keep every date and period
+again. On this page the rule then neither helps nor hurts the drafts of the Apertus 70B
+(5, 16 and 5 contact values against 5, 5 and 16 without it), and it leaves the reviewer
+17 to 27 values flagged as missing, all of them addresses, phone numbers and one e-mail
+address of the regional offices, which the official version leaves out. Applied to the
+stored Haiku rounds of the table above, the new order changes one request in each
+sample: the passport page's first repair round would ask for one or two more values of
+the kind `other` in place of contact values.
+
+The official versions keep 58 % of the contact values of their sources (184 of 316 on
+the 49 pairs that have any): 65 % on pages with one to three, 78 % with four to nine,
+46 % on the nine pages with ten or more, from none of 34 (the pension page) to 12 of 14
+(a page of emergency numbers).
+
+The default preset (the Apertus 8B writing, the 70B judging) on the shelters page, with
+and without the rule: the draft carries all 12 hard values both times; without the rule
+none of them is a fact the draft is held to, with it all 12 are, at one repair round
+and 7 calls instead of 5, 241 seconds instead of 178. For the other models the rule
+changes few pages (1 of 30 for gpt-oss, 3 of 20 for Mistral Small 4, the shelters page
+for both Apertus models) and no run shows what it does to them.
+
 ## Limits
 
 - Swiss German only; French and Italian variants were not written. 30 pairs, one day,
-  one or two samples an arm.
+  one or two samples an arm (three on the pension page).
+- The contact rule's gain is measured on one model (Haiku). The changed order of the
+  missing facts is measured on one page of one model, and its effect on Haiku's pages
+  is read off the stored rounds, not run.
 - The official versions say what human translators kept, not what a reader needs; a
   value they leave out can still matter.
 - Each model judged its own drafts, and "unsupported" is that judge's count.

@@ -38,6 +38,7 @@ from leichtfacile.pipeline.versions import RepairRequest
 from leichtfacile.rules.vocabulary import OFFICE_RULES
 from leichtfacile.schemas import (
     Draft,
+    Fact,
     FactSheet,
     Finding,
     JudgeReport,
@@ -73,6 +74,31 @@ MISSING_PRIORITY = {
         )
     )
 }
+
+
+def missing_order(fact: Fact) -> tuple[float, str]:
+    """The order in which a round asks for missing facts: the most important kinds
+    first. A value of no such kind (a date or a period that code added is `other`)
+    comes just before the contact values, not after them: a page can list dozens of
+    contact values, each must-keep (`facts._keep_contacts`), and a round asks for few.
+    While every `other` fact came last, the 33 missing addresses and phone numbers of
+    sixteen regional offices took every place of the repair and recover rounds, and the
+    periods the page is about were never asked for
+    (docs/history/2026-11-11-prompt-variants.md)."""
+    rank: float | None = MISSING_PRIORITY.get(fact.kind)
+    if rank is None:
+        last = len(MISSING_PRIORITY)
+        rank = MISSING_PRIORITY["contact"] - 0.5 if fact.value_norm else last
+    return (rank, fact.id)
+
+
+def recover_request(rules: RuleFindings, factsheet: FactSheet, limit: int) -> list[Fact]:
+    """What the recover round asks for: the must-keep values still missing (FACT-01), in
+    `missing_order`, `limit` of them at most."""
+    facts = {f.id: f for f in factsheet.facts}
+    missing = {f.fact_id for f in rules.findings if f.rule_id == "FACT-01" and f.fact_id}
+    return sorted((facts[i] for i in missing if i in facts), key=missing_order)[:limit]
+
 
 # A draft version with its checks: what a round starts from and what it produces.
 Step = tuple[Draft, RuleFindings, JudgeReport | None]
@@ -205,11 +231,7 @@ def build_request(  # noqa: C901, PLR0912
     # rest; the next round takes the next ones.
     ordered_missing = sorted(
         (f for f in factsheet.facts if f.id in missing),
-        key=lambda f: (
-            f.id not in dropped,
-            MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)),
-            f.id,
-        ),
+        key=lambda f: (f.id not in dropped, *missing_order(f)),
     )[:limit]
     if facts_only:
         return RepairRequest({}, ordered_missing)

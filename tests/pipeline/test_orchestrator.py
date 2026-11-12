@@ -485,6 +485,33 @@ def test_missing_facts_come_in_small_batches_most_important_first() -> None:
     assert len(build_request(draft, rules, None, fs, facts_only=True, limit=2).missing) == 2
 
 
+def test_a_value_code_added_is_asked_for_before_the_contact_values() -> None:
+    """A page that lists many offices has dozens of contact values, each must-keep
+    (facts._keep_contacts). A date or a period code added is of the kind `other`: it
+    does not wait behind them, in a repair round and in the recover round; a statement
+    without a value still comes last."""
+    from leichtfacile.pipeline.rounds import build_request, recover_request
+    from leichtfacile.schemas import Block, Draft, Fact, FactSheet, Finding, RuleFindings
+
+    kinds = ["contact"] * 10 + ["other", "other", "deadline"]
+    fs = FactSheet(doc_id="d", facts=[
+        Fact(id=f"f{i:02d}", kind=k, text=f"Tatsache {i}", value_norm="2026-03-31")
+        for i, k in enumerate(kinds, 1)
+    ] + [Fact(id="f14", kind="other", text="Eine Aussage ohne Wert.")])  # fmt: skip
+    draft = Draft(doc_id="d", lang="de", level="A2",
+                  blocks=[Block(id="b001", kind="sentence", text="Hallo.")])  # fmt: skip
+    rules = RuleFindings(draft_version=1, level="A2", findings=[
+        Finding(block_id=None, rule_id="FACT-01", severity="error", key="legacy",
+                params={"text": "x"}, fact_id=f.id)
+        for f in fs.facts
+    ])  # fmt: skip
+    asked = [f.id for f in build_request(draft, rules, None, fs).missing]
+    assert asked == ["f13", "f11", "f12", "f01", "f02"]
+    recovered = [f.id for f in recover_request(rules, fs, 14)]
+    assert recovered[:6] == ["f13", "f11", "f12", "f01", "f02", "f03"]
+    assert recovered[-1] == "f14"
+
+
 def test_repair_requests_skip_headings_and_speak_the_draft_language() -> None:
     from leichtfacile.pipeline.facts import to_factsheet
     from leichtfacile.pipeline.models import UnderstandOut

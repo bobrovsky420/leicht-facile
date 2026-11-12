@@ -146,7 +146,12 @@ easy-language versions keep, among them the address, the phone number and the e-
 address of the office a page is about. A `url` and a `time` stay the model's call: the
 official versions keep two in five of those a fact sheet left out, and a list of links
 or of opening hours is often what a translator drops
-([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)). In
+([history/2026-11-11-prompt-variants.md](history/2026-11-11-prompt-variants.md)). A page
+that lists many offices then has dozens of must-keep contact values: the rounds ask for
+the other missing values first (docs/architecture.md §4.6), and the contact values they
+do not reach are flagged for the reviewer, also where the official version leaves the
+list out (on the 49 reference pairs with contact values the official versions keep
+58 % of them, 46 % on the pages with ten or more). In
 decision mode the protected parts decide after this step (FACT-08).
 
 **The varieties** (29 October 2026; docs/architecture.md §8). `extract_values`,

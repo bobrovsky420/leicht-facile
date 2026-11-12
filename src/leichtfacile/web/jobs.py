@@ -340,7 +340,8 @@ def create_job(  # noqa: C901
     if sub.address not in ADDRESS_FORMS:
         raise SubmissionError("unknown_address", address=sub.address)
     endpoint = (sub.endpoint or "").strip() or None
-    if presets is not None and (endpoint or settings.llm.preset) not in presets:
+    preset = endpoint or settings.llm.preset  # the job's preset: picked, else the one in use
+    if presets is not None and preset not in presets:
         if endpoint is None or endpoint == settings.llm.preset:
             raise SubmissionError("no_model")  # the preset in use is not ready
         raise SubmissionError("unknown_endpoint", name=endpoint)
@@ -367,7 +368,7 @@ def create_job(  # noqa: C901
     # What the judge does is the job's from here on, like its rounds: the setting of the
     # judge's model on the job's preset (`judge_role`), so the pages know it while the
     # job runs and a later change of the settings leaves the job as it was.
-    llm = presets.get(endpoint or settings.llm.preset) if isinstance(presets, Mapping) else None
+    llm = presets.get(preset) if preset is not None and isinstance(presets, Mapping) else None
     judge_role = None
     if condition == "P2":
         judge_role = (llm or settings.llm).judge_role_for(sub.judge_model or None)

@@ -30,8 +30,11 @@ are counted apart.
 
 The requests of rounds without a record are recomputed from the stored artifacts with
 the same code the pipeline uses (`build_request`), so the diagnosis of older runs is
-exact for bucket `a`. The detail report quotes fact texts and answers, so it stays in
-the git-ignored results folder; the bucket table is what gets published.
+exact for bucket `a` as far as the order of the missing facts is the one they ran with:
+the order is the current one (`rounds.missing_order`), and for a run without records
+made under an earlier order the facts at the cap can be others. The detail report
+quotes fact texts and answers, so it stays in the git-ignored results folder; the bucket
+table is what gets published.
 """
 
 from __future__ import annotations

@@ -33,7 +33,6 @@ from leichtfacile.llm.registry import Registry
 from leichtfacile.pipeline import stages, transforms
 from leichtfacile.pipeline.prompts import prompt_versions
 from leichtfacile.pipeline.rounds import (
-    MISSING_PRIORITY,
     MISSING_RULES,
     RoundSpec,
     Step,
@@ -41,6 +40,7 @@ from leichtfacile.pipeline.rounds import (
     blocking_count,
     missing_count,
     plan,
+    recover_request,
     request_for,
 )
 from leichtfacile.pipeline.versions import RepairRequest, add_sentences, value_present
@@ -573,14 +573,10 @@ class Orchestrator:
         version: int,
     ) -> Step | None:
         """The recover round: one call per missing must-keep value (FACT-01), the most
-        important kinds first, up to pipeline.recover_facts; each call sees the draft with
-        the sentences recovered before it. None when no sentence was accepted."""
-        facts = {f.id: f for f in factsheet.facts}
-        missing = {f.fact_id for f in rules.findings if f.rule_id == "FACT-01" and f.fact_id}
-        wanted = sorted(
-            (facts[i] for i in missing if i in facts),
-            key=lambda f: (MISSING_PRIORITY.get(f.kind, len(MISSING_PRIORITY)), f.id),
-        )[: job.config.pipeline.recover_facts]
+        important kinds first (`rounds.missing_order`), up to pipeline.recover_facts; each
+        call sees the draft with the sentences recovered before it. None when no sentence
+        was accepted."""
+        wanted = recover_request(rules, factsheet, job.config.pipeline.recover_facts)
         if not wanted:
             return None
         self._stage(run, "recover")

@@ -57,7 +57,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - A phone number, an e-mail address and a postal address are always facts to keep: the
   fact sheet no longer takes them as background, and the sentences they stand in are no
   longer among the passages a draft may leave out. On the evaluation pages models had
-  listed the contact details of the very office a page was about as not needed.
+  listed the contact details of the very office a page was about as not needed. On a
+  page that lists many offices the rounds ask for a missing date, period or other value
+  before the missing contact values, and what they do not reach is flagged for the
+  reviewer.
 - A job's `use_judge` is `judge_role` (in the audit bundle and in the job the API
   returns): `loop` for a job that ran with the judge, `off` for one without. Stored jobs
   are rewritten when the database is opened, with a copy of the database made first.
