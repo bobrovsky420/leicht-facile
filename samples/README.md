@@ -76,10 +76,12 @@ default is this package's folder (`LETTERS` in `leichtfacile_samples/__init__.py
 
 ## The recorded runs (`leichtfacile_samples/recordings/`)
 
-Version 0.6.0 holds the runs of the preset `huggingface-gpt-oss-120b-groq` (gpt-oss-120b
-on the Hugging Face router, recorded on 8 November 2026) for 8 of the 12 letters: the
-premium-reduction letter in German, French and Italian and five of the six school
-letters. The KESB decision and the Bescheide of Germany and Austria had no clean run in
+Version 0.6.1 holds the runs of the preset `huggingface-gpt-oss-120b-groq` (gpt-oss-120b
+on the Hugging Face router) for 8 of the 12 letters: the premium-reduction letter in
+German, French and Italian and five of the six school letters, recorded on 8 November
+2026; the German premium-reduction letter, the Schnupperwoche letter and the two Italian
+school letters again on 12 November 2026, after a change of the app's prompts had made
+them stale. The KESB decision and the Bescheide of Germany and Austria had no clean run in
 six attempts, and the French camp letter always one finding left (a link the judge
 missed); these four run live. One recorded run per letter and preset,
 `recordings/<preset>/<letter>.json`, so that a first visitor sees a sample letter go through the pipeline in seconds instead of

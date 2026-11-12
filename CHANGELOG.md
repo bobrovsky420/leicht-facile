@@ -64,6 +64,10 @@ list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/
 - A job's `use_judge` is `judge_role` (in the audit bundle and in the job the API
   returns): `loop` for a job that ran with the judge, `off` for one without. Stored jobs
   are rewritten when the database is opened, with a copy of the database made first.
+- Four of the eight sample letters answered from recorded runs on
+  `huggingface-gpt-oss-120b-groq` (the German premium-reduction letter, the Schnupperwoche
+  letter and the two Italian school letters) are recorded again for this version's
+  prompts (`leichtfacile-samples` 0.6.1); with the recordings of 0.6.0 they would run live.
 
 ### Fixed
 
