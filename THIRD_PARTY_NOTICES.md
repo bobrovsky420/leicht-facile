@@ -51,8 +51,12 @@ non-commercial use only (CC BY-NC-SA 3.0), which is why the lexicon stands in fo
 model. `scripts/lexicon_package.py` turns the lexicon's text file, unchanged in
 content, into the lookup table of the pipeline component `morphit`
 (`scripts/morphit.py`) inside the package `leichtfacile-model-it`, which the app
-depends on like the spaCy models for German and French; the lexicon's readme and the
-LGPL text travel inside that package.
+depends on like the spaCy models for German and French. That package holds three works
+under three licences, and the text of each travels inside it: the component's code,
+this project's (Apache 2.0, `LICENSE`); the tokenizer and sentencizer data spaCy writes
+(MIT, `LICENSE-spacy`); the lexicon (its readme and the LGPL text). Its licence
+expression is `Apache-2.0 AND MIT AND (CC-BY-SA-2.0 OR LGPL-2.1-or-later)`; up to 1.0.1
+it named the lexicon's licence alone.
 
 Morph-it! is dual-licensed: its readme says that it may be redistributed and modified
 under the Creative Commons Attribution ShareAlike 2.0 License and the GNU Lesser

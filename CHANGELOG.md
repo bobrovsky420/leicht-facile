@@ -5,6 +5,15 @@ All notable changes to Leicht·Facile. The format follows
 [GitHub](https://github.com/bobrovsky420/leicht-facile/releases) with the wheel and the
 list of its commits, and from 0.7.0 on it is on [PyPI](https://pypi.org/project/leichtfacile/).
 
+## [Unreleased]
+
+### Fixed
+
+- The Italian pipeline package `leichtfacile-model-it` 1.0.2 states the licence of each
+  of its three parts: the tagger code is Apache 2.0, spaCy's tokenizer data MIT, the
+  Morph-it! lexicon CC BY-SA 2.0 or LGPL, each with its licence text in the package.
+  Up to 1.0.1 it named the lexicon's licence for the whole package.
+
 ## [0.14.0] - 2026-11-12
 
 ### Added
@@ -708,6 +717,7 @@ The first release, built for Hack Apertus 2026.
   body limit; a URL fetcher that checks every redirect hop; a guard against cross-site
   requests; a job queue with limits and a time budget.
 
+[Unreleased]: https://github.com/bobrovsky420/leicht-facile/compare/v0.14.0...HEAD
 [0.14.0]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.3...v0.14.0
 [0.13.3]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.2...v0.13.3
 [0.13.2]: https://github.com/bobrovsky420/leicht-facile/compare/v0.13.1...v0.13.2

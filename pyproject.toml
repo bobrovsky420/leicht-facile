@@ -98,10 +98,13 @@ license = "LicenseRef-LGPL-LR"
 # University of Bologna, 0.4.8, CC BY-SA 2.0 and LGPL) is taken from the archive of the
 # Language Bank of Finland's HFST build, which carries the original text file and its
 # readme; the authors' site refuses downloads by scripts. The archive and the lexicon
-# inside it are pinned by SHA-256; `version` is the package's own.
+# inside it are pinned by SHA-256; `version` is the package's own. The package holds
+# three works under three licences: the component's code (this project's, Apache-2.0),
+# the tokenizer and sentencizer data spaCy writes (MIT) and the lexicon
+# (`lexicon_license`); `license` is the package's expression of all three.
 [tool.leichtfacile.lexicon-models.it]
 name = "morphit"
-version = "1.0.1"
+version = "1.0.2"
 source_version = "0.4.8"
 url = "https://kielipankki.fi/download/hfst-morphologies/test/it/morph-it/hfst-it-morph-morph-it.zip"
 sha256 = "895913df4b60435d01362674ae56612c0d3546e452b2ad75b2dfe1e0f48f651f"
@@ -109,7 +112,8 @@ lexicon = "hfst-it-morph-morph-it/morph-it/morph-it_048.txt.utf8"
 lexicon_sha256 = "7375216351ee59cee4326b455503f3a6c4e9542cd63ecb86ff5cd58ca5c8e800"
 readme = "hfst-it-morph-morph-it/morph-it/readme-morph-it.txt"
 lgpl = "hfst-it-morph-morph-it/morph-it/lgpl.txt"
-license = "CC-BY-SA-2.0 OR LGPL-2.1-or-later"
+license = "Apache-2.0 AND MIT AND (CC-BY-SA-2.0 OR LGPL-2.1-or-later)"
+lexicon_license = "CC-BY-SA-2.0 OR LGPL-2.1-or-later"
 
 # A release has to be public for a week before `uv lock --upgrade` or `uv add` may pick
 # it (docs/architecture.md §10, "Supply chain"): most hijacked packages are caught within

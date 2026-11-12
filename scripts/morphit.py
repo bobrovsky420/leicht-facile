@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# This file is Leicht·Facile's code; the lexicon it reads is Morph-it!'s, licensed apart.
 """The `morphit` pipeline component: lemma, part of speech and morphology from the
 Morph-it! lexicon (Eros Zanchetta and Marco Baroni, University of Bologna, version
 0.4.8), the tagger of the Italian checker. scripts/lexicon_package.py bundles this
