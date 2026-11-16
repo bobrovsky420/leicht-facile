@@ -11,7 +11,7 @@
 # Debian's security updates; uv is pinned to a release. x86-64 only: the model servers
 # the image runs next to are.
 
-FROM python:3.14-slim AS build
+FROM python:3.15-slim AS build
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /usr/local/bin/uv
 
@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 LABEL org.opencontainers.image.title="Leicht·Facile" \
       org.opencontainers.image.description="Easy-language drafts of official texts with a large language model; every fact checked by code, every draft reviewed by a person" \
